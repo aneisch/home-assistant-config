@@ -155,8 +155,8 @@ light:
         name: andrew_monitor_backlight
 
 zwave:
-  usb_path: /dev/ttyACM0
-  config_path: /home/aneisch/python-openzwave/openzwave/config
+  usb_path: /dev/zwave
+  config_path: /opt/python-openzwave/openzwave/config
 
 panel_iframe:
   timelapse:
