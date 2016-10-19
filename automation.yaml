@@ -1,0 +1,83 @@
+############
+# SECURITY #
+############
+
+#Arlo ARM
+- alias: "Arlo Arm"
+  trigger:
+    platform: state
+    entity_id: input_boolean.arlo_status
+    from: 'off'
+    to: 'on'
+  action:
+    service: script.turn_on
+    entity_id: script.arlo_arm
+
+#Arlo DISARM
+- alias: "Arlo Disarm"
+  trigger:
+    platform: state
+    entity_id: input_boolean.arlo_status
+    from: 'on'
+    to: 'off'
+  action:
+    service: script.turn_on
+    entity_id: script.arlo_disarm
+
+
+#########
+# WEMOS #
+#########
+
+- alias: "Button Press On!"
+  trigger:
+    platform: state
+    entity_id: sensor.bed_toggle_switch
+    state: "true"
+  action:
+    service: homeassistant.turn_on
+    entity_id: script.andrew_room_bedtime
+
+- alias: "Button Press Off!"
+  trigger:
+    platform: state
+    entity_id: sensor.bed_toggle_switch
+    state: "false"
+  action:
+    service: homeassistant.turn_on
+    entity_id: script.andrew_wakeup
+
+
+###########
+# NOTICES #
+###########
+
+#AC Setpoint changed
+- alias: "Notify Andrew when AC setpoint changes"
+  trigger:
+    - platform: state
+      entity_id: sensor.thermostat_cool_setpoint
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id != None }}'
+      - condition: template
+        value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: >
+          AC setpoint is now {{ trigger.to_state.state }}
+
+#Someone gets home
+- alias: "Notify Andrew when someone arrives home"
+  trigger:
+    platform: state
+    from: "not_home"
+    to: "home"
+    entity_id: group.trackers
+  action:
+    service: notify.notify_push_android
+    data:
+      message: "Someone is home!"

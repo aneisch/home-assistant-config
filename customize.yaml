@@ -1,0 +1,99 @@
+# Images go in /usr/local/lib/python3.4/dist-packages/homeassistant/components/frontend/www_static/images/
+
+#GROUPS
+group.andrew_room:
+  friendly_name: Andrew's Room
+group.living_room:
+  friendly_name: Living Room
+group.automation_override:
+  friendly_name: Automation Control
+group.presence_notify_automation:
+  friendly_name: Presence Notification
+  icon: mdi:alert-circle
+
+#AUTOMATION
+automation.notify_andrew_when_ac_setpoint_changes:
+  friendly_name: AC Setpoint Notification
+  icon: mdi:alert-circle
+
+#LIGHTS
+light.andrew_bedroom:
+  friendly_name: Bedroom Light
+light.andrew_monitor_backlight:
+  friendly_name: Monitor Backlight
+  icon: mdi:monitor
+
+#SWITCHES
+switch.andrew_sound_machine:
+  friendly_name: Sound Machine
+switch.arlo_status:
+  icon: mdi:camera
+switch.andrew_ceiling_fan:
+  icon: mdi:fan
+  friendly_name: Ceiling Fan
+switch.ge_12722_onoff_relay_switch_switch_15:
+  friendly_name: Bathroom Light
+  icon: mdi:lightbulb
+switch.living_room_lamp:
+  friendly_name: Living Room Lamp
+
+#SENSORS
+sensor.dark_sky_summary:
+  friendly_name: Conditions
+sensor.dark_sky_temperature:
+  friendly_name: Temperature
+sensor.dark_sky_humidity:
+  friendly_name: Humidity
+sensor.dark_sky_precip_probability:
+  friendly_name: Percent Chance of Rain
+
+sensor.dht_temperature_readout:
+  friendly_name: Room Temperature
+  icon: mdi:thermometer
+sensor.rack_air_temperature:
+  icon: mdi:thermometer-lines
+
+#THERMOSTAT
+climate.thermostat:
+  friendly_name: Adjust
+sensor.thermostat_fan_status:
+  friendly_name: Fan Status
+  icon: mdi:fan
+sensor.thermostat_state:
+  friendly_name: State
+  icon: mdi:fan
+sensor.thermostat_temperature_readout:
+  icon: mdi:thermometer-lines
+  friendly_name: Temperature Readout
+sensor.thermostat_cool_setpoint:
+  friendly_name: Setpoint
+  icon: mdi:thermometer
+
+#Scenes
+script.andrew_room_pre_bed:
+  friendly_name: Dim Light
+  icon: mdi:lightbulb-outline
+script.andrew_room_bedtime:
+  friendly_name: Bedtime
+  icon: mdi:theme-light-dark
+  can_cancel: False
+script.andrew_room_light_full:
+  friendly_name: Light Full
+  icon: mdi:lightbulb
+script.backlight_flux:
+  friendly_name: Monitor Backlight Night
+  icon: mdi:monitor
+
+#DEVICES
+device_tracker.owntracks_android:
+  friendly_name: Andrew's Phone
+  entity_picture: /static/images/andrew.jpg
+device_tracker.erinphoneaneisch:
+  friendly_name: Erin's Phone
+  entity_picture: /static/images/erin.jpg
+device_tracker.coleandroidaneisch:
+  friendly_name: Cole's Phone
+
+#OTHER
+#proximity.home:
+#  hidden: true

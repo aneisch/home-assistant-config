@@ -1,0 +1,6 @@
+- platform: generic
+  still_image_url: IMAGE-URL
+  name: Weather
+- platform: mjpeg
+  mjpeg_url: http://outdoor-cam:8080/?action=stream
+  name: Outdoor

@@ -1,0 +1,174 @@
+homeassistant:
+  name: Home
+  customize: !include customize.yaml
+  elevation: 94
+  unit_system: imperial
+  latitude: LAT
+  longitude: LONG
+  time_zone: America/Chicago
+
+sun:
+
+zone:
+  name: Work
+  latitude: LAT
+  longitude: LONG
+  radius: 500 
+  icon: mdi:worker
+
+zone 2:
+  name: Bethany's House
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:heart
+
+zone 3:
+  name: Dan and Marilyn's
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:home-variant
+
+zone 4:
+  name: Wayne and Lisa's
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:home-variant
+
+zone 5:
+  name: Michael and Mandy's
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:home-variant
+
+zone 6:
+  name: Kimberly and Travis'
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:home-variant
+
+zone 7:
+  name: Collier Center
+  latitude: LAT
+  longitude: LONG
+  radius: 500
+  icon: mdi:school
+
+proximity:
+  zone: home
+  devices:
+    - device_tracker.owntracks_android 
+  tolerance: 50
+
+apcupsd:
+  host: 10.0.1.6
+  port: 3551
+
+media_player:
+  platform: plex
+
+# Checks for available updates
+updater:
+
+# Allows you to issue voice commands from the frontend
+#conversation:
+
+# Enables the frontend
+frontend:
+
+# Enables support for tracking state changes over time.
+#history:
+
+# View all events in a logbook
+#logbook:
+
+# Discover some devices automatically
+#discovery:
+
+http:
+  api_password: PASSWORD
+  server_port: 8123
+  #Using nginx proxy to serve https over ipv6
+  ssl_certificate: /etc/letsencrypt/live/REDACTED/fullchain.pem
+  ssl_key: /etc/letsencrypt/live/REDACTED/privkey.pem
+
+mqtt:
+  broker: IP
+  port: 8883
+  keepalive: 60
+  username: REDACTED
+  password: REDACTED
+
+device_tracker:
+  platform: owntracks
+
+#device_tracker 2:
+#  platform: icloud
+#  username: REDACTED@gmail.com
+#  password: PASSWORD
+
+device_tracker 3:
+  platform: nmap_tracker
+  hosts: 10.0.1.41/32
+  home_interval: 10 
+
+device_tracker 4:
+  platform: nmap_tracker
+  hosts: 10.0.1.38/32
+  home_interval: 10
+
+climate:
+  platform: radiotherm
+  host:
+    - 10.0.1.29
+  hold_temp: True
+
+notify:
+  platform: pushbullet
+  api_key: API_KEY
+  name: notify_push_android
+
+#influxdb:
+#  host: 127.0.0.1
+#  username: home-assistant
+#  password: home-assistant!
+
+ifttt:
+  key: MAKER_KEY
+
+light:
+  platform: limitlessled
+  bridges:
+    - host: 10.0.1.33
+      version: 5
+      port: 8899
+      groups:
+      - number: 1
+        type: rgbw
+        name: andrew_bedroom
+      - number: 2
+        type: rgbw
+        name: andrew_monitor_backlight
+
+zwave:
+  usb_path: /dev/ttyACM0
+  config_path: /home/aneisch/python-openzwave/openzwave/config
+
+panel_iframe:
+  timelapse:
+    title: 'Goldfinch Timelapse'
+    icon: mdi:clock-fast
+    url: 'https://aneis.ch/goldfinch/movie.html'
+
+camera: !include camera.yaml
+switch: !include switches.yaml
+sensor: !include sensors.yaml
+automation: !include automation.yaml
+group: !include group.yaml
+scene: !include scene.yaml
+script: !include scripts.yaml
+input_boolean: !include input_boolean.yaml

@@ -1,0 +1,86 @@
+#TABS
+default_view:
+  view: yes
+  entities:
+    - sensor.front_door_status
+    - sensor.back_door_status
+    - group.thermostat
+    - group.automation_override
+    - group.scenes
+    - group.security
+    - group.trackers
+    - group.weather
+    - group.living_room
+    - camera.weather
+    - camera.outdoor
+    - media_player.andrews_chromecast
+andrews_room:
+  name: Andrew's Room
+  view: yes
+  entities:
+    - group.andrew_room
+ha_status:
+  name: Server Status
+  view: yes
+  entities:
+    - group.system
+    - group.UPS
+
+##########
+# GROUPS #
+##########
+thermostat:
+  - climate.thermostat
+  - sensor.thermostat_temperature_readout
+  - sensor.thermostat_cool_setpoint
+  - sensor.thermostat_state
+  - sensor.thermostat_fan_status
+scenes:
+  - script.andrew_room_light_full
+  - script.andrew_room_pre_bed
+  - script.andrew_room_bedtime
+  - script.backlight_flux
+andrew_room:
+ - sensor.dht_temperature_readout
+ - light.andrew_bedroom
+ - light.andrew_monitor_backlight
+ - switch.andrew_sound_machine
+ - switch.andrew_ceiling_fan
+ - switch.ge_12722_onoff_relay_switch_switch_15
+security:
+ - input_boolean.arlo_status
+ - sensor.front_door_status
+ - sensor.back_door_status
+#This helps us determine who is home also!
+trackers:
+ - device_tracker.owntracks_android
+ - device_tracker.erinphoneaneisch
+ - device_tracker.coleandroidaneisch
+weather:
+ - sensor.dark_sky_summary
+ - sensor.dark_sky_temperature
+ - sensor.dark_sky_humidity
+ - sensor.dark_sky_precip_probability
+ - sun.sun
+ - sensor.moon_phase
+system:
+ - sensor.rack_exhaust_temperature
+ - sensor.cpu_use
+ - sensor.ram_use
+ - sensor.disk_free_
+ - sensor.disk_use_
+UPS:
+ - sensor.ups_time_left
+ - sensor.ups_load
+ - sensor.ups_battery
+automation_override:
+ - input_boolean.door_notify
+ - input_boolean.ac_automation
+ - automation.notify_andrew_when_ac_setpoint_changes
+ - group.presence_notify_automation
+presence_notify_automation:
+ - automation.notify_andrew_when_back_door_opens
+ - automation.notify_andrew_when_front_door_opens
+ - automation.notify_andrew_when_someone_arrives_home
+living_room:
+ - switch.living_room_lamp

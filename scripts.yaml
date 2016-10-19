@@ -1,0 +1,149 @@
+##################
+# ANDREW CONTROL #
+##################
+
+andrew_light_on:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.andrew_light_full
+
+andrew_light_off:
+  sequence:
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_bedroom
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_monitor_backlight
+
+#Turn on fan and sound machine, and turn off lights
+andrew_room_bedtime:
+  sequence:
+    - service: switch.turn_on
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: switch.turn_on
+      data:
+        entity_id: switch.andrew_ceiling_fan
+    - service: scene.turn_on
+      data:
+        entity_id: scene.wakeup_light_on
+    - delay:
+        seconds: 2
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_bedroom
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_monitor_backlight
+
+#Turn off all room things, arm security
+andrew_gone:
+  sequence:
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_bedroom
+    - service: light.turn_off
+      data:
+        entity_id: light.andrew_monitor_backlight
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_ceiling_fan
+    - service: homeassistant.turn_on
+      data:
+        entity_id: input_boolean.arlo_status
+
+#Turn on lights and disarm cameras, notify
+andrew_arrived:
+  sequence:
+    - service: homeassistant.turn_off
+      data:
+        entity_id: input_boolean.arlo_status
+    - delay:
+        seconds: 5
+    - service: scene.turn_on
+      data:
+        entity_id: scene.andrew_light_full
+
+
+#Wake up light, fading red, turns off sound machine and fan after transition
+andrew_light_slow_on:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.wakeup_light_transition
+    - delay:
+        minutes: 2
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_ceiling_fan
+
+andrew_wakeup:
+  sequence:
+    - service: script.turn_on
+      data:
+        entity_id: script.andrew_room_pre_bed
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_ceiling_fan
+
+
+############
+# SECURITY #
+############
+
+arlo_disarm:
+  sequence:
+    - service: ifttt.trigger
+      data: {"event":"arlo_disarm"}
+    - service: notify.notify_push_android
+      data:
+        message: Disrmed!
+
+arlo_arm:
+  sequence:
+    - service: ifttt.trigger
+      data: {"event":"arlo_arm"}
+    - service: notify.notify_push_android
+      data:
+        message: Armed!
+
+##########
+# SCENES #
+##########
+
+#Call scene to turn all lights in room on
+andrew_room_light_full:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.andrew_light_full
+
+#Call scene to change color of backlight
+backlight_flux:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.monitor_backlight_flux
+
+#Call scene to dim lights
+andrew_room_pre_bed:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.prebed
+
+#########
+# OTHER #
+#########
+

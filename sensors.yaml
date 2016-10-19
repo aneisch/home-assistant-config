@@ -1,0 +1,189 @@
+- platform: darksky
+  api_key: API_KEY
+  monitored_conditions:
+    - summary
+    - precip_probability
+    - temperature
+    - humidity
+
+- platform: systemmonitor
+  resources:
+    - type: 'disk_use_percent'
+      arg: '/'
+    - type: 'disk_free'
+      arg: '/'
+    - type: 'memory_use_percent'
+    - type: 'processor_use'
+
+- platform: apcupsd
+  resources:
+    - loadpct
+    - bcharge
+    - timeleft
+
+- platform: mqtt
+  state_topic: 'bed-toggle/state'
+  name: 'Bed Toggle Switch'
+  qos: 1
+  value_template: "{{ value_json.enabled }}"
+
+- platform: mqtt
+  state_topic: "owntracks/owntracks/Android"
+  name: "Andrew Phone Battery"
+  unit_of_measurement: "%"
+  value_template: "{{ value_json.batt }}"
+
+- platform: mqtt
+  state_topic: "moon"
+  name: "Moon Phase"
+  value_template: "{{ value_json.phase }}"
+
+#- platform: mqtt
+#  state_topic: "sensor/1"
+#  name: "Room Temperature"
+#  unit_of_measurement: "°F"
+#  value_template: "{{ value_json.temperature }}"
+
+- platform: mqtt
+  state_topic: "sensor/3"
+  name: "Rack Exhaust Temperature"
+  unit_of_measurement: "°F"
+  value_template: "{{ value_json.temperature }}"
+
+
+###################
+# MQTT THERMOSTAT #
+###################
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat Temperature Readout"
+  unit_of_measurement: "°F"
+  value_template: "{{ value_json.temp }}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat Operating Mode"
+  value_template: "{% if value_json.tmode == 0 %}Off{% elif value_json.tmode == 1 %}Heat{% elif value_json.tmode == 2 %}Cool{% elif value_json.tmode == 3 %}Auto{% endif %}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat Fan Mode" 
+  value_template: "{% if value_json.fmode == 0 %}Auto{% elif value_json.fmode == 1 %}Auto/Circulate{% elif value_json.fmode == 2 %}On{% endif %}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat State" 
+  value_template: "{% if value_json.tstate == 0 %}Idle{% elif value_json.tstate == 1 %}Heating{% elif value_json.tstate == 2 %}Cooling{% endif %}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  unit_of_measurement: "°F"
+  name: "Thermostat Cool Setpoint"
+  value_template: "{{ value_json.t_cool }}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat Fan Status"
+  value_template: "{% if value_json.fstate == 0 %}Off{% elif value_json.fstate == 1 %}On{% endif %}"
+
+- platform: mqtt
+  state_topic: "thermostat"
+  name: "Thermostat Run"
+  value_template: "{% if value_json.tstate == 0 %}0{% else %}1{% endif %}"
+
+
+#######
+# DHT #
+#######
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_1"
+  unit_of_measurement: "°F"
+  name: "DHT Temperature Readout"
+  value_template: "{{ value_json.temperature }}"
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_1"
+  name: "DHT Humidity Readout"
+  unit_of_measurement: "%"
+  value_template: "{{ value_json.humidity }}"
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_1"
+  name: "DHT Heat Index Readout"
+  unit_of_measurement: "°F"
+  value_template: "{{ value_json.heat_index }}"
+
+
+#####################
+# PHYSICAL SECURITY #
+#####################
+
+- platform: mqtt
+  state_topic: "sensor/backdoor"
+  name: "Backdoor"
+  value_template: "{{ value_json.opened }}"
+
+- platform: mqtt
+  state_topic: "sensor/frontdoor"
+  name: "Frontdoor"
+  value_template: "{{ value_json.opened }}"
+
+
+#############
+# TEMPLATES #
+#############
+
+- platform: template
+  sensors:
+    front_door_status:
+      value_template: >-
+        {%- if is_state("sensor.frontdoor", "true") %}
+          Open
+        {%- else %}
+          Closed
+        {%- endif %}
+      friendly_name: 'Front Door Status'
+
+- platform: template
+  sensors:
+    back_door_status:
+      value_template: >-
+        {%- if is_state("sensor.backdoor", "true") %}
+          Open
+        {%- else %}
+          Closed
+        {%- endif %}
+      friendly_name: 'Back Door Status'
+
+- platform: template
+  sensors:
+    magnet_1:
+      value_template: >-
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2", "255") -%}
+          open
+        {%- else -%}
+          closed
+        {%- endif %}
+    magnet_2:
+      value_template: >-
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_4", "255") -%}
+          open
+        {%- else -%}
+          closed
+        {%- endif %}
+    magnet_3:
+      value_template: >-
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_5", "255") -%}
+          open
+        {%- else -%}
+          closed
+        {%- endif %}
+    pir:
+      value_template: >-
+        {%- if is_state("sensor.linear_unknown_type2002_id0203_alarm_level_3", "255") -%}
+          occupied
+        {%- else -%}
+          unoccupied
+        {%- endif %}

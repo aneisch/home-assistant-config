@@ -1,0 +1,14 @@
+arlo_status:
+  name: Arlo Status
+  initial: off
+  icon: mdi:camera
+
+door_notify:
+  name: Door Notifications
+  initial: off
+  icon: mdi:alert-circle
+
+ac_automation:
+  name: AC Automation
+  initial: on
+  icon: mdi:fan
