@@ -162,7 +162,7 @@ panel_iframe:
   timelapse:
     title: 'Goldfinch Timelapse'
     icon: mdi:clock-fast
-    url: 'https://aneis.ch/goldfinch/movie.html'
+    url: 'https://REDACTED'
 
 camera: !include camera.yaml
 switch: !include switches.yaml
