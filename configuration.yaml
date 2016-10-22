@@ -90,11 +90,12 @@ frontend:
 #discovery:
 
 http:
+  server_host: 127.0.0.1
   api_password: PASSWORD
   server_port: 8123
   #Using nginx proxy to serve https over ipv6
-  ssl_certificate: /etc/letsencrypt/live/REDACTED/fullchain.pem
-  ssl_key: /etc/letsencrypt/live/REDACTED/privkey.pem
+  #ssl_certificate: /etc/letsencrypt/live/REDACTED/fullchain.pem
+  #ssl_key: /etc/letsencrypt/live/REDACTED/privkey.pem
 
 mqtt:
   broker: IP
