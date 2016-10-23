@@ -93,5 +93,6 @@ device_tracker.erinphoneaneisch:
   entity_picture: /static/images/erin.jpg
 device_tracker.coleandroidaneisch:
   friendly_name: Cole's Phone
+  entity_picture: /static/images/cole.jpg
 
 #OTHER
