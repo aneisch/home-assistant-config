@@ -59,10 +59,11 @@ zone 7:
   icon: mdi:school
 
 proximity:
-  zone: home
-  devices:
-    - device_tracker.owntracks_android 
-  tolerance: 50
+  home:
+    devices:
+      - device_tracker.owntracks_android 
+    tolerance: 50
+    unit_of_measurement: mi
 
 apcupsd:
   host: 10.0.1.6

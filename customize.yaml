@@ -31,7 +31,7 @@ switch.arlo_status:
 switch.andrew_ceiling_fan:
   icon: mdi:fan
   friendly_name: Ceiling Fan
-switch.ge_12722_onoff_relay_switch_switch_15:
+switch.ge_12722_onoff_relay_switch_switch_15_0:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
 switch.living_room_lamp:
@@ -95,5 +95,3 @@ device_tracker.coleandroidaneisch:
   friendly_name: Cole's Phone
 
 #OTHER
-#proximity.home:
-#  hidden: true

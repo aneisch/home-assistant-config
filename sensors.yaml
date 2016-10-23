@@ -161,28 +161,28 @@
   sensors:
     magnet_1:
       value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2", "255") -%}
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2_1", "255") -%}
           open
         {%- else -%}
           closed
         {%- endif %}
     magnet_2:
       value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_4", "255") -%}
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_4_1", "255") -%}
           open
         {%- else -%}
           closed
         {%- endif %}
     magnet_3:
       value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_5", "255") -%}
+        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_5_1", "255") -%}
           open
         {%- else -%}
           closed
         {%- endif %}
     pir:
       value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2002_id0203_alarm_level_3", "255") -%}
+        {%- if is_state("sensor.linear_unknown_type2002_id0203_alarm_level_3_1", "255") -%}
           occupied
         {%- else -%}
           unoccupied
