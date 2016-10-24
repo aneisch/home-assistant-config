@@ -46,7 +46,7 @@ andrew_room:
  - light.andrew_monitor_backlight
  - switch.andrew_sound_machine
  - switch.andrew_ceiling_fan
- - switch.ge_12722_onoff_relay_switch_switch_15
+ - switch.ge_12722_onoff_relay_switch_switch_15_0
 security:
  - input_boolean.arlo_status
  - sensor.front_door_status

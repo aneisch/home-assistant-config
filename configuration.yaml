@@ -73,7 +73,7 @@ media_player:
   platform: plex
 
 # Checks for available updates
-updater:
+#updater:
 
 # Allows you to issue voice commands from the frontend
 #conversation:
@@ -82,7 +82,7 @@ updater:
 frontend:
 
 # Enables support for tracking state changes over time.
-#history:
+history:
 
 # View all events in a logbook
 #logbook:
