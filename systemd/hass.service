@@ -1,0 +1,13 @@
+[Unit]
+Description=Home Assistant (hass) Daemon
+After=syslog.target network.target
+
+[Service]
+Type=forking
+ExecStart=/usr/local/bin/hass -v --config /opt/homeassistant --pid-file /var/run/hass.pid --daemon
+#Add static arp entry for thermostat
+ExecStartPost=/usr/sbin/arp -s 10.0.1.29 20:02:af:76:b6:db
+PIDFile=/var/run/hass.pid
+
+[Install]
+WantedBy=multi-user.target
