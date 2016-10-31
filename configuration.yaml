@@ -85,7 +85,7 @@ frontend:
 history:
 
 # View all events in a logbook
-#logbook:
+logbook:
 
 # Discover some devices automatically
 #discovery:
