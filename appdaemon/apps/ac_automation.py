@@ -39,12 +39,12 @@ class AutoAdjust(appapi.AppDaemon):
 
     elif old == "home" and new == "not_home":
       if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
-        self.log("House is unoccupied... Heat. Adjusting accordingly. %s" % self.args["winter_unoccupied"])
+        self.log("Mode: Heat, House is newly unoccupied, %s" % self.args["winter_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_unoccupied"])
       elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
-        self.log("House is unoccupied... Cool. Adjusting accordingly. %s" % self.args["summer_unoccupied"])
+        self.log("Mode: Cool, House is newly unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
