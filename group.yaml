@@ -69,6 +69,7 @@ system:
  - sensor.ram_use
  - sensor.disk_free_
  - sensor.disk_use_
+ - switch.nas
 UPS:
  - sensor.ups_time_left
  - sensor.ups_load

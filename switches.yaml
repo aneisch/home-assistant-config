@@ -31,3 +31,8 @@
   payload_off: "Off"
   optimistic: false
   retain: true
+
+- platform: wake_on_lan
+  name: "NAS" 
+  mac_address: "e8:fc:af:e6:22:26"
+  host: 10.0.1.20
