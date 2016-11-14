@@ -36,6 +36,8 @@ switch.ge_12722_onoff_relay_switch_switch_15_0:
   icon: mdi:lightbulb
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
+switch.wemo_switch:
+  friendly_name: Living Room Lamp 2
 
 #SENSORS
 sensor.dark_sky_summary:

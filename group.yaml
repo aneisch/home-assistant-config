@@ -85,3 +85,4 @@ presence_notify_automation:
  - automation.notify_andrew_when_someone_arrives_home
 living_room:
  - switch.living_room_lamp
+ - switch.wemo_switch

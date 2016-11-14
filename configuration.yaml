@@ -166,6 +166,8 @@ panel_iframe:
     icon: mdi:clock-fast
     url: 'https://REDACTED'
 
+wemo:
+
 camera: !include camera.yaml
 switch: !include switches.yaml
 sensor: !include sensors.yaml
