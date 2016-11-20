@@ -30,7 +30,7 @@
 - platform: mqtt
   state_topic: "owntracks/owntracks/Android"
   name: "Andrew Phone Battery"
-  unit_of_measurement: "%"
+  #unit_of_measurement: "%"
   value_template: "{{ value_json.batt }}"
 
 - platform: mqtt
@@ -47,7 +47,7 @@
 - platform: mqtt
   state_topic: "sensor/3"
   name: "Rack Exhaust Temperature"
-  unit_of_measurement: "°F"
+  #unit_of_measurement: "°F"
   value_template: "{{ value_json.temperature }}"
 
 
@@ -58,7 +58,7 @@
 - platform: mqtt
   state_topic: "thermostat"
   name: "Thermostat Temperature Readout"
-  unit_of_measurement: "°F"
+  #unit_of_measurement: "°F"
   value_template: "{{ value_json.temp }}"
 
 - platform: mqtt
@@ -78,7 +78,7 @@
 
 - platform: mqtt
   state_topic: "thermostat"
-  unit_of_measurement: "°F"
+  #unit_of_measurement: "°F"
   name: "Thermostat Setpoint"
   value_template: "{{ value_json.setpoint }}"
 
@@ -99,20 +99,20 @@
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  unit_of_measurement: "°F"
-  name: "DHT Temperature Readout"
+  #unit_of_measurement: "°F"
+  name: "Andrew Room Temperature Readout"
   value_template: "{{ value_json.temperature }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "DHT Humidity Readout"
-  unit_of_measurement: "%"
+  name: "Andrew Room Humidity Readout"
+  #unit_of_measurement: "%"
   value_template: "{{ value_json.humidity }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "DHT Heat Index Readout"
-  unit_of_measurement: "°F"
+  name: "Andrew Room Heat Index Readout"
+  #unit_of_measurement: "°F"
   value_template: "{{ value_json.heat_index }}"
 
 

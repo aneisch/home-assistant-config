@@ -41,7 +41,7 @@ scenes:
   - script.andrew_room_bedtime
   - script.backlight_flux
 andrew_room:
- - sensor.dht_temperature_readout
+ - sensor.andrew_room_temperature_readout
  - light.andrew_bedroom
  - light.andrew_monitor_backlight
  - switch.andrew_sound_machine

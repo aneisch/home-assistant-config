@@ -82,7 +82,7 @@ media_player:
 frontend:
 
 # Enables support for tracking state changes over time.
-history:
+#history:
 
 # View all events in a logbook
 logbook:
@@ -134,10 +134,10 @@ notify:
   api_key: API_KEY
   name: notify_push_android
 
-#influxdb:
-#  host: 127.0.0.1
-#  username: home-assistant
-#  password: home-assistant!
+influxdb:
+  host: 10.0.1.30
+  username: home-assistant
+  password: home-assistant!
 
 ifttt:
   key: MAKER_KEY

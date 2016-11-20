@@ -49,7 +49,7 @@ sensor.dark_sky_humidity:
 sensor.dark_sky_precip_probability:
   friendly_name: Percent Chance of Rain
 
-sensor.dht_temperature_readout:
+sensor.andrew_room_temperature_readout:
   friendly_name: Room Temperature
   icon: mdi:thermometer
 sensor.rack_air_temperature:
