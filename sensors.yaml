@@ -79,8 +79,8 @@
 - platform: mqtt
   state_topic: "thermostat"
   unit_of_measurement: "°F"
-  name: "Thermostat Cool Setpoint"
-  value_template: "{{ value_json.t_cool }}"
+  name: "Thermostat Setpoint"
+  value_template: "{{ value_json.setpoint }}"
 
 - platform: mqtt
   state_topic: "thermostat"

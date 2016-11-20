@@ -67,7 +67,7 @@ sensor.thermostat_state:
 sensor.thermostat_temperature_readout:
   icon: mdi:thermometer-lines
   friendly_name: Temperature Readout
-sensor.thermostat_cool_setpoint:
+sensor.thermostat_setpoint:
   friendly_name: Setpoint
   icon: mdi:thermometer
 

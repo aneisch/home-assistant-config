@@ -32,7 +32,7 @@ ha_status:
 thermostat:
   - climate.thermostat
   - sensor.thermostat_temperature_readout
-  - sensor.thermostat_cool_setpoint
+  - sensor.thermostat_setpoint
   - sensor.thermostat_state
   - sensor.thermostat_fan_status
 scenes:
