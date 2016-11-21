@@ -49,6 +49,7 @@ class AutoAdjust(appapi.AppDaemon):
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
+          self.run_in(self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool"), 30)
 
 
   def adjust_morning(self, kwargs):
@@ -73,11 +74,13 @@ class AutoAdjust(appapi.AppDaemon):
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_day"])
+          self.run_in(self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool"), 30)
       else:
         self.log("Mode: Cool, Summer Unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
+          self.run_in(self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool"), 30)
 
 
   def adjust_night(self, kwargs):
@@ -101,11 +104,13 @@ class AutoAdjust(appapi.AppDaemon):
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_night"])
+          self.run_in(self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool"), 30)
       else:
         self.log("Mode: Cool, Summer Unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
           self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
+          self.run_in(self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool"), 30)
 
 
   def time_in_range(self, start, end, x):
