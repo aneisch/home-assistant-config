@@ -23,6 +23,14 @@ class AutoAdjust(appapi.AppDaemon):
         self.listen_state(self.presence_adjust, sensor)
     self.listen_state(self.presence_adjust, self.args["door_trigger"])
 
+  def set_heat(self, kwargs):
+    for tstat in self.split_device_list(self.args["thermostats"]):
+      self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat") 
+
+  def set_cool(self, kwargs):
+    for tstat in self.split_device_list(self.args["thermostats"]):
+      self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+
 
   #Do stuff!
   def presence_adjust(self, entity, attribute, old, new, kwargs):
@@ -41,15 +49,15 @@ class AutoAdjust(appapi.AppDaemon):
       if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
         self.log("Mode: Heat, House is newly unoccupied, %s" % self.args["winter_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.set_heat()
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.run_in(self.set_heat, 60)
       elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
         self.log("Mode: Cool, House is newly unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.set_cool(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.run_in(self.set_cool, 60)
 
 
   def adjust_morning(self, kwargs):
@@ -57,29 +65,29 @@ class AutoAdjust(appapi.AppDaemon):
       if self.get_state(self.args["device_tracker"]) == "home": 
         self.log("Mode: Heat, Winter Day, %s" % self.args["winter_day"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.set_heat(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_day"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.run_in(self.set_heat, 60)
       else:
         self.log("Mode: Heat, Winter Unoccupied, %s" % self.args["winter_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.set_heat(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.run_in(self.set_heat, 60)
 
     elif float(self.get_state("sensor.dark_sky_temperature")) > 50 and self.get_state("input_boolean.ac_automation") == "on":
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Cool, Summer Day, %s" % self.args["summer_day"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.set_cool(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_day"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.run_in(self.set_cool, 60)
       else:
         self.log("Mode: Cool, Summer Unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.set_cool(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.run_in(self.set_cool, 60)
 
 
   def adjust_night(self, kwargs):
@@ -87,29 +95,29 @@ class AutoAdjust(appapi.AppDaemon):
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Heat, Winter Night, %s" % self.args["winter_night"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.set_heat(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_night"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.run_in(self.set_heat, 60)
       else:
         self.log("Mode: Heat, Winter Unoccupied, %s" % self.args["winter_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.set_heat(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["winter_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "heat")
+          self.run_in(self.set_heat, 60)
 
     elif float(self.get_state("sensor.dark_sky_temperature")) > 50 and self.get_state("input_boolean.ac_automation") == "on":
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Cool, Summer Night, %s" % self.args["summer_night"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.set_cool(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_night"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.run_in(self.set_cool, 60)
       else:
         self.log("Mode: Cool, Summer Unoccupied, %s" % self.args["summer_unoccupied"])
         for tstat in self.split_device_list(self.args["thermostats"]):
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.set_cool(kwargs)
           self.call_service("climate/set_temperature", entity_id = tstat, temperature = self.args["summer_unoccupied"])
-          self.call_service("climate/set_operation_mode", entity_id = tstat, operation_mode = "cool")
+          self.run_in(self.set_cool, 60)
 
 
   def time_in_range(self, start, end, x):
