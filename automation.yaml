@@ -68,7 +68,7 @@
     - service: notify.notify_push_android
       data_template:
         message: >
-          AC setpoint is now {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode }}
+          AC setpoint is now {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
 #Someone gets home
 - alias: "Notify Andrew when someone arrives home"
