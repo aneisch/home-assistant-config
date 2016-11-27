@@ -12,8 +12,8 @@ group.presence_notify_automation:
   icon: mdi:alert-circle
 
 #AUTOMATION
-automation.notify_andrew_when_ac_setpoint_changes:
-  friendly_name: AC Setpoint Notification
+group.ac_notification
+  friendly_name: AC Change Notification
   icon: mdi:alert-circle
 
 #LIGHTS
