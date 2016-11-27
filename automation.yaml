@@ -68,7 +68,25 @@
     - service: notify.notify_push_android
       data_template:
         message: >
-          AC setpoint is now {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+          Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+
+#AC Setpoint changed
+- alias: "Notify Andrew when AC Mode changes"
+  trigger:
+    - platform: state
+      entity_id: sensor.thermostat_mode
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: '{{ trigger.entity_id != None }}'
+      - condition: template
+        value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: >
+          Mode Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
 #Someone gets home
 - alias: "Notify Andrew when someone arrives home"
