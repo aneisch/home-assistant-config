@@ -74,7 +74,7 @@
 - alias: "Notify Andrew when AC Mode changes"
   trigger:
     - platform: state
-      entity_id: sensor.thermostat_mode
+      entity_id: sensor.thermostat_operating_mode
   condition:
     condition: and
     conditions:
@@ -86,7 +86,7 @@
     - service: notify.notify_push_android
       data_template:
         message: >
-          Mode Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+          Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
 
 #Someone gets home
 - alias: "Notify Andrew when someone arrives home"

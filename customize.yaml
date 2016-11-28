@@ -12,7 +12,7 @@ group.presence_notify_automation:
   icon: mdi:alert-circle
 
 #AUTOMATION
-group.ac_notification
+group.ac_notification:
   friendly_name: AC Change Notification
   icon: mdi:alert-circle
 
