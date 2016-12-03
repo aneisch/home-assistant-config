@@ -38,30 +38,31 @@ class AutoAdjust(appapi.AppDaemon):
 
   #Do stuff!
   def presence_adjust(self, entity, attribute, old, new, kwargs):
-    if (old == "not_home" and new == "home") or (old == "Closed" and new == "Open" and self.get_state(self.args["device_tracker"]) == "not_home"):
-      if old == "Closed" and new == "Open":
-        self.log("Door opened...")
-        self.set_state(self.args["device_tracker"], state = "home")
-      if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
-        self.log("Someone is home during the day")
-        self.adjust_morning(kwargs)
-      else:
-        self.log("Someone is home at night")
-        self.adjust_night(kwargs)
+    if self.get_state("input_boolean.ac_automation") == "on":
+      if (old == "not_home" and new == "home") or (old == "Closed" and new == "Open" and self.get_state(self.args["device_tracker"]) == "not_home"):
+        if old == "Closed" and new == "Open":
+          self.log("Door opened...")
+          self.set_state(self.args["device_tracker"], state = "home")
+        if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
+          self.log("Someone is home during the day")
+          self.adjust_morning(kwargs)
+        else:
+          self.log("Someone is home at night")
+          self.adjust_night(kwargs)
 
-    elif old == "home" and new == "not_home":
-      if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
-        self.log("Mode: Heat, House is newly unoccupied, %s" % self.args["winter_unoccupied"])
-        for tstat in self.split_device_list(self.args["thermostats"]):
-          self.set_heat()
-          self.run_in(self.adjust_temp, 60, temp = self.args["winter_unoccupied"])
-          self.run_in(self.set_heat, 120)
-      elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
-        self.log("Mode: Cool, House is newly unoccupied, %s" % self.args["summer_unoccupied"])
-        for tstat in self.split_device_list(self.args["thermostats"]):
-          self.set_cool(kwargs)
-          self.run_in(self.adjust_temp, 60, temp = self.args["summer_unoccupied"])
-          self.run_in(self.set_cool, 120)
+      elif old == "home" and new == "not_home":
+        if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
+          self.log("Mode: Heat, House is newly unoccupied, %s" % self.args["winter_unoccupied"])
+          for tstat in self.split_device_list(self.args["thermostats"]):
+            self.set_heat()
+            self.run_in(self.adjust_temp, 60, temp = self.args["winter_unoccupied"])
+            self.run_in(self.set_heat, 120)
+        elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
+          self.log("Mode: Cool, House is newly unoccupied, %s" % self.args["summer_unoccupied"])
+          for tstat in self.split_device_list(self.args["thermostats"]):
+            self.set_cool(kwargs)
+            self.run_in(self.adjust_temp, 60, temp = self.args["summer_unoccupied"])
+            self.run_in(self.set_cool, 120)
 
 
   def adjust_morning(self, kwargs):
