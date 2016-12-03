@@ -38,7 +38,8 @@ class AutoAdjust(appapi.AppDaemon):
 
   #Do stuff!
   def presence_adjust(self, entity, attribute, old, new, kwargs):
-    if self.get_state("input_boolean.ac_automation") == "on":
+    #Only change things if you AC automation switched to on
+    if self.get_state(self.args["override_input_boolean"]) == "on":
       if (old == "not_home" and new == "home") or (old == "Closed" and new == "Open" and self.get_state(self.args["device_tracker"]) == "not_home"):
         if old == "Closed" and new == "Open":
           self.log("Door opened...")
@@ -66,7 +67,7 @@ class AutoAdjust(appapi.AppDaemon):
 
 
   def adjust_morning(self, kwargs):
-    if float(self.get_state("sensor.dark_sky_temperature")) <= 50 and self.get_state("input_boolean.ac_automation") == "on":
+    if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
       if self.get_state(self.args["device_tracker"]) == "home": 
         self.log("Mode: Heat, Winter Day, %s" % self.args["winter_day"])
         for tstat in self.split_device_list(self.args["thermostats"]):
@@ -80,7 +81,7 @@ class AutoAdjust(appapi.AppDaemon):
           self.run_in(self.adjust_temp, 60, temp = self.args["winter_unoccupied"])
           self.run_in(self.set_heat, 120)
 
-    elif float(self.get_state("sensor.dark_sky_temperature")) > 50 and self.get_state("input_boolean.ac_automation") == "on":
+    elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Cool, Summer Day, %s" % self.args["summer_day"])
         for tstat in self.split_device_list(self.args["thermostats"]):
@@ -96,7 +97,7 @@ class AutoAdjust(appapi.AppDaemon):
 
 
   def adjust_night(self, kwargs):
-    if float(self.get_state("sensor.dark_sky_temperature")) <= 50 and self.get_state("input_boolean.ac_automation") == "on":
+    if float(self.get_state("sensor.dark_sky_temperature")) <= 50:
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Heat, Winter Night, %s" % self.args["winter_night"])
         for tstat in self.split_device_list(self.args["thermostats"]):
@@ -110,7 +111,7 @@ class AutoAdjust(appapi.AppDaemon):
           self.run_in(self.adjust_temp, 60, temp = self.args["winter_unoccupied"])
           self.run_in(self.set_heat, 120)
 
-    elif float(self.get_state("sensor.dark_sky_temperature")) > 50 and self.get_state("input_boolean.ac_automation") == "on":
+    elif float(self.get_state("sensor.dark_sky_temperature")) > 50:
       if self.get_state(self.args["device_tracker"]) == "home":
         self.log("Mode: Cool, Summer Night, %s" % self.args["summer_night"])
         for tstat in self.split_device_list(self.args["thermostats"]):
