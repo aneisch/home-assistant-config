@@ -168,6 +168,14 @@ panel_iframe:
 
 wemo:
 
+emulated_hue:
+  expose_by_default: true
+  exposed_domains:
+    - light
+    - script
+    - switch
+
+
 camera: !include camera.yaml
 switch: !include switches.yaml
 sensor: !include sensors.yaml
