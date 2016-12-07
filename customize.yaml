@@ -71,7 +71,7 @@ sensor.thermostat_setpoint:
   friendly_name: Setpoint
   icon: mdi:thermometer
 
-#Scenes
+#Scripts
 script.andrew_room_pre_bed:
   friendly_name: Dim Light
   icon: mdi:lightbulb-outline
@@ -85,6 +85,10 @@ script.andrew_room_light_full:
 script.backlight_flux:
   friendly_name: Monitor Backlight Night
   icon: mdi:monitor
+script.arlo_arm:
+  friendly_name: Arlo Arm
+script.arlo_disarm:
+  friendly_name: Arlo Disarm
 
 #DEVICES
 device_tracker.owntracks_android:
