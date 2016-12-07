@@ -1,6 +1,6 @@
 # Let's only use these to control advanced lighting features.
 
-- name: Pre-Bed
+- name: Pre-Bed Light
   entities:
     light.andrew_bedroom:
       state: on
@@ -12,7 +12,7 @@
       brightness: 255
       rgb_color: [255, 217, 201]
 
-- name: andrew light full
+- name: Andrew Light Full
   entities:
     light.andrew_bedroom:
       state: on

@@ -172,8 +172,8 @@ emulated_hue:
   expose_by_default: true
   exposed_domains:
     - light
-    - script
     - switch
+    - script
 
 
 camera: !include camera.yaml

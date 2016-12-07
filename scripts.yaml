@@ -2,21 +2,6 @@
 # ANDREW CONTROL #
 ##################
 
-andrew_light_on:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.andrew_light_full
-
-andrew_light_off:
-  sequence:
-    - service: light.turn_off
-      data:
-        entity_id: light.andrew_bedroom
-    - service: light.turn_off
-      data:
-        entity_id: light.andrew_monitor_backlight
-
 #Turn on fan and sound machine, and turn off lights
 andrew_room_bedtime:
   sequence:
@@ -141,7 +126,7 @@ andrew_room_pre_bed:
   sequence:
     - service: scene.turn_on
       data:
-        entity_id: scene.prebed
+        entity_id: scene.prebed_light
 
 #########
 # OTHER #
