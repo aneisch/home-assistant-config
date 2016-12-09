@@ -21,7 +21,9 @@ intents:
     speech:
         type: plaintext
         text: >
-          {% if is_state('states.sensor.andrew_room_temperature_readout.state', 'unknown') %}
+          {% if is_state("sensor.andrew_room_temperature_readout", "unknown") %}
+            The sensor hasn't reported a value, sorry!
+          {%- elif is_state("sensor.andrew_room_temperature_readout","nan") 
             The sensor hasn't reported a value, sorry!
           {% else %}
             Your room is {{ states.sensor.andrew_room_temperature_readout.state }} degrees

@@ -39,7 +39,7 @@ Grafana/Influx bogged down my pi, I might revisit this later...
 It's later! I've migrated my install from a pi2 to a pi3 and have loaded grafana/influx onto a second pi (pi2). While not perfect, it seems to keep up decently well. 
 
  
-Thanks to Deviant Engineer for the guide that helped me migrate to new pi in a sane matter. https://deviantengineer.com/2016/09/hass-dietpi/
+Thanks to Deviant Engineer for the guide that helped me migrate to my new pi in a sane matter. https://deviantengineer.com/2016/09/hass-dietpi/
 
 
 # Interface
