@@ -9,7 +9,7 @@ https://play.google.com/store/apps/details?id=com.joaomgcd.autoalarm&hl=en
 
 I am now using Tasker to talk directly with the API.
 
-My home automation suite is built out of many different components and runs on a Raspberry Pi Model B with Debian Jessie OS:
+My home automation suite is built out of many different components and runs on a Raspberry Pi 3 with Debian Jessie OS:
 
 - Sonoff Switches (https://www.itead.cc/sonoff-wifi-wireless-switch.html)
   - With custom firmware (https://github.com/arendst/Sonoff-MQTT-OTA-Arduino)
@@ -39,7 +39,7 @@ Grafana/Influx bogged down my pi, I might revisit this later...
 It's later! I've migrated my install from a pi2 to a pi3 and have loaded grafana/influx onto a second pi (pi2). While not perfect, it seems to keep up decently well. 
 
  
-
+Thanks to Deviant Engineer for the guide that helped me migrate to new pi in a sane matter. https://deviantengineer.com/2016/09/hass-dietpi/
 
 
 # Interface
