@@ -69,8 +69,8 @@ apcupsd:
   host: 10.0.1.6
   port: 3551
 
-media_player:
-  platform: plex
+#media_player:
+#  platform: plex
 
 # Checks for available updates
 #updater:
