@@ -1,6 +1,6 @@
 # home-assistant
 
-My home assitant config. 
+My home assistant config. 
 
 My tasker configuration is also included. I am using tasker to trigger scenes based on location mostly but to also act as a quick toggle for scenes. ~~I am using mqtt to trigger the scenes, as opposed to the API because tasker did not have a way to pass api credentials.. Feel free to download and import the tasker config, although you will have to change some variables such as your home location, mqtt username, mqtt password, and mqtt address.~~ You will also need to install 'Auto Alarm' ~~and the Tasker mqtt plugin.~~
 
