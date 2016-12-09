@@ -1,3 +1,5 @@
+# If these aren't working, check the cert uploaded for amazon skill at https://developer.amazon.com
+
 intents:
   ActivateIntent:
     action:
