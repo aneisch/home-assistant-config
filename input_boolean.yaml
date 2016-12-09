@@ -10,5 +10,5 @@ door_notify:
 
 ac_automation:
   name: AC Automation
-  initial: on
+  initial: off
   icon: mdi:fan

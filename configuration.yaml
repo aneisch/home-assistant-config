@@ -176,6 +176,7 @@ emulated_hue:
     - script
 
 
+alexa: !include alexa.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml
 sensor: !include sensors.yaml
