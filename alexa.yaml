@@ -15,3 +15,12 @@ intents:
     speech:
       type: plaintext
       text: Turned off {{ Group }}
+  WhatisMyRoomIntent:
+    speech:
+        type: plaintext
+        text: >
+          {% if is_state('states.sensor.andrew_room_temperature_readout.state', 'unknown') %}
+            The sensor hasn't reported a value, sorry!
+          {% else %}
+            Your room is {{ states.sensor.andrew_room_temperature_readout.state }} degrees
+          {% endif %}
