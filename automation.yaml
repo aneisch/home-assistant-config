@@ -24,6 +24,34 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
+#########
+# OTHER #
+#########
+
+- alias: "Christmas Lights at Sunset"
+  trigger:
+    platform: sun
+    event: sunset
+    offset: "-00:45:00"
+  condition: 
+    - condition: state
+      entity_id: input_boolean.christmas_lights_automation
+      state: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.christmas_lights
+
+- alias: "Christmas Lights off at 11:00"
+  trigger:
+    platform: time
+    after: '23:00'
+  condition: 
+    - condition: state
+      entity_id: input_boolean.christmas_lights_automation
+      state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.christmas_lights
 
 #########
 # WEMOS #

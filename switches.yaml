@@ -24,7 +24,7 @@
   retain: true
 
 - platform : mqtt
-  name: "Sonoff 2 not in use"
+  name: "Christmas Lights"
   state_topic: "stat/sonoff_2/POWER"
   command_topic: "cmnd/sonoff_2/POWER"
   payload_on: "On"

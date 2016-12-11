@@ -12,3 +12,7 @@ ac_automation:
   name: AC Automation
   initial: off
   icon: mdi:fan
+
+christmas_lights_automation:
+  name: Christmas Light Automation
+  initial: on

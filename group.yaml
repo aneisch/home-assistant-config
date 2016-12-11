@@ -4,6 +4,7 @@ default_view:
   entities:
     - sensor.front_door_status
     - sensor.back_door_status
+    - switch.christmas_lights
     - group.thermostat
     - group.automation_override
     - group.scenes
@@ -77,6 +78,7 @@ UPS:
 automation_override:
  - input_boolean.door_notify
  - input_boolean.ac_automation
+ - input_boolean.christmas_lights_automation
  - group.ac_notification
  - group.presence_notify_automation
 presence_notify_automation:
