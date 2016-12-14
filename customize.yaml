@@ -55,13 +55,13 @@ sensor.andrew_room_temperature_readout:
 sensor.rack_air_temperature:
   icon: mdi:thermometer-lines
 
-sensor.sonoff_pow_current_a:
+sensor.sonoff_pow_current:
   icon: mdi:flash
-sensor.sonoff_pow_power_w:
+sensor.sonoff_pow_power:
   icon: mdi:speedometer
-sensor.sonoff_pow_today_energy_kwh:
+sensor.sonoff_pow_today_energy:
   icon: mdi:power-plug
-sensor.sonoff_pow_yesterday_energy_kwh:
+sensor.sonoff_pow_yesterday_energy:
   icon: mdi:power-plug
 sensor.sonoff_pow_today_cost:
   icon: mdi:square-inc-cash

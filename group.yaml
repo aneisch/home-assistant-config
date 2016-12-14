@@ -93,9 +93,9 @@ living_room:
  - switch.living_room_lamp
  - switch.wemo_switch
 power:
- - sensor.sonoff_pow_current_a
- - sensor.sonoff_pow_power_w
- - sensor.sonoff_pow_today_energy_kwh
+ - sensor.sonoff_pow_current
+ - sensor.sonoff_pow_power
+ - sensor.sonoff_pow_today_energy
  - sensor.sonoff_pow_today_cost
- - sensor.sonoff_pow_yesterday_energy_kwh
+ - sensor.sonoff_pow_yesterday_energy
  - sensor.sonoff_pow_yesterday_cost

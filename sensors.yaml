@@ -49,19 +49,23 @@
 # BEGIN SONOFF POW #
 ####################
 - platform: mqtt
-  name: Sonoff Pow Yesterday Energy (kWh)
+  name: Sonoff Pow Yesterday Energy
+  unit_of_measurement: "kWh"
   state_topic: "tele/sonoff_pow_1/YESTERDAY_ENERGY"
 
 - platform: mqtt
-  name: Sonoff Pow Today Energy (kWh)
+  name: Sonoff Pow Today Energy
+  unit_of_measurement: "kWh"
   state_topic: "tele/sonoff_pow_1/TODAY_ENERGY"
 
 - platform: mqtt
-  name: Sonoff Pow Current (A)
+  name: Sonoff Pow Current
+  unit_of_measurement: "Amps"
   state_topic: "tele/sonoff_pow_1/CURRENT"
 
 - platform: mqtt
-  name: Sonoff Pow Power (W)
+  name: Sonoff Pow Power
+  unit_of_measurement: "Watts"
   state_topic: "tele/sonoff_pow_1/CURRENT_POWER"
 
 - platform: template
@@ -69,11 +73,13 @@
     sonoff_pow_today_cost:
       friendly_name: Sonoff Pow Today Cost
       entity_id: sensor.sonoff_pow_today_energy_kwh
+      unit_of_measurement: "$"
       value_template: >-
         {{ states.sensor.sonoff_pow_today_energy_kwh.state  | multiply(0.1123) | round(2) }} 
     sonoff_pow_yesterday_cost:
       friendly_name: Sonoff Pow Yesterday Cost
       entity_id: sensor.sonoff_pow_yesterday_energy_kwh
+      unit_of_measurement: "$"
       value_template: >-
         {{ states.sensor.sonoff_pow_yesterday_energy_kwh.state  | multiply(0.1123) | round(2) }}
 
