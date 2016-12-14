@@ -49,20 +49,20 @@
 # BEGIN SONOFF POW #
 ####################
 - platform: mqtt
-  name: Sonoff Pow Yesterday Energy
+  name: Sonoff Pow Yesterday Energy (kWh)
   state_topic: "tele/sonoff_pow_1/YESTERDAY_ENERGY"
 
 - platform: mqtt
-  name: Sonoff Pow Today Energy
+  name: Sonoff Pow Today Energy (kWh)
   state_topic: "tele/sonoff_pow_1/TODAY_ENERGY"
 
 - platform: mqtt
-  name: Sonoff Pow Current
+  name: Sonoff Pow Current (A)
   state_topic: "tele/sonoff_pow_1/CURRENT"
 
 - platform: mqtt
-  name: Sonoff Pow Voltage
-  state_topic: "tele/sonoff_pow_1/VOLTAGE"
+  name: Sonoff Pow Power (W)
+  state_topic: "tele/sonoff_pow_1/CURRENT_POWER"
 
 
 ###################
