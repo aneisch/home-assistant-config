@@ -32,6 +32,15 @@
   optimistic: false
   retain: true
 
+- platform : mqtt
+  name: "Sonoff Pow"
+  state_topic: "stat/sonoff_pow_1/POWER"
+  command_topic: "cmnd/sonoff_pow_1/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
 - platform: wake_on_lan
   name: "NAS" 
   mac_address: "e8:fc:af:e6:22:26"

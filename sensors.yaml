@@ -38,17 +38,31 @@
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
-#- platform: mqtt
-#  state_topic: "sensor/1"
-#  name: "Room Temperature"
-#  unit_of_measurement: "°F"
-#  value_template: "{{ value_json.temperature }}"
-
 - platform: mqtt
   state_topic: "sensor/3"
   name: "Rack Exhaust Temperature"
   #unit_of_measurement: "°F"
   value_template: "{{ value_json.temperature }}"
+
+
+####################
+# BEGIN SONOFF POW #
+####################
+- platform: mqtt
+  name: Sonoff Pow Yesterday Energy
+  state_topic: "tele/sonoff_pow_1/YESTERDAY_ENERGY"
+
+- platform: mqtt
+  name: Sonoff Pow Today Energy
+  state_topic: "tele/sonoff_pow_1/TODAY_ENERGY"
+
+- platform: mqtt
+  name: Sonoff Pow Current
+  state_topic: "tele/sonoff_pow_1/CURRENT"
+
+- platform: mqtt
+  name: Sonoff Pow Voltage
+  state_topic: "tele/sonoff_pow_1/VOLTAGE"
 
 
 ###################
