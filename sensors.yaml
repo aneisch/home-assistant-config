@@ -64,6 +64,20 @@
   name: Sonoff Pow Power (W)
   state_topic: "tele/sonoff_pow_1/CURRENT_POWER"
 
+- platform: template
+  sensors:
+    sonoff_pow_today_cost:
+      friendly_name: Sonoff Pow Today Cost
+      entity_id: sensor.sonoff_pow_today_energy_kwh
+      value_template: >-
+        {{ states.sensor.sonoff_pow_today_energy_kwh.state  | multiply(0.1123) | round(2) }} 
+    sonoff_pow_yesterday_cost:
+      friendly_name: Sonoff Pow Yesterday Cost
+      entity_id: sensor.sonoff_pow_yesterday_energy_kwh
+      value_template: >-
+        {{ states.sensor.sonoff_pow_yesterday_energy_kwh.state  | multiply(0.1123) | round(2) }}
+
+
 
 ###################
 # MQTT THERMOSTAT #

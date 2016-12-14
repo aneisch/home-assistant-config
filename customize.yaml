@@ -55,6 +55,11 @@ sensor.andrew_room_temperature_readout:
 sensor.rack_air_temperature:
   icon: mdi:thermometer-lines
 
+sensor.sonoff_pow_today_cost:
+  icon: mdi:square-inc-cash
+sensor.sonoff_pow_yesterday_cost:
+  icon: mdi:square-inc-cash
+
 #THERMOSTAT
 climate.thermostat:
   friendly_name: Adjust

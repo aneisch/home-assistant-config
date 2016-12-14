@@ -26,6 +26,7 @@ ha_status:
   entities:
     - group.system
     - group.UPS
+    - group.power
 
 ##########
 # GROUPS #
@@ -91,3 +92,6 @@ ac_notification:
 living_room:
  - switch.living_room_lamp
  - switch.wemo_switch
+power:
+ - sensor.sonoff_pow_today_cost
+ - sensor.sonoff_pow_yesterday_cost
