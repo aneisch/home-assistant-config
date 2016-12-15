@@ -55,7 +55,7 @@ class AutoAdjust(appapi.AppDaemon):
         if float(self.get_state("sensor.dark_sky_temperature")) <= 50 and self.get_state("input_boolean.ac_automation") == "on":
           self.log("Mode: Heat, House is newly unoccupied, %s" % self.args["winter_unoccupied"])
           for tstat in self.split_device_list(self.args["thermostats"]):
-            self.set_heat()
+            self.set_heat(kwargs)
             self.run_in(self.adjust_temp, 60, temp = self.args["winter_unoccupied"])
             self.run_in(self.set_heat, 120)
         elif float(self.get_state("sensor.dark_sky_temperature")) > 50 and self.get_state("input_boolean.ac_automation") == "on":
