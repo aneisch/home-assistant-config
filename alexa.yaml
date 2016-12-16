@@ -34,3 +34,11 @@ intents:
           {% else %}
               I don't have a thermometer with that name
           {% endif %}
+
+  ChickenCoopIntent:
+    speech:
+        type: plaintext
+        text: >
+          {% if Coop == "coop" or Coop == "chickens" %}
+            The coop door has been {{states.sensor.front_door_status.state }} for the past {{ relative_time((states.sensor.front_door_status.last_changed)) }}. The temperature inside is currently {{ states.sensor.rack_exhaust_temperature.state }} degrees. 
+          {% endif %}
