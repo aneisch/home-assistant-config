@@ -40,5 +40,9 @@ intents:
         type: plaintext
         text: >
           {% if Coop == "coop" or Coop == "chickens" %}
-            The coop door has been {{states.sensor.front_door_status.state }} for the past {{ relative_time((states.sensor.front_door_status.last_changed)) }}. The temperature inside is currently {{ states.sensor.rack_exhaust_temperature.state }} degrees. 
+            {% if states.sensor.rack_exhaust_temperature.state | float > 100 %}
+              The coop door has been {{states.sensor.front_door_status.state }} for the past {{ relative_time((states.sensor.front_door_status.last_changed)) }}. The temperature inside is currently a toasty {{ states.sensor.rack_exhaust_temperature.state }} degrees. Fried chicken anyone?
+            {% else %}
+              The coop door has been {{states.sensor.front_door_status.state }} for the past {{ relative_time((states.sensor.front_door_status.last_changed)) }}. The temperature inside is currently {{ states.sensor.rack_exhaust_temperature.state }} degrees. 
+            {% endif %}
           {% endif %}

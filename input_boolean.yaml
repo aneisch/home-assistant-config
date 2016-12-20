@@ -16,3 +16,7 @@ ac_automation:
 christmas_lights_automation:
   name: Christmas Light Automation
   initial: on
+
+occusim:
+  name: Occupancy Simulator
+  initial: off

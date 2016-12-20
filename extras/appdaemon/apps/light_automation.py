@@ -8,8 +8,8 @@ class AndrewRoomNight(appapi.AppDaemon):
 
   def on(self, kwargs):
     if self.get_state(self.args["tracker"]) == "home" and self.get_state("light.andrew_bedroom") == "on":
-      self.log("Turning on scene.prebed")
-      self.turn_on("scene.prebed")
+      self.log(self.args["scene"])
+      self.turn_on(self.args["scene"])
     else:
       pass
     

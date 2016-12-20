@@ -82,6 +82,7 @@ automation_override:
  - input_boolean.christmas_lights_automation
  - group.ac_notification
  - group.presence_notify_automation
+ - input_boolean.occusim
 presence_notify_automation:
  - automation.notify_andrew_when_back_door_opens
  - automation.notify_andrew_when_front_door_opens
