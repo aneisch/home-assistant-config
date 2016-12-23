@@ -45,7 +45,7 @@ In the above intent, our intent name is **ActivateIntent**, the custom slot type
 So what is a *custom slot*? A custom slot allows us to pass a different value to our Home Assistant setup. Essentially, this sets a variable that is passed to HASS, so that we can use one intent as as template to do more functions. 
 
 
-Now let's look at the HASS Alexa YAML.
+So that finishes up the majority of the Alexa skill configuration, now let's look at the HASS Alexa YAML.
 
 **alexa.yaml**:
 ```
