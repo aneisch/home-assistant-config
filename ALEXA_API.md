@@ -113,7 +113,7 @@ It worked :)
 
 + On the "Configuration" tab, I used `https://HASS_FQDN_OR_IP/api/alexa?api_password=API_PASSWORD`
 + I ended up having to paste my LetsEncrypt cert. I don't think Amazon recongnizes LE. You can use self-signed. 
-+ You HAVE to use port 443. Amazon will not attempt to connect using HTTPS over an alternate port. (I would suggest a source-based NAT policy on your home firewall, I am allowing 72.21.217.0/24)
++ You **HAVE** to use port 443. Amazon will not attempt to connect using HTTPS over an alternate port. (I would suggest a source-based NAT policy on your home firewall, I am allowing 72.21.217.0/24)
 + It might be worth your time to set up a template on the Home Assistant side of things. This way if Alexa hears incorrectly, or you try and do something she doesn't know, you can have her reply with a clever error message. For instance, in the intent above, I could have HASS check to see if group was anything other than living room or andrews room, and speak an error if so.
 + No need to publish the Alexa Skill. It will be active on your account only. 
 + Email me at andrew@aneis.ch if you have questions or concerns. 
