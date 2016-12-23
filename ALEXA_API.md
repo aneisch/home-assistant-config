@@ -117,3 +117,62 @@ It worked :)
 + It might be worth your time to set up a template on the Home Assistant side of things. This way if Alexa hears incorrectly, or you try and do something she doesn't know, you can have her reply with a clever error message. For instance, in the intent above, I could have HASS check to see if group was anything other than living room or andrews room, and speak an error if so.
 + No need to publish the Alexa Skill. It will be active on your account only. 
 + Email me at andrew@aneis.ch if you have questions or concerns. 
+
+
+##Advanced!!!
+
+I have a more advanced intent that I bet you can figure out. 
+
+**Intent Schema**:
+```
+{
+  "intents": [
+      {
+      "intent": "WhatisMyRoomIntent",
+      "slots":[
+        {
+        	"name" : "Thermometer",
+          "type" : "Thermometers"
+        }
+      ]
+      }
+  ]
+}
+```
+
+**Custom Slot Type**:
+Type: Thermometers
+Values:
+```
+room
+```
+
+**Sample Utterances**:
+```
+WhatisMyRoomIntent what my {Thermometer} temperature is
+WhatisMyRoomIntent what temperature my {Thermometer} is
+WhatisMyRoomIntent what the temperature of my {Thermometer} is
+WhatisMyRoomIntent how cold is my {Thermometer}
+WhatisMyRoomIntent how hot is my {Thermometer}
+WhatisMyRoomIntent how cold my {Thermometer} is
+WhatisMyRoomIntent how hot my {Thermometer} is
+```
+
+**alexa.yaml**:
+```
+  WhatisMyRoomIntent:
+    speech:
+        type: plaintext
+        text: >
+          {% if Thermometer == "room" %}
+            {% if is_state("sensor.andrew_room_temperature_readout", "unknown") %}
+              The sensor hasn't reported a value, sorry!
+            {% elif is_state("sensor.andrew_room_temperature_readout","nan") %}
+              The sensor hasn't reported a value, sorry!
+            {% else %}
+              Your room is {{ states.sensor.andrew_room_temperature_readout.state }} degrees
+            {% endif %}
+          {% else %}
+              I don't have a thermometer with that name
+          {% endif %}
+```
