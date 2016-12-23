@@ -61,7 +61,8 @@ With this intent, we are turning on a group, passed to Home Assistant as {{ Grou
 
 This might be a little confusing, so below I've pasted the call that Amazon's API actually makes to Home Assistant (this is from the "Service Simulator" section found in the "Test" section of the Alexa API skill setup).
 
-Here is the Service Request displayed when entering "tell home assistant to turn on living room" as an utterenace (this is what you will speak to Alexa).
+Here is the Service Request displayed when entering "tell home assistant to turn on living room" as an utterenace (this is what you will speak to Alexa). We said "tell home assistant" because home assistant is what we set as our "Invocation Name" when setting up our skill on Amazon's site. 
+
 
 ```
 ...
