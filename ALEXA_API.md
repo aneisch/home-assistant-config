@@ -23,7 +23,7 @@ Intents are the things we use to link our utterances and our custom slots.
 ```
 
 **Custom Slot Types**:
-Type: Groups
+Type: Groups  
 Values:
 ```
 living room
@@ -141,7 +141,7 @@ I have a more advanced intent that I bet you can figure out.
 ```
 
 **Custom Slot Type**:
-Type: Thermometers
+Type: Thermometers  
 Values:
 ```
 room
