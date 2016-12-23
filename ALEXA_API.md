@@ -1,5 +1,9 @@
 # Alexa API Setup
 
+This is a walkthrough of setting up a skill on https://developer.amazon.com/edw/home.html#/skill/
+
+The real work starts on the "Interaction Model" tab. 
+
 ###Intents
 Intents are the things we use to link our utterances and our custom slots.
 
