@@ -51,7 +51,7 @@ intents:
       - service: homeassistant.turn_on
         data_template:
           entity_id: group.{{ Group | replace(" ", "_") }}
-          # The replace(" ", "_") allows us to fix the space that Amazon passes to us
+          #The replace(" ", "_") allows us to fix the space that Amazon passes to us
     speech:
       type: plaintext
       text: Turned on {{ Group }}
