@@ -27,7 +27,8 @@ Type: Groups
 Values:
 ```
 living room
-andrews room```
+andrews room
+```
 
 **Sample Utterances**:
 ```
