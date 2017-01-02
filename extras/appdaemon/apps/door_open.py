@@ -6,20 +6,18 @@ class DoorLight(appapi.AppDaemon):
     if "door_sensor" in self.args:
       for sensor in self.split_device_list(self.args["door_sensor"]):
         self.listen_state(self.state_change, sensor)
-    
 
   def state_change(self, entity, attribute, old, new, kwargs):
     for light in self.split_device_list(self.args["lights"]):
       if new == "Open" and self.get_state(light) == "off":
+        self.log("Turning " + light + "  On")
         self.turn_on(light)
-        self.log("Door Open, Light On")
         self.run_in(self.light_off, self.args["time_on"], switch = light)
       elif new == "Open" and self.get_state(light) == "on":
         pass
 
-
   def light_off(self, args):
-    self.log("Light Off")
+    self.log("Turning " + switch + "  Off")
     self.turn_off(args["switch"])
 
 

@@ -12,4 +12,3 @@ class AndrewRoomNight(appapi.AppDaemon):
       self.turn_on(self.args["scene"])
     else:
       pass
-    
