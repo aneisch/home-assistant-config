@@ -133,3 +133,32 @@ andrew_room_pre_bed:
 #########
 
 
+######
+# IR #
+######
+
+tv_power_on:
+  sequence:
+    - service: shell_command.tv_on
+
+tv_power_off:
+  sequence:
+    - service: shell_command.tv_off
+
+tv_mute:
+  sequence:
+    - service: shell_command.tv_mute
+
+chromecast:
+  sequence:
+    - service: shell_command.tv_on
+    - delay:
+        seconds: 10
+    - service: shell_command.tv_input_chromecast
+
+cable:
+  sequence:
+    - service: shell_command.tv_on
+    - delay:
+        seconds: 10
+    - service: shell_command.tv_input_cable
