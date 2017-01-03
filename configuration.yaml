@@ -185,3 +185,4 @@ group: !include group.yaml
 scene: !include scene.yaml
 script: !include scripts.yaml
 input_boolean: !include input_boolean.yaml
+shell_command: !include shell_command.yaml
