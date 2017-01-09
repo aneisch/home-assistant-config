@@ -137,34 +137,3 @@ andrew_room_pre_bed:
 # IR #
 ######
 
-tv_on:
-  sequence:
-    - service: shell_command.tv_on
-
-tv_off:
-  sequence:
-    - service: shell_command.tv_off
-
-tv_mute:
-  sequence:
-    - service: shell_command.tv_mute
-
-tv_unmute:
-  sequence:
-    - service: shell_command.tv_mute
-
-tv_chromecast:
-  sequence:
-    - service: shell_command.tv_chromecast
-
-tv_cable:
-  sequence:
-    - service: shell_command.tv_cable
-
-tv_kyle:
-  sequence:
-    - service: shell_command.tv_kyle
-
-tv_fox: 
-  sequence:
-    - service: shell_command.tv_fox

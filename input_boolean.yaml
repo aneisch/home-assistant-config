@@ -13,9 +13,9 @@ ac_automation:
   initial: off
   icon: mdi:fan
 
-christmas_lights_automation:
-  name: Christmas Light Automation
-  initial: on
+#christmas_lights_automation:
+#  name: Christmas Light Automation
+#  initial: on
 
 occusim:
   name: Occupancy Simulator

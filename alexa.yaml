@@ -62,6 +62,4 @@ intents:
 ######
   TVControlIntent:
     action:
-      - service: homeassistant.turn_on
-        data_template:
-          entity_id: script.tv_{{ Action }}
+      - service_template: shell_command.tv_{{ Action }}

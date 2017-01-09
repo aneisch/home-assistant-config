@@ -12,12 +12,12 @@ class DoorLight(appapi.AppDaemon):
       if new == "Open" and self.get_state(light) == "off":
         self.log("Turning " + light + "  On")
         self.turn_on(light)
-        self.run_in(self.light_off, self.args["time_on"], switch = light)
+        self.run_in(self.light_off, self.args["time_on"], switch=light)
       elif new == "Open" and self.get_state(light) == "on":
         pass
 
   def light_off(self, args):
-    self.log("Turning " + switch + "  Off")
+    self.log("Turning " + args["switch"] + "  Off")
     self.turn_off(args["switch"])
 
 
