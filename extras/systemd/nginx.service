@@ -10,6 +10,12 @@
 # nginx signals reference doc:
 # http://nginx.org/en/docs/control.html
 #
+#
+# sudo vi /etc/systemd/system/nginx.service 
+# sudo chmod +x /etc/systemd/system/nginx.service 
+# sudo systemctl daemon-reload
+# systemctl enable nginx.service
+#
 [Unit]
 Description=A high performance web server and a reverse proxy server
 After=network.target
@@ -17,6 +23,7 @@ After=network.target
 [Service]
 Type=forking
 PIDFile=/run/nginx.pid
+#Delay for Home Assistant to start
 ExecStartPre=/bin/sleep 30
 ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
 ExecStart=/usr/sbin/nginx -g 'daemon on; master_process on;'

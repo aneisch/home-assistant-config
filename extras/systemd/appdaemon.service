@@ -1,3 +1,9 @@
+#
+# sudo vi /etc/systemd/system/appdaemon.service 
+# sudo chmod +x /etc/systemd/system/appdaemon.service
+# sudo systemctl daemon-reload
+# systemctl enable appdaemon.service
+#
 [Unit]
 Description=AppDaemon service for Home Assistant
 

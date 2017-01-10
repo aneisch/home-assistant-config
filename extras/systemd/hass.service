@@ -1,3 +1,10 @@
+#
+# sudo vi /etc/systemd/system/hass.service     
+# sudo chmod +x /etc/systemd/system/hass.service
+# sudo systemctl daemon-reload
+# systemctl enable hass.service
+#
+
 [Unit]
 Description=Home Assistant (hass) Daemon
 After=syslog.target network.target
