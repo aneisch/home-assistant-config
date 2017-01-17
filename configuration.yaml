@@ -108,6 +108,9 @@ mqtt:
 device_tracker:
   platform: owntracks
 
+device_tracker 2:
+  platform: bluetooth_tracker
+
 #device_tracker 2:
 #  platform: icloud
 #  username: REDACTED@gmail.com
