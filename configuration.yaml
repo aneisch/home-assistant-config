@@ -106,25 +106,15 @@ mqtt:
   password: REDACTED
 
 device_tracker:
-  platform: owntracks
-
-device_tracker 2:
-  platform: bluetooth_tracker
-
-#device_tracker 2:
-#  platform: icloud
-#  username: REDACTED@gmail.com
-#  password: PASSWORD
-
-device_tracker 3:
-  platform: nmap_tracker
-  hosts: 10.0.1.41/32
-  home_interval: 10 
-
-device_tracker 4:
-  platform: nmap_tracker
-  hosts: 10.0.1.38/32
-  home_interval: 10
+  - platform: owntracks
+  - platform: bluetooth_tracker
+    interval_seconds: 30
+  - platform: nmap_tracker
+    hosts: 10.0.1.41/32
+    home_interval: 10 
+  - platform: nmap_tracker
+    hosts: 10.0.1.38/32
+    home_interval: 10
 
 climate:
   platform: radiotherm
