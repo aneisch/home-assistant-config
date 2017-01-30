@@ -4,6 +4,7 @@ default_view:
   entities:
     - sensor.front_door_status
     - sensor.back_door_status
+    - switch.sonoff_tcp_1
 #    - switch.christmas_lights
     - group.thermostat
     - group.automation_override

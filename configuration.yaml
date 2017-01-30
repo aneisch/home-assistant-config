@@ -160,6 +160,10 @@ panel_iframe:
     url: 'https://REDACTED'
 
 wemo:
+#  static:
+#    - 10.0.1.115
+#    - 10.0.1.190
+
 
 emulated_hue:
   expose_by_default: true
