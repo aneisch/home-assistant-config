@@ -162,7 +162,7 @@ panel_iframe:
 wemo:
 #  static:
 #    - 10.0.1.115
-#    - 10.0.1.190
+#    - 10.0.1.120
 
 
 emulated_hue:

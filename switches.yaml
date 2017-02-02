@@ -38,9 +38,3 @@
   name: "NAS" 
   mac_address: "e8:fc:af:e6:22:26"
   host: 10.0.1.20
-
-- platform: command_line
-  switches:
-    sonoff_tcp_1:
-      command_on: "curl -s http://10.0.1.190/relay?state=ON"
-      command_off: "curl -s http://10.0.1.190/relay?state=OFF"
