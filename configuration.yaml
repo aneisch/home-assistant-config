@@ -82,7 +82,7 @@ apcupsd:
 frontend:
 
 # Enables support for tracking state changes over time.
-#history:
+history:
 
 # View all events in a logbook
 logbook:
@@ -94,9 +94,7 @@ http:
   server_host: 127.0.0.1
   api_password: PASSWORD
   server_port: 8123
-  #Using nginx proxy to serve https over ipv6
-  #ssl_certificate: /etc/letsencrypt/live/REDACTED/fullchain.pem
-  #ssl_key: /etc/letsencrypt/live/REDACTED/privkey.pem
+  #Using nginx proxy to serve https over ipv4/ipv6
 
 mqtt:
   broker: IP
@@ -107,8 +105,8 @@ mqtt:
 
 device_tracker:
   - platform: owntracks
-  - platform: bluetooth_tracker
-    interval_seconds: 30
+#  - platform: bluetooth_tracker
+#    interval_seconds: 30
   - platform: nmap_tracker
     hosts: 10.0.1.41/32
     home_interval: 10 
@@ -128,8 +126,8 @@ notify:
   name: notify_push_android
 
 influxdb:
-  host: 10.0.1.30
-  username: home-assistant
+  host: localhost
+  username: homed-assistant
   password: home-assistant!
 
 ifttt:
@@ -160,10 +158,6 @@ panel_iframe:
     url: 'https://REDACTED'
 
 wemo:
-#  static:
-#    - 10.0.1.115
-#    - 10.0.1.120
-
 
 emulated_hue:
   expose_by_default: true

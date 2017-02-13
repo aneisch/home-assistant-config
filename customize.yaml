@@ -10,6 +10,20 @@ group.automation_override:
 group.presence_notify_automation:
   friendly_name: Presence Notification
   icon: mdi:alert-circle
+group.thermostat:
+  friendly_name: Thermostat
+group.scenes:
+  friendly_name: Scenes
+group.security:
+  friendly_name: Security
+group.trackers:
+  friendly_name: Trackers
+group.weather:
+  friendly_name: Weather
+group.system:
+  friendly_name: System
+group.power:
+  friendly_name: Power
 
 #AUTOMATION
 group.ac_notification:
@@ -106,12 +120,12 @@ script.arlo_disarm:
 #DEVICES
 device_tracker.owntracks_android:
   friendly_name: Andrew's Phone
-  entity_picture: /static/images/andrew.jpg
+  entity_picture: /local/andrew.jpg
 device_tracker.erinphoneaneisch:
   friendly_name: Erin's Phone
-  entity_picture: /static/images/erin.jpg
+  entity_picture: /local/erin.jpg
 device_tracker.coleandroidaneisch:
   friendly_name: Cole's Phone
-  entity_picture: /static/images/cole.jpg
+  entity_picture: /local/cole.jpg
 
 #OTHER
