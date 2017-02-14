@@ -121,9 +121,12 @@ climate:
   hold_temp: True
 
 notify:
-  platform: pushbullet
-  api_key: API_KEY
-  name: notify_push_android
+  - platform: pushbullet
+    api_key: API_KEY
+    name: notify_push_android
+  - platform: html5
+    gcm_api_key: 'REDACTED'
+    gcm_sender_id: 'REDACTED'
 
 influxdb:
   host: localhost
