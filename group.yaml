@@ -34,7 +34,7 @@ ha_status:
 ##########
 thermostat:
   - climate.thermostat
-  - sensor.thermostat_temperature_readout
+  - sensor.thermostat_temperature
   - sensor.thermostat_setpoint
   - sensor.thermostat_state
   - sensor.thermostat_fan_status
@@ -44,7 +44,7 @@ scenes:
   - script.andrew_room_bedtime
   - script.backlight_flux
 andrew_room:
- - sensor.andrew_room_temperature_readout
+ - sensor.andrew_room_temperature
  - light.andrew_bedroom
  - light.andrew_monitor_backlight
  - switch.andrew_sound_machine

@@ -38,12 +38,6 @@
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
-- platform: mqtt
-  state_topic: "sensor/3"
-  name: "Rack Exhaust Temperature"
-  unit_of_measurement: "°F"
-  value_template: "{{ value_json.temperature }}"
-
 
 ####################
 # BEGIN SONOFF POW #
@@ -91,7 +85,7 @@
 
 - platform: mqtt
   state_topic: "thermostat"
-  name: "Thermostat Temperature Readout"
+  name: "Thermostat Temperature"
   unit_of_measurement: "°F"
   value_template: "{{ value_json.temp }}"
 
@@ -134,18 +128,36 @@
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
   unit_of_measurement: "°F"
-  name: "Andrew Room Temperature Readout"
+  name: "Andrew Room Temperature"
   value_template: "{{ value_json.temperature }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "Andrew Room Humidity Readout"
+  name: "Andrew Room Humidity"
   unit_of_measurement: "%"
   value_template: "{{ value_json.humidity }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "Andrew Room Heat Index Readout"
+  name: "Andrew Room Heat Index"
+  unit_of_measurement: "°F"
+  value_template: "{{ value_json.heat_index }}"
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_2"
+  name: "Rack Exhaust Temperature"
+  unit_of_measurement: "°F"
+  value_template: "{{ value_json.temperature }}"
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_2"
+  name: "Rack Exhaust Humidity"
+  unit_of_measurement: "%"
+  value_template: "{{ value_json.humidity }}"
+
+- platform: mqtt
+  state_topic: "sensor/dht_mini_2"
+  name: "Rack Exhaust Heat Index"
   unit_of_measurement: "°F"
   value_template: "{{ value_json.heat_index }}"
 

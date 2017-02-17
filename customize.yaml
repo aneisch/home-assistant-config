@@ -63,10 +63,10 @@ sensor.dark_sky_humidity:
 sensor.dark_sky_precip_probability:
   friendly_name: Percent Chance of Rain
 
-sensor.andrew_room_temperature_readout:
+sensor.andrew_room_temperature:
   friendly_name: Room Temperature
   icon: mdi:thermometer
-sensor.rack_air_temperature:
+sensor.rack_exhaust_temperature:
   icon: mdi:thermometer-lines
 
 sensor.sonoff_pow_current:
@@ -91,7 +91,7 @@ sensor.thermostat_fan_status:
 sensor.thermostat_state:
   friendly_name: State
   icon: mdi:fan
-sensor.thermostat_temperature_readout:
+sensor.thermostat_temperature:
   icon: mdi:thermometer-lines
   friendly_name: Temperature Readout
 sensor.thermostat_setpoint:
