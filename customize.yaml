@@ -109,9 +109,6 @@ script.andrew_room_bedtime:
 script.andrew_room_light_full:
   friendly_name: Light Full
   icon: mdi:lightbulb
-script.backlight_flux:
-  friendly_name: Monitor Backlight Night
-  icon: mdi:monitor
 script.arlo_arm:
   friendly_name: Arlo Arm
 script.arlo_disarm:

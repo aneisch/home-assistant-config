@@ -40,13 +40,16 @@ thermostat:
   - sensor.thermostat_fan_status
 scenes:
   - script.andrew_room_light_full
+  - script.andrew_room_light_full_test
   - script.andrew_room_pre_bed
+  - script.andrew_room_pre_bed_test
   - script.andrew_room_bedtime
-  - script.backlight_flux
 andrew_room:
  - sensor.andrew_room_temperature
  - light.andrew_bedroom
  - light.andrew_monitor_backlight
+ - light.andrew_bedroom_testing
+ - light.andrew_monitor_backlight_testing
  - switch.andrew_sound_machine
  - switch.andrew_ceiling_fan
  - switch.ge_12722_onoff_relay_switch_switch_15_0
