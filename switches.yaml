@@ -11,17 +11,26 @@
   name: "Andrew Ceiling Fan"
   state_topic: "stat/sonoff_fan/POWER"
   command_topic: "cmnd/sonoff_fan/POWER"
-  payload_on: "On"
-  payload_off: "Off"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
+- platform : mqtt
+  name: "Rack Exhaust Fan"
+  state_topic: "stat/sonoff_rack_fan/POWER"
+  command_topic: "cmnd/sonoff_rack_fan/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
   optimistic: false
   retain: true
 
 #- platform : mqtt
 #  name: "Christmas Lights"
-#  state_topic: "stat/sonoff_2/POWER"
-#  command_topic: "cmnd/sonoff_2/POWER"
-#  payload_on: "On"
-#  payload_off: "Off"
+#  state_topic: "stat/sonoff_christmas_lights/POWER"
+#  command_topic: "cmnd/sonoff_christmas_lights/POWER"
+#  payload_on: "ON"
+#  payload_off: "OFF"
 #  optimistic: false
 #  retain: true
 

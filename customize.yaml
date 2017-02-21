@@ -45,6 +45,8 @@ switch.arlo_status:
 switch.andrew_ceiling_fan:
   icon: mdi:fan
   friendly_name: Ceiling Fan
+switch.rack_exhaust_fan:
+  icon: mdi:fan
 switch.ge_12722_onoff_relay_switch_switch_15_0:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb

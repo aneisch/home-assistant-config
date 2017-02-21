@@ -71,6 +71,7 @@ weather:
  - sensor.moon_phase
 system:
  - sensor.rack_exhaust_temperature
+ - switch.rack_exhaust_fan
  - sensor.cpu_use
  - sensor.ram_use
  - sensor.disk_free_
