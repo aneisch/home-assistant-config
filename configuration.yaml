@@ -131,7 +131,7 @@ notify:
 
 influxdb:
   host: localhost
-  username: homed-assistant
+  username: home-assistant
   password: home-assistant!
 
 ifttt:
