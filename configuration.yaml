@@ -138,28 +138,29 @@ ifttt:
   key: MAKER_KEY
 
 light:
-  platform: limitlessled
-  bridges:
-    - host: 10.0.1.33
-      version: 5
-      port: 8899
-      groups:
-      - number: 1
-        type: rgbw
-        name: andrew_bedroom
-      - number: 2
-        type: rgbw
-        name: andrew_monitor_backlight
-    - host: 10.0.1.47
-      version: 5
-      port: 8899
-      groups:
-      - number: 1
-        type: rgbw
-        name: andrew_bedroom_testing
-      - number: 2
-        type: rgbw
-        name: andrew_monitor_backlight_testing
+  - platform: limitlessled
+    bridges:
+      - host: 10.0.1.33
+        version: 5
+        port: 8899
+        groups:
+        - number: 1
+          type: rgbw
+          name: andrew_bedroom
+        - number: 2
+          type: rgbw
+          name: andrew_monitor_backlight
+      - host: 10.0.1.47
+        version: 5
+        port: 8899
+        groups:
+        - number: 1
+          type: rgbw
+          name: andrew_bedroom_testing
+        - number: 2
+          type: rgbw
+          name: andrew_monitor_backlight_testing
+
 
 zwave:
   usb_path: /dev/zwave
