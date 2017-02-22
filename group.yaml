@@ -40,9 +40,7 @@ thermostat:
   - sensor.thermostat_fan_status
 scenes:
   - script.andrew_room_light_full
-  - script.andrew_room_light_full_test
   - script.andrew_room_pre_bed
-  - script.andrew_room_pre_bed_test
   - script.andrew_room_bedtime
 andrew_room:
  - sensor.andrew_room_temperature
@@ -74,8 +72,9 @@ system:
  - switch.rack_exhaust_fan
  - sensor.cpu_use
  - sensor.ram_use
- - sensor.disk_free_
  - sensor.disk_use_
+ - sensor.disk_use_home
+ - sensor.disk_use_opt
  - switch.nas
 UPS:
  - sensor.ups_time_left

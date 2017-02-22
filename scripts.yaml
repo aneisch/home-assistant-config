@@ -115,26 +115,12 @@ andrew_room_light_full:
         entity_id: scene.andrew_light_full
 
 
-#Call scene to turn all lights in room on
-andrew_room_light_full_test:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.andrew_light_full_test
-
 #Call scene to dim lights
 andrew_room_pre_bed:
   sequence:
     - service: scene.turn_on
       data:
         entity_id: scene.prebed_light
-
-#Call scene to dim lights
-andrew_room_pre_bed_test:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.prebed_light_test
 
 #########
 # OTHER #

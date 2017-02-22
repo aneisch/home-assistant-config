@@ -12,18 +12,6 @@
       brightness: 255
       rgb_color: [255, 217, 201]
 
-- name: Pre-Bed Light Test
-  entities:
-    light.andrew_bedroom_testing:
-      state: on
-      transition: 3
-      brightness: 20
-      rgb_color: [255, 255, 255]
-    light.andrew_monitor_backlight_testing:
-      state: on
-      brightness: 255
-      rgb_color: [255, 217, 201]
-
 - name: Andrew Light Full
   entities:
     light.andrew_bedroom:
@@ -31,17 +19,6 @@
       brightness: 92
       rgb_color: [255, 255, 255]
     light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-      rgb_color: [255, 255, 255]
-
-- name: Andrew Light Full Test
-  entities:
-    light.andrew_bedroom_testing:
-      state: on
-      brightness: 92
-      rgb_color: [255, 255, 255]
-    light.andrew_monitor_backlight_testing:
       state: on
       brightness: 255
       rgb_color: [255, 255, 255]
