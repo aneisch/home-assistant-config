@@ -119,8 +119,8 @@
 
 - platform: mqtt
   state_topic: "thermostat"
-  name: "Thermostat Run"
-  value_template: "{% if value_json.tstate == 0 %}0{% else %}1{% endif %}"
+  name: "Thermostat Hold"
+  value_template: "{% if value_json.hold == 1 %}True{% else %}False{% endif %}"
 
 
 #######
