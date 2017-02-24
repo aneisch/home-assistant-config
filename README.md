@@ -37,3 +37,4 @@ Thanks to Deviant Engineer (https://deviantengineer.com/) for the guide(s) that 
 ![UI](screenshot1.png)  
 ![UI2](screenshot2.png)  
 ![UI](screenshot3.png)
+![UI](grafana.png)
