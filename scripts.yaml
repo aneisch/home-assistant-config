@@ -38,6 +38,8 @@ andrew_gone:
     - service: switch.turn_off
       data:
         entity_id: switch.andrew_ceiling_fan
+    - delay
+        seconds: 5
     - service: homeassistant.turn_on
       data:
         entity_id: input_boolean.arlo_status
