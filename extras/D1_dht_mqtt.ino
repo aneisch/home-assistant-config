@@ -4,13 +4,15 @@
 
 const char *ssid =  "SSID";   // cannot be longer than 32 characters!
 const char *pass =  "PASSCODE";   //
-const char *mqtt_server = "MQTT_IP";
-const int mqtt_port = MQTT_PORT;
-const char* connection_id = "ESP8266Client3";
+//const char *ssid =  "tamulink-guest";   // cannot be longer than 32 characters!
+//const char *pass =  "tamuguest";   //
+const char *mqtt_server = "10.0.1.22";
+const int mqtt_port = 1883;
+const char* connection_id = "d1_mini_1";
 const char* client_name = "MQTT_USERNAME";
-const char* client_password = "MQTT_PASSCODE";
+const char* client_password = "MQTT_PASSWORD";
 const char* topic = "sensor/dht_mini_1";
-const int sleepSeconds = 900;
+const int sleepSeconds = 300;
 
 #include "DHT.h"
 
@@ -35,13 +37,12 @@ WiFiClient espClient;
 PubSubClient client(espClient);
 
 void setup() {
+  WiFi.mode(WIFI_STA); //Stop wifi broadcast
   client.setServer(mqtt_server, mqtt_port); // MQTT!!!
   // Setup console
   Serial.begin(9600);
   delay(10);
   pinMode(D0, WAKEUP_PULLUP);
-  //Serial.println();
-  //Serial.println();
 
   dht.begin();
 }
@@ -71,12 +72,14 @@ void loop() {
     if (client.connected())
       client.loop();
   }
-
-  SendTempHumid();
+  delay(5000);
+  //ESP.deepSleep(sleepSeconds * 1000000);
+  SendInfo();
 }
 
-// Non-Blocking delay
-void SendTempHumid(){
+
+
+void SendInfo(){
   unsigned long currentMillis = millis();
  
   if(currentMillis - previousMillis >= interval) {
@@ -87,19 +90,12 @@ void SendTempHumid(){
     float t = dht.readTemperature(true);
 
     if (isnan(h) || isnan(t)) {
-      Serial.println("Failed to read from DHT sensor!");
+      Serial.println("Failed to read from DHT sensor, trying again");
       //return; This will ensure that data is always sent
     }
-
-    //Serial.print("Humidity: "); 
-    //Serial.print(h);
-    //Serial.print(" %\t");
-    //Serial.print("Temperature: "); 
-    //Serial.print(t);
-    //Serial.println(" *C ");
-    //Serial.print(tempF);
-    //Serial.print(hif);
-
+    else {
+      
+    delay(2000);
 
     static char Fout[15];
     dtostrf(t,4, 2, Fout);
@@ -123,10 +119,8 @@ void SendTempHumid(){
     strcat(somebigthing, "\"}");
     
     //sprintf(tempFstring, "%d", (int)tempF);
-  
+    Serial.printf(somebigthing);
     client.publish(topic, somebigthing);
-
-    Serial.printf("Sleep for %d seconds\n\n", sleepSeconds);
-    ESP.deepSleep(sleepSeconds * 1000000);
+    }
   }
 }
