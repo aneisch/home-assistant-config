@@ -26,7 +26,7 @@ My home automation suite is built out of many different components and runs on a
 - Arlo Cameras (controlled through IFTTT)
 - AppDaemon controlling a majority of my automations.
 - Amazon Echo Dot with Home Assistant emulated hue as well as custom skills via Alexa API.
-- MQTT Remote and local server. Using remote with SSL for owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
+- MQTT Remote and local server (via Docker). Using remote with SSL for owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
  
