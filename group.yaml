@@ -74,7 +74,9 @@ system:
  - sensor.ram_use
  - sensor.disk_use_
  - sensor.disk_use_home
- - sensor.disk_use_opt
+ - sensor.last_boot
+ - sensor.sent_eno1
+ - sensor.received_eno1
  - switch.nas
 UPS:
  - sensor.ups_time_left

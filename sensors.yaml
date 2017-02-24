@@ -8,14 +8,16 @@
 
 - platform: systemmonitor
   resources:
-    - type: 'disk_use_percent'
+    - type: disk_use_percent
       arg: /home
-    - type: 'disk_use_percent'
-      arg: /opt
-    - type: 'disk_use_percent'
+    - type: disk_use_percent
       arg: /
-    - type: 'memory_use_percent'
-    - type: 'processor_use'
+    - type: memory_use_percent
+    - type: network_in
+      arg: eno1
+    - type: network_out
+      arg: eno1
+    - type: last_boot
 
 - platform: apcupsd
   resources:
