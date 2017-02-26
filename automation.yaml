@@ -88,6 +88,9 @@
   condition:
     condition: and
     conditions:
+      - condition: state
+        entity_id: input_boolean.ac_change_notification
+        state: 'on'
       - condition: template
         value_template: '{{ trigger.entity_id != None }}'
       - condition: template
@@ -106,6 +109,9 @@
   condition:
     condition: and
     conditions:
+      - condition: state
+        entity_id: input_boolean.ac_change_notification
+        state: 'on'
       - condition: template
         value_template: '{{ trigger.entity_id != None }}'
       - condition: template
@@ -115,15 +121,3 @@
       data_template:
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
-
-#Someone gets home
-- alias: "Notify Andrew when someone arrives home"
-  trigger:
-    platform: state
-    from: "not_home"
-    to: "home"
-    entity_id: group.trackers
-  action:
-    service: notify.notify_push_android
-    data:
-      message: "Someone is home!"

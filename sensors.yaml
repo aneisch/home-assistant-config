@@ -6,6 +6,10 @@
     - temperature
     - humidity
 
+- platform: usps
+  username: USERNAME
+  password: PASSWORD
+
 - platform: systemmonitor
   resources:
     - type: disk_use_percent

@@ -86,16 +86,8 @@ automation_override:
  - input_boolean.door_notify
  - input_boolean.ac_automation
 # - input_boolean.christmas_lights_automation
- - group.ac_notification
- - group.presence_notify_automation
+ - input_boolean.ac_change_notification
  - input_boolean.occusim
-presence_notify_automation:
- - automation.notify_andrew_when_back_door_opens
- - automation.notify_andrew_when_front_door_opens
- - automation.notify_andrew_when_someone_arrives_home
-ac_notification:
- - automation.notify_andrew_when_ac_setpoint_changes
- - automation.notify_andrew_when_ac_mode_changes
 living_room:
  - switch.living_room_lamp
  - switch.wemo_switch

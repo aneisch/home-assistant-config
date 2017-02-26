@@ -3,6 +3,7 @@ arlo_status:
   initial: off
   icon: mdi:camera
 
+#used with appdaemon
 door_notify:
   name: Door Notifications
   initial: off
@@ -12,6 +13,11 @@ ac_automation:
   name: AC Automation
   initial: off
   icon: mdi:fan
+
+ac_change_notification:
+  name: AC Change Notification
+  initial: on
+  icon: mdi:alert-circle
 
 #christmas_lights_automation:
 #  name: Christmas Light Automation
