@@ -9,7 +9,7 @@
 Description=AppDaemon service for Home Assistant
 
 [Service]
-ExecStart=/usr/local/bin/appdaemon -c /opt/appdaemon/conf/appdaemon.cfg
+ExecStart=/bin/appdaemon -c /opt/appdaemon/conf/appdaemon.cfg
 
 [Install]
 WantedBy=multi-user.target

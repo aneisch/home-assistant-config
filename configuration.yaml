@@ -106,8 +106,8 @@ mqtt:
 
 device_tracker:
   - platform: owntracks
-#  - platform: bluetooth_tracker
-#    interval_seconds: 30
+  - platform: bluetooth_tracker
+    interval_seconds: 30
   - platform: nmap_tracker
     hosts: 10.0.1.41/32
     home_interval: 10 
