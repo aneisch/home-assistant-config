@@ -103,7 +103,7 @@
         entity_id: climate.thermostat
         operation_mode: 'off'
 
-#Fix bug in climate automation where home heats wildly..
+#Fix bug in climate automation where house heats wildly..
 - alias: "Notify Andrew when AC BREAKS"
   trigger:
     - platform: state
@@ -116,7 +116,7 @@
         state: 'heat'
       - condition: numeric_state
         entity_id: sensor.thermostat_setpoint
-        below: '72'
+        above: '72'
   action:
     - service: notify.notify_push_android
       data_template:
