@@ -80,6 +80,53 @@
 # NOTICES #
 ###########
 
+#Fix bug in climate automation where house cools wildly..
+- alias: "Notify Andrew when AC BREAKS"
+  trigger:
+    - platform: state
+      entity_id: sensor.thermostat_setpoint
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: climate.thermostat
+        state: 'cool'
+      - condition: numeric_state
+        entity_id: sensor.thermostat_setpoint
+        below: '70'
+  action: 
+    - service: notify.notify_push_android
+      data_template:
+        message: AC Broke.. Turning Off...
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.thermostat
+        operation_mode: 'off'
+
+#Fix bug in climate automation where home heats wildly..
+- alias: "Notify Andrew when AC BREAKS"
+  trigger:
+    - platform: state
+      entity_id: sensor.thermostat_setpoint
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: climate.thermostat
+        state: 'heat'
+      - condition: numeric_state
+        entity_id: sensor.thermostat_setpoint
+        below: '72'
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: AC Broke.. Turning Off...
+    - service: climate.set_operation_mode
+      data:
+        entity_id: climate.thermostat
+        operation_mode: 'off'
+      
+
 #AC Setpoint changed
 - alias: "Notify Andrew when AC setpoint changes"
   trigger:

@@ -1,3 +1,15 @@
+#- platform: miflora
+#  mac: "xx:xx:xx:xx:xx:xx"
+#  name: Hibiscus
+#  force_update: false
+#  median: 3
+#  monitored_conditions:
+#    - moisture
+#    - light
+#    - temperature
+#    - conductivity
+#    - battery
+
 - platform: darksky
   api_key: API_KEY
   monitored_conditions:
