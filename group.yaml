@@ -17,6 +17,7 @@ default_view:
     - camera.outdoor
     - media_player.andrews_chromecast
     - group.misc
+    - group.garden
 andrews_room:
   name: Andrew's Room
   view: yes
@@ -101,3 +102,9 @@ power:
  - sensor.sonoff_pow_yesterday_cost
 misc:
  - sensor.ADDRESS
+garden:
+ - sensor.garden_battery
+ - sensor.garden_conductivity
+ - sensor.garden_light_intensity
+ - sensor.garden_moisture
+ - sensor.garden_temperature
