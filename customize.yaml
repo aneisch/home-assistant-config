@@ -21,6 +21,8 @@ group.system:
   friendly_name: System
 group.power:
   friendly_name: Power
+group.garden:
+  friendly_name: Garden
 
 #LIGHTS
 light.andrew_bedroom:
