@@ -25,14 +25,15 @@
   optimistic: false
   retain: true
 
-#- platform : mqtt
-#  name: "Christmas Lights"
-#  state_topic: "stat/sonoff_christmas_lights/POWER"
-#  command_topic: "cmnd/sonoff_christmas_lights/POWER"
-#  payload_on: "ON"
-#  payload_off: "OFF"
-#  optimistic: false
-#  retain: true
+- platform : mqtt
+  name: "Plant Lights"
+  #name: "Christmas Lights"
+  state_topic: "stat/sonoff_christmas_lights/POWER"
+  command_topic: "cmnd/sonoff_christmas_lights/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
 
 - platform : mqtt
   name: "Sonoff Pow"

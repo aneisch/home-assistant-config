@@ -53,6 +53,22 @@
 #    service: homeassistant.turn_off
 #    entity_id: switch.christmas_lights
 
+- alias: "Plant Light on during Day"
+  trigger:
+    platform: time
+    after: 08:00:00
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.plant_light
+
+- alias: "Plant Light off at Night"
+  trigger:
+    platform: time
+    after: 21:00:00
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.plant_light
+
 #########
 # WEMOS #
 #########

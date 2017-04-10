@@ -1,6 +1,5 @@
 arlo_status:
   name: Arlo Status
-  initial: off
   icon: mdi:camera
 
 #used with appdaemon
@@ -11,7 +10,7 @@ door_notify:
 
 ac_automation:
   name: AC Automation
-  initial: off
+  initial: on
   icon: mdi:fan
 
 ac_change_notification:
