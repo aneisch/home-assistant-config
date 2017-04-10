@@ -53,7 +53,7 @@ andrew_room:
  - switch.andrew_sound_machine
  - switch.andrew_ceiling_fan
  - switch.ge_12722_onoff_relay_switch_switch_15_0
- - switch.plant_lights
+ - switch.plant_light
  - camera.my_room
 security:
  - input_boolean.arlo_status
