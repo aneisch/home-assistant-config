@@ -55,6 +55,7 @@ andrew_room:
  - switch.ge_12722_onoff_relay_switch_switch_15_0
  - switch.plant_light
  - camera.my_room
+ - camera.safe
 security:
  - input_boolean.arlo_status
  - sensor.front_door_status
