@@ -155,12 +155,6 @@ zwave:
   usb_path: /dev/zwave
   config_path: /opt/python-openzwave/openzwave/config
 
-panel_iframe:
-  timelapse:
-    title: 'Goldfinch Timelapse'
-    icon: mdi:clock-fast
-    url: 'https://REDACTED'
-
 wemo:
 
 emulated_hue:

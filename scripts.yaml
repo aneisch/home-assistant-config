@@ -93,6 +93,10 @@ arlo_disarm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
+    - delay:
+        seconds: 5
+    - service: ifttt.trigger
+      data: {"event":"arlo_disarm"}
     - service: notify.notify_push_android
       data:
         message: Disrmed!
