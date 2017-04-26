@@ -1,10 +1,10 @@
 - platform: generic
-  still_image_url: IMAGE-URL
+  still_image_url: !secret weather_url
   name: Weather
 - platform: mjpeg
   mjpeg_url: http://10.0.1.26:8080/?action=stream
   name: Outdoor
 
 - platform: arlo
-  username: EMAIL
-  password: PASS
+  username: !secret arlo_username
+  password: !secret arlo_password

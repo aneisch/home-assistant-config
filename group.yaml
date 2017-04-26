@@ -104,7 +104,7 @@ power:
  - sensor.sonoff_pow_yesterday_energy
  - sensor.sonoff_pow_yesterday_cost
 misc:
- - sensor.ADDRESS
+ - !secret home_sensor
 garden:
  - sensor.garden_battery
  - sensor.garden_conductivity

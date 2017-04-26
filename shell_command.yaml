@@ -18,3 +18,4 @@ tv_fox: echo 38000,1,1,172,172,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,2
 
 nas_poweroff: 'curl -m 5 -u USERNAME:PASSWORD -k "https://10.0.1.20/dbbroker" -H "Content-Type: application/x-www-form-urlencoded;" -H "X-Requested-With: XMLHttpRequest" --data "<?xml version=\"1.0\" encoding=\"UTF-8\"?>             <xs:nml xmlns:xs=\"http://www.netgear.com/protocol/transaction/NMLSchema-0.9\" xmlns=\"urn:netgear:nas:readynasd\" src=\"dpv_1368497621000\" dst=\"nas\">                <xs:transaction id=\"njl_id_1278\">                    <xs:custom id=\"njl_id_1277\" name=\"Halt\" resource-id=\"Shutdown\" resource-type=\"System\">                    <Shutdown halt=\"true\" fsck=\"false\"/>                </xs:custom>                </xs:transaction>            </xs:nml>"'
 
+owntracks_update: '/usr/local/bin/force_location_update'

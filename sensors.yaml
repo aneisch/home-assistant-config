@@ -11,7 +11,7 @@
     - battery
 
 - platform: darksky
-  api_key: API_KEY
+  api_key: !secret darksky_api_key
   monitored_conditions:
     - summary
     - precip_probability
@@ -19,8 +19,8 @@
     - humidity
 
 - platform: usps
-  username: USERNAME
-  password: PASSWORD
+  username: !secret usps_username
+  password: !secret usps_key
 
 - platform: systemmonitor
   resources:

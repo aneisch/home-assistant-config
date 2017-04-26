@@ -19,13 +19,11 @@
 
 [Unit]
 Description=A high performance web server and a reverse proxy server
-After=network.target
+After=network.target hass.service
 
 [Service]
 Type=forking
 PIDFile=/run/nginx.pid
-#Delay for Home Assistant to start
-ExecStartPre=/bin/sleep 30
 ExecStartPre=/usr/sbin/nginx -t -q -g 'daemon on; master_process on;'
 ExecStart=/usr/sbin/nginx -g 'daemon on; master_process on;'
 ExecReload=/usr/sbin/nginx -g 'daemon on; master_process on;' -s reload

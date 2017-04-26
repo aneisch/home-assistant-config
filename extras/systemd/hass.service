@@ -7,7 +7,7 @@
 
 [Unit]
 Description=Home Assistant (hass) Daemon
-After=syslog.target network.target
+After=syslog.target network.target docker.service
 
 [Service]
 Type=forking

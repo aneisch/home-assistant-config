@@ -3,60 +3,53 @@ homeassistant:
   customize: !include customize.yaml
   elevation: 94
   unit_system: imperial
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret home_lat
+  longitude: !secret home_long
   time_zone: America/Chicago
 
 sun:
 
 zone:
   name: Work
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret work_lat
+  longitude: !secret work_long
   radius: 500 
   icon: mdi:worker
 
 zone 2:
   name: Bethany's House
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret bethany_lat
+  longitude: !secret bethany_long
   radius: 500
   icon: mdi:heart
 
 zone 3:
   name: Dan and Marilyn's
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret dan_lat
+  longitude: !secret dan_long
   radius: 500
   icon: mdi:home-variant
 
 zone 4:
   name: Wayne and Lisa's
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret wayne_lat
+  longitude: !secret wanye_long
   radius: 500
   icon: mdi:home-variant
 
 zone 5:
   name: Michael and Mandy's
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret michael_lat
+  longitude: !secret michael_long
   radius: 500
   icon: mdi:home-variant
 
 zone 6:
   name: Kimberly and Travis'
-  latitude: LAT
-  longitude: LONG
+  latitude: !secret travis_lat
+  longitude: !secret travis_long
   radius: 500
   icon: mdi:home-variant
-
-zone 7:
-  name: Collier Center
-  latitude: LAT
-  longitude: LONG
-  radius: 500
-  icon: mdi:school
 
 proximity:
   home:
@@ -91,8 +84,7 @@ logbook:
 #discovery:
 
 http:
-  server_host: 127.0.0.1
-  api_password: PASSWORD
+  api_password: !secret api_password
   server_port: 8123
   #Using nginx proxy to serve https over ipv4/ipv6
 
@@ -101,8 +93,8 @@ mqtt:
   broker: 127.0.0.1
   port: 1883
   keepalive: 60
-  username: REDACTED
-  password: REDACTED
+  username: !secret owntracks_user
+  password: !secret owntracks_password
 
 device_tracker:
   - platform: owntracks
@@ -123,19 +115,16 @@ climate:
 
 notify:
   - platform: pushbullet
-    api_key: API_KEY
+    api_key: !secret pushbullet_key
     name: notify_push_android
-  - platform: html5
-    gcm_api_key: 'REDACTED'
-    gcm_sender_id: 'REDACTED'
 
 influxdb:
   host: localhost
-  username: home-assistant
-  password: home-assistant!
+  username: !secret influx_user
+  password: !secret influx_password
 
 ifttt:
-  key: MAKER_KEY
+  key: !secret ifttt_key
 
 light:
   - platform: limitlessled
