@@ -55,9 +55,6 @@ andrew_arrived:
     - service: scene.turn_on
       data:
         entity_id: scene.andrew_light_full
-    - delay:
-        seconds: 30
-    - service: shell_command.owntracks_update
 
 
 #Wake up light, fading red, turns off sound machine and fan after transition
