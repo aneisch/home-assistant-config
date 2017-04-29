@@ -57,6 +57,10 @@
   trigger:
     platform: time
     after: '08:00:00'
+  condition:
+    - condition: state
+      entity_id: input_boolean.plant_light_automation
+      state: 'on'
   action:
     service: homeassistant.turn_on
     entity_id: switch.plant_light

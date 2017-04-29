@@ -25,3 +25,8 @@ ac_change_notification:
 occusim:
   name: Occupancy Simulator
   initial: off
+
+plant_light_automation:
+  name: Plant Light Automation
+  initial: on
+  icon: mdi:lightbulb

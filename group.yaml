@@ -91,6 +91,7 @@ automation_override:
  - input_boolean.door_notify
  - input_boolean.ac_automation
 # - input_boolean.christmas_lights_automation
+ - input_boolean.plant_light_automation
  - input_boolean.ac_change_notification
  - input_boolean.occusim
 living_room:
