@@ -13,9 +13,9 @@ After=syslog.target network.target docker.service
 Type=forking
 #Start Bluetooth
 ExecStartPre=/usr/bin/hciconfig hci0 up
+ExecStartPre=/usr/sbin/arp -s 10.0.1.29 20:02:af:76:b6:db
 ExecStart=/usr/bin/hass -v --config /opt/homeassistant --pid-file /var/run/hass.pid --daemon
 #Add static arp entry for thermostat
-ExecStartPost=/usr/sbin/arp -s 10.0.1.29 20:02:af:76:b6:db
 #Add static ipv6 GW
 ExecStartPost=/usr/sbin/route add -A inet6 default gw 2001:470:1f0f:f4::1
 PIDFile=/var/run/hass.pid

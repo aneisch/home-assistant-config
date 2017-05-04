@@ -132,6 +132,26 @@ andrew_room_pre_bed:
 # OTHER #
 #########
 
+set_ac_75:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 75
+
+set_ac_78:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 78
+
+set_ac_82:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 82 
 
 ######
 # IR #
