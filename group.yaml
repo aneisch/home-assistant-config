@@ -73,6 +73,7 @@ weather:
  - sun.sun
  - sensor.moon_phase
 system:
+ - sensor.ssl_certificate_expiry
  - sensor.rack_exhaust_temperature
  - switch.rack_exhaust_fan
  - sensor.cpu_use
