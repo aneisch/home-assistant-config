@@ -44,6 +44,9 @@ switch.rack_exhaust_fan:
 switch.ge_12722_onoff_relay_switch_switch_15_0:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
+light.ge_12724_3way_dimmer_switch_level_16_0:
+  friendly_name: GE Dimmer
+  icon: mdi:lightbulb
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
 switch.wemo_switch:
