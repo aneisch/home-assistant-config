@@ -153,6 +153,10 @@ emulated_hue:
     - switch
     - script
 
+arlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
+
 
 alexa: !include alexa.yaml
 camera: !include camera.yaml

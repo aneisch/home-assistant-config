@@ -6,5 +6,5 @@
   name: Outdoor
 
 - platform: arlo
-  username: !secret arlo_username
-  password: !secret arlo_password
+  ffmpeg_binary: '/usr/bin/ffmpeg'
+  ffmpeg_arguments: '-filter:v setpts=40.0*PTS'
