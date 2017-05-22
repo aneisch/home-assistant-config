@@ -160,7 +160,7 @@ emulated_hue:
 panel_iframe:
   countdown:
     title: 'Wedding Countdown!'
-    icon: mdi::church
+    icon: mdi:church
     url: !secret countdown
 
 
