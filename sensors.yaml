@@ -1,4 +1,4 @@
-- platform: arlo
+#- platform: arlo
 
 - platform: cert_expiry
   host: !secret domain

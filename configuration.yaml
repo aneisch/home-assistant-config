@@ -153,9 +153,14 @@ emulated_hue:
     - switch
     - script
 
-arlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
+#arlo:
+#  username: !secret arlo_username
+#  password: !secret arlo_password
+
+panel_iframe:
+  countdown:
+    title: 'Wedding Countdown!'
+    url: !secret countdown
 
 
 alexa: !include alexa.yaml

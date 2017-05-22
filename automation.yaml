@@ -1,9 +1,5 @@
-############
-# SECURITY #
-############
-
-#Arlo ARM
-- alias: "Arlo Arm"
+- id: arlo_arm
+  alias: "Arlo Arm"
   trigger:
     platform: state
     entity_id: input_boolean.arlo_status
@@ -13,8 +9,8 @@
     service: script.turn_on
     entity_id: script.arlo_arm
 
-#Arlo DISARM
-- alias: "Arlo Disarm"
+- id: arlo_disarm
+  alias: "Arlo Disarm"
   trigger:
     platform: state
     entity_id: input_boolean.arlo_status
@@ -24,36 +20,8 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
-#########
-# OTHER #
-#########
-
-#- alias: "Christmas Lights at Sunset"
-#  trigger:
-#    platform: sun
-#    event: sunset
-#    offset: "-00:45:00"
-#  condition: 
-#    - condition: state
-#      entity_id: input_boolean.christmas_lights_automation
-#      state: 'on'
-#  action:
-#    service: homeassistant.turn_on
-#    entity_id: switch.christmas_lights
-
-#- alias: "Christmas Lights off at 11:00"
-#  trigger:
-#    platform: time
-#    after: '23:00'
-#  condition: 
-#    - condition: state
-#      entity_id: input_boolean.christmas_lights_automation
-#      state: 'on'
-#  action:
-#    service: homeassistant.turn_off
-#    entity_id: switch.christmas_lights
-
-- alias: "Plant Light on during Day"
+- id: plant_light_on
+  alias: "Plant Light on during Day"
   trigger:
     platform: time
     after: '08:00:00'
@@ -65,7 +33,8 @@
     service: homeassistant.turn_on
     entity_id: switch.plant_light
 
-- alias: "Plant Light off at Night"
+- id: plant_light_off
+  alias: "Plant Light off at Night"
   trigger:
     platform: time
     after: '21:00:00'
@@ -73,11 +42,8 @@
     service: homeassistant.turn_off
     entity_id: switch.plant_light
 
-#########
-# WEMOS #
-#########
-
-- alias: "Button Press On!"
+- id: button_on
+  alias: "Button Press On!"
   trigger:
     platform: state
     entity_id: sensor.bed_toggle_switch
@@ -86,7 +52,8 @@
     service: homeassistant.turn_on
     entity_id: script.andrew_room_bedtime
 
-- alias: "Button Press Off!"
+- id: button_off
+  alias: "Button Press Off!"
   trigger:
     platform: state
     entity_id: sensor.bed_toggle_switch
@@ -95,13 +62,8 @@
     service: homeassistant.turn_on
     entity_id: script.andrew_wakeup
 
-
-###########
-# NOTICES #
-###########
-
-#Fix bug in climate automation where house cools wildly..
-- alias: "Notify Andrew when AC BREAKS"
+- id: ac_broken_cool
+  alias: "Notify Andrew when AC BREAKS"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -123,8 +85,8 @@
         entity_id: climate.thermostat
         operation_mode: 'off'
 
-#Fix bug in climate automation where house heats wildly..
-- alias: "Notify Andrew when AC BREAKS"
+- id: ac_broken_heat
+  alias: "Notify Andrew when AC BREAKS"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -145,10 +107,9 @@
       data:
         entity_id: climate.thermostat
         operation_mode: 'off'
-      
-
-#AC Setpoint changed
-- alias: "Notify Andrew when AC setpoint changes"
+   
+- id: ac_setpoint_change
+  alias: "Notify Andrew when AC setpoint changes"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -168,8 +129,8 @@
         message: >
           Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
-#AC Setpoint changed
-- alias: "Notify Andrew when AC Mode changes"
+- id: ac_mode_change
+  alias: "Notify Andrew when AC Mode changes"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_operating_mode
