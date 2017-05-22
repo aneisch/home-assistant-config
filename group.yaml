@@ -52,7 +52,7 @@ andrew_room:
  - light.andrew_monitor_backlight_testing
  - switch.andrew_sound_machine
  - switch.andrew_ceiling_fan
- - switch.ge_12722_onoff_relay_switch_switch_15_0
+ - switch.bathroom_light_15
  - switch.plant_light
  - camera.my_room
  - camera.safe
