@@ -41,7 +41,7 @@ switch.andrew_ceiling_fan:
   friendly_name: Ceiling Fan
 switch.rack_exhaust_fan:
   icon: mdi:fan
-switch.bathroom_light_15
+switch.bathroom_light_15:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
 switch.living_room_lamp:
