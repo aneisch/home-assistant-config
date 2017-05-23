@@ -3,8 +3,8 @@
 #GROUPS
 group.andrew_room:
   friendly_name: Andrew's Room
-group.living_room:
-  friendly_name: Living Room
+group.common:
+  friendly_name: Common Area
 group.automation_override:
   friendly_name: Automation Control
 group.thermostat:
@@ -46,8 +46,13 @@ switch.bathroom_light_switch_15_0:
   icon: mdi:lightbulb
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
+  icon: mdi:lamp
 switch.wemo_switch:
   friendly_name: Living Room Lamp 2
+  icon: mdi:lamp
+switch.kitchen_table_light_switch_17_0:
+  friendly_name: Kitchen Table Light
+  icon: mdi:lightbulb
 
 #SENSORS
 sensor.dark_sky_summary:

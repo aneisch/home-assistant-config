@@ -12,7 +12,7 @@ default_view:
     - group.security
     - group.trackers
     - group.weather
-    - group.living_room
+    - group.common
     - camera.weather
     - camera.outdoor
     - media_player.andrews_chromecast
@@ -95,6 +95,10 @@ automation_override:
  - input_boolean.plant_light_automation
  - input_boolean.ac_change_notification
  - input_boolean.occusim
+common:
+ - switch.living_room_lamp
+ - switch.wemo_switch
+ - switch.kitchen_table_light_switch_17_0
 living_room:
  - switch.living_room_lamp
  - switch.wemo_switch
