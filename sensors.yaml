@@ -1,19 +1,23 @@
 #- platform: arlo
 
+- platform: date_countdown
+  name: Wedding Countdown
+  date: "05-20-2018 18:00"
+
 - platform: cert_expiry
   host: !secret domain
 
-- platform: miflora
-  mac: "c4:7c:8d:63:34:c8"
-  name: Garden
-  force_update: false
-  median: 3
-  monitored_conditions:
-    - moisture
-    - light
-    - temperature
-    - conductivity
-    - battery
+#- platform: miflora
+#  mac: "c4:7c:8d:63:34:c8"
+#  name: Garden
+#  force_update: false
+#  median: 3
+#  monitored_conditions:
+#    - moisture
+#    - light
+#    - temperature
+#    - conductivity
+#    - battery
 
 - platform: darksky
   api_key: !secret darksky_api_key

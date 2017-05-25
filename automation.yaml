@@ -1,5 +1,6 @@
-- id: arlo_arm
-  alias: "Arlo Arm"
+#- id: arlo_arm
+- alias: "Arlo Arm"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: input_boolean.arlo_status
@@ -9,8 +10,9 @@
     service: script.turn_on
     entity_id: script.arlo_arm
 
-- id: arlo_disarm
-  alias: "Arlo Disarm"
+#- id: arlo_disarm
+- alias: "Arlo Disarm"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: input_boolean.arlo_status
@@ -20,8 +22,9 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
-- id: plant_light_on
-  alias: "Plant Light on during Day"
+#- id: plant_light_on
+- alias: "Plant Light on during Day"
+  initial_state: 'on'
   trigger:
     platform: time
     after: '08:00:00'
@@ -33,8 +36,9 @@
     service: homeassistant.turn_on
     entity_id: switch.plant_light
 
-- id: plant_light_off
-  alias: "Plant Light off at Night"
+#- id: plant_light_off
+- alias: "Plant Light off at Night"
+  initial_state: 'on'
   trigger:
     platform: time
     after: '21:00:00'
@@ -42,8 +46,9 @@
     service: homeassistant.turn_off
     entity_id: switch.plant_light
 
-- id: button_on
-  alias: "Button Press On!"
+#- id: button_on
+- alias: "Button Press On!"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: sensor.bed_toggle_switch
@@ -52,8 +57,9 @@
     service: homeassistant.turn_on
     entity_id: script.andrew_room_bedtime
 
-- id: button_off
-  alias: "Button Press Off!"
+#- id: button_off
+- alias: "Button Press Off!"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: sensor.bed_toggle_switch
@@ -62,8 +68,9 @@
     service: homeassistant.turn_on
     entity_id: script.andrew_wakeup
 
-- id: ac_broken_cool
-  alias: "Notify Andrew when AC BREAKS"
+#- id: ac_broken_cool
+- alias: "Notify Andrew when AC BREAKS"
+  initial_state: 'on'
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -85,8 +92,9 @@
         entity_id: climate.thermostat
         operation_mode: 'off'
 
-- id: ac_broken_heat
-  alias: "Notify Andrew when AC BREAKS"
+#- id: ac_broken_heat
+- alias: "Notify Andrew when AC BREAKS"
+  initial_state: 'on'
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -108,8 +116,9 @@
         entity_id: climate.thermostat
         operation_mode: 'off'
    
-- id: ac_setpoint_change
-  alias: "Notify Andrew when AC setpoint changes"
+#- id: ac_setpoint_change
+- alias: "Notify Andrew when AC setpoint changes"
+  initial_state: 'on'
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -129,8 +138,9 @@
         message: >
           Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
-- id: ac_mode_change
-  alias: "Notify Andrew when AC Mode changes"
+#- id: ac_mode_change
+- alias: "Notify Andrew when AC Mode changes"
+  initial_state: 'on'
   trigger:
     - platform: state
       entity_id: sensor.thermostat_operating_mode
