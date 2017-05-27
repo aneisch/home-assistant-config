@@ -1,5 +1,9 @@
 #- platform: arlo
 
+- platform: fedex
+  username: !secret fedex_username
+  password: !secret fedex_password
+
 - platform: date_countdown
   name: Wedding Countdown
   date: "05-20-2018 18:00"
