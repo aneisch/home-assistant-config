@@ -65,13 +65,11 @@ sensor.dark_sky_humidity:
   friendly_name: Humidity
 sensor.dark_sky_precip_probability:
   friendly_name: Percent Chance of Rain
-
 sensor.andrew_room_temperature:
   friendly_name: Room Temperature
   icon: mdi:thermometer
 sensor.rack_exhaust_temperature:
   icon: mdi:thermometer-lines
-
 sensor.sonoff_pow_current:
   icon: mdi:flash
 sensor.sonoff_pow_power:
@@ -94,6 +92,13 @@ sensor.garden_moisture:
   icon: mdi:water
 sensor.garden_temperature:
   icon: mdi:thermometer
+sensor.wedding_countdown_days:
+  icon: mdi:calendar
+  friendly_name: Days Until Wedding
+sensor.packages_in_transit:
+  icon: mdi:truck-delivery
+sensor.deliveries_today:
+  icon: mdi:package-variant
 
 #THERMOSTAT
 climate.thermostat:

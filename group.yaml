@@ -113,7 +113,9 @@ power:
  - sensor.sonoff_pow_yesterday_energy
  - sensor.sonoff_pow_yesterday_cost
 misc:
-  - sensor.wedding_countdown
+  - sensor.packages_in_transit
+  - sensor.deliveries_today
+  - sensor.wedding_countdown_days
 garden:
  - sensor.garden_battery
  - sensor.garden_conductivity

@@ -76,6 +76,9 @@ frontend:
 
 # Enables support for tracking state changes over time.
 history:
+  exclude:
+    entities:
+      - sensor.wedding_countdown
 
 # View all events in a logbook
 logbook:

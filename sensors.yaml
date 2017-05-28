@@ -38,10 +38,10 @@
     - wind_bearing
     - icon
 
-#broken..
-#- platform: usps
-#  username: !secret usps_username
-#  password: !secret usps_key
+- platform: usps
+  name: USPS
+  username: !secret usps_username
+  password: !secret usps_key
 
 - platform: systemmonitor
   resources:
@@ -281,3 +281,32 @@
         {%- else -%}
           unoccupied
         {%- endif %}
+
+
+- platform: template
+  sensors:
+    packages_in_transit:
+      friendly_name: "Packages in Transit"
+      value_template: >
+        {% macro in_transit(sensor) %}
+          {{sensor.state|int - delivered(sensor)|int}}
+        {% endmacro %}
+        {% macro delivered(sensor) %}
+          {% if 'delivered' in sensor.attributes %}
+            {{sensor.attributes.delivered}}
+          {% else %}
+             0
+          {% endif %}
+        {% endmacro %}
+        {{in_transit(states.sensor.usps)|int + in_transit(states.sensor.fedex)|int}}
+    deliveries_today:
+      friendly_name: "Today's Deliveries"
+      value_template: >
+        {% macro delivered(sensor) %}
+          {% if 'delivered' in sensor.attributes %}
+            {{sensor.attributes.delivered}}
+          {% else %}
+             0
+          {% endif %}
+        {% endmacro %}
+        {{delivered(states.sensor.usps)|int + delivered(states.sensor.fedex)|int}}
