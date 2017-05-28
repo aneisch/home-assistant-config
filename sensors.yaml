@@ -11,6 +11,7 @@
 - platform: cert_expiry
   host: !secret domain
 
+#out of range
 #- platform: miflora
 #  mac: "c4:7c:8d:63:34:c8"
 #  name: Garden
@@ -37,9 +38,10 @@
     - wind_bearing
     - icon
 
-- platform: usps
-  username: !secret usps_username
-  password: !secret usps_key
+#broken..
+#- platform: usps
+#  username: !secret usps_username
+#  password: !secret usps_key
 
 - platform: systemmonitor
   resources:
