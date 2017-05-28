@@ -68,6 +68,18 @@
     service: homeassistant.turn_on
     entity_id: script.andrew_wakeup
 
+- alias: "Mount /Plex"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: switch.nas
+    from: 'off'
+    to: 'on'
+    for:
+      minutes: 1
+  action:
+    service: shell_command.mount_plex
+
 #- id: ac_broken_cool
 - alias: "Notify Andrew when AC BREAKS"
   initial_state: 'on'

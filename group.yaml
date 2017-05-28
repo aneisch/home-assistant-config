@@ -2,9 +2,6 @@
 default_view:
   view: yes
   entities:
-    - sensor.front_door_status
-    - sensor.back_door_status
-    - switch.emulated_wemo_1
 #    - switch.christmas_lights
     - group.thermostat
     - group.automation_override
@@ -18,6 +15,12 @@ default_view:
     - media_player.andrews_chromecast
     - group.misc
     - group.garden
+common_area:
+  name: Common Area
+  view: yes
+  entities:
+    - group.thermostat
+    - group.common
 andrews_room:
   name: Andrew's Room
   view: yes
@@ -110,7 +113,7 @@ power:
  - sensor.sonoff_pow_yesterday_energy
  - sensor.sonoff_pow_yesterday_cost
 misc:
- - !secret home_sensor
+  - sensor.wedding_countdown
 garden:
  - sensor.garden_battery
  - sensor.garden_conductivity

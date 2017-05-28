@@ -1,6 +1,8 @@
 # Images go in /usr/local/lib/python3.4/dist-packages/homeassistant/components/frontend/www_static/images/
 
 #GROUPS
+group.misc:
+  friendly_name: Miscellaneous
 group.andrew_room:
   friendly_name: Andrew's Room
 group.common:
