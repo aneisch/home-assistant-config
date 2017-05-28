@@ -44,21 +44,25 @@ thermostat:
   - sensor.thermostat_state
   - sensor.thermostat_fan_status
 scenes:
-  - script.andrew_room_light_full
-  - script.andrew_room_pre_bed
-  - script.andrew_room_bedtime
+  control: hidden
+  entities:
+    - script.andrew_room_light_full
+    - script.andrew_room_pre_bed
+    - script.andrew_room_bedtime
 andrew_room:
- - sensor.andrew_room_temperature
- - light.andrew_bedroom
- - light.andrew_monitor_backlight
- - light.andrew_bedroom_testing
- - light.andrew_monitor_backlight_testing
- - switch.andrew_sound_machine
- - switch.andrew_ceiling_fan
- - switch.bathroom_light_switch_15_0
- - switch.plant_light
- - camera.my_room
- - camera.safe
+  control: hidden
+  entities:
+    - sensor.andrew_room_temperature
+    - light.andrew_bedroom
+    - light.andrew_monitor_backlight
+    - light.andrew_bedroom_testing
+    - light.andrew_monitor_backlight_testing
+    - switch.andrew_sound_machine
+    - switch.andrew_ceiling_fan
+    - switch.bathroom_light_switch_15_0
+    - switch.plant_light
+    - camera.my_room
+    - camera.safe
 security:
  - input_boolean.arlo_status
  - sensor.front_door_status
@@ -76,28 +80,32 @@ weather:
  - sun.sun
  - sensor.moon_phase
 system:
- - sensor.ssl_certificate_expiry
- - sensor.rack_exhaust_temperature
- - switch.rack_exhaust_fan
- - sensor.cpu_use
- - sensor.ram_use
- - sensor.disk_use_
- - sensor.disk_use_home
- - sensor.last_boot
- - sensor.sent_eno1
- - sensor.received_eno1
- - switch.nas
+  control: hidden
+  entities:
+    - sensor.ssl_certificate_expiry
+    - sensor.rack_exhaust_temperature
+    - switch.rack_exhaust_fan
+    - sensor.cpu_use
+    - sensor.ram_use
+    - sensor.disk_use_
+    - sensor.disk_use_home
+    - sensor.last_boot
+    - sensor.sent_eno1
+    - sensor.received_eno1
+    - switch.nas
 UPS:
  - sensor.ups_time_left
  - sensor.ups_load
  - sensor.ups_battery
 automation_override:
- - input_boolean.door_notify
- - input_boolean.ac_automation
-# - input_boolean.christmas_lights_automation
- - input_boolean.plant_light_automation
- - input_boolean.ac_change_notification
- - input_boolean.occusim
+  control: hidden
+  entities:
+    - input_boolean.door_notify
+    - input_boolean.ac_automation
+   # - input_boolean.christmas_lights_automation
+    - input_boolean.plant_light_automation
+    - input_boolean.ac_change_notification
+    - input_boolean.occusim
 common:
  - switch.living_room_lamp
  - switch.wemo_switch
