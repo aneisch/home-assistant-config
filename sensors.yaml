@@ -235,6 +235,13 @@
 
 - platform: template
   sensors:
+    wedding_countdown_days:
+      friendly_name: "Days Until Wedding"
+      value_template: >-
+        {{ states('sensor.wedding_countdown').split(' ')[0] }}
+
+- platform: template
+  sensors:
     back_door_status:
       value_template: >-
         {%- if is_state("sensor.backdoor", "true") %}

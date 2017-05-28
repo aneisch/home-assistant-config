@@ -1,3 +1,17 @@
+- alias: "Wedding Notify"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: sensor.wedding_countdown_days
+  condition:
+    condition: template
+    value_template: '{{ states.sensor.wedding_countdown_days.state[-2:] | float == 00 }}'
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: >
+          Wedding is in {{ states.sensor.wedding_countdown_days.state }} days!!
+  
 #- id: arlo_arm
 - alias: "Arlo Arm"
   initial_state: 'on'
