@@ -11,6 +11,17 @@
       data_template:
         message: >
           Wedding is in {{ states.sensor.wedding_countdown_days.state }} days!!
+
+- alias: "Package Delivered"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: sensor.deliveries_today
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: >
+          Package delivered...
   
 #- id: arlo_arm
 - alias: "Arlo Arm"
