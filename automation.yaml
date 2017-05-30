@@ -4,12 +4,8 @@
     platform: state
     entity_id: sensor.wedding_countdown_days
   condition:
-    condition: or
-    conditions:
-      - condition: template
-        value_template: '{{ states.sensor.wedding_countdown_days.state[-2:] | float == 00 }}'
-      - condition: template
-        value_template: '{{ states.sensor.wedding_countdown_days.state[-2:] | float == 50 }}'
+    - condition: template
+      value_template: '{{ states.sensor.wedding_countdown_days.state | float % 50 == 0 }}'
   action:
     - service: notify.notify_push_android
       data_template:

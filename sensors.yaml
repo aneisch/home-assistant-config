@@ -6,7 +6,7 @@
 
 - platform: date_countdown
   name: Wedding Countdown
-  date: "05-20-2018 18:00"
+  date: "20-05-2018 18:00"
 
 - platform: cert_expiry
   host: !secret domain
@@ -235,13 +235,6 @@
 
 - platform: template
   sensors:
-    wedding_countdown_days:
-      friendly_name: "Days Until Wedding"
-      value_template: >-
-        {{ states('sensor.wedding_countdown').split(' ')[0] }}
-
-- platform: template
-  sensors:
     back_door_status:
       value_template: >-
         {%- if is_state("sensor.backdoor", "true") %}
@@ -310,3 +303,9 @@
           {% endif %}
         {% endmacro %}
         {{delivered(states.sensor.usps)|int + delivered(states.sensor.fedex)|int}}
+
+- platform: template
+  sensors:
+    wedding_countdown_days:
+      value_template: >-
+        {{ states.sensor.wedding_countdown.attributes.days }}
