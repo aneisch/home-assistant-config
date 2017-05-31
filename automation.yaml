@@ -52,7 +52,7 @@
   initial_state: 'on'
   trigger:
     platform: time
-    after: '08:00:00'
+    after: '07:59:59'
   condition:
     - condition: state
       entity_id: input_boolean.plant_light_automation
@@ -66,7 +66,7 @@
   initial_state: 'on'
   trigger:
     platform: time
-    after: '21:00:00'
+    after: '20:59:59'
   action:
     service: homeassistant.turn_off
     entity_id: switch.plant_light
