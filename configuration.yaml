@@ -165,7 +165,18 @@ panel_iframe:
     title: 'Wedding Countdown!'
     icon: mdi:church
     url: !secret countdown
-
+  plane_tracking:
+    title: 'Plane Tracking'
+    icon: mdi:airplane
+    url: !secret plane
+  ups:
+    title: 'UPS Status'
+    icon: mdi:car-battery
+    url: !secret ups
+  grafana:
+    title: 'Grafana'
+    icon: mdi:chart-areaspline
+    url: !secret grafana
 
 alexa: !include alexa.yaml
 camera: !include camera.yaml
