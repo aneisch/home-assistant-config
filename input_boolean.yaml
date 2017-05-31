@@ -15,7 +15,7 @@ ac_automation:
 
 ac_change_notification:
   name: AC Change Notification
-  initial: on
+  initial: off
   icon: mdi:alert-circle
 
 #christmas_lights_automation:
