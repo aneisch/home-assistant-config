@@ -99,6 +99,8 @@ sensor.packages_in_transit:
   icon: mdi:truck-delivery
 sensor.deliveries_today:
   icon: mdi:package-variant
+sensor.usps_mail:
+  friendly_name: Mail Delivered Today
 
 #THERMOSTAT
 climate.thermostat:

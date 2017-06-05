@@ -291,9 +291,9 @@
              0
           {% endif %}
         {% endmacro %}
-        {{in_transit(states.sensor.usps)|int + in_transit(states.sensor.fedex)|int}}
+        {{in_transit(states.sensor.usps_packages)|int + in_transit(states.sensor.fedex)|int}}
     deliveries_today:
-      friendly_name: "Today's Deliveries"
+      friendly_name: "Packages Delivered Today"
       value_template: >
         {% macro delivered(sensor) %}
           {% if 'delivered' in sensor.attributes %}
@@ -302,7 +302,7 @@
              0
           {% endif %}
         {% endmacro %}
-        {{delivered(states.sensor.usps)|int + delivered(states.sensor.fedex)|int}}
+        {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.fedex)|int}}
 
 - platform: template
   sensors:

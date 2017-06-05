@@ -121,8 +121,9 @@ power:
  - sensor.sonoff_pow_yesterday_energy
  - sensor.sonoff_pow_yesterday_cost
 misc:
-  - sensor.packages_in_transit
+  - sensor.usps_mail
   - sensor.deliveries_today
+  - sensor.packages_in_transit
   - sensor.wedding_countdown_days
 garden:
  - sensor.garden_battery
