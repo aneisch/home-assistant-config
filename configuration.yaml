@@ -66,7 +66,8 @@ apcupsd:
 #  platform: plex
 
 # Checks for available updates
-#updater:
+updater:
+  include_used_components: true
 
 # Allows you to issue voice commands from the frontend
 #conversation:
@@ -145,7 +146,6 @@ light:
 
 zwave:
   usb_path: /dev/zwave
-  #config_path: /opt/python-openzwave/openzwave/config
   new_entity_ids: true
 
 wemo:
