@@ -55,6 +55,8 @@
     - type: network_out
       arg: eno1
     - type: last_boot
+    - type: processor_use
+    - type: load_1m
 
 - platform: apcupsd
   resources:

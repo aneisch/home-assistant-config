@@ -43,7 +43,7 @@ switch.andrew_ceiling_fan:
   friendly_name: Ceiling Fan
 switch.rack_exhaust_fan:
   icon: mdi:fan
-switch.bathroom_light_switch_15_0:
+switch.bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
 switch.living_room_lamp:
@@ -52,7 +52,7 @@ switch.living_room_lamp:
 switch.wemo_switch:
   friendly_name: Living Room Lamp 2
   icon: mdi:lamp
-switch.kitchen_table_light_switch_17_0:
+switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
 

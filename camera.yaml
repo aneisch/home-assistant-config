@@ -7,4 +7,4 @@
 
 - platform: arlo
   ffmpeg_binary: '/usr/bin/ffmpeg'
-  ffmpeg_arguments: '-filter:v setpts=40.0*PTS'
+  ffmpeg_arguments: '-pred 1 -q:v 2'

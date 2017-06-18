@@ -59,7 +59,7 @@ andrew_room:
     - light.andrew_monitor_backlight_testing
     - switch.andrew_sound_machine
     - switch.andrew_ceiling_fan
-    - switch.bathroom_light_switch_15_0
+    - switch.bathroom_light_switch
     - switch.plant_light
     - camera.my_room
     - camera.safe
@@ -86,6 +86,7 @@ system:
     - sensor.rack_exhaust_temperature
     - switch.rack_exhaust_fan
     - sensor.cpu_use
+    - sensor.average_load_1m
     - sensor.ram_use
     - sensor.disk_use_
     - sensor.disk_use_home
@@ -109,7 +110,7 @@ automation_override:
 common:
  - switch.living_room_lamp
  - switch.wemo_switch
- - switch.kitchen_table_light_switch_17_0
+ - switch.kitchen_table_light_switch
 living_room:
  - switch.living_room_lamp
  - switch.wemo_switch

@@ -145,7 +145,8 @@ light:
 
 zwave:
   usb_path: /dev/zwave
-  config_path: /opt/python-openzwave/openzwave/config
+  #config_path: /opt/python-openzwave/openzwave/config
+  new_entity_ids: true
 
 wemo:
 
