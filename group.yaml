@@ -111,6 +111,7 @@ common:
  - switch.living_room_lamp
  - switch.wemo_switch
  - switch.kitchen_table_light_switch
+ - switch.kitchen_plant_light_switch
 living_room:
  - switch.living_room_lamp
  - switch.wemo_switch
