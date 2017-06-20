@@ -55,6 +55,11 @@ switch.wemo_switch:
 switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
+switch.kitchen_plant_light_switch:
+  friendly_name: Kitchen Plant Light
+  icon: mdi:flower
+switch.bathroom_plant_light:
+  icon: mdi:flower
 
 #SENSORS
 sensor.dark_sky_summary:

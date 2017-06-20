@@ -7,4 +7,4 @@
 
 - platform: arlo
   ffmpeg_binary: '/usr/bin/ffmpeg'
-  ffmpeg_arguments: '-pred 1 -q:v 2'
+  ffmpeg_arguments: '-q:v 5'
