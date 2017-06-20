@@ -60,7 +60,7 @@ andrew_room:
     - switch.andrew_sound_machine
     - switch.andrew_ceiling_fan
     - switch.bathroom_light_switch
-    - switch.plant_light
+    - switch.bathroom_plant_light
     - camera.my_room
     - camera.safe
 security:
@@ -132,3 +132,6 @@ garden:
  - sensor.garden_light_intensity
  - sensor.garden_moisture
  - sensor.garden_temperature
+plant_lights:
+ - switch.bathroom_plant_light
+ - switch.kitchen_plant_light_switch

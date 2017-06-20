@@ -48,7 +48,7 @@
     entity_id: script.arlo_disarm
 
 #- id: plant_light_on
-- alias: "Plant Light on during Day"
+- alias: "Plant Lights on during Day"
   initial_state: 'on'
   trigger:
     platform: time
@@ -59,17 +59,17 @@
       state: 'on'
   action:
     service: homeassistant.turn_on
-    entity_id: switch.plant_light
+    entity_id: group.plant_lights
 
 #- id: plant_light_off
-- alias: "Plant Light off at Night"
+- alias: "Plant Lights off at Night"
   initial_state: 'on'
   trigger:
     platform: time
     at: '21:00:00'
   action:
     service: homeassistant.turn_off
-    entity_id: switch.plant_light
+    entity_id: group.plant_lights
 
 #- id: button_on
 - alias: "Button Press On!"
