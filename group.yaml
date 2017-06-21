@@ -14,7 +14,7 @@ default_view:
     - camera.outdoor
     - media_player.andrews_chromecast
     - group.misc
-    - group.garden
+    - group.jade_clippings
 common_area:
   name: Common Area
   view: yes
@@ -127,12 +127,12 @@ misc:
   - sensor.deliveries_today
   - sensor.packages_in_transit
   - sensor.wedding_countdown_days
-garden:
- - sensor.garden_battery
- - sensor.garden_conductivity
- - sensor.garden_light_intensity
- - sensor.garden_moisture
- - sensor.garden_temperature
+jade_clippings:
+ - sensor.jade_clippings_battery
+ - sensor.jade_clippings_conductivity
+ - sensor.jade_clippings_light_intensity
+ - sensor.jade_clippings_moisture
+ - sensor.jade_clippings_temperature
 plant_lights:
  - switch.bathroom_plant_light
  - switch.kitchen_plant_light_switch

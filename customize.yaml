@@ -23,7 +23,7 @@ group.system:
   friendly_name: System
 group.power:
   friendly_name: Power
-group.garden:
+group.jade_clippings:
   friendly_name: Garden
 
 #LIGHTS
@@ -87,15 +87,15 @@ sensor.sonoff_pow_today_cost:
   icon: mdi:square-inc-cash
 sensor.sonoff_pow_yesterday_cost:
   icon: mdi:square-inc-cash
-sensor.garden_battery:
+sensor.jade_clippings_battery:
   icon: mdi:battery
-sensor.garden_conductivity:
+sensor.jade_clippings_conductivity:
   icon: mdi:flash
-sensor.garden_light_intensity:
+sensor.jade_clippings_light_intensity:
   icon: mdi:white-balance-sunny
-sensor.garden_moisture:
+sensor.jade_clippings_moisture:
   icon: mdi:water
-sensor.garden_temperature:
+sensor.jade_clippings_temperature:
   icon: mdi:thermometer
 sensor.wedding_countdown_days:
   icon: mdi:calendar
