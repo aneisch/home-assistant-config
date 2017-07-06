@@ -7,6 +7,9 @@ homeassistant:
   longitude: !secret home_long
   time_zone: America/Chicago
 
+recorder:
+  purge_days: 7
+
 sun:
 
 zone:
@@ -140,13 +143,14 @@ light:
         - number: 1
           type: rgbw
           name: andrew_bedroom
+          fade: on
         - number: 2
           type: rgbw
           name: andrew_monitor_backlight
+          fade: on
 
 zwave:
   usb_path: /dev/zwave
-  new_entity_ids: true
 
 wemo:
 
