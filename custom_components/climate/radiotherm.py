@@ -141,7 +141,7 @@ class RadioThermostat(ClimateDevice):
         _LOGGER.info("Initial:")
         _LOGGER.info(current)
         while current == -1:
-            self.device.temp['raw']
+            current = self.device.temp['raw']
             _LOGGER.info("Retry:")
             _LOGGER.info(current)
         _LOGGER.info("Final:")
