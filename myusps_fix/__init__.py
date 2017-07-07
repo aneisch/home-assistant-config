@@ -1,4 +1,5 @@
 """My USPS interface."""
+""" This is heavily modified to allow me to download mail images and build GIF """
 
 import datetime
 import os
