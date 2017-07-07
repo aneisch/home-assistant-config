@@ -3,7 +3,6 @@ Support for Radio Thermostat wifi-enabled home thermostats.
 
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/climate.radiotherm/
-aneisch patch
 """
 import datetime
 import logging
