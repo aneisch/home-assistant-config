@@ -12,6 +12,7 @@ default_view:
     - group.common
     - camera.weather
     - camera.outdoor
+    - camera.mail
     - media_player.andrews_chromecast
     - group.misc
     - group.jade_clippings

@@ -138,14 +138,14 @@ class RadioThermostat(ClimateDevice):
     def update(self):
         """Update the data from the thermostat."""
         current = self.device.temp['raw']
-        _LOGGER.error("Initial:")
-        _LOGGER.error(current)
+        _LOGGER.info("Initial:")
+        _LOGGER.info(current)
         while current == -1:
             self.device.temp['raw']
-            _LOGGER.error("Retry:")
-            _LOGGER.error(current)
-        _LOGGER.error("Final:")
-        _LOGGER.error(current)
+            _LOGGER.info("Retry:")
+            _LOGGER.info(current)
+        _LOGGER.info("Final:")
+        _LOGGER.info(current)
         self._current_temperature = current
         self._name = self.device.name['raw']
         self._fmode = self.device.fmode['human']

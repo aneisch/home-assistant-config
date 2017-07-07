@@ -1,6 +1,7 @@
 - platform: generic
   still_image_url: !secret weather_url
   name: Weather
+
 - platform: mjpeg
   mjpeg_url: http://10.0.1.26:8080/?action=stream
   name: Outdoor
@@ -8,3 +9,7 @@
 - platform: arlo
   ffmpeg_binary: '/usr/bin/ffmpeg'
   ffmpeg_arguments: '-q:v 5'
+
+- platform: local_file
+  name: Mail
+  file_path: /home/aneisch/homeassistant/mail/mail.gif
