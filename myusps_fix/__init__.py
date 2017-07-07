@@ -239,23 +239,23 @@ def get_mail(session, date=datetime.datetime.now().date()):
     if len(mail) >= 1:
         download_images(session, mail)
     else:
-        os.system("cp /home/aneisch/homeassistant/mail/nomail /home/aneisch/homeassistant/mail/mail.gif")
+        os.system("cp /opt/homeassistant/mail/nomail /opt/homeassistant/mail/mail.gif")
     return mail
 
 
 def download_images(session, mail):
-    os.system("rm /home/aneisch/homeassistant/mail/*.jpg")
+    os.system("rm /opt/homeassistant/mail/*.jpg")
     count = 1
     total = len(mail)
     for mailpiece in mail:
         img_data = session.get(mailpiece['image']).content
         print(img_data)
-        with open('/home/aneisch/homeassistant/mail/' + mailpiece['id'] + '.jpg', 'wb') as handler:
+        with open('/opt/homeassistant/mail/' + mailpiece['id'] + '.jpg', 'wb') as handler:
             handler.write(img_data)
-        os.system("convert /home/aneisch/homeassistant/mail/" + mailpiece['id'] + ".jpg -fill white -undercolor '#00000080' -gravity SouthWest -pointsize 18 -annotate +0+0 '" + str(count) + "/" + str(total) + "' /home/aneisch/homeassistant/mail/" + str(count) + ".jpg 2>/dev/null")
-        os.system("rm /home/aneisch/homeassistant/mail/" + mailpiece['id'] + ".jpg")
+        os.system("convert /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg -fill white -undercolor '#00000080' -gravity SouthWest -pointsize 18 -annotate +0+0 '" + str(count) + "/" + str(total) + "' /opt/homeassistant/mail/" + str(count) + ".jpg 2>/dev/null")
+        os.system("rm /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg")
         count += 1
-    os.system("convert -delay 300 -loop 0 -dispose previous /home/aneisch/homeassistant/mail/*.jpg /home/aneisch/homeassistant/mail/mail.gif")
+    os.system("convert -delay 300 -loop 0 -dispose previous /opt/homeassistant/mail/*.jpg /opt/homeassistant/mail/mail.gif")
 
 
 def get_session(username, password, cookie_path=COOKIE_PATH):
