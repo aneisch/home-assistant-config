@@ -236,6 +236,7 @@ def get_mail(session, date=datetime.datetime.now().date()):
             'date': str(date),
             'image': '{}{}'.format(INFORMED_DELIVERY_IMAGE_URL, img)
         })
+    """Download and compile images if we got mail, otherwise copy nomail image over GIF"""
     if len(mail) >= 1:
         download_images(session, mail)
     else:
@@ -249,12 +250,17 @@ def download_images(session, mail):
     total = len(mail)
     for mailpiece in mail:
         img_data = session.get(mailpiece['image']).content
-        print(img_data)
+        """Download the image"""
         with open('/opt/homeassistant/mail/' + mailpiece['id'] + '.jpg', 'wb') as handler:
             handler.write(img_data)
-        os.system("convert /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg -fill white -undercolor '#00000080' -gravity SouthWest -pointsize 18 -annotate +0+0 '" + str(count) + "/" + str(total) + "' /opt/homeassistant/mail/" + str(count) + ".jpg 2>/dev/null")
+        """Annotate image with it's number over total (so we can keep track in the final GIF"""
+        os.system("convert /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg -fill white -undercolor \
+            '#00000080' -gravity SouthWest -pointsize 18 -annotate +0+0 '" + str(count) + "/" + \
+            str(total) + "' /opt/homeassistant/mail/" + str(count) + ".jpg 2>/dev/null")
+        """Remove un-annotated image"""
         os.system("rm /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg")
         count += 1
+    """Create GIF of all mail images"""
     os.system("convert -delay 300 -loop 0 -dispose previous /opt/homeassistant/mail/*.jpg /opt/homeassistant/mail/mail.gif")
 
 
