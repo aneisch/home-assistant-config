@@ -137,44 +137,43 @@ class RadioThermostat(ClimateDevice):
 
     def update(self):
         """Update the data from the thermostat."""
-        current = self.device.temp['raw']
-        _LOGGER.info("Initial:")
-        _LOGGER.info(current)
-        while current == -1:
-            current = self.device.temp['raw']
-            _LOGGER.info("Retry:")
-            _LOGGER.info(current)
-        _LOGGER.info("Final:")
-        _LOGGER.info(current)
-        self._current_temperature = current
+        current_temp = self.device.temp['raw']
+        while current_temp == -1:
+            _LOGGER.error("Invalid temperature detected, retrying")
+            current_temp = self.device.temp['raw']
+        self._current_temperature = current_temp
         self._name = self.device.name['raw']
         self._fmode = self.device.fmode['human']
         self._tmode = self.device.tmode['human']
         self._tstate = self.device.tstate['human']
 
         if self._tmode == 'Cool':
-            target = self.device.t_cool['raw']
-            while target == -1:
-                target = self.device.t_cool['raw']
-            self._target_temperature = target
+            target_temp = self.device.t_cool['raw']
+            while target_temp == -1:
+                _LOGGER.error("Invalid temperature detected, retrying")
+                target_temp = self.device.t_cool['raw']
+            self._target_temperature = target_temp
             self._current_operation = STATE_COOL
         elif self._tmode == 'Heat':
-            target = self.device.t_heat['raw']
-            while target == -1:
-                target = self.device.t_heat['raw']
-            self._target_temperature = target
+            target_temp = self.device.t_heat['raw']
+            while target_temp == -1:
+                _LOGGER.error("Invalid temperature detected, retrying")
+                target_temp = self.device.t_heat['raw']
+            self._target_temperature = target_temp
             self._current_operation = STATE_HEAT
         elif self._tmode == 'Auto':
             if self._tstate == 'Cool':
-                target = self.device.t_cool['raw']
-                while target == -1:
-                    target = self.device.t_cool['raw']
-                self._target_temperature = target
+                target_temp = self.device.t_cool['raw']
+                while target_temp == -1:
+                    _LOGGER.error("Invalid temperature detected, retrying")
+                    target_temp = self.device.t_cool['raw']
+                self._target_temperature = target_temp
             elif self._tstate == 'Heat':
-                target = self.device.t_heat['raw']
-                while target == -1:
-                    target = self.device.t_heat['raw']
-                self._target_temperature = target
+                target_temp = self.device.t_heat['raw']
+                while target_temp == -1:
+                    _LOGGER.error("Invalid temperature detected, retrying")
+                    target_temp = self.device.t_heat['raw']
+                self._target_temperature = target_temp
             self._current_operation = STATE_AUTO
         else:
             self._current_operation = STATE_IDLE
