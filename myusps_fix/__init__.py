@@ -253,7 +253,7 @@ def download_images(session, mail):
         """Download the image"""
         with open('/opt/homeassistant/mail/' + mailpiece['id'] + '.jpg', 'wb') as handler:
             handler.write(img_data)
-        """Annotate image with it's number over total (so we can keep track in the final GIF"""
+        """Annotate image with it's number over the total so we can keep track in the final GIF"""
         os.system("convert /opt/homeassistant/mail/" + mailpiece['id'] + ".jpg -fill white -undercolor \
             '#00000080' -gravity SouthWest -pointsize 18 -annotate +0+0 '" + str(count) + "/" + \
             str(total) + "' /opt/homeassistant/mail/" + str(count) + ".jpg 2>/dev/null")
