@@ -145,7 +145,7 @@ class RadioThermostat(ClimateDevice):
             retry += 1
         if retry == 5: 
             _LOGGER.error("Couldn't get valid reading")
-            break
+            return
         self._current_temperature = current_temp
         self._name = self.device.name['raw']
         self._fmode = self.device.fmode['human']
@@ -161,7 +161,7 @@ class RadioThermostat(ClimateDevice):
                 retry += 1
             if retry == 5:
                 _LOGGER.error("Couldn't get valid reading")
-                break
+                return
             self._target_temperature = target_temp
             self._current_operation = STATE_COOL
         elif self._tmode == 'Heat':
@@ -173,7 +173,7 @@ class RadioThermostat(ClimateDevice):
                 retry += 1
             if retry == 5:
                 _LOGGER.error("Couldn't get valid reading")
-                break
+                return
             self._target_temperature = target_temp
             self._current_operation = STATE_HEAT
         elif self._tmode == 'Auto':
@@ -186,7 +186,7 @@ class RadioThermostat(ClimateDevice):
                     retry += 1
                 if retry == 5:
                     _LOGGER.error("Couldn't get valid reading")
-                    break
+                    return
                 self._target_temperature = target_temp
             elif self._tstate == 'Heat':
                 target_temp = self.device.t_heat['raw']
@@ -197,7 +197,7 @@ class RadioThermostat(ClimateDevice):
                     retry += 1
                 if retry == 5:
                     _LOGGER.error("Couldn't get valid reading")
-                    break
+                    return
                 self._target_temperature = target_temp
                 self._target_temperature = target_temp
             self._current_operation = STATE_AUTO
