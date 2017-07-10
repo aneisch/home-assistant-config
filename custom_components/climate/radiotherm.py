@@ -141,24 +141,20 @@ class RadioThermostat(ClimateDevice):
         if current_temp == -1:
             _LOGGER.error("Couldn't get valid temperature reading")
             return
-        fmode = self.device.fmode['human']
-        if fmode == -1:
-            _LOGGER.error("Couldn't get valid fan mode reading")
-            return
-        tmode = self.device.tmode['human']
-        if tmode == -1:
-            _LOGGER.error("Couldn't get valid thermostat mode reading")
-            return
-        tstate = self.device.tstate['human']
-        if tstate == -1:
-            _LOGGER.error("Couldn't get valid thermostat state reading")
-            return
-        
         self._current_temperature = current_temp
         self._name = self.device.name['raw']
-        self._fmode = fmode
-        self._tmode = tmode
-        self._tstate = tstate
+        try:
+            self._fmode = self.device.fmode['human']
+        except AttributeError:
+            _LOGGER.error("Couldn't get valid fan mode reading")
+        try:
+            self._tmode = self.device.tmode['human']
+        except AttributeError:
+            _LOGGER.error("Couldn't get valid thermostat mode reading")
+        try:
+            self._tstate = self.device.tstate['human']
+        except AttributeError:
+            _LOGGER.error("Couldn't get valid thermostat state reading")
 
         if self._tmode == 'Cool':
             target_temp = self.device.t_cool['raw']
