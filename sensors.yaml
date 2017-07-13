@@ -4,6 +4,10 @@
   username: !secret fedex_username
   password: !secret fedex_password
 
+- platform: ups
+  username: !secret ups_username
+  password: !secret ups_password
+
 - platform: date_countdown
   name: Wedding Countdown
   date: "20-05-2018 18:00"
@@ -293,7 +297,7 @@
              0
           {% endif %}
         {% endmacro %}
-        {{in_transit(states.sensor.usps_packages)|int + in_transit(states.sensor.fedex)|int}}
+        {{in_transit(states.sensor.usps_packages)|int + in_transit(states.sensor.ups)|int + in_transit(states.sensor.fedex)|int}}
     deliveries_today:
       friendly_name: "Packages Delivered Today"
       value_template: >
@@ -304,7 +308,7 @@
              0
           {% endif %}
         {% endmacro %}
-        {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.fedex)|int}}
+        {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.ups)|int + delivered(states.sensor.fedex)|int}}
 
 - platform: template
   sensors:

@@ -126,6 +126,7 @@ power:
 misc:
   - sensor.usps_mail
   - sensor.deliveries_today
+  - sensor.ups
   - sensor.packages_in_transit
   - sensor.wedding_countdown_days
 jade_clippings:
