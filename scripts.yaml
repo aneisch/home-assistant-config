@@ -8,9 +8,9 @@ andrew_room_bedtime:
     - service: switch.turn_on
       data:
         entity_id: switch.andrew_sound_machine
-    - service: switch.turn_on
+    - service: fan.turn_on
       data:
-        entity_id: switch.andrew_ceiling_fan
+        entity_id: fan.bedroom_ceiling_fan_level
     - service: scene.turn_on
       data:
         entity_id: scene.wakeup_light_on
@@ -35,9 +35,9 @@ andrew_gone:
     - service: switch.turn_off
       data:
         entity_id: switch.andrew_sound_machine
-    - service: switch.turn_off
+    - service: fan.turn_off
       data:
-        entity_id: switch.andrew_ceiling_fan
+        entity_id: fan.bedroom_ceiling_fan_level
     - delay:
         seconds: 5
     - service: homeassistant.turn_on

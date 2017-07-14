@@ -38,7 +38,7 @@ switch.andrew_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
   icon: mdi:camera
-switch.andrew_ceiling_fan:
+fan.bedroom_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
 switch.rack_exhaust_fan:

@@ -6,16 +6,6 @@
   -  host: 10.0.1.21
      name: andrew_sound_machine
 
-
-- platform : mqtt
-  name: "Andrew Ceiling Fan"
-  state_topic: "stat/sonoff_fan/POWER"
-  command_topic: "cmnd/sonoff_fan/POWER"
-  payload_on: "ON"
-  payload_off: "OFF"
-  optimistic: false
-  retain: true
-
 - platform : mqtt
   name: "Rack Exhaust Fan"
   state_topic: "stat/sonoff_rack_fan/POWER"
