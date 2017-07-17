@@ -12,4 +12,4 @@
 
 - platform: local_file
   name: Mail
-  file_path: /home/aneisch/homeassistant/mail/mail.gif
+  file_path: /opt/homeassistant/mail/mail.gif
