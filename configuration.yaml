@@ -160,6 +160,7 @@ emulated_hue:
     - light
     - switch
     - script
+    - fan
 
 arlo:
   username: !secret arlo_username
