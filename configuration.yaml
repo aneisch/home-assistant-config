@@ -86,6 +86,10 @@ history:
 
 # View all events in a logbook
 logbook:
+  exclude:
+    entities:
+      - sensor.wedding_countdown
+      - sensor.average_load_1m
 
 # Discover some devices automatically
 #discovery:
