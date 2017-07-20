@@ -9,11 +9,11 @@ class Timer(appapi.AppDaemon):
     self.run_daily(self.off, time_off)
 
   def on(self, kwargs):
-    for device in self.split_device_list(self.args["devices"])
+    for device in self.split_device_list(self.args["devices"]):
         self.log("Turning on " + device)
         self.turn_on(device)
 
   def off(self, kwargs):
-    for device in self.split_device_list(self.args["devices"])
+    for device in self.split_device_list(self.args["devices"]):
         self.log("Turning off " + device)
         self.turn_on(device)
