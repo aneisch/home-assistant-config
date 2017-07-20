@@ -47,30 +47,6 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
-#- id: plant_light_on
-- alias: "Plant Lights on during Day"
-  initial_state: 'on'
-  trigger:
-    platform: time
-    at: '08:00:00'
-  condition:
-    - condition: state
-      entity_id: input_boolean.plant_light_automation
-      state: 'on'
-  action:
-    service: homeassistant.turn_on
-    entity_id: group.plant_lights
-
-#- id: plant_light_off
-- alias: "Plant Lights off at Night"
-  initial_state: 'on'
-  trigger:
-    platform: time
-    at: '21:00:00'
-  action:
-    service: homeassistant.turn_off
-    entity_id: group.plant_lights
-
 #- id: button_on
 - alias: "Button Press On!"
   initial_state: 'on'
