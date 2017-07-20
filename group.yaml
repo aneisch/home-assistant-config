@@ -134,6 +134,3 @@ jade_clippings:
  - sensor.jade_clippings_light_intensity
  - sensor.jade_clippings_moisture
  - sensor.jade_clippings_temperature
-plant_lights:
- - switch.bathroom_plant_light
- - switch.kitchen_plant_light_switch
