@@ -16,4 +16,4 @@ class Timer(appapi.AppDaemon):
   def off(self, kwargs):
     for device in self.split_device_list(self.args["devices"]):
         self.log("Turning off " + device)
-        self.turn_on(device)
+        self.turn_off(device)

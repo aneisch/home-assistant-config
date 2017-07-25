@@ -1,0 +1,103 @@
+AppDaemon:
+  app_dir: /opt/appdaemon/
+  errorfile: /var/log/appdaemon.log
+  logfile: /var/log/appdaemon.log
+  threads: '10'
+HADashboard:
+  dash_url: http://10.0.1.22:5050
+HASS:
+  ha_key: winfield!
+  ha_url: http://127.0.0.1:8123
+
+########
+# APPS #
+########
+
+AC AutoAdjust:
+  class: AutoAdjust
+  device_tracker: group.trackers
+  door_trigger: sensor.front_door_status
+  module: ac_automation
+  morning_adjust_weekday: 08:00:00
+  morning_adjust_weekend: '10:00:00'
+  night_adjust_weekday: '21:00:00'
+  night_adjust_weekend: '21:00:00'
+  override_input_boolean: input_boolean.ac_automation
+  summer_day: '78'
+  summer_night: '75'
+  summer_unoccupied: '82'
+  thermostats: climate.thermostat
+  winter_day: '66'
+  winter_night: '65'
+  winter_unoccupied: '62'
+
+Andrew Room Light Automation:
+  class: AndrewRoomNight
+  module: light_automation
+  scene: scene.prebed_light
+  time_on: '22:00:00'
+  tracker: device_tracker.owntracks_android
+
+Door Notify:
+  class: DoorNotify
+  door_sensor: sensor.front_door_status,sensor.back_door_status
+  module: door_open
+
+Living Room Light at Night With Door:
+  class: DoorLight
+  constrain_end_time: sunrise
+  constrain_start_time: sunset
+  door_sensor: sensor.front_door_status
+  lights: switch.living_room_lamp
+  module: door_open
+  time_on: '60'
+
+Minimote:
+  class: MiniMote
+  device: zwave.bedside_remote
+  module: minimote
+  scene_1_toggle: switch.bathroom_light_switch
+  scene_2_on: script.andrew_room_light_full
+  scene_3_toggle: fan.bedroom_ceiling_fan_level
+  scene_4_on: script.andrew_room_pre_bed
+  scene_5_toggle: switch.andrew_sound_machine
+  scene_6_on: script.andrew_room_bedtime
+  scene_7_toggle: light.andrew_monitor_backlight
+  scene_8_toggle: switch.bathroom_plant_light
+
+Occupancy Simulator:
+  class: OccuSim
+  dump_times: '1'
+  enable: input_boolean.occusim
+  log: '1'
+  module: occusim
+  random_house_end: Night
+  random_house_maxduration: 01:00:00
+  random_house_minduration: 00:15:00
+  random_house_name: Random House
+  random_house_number: '4'
+  random_house_off_kitchen: switch.kitchen_table_light_switch
+  random_house_off_livingroom: group.living_room
+  random_house_on_kitchen: switch.kitchen_table_light_switch
+  random_house_on_livingroom: group.living_room
+  random_house_start: Evening
+  step_evening_name: Evening
+  step_evening_start: sunset - 00:45:00
+  step_night_name: Night
+  step_night_start: '23:59:59'
+
+Plant Timer Morning:
+  class: Timer
+  constrain_input_boolean: input_boolean.plant_light_automation
+  devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
+  module: device_timer
+  time_off: '12:00:00'
+  time_on: 08:00:00
+
+Plant Timer Afternoon:
+  class: Timer
+  constrain_input_boolean: input_boolean.plant_light_automation
+  devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
+  module: device_timer
+  time_off: '21:00:00'
+  time_on: '13:00:00'

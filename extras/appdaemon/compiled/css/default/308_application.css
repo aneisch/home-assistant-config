@@ -1,0 +1,915 @@
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  background-color: #222;
+  font-size: 15px;
+  color: #fff;
+  padding: 0;
+  line-height: 1;
+  font-family: 'Helvetica Neue', 'Helvetica', 'Open Sans', 'Arial'
+}
+
+b, strong {
+  font-weight: bold;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img {
+  border: 0;
+  -ms-interpolation-mode: bicubic;
+  vertical-align: middle;
+}
+
+img, object {
+  max-width: 100%;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;}
+
+iframe {
+  max-width: 100%;
+}
+  
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+  width: 100%;
+}
+
+td {
+  vertical-align: middle;
+}
+
+ul, ol {
+  padding: 0;
+  margin: 0;
+}
+
+h1, h2, h3, h4, h5, p {
+  padding: 0;
+  margin: 0;
+}
+h1 {
+  margin-bottom: 6px;
+  text-align: center;
+  font-size: 100%;
+  font-weight: 200;
+}
+h2 {
+  font-size: 300%;
+  font-weight: 400;
+  color: #fff;
+}
+h3 {
+  font-size: 125%;
+  font-weight: 300;
+  color: #fff;
+}
+
+input {
+  background-color: #444;
+  border: none;
+}
+
+.dashboard_main {
+	margin: 0px auto;
+}
+
+.gridster {
+  margin: 0px auto;
+}
+
+.icon-background {
+  pointer-events: none;
+  width: 100%!important;
+  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0.1;
+  font-size: 1375%;
+  text-align: center;
+  margin-top: 82px;
+}
+
+.list-nostyle {
+  list-style: none;
+}
+
+.gridster ul {
+  list-style: none;
+}
+
+.gs-w {
+  width: 100%;
+  display: table;
+  cursor: pointer;
+  z-index: auto !important;
+}
+
+.iframe {
+  position: relative;
+  overflow: hidden;  
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;}
+
+.widget {
+  padding: 0px 0px;
+  text-align: center;
+  width: 100%;
+  display: table-cell;
+  vertical-align: middle;
+  background-color: #444444;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  border-radius: 5px;}
+
+  .title {
+    color: #fff;
+  }
+
+  .icon-inactive {
+    color: #888;
+  }
+
+  .icon-active {
+    color: #aaff00;
+  }
+}
+
+#container {
+  padding-top: 0px;
+}
+
+.modalDialog {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	background: rgba(0,0,0,0.8);
+	z-index: 9999;
+	opacity:0;
+	-webkit-transition: opacity 400ms ease-in;
+	-moz-transition: opacity 400ms ease-in;
+	transition: opacity 400ms ease-in;
+	pointer-events: none;
+}
+
+.modalDialogOpen {
+	opacity:0.95;
+	pointer-events: auto;
+}
+
+.modalDialogClose {
+	opacity:0;
+	pointer-events: none;
+}
+
+.modalDialog > div {
+	width: 275px;
+	position: relative;
+	margin: 3% auto;
+	padding: 5px 20px 13px 20px;
+	border-radius: 10px;
+}
+
+.modalDialogCloseButton {
+	line-height: 50px;
+	position: absolute;
+	right: -25px;
+	text-align: center;
+	top: -20px;
+	width: 50px;
+	text-decoration: none;
+	font-weight: bold;
+	-webkit-border-radius: 25px;
+	-moz-border-radius: 25px;
+	border-radius: 25px;
+}
+
+.modalDialogCloseButton:hover { background: #444; }
+.widget-baseclock-default-clock.date {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+.widget-baseclock-default-clock.time {
+ 	position: absolute;
+	top: 45px;
+	width: 100%;
+}
+.widget-baseweather-default-weather {
+	color: white;
+}
+
+.widget-baseweather-default-weather h1 {
+	margin-bottom: 0px;
+}
+
+.widget-baseweather-default-weather [class^="primary"] {
+	display: inline-block;
+	vertical-align: middle;
+	padding: 0;
+	margin-left: 10px;
+	margin-right: 10px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.widget-baseweather-default-weather [class^="secondary"] {
+	display: inline-block;
+	vertical-align: middle;
+	padding: 0;
+	margin-left: 0px;
+	margin-right: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.widget-baseweather-default-weather .primary-climacon {
+	font-family: "Climacons-Font";
+	font-size: 70px;
+}
+
+.widget-baseweather-default-weather .primary-info {
+	font-size: 300%;
+	font-weight: 400;
+}
+
+.widget-baseweather-default-weather .primary-unit {
+	font-size: 100%;
+	font-weight: 400;
+	margin-left: 0;
+	margin-top: 20px;
+	vertical-align: top;
+}
+
+.widget-baseweather-default-weather .secondary-icon {
+	font-family: "Climacons-Font";
+	font-size: 40px;
+	margin-left: 10px;
+	margin-right: 0px;
+}
+
+.widget-baseweather-default-weather .secondary-climacon {
+	font-family: "Climacons-Font";
+	font-size: 55px;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.widget-baseweather-default-weather .secondary-info {
+	font-size: 125%;
+	font-weight: 200;
+}
+
+.widget-baseweather-default-weather hr {
+	width: 90%;
+	border: 0;
+	height: 1px;
+	background: rgba(255, 255, 255, 0.25);
+	margin-top: 15px;
+	margin-bottom: 15px;
+}
+.widget-basedisplay-default-sensor-front-door-status .unit {
+	font-size: 225%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-basedisplay-default-sensor-front-door-status .value {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.widget-basedisplay-default-sensor-front-door-status .valueunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-front-door-status .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-front-door-status .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-front-door-status .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .unit {
+	font-size: 225%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .value {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .valueunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-back-door-status .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-moon .unit {
+	font-size: 225%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-basedisplay-default-moon .value {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.widget-basedisplay-default-moon .valueunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-moon .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-moon .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-moon .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room {
+	position: relative;
+}
+
+.widget-baseswitch-default-living-room .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-basedisplay-default-thermostat-state .unit {
+	font-size: 225%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-basedisplay-default-thermostat-state .value {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.widget-basedisplay-default-thermostat-state .valueunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-thermostat-state .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-thermostat-state .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-thermostat-state .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .unit {
+	font-size: 225%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .value {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .valueunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-basedisplay-default-sensor-thermostat-operating-mode .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseclimate-default-thermostat {
+	position: relative;
+}
+
+.widget-baseclimate-default-thermostat .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseclimate-default-thermostat .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseclimate-default-thermostat .level {
+	font-size: 250%;
+	display: inline-block;
+}
+
+.widget-baseclimate-default-thermostat .unit {
+	font-size: 100%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 5px;
+	margin-top: 5px;
+}
+
+.widget-baseclimate-default-thermostat .levelunit {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseclimate-default-thermostat .secondary-icon {
+	position: absolute;
+	bottom: 0px;
+	font-size: 20px;
+	width: 32px;
+	color: white;
+}
+
+.widget-baseclimate-default-thermostat .level2 {
+	display: inline-block;
+}
+
+.widget-baseclimate-default-thermostat .unit2 {
+	font-size: 65%;
+	font-weight: 400;
+	display: inline-block;
+	vertical-align: top;
+
+}
+
+.widget-baseclimate-default-thermostat .levelunit2 {
+	position: absolute;
+	bottom: 5px;
+	width: 100%;
+}
+.widget-baseclimate-default-thermostat .secondary-icon.plus {
+	right: 24px;
+}
+
+.widget-baseclimate-default-thermostat .secondary-icon.plus i {
+	padding-top: 10px;
+	padding-left: 30px;
+}
+
+.widget-baseclimate-default-thermostat .secondary-icon.minus {
+	left: 8px;
+}
+
+.widget-baseclimate-default-thermostat .secondary-icon.minus i {
+	padding-top: 10px;
+	padding-right: 30px;
+}
+.widget-baseswitch-default-living-room-lamp-1 {
+	position: relative;
+}
+
+.widget-baseswitch-default-living-room-lamp-1 .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-1 .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-1 .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-1 .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-1 .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 {
+	position: relative;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-living-room-lamp-2 .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-baseiframe-default-weather-radar .title {
+	position: absolute;
+	bottom: 0px;
+    margin: 0px 0px 0px 0px;
+	width: 100%;
+}
+
+.widget-baseiframe-default-weather-radar .outer-frame {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 1;
+    border: none;
+}
+
+.widget-baseiframe-default-weather-radar .outer-image {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 0;
+    border: none;
+}
+
+.widget-baseiframe-default-weather-radar .scaled-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.widget-baseiframe-default-weather-radar .img-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+.widget-baseswitch-default-set-75 {
+	position: relative;
+}
+
+.widget-baseswitch-default-set-75 .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-75 .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-75 .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-75 .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-75 .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-baseswitch-default-set-78 {
+	position: relative;
+}
+
+.widget-baseswitch-default-set-78 .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-78 .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-78 .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-78 .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-78 .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-baseswitch-default-kitchen-light {
+	position: relative;
+}
+
+.widget-baseswitch-default-kitchen-light .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-kitchen-light .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-kitchen-light .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-kitchen-light .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-kitchen-light .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-baseswitch-default-set-82 {
+	position: relative;
+}
+
+.widget-baseswitch-default-set-82 .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-82 .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-82 .state_text {
+	position: absolute;
+	bottom: -3px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-82 .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-baseswitch-default-set-82 .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100px;
+}
+
+.widget-javascript-default-reload .icon {
+	position: absolute;
+	top: 43px;
+	width: 100%;
+}
+
+.widget-javascript-default-reload .title {
+	position: absolute;
+	top: 5px;
+	width: 100%;
+}
+
+.widget-javascript-default-reload .title2 {
+	position: absolute;
+	top: 23px;
+	width: 100%;
+}
+
+.widget-javascript-default-reload .toggle-area {
+	z-index: 10;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+.widget-baseiframe-default-mail .title {
+	position: absolute;
+	bottom: 0px;
+    margin: 0px 0px 0px 0px;
+	width: 100%;
+}
+
+.widget-baseiframe-default-mail .outer-frame {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 1;
+    border: none;
+}
+
+.widget-baseiframe-default-mail .outer-image {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    left: 0px;
+    right: 0px;
+    z-index: 0;
+    border: none;
+}
+
+.widget-baseiframe-default-mail .scaled-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.widget-baseiframe-default-mail .img-frame {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
