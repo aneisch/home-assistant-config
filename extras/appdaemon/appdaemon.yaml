@@ -75,7 +75,7 @@ Occupancy Simulator:
   random_house_maxduration: 01:00:00
   random_house_minduration: 00:15:00
   random_house_name: Random House
-  random_house_number: '4'
+  random_house_number: '5'
   random_house_off_kitchen: switch.kitchen_table_light_switch
   random_house_off_livingroom: group.living_room
   random_house_on_kitchen: switch.kitchen_table_light_switch
