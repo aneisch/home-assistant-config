@@ -1,7 +1,5 @@
 """
-Date Countdown
-For more details about this sensor please refer to the documentation at
-https://home-assistant.io/components/sensor.date_countdown/
+Date Reminder
 """
 
 import datetime
