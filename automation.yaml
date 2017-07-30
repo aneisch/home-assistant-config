@@ -7,7 +7,7 @@
   action:
     service: persistent_notification.create
     data_template:
-      message: "It's been {{ states.sensor.ac_filter_change_days.state }} days since the AC filter was changed"
+      message: "It's been {{ states.sensor.ac_filter_change.attributes.days }} days since the AC filter was last changed"
       title: "Time To Change AC Filter!"
 
 - alias: "Wedding Notify"

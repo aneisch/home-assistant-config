@@ -23,7 +23,7 @@ DEFAULT_NAME = "Countdown"
 CONF_DATE = 'date'
 CONF_REMINDER = 'day_reminder'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=30)
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_DATE): cv.string,
