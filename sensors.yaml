@@ -12,6 +12,14 @@
   name: Wedding Countdown
   date: "20-05-2018 18:00"
 
+#Tell me when to change a thing
+- platform: date_reminder
+  name: AC Filter Change
+  #Date last done/changed
+  date: "02-06-2017 00:00"
+  #When to remind me in days
+  day_reminder: 60
+
 - platform: cert_expiry
   host: !secret domain
 
@@ -322,3 +330,9 @@
     wedding_countdown_days:
       value_template: >-
         {{ states.sensor.wedding_countdown.attributes.days }}
+
+- platform: template
+  sensors:
+    ac_filter_change_days:
+      value_template: >-
+        {{ states.sensor.ac_filter_change.attributes.days }}
