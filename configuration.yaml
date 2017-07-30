@@ -72,9 +72,6 @@ apcupsd:
 updater:
   include_used_components: true
 
-# Allows you to issue voice commands from the frontend
-#conversation:
-
 # Enables the frontend
 frontend:
 
@@ -83,6 +80,7 @@ history:
   exclude:
     entities:
       - sensor.wedding_countdown
+      - sensor.ac_history
 
 # View all events in a logbook
 logbook:

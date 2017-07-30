@@ -167,6 +167,12 @@
   name: "Thermostat Hold"
   value_template: "{% if value_json.hold == 1 %}True{% else %}False{% endif %}"
 
+- platform: template
+  sensors:
+    ac_history:
+      value_template: >-
+        AC has been {{ states.sensor.thermostat_state.state|lower }} for {{ relative_time(states.sensor.thermostat_state.last_changed) }}
+
 
 #######
 # DHT #
