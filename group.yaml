@@ -72,7 +72,6 @@ security:
 #This helps us determine who is home also!
 trackers:
  - device_tracker.owntracks_android
- - device_tracker.erinphoneaneisch
  - device_tracker.coleandroidaneisch
 weather:
  - sensor.dark_sky_summary

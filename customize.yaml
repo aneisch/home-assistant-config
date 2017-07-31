@@ -145,9 +145,6 @@ script.arlo_disarm:
 device_tracker.owntracks_android:
   friendly_name: Andrew's Phone
   entity_picture: /local/andrew.jpg
-device_tracker.erinphoneaneisch:
-  friendly_name: Erin's Phone
-  entity_picture: /local/erin.jpg
 device_tracker.coleandroidaneisch:
   friendly_name: Cole's Phone
   entity_picture: /local/cole.jpg

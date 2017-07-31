@@ -227,74 +227,52 @@
 # PHYSICAL SECURITY #
 #####################
 
-- platform: mqtt
-  state_topic: "sensor/backdoor"
-  name: "Backdoor"
-  value_template: "{{ value_json.opened }}"
+#- platform: mqtt
+#  state_topic: "sensor/backdoor"
+#  name: "Backdoor"
+#  value_template: "{{ value_json.opened }}"
 
-- platform: mqtt
-  state_topic: "sensor/frontdoor"
-  name: "Frontdoor"
-  value_template: "{{ value_json.opened }}"
+#- platform: mqtt
+#  state_topic: "sensor/frontdoor"
+#  name: "Frontdoor"
+#  value_template: "{{ value_json.opened }}"
 
 
 #############
 # TEMPLATES #
 #############
 
-- platform: template
-  sensors:
-    front_door_status:
-      value_template: >-
-        {%- if is_state("sensor.frontdoor", "true") %}
-          Open
-        {%- else %}
-          Closed
-        {%- endif %}
-      friendly_name: 'Front Door Status'
+#- platform: template
+#  sensors:
+#    front_door_status:
+#      value_template: >-
+#        {%- if is_state("sensor.frontdoor", "true") %}
+#          Open
+#        {%- else %}
+#          Closed
+#        {%- endif %}
+#      friendly_name: 'Front Door Status'
 
-- platform: template
-  sensors:
-    back_door_status:
-      value_template: >-
-        {%- if is_state("sensor.backdoor", "true") %}
-          Open
-        {%- else %}
-          Closed
-        {%- endif %}
-      friendly_name: 'Back Door Status'
+#- platform: template
+#  sensors:
+#    back_door_status:
+#      value_template: >-
+#        {%- if is_state("sensor.backdoor", "true") %}
+#          Open
+#        {%- else %}
+#          Closed
+#        {%- endif %}
+#      friendly_name: 'Back Door Status'
 
-- platform: template
-  sensors:
-    magnet_1:
-      value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2_1", "255") -%}
-          open
-        {%- else -%}
-          closed
-        {%- endif %}
-    magnet_2:
-      value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_4_1", "255") -%}
-          open
-        {%- else -%}
-          closed
-        {%- endif %}
-    magnet_3:
-      value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_5_1", "255") -%}
-          open
-        {%- else -%}
-          closed
-        {%- endif %}
-    pir:
-      value_template: >-
-        {%- if is_state("sensor.linear_unknown_type2002_id0203_alarm_level_3_1", "255") -%}
-          occupied
-        {%- else -%}
-          unoccupied
-        {%- endif %}
-
+#- platform: template
+#  sensors:
+#    front_door:
+#      value_template: >-
+#        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2_1", "255") -%}
+#          open
+#        {%- else -%}
+#          closed
+#        {%- endif %}
 
 - platform: template
   sensors:
