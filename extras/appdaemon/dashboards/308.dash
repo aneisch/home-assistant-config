@@ -104,10 +104,17 @@ living_room_lamp_2:
   icon_on: mdi-lightbulb-on
   icon_off: mdi-lightbulb-on-outline
 
+kitchen_plant_light:
+  widget_type: switch
+  entity: switch.kitchen_plant_light_switch
+  title: Kitchen Plant Light Toggle
+  icon_on: mdi-flower
+  icon_off: mdi-flower
+
 layout:
   - clock(2x1), weather(2x2), sensor.front_door_status, sensor.back_door_status
   - moon(2x1), living_room(2x1)
   - thermostat_state, sensor.thermostat_operating_mode, thermostat(2x1), living_room_lamp_1, living_room_lamp_2
-  - weather_radar(2x2), set_75, set_78, kitchen_light
+  - weather_radar(2x2), set_75, set_78, kitchen_light, kitchen_plant_light
   - set_82, reload
   - mail(4x2)

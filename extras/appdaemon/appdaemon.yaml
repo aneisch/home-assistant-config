@@ -5,6 +5,8 @@ AppDaemon:
   threads: '10'
 HADashboard:
   dash_url: http://10.0.1.22:5050
+  dash_force_compile: 1
+  dash_compile_on_start: 1
 HASS:
   ha_key: PASSWORD
   ha_url: http://127.0.0.1:8123
