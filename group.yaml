@@ -44,7 +44,8 @@ thermostat:
   - sensor.thermostat_setpoint
   - sensor.thermostat_state
   - sensor.thermostat_fan_status
-  - sensor.ac_runtime
+  - sensor.ac_runtime_today
+  - sensor.ac_runtime_yesterday
 scenes:
   control: hidden
   entities:

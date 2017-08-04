@@ -122,8 +122,10 @@ sensor.thermostat_temperature:
 sensor.thermostat_setpoint:
   friendly_name: Setpoint
   icon: mdi:thermometer
-sensor.ac_runtime:
+sensor.ac_runtime_today:
   friendly_name: Runtime Today
+sensor.ac_runtime_yesterday:
+  friendly_name: Runtime Yesterday
 
 #Scripts
 script.andrew_room_pre_bed:
