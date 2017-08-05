@@ -16,7 +16,8 @@
 - platform: date_reminder
   name: AC Filter Change
   #Date last done/changed
-  date: "02-06-2017 00:00"
+  # dd-mm-yyyy
+  date: "05-08-2017 00:00"
   #When to remind me in days
   day_reminder: 60
 

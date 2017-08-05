@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_DAYS = 'days'
+ATTR_DAYS = 'days_since'
 ATTR_REMAINING = 'days_remaining'
 
 DEFAULT_NAME = "Countdown"
@@ -66,7 +66,7 @@ class Reminder(Entity):
     @property
     def device_state_attributes(self):
         return {
-            ATTR_DAYS: self._data.get("days"),
+            ATTR_DAYS: self._data.get("days_since"),
             ATTR_REMAINING: self._data.get("days_remaining"),
         }
 
@@ -83,7 +83,7 @@ class Reminder(Entity):
 
         days = days.days
 
-        self._data["days"] = days
+        self._data["days_since"] = days
         self._data["days_remaining"] = int(self.day_reminder) - days
 
         if days >= int(self.day_reminder):
