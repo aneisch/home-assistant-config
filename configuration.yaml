@@ -186,7 +186,9 @@ panel_iframe:
     icon: mdi:chart-areaspline
     url: !secret grafana
 
-alexa: !include alexa.yaml
+alexa:
+
+intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml
 sensor: !include sensors.yaml

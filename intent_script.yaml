@@ -1,0 +1,55 @@
+# If these aren't working, check the cert uploaded for amazon skill at https://developer.amazon.com
+
+
+##############
+# AC CONTROL #
+##############
+ThermostatIntent:
+  speech:
+    text: Setting thermostat to {{ Temperature }} degrees
+  async_action: True
+  action:
+    service: climate.set_temperature
+    entity_id: climate.thermostat
+    data_template:
+      temperature: '{{ Temperature }}'
+
+################
+# GROUP TOGGLE #
+################
+ActivateIntent:
+  action:
+    service: homeassistant.turn_on
+    data_template:
+      entity_id: group.{{ Group | replace(" ", "_") }}
+  speech:
+    type: plaintext
+    text: Turned on {{ Group }}
+
+DeactivateIntent:
+  action:
+    service: homeassistant.turn_off
+    data_template:
+      entity_id: group.{{ Group | replace(" ", "_") }}
+  speech:
+    type: plaintext
+    text: Turned off {{ Group }}
+
+###############
+# THERMOMETER #
+###############
+WhatisMyRoomIntent:
+  speech:
+    type: plaintext
+    text: >
+      {% if Thermometer == "room" %}
+        {% if is_state("sensor.andrew_room_temperature", "unknown") %}
+          The sensor hasn't reported a value, sorry!
+        {% elif is_state("sensor.andrew_room_temperature","nan") %}
+          The sensor hasn't reported a value, sorry!
+        {% else %}
+          Your room is {{ states.sensor.andrew_room_temperature.state }} degrees
+        {% endif %}
+      {% else %}
+        I don't have a thermometer with that name
+      {% endif %}
