@@ -2,6 +2,20 @@
 
 intents:
 
+
+##############
+# AC CONTROL #
+##############
+  ThermostatIntent:
+    action:
+      - service: climate.set_temperature
+        entity_id: climate.thermostat
+        date_template:
+          temperature: '{{ Temperature }}'
+    speech:
+      type: plaintext
+      text: AC set to {{ Temperatrue }}
+
 ################
 # GROUP TOGGLE #
 ################
