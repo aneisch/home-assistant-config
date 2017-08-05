@@ -23,7 +23,7 @@ ActivateIntent:
     data_template:
       entity_id: group.{{ Group | replace(" ", "_") }}
   speech:
-    type: plaintext
+    type: plain
     text: Turned on {{ Group }}
 
 DeactivateIntent:
@@ -32,7 +32,7 @@ DeactivateIntent:
     data_template:
       entity_id: group.{{ Group | replace(" ", "_") }}
   speech:
-    type: plaintext
+    type: plain
     text: Turned off {{ Group }}
 
 ###############
@@ -40,7 +40,7 @@ DeactivateIntent:
 ###############
 WhatisMyRoomIntent:
   speech:
-    type: plaintext
+    type: plain
     text: >
       {% if Thermometer == "room" %}
         {% if is_state("sensor.andrew_room_temperature", "unknown") %}
