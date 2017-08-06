@@ -64,6 +64,7 @@ andrew_room:
     - fan.bedroom_ceiling_fan_level
     - switch.bathroom_light_switch
     - switch.bathroom_plant_light
+    - switch.portable_fan_switch
     - camera.my_room
     - camera.safe
 security:

@@ -34,6 +34,9 @@ light.andrew_monitor_backlight:
   icon: mdi:monitor
 
 #SWITCHES
+switch.portable_fan_switch:
+  friendly_name: Portable Fan
+  icon: mdi:fan
 switch.andrew_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
