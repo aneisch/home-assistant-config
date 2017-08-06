@@ -27,6 +27,7 @@ andrews_room:
   view: yes
   entities:
     - group.andrew_room
+    - group.scenes
 ha_status:
   name: Server Status
   view: yes
