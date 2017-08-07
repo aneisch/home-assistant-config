@@ -17,9 +17,8 @@
 
 - platform : mqtt
   name: "Bathroom Plant Light"
-  #name: "Christmas Lights"
-  state_topic: "stat/sonoff_christmas_lights/POWER"
-  command_topic: "cmnd/sonoff_christmas_lights/POWER"
+  state_topic: "stat/sonoff_plant_light/POWER"
+  command_topic: "cmnd/sonoff_plant_light/POWER"
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
