@@ -1,10 +1,12 @@
 - alias: "Change AC Filter Notification"
   initial_state: on
   trigger:
-    platform: numeric_state
-    entity_id: sensor.ac_filter_change
-    value_template: '{{ state.attributes.days_remaining }}'
-    below: 1
+    platform: state
+    entity_id: sensor.ac_filter_change_days_remaining
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.ac_filter_change_days_remaining
+      below: 1
   action:
     service: persistent_notification.create
     data_template:
