@@ -10,7 +10,6 @@ default_view:
     - group.trackers
     - group.weather
     - group.common
-    - camera.weather
     - camera.outdoor
     - camera.mail
     - media_player.andrews_chromecast
@@ -83,6 +82,8 @@ weather:
  - sensor.dark_sky_precip_probability
  - sun.sun
  - sensor.moon_phase
+ - camera.weather_radar
+ - camera.weather
 system:
   control: hidden
   entities:
