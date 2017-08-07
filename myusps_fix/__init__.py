@@ -143,6 +143,7 @@ def _get_login_metadata(session):
 def _login(session):
     """Login."""
     _LOGGER.debug("attempting login")
+    session.cookies.clear()
     token, uuid_token, payload_key = _get_login_metadata(session)
     resp = session.post(AUTHENTICATE_URL, {
         'username':  session.auth.username,
