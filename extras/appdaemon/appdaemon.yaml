@@ -8,7 +8,7 @@ HADashboard:
   dash_force_compile: 1
   dash_compile_on_start: 1
 HASS:
-  ha_key: PASSWORD
+  ha_key: !secret api_password
   ha_url: http://127.0.0.1:8123
 
 ########
