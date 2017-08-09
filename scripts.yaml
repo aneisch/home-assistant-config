@@ -22,6 +22,9 @@ andrew_room_bedtime:
     - service: light.turn_off
       data:
         entity_id: light.andrew_monitor_backlight
+    - service: switch.turn_on
+      data:
+        entity_id: switch.portable_fan_switch
 
 #Turn off all room things, arm security
 andrew_gone:
