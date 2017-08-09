@@ -1,7 +1,7 @@
 #
 # Main arguments, all optional
 #
-title: NAME
+title: !secret name
 widget_dimensions: [120, 120]
 widget_margins: [8, 8]
 columns: 6
@@ -24,7 +24,6 @@ weather:
 weather_radar:
   widget_type: iframe
   img_list:
-    #- http://radblast.wunderground.com/cgi-bin/radar/WUNIDS_composite?centerlat=30.58&centerlon=-96.37&radius=97&type=N1R&frame=0&num=0&delay=0&width=800&height=800&newmaps=1&r=1265658117.gif
     - https://icons.wxug.com/data/weather-maps/radar/united-states/san-antonio-texas-region-current-radar-animation.gif
   title: Radar
   refresh: 300
