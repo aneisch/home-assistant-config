@@ -68,9 +68,9 @@ andrew_light_slow_on:
     - service: switch.turn_off
       data:
         entity_id: switch.andrew_sound_machine
-    - service: switch.turn_off
+    - service: fan.turn_off
       data:
-        entity_id: switch.andrew_ceiling_fan
+        entity_id: fan.bedroom_ceiling_fan_level
 
 andrew_wakeup:
   sequence:
@@ -80,9 +80,12 @@ andrew_wakeup:
     - service: switch.turn_off
       data:
         entity_id: switch.andrew_sound_machine
+    - service: fan.turn_off
+      data:
+        entity_id: fan.bedroom_ceiling_fan_level
     - service: switch.turn_off
       data:
-        entity_id: switch.andrew_ceiling_fan
+        entity_id: switch.portable_fan_switch
 
 
 ############
