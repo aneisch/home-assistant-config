@@ -1,7 +1,7 @@
 #
 # Main arguments, all optional
 #
-title: !secret name
+title: !secret dash_1_name
 widget_dimensions: [120, 120]
 widget_margins: [8, 8]
 columns: 6

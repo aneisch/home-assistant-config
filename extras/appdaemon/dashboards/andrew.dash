@@ -1,0 +1,51 @@
+#
+# Main arguments, all optional
+#
+title: !secret dash_2_name
+widget_dimensions: [120, 120]
+widget_margins: [8, 8]
+columns: 4
+dash_password: !secret dash_2_password
+
+global_parameters:
+  use_comma: 0
+  precision: 1
+  use_hass_icon: 1
+
+weather:
+  widget_type: weather
+  units: "&deg;F"
+
+weather_radar:
+  widget_type: iframe
+  img_list:
+    - https://icons.wxug.com/data/weather-maps/radar/united-states/san-antonio-texas-region-current-radar-animation.gif
+  title: Radar
+  refresh: 300
+
+mail:
+  widget_type: camera
+  refresh: 300
+  entity_picture: https://assist.aneis.ch/api/camera_proxy/camera.mail?token=ec8bb6442d250f133e2707f7be3cdfb6ce1f4dfb4d4a7a32e29f36d8974b2fc9&api_password=winfield!
+  title: Mail
+
+thermostat:
+  widget_type: climate
+  entity: climate.thermostat
+  title: Thermostat Control
+  title2: Readout
+  step: 2
+  units: "&deg;F"
+
+thermostat_state:
+  widget_type: sensor
+  entity: sensor.thermostat_state
+  title: Thermostat State
+
+layout:
+  - thermostat(2x1) 
+  - sensor.front_door_status, sensor.back_door_status
+  - thermostat_state, sensor.thermostat_operating_mode
+  - weather_radar(2x2), weather(2x2)
+  - spacer
+  - mail(4x2)

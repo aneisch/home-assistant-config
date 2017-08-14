@@ -7,6 +7,8 @@ homeassistant:
   longitude: !secret home_long
   time_zone: America/Chicago
 
+config:
+
 recorder:
   purge_days: 7
 
@@ -79,8 +81,26 @@ frontend:
 history:
   exclude:
     entities:
+      - sensor.backdoor
+      - sensor.frontdoor
+      - sensor.last_boot
+      - sensor.moon_phase
+      - sensor.bed_toggle_switch
       - sensor.wedding_countdown
       - sensor.ac_history
+      - sensor.dark_sky_icon
+      - sensor.dark_sky_summary
+    domains:
+      - automation
+      - camera
+      - group
+      - notify
+      - scene
+      - script
+      - shell_command
+      - sun
+      - zone
+      - zwave
 
 # View all events in a logbook
 logbook:
@@ -109,6 +129,7 @@ device_tracker:
   - platform: owntracks
   - platform: bluetooth_tracker
     interval_seconds: 30
+    track_new_devices: False
   - platform: nmap_tracker
     hosts: 10.0.1.41/32
     home_interval: 10 

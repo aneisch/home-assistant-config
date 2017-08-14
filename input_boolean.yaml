@@ -5,17 +5,17 @@ arlo_status:
 #used with appdaemon
 door_notify:
   name: Door Notifications
-  initial: off
+  #initial: off
   icon: mdi:alert-circle
 
 ac_automation:
   name: AC Automation
-  initial: on
+  #initial: on
   icon: mdi:fan
 
 ac_change_notification:
   name: AC Change Notification
-  initial: off
+  #initial: off
   icon: mdi:alert-circle
 
 #christmas_lights_automation:
@@ -24,9 +24,9 @@ ac_change_notification:
 
 occusim:
   name: Occupancy Simulator
-  initial: off
+  #initial: off
 
 plant_light_automation:
   name: Plant Light Automation
-  initial: on
+  #initial: on
   icon: mdi:lightbulb
