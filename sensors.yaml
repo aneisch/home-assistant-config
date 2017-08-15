@@ -1,5 +1,11 @@
 #- platform: arlo
 
+- platform: coinmarketcap
+  currency: bitcoin
+
+- platform: coinmarketcap
+  currency: ethereum
+
 - platform: fedex
   username: !secret fedex_username
   password: !secret fedex_password
@@ -100,22 +106,26 @@
 - platform: mqtt
   name: Sonoff Pow Yesterday Energy
   unit_of_measurement: "kWh"
-  state_topic: "tele/sonoff_pow_1/YESTERDAY_ENERGY"
+  state_topic: "tele/sonoff_pow_1/ENERGY"
+  value_template: "{{ value_json.Yesterday }}"
 
 - platform: mqtt
   name: Sonoff Pow Today Energy
   unit_of_measurement: "kWh"
-  state_topic: "tele/sonoff_pow_1/TODAY_ENERGY"
+  state_topic: "tele/sonoff_pow_1/ENERGY"
+  value_template: "{{ value_json.Today }}"
 
 - platform: mqtt
   name: Sonoff Pow Current
   unit_of_measurement: "Amps"
-  state_topic: "tele/sonoff_pow_1/CURRENT"
+  state_topic: "tele/sonoff_pow_1/ENERGY"
+  value_template: "{{ value_json.Current }}"
 
 - platform: mqtt
   name: Sonoff Pow Power
   unit_of_measurement: "Watts"
-  state_topic: "tele/sonoff_pow_1/CURRENT_POWER"
+  state_topic: "tele/sonoff_pow_1/ENERGY"
+  value_template: "{{ value_json.Power }}"
 
 - platform: template
   sensors:
