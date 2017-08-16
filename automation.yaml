@@ -13,6 +13,21 @@
       message: "It's been {{ states.sensor.ac_filter_change.attributes.days_since }} days since the AC filter was last changed"
       title: "Time To Change AC Filter!"
 
+- alias: "BTC $$$"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: sensor.bitcoin
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.bitcoin
+      above: 5000
+  action:
+    - service: notify.notify_push_android
+      data_template:
+        message: >
+          Bitcoint is at {{ states.sensor.bitcoin.state }} USD!!
+
 - alias: "Wedding Notify"
   initial_state: on
   trigger:
