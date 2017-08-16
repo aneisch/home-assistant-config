@@ -2,15 +2,21 @@
 # Main arguments, all optional
 #
 title: !secret dash_2_name
-widget_dimensions: [120, 120]
+widget_dimensions: [125, 110]
 widget_margins: [8, 8]
-columns: 4
+columns: 3
 dash_password: !secret dash_2_password
 
 global_parameters:
   use_comma: 0
   precision: 1
   use_hass_icon: 1
+
+reload:
+  widget_type: reload
+  title: Reload
+  icon_active: fa-refresh
+  icon_inactive: fa-refresh
 
 weather:
   widget_type: weather
@@ -37,15 +43,85 @@ thermostat:
   step: 2
   units: "&deg;F"
 
-thermostat_state:
-  widget_type: sensor
-  entity: sensor.thermostat_state
-  title: Thermostat State
+bedroom_fan:
+  widget_type: switch
+  entity: fan.bedroom_ceiling_fan_level
+  title: Ceiling Fan
+
+floor_fan:
+  widget_type: switch
+  entity: switch.portable_fan_switch
+  title: Portable Fan
+
+light_full:
+  widget_type: scene
+  entity: scene.andrew_light_full
+  title: Light Full
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on
+
+light_dim:
+  widget_type: scene
+  entity: scene.prebed_light
+  title: Light Dim
+  icon_on: mdi-lightbulb
+  icon_off: mdi-lightbulb
+
+wakeup:
+  widget_type: script
+  entity: script.andrew_wakeup
+  title: Wakeup
+  icon_on: mdi-alarm
+  icon_off: mdi-alarm
+
+bedtime:
+  widget_type: script
+  entity: script.andrew_room_bedtime
+  title: Bedtime
+
+bedroom_light:
+  widget_type: switch
+  entity: light.andrew_bedroom
+  title: Bedroom Light
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+monitor_backlight:
+  widget_type: switch
+  entity: light.andrew_monitor_backlight
+  title: Monitor Backlight
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+living_room_lamps:
+  widget_type: switch
+  entity: group.living_room
+  title: Living Room Lamps Toggle
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+common_area:
+  widget_type: switch
+  entity: group.common
+  title: Common Area Lights
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+sound_machine:
+  widget_type: switch
+  entity: switch.andrew_sound_machine
+  title: Sound Machine
+  icon_on: mdi-volume-high
+  icon_off: mdi-volume-off
+
+
 
 layout:
-  - thermostat(2x1) 
-  - sensor.front_door_status, sensor.back_door_status
-  - thermostat_state, sensor.thermostat_operating_mode
-  - weather_radar(2x2), weather(2x2)
-  - spacer
-  - mail(4x2)
+  - thermostat(2x1), reload
+  - bedroom_fan, floor_fan, sensor.andrew_room_temperature
+  - bedroom_light, monitor_backlight, switch.bathroom_light_switch
+  - bedtime, light_dim, light_full
+  - living_room_lamps, common_area, switch.kitchen_table_light_switch
+  - input_boolean.ac_automation, input_boolean.plant_light_automation, sound_machine
+  - wakeup(3x1)
+  - weather_radar(3x2)
