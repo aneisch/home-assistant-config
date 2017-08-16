@@ -1,4 +1,4 @@
-# home-assistant
+#[![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 
 My home assistant config. 
 
