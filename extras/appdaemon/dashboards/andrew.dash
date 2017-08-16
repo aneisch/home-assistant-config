@@ -5,6 +5,7 @@ title: !secret dash_2_name
 widget_dimensions: [125, 110]
 widget_margins: [8, 8]
 columns: 3
+dash_password: !secret dash_2_password
 
 global_parameters:
   use_comma: 0
