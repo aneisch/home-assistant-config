@@ -32,7 +32,7 @@ weather_radar:
 mail:
   widget_type: camera
   refresh: 300
-  entity_picture: https://assist.aneis.ch/api/camera_proxy/camera.mail?token=ec8bb6442d250f133e2707f7be3cdfb6ce1f4dfb4d4a7a32e29f36d8974b2fc9&api_password=winfield!
+  entity_picture: !secret mail_cam
   title: Mail
 
 thermostat:
