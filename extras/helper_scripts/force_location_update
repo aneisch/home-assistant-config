@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mosquitto_pub -h EXTERNAL_MQTT_SERVER -p 8883 -t 'owntracks/owntracks/Android/cmd' -u MQTT_USER -P MQTT_PASSWORD --cafile /etc/pki/tls/certs/DST_Root_CA_X3.pem --tls-version tlsv1 -m '{"_type":"cmd","action":"reportLocation"}'
+mosquitto_pub -h EXTERNAL_MQTT_SERVER -p 8883 -t 'owntracks/owntracks/Android/cmd' -u MQTT_USER -P MQTT_PASSWORD -m '{"_type":"cmd","action":"reportLocation"}' --capath /etc/ssl/certs

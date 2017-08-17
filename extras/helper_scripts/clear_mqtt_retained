@@ -1,0 +1,6 @@
+#!/bin/bash
+
+echo -n "Which topic/message would you like to clear? "
+read topic
+
+mosquitto_pub -h 127.0.0.1 -p 1883 -t $topic -u MQTT_USER -P MQTT_PASSWORD -r -n
