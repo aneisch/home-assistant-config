@@ -1,0 +1,14 @@
+[Unit]
+Description=Unmount Plex NFS
+Before=sshd.service
+
+#Lazily force nfs unmount at shutdown (before killing sshd)
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=/bin/true
+ExecStop=/usr/sbin/umount.nfs -f -l /plex
+
+[Install]
+WantedBy=multi-user.target
