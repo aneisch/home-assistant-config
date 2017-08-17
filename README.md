@@ -1,11 +1,10 @@
 # [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config) My Home Assistant Config
 
-My tasker configuration is also included. I am using tasker directly with API calls to Home Assistant in order to trigger scenes based on location mostly and also act as a quick toggle for devices/scenes.
+I am using tasker directly with API calls to Home Assistant in order to trigger scenes based on location mostly and also act as a quick toggle for devices/scenes.
 
-https://play.google.com/store/apps/details?id=com.joaomgcd.autoalarm&hl=en
+Also heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced automations/dashboard. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for more. 
 
-
-My home automation suite is built out of many different components and runs on a Gen7 i3 NUC running Centos 7:
+My Home Assistant installtion contains many different components and runs on a Gen7 i3 NUC running Centos 7:
 
 - Sonoff Switches (https://www.itead.cc/sonoff-wifi-wireless-switch.html)
   - With custom firmware (https://github.com/arendst/Sonoff-Tasmota) controlled via MQTT
