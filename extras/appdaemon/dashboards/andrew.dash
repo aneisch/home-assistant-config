@@ -123,4 +123,4 @@ layout:
   - living_room_lamps, common_area, switch.kitchen_table_light_switch
   - input_boolean.ac_automation, input_boolean.plant_light_automation, sound_machine
   - wakeup(3x1)
-  - weather_radar(3x2)
+  - weather_radar(3x3)
