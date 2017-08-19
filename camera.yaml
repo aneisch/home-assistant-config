@@ -6,9 +6,9 @@
   still_image_url: !secret weather_radar
   name: Weather Radar
 
-#- platform: mjpeg
-#  mjpeg_url: http://10.0.1.26:8080/?action=stream
-#  name: Outdoor
+- platform: mjpeg
+  mjpeg_url: http://10.0.1.26:8080/?action=stream
+  name: Outdoor
 
 - platform: arlo
   ffmpeg_binary: '/usr/bin/ffmpeg'
