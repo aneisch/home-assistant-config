@@ -30,3 +30,7 @@ plant_light_automation:
   name: Plant Light Automation
   #initial: on
   icon: mdi:lightbulb
+
+alarm_clock_automation:
+  name: Alarm Clock
+  icon: mdi:alarm

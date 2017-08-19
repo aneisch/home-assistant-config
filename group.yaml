@@ -67,6 +67,8 @@ andrew_room:
     - switch.portable_fan_switch
     - camera.my_room
     - camera.safe
+    - input_boolean.alarm_clock_automation
+    - input_select.alarm_clock
 security:
  - input_boolean.arlo_status
  - sensor.front_door_status
@@ -75,6 +77,7 @@ security:
 trackers:
  - device_tracker.owntracks_android
  - device_tracker.coleandroidaneisch
+ - device_tracker.jared_iphone
 weather:
  - sensor.dark_sky_summary
  - sensor.dark_sky_temperature

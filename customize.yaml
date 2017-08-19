@@ -153,5 +153,8 @@ device_tracker.owntracks_android:
 device_tracker.coleandroidaneisch:
   friendly_name: Cole's Phone
   entity_picture: /local/cole.jpg
+device_tracker.jared_iphone:
+  friendly_name: Jared's iPhone
+  entity_picture: /local/jared.jpg
 
 ##OTHER

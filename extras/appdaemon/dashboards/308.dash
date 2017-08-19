@@ -31,7 +31,7 @@ weather_radar:
 mail:
   widget_type: camera
   refresh: 300
-  entity_picture: mail_cam
+  entity_picture: !secret mail_cam
   title: Mail
 
 clock:

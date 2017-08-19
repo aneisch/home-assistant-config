@@ -202,3 +202,21 @@
       data_template:
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
+
+
+- alias: 'Alarm Clock'
+  trigger:
+    platform: time
+    minutes: /1
+    seconds: 0
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: input_boolean.alarm_clock_automation
+        state: 'on'
+      - condition: template
+        value_template: '{{ now().strftime("%H:%M") == states.input_select.alarm_clock.state }}'
+  action:
+    service: script.turn_on
+    entity_id: script.andrew_wakeup

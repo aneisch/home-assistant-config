@@ -28,12 +28,6 @@ weather_radar:
   title: Radar
   refresh: 300
 
-mail:
-  widget_type: camera
-  refresh: 300
-  entity_picture: !secret mail_cam
-  title: Mail
-
 thermostat:
   widget_type: climate
   entity: climate.thermostat
@@ -113,6 +107,17 @@ sound_machine:
   icon_on: mdi-volume-high
   icon_off: mdi-volume-off
 
+alarm_clock_time:
+  widget_type: sensor
+  entity: input_select.alarm_clock
+  widget_style: "font-size: 150%;"
+
+outdoor:
+  widget_type: camera
+  refresh: 5
+  entity_picture: !secret outdoor
+  title: Outdoor
+
 
 
 layout:
@@ -123,4 +128,7 @@ layout:
   - living_room_lamps, common_area, switch.kitchen_table_light_switch
   - input_boolean.ac_automation, input_boolean.plant_light_automation, sound_machine
   - wakeup(3x1)
+  - alarm_clock_time, input_boolean.alarm_clock_automation
   - weather_radar(3x3)
+  - empty: 2
+  - outdoor(3x3)
