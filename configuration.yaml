@@ -131,10 +131,10 @@ device_tracker:
     interval_seconds: 30
     track_new_devices: False
   - platform: nmap_tracker
-    hosts: 10.0.1.41/32
-    home_interval: 10 
-  - platform: nmap_tracker
     hosts: 10.0.1.38/32
+    home_interval: 10
+  - platform: nmap_tracker
+    hosts: 10.0.1.30/32
     home_interval: 10
 
 climate:
