@@ -1,4 +1,3 @@
-#
 # Main arguments, all optional
 #
 title: !secret dash_1_name
@@ -33,6 +32,12 @@ mail:
   refresh: 300
   entity_picture: !secret mail_cam
   title: Mail
+
+forecast:
+  widget_type: camera
+  refresh: 300
+  entity_picture: !secret forecast_cam
+  title: Forecast
 
 clock:
   widget_type: clock
@@ -110,10 +115,11 @@ kitchen_plant_light:
   icon_on: mdi-flower
   icon_off: mdi-flower
 
+
 layout:
   - clock(2x1), weather(2x2), sensor.front_door_status, sensor.back_door_status
   - moon(2x1), living_room(2x1)
   - thermostat_state, sensor.thermostat_operating_mode, thermostat(2x1), living_room_lamp_1, living_room_lamp_2
   - weather_radar(2x2), set_75, set_78, kitchen_light, kitchen_plant_light
-  - set_82, reload
+  - set_82, reload, forecast(2x3)
   - mail(4x2)
