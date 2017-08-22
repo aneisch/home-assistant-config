@@ -147,6 +147,10 @@ notify:
   - platform: pushbullet
     api_key: !secret pushbullet_key
     name: notify_push_android
+  - platform: pushover
+    name: home assistant
+    api_key: !secret pushover_api_key
+    user_key: !secret pushover_user_key
 
 influxdb:
   host: localhost

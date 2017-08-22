@@ -23,7 +23,7 @@
       entity_id: sensor.bitcoin
       above: 5000
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: >
           Bitcoint is at {{ states.sensor.bitcoin.state }} USD!!
@@ -37,7 +37,7 @@
     - condition: template
       value_template: '{{ states.sensor.wedding_countdown_days.state | float % 50 == 0 }}'
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: >
           Wedding is in {{ states.sensor.wedding_countdown_days.state }} days!!
@@ -48,7 +48,7 @@
     platform: state
     entity_id: sensor.deliveries_today
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: >
           Package delivered...
@@ -139,7 +139,7 @@
         entity_id: sensor.thermostat_setpoint
         below: '70'
   action: 
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: AC Broke.. Turning Off...
     - service: climate.set_operation_mode
@@ -163,7 +163,7 @@
         entity_id: sensor.thermostat_setpoint
         above: '72'
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: AC Broke.. Turning Off...
     - service: climate.set_operation_mode
@@ -188,7 +188,7 @@
       - condition: template
         value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: >
           Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
@@ -210,7 +210,7 @@
       - condition: template
         value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data_template:
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}

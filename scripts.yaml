@@ -103,7 +103,7 @@ arlo_disarm:
         seconds: 5
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data:
         message: Disrmed!
 
@@ -111,7 +111,7 @@ arlo_arm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_arm"}
-    - service: notify.notify_push_android
+    - service: notify.home_assistant
       data:
         message: Armed!
 

@@ -44,7 +44,7 @@ Door Notify:
   class: DoorNotify
   module: door_open
   door_sensor: sensor.front_door_status,sensor.back_door_status
-  notify: notify_push_android
+  notify: home_assistant
 
 Living Room Light at Night With Door:
   class: DoorLight
