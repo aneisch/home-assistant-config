@@ -20,4 +20,6 @@ nas_poweroff: 'sudo umount -f /plex; curl -m 5 -u USERNAME:PASSWORD -k "https://
 
 owntracks_update: '/usr/local/bin/force_location_update'
 
-mount_plex: 'sudo mount -o soft 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
+mount_plex: 'sudo mount -o timeo=15,soft 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
+
+umount_plex: 'sudo umount -fl /plex'

@@ -107,9 +107,21 @@
     from: 'off'
     to: 'on'
     for:
-      seconds: 30
+      seconds: 60
   action:
     service: shell_command.mount_plex
+
+- alias: "Unmount /Plex"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: switch.nas
+    from: 'on'
+    to: 'off'
+    for:
+      seconds: 120
+  action:
+    service: shell_command.umount_plex
 
 #- id: ac_broken_cool
 - alias: "Notify Andrew when AC BREAKS"
