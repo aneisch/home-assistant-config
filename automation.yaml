@@ -1,3 +1,23 @@
+- alias: 'Set dark theme for the night'
+  initial_state: True
+  trigger:
+    - platform: time
+      at: '21:00'
+  action:
+    - service: frontend.set_theme
+      data:
+        name: darkred
+
+- alias: 'Set dark theme for the night'
+  initial_state: True
+  trigger:
+    - platform: time
+      at: '9:00'
+  action:
+    - service: frontend.set_theme
+      data:
+        name: default
+
 - alias: "Change AC Filter Notification"
   initial_state: on
   trigger:
