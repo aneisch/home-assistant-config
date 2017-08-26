@@ -8,7 +8,7 @@
       data:
         name: darkred
 
-- alias: "Set dark theme for the night"
+- alias: "Set light theme for day"
   initial_state: on
   trigger:
     - platform: time
