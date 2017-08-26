@@ -30,7 +30,7 @@ weather_radar:
 mail:
   widget_type: camera
   refresh: 300
-  entity_picture: !secret mail_cam
+  entity_picture: !secret mail_camera
   title: Mail
 
 forecast:

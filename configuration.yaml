@@ -247,6 +247,10 @@ panel_iframe:
 
 alexa:
 
+usps:
+  username: !secret usps_username
+  password: !secret usps_key
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

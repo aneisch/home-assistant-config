@@ -73,14 +73,14 @@ bedtime:
   title: Bedtime
 
 bedroom_light:
-  widget_type: switch
+  widget_type: light
   entity: light.andrew_bedroom
   title: Bedroom Light
   icon_on: mdi-lightbulb-on
   icon_off: mdi-lightbulb-on-outline
 
 monitor_backlight:
-  widget_type: switch
+  widget_type: light
   entity: light.andrew_monitor_backlight
   title: Monitor Backlight
   icon_on: mdi-lightbulb-on

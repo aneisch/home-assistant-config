@@ -56,11 +56,6 @@
     - wind_bearing
     - icon
 
-- platform: usps
-  name: USPS
-  username: !secret usps_username
-  password: !secret usps_key
-
 - platform: systemmonitor
   resources:
     - type: disk_use_percent

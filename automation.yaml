@@ -1,5 +1,5 @@
-- alias: 'Set dark theme for the night'
-  initial_state: True
+- alias: "Set dark theme for the night"
+  initial_state: on
   trigger:
     - platform: time
       at: '21:00'
@@ -8,8 +8,8 @@
       data:
         name: darkred
 
-- alias: 'Set dark theme for the night'
-  initial_state: True
+- alias: "Set dark theme for the night"
+  initial_state: on
   trigger:
     - platform: time
       at: '9:00'
