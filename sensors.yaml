@@ -6,6 +6,9 @@
 - platform: coinmarketcap
   currency: ethereum
 
+- platform: coinmarketcap
+  currency: litecoin
+
 - platform: fedex
   username: !secret fedex_username
   password: !secret fedex_password
