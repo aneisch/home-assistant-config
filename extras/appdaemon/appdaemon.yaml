@@ -53,7 +53,7 @@ Living Room Light at Night With Door:
   door_sensor: sensor.front_door_status
   lights: switch.living_room_lamp
   module: door_open
-  time_on: '60'
+  time_on: '10'
 
 Minimote:
   class: MiniMote

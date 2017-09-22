@@ -6,7 +6,7 @@ homeassistant:
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago
-
+  
 config:
 
 recorder:
