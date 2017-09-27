@@ -33,6 +33,21 @@
       message: "It's been {{ states.sensor.ac_filter_change.attributes.days_since }} days since the AC filter was last changed"
       title: "Time To Change AC Filter!"
 
+- alias: "Change Brita Filter Notification"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: sensor.brita_filter_change_days_remaining
+  condition:
+    - condition: numeric_state
+      entity_id: sensor.brita_filter_change_days_remaining
+      below: 1
+  action:
+    service: persistent_notification.create
+    data_template:
+      message: "It's been {{ states.sensor.brita_filter_change.attributes.days_since }} days since the Brita filter was last changed"
+      title: "Time To Change Brita Filter!
+
 - alias: "Wedding Notify"
   initial_state: on
   trigger:

@@ -30,6 +30,15 @@
   #When to remind me in days
   day_reminder: 60
 
+#Tell me when to change a thing
+- platform: date_reminder
+  name: Brita Filter Change
+  #Date last done/changed
+  # dd-mm-yyyy
+  date: "26-09-2017 23:12"
+  #When to remind me in days
+  day_reminder: 90
+
 - platform: cert_expiry
   host: !secret domain
 
@@ -331,3 +340,9 @@
     ac_filter_change_days_remaining:
       value_template: >-
         {{ states.sensor.ac_filter_change.attributes.days_remaining }}
+
+- platform: template
+  sensors:
+    brita_filter_change_days_remaining:
+      value_template: >-
+        {{ states.sensor.brita_filter_change.attributes.days_remaining }}
