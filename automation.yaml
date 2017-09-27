@@ -46,7 +46,7 @@
     service: persistent_notification.create
     data_template:
       message: "It's been {{ states.sensor.brita_filter_change.attributes.days_since }} days since the Brita filter was last changed"
-      title: "Time To Change Brita Filter!
+      title: "Time To Change Brita Filter!"
 
 - alias: "Wedding Notify"
   initial_state: on
