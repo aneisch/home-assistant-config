@@ -1,13 +1,13 @@
 #- platform: arlo
 
-- platform: coinmarketcap
-  currency: bitcoin
+#- platform: coinmarketcap
+#  currency: bitcoin
 
-- platform: coinmarketcap
-  currency: ethereum
+#- platform: coinmarketcap
+#  currency: ethereum
 
-- platform: coinmarketcap
-  currency: litecoin
+#- platform: coinmarketcap
+#  currency: litecoin
 
 - platform: fedex
   username: !secret fedex_username
