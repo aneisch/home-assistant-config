@@ -24,7 +24,7 @@ class Notify(appapi.AppDaemon):
     elif self.args["notify_overdue"] and days_remaining < 0:
       self.send_notice()      
 
-  def send_notice(self,*args):
+  def send_notice(self):
     self.log("Sending notification")
     self.call_service("notify/" + self.args["notify"], message = self.args["message"])
     self.call_service("persistent_notification/create", message = self.args["message"])
