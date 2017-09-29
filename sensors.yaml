@@ -334,15 +334,3 @@
     wedding_countdown_days:
       value_template: >-
         {{ states.sensor.wedding_countdown.attributes.days }}
-
-- platform: template
-  sensors:
-    ac_filter_change_days_remaining:
-      value_template: >-
-        {{ states.sensor.ac_filter_change.attributes.days_remaining }}
-
-- platform: template
-  sensors:
-    brita_filter_change_days_remaining:
-      value_template: >-
-        {{ states.sensor.brita_filter_change.attributes.days_remaining }}

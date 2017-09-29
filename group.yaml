@@ -27,6 +27,7 @@ andrews_room:
   entities:
     - group.andrew_room
     - group.scenes
+    - switch.stupid_red_light
 ha_status:
   name: Server Status
   view: yes

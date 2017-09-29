@@ -7,6 +7,14 @@
      name: andrew_sound_machine
 
 - platform : mqtt
+  name: "Stupid Red Light"
+  state_topic: "light/red_light"
+  command_topic: "light/red_light"
+  payload_on: "ON"
+  payload_off: "OFF"
+  retain: true
+
+- platform : mqtt
   name: "Rack Exhaust Fan"
   state_topic: "cmnd/sonoff_rack_fan/POWER"
   command_topic: "cmnd/sonoff_rack_fan/POWER"
