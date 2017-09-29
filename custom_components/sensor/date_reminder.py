@@ -19,14 +19,14 @@ _LOGGER = logging.getLogger(__name__)
 ATTR_DAYS = 'days_since'
 ATTR_REMAINING = 'days_remaining'
 
-DEFAULT_NAME = "Countdown"
-CONF_DATE = 'date'
-CONF_REMINDER = 'day_reminder'
+DEFAULT_NAME = 'Date Reminder'
+CONF_START_DATE = 'start_date'
+CONF_REMINDER = 'days_in_future'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_DATE): cv.string,
+    vol.Required(CONF_START_DATE): cv.string,
     vol.Required(CONF_REMINDER): cv.string,
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
 })
@@ -34,20 +34,20 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up date countdown sensor."""
-    start_date = config.get(CONF_DATE)
-    day_reminder = config.get(CONF_REMINDER)
+    start_date = config.get(CONF_START_DATE)
+    days_in_future = config.get(CONF_REMINDER)
     sensor_name = config.get(CONF_NAME)
 
-    add_devices([Reminder(sensor_name, start_date, day_reminder)])
+    add_devices([Reminder(sensor_name, start_date, days_in_future)])
 
 
 class Reminder(Entity):
-    """Implementation of the date countdown sensor."""
+    """Implementation of the date reminder sensor."""
 
-    def __init__(self, sensor_name, start_date, day_reminder):
+    def __init__(self, sensor_name, start_date, days_in_future):
         """Initialize the sensor."""
         self.start_date = start_date
-        self.day_reminder = day_reminder
+        self.days_in_future = days_in_future
         self._name = sensor_name
         self._state = None
         self._data = {}
@@ -84,9 +84,9 @@ class Reminder(Entity):
         days = days.days
 
         self._data["days_since"] = days
-        self._data["days_remaining"] = int(self.day_reminder) - days
+        self._data["days_remaining"] = int(self.days_in_future) - days
 
-        if days >= int(self.day_reminder):
+        if days >= int(self.days_in_future):
           self._state = True
         else:
           self._state = False
