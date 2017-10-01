@@ -159,6 +159,13 @@ set_ac_82:
         entity_id: climate.thermostat
         temperature: 82 
 
+mom_and_dad_gate_toggle:
+  sequence:
+    - service: mqtt.publish
+      data:
+        topic: "cmd/mom_and_dad_gate"
+        payload: "toggle"
+
 ######
 # IR #
 ######
