@@ -1,5 +1,8 @@
 """
-Date Reminder
+This component provides HA sensor for date reminder
+
+For more details about this sensor, please refer to the documentation at
+https://home-assistant.io/components/sensor.date_reminder/
 """
 
 import datetime
