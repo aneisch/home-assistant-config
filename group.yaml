@@ -67,7 +67,6 @@ andrew_room:
     - switch.bathroom_plant_light
     - switch.portable_fan_switch
     - camera.my_room
-    - camera.safe
     - input_boolean.alarm_clock_automation
     - input_select.alarm_clock
 security:

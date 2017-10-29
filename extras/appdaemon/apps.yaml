@@ -77,16 +77,16 @@ Plant Timer Morning:
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
   devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
-  time_off: '12:00:00'
   time_on: 08:00:00
+  time_off: '12:00:00'
 
 Plant Timer Afternoon:
   module: device_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
   devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
-  time_off: '21:00:00'
   time_on: '13:00:00'
+  time_off: '21:00:00'
 
 Brita Notification:
   module: countdown_notify
@@ -104,4 +104,4 @@ AC Filter Notification:
   notification_days: 0
   notify_overdue: True #continue to notify after zero
   notify: home_assistant
-  message: "It's time to change the AC filter!"
+  message: "It's time to change the AC filter! (20x25x1)"

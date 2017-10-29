@@ -1,4 +1,4 @@
-#- platform: arlo
+- platform: arlo
 
 #- platform: coinmarketcap
 #  currency: bitcoin
@@ -26,7 +26,7 @@
   name: AC Filter Change
   #Date last done/changed
   # dd-mm-yyyy
-  start_date: "05-08-2017 00:00"
+  start_date: "12-10-2017 19:42"
   #When to remind me in days
   days_in_future: 60
 
