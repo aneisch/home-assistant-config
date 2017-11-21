@@ -127,7 +127,7 @@
         state: 'cool'
       - condition: numeric_state
         entity_id: sensor.thermostat_setpoint
-        below: '70'
+        below: '68'
   action: 
     - service: notify.home_assistant
       data_template:

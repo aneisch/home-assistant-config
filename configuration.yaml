@@ -77,6 +77,7 @@ updater:
 
 # Enables the frontend
 frontend:
+  javascript_version: latest
   themes:
     darkred:
       # Main colors that can be changed
@@ -171,6 +172,9 @@ device_tracker:
   - platform: nmap_tracker
     hosts: 10.0.1.30/32
     home_interval: 10
+  - platform: tile
+    username: !secret tile_user
+    password: !secret tile_password
 
 climate:
   platform: radiotherm
