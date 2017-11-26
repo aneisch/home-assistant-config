@@ -18,10 +18,6 @@ ac_change_notification:
   #initial: off
   icon: mdi:alert-circle
 
-#christmas_lights_automation:
-#  name: Christmas Light Automation
-#  initial: on
-
 occusim:
   name: Occupancy Simulator
   #initial: off
@@ -34,3 +30,8 @@ plant_light_automation:
 alarm_clock_automation:
   name: Alarm Clock
   icon: mdi:alarm
+
+christmas_lights_automation:
+  name: Christmas Lights Automation
+  icon: mdi:pine-tree
+  initial: on

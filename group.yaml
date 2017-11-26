@@ -21,6 +21,7 @@ common_area:
   entities:
     - group.thermostat
     - group.common
+    - switch.christmas_lights_switch
 andrews_room:
   name: Andrew's Room
   view: yes
@@ -64,8 +65,6 @@ andrew_room:
     - switch.andrew_sound_machine
     - fan.bedroom_ceiling_fan_level
     - switch.bathroom_light_switch
-    - switch.bathroom_plant_light
-    - switch.portable_fan_switch
     - camera.my_room
     - input_boolean.alarm_clock_automation
     - input_select.alarm_clock
@@ -111,7 +110,7 @@ automation_override:
   entities:
     - input_boolean.door_notify
     - input_boolean.ac_automation
-   # - input_boolean.christmas_lights_automation
+    - input_boolean.christmas_lights_automation
     - input_boolean.plant_light_automation
     - input_boolean.ac_change_notification
     - input_boolean.occusim

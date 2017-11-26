@@ -24,7 +24,7 @@
   retain: true
 
 - platform : mqtt
-  name: "Bathroom Plant Light"
+  name: "Sketchy Sonoff Green Cable"
   state_topic: "cmnd/sonoff_plant_light/POWER"
   command_topic: "cmnd/sonoff_plant_light/POWER"
   payload_on: "ON"

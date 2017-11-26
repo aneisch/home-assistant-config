@@ -35,7 +35,7 @@ Living Room Light at Night With Door:
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: sensor.front_door_status
-  lights: switch.living_room_lamp
+  lights: switch.living_room_lamp,switch.wemo
   time_on: '10'
 
 Minimote:
@@ -87,6 +87,14 @@ Plant Timer Afternoon:
   devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
   time_on: '13:00:00'
   time_off: '21:00:00'
+
+Christmas Lights:
+  module: device_timer
+  class: Timer
+  constrain_input_boolean: input_boolean.christmas_lights_automation
+  devices: switch.christmas_lights_switch
+  time_on: '18:00:00'
+  time_off: '23:30:00'
 
 Brita Notification:
   module: countdown_notify

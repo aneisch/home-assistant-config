@@ -34,9 +34,9 @@ light.andrew_monitor_backlight:
   icon: mdi:monitor
 
 #SWITCHES
-switch.portable_fan_switch:
-  friendly_name: Portable Fan
-  icon: mdi:fan
+switch.christmas_lights_switch:
+  friendly_name: Christmas Lights
+  icon: mdi:pine-tree
 switch.andrew_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
@@ -53,15 +53,15 @@ switch.living_room_lamp:
   friendly_name: Living Room Lamp
   icon: mdi:lamp
 switch.wemo_switch:
-  friendly_name: Living Room Lamp 2
-  icon: mdi:lamp
+#  friendly_name: Living Room Lamp 2
+#  icon: mdi:lamp
+   friendly_name: Christmas Tree
+   icon: mdi:pine-tree
 switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
 switch.kitchen_plant_light_switch:
   friendly_name: Kitchen Plant Light
-  icon: mdi:flower
-switch.bathroom_plant_light:
   icon: mdi:flower
 
 #SENSORS

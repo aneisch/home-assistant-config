@@ -22,9 +22,39 @@ andrew_room_bedtime:
     - service: light.turn_off
       data:
         entity_id: light.andrew_monitor_backlight
-    - service: switch.turn_on
+    - service: homeassistant.turn_off
       data:
-        entity_id: switch.portable_fan_switch
+        entity_id: switch.christmas_lights_switch
+    - service: homeassistant.turn_off
+      data:
+        entity_id: switch.wemo
+
+#Wake up light, fading red, turns off sound machine and fan after transition
+andrew_light_slow_on:
+  sequence:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.wakeup_light_transition
+    - delay:
+        minutes: 2
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: fan.turn_off
+      data:
+        entity_id: fan.bedroom_ceiling_fan_level
+
+andrew_wakeup:
+  sequence:
+    - service: script.turn_on
+      data:
+        entity_id: script.andrew_room_pre_bed
+    - service: switch.turn_off
+      data:
+        entity_id: switch.andrew_sound_machine
+    - service: fan.turn_off
+      data:
+        entity_id: fan.bedroom_ceiling_fan_level
 
 #Turn off all room things, arm security
 andrew_gone:
@@ -58,38 +88,6 @@ andrew_arrived:
     - service: scene.turn_on
       data:
         entity_id: scene.andrew_light_full
-
-
-#Wake up light, fading red, turns off sound machine and fan after transition
-andrew_light_slow_on:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.wakeup_light_transition
-    - delay:
-        minutes: 2
-    - service: switch.turn_off
-      data:
-        entity_id: switch.andrew_sound_machine
-    - service: fan.turn_off
-      data:
-        entity_id: fan.bedroom_ceiling_fan_level
-
-andrew_wakeup:
-  sequence:
-    - service: script.turn_on
-      data:
-        entity_id: script.andrew_room_pre_bed
-    - service: switch.turn_off
-      data:
-        entity_id: switch.andrew_sound_machine
-    - service: fan.turn_off
-      data:
-        entity_id: fan.bedroom_ceiling_fan_level
-    - service: switch.turn_off
-      data:
-        entity_id: switch.portable_fan_switch
-
 
 ############
 # SECURITY #
