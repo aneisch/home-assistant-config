@@ -27,7 +27,7 @@ andrew_room_bedtime:
         entity_id: switch.christmas_lights_switch
     - service: homeassistant.turn_off
       data:
-        entity_id: switch.wemo
+        entity_id: switch.wemo_switch
 
 #Wake up light, fading red, turns off sound machine and fan after transition
 andrew_light_slow_on:
