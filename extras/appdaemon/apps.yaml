@@ -49,7 +49,7 @@ Minimote:
   scene_5_toggle: switch.andrew_sound_machine
   scene_6_on: script.andrew_room_bedtime
   scene_7_toggle: light.andrew_monitor_backlight
-  scene_8_toggle: switch.bathroom_plant_light
+  scene_8_toggle: light.andrew_monitor_backlight
 
 Occupancy Simulator:
   module: occusim
@@ -76,7 +76,7 @@ Plant Timer Morning:
   module: device_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
+  devices: switch.kitchen_plant_light_switch
   time_on: 08:00:00
   time_off: '12:00:00'
 
@@ -84,7 +84,7 @@ Plant Timer Afternoon:
   module: device_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.bathroom_plant_light,switch.kitchen_plant_light_switch
+  devices: switch.kitchen_plant_light_switch
   time_on: '13:00:00'
   time_off: '21:00:00'
 
