@@ -28,7 +28,7 @@
   # dd-mm-yyyy
   start_date: "12-10-2017 19:42"
   #When to remind me in days
-  days_in_future: 60
+  days_in_future: 90
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -106,6 +106,9 @@
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
+- platform: mqtt
+  state_topic: "sensor/mom_and_dad_gate"
+  name: "Mom and Dad Gate"
 
 ####################
 # BEGIN SONOFF POW #

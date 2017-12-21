@@ -221,3 +221,34 @@
   action:
     service: script.turn_on
     entity_id: script.andrew_wakeup
+
+
+####################
+# Mom and Dad Gate #
+####################
+
+- alias: "Mom and Dad Gate Notify"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: sensor.mom_and_dad_gate
+    from: 'closed'
+    to: 'open'
+  action:
+    - service: notify.home_assistant
+      data_template:
+        message: >
+          Gate Opened
+
+- alias: "Mom and Dad Gate Notify"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: sensor.mom_and_dad_gate
+    from: 'open'
+    to: 'closed'
+  action:
+    - service: notify.home_assistant
+      data_template:
+        message: >
+          Gate Closed
