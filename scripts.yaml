@@ -159,11 +159,7 @@ set_ac_82:
 
 mom_and_dad_gate_toggle:
   sequence:
-    - service: mqtt.publish
-      data:
-        topic: "cmd/mom_and_dad_gate"
-        payload: "toggle"
-
+    - service: shell_command.mom_and_dad_gate_toggle
 ######
 # IR #
 ######

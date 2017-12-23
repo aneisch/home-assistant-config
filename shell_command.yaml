@@ -23,3 +23,5 @@ owntracks_update: '/usr/local/bin/force_location_update'
 mount_plex: 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
 
 umount_plex: 'sudo umount -fl /plex'
+
+mom_and_dad_gate_toggle: curl -X POST https://DOMAIN/api/services/homeassistant/toggle?api_password=PASS -H "Contlication/json" -d '{"entity_id":"script.front_gate_toggle"}'
