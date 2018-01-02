@@ -26,12 +26,15 @@ class SmartTimer(appapi.AppDaemon):
       
       results = c.fetchall()
       conn.close()
-      self.log("Entity changed.. reprocessing times")
+      if self.args["debug"]:
+        self.log("Entity changed.. reprocessing times")
       
       records = 0
       times = []
       
       for result in results:
+        if self.args["debug"]:
+          self.log(result)
         process = False
         if result[0] == "on":
           on = result[1]
@@ -50,7 +53,8 @@ class SmartTimer(appapi.AppDaemon):
       
       if self.args["debug"]:
         self.log("Calculation complete, determined average on time of " + str(average))
-        self.log("Scheduling turn_off of %s in %s seconds." % (self.args["entity_id"],str(average_seconds)))
+      
+      self.log("Scheduling turn_off of %s in %s seconds." % (self.args["entity_id"],str(average_seconds)))
         
       self.run_in(self.average_exceeded, average_seconds)
 
