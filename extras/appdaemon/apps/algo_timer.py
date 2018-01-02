@@ -57,7 +57,6 @@ class SmartTimer(appapi.AppDaemon):
       if self.args["debug"]:
         self.log("Calculation complete, determined average on time of " + str(average))
 
-
       # Schedule our turn_off action in X seconds in the future, the average time entity has spent is "on"
       self.log("Scheduling turn_off of %s in %s seconds." % (self.args["entity_id"],str(average_seconds)))
       self.run_in(self.average_exceeded, average_seconds)
