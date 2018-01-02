@@ -1,3 +1,5 @@
+# https://github.com/aneisch/home-assistant-config/blob/master/extras/appdaemon/apps/algo_timer.py
+
 import appdaemon.appapi as appapi, sqlite3
 from datetime import datetime, timedelta
 
