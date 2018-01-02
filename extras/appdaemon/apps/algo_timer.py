@@ -1,7 +1,10 @@
-# https://github.com/aneisch/home-assistant-config/blob/master/extras/appdaemon/apps/algo_timer.py
-
 import appdaemon.appapi as appapi, sqlite3
 from datetime import datetime, timedelta
+
+#
+# https://github.com/aneisch/home-assistant-config/blob/master/extras/appdaemon/apps/algo_timer.py
+# Automatically turn off entity after averaged amount of time
+#
 
 class SmartTimer(appapi.AppDaemon):
   def initialize(self):
