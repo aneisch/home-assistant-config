@@ -13,7 +13,7 @@ AC AutoAdjust:
   summer_unoccupied: '82'
   thermostats: climate.thermostat
   winter_day: '66'
-  winter_night: '65'
+  winter_night: '62'
   winter_unoccupied: '62'
 
 Andrew Room Light Automation:
@@ -113,3 +113,10 @@ AC Filter Notification:
   notify_overdue: True #continue to notify after zero
   notify: home_assistant
   message: "It's time to change the AC filter! (20x25x1)"
+  
+Algo Timer:
+  module: algo_timer
+  class: SmartTimer
+  db_location: /opt/homeassistant/home-assistant_v2.db
+  entity_id: switch.bathroom_light_switch
+  debug: False
