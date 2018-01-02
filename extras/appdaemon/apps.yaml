@@ -119,4 +119,4 @@ AC Filter Notification:
 #  class: SmartTimer
 #  db_location: /opt/homeassistant/home-assistant_v2.db
 #  entity_id: switch.bathroom_light_switch
-#  debug: False
+#  debug: True

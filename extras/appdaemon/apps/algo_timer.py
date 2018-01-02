@@ -36,10 +36,11 @@ class SmartTimer(appapi.AppDaemon):
       records = 0
       times = []
 
+      if self.args["debug"]:
+        self.log(results)
+
       # Iterate through entity changed times and create a list of times spent "on"
       for result in results:
-        if self.args["debug"]:
-          self.log(result)
         process = False
         if result[0] == "on":
           on = result[1]
