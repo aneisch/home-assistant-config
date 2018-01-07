@@ -2,7 +2,6 @@
 default_view:
   view: yes
   entities:
-#    - switch.christmas_lights
     - group.thermostat
     - group.automation_override
     - group.scenes
@@ -21,7 +20,6 @@ common_area:
   entities:
     - group.thermostat
     - group.common
-    - switch.christmas_lights_switch
 andrews_room:
   name: Andrew's Room
   view: yes
@@ -110,7 +108,6 @@ automation_override:
   entities:
     - input_boolean.door_notify
     - input_boolean.ac_automation
-    - input_boolean.christmas_lights_automation
     - input_boolean.plant_light_automation
     - input_boolean.ac_change_notification
     - input_boolean.occusim

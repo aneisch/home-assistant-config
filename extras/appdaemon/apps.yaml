@@ -88,14 +88,6 @@ Plant Timer Afternoon:
   time_on: '13:00:00'
   time_off: '21:00:00'
 
-Christmas Lights:
-  module: device_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.christmas_lights_automation
-  devices: switch.christmas_lights_switch
-  time_on: '17:32:00'
-  time_off: '23:30:00'
-
 Brita Notification:
   module: countdown_notify
   class: Notify

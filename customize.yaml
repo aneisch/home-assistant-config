@@ -34,9 +34,6 @@ light.andrew_monitor_backlight:
   icon: mdi:monitor
 
 #SWITCHES
-switch.christmas_lights_switch:
-  friendly_name: Christmas Lights
-  icon: mdi:pine-tree
 switch.andrew_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
@@ -53,10 +50,8 @@ switch.living_room_lamp:
   friendly_name: Living Room Lamp
   icon: mdi:lamp
 switch.wemo_switch:
-#  friendly_name: Living Room Lamp 2
-#  icon: mdi:lamp
-   friendly_name: Christmas Tree
-   icon: mdi:pine-tree
+  friendly_name: Living Room Lamp 2
+  icon: mdi:lamp
 switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
