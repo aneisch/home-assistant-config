@@ -141,13 +141,11 @@
   sensors:
     sonoff_pow_today_cost:
       friendly_name: Sonoff Pow Today Cost
-      entity_id: sensor.sonoff_pow_today_energy
       unit_of_measurement: "$"
       value_template: >-
         {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }} 
     sonoff_pow_yesterday_cost:
       friendly_name: Sonoff Pow Yesterday Cost
-      entity_id: sensor.sonoff_pow_yesterday_energy
       unit_of_measurement: "$"
       value_template: >-
         {{ states.sensor.sonoff_pow_yesterday_energy.state  | multiply(0.1123) | round(2) }}
