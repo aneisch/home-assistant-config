@@ -33,11 +33,11 @@ mail:
   entity_picture: !secret mail_camera
   title: Mail
 
-forecast:
-  widget_type: camera
-  refresh: 300
-  entity_picture: !secret forecast_cam
-  title: Forecast
+#forecast:
+#  widget_type: camera
+#  refresh: 300
+#  entity_picture: !secret forecast_cam
+#  title: Forecast
 
 clock:
   widget_type: clock

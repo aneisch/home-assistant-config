@@ -1,11 +1,11 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 """
 Notifies the specified notifier on
 the days you specify.
 """
 
-class Notify(appapi.AppDaemon):
+class Notify(hass.Hass):
   def initialize(self):
     if "countdown_entity" in self.args:
       self.listen_state(self.evaluate_notice, self.args["countdown_entity"])

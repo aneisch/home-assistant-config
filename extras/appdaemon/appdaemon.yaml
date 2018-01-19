@@ -1,12 +1,18 @@
-AppDaemon:
-  app_dir: /opt/appdaemon/
+appdaemon:
+  threads: 10
+  time_zone: America/Chicago
+  plugins:
+    HASS:
+      type: hass
+      ha_key: !secret hass_password
+      ha_url: http://127.0.0.1:8123
+
+log:
   errorfile: /var/log/appdaemon.log
   logfile: /var/log/appdaemon.log
-  threads: '10'
-HADashboard:
+  accessfile: /var/log/appdaemon.log
+
+hadashboard:
   dash_url: http://10.0.1.22:5050
   dash_force_compile: 1
   dash_compile_on_start: 1
-HASS:
-  ha_key: !secret api_password
-  ha_url: http://127.0.0.1:8123

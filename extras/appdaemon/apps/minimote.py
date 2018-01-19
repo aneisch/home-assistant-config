@@ -1,4 +1,4 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 #
 # App to respond to buttons on an Aeotec Minimote
@@ -21,7 +21,7 @@ import appdaemon.appapi as appapi
 # Version 1.0:
 #   Initial Version
 
-class MiniMote(appapi.AppDaemon):
+class MiniMote(hass.Hass):
 
   def initialize(self):
     

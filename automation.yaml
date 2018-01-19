@@ -1,3 +1,27 @@
+#Workaround for fan speed on appdaemon dashboard
+#Set value of input select when fan speed changed on switch
+- alias: Set Andrew Ceiling Fan Speed Selector
+  trigger:
+    platform: state
+    entity_id: fan.bedroom_ceiling_fan_level
+  action:
+     service: input_select.select_option
+     data_template:
+       entity_id: input_select.andrew_ceiling_fan_speed
+       option: '{{ states.fan.bedroom_ceiling_fan_level.attributes.speed }}'
+
+#Workaround for fan speed on appdaemon dashboard
+#Set fan speed when input changed
+- alias: Set Andrew Ceiling Fan Speed
+  trigger:
+    platform: state
+    entity_id: input_select.andrew_ceiling_fan_speed
+  action:
+     service: fan.set_speed
+     entity_id: fan.bedroom_ceiling_fan_level
+     data_template:
+       speed: '{{ states.input_select.andrew_ceiling_fan_speed.state }}'
+
 - alias: "Set dark theme for the night"
   initial_state: on
   trigger:

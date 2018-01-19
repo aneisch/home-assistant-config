@@ -23,3 +23,11 @@ alarm_clock:
     - "10:30"
     - "10:45"
     - "11:00"
+
+andrew_ceiling_fan_speed:
+  name: Bedroom Ceiling Fan Speed
+  options:
+    - "off"
+    - "low"
+    - "medium"
+    - "high"

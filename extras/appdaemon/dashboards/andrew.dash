@@ -41,6 +41,12 @@ bedroom_fan:
   entity: fan.bedroom_ceiling_fan_level
   title: Ceiling Fan
 
+ceiling_fan_speed:
+  widget_type: input_select
+  entity: input_select.andrew_ceiling_fan_speed
+  title: Ceiling Fan Speed
+
+
 floor_fan:
   widget_type: switch
   entity: switch.portable_fan_switch
@@ -108,9 +114,8 @@ sound_machine:
   icon_off: mdi-volume-off
 
 alarm_clock_time:
-  widget_type: sensor
+  widget_type: input_select
   entity: input_select.alarm_clock
-  widget_style: "font-size: 150%;"
 
 outdoor:
   widget_type: camera
@@ -119,10 +124,9 @@ outdoor:
   title: Outdoor
 
 
-
 layout:
   - thermostat(2x1), reload
-  - bedroom_fan, floor_fan, sensor.andrew_room_temperature
+  - bedroom_fan, ceiling_fan_speed, sensor.andrew_room_temperature
   - bedroom_light, monitor_backlight, switch.bathroom_light_switch
   - bedtime, light_dim, light_full
   - living_room_lamps, common_area, switch.kitchen_table_light_switch

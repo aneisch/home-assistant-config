@@ -1,7 +1,7 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 
-class AndrewRoomNight(appapi.AppDaemon):
+class AndrewRoomNight(hass.Hass):
   def initialize(self):
     time_on = self.parse_time(self.args["time_on"])
     self.run_daily(self.on, time_on)

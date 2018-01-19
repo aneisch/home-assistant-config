@@ -1,7 +1,7 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 
-class DoorLight(appapi.AppDaemon):
+class DoorLight(hass.Hass):
   def initialize(self):
     if "door_sensor" in self.args:
       for sensor in self.split_device_list(self.args["door_sensor"]):
@@ -21,7 +21,7 @@ class DoorLight(appapi.AppDaemon):
     self.turn_off(args["switch"])
 
 
-class DoorNotify(appapi.AppDaemon):
+class DoorNotify(hass.Hass):
   def initialize(self):
     if "door_sensor" in self.args:
       for sensor in self.split_device_list(self.args["door_sensor"]):

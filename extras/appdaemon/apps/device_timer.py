@@ -1,7 +1,7 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 
 
-class Timer(appapi.AppDaemon):
+class Timer(hass.Hass):
   def initialize(self):
     time_on = self.parse_time(self.args["time_on"])
     time_off = self.parse_time(self.args["time_off"])

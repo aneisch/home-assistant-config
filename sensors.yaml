@@ -202,9 +202,26 @@
   end: '{{ now() }}'
 
 - platform: history_stats
+  name: ac_runtime_today_heat
+  entity_id: sensor.thermostat_state
+  state: 'Heating'
+  type: time
+  start: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
+  end: '{{ now() }}'
+
+- platform: history_stats
   name: ac_runtime_yesterday
   entity_id: sensor.thermostat_state
   state: 'Cooling'
+  type: time
+  end: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
+  duration:
+    hours: 24
+
+- platform: history_stats
+  name: ac_runtime_yesterday_heat
+  entity_id: sensor.thermostat_state
+  state: 'Heating'
   type: time
   end: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
   duration:

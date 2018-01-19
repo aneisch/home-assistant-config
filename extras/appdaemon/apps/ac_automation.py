@@ -1,8 +1,8 @@
-import appdaemon.appapi as appapi
+import appdaemon.plugins.hass.hassapi as hass
 import datetime
 
 
-class AutoAdjust(appapi.AppDaemon):
+class AutoAdjust(hass.Hass):
   def initialize(self):
 
     #Compile our times

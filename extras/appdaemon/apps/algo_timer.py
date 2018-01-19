@@ -1,4 +1,4 @@
-import appdaemon.appapi as appapi, sqlite3
+import appdaemon.plugins.hass.hassapi as hass, sqlite3
 from datetime import datetime, timedelta
 
 #
@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 # Automatically turn off entity after averaged amount of time
 #
 
-class SmartTimer(appapi.AppDaemon):
+class SmartTimer(hass.Hass):
   def initialize(self):
     
     # Path to our DB as defined in apps.yaml
