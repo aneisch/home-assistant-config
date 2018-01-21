@@ -11,8 +11,8 @@ class Notify(hass.Hass):
       self.listen_state(self.evaluate_notice, self.args["countdown_entity"])
 
   def evaluate_notice(self, entity, attribute, old, new, kwargs):
-    days_remaining = self.get_state(entity, "days_remaining")
-    entity_friendly_name = self.get_state(entity, "friendly_name")
+    days_remaining = self.get_state(entity, attribute="days_remaining")
+    entity_friendly_name = self.get_state(entity, attribute="friendly_name")
 
     if type(self.args["notification_days"]) == int:
       notification_days = [self.args["notification_days"]]
