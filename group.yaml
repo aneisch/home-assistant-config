@@ -1,5 +1,6 @@
 #TABS
 default_view:
+  name: Home
   view: yes
   entities:
     - group.thermostat
