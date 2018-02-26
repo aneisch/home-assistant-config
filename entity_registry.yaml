@@ -1,0 +1,18 @@
+switch.wemo_switch:
+  platform: wemo
+  unique_id: 221415K0100B0D
+switch.bathroom_light_switch:
+  platform: zwave
+  unique_id: 15-72057594294386688
+switch.kitchen_table_light_switch:
+  platform: zwave
+  unique_id: 17-72057594327941120
+switch.kitchen_plant_light_switch:
+  platform: zwave
+  unique_id: 18-72057594344718336
+fan.bedroom_ceiling_fan_level:
+  platform: zwave
+  unique_id: 19-72057594361511937
+switch.outdoor_zwave_switch:
+  platform: zwave
+  unique_id: 24-72057594445381632

@@ -255,6 +255,7 @@ panel_iframe:
 alexa:
 
 usps:
+  driver: chrome
   username: !secret usps_username
   password: !secret usps_key
 
