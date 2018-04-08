@@ -154,6 +154,17 @@ set_ac_82:
         entity_id: climate.thermostat
         temperature: 82 
 
+panic:
+  sequence:
+    - service: notify.home_assistant
+      data:
+        message: "Help!"
+        title: "Panic!!"
+        data:
+          priority: 2
+          expire: 3600
+          retry: 30
+
 mom_and_dad_gate_toggle:
   sequence:
     - service: shell_command.mom_and_dad_gate_toggle

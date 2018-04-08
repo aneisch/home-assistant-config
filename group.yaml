@@ -91,14 +91,14 @@ system:
     - sensor.ssl_certificate_expiry
     - sensor.rack_exhaust_temperature
     - switch.rack_exhaust_fan
-    - sensor.cpu_used
-    - sensor.average_load_1m
-    - sensor.ram_used
-    - sensor.disk_used_
-    - sensor.disk_used_home
+    - sensor.processor_use
+    - sensor.load_1m
+    - sensor.memory_use_percent
+    - sensor.disk_use_percent_
+    - sensor.disk_use_percent_home
     - sensor.last_boot
-    - sensor.sent_eno1
-    - sensor.received_eno1
+    - sensor.network_out_eno1
+    - sensor.network_in_eno1
     - switch.nas
 UPS:
  - sensor.ups_time_left
