@@ -64,8 +64,12 @@ Occupancy Simulator:
   random_house_number: '5'
   random_house_off_kitchen: switch.kitchen_table_light_switch
   random_house_off_livingroom: group.living_room
+  random_house_off_tv: switch.tv
+  random_house_off_ge: switch.outdoor_zwave_switch
+  random_house_on_ge: switch.outdoor_zwave_switch
   random_house_on_kitchen: switch.kitchen_table_light_switch
   random_house_on_livingroom: group.living_room
+  random_house_on_tv: switch.tv
   random_house_start: Evening
   step_evening_name: Evening
   step_evening_start: sunset - 00:45:00
@@ -88,23 +92,23 @@ Plant Timer Afternoon:
   time_on: '13:00:00'
   time_off: '21:00:00'
 
-Brita Notification:
-  module: countdown_notify
-  class: Notify
-  countdown_entity: sensor.brita_filter_change
-  notification_days: 0 #A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: True #An optional argument, if true we will continue to notify after 0
-  notify: home_assistant #The name of the notify service
-  message: "It's time to change the Brita filter!"
+#Brita Notification:
+#  module: countdown_notify
+#  class: Notify
+#  countdown_entity: sensor.brita_filter_change
+#  notification_days: 0 #A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
+#  notify_overdue: True #An optional argument, if true we will continue to notify after 0
+#  notify: home_assistant #The name of the notify service
+#  message: "It's time to change the Brita filter!"
 
-AC Filter Notification:
-  module: countdown_notify
-  class: Notify
-  countdown_entity: sensor.ac_filter_change
-  notification_days: 0
-  notify_overdue: True #continue to notify after zero
-  notify: home_assistant
-  message: "It's time to change the AC filter! (20x25x1)"
+#AC Filter Notification:
+#  module: countdown_notify
+#  class: Notify
+#  countdown_entity: sensor.ac_filter_change
+#  notification_days: 0
+#  notify_overdue: True #continue to notify after zero
+#  notify: home_assistant
+#  message: "It's time to change the AC filter! (20x25x1)"
   
 #Algo Timer:
 #  module: algo_timer
