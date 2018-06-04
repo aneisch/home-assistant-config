@@ -124,7 +124,6 @@ history:
       - sensor.last_boot
       - sensor.moon_phase
       - sensor.bed_toggle_switch
-      - sensor.wedding_countdown
       - sensor.ac_history
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
@@ -144,7 +143,6 @@ history:
 logbook:
   exclude:
     entities:
-      - sensor.wedding_countdown
       - sensor.average_load_1m
 
 # Discover some devices automatically
@@ -169,10 +167,7 @@ device_tracker:
     interval_seconds: 30
     track_new_devices: False
   - platform: nmap_tracker
-    hosts: 10.0.1.38/32
-    home_interval: 10
-  - platform: nmap_tracker
-    hosts: 10.0.1.30/32
+    hosts: 10.0.1.13/32
     home_interval: 10
   - platform: tile
     username: !secret tile_user
@@ -235,10 +230,6 @@ arlo:
   password: !secret arlo_password
 
 panel_iframe:
-  countdown:
-    title: 'Wedding Countdown!'
-    icon: mdi:church
-    url: !secret countdown
   plane_tracking:
     title: 'Plane Tracking'
     icon: mdi:airplane

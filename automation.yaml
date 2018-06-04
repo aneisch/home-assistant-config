@@ -42,20 +42,6 @@
       data:
         name: default
 
-- alias: "Wedding Notify"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: sensor.wedding_countdown_days
-  condition:
-    - condition: template
-      value_template: '{{ states.sensor.wedding_countdown_days.state | float % 10 == 0 }}'
-  action:
-    - service: notify.home_assistant
-      data_template:
-        message: >
-          Wedding is in {{ states.sensor.wedding_countdown_days.state }} days!!
-
 - alias: "Package Delivered"
   initial_state: on
   trigger:

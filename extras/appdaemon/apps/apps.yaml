@@ -101,14 +101,14 @@ Plant Timer Afternoon:
 #  notify: home_assistant #The name of the notify service
 #  message: "It's time to change the Brita filter!"
 
-#AC Filter Notification:
-#  module: countdown_notify
-#  class: Notify
-#  countdown_entity: sensor.ac_filter_change
-#  notification_days: 0
-#  notify_overdue: True #continue to notify after zero
-#  notify: home_assistant
-#  message: "It's time to change the AC filter! (20x25x1)"
+AC Filter Notification:
+  module: countdown_notify
+  class: Notify
+  countdown_entity: sensor.ac_filter_change
+  notification_days: 0
+  notify_overdue: True #continue to notify after zero
+  notify: home_assistant
+  message: "It's time to change the AC filter! (20x25x1)"
   
 #Algo Timer:
 #  module: algo_timer

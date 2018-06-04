@@ -1,31 +1,5 @@
 # Images go in /usr/local/lib/python3.4/dist-packages/homeassistant/components/frontend/www_static/images/
 
-#GROUPS
-group.misc:
-  friendly_name: Miscellaneous
-group.andrew_room:
-  friendly_name: Andrew's Room
-group.common:
-  friendly_name: Common Area
-group.automation_override:
-  friendly_name: Automation Control
-group.thermostat:
-  friendly_name: Thermostat
-group.scenes:
-  friendly_name: Scenes
-group.security:
-  friendly_name: Security
-group.trackers:
-  friendly_name: Trackers
-group.weather:
-  friendly_name: Weather
-group.system:
-  friendly_name: System
-group.power:
-  friendly_name: Power
-group.jade_clippings:
-  friendly_name: Garden
-
 #LIGHTS
 light.andrew_bedroom:
   friendly_name: Bedroom Light
@@ -34,10 +8,16 @@ light.andrew_monitor_backlight:
   icon: mdi:monitor
 
 #SWITCHES
+switch.tv:
+  friendly_name: TV
+  icon: mdi:television-classic
 switch.andrew_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
   icon: mdi:camera
+switch.outdoor_zwave_switch:
+  friendly_name: Desk Lamp
+  icon: mdi:lamp
 fan.bedroom_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
@@ -95,9 +75,6 @@ sensor.jade_clippings_moisture:
   icon: mdi:water
 sensor.jade_clippings_temperature:
   icon: mdi:thermometer
-sensor.wedding_countdown_days:
-  icon: mdi:calendar
-  friendly_name: Days Until Wedding
 sensor.packages_in_transit:
   icon: mdi:truck-delivery
 sensor.deliveries_today:
@@ -145,11 +122,5 @@ script.arlo_disarm:
 device_tracker.owntracks_android:
   friendly_name: Andrew's Phone
   entity_picture: /local/andrew.jpg
-device_tracker.coleandroidaneisch:
-  friendly_name: Cole's Phone
-  entity_picture: /local/cole.jpg
-device_tracker.jared_iphone:
-  friendly_name: Jared's iPhone
-  entity_picture: /local/jared.jpg
 
 ##OTHER

@@ -15,19 +15,19 @@ default_view:
     - media_player.andrews_chromecast
     - group.misc
     - group.jade_clippings
-common_area:
-  name: Common Area
+common_areas:
+  name: Common Areas
   view: yes
   entities:
     - group.thermostat
-    - group.common
-andrews_room:
-  name: Andrew's Room
+    - group.living_room
+    - group.office
+master:
+  name: Master Bedroom
   view: yes
   entities:
-    - group.andrew_room
+    - group.master_bedroom
     - group.scenes
-    - switch.stupid_red_light
 ha_status:
   name: Server Status
   view: yes
@@ -40,52 +40,72 @@ ha_status:
 # GROUPS #
 ##########
 thermostat:
-  - climate.thermostat
-  - sensor.thermostat_temperature
-  - sensor.thermostat_setpoint
-  - sensor.thermostat_state
-  - sensor.thermostat_fan_status
-  - sensor.ac_runtime_today
-  - sensor.ac_runtime_yesterday
+  name: Thermostat
+  control: hidden
+  entities:
+    - climate.thermostat
+    - sensor.thermostat_temperature
+    - sensor.thermostat_setpoint
+    - sensor.thermostat_state
+    - sensor.thermostat_fan_status
+    - sensor.ac_runtime_today
+    - sensor.ac_runtime_yesterday
 scenes:
+  name: Scenes
   control: hidden
   entities:
     - script.andrew_room_light_full
     - script.andrew_room_pre_bed
     - script.andrew_room_bedtime
-andrew_room:
+
+office:
+  name: Office
+  control: hidden
+  entities:
+    - light.andrew_monitor_backlight
+    - switch.outdoor_zwave_switch
+
+master_bedroom:
+  name: Master Bedroom
   control: hidden
   entities:
     - sensor.andrew_room_temperature
     - light.andrew_bedroom
-    - light.andrew_monitor_backlight
-    - light.andrew_bedroom_testing
-    - light.andrew_monitor_backlight_testing
     - switch.andrew_sound_machine
     - fan.bedroom_ceiling_fan_level
     - switch.bathroom_light_switch
     - camera.my_room
     - input_boolean.alarm_clock_automation
     - input_select.alarm_clock
+
 security:
- - input_boolean.arlo_status
- - sensor.front_door_status
- - sensor.back_door_status
+  name: Security
+  control: hidden
+  entities:
+    - input_boolean.arlo_status
+    - sensor.front_door_status
+    - sensor.back_door_status
+
 #This helps us determine who is home also!
 trackers:
- - device_tracker.owntracks_android
- - device_tracker.coleandroidaneisch
- - device_tracker.jared_iphone
+  name: Trackers
+  entities:
+    - device_tracker.owntracks_android
+
 weather:
- - sensor.dark_sky_summary
- - sensor.dark_sky_temperature
- - sensor.dark_sky_humidity
- - sensor.dark_sky_precip_probability
- - sun.sun
- - sensor.moon_phase
- - camera.weather_radar
- - camera.weather
+  name: Weather
+  entities:
+    - sensor.dark_sky_summary
+    - sensor.dark_sky_temperature
+    - sensor.dark_sky_humidity
+    - sensor.dark_sky_precip_probability
+    - sun.sun
+    - sensor.moon_phase
+    - camera.weather_radar
+    - camera.weather
+
 system:
+  name: System
   control: hidden
   entities:
     - sensor.ssl_certificate_expiry
@@ -100,11 +120,16 @@ system:
     - sensor.network_out_eno1
     - sensor.network_in_eno1
     - switch.nas
+
 UPS:
- - sensor.ups_time_left
- - sensor.ups_load
- - sensor.ups_battery
+  name: UPS
+  entities:
+    - sensor.ups_time_left
+    - sensor.ups_load
+    - sensor.ups_battery
+
 automation_override:
+  name: Automation Control
   control: hidden
   entities:
     - input_boolean.door_notify
@@ -112,29 +137,37 @@ automation_override:
     - input_boolean.plant_light_automation
     - input_boolean.ac_change_notification
     - input_boolean.occusim
-common:
- - switch.living_room_lamp
- - switch.wemo_switch
- - switch.kitchen_table_light_switch
- - switch.kitchen_plant_light_switch
+
+kitchen:
+  name: Kitchen
+  control: hidden
+  entities:
+    - switch.kitchen_table_light_switch
+    - switch.kitchen_plant_light_switch
+
 living_room:
- - switch.living_room_lamp
- - switch.wemo_switch
+  name: Living Room
+  control: hidden
+  entities:
+    - switch.wemo_switch
+    - switch.living_room_lamp
+    - switch.wemo_switch
+    - switch.decorative_led
+    - switch.tv
+
 power:
- - sensor.sonoff_pow_current
- - sensor.sonoff_pow_power
- - sensor.sonoff_pow_today_energy
- - sensor.sonoff_pow_today_cost
- - sensor.sonoff_pow_yesterday_energy
- - sensor.sonoff_pow_yesterday_cost
+  name: Power
+  entities:
+    - sensor.sonoff_pow_current
+    - sensor.sonoff_pow_power
+    - sensor.sonoff_pow_today_energy
+    - sensor.sonoff_pow_today_cost
+    - sensor.sonoff_pow_yesterday_energy
+    - sensor.sonoff_pow_yesterday_cost
+
 misc:
-  - sensor.usps_mail
-  - sensor.deliveries_today
-  - sensor.packages_in_transit
-  - sensor.wedding_countdown_days
-jade_clippings:
- - sensor.jade_clippings_battery
- - sensor.jade_clippings_conductivity
- - sensor.jade_clippings_light_intensity
- - sensor.jade_clippings_moisture
- - sensor.jade_clippings_temperature
+  name: Misc
+  entities:
+    - sensor.usps_mail
+    - sensor.deliveries_today
+    - sensor.packages_in_transit

@@ -1,14 +1,5 @@
 - platform: arlo
 
-#- platform: coinmarketcap
-#  currency: bitcoin
-
-#- platform: coinmarketcap
-#  currency: ethereum
-
-#- platform: coinmarketcap
-#  currency: litecoin
-
 - platform: fedex
   username: !secret fedex_username
   password: !secret fedex_password
@@ -17,18 +8,14 @@
   username: !secret ups_username
   password: !secret ups_password
 
-- platform: date_countdown
-  name: Wedding Countdown
-  date: "20-05-2018 18:00"
-
 #Tell me when to change a thing
 - platform: date_reminder
   name: AC Filter Change
   #Date last done/changed
   # dd-mm-yyyy
-  start_date: "12-10-2017 19:42"
+  start_date: "03-06-2018 20:00"
   #When to remind me in days
-  days_in_future: 150
+  days_in_future: 90
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -346,14 +333,6 @@
           {% endif %}
         {% endmacro %}
         {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.ups)|int + delivered(states.sensor.fedex)|int}}
-
-- platform: template
-  sensors:
-    wedding_countdown_days:
-      value_template: >-
-        {{ states.sensor.wedding_countdown.attributes.days }}
-
-
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_temp"
