@@ -5,12 +5,12 @@
 #Turn on fan and sound machine, and turn off lights
 andrew_room_bedtime:
   sequence:
-    - service: switch.turn_on
-      data:
-        entity_id: switch.andrew_sound_machine
-    - service: fan.turn_on
-      data:
-        entity_id: fan.bedroom_ceiling_fan_level
+#    - service: switch.turn_on
+#      data:
+#        entity_id: switch.andrew_sound_machine
+#    - service: fan.turn_on
+#      data:
+#        entity_id: fan.bedroom_ceiling_fan_level
     - service: scene.turn_on
       data:
         entity_id: scene.wakeup_light_on

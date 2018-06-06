@@ -91,6 +91,7 @@ trackers:
   name: Trackers
   entities:
     - device_tracker.owntracks_android
+    - device_tracker.bethany_iphone
 
 weather:
   name: Weather

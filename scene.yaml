@@ -7,10 +7,10 @@
       transition: 3
       brightness: 20
       rgb_color: [255, 255, 255]  
-    light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-      rgb_color: [255, 217, 201]
+#    light.andrew_monitor_backlight:
+#      state: on
+#      brightness: 255
+#      rgb_color: [255, 217, 201]
 
 - name: Andrew Light Full
   entities:
@@ -18,10 +18,10 @@
       state: on
       brightness: 92
       rgb_color: [255, 255, 255]
-    light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-      rgb_color: [255, 255, 255]
+#    light.andrew_monitor_backlight:
+#      state: on
+#      brightness: 255
+#      rgb_color: [255, 255, 255]
 
 - name: Wakeup Light On
   entities:

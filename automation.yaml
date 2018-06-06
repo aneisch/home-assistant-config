@@ -77,27 +77,25 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
-#- id: button_on
 - alias: "Button Press On!"
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: sensor.bed_toggle_switch
+    entity_id: sensor.office_toggle_switch
     to: "true"
   action:
     service: homeassistant.turn_on
-    entity_id: script.andrew_room_bedtime
+    entity_id: group.office
 
-#- id: button_off
 - alias: "Button Press Off!"
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: sensor.bed_toggle_switch
+    entity_id: sensor.office_toggle_switch
     to: "false"
   action:
-    service: homeassistant.turn_on
-    entity_id: script.andrew_wakeup
+    service: homeassistant.turn_off
+    entity_id: group.office
 
 - alias: "Mount /Plex"
   initial_state: on

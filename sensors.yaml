@@ -77,8 +77,8 @@
     - timeleft
 
 - platform: mqtt
-  state_topic: 'bed-toggle/state'
-  name: 'Bed Toggle Switch'
+  state_topic: 'office-toggle/state'
+  name: 'Office Toggle Switch'
   qos: 1
   value_template: "{{ value_json.enabled }}"
 
@@ -221,18 +221,18 @@
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
   unit_of_measurement: "°F"
-  name: "Andrew Room Temperature"
+  name: "Master Bedroom Temperature"
   value_template: "{{ value_json.temperature }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "Andrew Room Humidity"
+  name: "Master Bedroom Humidity"
   unit_of_measurement: "%"
   value_template: "{{ value_json.humidity }}"
 
 - platform: mqtt
   state_topic: "sensor/dht_mini_1"
-  name: "Andrew Room Heat Index"
+  name: "Master Bedroom Heat Index"
   unit_of_measurement: "°F"
   value_template: "{{ value_json.heat_index }}"
 

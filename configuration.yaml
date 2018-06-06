@@ -63,6 +63,7 @@ proximity:
   home:
     devices:
       - device_tracker.owntracks_android 
+      - device_tracker.bethany_iphone
     tolerance: 50
     unit_of_measurement: mi
 
