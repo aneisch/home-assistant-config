@@ -1,39 +1,16 @@
 # Let's only use these to control advanced lighting features.
 
-- name: Pre-Bed Light
+- name: Master Bedroom Light Dim
   entities:
-    light.andrew_bedroom:
+    light.master_bedroom:
       state: on
-      transition: 3
+      transition: 5
       brightness: 20
       rgb_color: [255, 255, 255]  
-#    light.andrew_monitor_backlight:
-#      state: on
-#      brightness: 255
-#      rgb_color: [255, 217, 201]
 
-- name: Andrew Light Full
+- name: Master Bedroom Light Full
   entities:
-    light.andrew_bedroom:
+    light.master_bedroom:
       state: on
-      brightness: 92
+      brightness: 200
       rgb_color: [255, 255, 255]
-#    light.andrew_monitor_backlight:
-#      state: on
-#      brightness: 255
-#      rgb_color: [255, 255, 255]
-
-- name: Wakeup Light On
-  entities:
-    light.andrew_bedroom:
-      state: on
-      rgb_color: [255, 0, 0]
-      brightness: 1
-
-- name: Wakeup Light Transition
-  entities:
-    light.andrew_bedroom:
-      state: on
-      rgb_color: [255, 0, 0]
-      brightness: 115
-      transition: 120

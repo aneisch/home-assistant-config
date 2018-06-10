@@ -1,18 +1,52 @@
 switch.wemo_switch:
+  name:
   platform: wemo
   unique_id: 221415K0100B0D
 switch.bathroom_light_switch:
+  name:
   platform: zwave
   unique_id: 15-72057594294386688
 switch.kitchen_table_light_switch:
+  name:
   platform: zwave
   unique_id: 17-72057594327941120
 switch.kitchen_plant_light_switch:
+  name:
   platform: zwave
   unique_id: 18-72057594344718336
 fan.bedroom_ceiling_fan_level:
+  name:
   platform: zwave
   unique_id: 19-72057594361511937
 switch.outdoor_zwave_switch:
+  name:
   platform: zwave
   unique_id: 24-72057594445381632
+zwave.nuc_zwave_usb:
+  name:
+  platform: zwave
+  unique_id: node-1
+zwave.bedside_remote:
+  name:
+  platform: zwave
+  unique_id: node-14
+zwave.bathroom_light:
+  name:
+  platform: zwave
+  unique_id: node-15
+zwave.kitchen_table_light:
+  name:
+  platform: zwave
+  unique_id: node-17
+zwave.kitchen_plant_light:
+  name:
+  platform: zwave
+  unique_id: node-18
+zwave.bedroom_ceiling_fan:
+  name:
+  platform: zwave
+  unique_id: node-19
+zwave.outdoor_zwave:
+  name:
+  platform: zwave
+  unique_id: node-24

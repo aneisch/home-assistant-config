@@ -1,7 +1,7 @@
 # Images go in /usr/local/lib/python3.4/dist-packages/homeassistant/components/frontend/www_static/images/
 
 #LIGHTS
-light.andrew_bedroom:
+light.master_bedroom:
   friendly_name: Bedroom Light
 light.andrew_monitor_backlight:
   friendly_name: Monitor Backlight
@@ -11,7 +11,7 @@ light.andrew_monitor_backlight:
 switch.tv:
   friendly_name: TV
   icon: mdi:television-classic
-switch.andrew_sound_machine:
+switch.master_bedroom_sound_machine:
   friendly_name: Sound Machine
 switch.arlo_status:
   icon: mdi:camera
@@ -48,7 +48,7 @@ sensor.dark_sky_humidity:
   friendly_name: Humidity
 sensor.dark_sky_precip_probability:
   friendly_name: Percent Chance of Rain
-sensor.andrew_room_temperature:
+sensor.master_bedroom_temperature:
   friendly_name: Room Temperature
   icon: mdi:thermometer
 sensor.rack_exhaust_temperature:
@@ -103,16 +103,15 @@ sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
 #Scripts
-script.andrew_room_pre_bed:
-  friendly_name: Dim Light
+script.master_bedroom_light_full:
+  friendly_name: Master Bedroom Light Full
+  icon: mdi:lightbulb
+script.master_bedroom_light_dim:
+  friendly_name: Master Bedroom Light Dim
   icon: mdi:lightbulb-outline
-script.andrew_room_bedtime:
+script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark
-  can_cancel: False
-script.andrew_room_light_full:
-  friendly_name: Light Full
-  icon: mdi:lightbulb
 script.arlo_arm:
   friendly_name: Arlo Arm
 script.arlo_disarm:

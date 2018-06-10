@@ -54,9 +54,9 @@ scenes:
   name: Scenes
   control: hidden
   entities:
-    - script.andrew_room_light_full
-    - script.andrew_room_pre_bed
-    - script.andrew_room_bedtime
+    - script.master_bedroom_light_full
+    - script.master_bedroom_light_dim
+    - script.master_bedroom_bedtime
 
 office:
   name: Office
@@ -69,14 +69,14 @@ master_bedroom:
   name: Master Bedroom
   control: hidden
   entities:
-    - sensor.andrew_room_temperature
-    - light.andrew_bedroom
-    - switch.andrew_sound_machine
+    - sensor.master_bedroom_temperature
+    - light.master_bedroom
+    - switch.master_bedroom_sound_machine
     - fan.bedroom_ceiling_fan_level
     - switch.bathroom_light_switch
     - camera.my_room
-    - input_boolean.alarm_clock_automation
-    - input_select.alarm_clock
+    #- input_boolean.alarm_clock_automation
+    #- input_select.alarm_clock
 
 security:
   name: Security

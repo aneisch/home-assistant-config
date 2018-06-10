@@ -4,7 +4,7 @@
   -  host: 10.0.1.11
      name: living_room_lamp
   -  host: 10.0.1.21
-     name: andrew_sound_machine
+     name: master_bedroom_sound_machine
 
 #- platform : mqtt
 #  name: "Stupid Red Light"

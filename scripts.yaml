@@ -2,69 +2,30 @@
 # ANDREW CONTROL #
 ##################
 
-#Turn on fan and sound machine, and turn off lights
-andrew_room_bedtime:
+master_bedroom_bedtime:
   sequence:
 #    - service: switch.turn_on
 #      data:
-#        entity_id: switch.andrew_sound_machine
-#    - service: fan.turn_on
-#      data:
-#        entity_id: fan.bedroom_ceiling_fan_level
-    - service: scene.turn_on
-      data:
-        entity_id: scene.wakeup_light_on
-    - delay:
-        seconds: 2
-    - service: light.turn_off
-      data:
-        entity_id: light.andrew_bedroom
-    - service: light.turn_off
-      data:
-        entity_id: light.andrew_monitor_backlight
-    - service: homeassistant.turn_off
-      data:
-        entity_id: switch.wemo_switch
-
-#Wake up light, fading red, turns off sound machine and fan after transition
-andrew_light_slow_on:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.wakeup_light_transition
-    - delay:
-        minutes: 2
-    - service: switch.turn_off
-      data:
-        entity_id: switch.andrew_sound_machine
-    - service: fan.turn_off
+#        entity_id: switch.master_bedroom_sound_machine
+    - service: fan.turn_on
       data:
         entity_id: fan.bedroom_ceiling_fan_level
-
-andrew_wakeup:
-  sequence:
-    - service: script.turn_on
+    - service: light.turn_off
       data:
-        entity_id: script.andrew_room_pre_bed
-    - service: switch.turn_off
-      data:
-        entity_id: switch.andrew_sound_machine
-    - service: fan.turn_off
-      data:
-        entity_id: fan.bedroom_ceiling_fan_level
+        entity_id: light.master_bedroom
 
 #Turn off all room things, arm security
-andrew_gone:
+home_empty:
   sequence:
     - service: light.turn_off
       data:
-        entity_id: light.andrew_bedroom
+        entity_id: light.master_bedroom
     - service: light.turn_off
       data:
         entity_id: light.andrew_monitor_backlight
     - service: switch.turn_off
       data:
-        entity_id: switch.andrew_sound_machine
+        entity_id: switch.master_bedroom_sound_machine
     - service: fan.turn_off
       data:
         entity_id: fan.bedroom_ceiling_fan_level
@@ -75,7 +36,7 @@ andrew_gone:
         entity_id: input_boolean.arlo_status
 
 #Turn on lights and disarm cameras, notify
-andrew_arrived:
+home_occupied:
   sequence:
     - service: homeassistant.turn_off
       data:
@@ -84,7 +45,7 @@ andrew_arrived:
         seconds: 5
     - service: scene.turn_on
       data:
-        entity_id: scene.andrew_light_full
+        entity_id: scene.master_bedroom_light_full
 
 ############
 # SECURITY #
@@ -115,19 +76,18 @@ arlo_arm:
 ##########
 
 #Call scene to turn all lights in room on
-andrew_room_light_full:
+master_bedroom_light_full:
   sequence:
     - service: scene.turn_on
       data:
-        entity_id: scene.andrew_light_full
-
+        entity_id: scene.master_bedroom_light_full
 
 #Call scene to dim lights
-andrew_room_pre_bed:
+master_bedroom_light_dim:
   sequence:
     - service: scene.turn_on
       data:
-        entity_id: scene.prebed_light
+        entity_id: scene.master_bedroom_light_dim
 
 #########
 # OTHER #

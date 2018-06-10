@@ -1,26 +1,26 @@
 #Workaround for fan speed on appdaemon dashboard
 #Set value of input select when fan speed changed on switch
-- alias: Set Andrew Ceiling Fan Speed Selector
+- alias: Set Master Bedroom Ceiling Fan Speed Selector
   trigger:
     platform: state
-    entity_id: fan.bedroom_ceiling_fan_level
+    entity_id: fan.master_bedroom_ceiling_fan_level
   action:
      service: input_select.select_option
      data_template:
-       entity_id: input_select.andrew_ceiling_fan_speed
+       entity_id: input_select.master_bedroom_ceiling_fan_speed
        option: '{{ states.fan.bedroom_ceiling_fan_level.attributes.speed }}'
 
 #Workaround for fan speed on appdaemon dashboard
 #Set fan speed when input changed
-- alias: Set Andrew Ceiling Fan Speed
+- alias: Set Master Bedroom Ceiling Fan Speed
   trigger:
     platform: state
-    entity_id: input_select.andrew_ceiling_fan_speed
+    entity_id: input_select.master_bedroom_ceiling_fan_speed
   action:
      service: fan.set_speed
      entity_id: fan.bedroom_ceiling_fan_level
      data_template:
-       speed: '{{ states.input_select.andrew_ceiling_fan_speed.state }}'
+       speed: '{{ states.input_select.master_bedroom_ceiling_fan_speed.state }}'
 
 - alias: "Set dark theme for the night"
   initial_state: on
@@ -53,7 +53,7 @@
         message: >
           Package delivered...
   
-#- id: arlo_arm
+#Switch
 - alias: "Arlo Arm"
   initial_state: 'on'
   trigger:
@@ -65,7 +65,7 @@
     service: script.turn_on
     entity_id: script.arlo_arm
 
-#- id: arlo_disarm
+#Switch
 - alias: "Arlo Disarm"
   initial_state: 'on'
   trigger:
@@ -76,6 +76,27 @@
   action:
     service: script.turn_on
     entity_id: script.arlo_disarm
+
+#Uses the above switches to arm cameras
+- alias: "Camera Arm"
+  trigger:
+    platform: state
+    entity_id: group.trackers
+    to: not_home
+    for:
+      minutes: 1
+  action:
+    service: homeassistant.turn_on
+    entity_id: input_boolean.arlo_status
+
+- alias: "Camera Disarm"
+  trigger:
+    platform: state
+    entity_id: group.trackers
+    to: home
+  action:
+    service: homeassistant.turn_off
+    entity_id: input_boolean.arlo_status
 
 - alias: "Button Press On!"
   initial_state: 'on'

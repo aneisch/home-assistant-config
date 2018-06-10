@@ -206,7 +206,7 @@ light:
         groups:
         - number: 1
           type: rgbw
-          name: andrew_bedroom
+          name: master_bedroom
           fade: on
         - number: 2
           type: rgbw

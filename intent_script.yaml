@@ -43,12 +43,12 @@ WhatisMyRoomIntent:
     type: plain
     text: >
       {% if Thermometer == "room" %}
-        {% if is_state("sensor.andrew_room_temperature", "unknown") %}
+        {% if is_state("sensor.master_bedroom_temperature", "unknown") %}
           The sensor hasn't reported a value, sorry!
-        {% elif is_state("sensor.andrew_room_temperature","nan") %}
+        {% elif is_state("sensor.master_bedroom_temperature","nan") %}
           The sensor hasn't reported a value, sorry!
         {% else %}
-          Your room is {{ states.sensor.andrew_room_temperature.state }} degrees
+          Your room is {{ states.sensor.master_bedroom_temperature.state }} degrees
         {% endif %}
       {% else %}
         I don't have a thermometer with that name
