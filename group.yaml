@@ -73,7 +73,7 @@ master_bedroom:
     - light.master_bedroom
     - switch.master_bedroom_sound_machine
     - fan.bedroom_ceiling_fan_level
-    - switch.bathroom_light_switch
+    - switch.master_bathroom_light_switch
     - camera.my_room
     #- input_boolean.alarm_clock_automation
     #- input_select.alarm_clock

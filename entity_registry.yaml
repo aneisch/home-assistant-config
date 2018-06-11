@@ -2,7 +2,7 @@ switch.wemo_switch:
   name:
   platform: wemo
   unique_id: 221415K0100B0D
-switch.bathroom_light_switch:
+switch.master_bathroom_light_switch:
   name:
   platform: zwave
   unique_id: 15-72057594294386688
@@ -30,7 +30,7 @@ zwave.bedside_remote:
   name:
   platform: zwave
   unique_id: node-14
-zwave.bathroom_light:
+zwave.master_bathroom_light:
   name:
   platform: zwave
   unique_id: node-15

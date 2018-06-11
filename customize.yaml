@@ -23,7 +23,7 @@ fan.bedroom_ceiling_fan_level:
   friendly_name: Ceiling Fan
 switch.rack_exhaust_fan:
   icon: mdi:fan
-switch.bathroom_light_switch:
+switch.master_bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
 switch.living_room_lamp:

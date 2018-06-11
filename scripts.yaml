@@ -93,6 +93,13 @@ master_bedroom_light_dim:
 # OTHER #
 #########
 
+set_ac_72:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 72
+
 set_ac_75:
   sequence:
     - service: climate.set_temperature
