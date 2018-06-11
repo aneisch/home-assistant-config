@@ -12,6 +12,7 @@ After=syslog.target network.target docker.service
 [Service]
 Type=forking
 #Start Bluetooth
+ExecStartPre=sleep 30
 ExecStartPre=/usr/bin/hciconfig hci0 up
 ExecStartPre=/usr/sbin/arp -s 10.0.1.29 20:02:af:76:b6:db
 ExecStart=/usr/bin/hass -v --config /opt/homeassistant --pid-file /var/run/hass.pid --daemon

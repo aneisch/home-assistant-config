@@ -16,12 +16,14 @@ AC AutoAdjust:
   winter_night: '62'
   winter_unoccupied: '62'
 
-Andrew Room Light Automation:
+Master Bedroom Light Automation:
   module: light_automation
-  class: AndrewRoomNight
-  scene: scene.prebed_light
-  time_on: '22:00:00'
-  tracker: device_tracker.owntracks_android
+  class: SceneTime
+  time_on: '23:00:00'
+  scene: scene.master_bedroom_light_dim
+  # Only automate if this light is on
+  dependent_light: light.master_bedroom
+  device_tracker: group.trackers
 
 Door Notify:
   module: door_open
@@ -35,8 +37,8 @@ Living Room Light at Night With Door:
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: sensor.front_door_status
-  lights: switch.living_room_lamp,switch.wemo
-  time_on: '10'
+  lights: switch.living_room_lamp,switch.wemo_switch
+  time_on: '30'
 
 Minimote:
   module: minimote

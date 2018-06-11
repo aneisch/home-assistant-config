@@ -1,0 +1,118 @@
+#
+# Main arguments, all optional
+#
+title: !secret dash_2_name
+widget_dimensions: [125, 110]
+widget_margins: [8, 8]
+columns: 3
+
+global_parameters:
+  use_comma: 0
+  precision: 1
+  use_hass_icon: 1
+
+reload:
+  widget_type: reload
+  title: Reload
+  icon_active: fa-refresh
+  icon_inactive: fa-refresh
+
+weather:
+  widget_type: weather
+  units: "&deg;F"
+
+weather_radar:
+  widget_type: iframe
+  img_list:
+    - https://icons.wxug.com/data/weather-maps/radar/united-states/san-antonio-texas-region-current-radar-animation.gif
+  title: Radar
+  refresh: 300
+
+thermostat:
+  widget_type: climate
+  entity: climate.thermostat
+  title: Thermostat Control
+  title2: Readout
+  step: 2
+  units: "&deg;F"
+
+bedroom_fan:
+  widget_type: switch
+  entity: fan.master_bedroom_ceiling_fan_level
+  title: Ceiling Fan
+
+ceiling_fan_speed:
+  widget_type: input_select
+  entity: input_select.master_bedroom_ceiling_fan_speed
+  title: Ceiling Fan Speed
+
+light_full:
+  widget_type: scene
+  entity: scene.master_bedroom_light_full
+  title: Light Full
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on
+
+light_dim:
+  widget_type: scene
+  entity: scene.master_bedroom_light_dim
+  title: Light Dim
+  icon_on: mdi-lightbulb
+  icon_off: mdi-lightbulb
+
+bedtime:
+  widget_type: script
+  entity: script.master_bedroom_bedtime
+  title: Bedtime
+
+bedroom_light:
+  widget_type: light
+  entity: light.master_bedroom
+  title: Bedroom Light
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+living_room_lamps:
+  widget_type: switch
+  entity: group.living_room
+  title: Living Room Lamps Toggle
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+common_area:
+  widget_type: switch
+  entity: group.common
+  title: Common Area Lights
+  icon_on: mdi-lightbulb-on
+  icon_off: mdi-lightbulb-on-outline
+
+sound_machine:
+  widget_type: switch
+  entity: switch.master_bedroom_sound_machine
+  title: Sound Machine
+  icon_on: mdi-volume-high
+  icon_off: mdi-volume-off
+
+alarm_clock_time:
+  widget_type: input_select
+  entity: input_select.alarm_clock
+
+outdoor:
+  widget_type: camera
+  refresh: 5
+  entity_picture: !secret outdoor
+  title: Outdoor
+
+
+layout:
+  - thermostat(2x1), reload
+  - bedroom_fan, ceiling_fan_speed, sensor.master_bedroom_temperature
+  - bedroom_light, switch.master_bathroom_light_switch
+  - bedtime, light_dim, light_full
+  - living_room_lamps, common_area, switch.kitchen_table_light_switch
+  - input_boolean.ac_automation, input_boolean.plant_light_automation, sound_machine
+  - wakeup(3x1)
+  - alarm_clock_time, input_boolean.alarm_clock_automation
+  - weather_radar(3x3)
+  - empty: 2
+  - outdoor(3x3)

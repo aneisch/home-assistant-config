@@ -9,7 +9,7 @@ master_bedroom_bedtime:
 #        entity_id: switch.master_bedroom_sound_machine
     - service: fan.turn_on
       data:
-        entity_id: fan.bedroom_ceiling_fan_level
+        entity_id: fan.master_bedroom_ceiling_fan_level
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom
@@ -28,7 +28,7 @@ home_empty:
         entity_id: switch.master_bedroom_sound_machine
     - service: fan.turn_off
       data:
-        entity_id: fan.bedroom_ceiling_fan_level
+        entity_id: fan.master_bedroom_ceiling_fan_level
     - delay:
         seconds: 5
     - service: homeassistant.turn_on

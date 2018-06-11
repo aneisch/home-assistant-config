@@ -8,7 +8,7 @@
      service: input_select.select_option
      data_template:
        entity_id: input_select.master_bedroom_ceiling_fan_speed
-       option: '{{ states.fan.bedroom_ceiling_fan_level.attributes.speed }}'
+       option: '{{ states.fan.master_bedroom_ceiling_fan_level.attributes.speed }}'
 
 #Workaround for fan speed on appdaemon dashboard
 #Set fan speed when input changed
@@ -18,7 +18,7 @@
     entity_id: input_select.master_bedroom_ceiling_fan_speed
   action:
      service: fan.set_speed
-     entity_id: fan.bedroom_ceiling_fan_level
+     entity_id: fan.master_bedroom_ceiling_fan_level
      data_template:
        speed: '{{ states.input_select.master_bedroom_ceiling_fan_speed.state }}'
 
@@ -84,7 +84,7 @@
     entity_id: group.trackers
     to: not_home
     for:
-      minutes: 1
+      minutes: 30
   action:
     service: homeassistant.turn_on
     entity_id: input_boolean.arlo_status

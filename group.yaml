@@ -64,6 +64,7 @@ office:
   entities:
     - light.andrew_monitor_backlight
     - switch.outdoor_zwave_switch
+    - camera.office
 
 master_bedroom:
   name: Master Bedroom
@@ -72,9 +73,8 @@ master_bedroom:
     - sensor.master_bedroom_temperature
     - light.master_bedroom
     - switch.master_bedroom_sound_machine
-    - fan.bedroom_ceiling_fan_level
+    - fan.master_bedroom_ceiling_fan_level
     - switch.master_bathroom_light_switch
-    - camera.my_room
     #- input_boolean.alarm_clock_automation
     #- input_select.alarm_clock
 

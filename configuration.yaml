@@ -217,6 +217,8 @@ zwave:
   usb_path: /dev/zwave
 
 wemo:
+  static:
+    - 10.0.1.48
 
 emulated_hue:
   expose_by_default: true
@@ -246,10 +248,10 @@ panel_iframe:
 
 alexa:
 
-usps:
-  driver: chrome
-  username: !secret usps_username
-  password: !secret usps_key
+#usps:
+#  driver: chrome
+#  username: !secret usps_username
+#  password: !secret usps_key
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
