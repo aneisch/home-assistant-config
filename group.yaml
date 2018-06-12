@@ -21,6 +21,7 @@ common_areas:
   entities:
     - group.thermostat
     - group.living_room
+    - group.kitchen
     - group.office
 master:
   name: Master Bedroom
