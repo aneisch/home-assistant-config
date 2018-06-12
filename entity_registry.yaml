@@ -50,3 +50,15 @@ switch.wemo_switch:
   name:
   platform: wemo
   unique_id: 221415K0100B0D
+zwave.ge_12730_fan_control_switch:
+  name:
+  platform: zwave
+  unique_id: node-25
+light.ge_12730_fan_control_switch_level:
+  name:
+  platform: zwave
+  unique_id: 25-72057594462175233
+fan.office_ceiling_fan_level:
+  name:
+  platform: zwave
+  unique_id: 25-72057594462175233

@@ -84,7 +84,7 @@
     entity_id: group.trackers
     to: not_home
     for:
-      minutes: 30
+      minutes: 10
   action:
     service: homeassistant.turn_on
     entity_id: input_boolean.arlo_status

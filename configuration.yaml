@@ -221,12 +221,13 @@ wemo:
     - 10.0.1.48
 
 emulated_hue:
-  expose_by_default: true
-  exposed_domains:
-    - light
-    - switch
-    - script
-    - fan
+  expose_by_default: false
+  #See customize.yaml for exposure
+  #exposed_domains:
+  #  - light
+  #  - switch
+  #  - script
+  #  - fan
 
 arlo:
   username: !secret arlo_username

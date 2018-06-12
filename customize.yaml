@@ -3,6 +3,8 @@
 #LIGHTS
 light.master_bedroom:
   friendly_name: Bedroom Light
+  emulated_hue: true
+  emulated_hue_name: "Bedroom Light"
 light.andrew_monitor_backlight:
   friendly_name: Monitor Backlight
   icon: mdi:monitor
@@ -21,11 +23,20 @@ switch.outdoor_zwave_switch:
 fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
+  emulated_hue: true
+  emulated_hue_name: "Master Bedroom Ceiling Fan"
+fan.office_ceiling_fan_level:
+  icon: mdi:fan
+  friendly_name: Ceiling Fan
+  emulated_hue: true
+  emulated_hue_name: "Office Ceiling Fan"
 switch.rack_exhaust_fan:
   icon: mdi:fan
 switch.master_bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
+  emulated_hue: true
+  emulated_hue_name: "Bathroom Light"
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
   icon: mdi:lamp
@@ -35,6 +46,8 @@ switch.wemo_switch:
 switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
+  emulated_hue: true
+  emulated_hue_name: "Kitchen Table Light"
 switch.kitchen_plant_light_switch:
   friendly_name: Kitchen Plant Light
   icon: mdi:flower
@@ -106,12 +119,18 @@ sensor.ac_runtime_yesterday:
 script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
   icon: mdi:lightbulb
+  emulated_hue: true
+  emulated_hue_name: "Light Full"
 script.master_bedroom_light_dim:
   friendly_name: Master Bedroom Light Dim
   icon: mdi:lightbulb-outline
+  emulated_hue: true
+  emulated_hue_name: "Light Dim"
 script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark
+  emulated_hue: true
+  emulated_hue_name: "Bedtime"
 script.arlo_arm:
   friendly_name: Arlo Arm
 script.arlo_disarm:

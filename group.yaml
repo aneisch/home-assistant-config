@@ -63,6 +63,7 @@ office:
   control: hidden
   entities:
     - light.andrew_monitor_backlight
+    - fan.office_ceiling_fan_level
     - switch.outdoor_zwave_switch
     - camera.office
 
