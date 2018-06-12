@@ -46,7 +46,7 @@ Minimote:
   device: zwave.bedside_remote
   scene_1_toggle: switch.master_bathroom_light_switch
   scene_2_on: script.master_bedroom_light_full
-  scene_3_toggle: fan.bedroom_ceiling_fan_level
+  scene_3_toggle: fan.master_bedroom_ceiling_fan_level
   scene_4_on: script.master_bedroom_light_dim
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
