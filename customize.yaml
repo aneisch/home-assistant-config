@@ -49,7 +49,9 @@ switch.kitchen_table_light_switch:
   emulated_hue: true
   emulated_hue_name: "Kitchen Table Light"
 switch.kitchen_plant_light_switch:
-  friendly_name: Kitchen Plant Light
+  friendly_name: Kitchen Plant Light LED
+  icon: mdi:flower
+switch.kitchen_plant_light_incandescent:
   icon: mdi:flower
 
 #SENSORS

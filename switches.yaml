@@ -6,6 +6,12 @@
   -  host: 10.0.1.21
      name: master_bedroom_sound_machine
 
+- platform: broadlink
+  host: 10.0.1.30
+  mac: b4:43:0d:ae:61:36
+  type:  sp2
+  friendly_name: 'Kitchen Plant Light Incandescent'
+
 #- platform : mqtt
 #  name: "Stupid Red Light"
 #  state_topic: "light/red_light"

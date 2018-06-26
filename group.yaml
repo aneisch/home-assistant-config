@@ -147,6 +147,7 @@ kitchen:
   entities:
     - switch.kitchen_table_light_switch
     - switch.kitchen_plant_light_switch
+    - switch.kitchen_plant_light_incandescent
 
 living_room:
   name: Living Room
