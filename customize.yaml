@@ -53,6 +53,9 @@ switch.kitchen_plant_light_switch:
   icon: mdi:flower
 switch.kitchen_plant_light_incandescent:
   icon: mdi:flower
+switch.nas:
+  emulated_hue: true
+  emulated_hue_name: "Plex"
 
 #SENSORS
 sensor.dark_sky_summary:
