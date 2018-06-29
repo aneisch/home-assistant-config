@@ -13,6 +13,12 @@ master_bedroom_bedtime:
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom
+    - service: homeassistant.turn_off
+      data:
+        entity_id: switch.andrews_lamp
+    - service: homeassistant.turn_off
+      data:
+        entity_id: switch.bethanys_lamp
 
 #Turn off all room things, arm security
 home_empty:
@@ -88,6 +94,12 @@ master_bedroom_light_dim:
     - service: scene.turn_on
       data:
         entity_id: scene.master_bedroom_light_dim
+    - service: homeassistant.turn_on
+      data:
+        entity_id: switch.andrews_lamp
+    - service: homeassistant.turn_on
+      data:
+        entity_id: switch.bethanys_lamp
 
 #########
 # OTHER #

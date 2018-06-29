@@ -10,6 +10,18 @@
        entity_id: input_select.master_bedroom_ceiling_fan_speed
        option: '{{ states.fan.master_bedroom_ceiling_fan_level.attributes.speed }}'
 
+- alias: Master Bedroom Lamps On At Sunset
+  trigger:
+    platform: sun
+    event: sunset
+  condition:
+    condition: state
+    entity_id: group.trackers
+    state: home
+  action:
+    service: homeassistant.turn_on
+    entity_id: group.master_bedroom_lamps
+
 #Workaround for fan speed on appdaemon dashboard
 #Set fan speed when input changed
 - alias: Set Master Bedroom Ceiling Fan Speed

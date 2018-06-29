@@ -77,6 +77,8 @@ master_bedroom:
     - switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
     - switch.master_bathroom_light_switch
+    - switch.andrews_lamp
+    - switch.bethanys_lamp
     #- input_boolean.alarm_clock_automation
     #- input_select.alarm_clock
 
@@ -158,6 +160,13 @@ living_room:
     - switch.wemo_switch
     - switch.decorative_led
     - switch.tv
+
+master_bedroom_lamps:
+  name: Master Bedroom Lamps
+  control: hidden
+  entities:
+    - switch.andrews_lamp
+    - switch.bethanys_lamp
 
 power:
   name: Power

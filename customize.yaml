@@ -56,6 +56,14 @@ switch.kitchen_plant_light_incandescent:
 switch.nas:
   emulated_hue: true
   emulated_hue_name: "Plex"
+switch.andrews_lamp:
+  icon: mdi:lamp
+  emulated_hue: true
+  emulated_hue_name: "Andrew's Lamp"
+switch.bethanys_lamp:
+  icon: mdi:lamp
+  emulated_hue: true
+  emulated_hue_name: "Bethany's Lamp"
 
 #SENSORS
 sensor.dark_sky_summary:

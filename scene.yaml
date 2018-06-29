@@ -4,8 +4,8 @@
   entities:
     light.master_bedroom:
       state: on
-      transition: 5
-      brightness: 20
+      transition: 10
+      brightness: 0
       rgb_color: [255, 255, 255]  
 
 - name: Master Bedroom Light Full
