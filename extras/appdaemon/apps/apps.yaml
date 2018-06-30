@@ -37,7 +37,7 @@ Living Room Light at Night With Door:
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: sensor.front_door_status
-  lights: switch.living_room_lamp,switch.wemo_switch
+  lights: group.living_room_lamps
   time_on: '30'
 
 Minimote:
@@ -50,33 +50,32 @@ Minimote:
   scene_4_on: script.master_bedroom_light_dim
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
-  scene_7_on: script.set_ac_75
+  scene_7_toggle: group.master_bedroom_lamps
   scene_8_on: script.set_ac_72
 
-#Occupancy Simulator:
-#  module: occusim
-#  class: OccuSim
-#  dump_times: '1'
-#  enable: input_boolean.occusim
-#  log: '1'
-#  random_house_end: Night
-#  random_house_maxduration: 01:00:00
-#  random_house_minduration: 00:15:00
-#  random_house_name: Random House
-#  random_house_number: '5'
-#  random_house_off_kitchen: switch.kitchen_table_light_switch
-#  random_house_off_livingroom: group.living_room
-#  random_house_off_tv: switch.tv
-#  random_house_off_ge: switch.outdoor_zwave_switch
-#  random_house_on_ge: switch.outdoor_zwave_switch
-#  random_house_on_kitchen: switch.kitchen_table_light_switch
-#  random_house_on_livingroom: group.living_room
-#  random_house_on_tv: switch.tv
-#  random_house_start: Evening
-#  step_evening_name: Evening
-#  step_evening_start: sunset - 00:45:00
-#  step_night_name: Night
-#  step_night_start: '23:59:59'
+Occupancy Simulator:
+  module: occusim
+  class: OccuSim
+  dump_times: '1'
+  enable: input_boolean.occusim
+  log: '1'
+  random_house_end: Night
+  random_house_maxduration: 01:00:00
+  random_house_minduration: 00:15:00
+  random_house_name: Random House
+  random_house_number: '5'
+  random_house_off_kitchen: switch.kitchen_table_light_switch
+  random_house_off_livingroom: group.living_room_lamps
+  #Office Andrew Desk Lamp
+  random_house_off_desk_lamp: switch.outdoor_zwave_switch
+  random_house_on_desk_lamp: switch.outdoor_zwave_switch
+  random_house_on_kitchen: switch.kitchen_table_light_switch
+  random_house_on_livingroom: group.living_room_lamps
+  random_house_start: Evening
+  step_evening_name: Evening
+  step_evening_start: sunset - 00:45:00
+  step_night_name: Night
+  step_night_start: '23:59:59'
 
 Plant Timer Morning:
   module: device_timer

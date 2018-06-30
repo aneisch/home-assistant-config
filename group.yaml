@@ -157,9 +157,15 @@ living_room:
   entities:
     - switch.wemo_switch
     - switch.living_room_lamp
-    - switch.wemo_switch
     - switch.decorative_led
     - switch.tv
+
+living_room_lamps:
+  name: Living Room Lamps
+  control: hidden
+  entities:
+    - switch.living_room_lamp
+    - switch.wemo_switch
 
 master_bedroom_lamps:
   name: Master Bedroom Lamps

@@ -1,0 +1,157 @@
+name: Home
+views:
+- name: Home
+  cards:
+  - type: entities
+    title: Thermostat
+    entities:
+    - climate.thermostat
+    - sensor.thermostat_temperature
+    - sensor.thermostat_setpoint
+    - sensor.thermostat_state
+    - sensor.thermostat_fan_status
+    - sensor.ac_runtime_today
+    - sensor.ac_runtime_yesterday
+  - type: entities
+    title: Automation Control
+    entities:
+    - input_boolean.door_notify
+    - input_boolean.ac_automation
+    - input_boolean.plant_light_automation
+    - input_boolean.ac_change_notification
+    - input_boolean.occusim
+  - type: entities
+    title: Scenes
+    entities:
+    - script.master_bedroom_light_full
+    - script.master_bedroom_light_dim
+    - script.master_bedroom_bedtime
+  - type: entities
+    title: Security
+    entities:
+    - input_boolean.arlo_status
+    - sensor.front_door_status
+    - sensor.back_door_status
+  - type: entities
+    title: Trackers
+    entities:
+    - device_tracker.owntracks_android
+    - device_tracker.bethany_iphone
+  - type: entities
+    title: Weather
+    entities:
+    - sensor.dark_sky_summary
+    - sensor.dark_sky_temperature
+    - sensor.dark_sky_humidity
+    - sensor.dark_sky_precip_probability
+    - sun.sun
+    - sensor.moon_phase
+  - type: camera-preview
+    entity: camera.weather_radar
+  - type: camera-preview
+    entity: camera.weather
+  - type: camera-preview
+    entity: camera.outdoor
+  - type: camera-preview
+    entity: camera.usps_mail
+  - type: media-control
+    entity: media_player.andrews_chromecast
+  - type: entities
+    title: Misc
+    entities:
+    - sensor.usps_mail
+    - sensor.deliveries_today
+    - sensor.packages_in_transit
+- name: Common Areas
+  cards:
+  - type: entities
+    title: Thermostat
+    entities:
+    - climate.thermostat
+    - sensor.thermostat_temperature
+    - sensor.thermostat_setpoint
+    - sensor.thermostat_state
+    - sensor.thermostat_fan_status
+    - sensor.ac_runtime_today
+    - sensor.ac_runtime_yesterday
+  - type: entities
+    title: Living Room
+    entities:
+    - switch.wemo_switch
+    - switch.living_room_lamp
+    - switch.wemo_switch
+    - switch.decorative_led
+    - switch.tv
+  - type: entities
+    title: Kitchen
+    entities:
+    - switch.kitchen_table_light_switch
+    - switch.kitchen_plant_light_switch
+    - switch.kitchen_plant_light_incandescent
+  - type: entities
+    title: Office
+    entities:
+    - light.andrew_monitor_backlight
+    - fan.office_ceiling_fan_level
+    - switch.outdoor_zwave_switch
+  - type: camera-preview
+    entity: camera.office
+- name: Master Bedroom
+  cards:
+  - type: entities
+    title: Master Bedroom
+    entities:
+    - sensor.master_bedroom_temperature
+    - light.master_bedroom
+    - switch.master_bedroom_sound_machine
+    - fan.master_bedroom_ceiling_fan_level
+    - switch.master_bathroom_light_switch
+    - switch.andrews_lamp
+    - switch.bethanys_lamp
+  - type: entities
+    title: Scenes
+    entities:
+    - script.master_bedroom_light_full
+    - script.master_bedroom_light_dim
+    - script.master_bedroom_bedtime
+- name: Server Status
+  cards:
+  - type: entities
+    title: System
+    entities:
+    - sensor.ssl_certificate_expiry
+    - sensor.rack_exhaust_temperature
+    - switch.rack_exhaust_fan
+    - sensor.processor_use
+    - sensor.load_1m
+    - sensor.memory_use_percent
+    - sensor.disk_use_percent_
+    - sensor.disk_use_percent_home
+    - sensor.last_boot
+    - sensor.network_out_eno1
+    - sensor.network_in_eno1
+    - switch.nas
+  - type: entities
+    title: UPS
+    entities:
+    - sensor.ups_time_left
+    - sensor.ups_load
+    - sensor.ups_battery
+  - type: entities
+    title: Power
+    entities:
+    - sensor.sonoff_pow_current
+    - sensor.sonoff_pow_power
+    - sensor.sonoff_pow_today_energy
+    - sensor.sonoff_pow_today_cost
+    - sensor.sonoff_pow_yesterday_energy
+    - sensor.sonoff_pow_yesterday_cost
+- cards:
+  - card_config:
+      title: All Entities
+    filter:
+    - {}
+    type: entity-filter
+  name: All Entities
+  tab_icon: mdi:settings
+

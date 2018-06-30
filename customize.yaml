@@ -158,3 +158,6 @@ device_tracker.bethany_iphone:
   entity_picture: /local/bethany.jpg
 
 ##OTHER
+group.living_room_lamps:
+  emulated_hue: true
+  emulated_hue_name: "Living Room Lamps"

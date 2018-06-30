@@ -63,13 +63,13 @@
 - platform: tuya
   name: Andrew's Lamp
   host: 10.0.1.35
-  local_key: 519410efeeacd057
-  device_id: 263421505ccf7fbc2ef1
+  local_key: !secret andrew_lamp_key
+  device_id: !secret andrew_lamp_id
   id: 1
 
 - platform: tuya
   name: Bethany's Lamp
   host: 10.0.1.38
-  local_key: 519410efeeacd057
-  device_id: 263421505ccf7fbc2ef1
+  local_key: !secret bethany_lamp_key
+  device_id: !secret bethany_lamp_id
   id: 2

@@ -10,7 +10,7 @@
        entity_id: input_select.master_bedroom_ceiling_fan_speed
        option: '{{ states.fan.master_bedroom_ceiling_fan_level.attributes.speed }}'
 
-- alias: Master Bedroom Lamps On At Sunset
+- alias: Master Bedroom Dim At Sunset
   trigger:
     platform: sun
     event: sunset
@@ -20,7 +20,7 @@
     state: home
   action:
     service: homeassistant.turn_on
-    entity_id: group.master_bedroom_lamps
+    entity_id: script.master_bedroom_light_dim
 
 #Workaround for fan speed on appdaemon dashboard
 #Set fan speed when input changed
@@ -43,6 +43,22 @@
     - service: frontend.set_theme
       data:
         name: darkred
+
+- alias: "Turn on lamps when we get home"
+  trigger:
+    platform: state
+    entity_id: group.trackers
+    from: not_home
+    to: home
+    for:
+      minutes: 10
+  condition:
+    condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+    service: homeassistant.turn_on
+    entity_id: script.master_bedroom_light_dim
 
 - alias: "Set light theme for day"
   initial_state: on

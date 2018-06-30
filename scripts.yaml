@@ -2,24 +2,6 @@
 # ANDREW CONTROL #
 ##################
 
-master_bedroom_bedtime:
-  sequence:
-#    - service: switch.turn_on
-#      data:
-#        entity_id: switch.master_bedroom_sound_machine
-    - service: fan.turn_on
-      data:
-        entity_id: fan.master_bedroom_ceiling_fan_level
-    - service: light.turn_off
-      data:
-        entity_id: light.master_bedroom
-    - service: homeassistant.turn_off
-      data:
-        entity_id: switch.andrews_lamp
-    - service: homeassistant.turn_off
-      data:
-        entity_id: switch.bethanys_lamp
-
 #Turn off all room things, arm security
 home_empty:
   sequence:
@@ -96,10 +78,32 @@ master_bedroom_light_dim:
         entity_id: scene.master_bedroom_light_dim
     - service: homeassistant.turn_on
       data:
-        entity_id: switch.andrews_lamp
-    - service: homeassistant.turn_on
+        entity_id: group.master_bedroom_lamps
+    - service: homeassistant.turn_off
       data:
-        entity_id: switch.bethanys_lamp
+        entity_id: light.master_bedroom
+
+master_bedroom_bedtime:
+  sequence:
+#    - service: switch.turn_on
+#      data:
+#        entity_id: switch.master_bedroom_sound_machine
+    - service: scene.turn_on
+      data:
+        entity_id: scene.master_bedroom_light_dim
+    - service: fan.turn_on
+      data:
+        entity_id: fan.master_bedroom_ceiling_fan_level
+    - service: light.turn_off
+      data:
+        entity_id: light.master_bedroom
+    - service: homeassistant.turn_off
+      data:
+        entity_id: group.master_bedroom_lamps
+    - service: homeassistant.turn_off
+      data:
+        entity_id: switch.master_bathroom_light_switch
+
 
 #########
 # OTHER #
