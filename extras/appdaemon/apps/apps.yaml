@@ -61,7 +61,7 @@ Occupancy Simulator:
   log: '1'
   random_house_end: Night
   random_house_maxduration: 01:00:00
-  random_house_minduration: 00:15:00
+  random_house_minduration: 00:20:00
   random_house_name: Random House
   random_house_number: '5'
   random_house_off_kitchen: switch.kitchen_table_light_switch

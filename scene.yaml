@@ -4,7 +4,7 @@
   entities:
     light.master_bedroom:
       state: on
-      transition: 5
+      transition: 8
       brightness: 1
       rgb_color: [255, 255, 255]  
 

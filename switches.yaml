@@ -72,4 +72,4 @@
   host: 10.0.1.38
   local_key: !secret bethany_lamp_key
   device_id: !secret bethany_lamp_id
-  id: 2
+  id: 1

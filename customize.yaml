@@ -161,3 +161,6 @@ device_tracker.bethany_iphone:
 group.living_room_lamps:
   emulated_hue: true
   emulated_hue_name: "Living Room Lamps"
+group.master_bedroom_lamps:
+  emulated_hue: true
+  emulated_hue_name: "Master Bedroom Lamps"
