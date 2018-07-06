@@ -64,13 +64,12 @@ Occupancy Simulator:
   random_house_minduration: 00:20:00
   random_house_name: Random House
   random_house_number: '5'
-  random_house_off_kitchen: switch.kitchen_table_light_switch
-  random_house_off_livingroom: group.living_room_lamps
-  #Office Andrew Desk Lamp
-  random_house_off_desk_lamp: switch.outdoor_zwave_switch
   random_house_on_desk_lamp: switch.outdoor_zwave_switch
   random_house_on_kitchen: switch.kitchen_table_light_switch
   random_house_on_livingroom: group.living_room_lamps
+  random_house_off_kitchen: switch.kitchen_table_light_switch
+  random_house_off_livingroom: group.living_room_lamps
+  random_house_off_desk_lamp: switch.outdoor_zwave_switch
   random_house_start: Evening
   step_evening_name: Evening
   step_evening_start: sunset - 00:45:00

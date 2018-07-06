@@ -30,3 +30,7 @@ plant_light_automation:
 alarm_clock_automation:
   name: Alarm Clock
   icon: mdi:alarm
+
+guest_automation:
+  name: Guest Bedroom Automation
+  icon: mdi:account-plus

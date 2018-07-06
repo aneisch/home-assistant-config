@@ -73,3 +73,10 @@
   local_key: !secret bethany_lamp_key
   device_id: !secret bethany_lamp_id
   id: 1
+
+- platform: tuya
+  name: Guest Lamp
+  host: 10.0.1.39
+  local_key: !secret guest_lamp_key
+  device_id: !secret guest_lamp_id
+  id: 1

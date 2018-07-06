@@ -64,6 +64,10 @@ switch.bethanys_lamp:
   icon: mdi:lamp
   emulated_hue: true
   emulated_hue_name: "Bethany's Lamp"
+switch.guest_lamp:
+  icon: mdi:lamp
+  emulated_hue: true
+  emulated_hue_name: "Guest Bedroom Lamp"
 
 #SENSORS
 sensor.dark_sky_summary:
@@ -148,6 +152,9 @@ script.arlo_arm:
   friendly_name: Arlo Arm
 script.arlo_disarm:
   friendly_name: Arlo Disarm
+script.common_areas_off:
+  emulated_hue: true
+  emulated_hue_name: "Common Areas Off"
 
 #DEVICES
 device_tracker.owntracks_android:

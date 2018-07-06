@@ -23,6 +23,7 @@ common_areas:
     - group.living_room
     - group.kitchen
     - group.office
+    - group.guest_bedroom
 master:
   name: Master Bedroom
   view: yes
@@ -81,6 +82,13 @@ master_bedroom:
     - switch.bethanys_lamp
     #- input_boolean.alarm_clock_automation
     #- input_select.alarm_clock
+
+guest_bedroom:
+  name: Guest Bedroom
+  control: hidden
+  entities:
+    - switch.guest_lamp
+    - input_boolean.guest_automation
 
 security:
   name: Security
@@ -142,6 +150,7 @@ automation_override:
     - input_boolean.plant_light_automation
     - input_boolean.ac_change_notification
     - input_boolean.occusim
+    - input_boolean.guest_automation
 
 kitchen:
   name: Kitchen

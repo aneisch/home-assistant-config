@@ -5,18 +5,9 @@
 #Turn off all room things, arm security
 home_empty:
   sequence:
-    - service: light.turn_off
+    - service: homeassistant.turn_off
       data:
-        entity_id: light.master_bedroom
-    - service: light.turn_off
-      data:
-        entity_id: light.andrew_monitor_backlight
-    - service: switch.turn_off
-      data:
-        entity_id: switch.master_bedroom_sound_machine
-    - service: fan.turn_off
-      data:
-        entity_id: fan.master_bedroom_ceiling_fan_level
+        entity_id: group.master_bedroom
     - delay:
         seconds: 5
     - service: homeassistant.turn_on
@@ -29,11 +20,6 @@ home_occupied:
     - service: homeassistant.turn_off
       data:
         entity_id: input_boolean.arlo_status
-    - delay:
-        seconds: 5
-    - service: scene.turn_on
-      data:
-        entity_id: scene.master_bedroom_light_full
 
 ############
 # SECURITY #
@@ -88,9 +74,9 @@ master_bedroom_bedtime:
 #    - service: switch.turn_on
 #      data:
 #        entity_id: switch.master_bedroom_sound_machine
-    - service: scene.turn_on
-      data:
-        entity_id: scene.master_bedroom_light_dim
+#    - service: scene.turn_on
+#      data:
+#        entity_id: scene.master_bedroom_light_dim
     - service: fan.turn_on
       data:
         entity_id: fan.master_bedroom_ceiling_fan_level
@@ -104,6 +90,11 @@ master_bedroom_bedtime:
       data:
         entity_id: switch.master_bathroom_light_switch
 
+common_areas_off:
+  sequence:
+    - service: homeassistant.turn_off
+      data:
+        entity_id: group.common_areas
 
 #########
 # OTHER #

@@ -44,22 +44,6 @@
       data:
         name: darkred
 
-- alias: "Turn on lamps when we get home"
-  trigger:
-    platform: state
-    entity_id: group.trackers
-    from: not_home
-    to: home
-    for:
-      minutes: 10
-  condition:
-    condition: state
-    entity_id: sun.sun
-    state: below_horizon
-  action:
-    service: homeassistant.turn_on
-    entity_id: script.master_bedroom_light_dim
-
 - alias: "Set light theme for day"
   initial_state: on
   trigger:
@@ -105,8 +89,7 @@
     service: script.turn_on
     entity_id: script.arlo_disarm
 
-#Uses the above switches to arm cameras
-- alias: "Camera Arm"
+- alias: "Turn off House"
   trigger:
     platform: state
     entity_id: group.trackers
@@ -115,16 +98,58 @@
       minutes: 10
   action:
     service: homeassistant.turn_on
-    entity_id: input_boolean.arlo_status
+    entity_id: script.home_empty
 
-- alias: "Camera Disarm"
+# Follow master bedroom lamps when guest automation active
+- alias: "Turn On Guest Lamp When Master Lamps Turn On"
+  trigger:
+    platform: state
+    entity_id: group.master_bedroom_lamps
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: input_boolean.guest_automation
+    state: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.guest_lamp
+
+# Follow master bedroom lamps when guest automation active
+- alias: "Turn Off Guest Lamp When Master Lamps Turn Off"
+  trigger:
+    platform: state
+    entity_id: group.master_bedroom_lamps
+    to: 'off'
+  condition:
+    condition: state
+    entity_id: input_boolean.guest_automation
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.guest_lamp
+
+- alias: "Arrived at Home"
   trigger:
     platform: state
     entity_id: group.trackers
     to: home
   action:
-    service: homeassistant.turn_off
-    entity_id: input_boolean.arlo_status
+    service: homeassistant.turn_on
+    entity_id: script.home_occupied
+
+- alias: "Turn on lamps when we get home"
+  trigger:
+    platform: state
+    entity_id: group.trackers
+    from: not_home
+    to: home
+  condition:
+    condition: state
+    entity_id: sun.sun
+    state: below_horizon
+  action:
+    service: homeassistant.turn_on
+    entity_id: script.master_bedroom_light_dim
 
 - alias: "Button Press On!"
   initial_state: 'on'
