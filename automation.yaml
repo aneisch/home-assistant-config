@@ -149,7 +149,7 @@
     state: below_horizon
   action:
     service: homeassistant.turn_on
-    entity_id: script.master_bedroom_light_dim
+    entity_id: group.master_bedroom_lamps
 
 - alias: "Button Press On!"
   initial_state: 'on'
