@@ -21,6 +21,7 @@ My Home Assistant installtion contains many different components and runs on a G
 - "Joyneed LED light Bulb Plug Wireless Lamp Adapter" for clean, W.A.F lamp control
   - Using https://github.com/samuscherer/tuya-homeassistant for compatibility
   - Have to sniff TuyaSmart Android app communication with Packet Capture Android app to get key and UUID
+    - Open TuyaSmart --> Add --> All Devices --> Other products --> Confirm --> Switch to packet capture and start sniffing --> etc.
 - Various z-wave sensors
 - Various MQTT Sensors (eg: moon status, determined using bash and published to MQTT))
 - Arlo Cameras (controlled through IFTTT)
