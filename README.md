@@ -36,6 +36,7 @@ Thanks to Deviant Engineer (https://deviantengineer.com/) for the guide(s) that 
 
 # Interface
 ![UI](images/screenshot1.png)  
-![UI2](images/screenshot2.png)  
+![UI](images/screenshot2.png)  
 ![UI](images/screenshot3.png)
+![UI](images/screenshot4.png)
 ![UI](images/grafana.png)
