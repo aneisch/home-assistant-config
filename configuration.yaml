@@ -229,9 +229,9 @@ emulated_hue:
   #  - script
   #  - fan
 
-arlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
+#arlo:
+#  username: !secret arlo_username
+#  password: !secret arlo_password
 
 panel_iframe:
   plane_tracking:

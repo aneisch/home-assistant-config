@@ -16,13 +16,25 @@ AC AutoAdjust:
   winter_night: '62'
   winter_unoccupied: '62'
 
-Master Bedroom Light Automation:
+Master Bedroom Light Dim:
   module: light_automation
-  class: SceneTime
+  class: DeviceOn
   time_on: '23:00:00'
-  scene: scene.master_bedroom_light_dim
-  # Only automate if this light is on
-  dependent_light: light.master_bedroom
+  entity: scene.master_bedroom_light_dim
+  # Only automate if this entity is "on"
+  dependent_entity: light.master_bedroom
+  # Only automate if this device/group is "home"
+  device_tracker: group.trackers
+
+#All lamps in house
+House Lamp Automation:
+  module: light_automation
+  class: DeviceOn
+  time_on: sunset
+  entity: group.master_bedroom_lamps,group.living_room_lamps
+  # Only automate if this entity is "on"
+  dependent_entity: light.master_bedroom
+  # Only automate if this device/group is "home"
   device_tracker: group.trackers
 
 Door Notify:
