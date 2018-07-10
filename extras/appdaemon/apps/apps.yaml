@@ -21,7 +21,7 @@ Master Bedroom Light Dim:
   class: DeviceOn
   time_on: '23:00:00'
   entity: scene.master_bedroom_light_dim
-  # Only automate if this entity is "on"
+  # Only automate if this entity is "on" OPTIONAL
   dependent_entity: light.master_bedroom
   # Only automate if this device/group is "home"
   device_tracker: group.trackers
@@ -30,10 +30,11 @@ Master Bedroom Light Dim:
 House Lamp Automation:
   module: light_automation
   class: DeviceOn
-  time_on: sunset
-  entity: group.master_bedroom_lamps,group.living_room_lamps
-  # Only automate if this entity is "on"
-  dependent_entity: light.master_bedroom
+  time_on: '22:19:00'
+  # Guest bedroom lamps "follow" master bedroom lamps, dependent on the guest automation boolean. Don't worry about that lamp!
+  entity: group.master_bedroom_lamps,group.living_room_lamps,switch.outdoor_zwave_switch
+  # Only automate if this entity is "on" OPTIONAL
+  dependent_entity: input_boolean.house_lamps_automation
   # Only automate if this device/group is "home"
   device_tracker: group.trackers
 

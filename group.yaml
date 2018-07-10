@@ -151,6 +151,7 @@ automation_override:
     - input_boolean.ac_change_notification
     - input_boolean.occusim
     - input_boolean.guest_automation
+    - input_boolean.house_lamps_automation
 
 kitchen:
   name: Kitchen

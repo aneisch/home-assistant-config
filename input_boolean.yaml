@@ -34,3 +34,7 @@ alarm_clock_automation:
 guest_automation:
   name: Guest Bedroom Automation
   icon: mdi:account-plus
+
+house_lamps_automation:
+  name: House-Wide Lamps Automation
+  icon: mdi:lamp
