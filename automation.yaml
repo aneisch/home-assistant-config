@@ -102,6 +102,19 @@
     service: homeassistant.turn_on
     entity_id: switch.guest_lamp
 
+- alias: "Turn On Living Room Lamps When Master Lamps Turn On"
+  trigger:
+    platform: state
+    entity_id: group.master_bedroom_lamps
+    to: 'on'
+  condition:
+    condition: state
+    entity_id: input_boolean.guest_automation
+    state: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: group.living_room_lamps
+
 # Follow master bedroom lamps when guest automation active
 - alias: "Turn Off Guest Lamp When Master Lamps Turn Off"
   trigger:
@@ -115,6 +128,19 @@
   action:
     service: homeassistant.turn_off
     entity_id: switch.guest_lamp
+
+- alias: "Turn Off Living Room Lamps When Master Lamps Turn Off"
+  trigger:
+    platform: state
+    entity_id: group.master_bedroom_lamps
+    to: 'off'
+  condition:
+    condition: state
+    entity_id: input_boolean.guest_automation
+    state: 'on'
+  action:
+    service: homeassistant.turn_off
+    entity_id: group.living_room_lamps
 
 - alias: "Arrived at Home"
   trigger:

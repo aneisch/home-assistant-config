@@ -30,9 +30,9 @@ Master Bedroom Light Dim:
 House Lamp Automation:
   module: light_automation
   class: DeviceOn
-  time_on: '22:19:00'
-  # Guest bedroom lamps "follow" master bedroom lamps, dependent on the guest automation boolean. Don't worry about that lamp!
-  entity: group.master_bedroom_lamps,group.living_room_lamps,switch.outdoor_zwave_switch
+  time_on: sunset
+  # Guest bedroom and living room lamps "follow" master bedroom lamps via HASS automation, dependent on the guest automation boolean.
+  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch
   # Only automate if this entity is "on" OPTIONAL
   dependent_entity: input_boolean.house_lamps_automation
   # Only automate if this device/group is "home"

@@ -88,7 +88,6 @@ guest_bedroom:
   control: hidden
   entities:
     - switch.guest_lamp
-    - input_boolean.guest_automation
 
 security:
   name: Security
