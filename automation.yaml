@@ -1,3 +1,59 @@
+###################
+# Washing Machine #
+###################
+# Washer boolean turns on after power for 30 seconds.
+# If the lid is open after washer boolean on for 00:03:00, we notify.
+# If the washer has no power for 00:02:30 washer boolean turns off
+#Set washer to running after 30 seconds of power
+- alias: Set washer boolean to running
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.sonoff_pow_power
+    above: 3
+    for:
+      seconds: 30
+  action:
+    service: input_boolean.turn_on
+    entity_id: input_boolean.washer_running
+#Set washer not Running after 2:30 minutes of no power
+- alias: Set washer boolean to not running
+  trigger:
+    platform: numeric_state
+    entity_id: sensor.sonoff_pow_power
+    below: 1
+    for:
+      minutes: 2
+      seconds: 30
+  action:
+    service: input_boolean.turn_off
+    entity_id: input_boolean.washer_running
+#Notify when lid open for 2 minutes
+- alias: Notify if Washer Running with Lid Open
+  trigger:
+    platform: state
+    entity_id: input_boolean.washer_running
+    to: 'on'
+    for:
+      minutes: 3
+  condition:
+    condition: state
+    entity_id: sensor.washing_machine_lid
+    state: 'true'
+  action:
+    - service: notify.home_assistant
+      data_template:
+        message: I think Bethany left the washer lid open..
+#Make sure washing machine is always on..
+- alias: Ensure washing machine outlet is on
+  trigger:
+    platform: state
+    entity_id: switch.washing_machine
+    to: 'off'
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.washing_machine
+
+
 #Workaround for fan speed on appdaemon dashboard
 #Set value of input select when fan speed changed on switch
 - alias: Set Master Bedroom Ceiling Fan Speed Selector
@@ -52,7 +108,7 @@
       data_template:
         message: >
           Package delivered...
-  
+
 #Switch
 - alias: "Arlo Arm"
   initial_state: 'on'
@@ -224,7 +280,7 @@
       - condition: numeric_state
         entity_id: sensor.thermostat_setpoint
         below: '68'
-  action: 
+  action:
     - service: notify.home_assistant
       data_template:
         message: AC Broke.. Turning Off...
@@ -256,7 +312,7 @@
       data:
         entity_id: climate.thermostat
         operation_mode: 'off'
-   
+
 #- id: ac_setpoint_change
 - alias: "Notify Andrew when AC setpoint changes"
   initial_state: 'on'

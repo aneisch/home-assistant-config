@@ -39,7 +39,7 @@
   retain: true
 
 - platform : mqtt
-  name: "Decorative LED"
+  name: "Washing Machine"
   state_topic: "stat/sonoff_pow_1/POWER"
   command_topic: "cmnd/sonoff_pow_1/POWER"
   payload_on: "ON"
@@ -48,7 +48,7 @@
   retain: true
 
 - platform: wake_on_lan
-  name: "NAS" 
+  name: "NAS"
   mac_address: "e8:fc:af:e6:22:26"
   host: 10.0.1.20
   turn_off:

@@ -8,7 +8,7 @@ AC AutoAdjust:
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
   override_input_boolean: input_boolean.ac_automation
-  summer_day: '78'
+  summer_day: '76'
   summer_night: '75'
   summer_unoccupied: '82'
   thermostats: climate.thermostat

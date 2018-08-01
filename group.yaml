@@ -166,7 +166,6 @@ living_room:
   entities:
     - switch.wemo_switch
     - switch.living_room_lamp
-    - switch.decorative_led
     - switch.tv
 
 living_room_lamps:

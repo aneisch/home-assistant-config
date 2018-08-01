@@ -229,9 +229,9 @@ emulated_hue:
   #  - script
   #  - fan
 
-#arlo:
-#  username: !secret arlo_username
-#  password: !secret arlo_password
+arlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
 
 panel_iframe:
   plane_tracking:
@@ -248,6 +248,11 @@ panel_iframe:
     url: !secret grafana
 
 alexa:
+
+#tuya:
+#  username: !secret tuya_user
+#  password: !secret tuya_password
+#  country_code: 1
 
 #usps:
 #  driver: chrome

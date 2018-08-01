@@ -38,3 +38,6 @@ guest_automation:
 house_lamps_automation:
   name: House-Wide Lamps Automation
   icon: mdi:lamp
+
+washer_running:
+  name: Washer Running

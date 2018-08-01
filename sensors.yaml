@@ -130,7 +130,7 @@
       friendly_name: Sonoff Pow Today Cost
       unit_of_measurement: "$"
       value_template: >-
-        {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }} 
+        {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }}
     sonoff_pow_yesterday_cost:
       friendly_name: Sonoff Pow Yesterday Cost
       unit_of_measurement: "$"
@@ -156,12 +156,12 @@
 
 - platform: mqtt
   state_topic: "thermostat"
-  name: "Thermostat Fan Mode" 
+  name: "Thermostat Fan Mode"
   value_template: "{% if value_json.fmode == 0 %}Auto{% elif value_json.fmode == 1 %}Auto/Circulate{% elif value_json.fmode == 2 %}On{% endif %}"
 
 - platform: mqtt
   state_topic: "thermostat"
-  name: "Thermostat State" 
+  name: "Thermostat State"
   value_template: "{% if value_json.tstate == 0 %}Idle{% elif value_json.tstate == 1 %}Heating{% elif value_json.tstate == 2 %}Cooling{% endif %}"
 
 - platform: mqtt
@@ -296,6 +296,17 @@
         {%- endif %}
       friendly_name: 'Back Door Status'
 
+- platform: template
+  sensors:
+    washing_machine_lid_status:
+      value_template: >-
+        {%- if is_state("sensor.washing_machine_lid", "true") %}
+          Open
+        {%- else %}
+          Closed
+        {%- endif %}
+      friendly_name: 'Washing Machine Lid Status'
+
 #- platform: template
 #  sensors:
 #    front_door:
@@ -351,3 +362,13 @@
   name: "Outdoor Plant Heat Index"
   unit_of_measurement: "°F"
   value_template: "{{ value_json.heat_index }}"
+
+
+  #########
+  # OTHER #
+  #########
+
+- platform: mqtt
+  state_topic: "sensor/washer_lid"
+  name: "Washing Machine Lid"
+  value_template: "{{ value_json.opened }}"
