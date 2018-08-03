@@ -372,3 +372,8 @@
   state_topic: "sensor/washer_lid"
   name: "Washing Machine Lid"
   value_template: "{{ value_json.opened }}"
+
+- platform: mqtt
+  state_topic: "sensor/washer_distance"
+  name: "Washing Machine Lid Distance"
+  value_template: "{{ value_json.distance }}"
