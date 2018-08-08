@@ -126,7 +126,7 @@ set_ac_82:
     - service: climate.set_temperature
       data:
         entity_id: climate.thermostat
-        temperature: 82 
+        temperature: 82
 
 panic:
   sequence:
@@ -145,4 +145,3 @@ mom_and_dad_gate_toggle:
 ######
 # IR #
 ######
-

@@ -4,7 +4,8 @@
 # Washer boolean turns on after power for 30 seconds.
 # If the lid is open after washer boolean on for 00:03:00, we notify.
 # If the washer has no power for 00:02:30 washer boolean turns off
-#Set washer to running after 30 seconds of power
+
+#Set washer_running boolean to on after 30 seconds of power
 - alias: Set washer boolean to running
   trigger:
     platform: numeric_state
@@ -15,7 +16,8 @@
   action:
     service: input_boolean.turn_on
     entity_id: input_boolean.washer_running
-#Set washer not Running after 2:30 minutes of no power
+
+#Set washer_running boolean to off after 2:30 minutes of no power
 - alias: Set washer boolean to not running
   trigger:
     platform: numeric_state
@@ -27,7 +29,8 @@
   action:
     service: input_boolean.turn_off
     entity_id: input_boolean.washer_running
-#Notify when lid open for 2 minutes
+
+#Notify when lid open for 3 minutes and washer_boolean on
 - alias: Notify if Washer Running with Lid Open
   trigger:
     platform: state
@@ -43,7 +46,8 @@
     - service: notify.home_assistant
       data_template:
         message: I think Bethany left the washer lid open..
-#Make sure washing machine is always on..
+
+#Make sure washing machine sonoff is always on..
 - alias: Ensure washing machine outlet is on
   trigger:
     platform: state

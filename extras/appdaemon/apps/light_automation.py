@@ -8,6 +8,7 @@ class DeviceOn(hass.Hass):
     self.run_daily(self.on, time_on)
 
   def on(self, kwargs):
+    self.log("DEBUG: DeviceOn triggered")
     if self.args["dependent_entity"]:
       if self.get_state(self.args["device_tracker"]) == "home" and self.get_state(self.args["dependent_entity"]) == "on":
         for entity in self.split_device_list(self.args["entity"]):

@@ -12,9 +12,8 @@ default_view:
     - group.common
     - camera.outdoor
     - camera.usps_mail
-    - media_player.andrews_chromecast
     - group.misc
-    - group.jade_clippings
+    - media_player.spotify
 common_areas:
   name: Common Areas
   view: yes
@@ -24,12 +23,14 @@ common_areas:
     - group.kitchen
     - group.office
     - group.guest_bedroom
+    - media_player.spotify
 master:
   name: Master Bedroom
   view: yes
   entities:
     - group.master_bedroom
     - group.scenes
+    - media_player.spotify
 ha_status:
   name: Server Status
   view: yes

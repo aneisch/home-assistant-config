@@ -6,9 +6,11 @@ homeassistant:
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago
-  
+
+# Enable configuration panel
 config:
 
+# Enable map panel
 map:
 
 recorder:
@@ -21,7 +23,7 @@ zone:
   name: Work
   latitude: !secret work_lat
   longitude: !secret work_long
-  radius: 500 
+  radius: 500
   icon: mdi:worker
 
 zone 2:
@@ -62,7 +64,7 @@ zone 6:
 proximity:
   home:
     devices:
-      - device_tracker.owntracks_android 
+      - device_tracker.owntracks_android
       - device_tracker.bethany_iphone
     tolerance: 50
     unit_of_measurement: mi
@@ -70,9 +72,6 @@ proximity:
 apcupsd:
   host: 10.0.1.6
   port: 3551
-
-#media_player:
-#  platform: plex
 
 # Checks for available updates
 updater:
@@ -96,9 +95,9 @@ frontend:
       primary-color: "#d32f2f"
       primary-text-color: "#cfcfcf"
       secondary-background-color: "#131313"
-      sidebar-text_-_background: "#62717b" 
+      sidebar-text_-_background: "#62717b"
       # Colors based on variables, see above
-      paper-card-header-color: "var(--paper-item-icon-color)" 
+      paper-card-header-color: "var(--paper-item-icon-color)"
       paper-item-icon-active-color: "var(--primary-color)"
       paper-item-icon_-_color: "var(--primary-text-color)"
       paper-listbox-color: "var(--primary-text-color)"
@@ -146,9 +145,6 @@ logbook:
     entities:
       - sensor.average_load_1m
 
-# Discover some devices automatically
-#discovery:
-
 http:
   api_password: !secret api_password
   server_port: 8123
@@ -162,33 +158,6 @@ mqtt:
   username: !secret owntracks_user
   password: !secret owntracks_password
 
-device_tracker:
-  - platform: owntracks
-  - platform: bluetooth_tracker
-    interval_seconds: 30
-    track_new_devices: False
-  - platform: nmap_tracker
-    hosts: 10.0.1.13/32
-    home_interval: 10
-  - platform: tile
-    username: !secret tile_user
-    password: !secret tile_password
-
-climate:
-  platform: radiotherm
-  host:
-    - 10.0.1.29
-  hold_temp: True
-
-notify:
-  - platform: pushbullet
-    api_key: !secret pushbullet_key
-    name: notify_push_android
-  - platform: pushover
-    name: home assistant
-    api_key: !secret pushover_api_key
-    user_key: !secret pushover_user_key
-
 influxdb:
   host: localhost
   username: !secret influx_user
@@ -196,22 +165,6 @@ influxdb:
 
 ifttt:
   key: !secret ifttt_key
-
-light:
-  - platform: limitlessled
-    bridges:
-      - host: 10.0.1.47
-        version: 5
-        port: 8899
-        groups:
-        - number: 1
-          type: rgbw
-          name: master_bedroom
-          fade: on
-        - number: 2
-          type: rgbw
-          name: andrew_monitor_backlight
-          fade: on
 
 zwave:
   usb_path: /dev/zwave
@@ -222,12 +175,7 @@ wemo:
 
 emulated_hue:
   expose_by_default: false
-  #See customize.yaml for exposure
-  #exposed_domains:
-  #  - light
-  #  - switch
-  #  - script
-  #  - fan
+  #See customize.yaml for exposed entites
 
 arlo:
   username: !secret arlo_username
@@ -249,15 +197,58 @@ panel_iframe:
 
 alexa:
 
-#tuya:
-#  username: !secret tuya_user
-#  password: !secret tuya_password
-#  country_code: 1
-
 #usps:
 #  driver: chrome
 #  username: !secret usps_username
 #  password: !secret usps_key
+
+device_tracker:
+  - platform: owntracks
+  - platform: bluetooth_tracker
+    interval_seconds: 30
+    track_new_devices: False
+  - platform: nmap_tracker
+    hosts: 10.0.1.13/32
+    home_interval: 10
+  - platform: tile
+    username: !secret tile_user
+    password: !secret tile_password
+
+media_player:
+  - platform: spotify
+    client_id: !secret spotify_client_id
+    client_secret: !secret spotify_client_secret
+
+climate:
+  platform: radiotherm
+  host:
+    - 10.0.1.29
+  hold_temp: True
+
+notify:
+  - platform: pushbullet
+    api_key: !secret pushbullet_key
+    name: notify_push_android
+  - platform: pushover
+    name: home assistant
+    api_key: !secret pushover_api_key
+    user_key: !secret pushover_user_key
+
+light:
+  - platform: limitlessled
+    bridges:
+      - host: 10.0.1.47
+        version: 5
+        port: 8899
+        groups:
+        - number: 1
+          type: rgbw
+          name: master_bedroom
+          fade: on
+        - number: 2
+          type: rgbw
+          name: andrew_monitor_backlight
+          fade: on
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

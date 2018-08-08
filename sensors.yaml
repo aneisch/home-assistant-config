@@ -29,6 +29,11 @@
 - platform: cert_expiry
   host: !secret domain
 
+- platform: plex
+  server: nuc-nuc
+  username: !secret plex_user
+  password: !secret plex_password
+
 #- platform: miflora
 #  mac: "c4:7c:8d:63:34:c8"
 #  name: Jade Clippings
