@@ -14,6 +14,7 @@ default_view:
     - camera.usps_mail
     - group.misc
     - media_player.spotify
+    - media_player.plex_web_chrome
 common_areas:
   name: Common Areas
   view: yes

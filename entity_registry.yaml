@@ -83,3 +83,8 @@ media_player.andrews_chromecast:
   name:
   platform: cast
   unique_id: 58dddc2f-4391-2b94-8432-ea679d3af621
+media_player.plex_web_chrome:
+  config_entry_id:
+  name:
+  platform: plex
+  unique_id: yqlv0obqc4srqn1o3s7t77tq

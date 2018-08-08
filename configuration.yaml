@@ -218,6 +218,7 @@ media_player:
   - platform: spotify
     client_id: !secret spotify_client_id
     client_secret: !secret spotify_client_secret
+  - platform: plex
 
 climate:
   platform: radiotherm
