@@ -1,17 +1,17 @@
 AC AutoAdjust:
   module: ac_automation
   class: AutoAdjust
+  thermostats: climate.thermostat
   device_tracker: group.trackers
   door_trigger: sensor.front_door_status
-  morning_adjust_weekday: 08:00:00
-  morning_adjust_weekend: '10:00:00'
+  override_input_boolean: input_boolean.ac_automation
+  morning_adjust_weekday: '10:00:00'
+  morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
-  override_input_boolean: input_boolean.ac_automation
   summer_day: '76'
-  summer_night: '75'
+  summer_night: '74'
   summer_unoccupied: '82'
-  thermostats: climate.thermostat
   winter_day: '66'
   winter_night: '62'
   winter_unoccupied: '62'
