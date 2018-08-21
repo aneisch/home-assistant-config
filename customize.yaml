@@ -1,4 +1,4 @@
-# Images go in /usr/local/lib/python3.4/dist-packages/homeassistant/components/frontend/www_static/images/
+# Images go in www directory
 
 #LIGHTS
 light.master_bedroom:
@@ -171,3 +171,8 @@ group.living_room_lamps:
 group.master_bedroom_lamps:
   emulated_hue: true
   emulated_hue_name: "Master Bedroom Lamps"
+input_boolean.weather:
+  custom_ui_state_card: custom-weather-card
+  config:
+    weather: weather.yweather
+    sun: sun.sun

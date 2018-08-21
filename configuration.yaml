@@ -19,6 +19,10 @@ recorder:
 
 sun:
 
+weather:
+  - platform: yweather
+    woeid: !secret yahoo_woeid
+
 zone:
   name: Work
   latitude: !secret work_lat
@@ -79,6 +83,10 @@ updater:
 
 # Enables the frontend
 frontend:
+  extra_html_url:
+    - /local/custom_ui/custom-weather-card.html
+  extra_html_url_es5:
+    - /local/custom_ui/custom-weather-card.html
   javascript_version: latest
   themes:
     darkred:

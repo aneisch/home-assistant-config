@@ -41,3 +41,5 @@ house_lamps_automation:
 
 washer_running:
   name: Washer Running
+
+weather:
