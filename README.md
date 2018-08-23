@@ -26,11 +26,15 @@ My Home Assistant installtion contains many different components and runs on a G
 - Various MQTT Sensors (eg: moon status, determined using bash and published to MQTT))
 - Arlo Cameras (controlled through IFTTT)
 - AppDaemon controlling a majority of automations.
-- Amazon Echo Dot with Home Assistant emulated hue as well as custom skills via Alexa API.
+- Amazon Echo Dot/Echo
+  - Home Assistant Emulated Huei (devices are explicitly exposed via customize.yaml.
+  - Custom skills via Alexa API.
+  - Custom "Routines" configured in the Alexa App.
 - MQTT Remote and local server (via Docker). Using remote with SSL for owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Custom weather card from https://www.reddit.com/r/homeassistant/comments/8dnxf0/easy_instructions_for_a_custom_weather_card/
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
+
  
 Thanks to Deviant Engineer (https://deviantengineer.com/) for the guide(s) that helped me stay sane during installation!!
 

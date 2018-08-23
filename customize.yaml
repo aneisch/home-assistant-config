@@ -176,3 +176,7 @@ input_boolean.weather:
   config:
     weather: weather.yweather
     sun: sun.sun
+script.set_ac_72:
+  emulated_hue: true
+script.set_ac_75:
+  emulated_hue: true
