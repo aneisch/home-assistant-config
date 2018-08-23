@@ -114,6 +114,20 @@ set_ac_75:
         entity_id: climate.thermostat
         temperature: 75
 
+set_ac_76:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 76
+
+set_ac_77:
+  sequence:
+    - service: climate.set_temperature
+      data:
+        entity_id: climate.thermostat
+        temperature: 77
+
 set_ac_78:
   sequence:
     - service: climate.set_temperature
