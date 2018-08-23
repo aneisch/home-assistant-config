@@ -408,3 +408,26 @@
       data_template:
         message: >
           Gate Closed
+
+
+#######
+# NAS #
+#######
+
+- alias: "NAS Morning On"
+  initial_state: 'on'
+  trigger:
+    platform: time
+    at: '05:59:30'
+  action:
+    service: switch.turn_on
+    entity_id: switch.nas
+
+- alias: "NAS Morning Off"
+  initial_state: 'on'
+  trigger:
+    platform: time
+    at: '08:00:00'
+  action:
+    service: switch.turn_off
+    entity_id: switch.nas
