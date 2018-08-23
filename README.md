@@ -28,6 +28,7 @@ My Home Assistant installtion contains many different components and runs on a G
 - AppDaemon controlling a majority of automations.
 - Amazon Echo Dot with Home Assistant emulated hue as well as custom skills via Alexa API.
 - MQTT Remote and local server (via Docker). Using remote with SSL for owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
+- Custom weather card from https://www.reddit.com/r/homeassistant/comments/8dnxf0/easy_instructions_for_a_custom_weather_card/
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
  
