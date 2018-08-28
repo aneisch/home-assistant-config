@@ -382,3 +382,12 @@
   state_topic: "sensor/washer_distance"
   name: "Washing Machine Lid Distance"
   value_template: "{{ value_json.distance }}"
+
+- platform: haveibeenpwned
+  email: 
+    - !secret haveibeenpwned_1
+    - !secret haveibeenpwned_2
+    - !secret haveibeenpwned_3
+    - !secret haveibeenpwned_4
+    - !secret haveibeenpwned_5
+    - !secret haveibeenpwned_6
