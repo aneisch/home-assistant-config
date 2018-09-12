@@ -206,3 +206,9 @@ weather:
   view: no
   entities:
       - input_boolean.weather
+
+andrew_desk:
+  view: no
+  entities:
+      - switch.outdoor_zwave_switch
+      - light.andrew_monitor_backlight

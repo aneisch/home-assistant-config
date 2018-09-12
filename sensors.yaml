@@ -102,6 +102,10 @@
   state_topic: "sensor/mom_and_dad_gate"
   name: "Mom and Dad Gate"
 
+- platform: mqtt
+  state_topic: "sensor/desk_keyboard_drawer"
+  name: Desk Keyboard Drawer
+
 ####################
 # BEGIN SONOFF POW #
 ####################

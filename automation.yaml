@@ -233,7 +233,7 @@
     to: "true"
   action:
     service: homeassistant.turn_on
-    entity_id: group.office
+    entity_id: group.andrew_desk
 
 - alias: "Button Press Off!"
   initial_state: 'on'
@@ -243,7 +243,7 @@
     to: "false"
   action:
     service: homeassistant.turn_off
-    entity_id: group.office
+    entity_id: group.andrew_desk
 
 - alias: "Mount /Plex"
   initial_state: on
@@ -409,6 +409,16 @@
         message: >
           Gate Closed
 
+- alias: "Desk Drawer Open Toggle"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: sensor.desk_keyboard_drawer
+    from: 'closed'
+    to: 'open'
+  action:
+    service: homeassistant.toggle
+    entity_id: group.andrew_desk
 
 #######
 # NAS #

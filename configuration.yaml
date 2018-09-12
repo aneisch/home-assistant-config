@@ -227,6 +227,10 @@ media_player:
     client_id: !secret spotify_client_id
     client_secret: !secret spotify_client_secret
   - platform: plex
+  - platform: alexa
+    email: !secret amazon_email
+    password: !secret amazon_pass
+    url: "amazon.com"
 
 climate:
   platform: radiotherm
