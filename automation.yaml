@@ -90,7 +90,7 @@
   action:
     - service: frontend.set_theme
       data:
-        name: darkred
+        name: midnight-remake
 
 - alias: "Set light theme for day"
   initial_state: on

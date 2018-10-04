@@ -1,7 +1,21 @@
-name: Home
+title: Home
+
+resources:
+  - url: /local/js/mini-graph-card.js?v=0.0.1
+    type: module
+  - url: /local/js/weather-card.js
+    type: js
+  - url: /local/js/slider-entity-row.js
+    type: js
+
 views:
-- name: Home
+
+########
+# HOME #
+########
+- title: Home
   cards:
+
   - type: entities
     title: Thermostat
     entities:
@@ -12,31 +26,40 @@ views:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
+
   - type: entities
     title: Automation Control
+    show_header_toggle: false
     entities:
     - input_boolean.door_notify
     - input_boolean.ac_automation
     - input_boolean.plant_light_automation
     - input_boolean.ac_change_notification
     - input_boolean.occusim
+    - input_boolean.guest_automation
+    - input_boolean.house_lamps_automation
+
   - type: entities
     title: Scenes
     entities:
     - script.master_bedroom_light_full
     - script.master_bedroom_light_dim
     - script.master_bedroom_bedtime
+
   - type: entities
     title: Security
+    show_header_toggle: false
     entities:
     - input_boolean.arlo_status
     - sensor.front_door_status
     - sensor.back_door_status
+
   - type: entities
     title: Trackers
     entities:
     - device_tracker.owntracks_android
     - device_tracker.bethany_iphone
+
   - type: entities
     title: Weather
     entities:
@@ -46,24 +69,36 @@ views:
     - sensor.dark_sky_precip_probability
     - sun.sun
     - sensor.moon_phase
-  - type: camera-preview
+
+  - type: "custom:weather-card"
+    entity_weather: weather.yweather
+    entity_sun: sun.sun
+
+  - type: iframe
+    aspect_ratio: 90%
+    url: !secret windy_url
+
+  - type: picture-entity
     entity: camera.weather_radar
-  - type: camera-preview
-    entity: camera.weather
-  - type: camera-preview
+  - type: picture-entity
     entity: camera.outdoor
-  - type: camera-preview
-    entity: camera.usps_mail
   - type: media-control
-    entity: media_player.andrews_chromecast
+    entity: media_player.spotify
+
   - type: entities
     title: Misc
     entities:
     - sensor.usps_mail
     - sensor.deliveries_today
     - sensor.packages_in_transit
-- name: Common Areas
+
+
+##########
+# COMMON #
+##########
+- title: Common Areas
   cards:
+
   - type: entities
     title: Thermostat
     entities:
@@ -74,50 +109,86 @@ views:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
+
   - type: entities
     title: Living Room
+    show_header_toggle: false
     entities:
     - switch.wemo_switch
     - switch.living_room_lamp
-    - switch.wemo_switch
-    - switch.decorative_led
     - switch.tv
+
+  - type: entities
+    title: Guest Bedroom
+    show_header_toggle: false
+    entities:
+    - switch.guest_lamp
+
   - type: entities
     title: Kitchen
+    show_header_toggle: false
     entities:
     - switch.kitchen_table_light_switch
     - switch.kitchen_plant_light_switch
     - switch.kitchen_plant_light_incandescent
+
   - type: entities
     title: Office
+    show_header_toggle: false
     entities:
-    - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
     - switch.outdoor_zwave_switch
-  - type: camera-preview
+    - entity: light.andrew_monitor_backlight
+      name: Monitor Backlight
+      hide_when_off: true
+      type: custom:slider-entity-row
+      break_slider: true
+
+  - type: picture-entity
     entity: camera.office
-- name: Master Bedroom
+
+  - type: media-control
+    entity: media_player.spotify
+
+
+##########
+# MASTER #
+##########
+- title: Master Bedroom
   cards:
+
   - type: entities
     title: Master Bedroom
+    show_header_toggle: false
     entities:
     - sensor.master_bedroom_temperature
     - light.master_bedroom
-    - switch.master_bedroom_sound_machine
+    #- switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
     - switch.master_bathroom_light_switch
     - switch.andrews_lamp
     - switch.bethanys_lamp
+
   - type: entities
     title: Scenes
     entities:
     - script.master_bedroom_light_full
     - script.master_bedroom_light_dim
     - script.master_bedroom_bedtime
-- name: Server Status
+
+  - type: media-control
+    entity: media_player.spotify
+
+
+##########
+# SERVER #
+##########
+- title: Server Status
   cards:
+
   - type: entities
     title: System
+    show_header_toggle: false
     entities:
     - sensor.ssl_certificate_expiry
     - sensor.rack_exhaust_temperature
@@ -131,12 +202,14 @@ views:
     - sensor.network_out_eno1
     - sensor.network_in_eno1
     - switch.nas
+
   - type: entities
     title: UPS
     entities:
     - sensor.ups_time_left
     - sensor.ups_load
     - sensor.ups_battery
+
   - type: entities
     title: Power
     entities:
@@ -146,12 +219,3 @@ views:
     - sensor.sonoff_pow_today_cost
     - sensor.sonoff_pow_yesterday_energy
     - sensor.sonoff_pow_yesterday_cost
-- cards:
-  - card_config:
-      title: All Entities
-    filter:
-    - {}
-    type: entity-filter
-  name: All Entities
-  tab_icon: mdi:settings
-

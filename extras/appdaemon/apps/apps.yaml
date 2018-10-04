@@ -9,7 +9,7 @@ AC AutoAdjust:
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
-  summer_day: '76'
+  summer_day: '78'
   summer_night: '74'
   summer_unoccupied: '82'
   winter_day: '66'

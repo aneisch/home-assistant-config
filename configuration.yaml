@@ -23,6 +23,10 @@ weather:
   - platform: yweather
     woeid: !secret yahoo_woeid
 
+custom_updater:
+  card_urls:
+    - https://raw.githubusercontent.com/kalkih/mini-graph-card/master/tracker.json
+
 zone:
   name: Work
   latitude: !secret work_lat
@@ -83,10 +87,6 @@ updater:
 
 # Enables the frontend
 frontend:
-  extra_html_url:
-    - /local/custom_ui/custom-weather-card.html
-  extra_html_url_es5:
-    - /local/custom_ui/custom-weather-card.html
   javascript_version: latest
   themes:
     darkred:
@@ -122,6 +122,77 @@ frontend:
       secondary-text-color: "var(--primary-color)"
       table-row-background-color: "var(--paper-card-background-color)"
       table-row-alternative-background-color: "var(--sidebar-text_-_background)"
+
+    midnight-remake:
+      # Main colors
+      primary-color: '#2980b9'
+      accent-color: '#f1c40f'
+      dark-primary-color: 'var(--accent-color)'
+      light-primary-color: 'var(--accent-color)'
+
+      # Text colors
+      primary-text-color: '#ffffff'
+      text-primary-color: 'var(--primary-text-color)'
+      secondary-text-color: 'var(--accent-color)'
+      disabled-text-color: '#e5e5e5'
+      label-badge-border-color: 'green'
+
+      # Sidebar
+      sidebar-icon-color: 'var(--primary-text-color)'
+      sidebar-selected-icon-color: 'var(--accent-color)'
+      sidebar-selected-background-color: 'rgba(255, 255, 255, .1)'
+
+      # Background colors
+      primary-background-color: '#2c3e50'
+      secondary-background-color: '#2c3e50'
+      divider-color: 'rgba(0, 0, 0, .12)'
+
+      # Table rows
+      table-row-background-color: '#2c3e50'
+      table-row-alternative-background-color: '#2B3E50'
+
+      # Nav Menu
+      paper-listbox-color: 'var(--primary-text-color)'
+      paper-listbox-background-color: '#1f2b38'
+      paper-grey-50: 'var(--primary-text-color)'
+      paper-grey-200: '#2B3E50'
+
+      # Paper card
+      paper-card-header-color: 'var(--accent-color)'
+      paper-card-background-color: '#34495e'
+      paper-dialog-background-color: '#34495e'
+      paper-item-icon-color: 'var(--primary-text-color)'
+      paper-item-icon-active-color: '#F9C536'
+      paper-item-icon_-_color: 'var(--primary-text-color)'
+      paper-item-selected_-_background-color: '#34495e'
+      paper-tabs-selection-bar-color: 'var(--primary-text-color)'
+
+      # Labels
+      label-badge-red: 'var(--accent-color'
+      label-badge-text-color: 'var(--primary-text-color'
+      label-badge-background-color: '#2E333A'
+
+      # Switches
+      paper-toggle-button-checked-button-color: 'var(--accent-color)'
+      paper-toggle-button-checked-bar-color: 'var(--accent-color)'
+      paper-toggle-button-checked-ink-color: 'var(--accent-color)'
+      paper-toggle-button-unchecked-button-color: 'var(--disabled-text-color)'
+      paper-toggle-button-unchecked-bar-color: 'var(--disabled-text-color)'
+      paper-toggle-button-unchecked-ink-color: 'var(--disabled-text-color)'
+
+      # Sliders
+      paper-slider-knob-color: '#F9C536'
+      paper-slider-knob-start-color: 'var(--accent-color)'
+      paper-slider-pin-color: '#F9C536'
+      paper-slider-active-color: 'var(--accent-color)'
+      paper-slider-container-color: 'linear-gradient(var(--primary-background-color), var(--secondary-background-color)) no-repeat'
+      paper-slider-secondary-color: 'var(--secondary-background-color)'
+      paper-slider-disabled-active-color: 'var(--disabled-text-color)'
+      paper-slider-disabled-secondary-color: 'var(--disabled-text-color)'
+
+      # Google colors
+      google-red-500: 'var(--accent-color)'
+      google-green-500: '#27ae60'
 
 # Enables support for tracking state changes over time.
 history:

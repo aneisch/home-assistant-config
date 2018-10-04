@@ -1,3 +1,7 @@
+### USING LOVELACE INSTEAD OF LEGACY UI  ###
+### CHANGES MIGHT NOT BE REFLECTED BELOW ###
+
+
 #TABS
 default_view:
   name: Home
