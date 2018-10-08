@@ -7,6 +7,8 @@ resources:
     type: js
   - url: /local/js/slider-entity-row.js
     type: js
+  - url: /local/js/mini-media-player.js?v=0.8.3
+    type: module
 
 views:
 
@@ -82,8 +84,13 @@ views:
     entity: camera.weather_radar
   - type: picture-entity
     entity: camera.outdoor
-  - type: media-control
+
+  - type: custom:mini-media-player
     entity: media_player.spotify
+    icon: 'mdi:cast'
+    artwork_border: true
+    power_color: true
+    show_source: true
 
   - type: entities
     title: Misc
@@ -147,8 +154,12 @@ views:
   - type: picture-entity
     entity: camera.office
 
-  - type: media-control
+  - type: custom:mini-media-player
     entity: media_player.spotify
+    icon: 'mdi:cast'
+    artwork_border: true
+    power_color: true
+    show_source: true
 
 
 ##########
@@ -176,8 +187,12 @@ views:
     - script.master_bedroom_light_dim
     - script.master_bedroom_bedtime
 
-  - type: media-control
+  - type: custom:mini-media-player
     entity: media_player.spotify
+    icon: 'mdi:cast'
+    artwork_border: true
+    power_color: true
+    show_source: true
 
 
 ##########

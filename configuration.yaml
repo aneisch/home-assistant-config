@@ -334,6 +334,20 @@ light:
           name: andrew_monitor_backlight
           fade: on
 
+netatmo:
+  api_key: !secret netatmo_key
+  secret_key: !secret netatmo_secret
+  username: !secret netatmo_user
+  password: !secret netatmo_pass
+
+digital_ocean:
+  access_token: !secret DO_token
+
+binary_sensor:
+  - platform: digital_ocean
+    droplets:
+      - !secret DO_host
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

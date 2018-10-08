@@ -395,3 +395,10 @@
     - !secret haveibeenpwned_4
     - !secret haveibeenpwned_5
     - !secret haveibeenpwned_6
+
+- platform: netatmo_public
+  areas:
+    lat_ne: !secret netatmo_lat_ne
+    lon_ne: !secret netatmo_lon_ne
+    lat_sw: !secret netatmo_lat_sw
+    lon_sw: !secret netatmo_lon_sw
