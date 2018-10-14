@@ -25,3 +25,5 @@ mount_plex: 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /
 umount_plex: 'docker stop plex; sleep 10; sudo umount -fl /plex; sleep 10; docker start plex'
 
 mom_and_dad_gate_toggle: curl -X POST https://DOMAIN/api/services/homeassistant/toggle?api_password=PASS -H "Contlication/json" -d '{"entity_id":"script.front_gate_toggle"}'
+
+copy: "sudo ssh -i /home/aneisch/.ssh/id_rsa root@10.0.1.20 '/root/copy.sh'"

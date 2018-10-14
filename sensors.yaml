@@ -402,3 +402,10 @@
     lon_ne: !secret netatmo_lon_ne
     lat_sw: !secret netatmo_lat_sw
     lon_sw: !secret netatmo_lon_sw
+    monitored_conditions:
+      - temperature
+      - pressure
+      - humidity
+      - rain
+      - windstrength
+      - guststrength

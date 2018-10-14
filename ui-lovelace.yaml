@@ -1,8 +1,6 @@
 title: Home
 
 resources:
-  - url: /local/js/mini-graph-card.js?v=0.0.1
-    type: module
   - url: /local/js/weather-card.js
     type: js
   - url: /local/js/slider-entity-row.js
@@ -28,6 +26,8 @@ views:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
+    - entity: sensor.thermostat_temperature
+      type: sensor
 
   - type: entities
     title: Automation Control
@@ -98,6 +98,7 @@ views:
     - sensor.usps_mail
     - sensor.deliveries_today
     - sensor.packages_in_transit
+    - script.copy
 
 
 ##########
@@ -153,6 +154,15 @@ views:
 
   - type: picture-entity
     entity: camera.office
+
+  - type: picture-entity
+    entity: camera.1
+
+  - type: picture-entity
+    entity: camera.2
+
+  - type: picture-entity
+    entity: camera.3
 
   - type: custom:mini-media-player
     entity: media_player.spotify

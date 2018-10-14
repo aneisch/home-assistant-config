@@ -100,6 +100,10 @@ common_areas_off:
 # OTHER #
 #########
 
+copy:
+  sequence:
+    - service: shell_command.copy
+
 set_ac_72:
   sequence:
     - service: climate.set_temperature

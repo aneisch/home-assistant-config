@@ -10,6 +10,11 @@ homeassistant:
 # Enable configuration panel
 config:
 
+logger:
+  default: info
+  logs:
+    homeassistant.components.shell_command: debug
+
 # Enable map panel
 map:
 
