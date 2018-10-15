@@ -14,6 +14,7 @@ logger:
   default: info
   logs:
     homeassistant.components.shell_command: debug
+    homeassistant.components.arlo: debug
 
 # Enable map panel
 map:
@@ -261,9 +262,10 @@ emulated_hue:
   expose_by_default: false
   #See customize.yaml for exposed entites
 
-arlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
+#Seems to be broken, makes HASS hang..
+#arlo:
+#  username: !secret arlo_username
+#  password: !secret arlo_password
 
 panel_iframe:
   plane_tracking:
