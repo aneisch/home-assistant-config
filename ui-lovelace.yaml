@@ -7,6 +7,8 @@ resources:
     type: js
   - url: /local/js/mini-media-player.js?v=0.8.3
     type: module
+  - url: /local/js/swipe-card.js?v=1.0
+    type: js
 
 views:
 
@@ -26,8 +28,26 @@ views:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
-    - entity: sensor.thermostat_temperature
       type: sensor
+
+  - type: custom:swipe-card
+    parameters:
+      spaceBetween: 8
+      scrollbar:
+        hide: false
+        draggable: true
+        snapOnRelease: true
+    cards:
+      - type: sensor
+        entity: sensor.thermostat_temperature
+        name: Thermostat Temperature
+        line_width: 8
+        line_color: '#FF6384'
+      - type: sensor
+        entity: sensor.thermostat_setpoint
+        name: Thermostat Setpoint
+        line_color: '#36A2EB'
+        line_width: 8
 
   - type: entities
     title: Automation Control
