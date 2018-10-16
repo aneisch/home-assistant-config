@@ -39,5 +39,10 @@ house_lamps_automation:
   name: House-Wide Lamps Automation
   icon: mdi:lamp
 
+security_camera_automation:
+  name: Security Camera Automation
+  icon: mdi:camera
+  initial: on
+
 washer_running:
   name: Washer Running

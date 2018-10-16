@@ -157,6 +157,7 @@ automation_override:
     - input_boolean.occusim
     - input_boolean.guest_automation
     - input_boolean.house_lamps_automation
+    - input_boolean.security_camera_automation
 
 kitchen:
   name: Kitchen

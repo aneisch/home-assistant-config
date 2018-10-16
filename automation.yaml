@@ -121,6 +121,10 @@
     entity_id: input_boolean.arlo_status
     from: 'off'
     to: 'on'
+  condition:
+    condition: state
+    entity_id: input_boolean.security_camera_automation
+    state: 'on'
   action:
     service: script.turn_on
     entity_id: script.arlo_arm
@@ -133,6 +137,10 @@
     entity_id: input_boolean.arlo_status
     from: 'on'
     to: 'off'
+  condition:
+    condition: state
+    entity_id: input_boolean.security_camera_automation
+    state: 'on'
   action:
     service: script.turn_on
     entity_id: script.arlo_disarm
