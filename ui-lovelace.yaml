@@ -28,7 +28,6 @@ views:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
-      type: sensor
 
   - type: custom:swipe-card
     parameters:
@@ -103,6 +102,7 @@ views:
 
   - type: picture-entity
     entity: camera.weather_radar
+
   - type: picture-entity
     entity: camera.outdoor
 

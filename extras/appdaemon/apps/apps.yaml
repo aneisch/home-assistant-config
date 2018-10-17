@@ -26,7 +26,7 @@ Master Bedroom Light Dim:
   # Only automate if this device/group is "home"
   device_tracker: group.trackers
 
-#All lamps in house
+#All lamps in house at sunset
 House Lamp Automation:
   module: light_automation
   class: DeviceOn
