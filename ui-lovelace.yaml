@@ -117,8 +117,8 @@ views:
     title: Misc
     entities:
 #    - sensor.usps_mail
-    - sensor.deliveries_today
-    - sensor.packages_in_transit
+#    - sensor.deliveries_today
+#    - sensor.packages_in_transit
     - script.copy
 
 

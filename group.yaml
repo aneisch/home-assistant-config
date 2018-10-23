@@ -1,5 +1,6 @@
 ### USING LOVELACE INSTEAD OF LEGACY UI  ###
 ### CHANGES MIGHT NOT BE REFLECTED BELOW ###
+###             NO PRMOSES!!             ###
 
 
 #TABS
@@ -202,9 +203,10 @@ power:
 misc:
   name: Misc
   entities:
-    - sensor.usps_mail
-    - sensor.deliveries_today
-    - sensor.packages_in_transit
+#    - sensor.usps_mail
+#    - sensor.deliveries_today
+#    - sensor.packages_in_transit
+     - shell_command.copy
 
 weather:
   name: Weather Forecast
