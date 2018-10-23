@@ -73,8 +73,8 @@ views:
     show_header_toggle: false
     entities:
     - input_boolean.arlo_status
-    - sensor.front_door_status
-    - sensor.back_door_status
+    - binary_sensor.front_door
+    - binary_sensor.back_door
 
   - type: entities
     title: Trackers
@@ -116,7 +116,7 @@ views:
   - type: entities
     title: Misc
     entities:
-    - sensor.usps_mail
+#    - sensor.usps_mail
     - sensor.deliveries_today
     - sensor.packages_in_transit
     - script.copy

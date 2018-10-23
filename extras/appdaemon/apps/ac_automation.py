@@ -40,9 +40,10 @@ class AutoAdjust(hass.Hass):
   def presence_adjust(self, entity, attribute, old, new, kwargs):
     #Only change things if you AC automation switched to on
     if self.get_state(self.args["override_input_boolean"]) == "on":
-      if (old == "not_home" and new == "home") or (old == "Closed" and new == "Open" and self.get_state(self.args["device_tracker"]) == "not_home"):
-        if old == "Closed" and new == "Open":
-          self.log("Door opened...")
+      # If a tracker turns "home" OR the front door opens..
+      if (old == "not_home" and new == "home") or (old == "off" and new == "on" and self.get_state(self.args["device_tracker"]) == "not_home"):
+        if old == "off" and new == "on":
+          self.log("Door open detected...")
           self.set_state(self.args["device_tracker"], state = "home")
         if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
           self.log("Someone is home during the day")

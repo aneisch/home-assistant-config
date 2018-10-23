@@ -1,12 +1,14 @@
 - platform: arlo
 
-- platform: fedex
-  username: !secret fedex_username
-  password: !secret fedex_password
+# Dead? https://github.com/home-assistant/home-assistant/issues/13131
+#- platform: fedex
+#  username: !secret fedex_username
+#  password: !secret fedex_password
 
-- platform: ups
-  username: !secret ups_username
-  password: !secret ups_password
+# Dead?
+#- platform: ups
+#  username: !secret ups_username
+#  password: !secret ups_password
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -17,7 +19,6 @@
   #When to remind me in days
   days_in_future: 100
 
-#Tell me when to change a thing
 - platform: date_reminder
   name: Brita Filter Change
   #Date last done/changed
@@ -33,18 +34,6 @@
   server: nuc-nuc
   username: !secret plex_user
   password: !secret plex_password
-
-#- platform: miflora
-#  mac: "c4:7c:8d:63:34:c8"
-#  name: Jade Clippings
-#  force_update: false
-#  median: 3
-#  monitored_conditions:
-#    - moisture
-#    - light
-#    - temperature
-#    - conductivity
-#    - battery
 
 - platform: darksky
   api_key: !secret darksky_api_key
@@ -101,10 +90,6 @@
 - platform: mqtt
   state_topic: "sensor/mom_and_dad_gate"
   name: "Mom and Dad Gate"
-
-- platform: mqtt
-  state_topic: "sensor/desk_keyboard_drawer"
-  name: Desk Keyboard Drawer
 
 ####################
 # BEGIN SONOFF POW #
@@ -264,46 +249,9 @@
   value_template: "{{ value_json.heat_index }}"
 
 
-#####################
-# PHYSICAL SECURITY #
-#####################
-
-- platform: mqtt
-  state_topic: "sensor/backdoor"
-  name: "Backdoor"
-  value_template: "{{ value_json.opened }}"
-
-- platform: mqtt
-  state_topic: "sensor/frontdoor"
-  name: "Frontdoor"
-  value_template: "{{ value_json.opened }}"
-
-
 #############
 # TEMPLATES #
 #############
-
-- platform: template
-  sensors:
-    front_door_status:
-      value_template: >-
-        {%- if is_state("sensor.frontdoor", "true") %}
-          Open
-        {%- else %}
-          Closed
-        {%- endif %}
-      friendly_name: 'Front Door Status'
-
-- platform: template
-  sensors:
-    back_door_status:
-      value_template: >-
-        {%- if is_state("sensor.backdoor", "true") %}
-          Open
-        {%- else %}
-          Closed
-        {%- endif %}
-      friendly_name: 'Back Door Status'
 
 - platform: template
   sensors:
@@ -315,16 +263,6 @@
           Closed
         {%- endif %}
       friendly_name: 'Washing Machine Lid Status'
-
-#- platform: template
-#  sensors:
-#    front_door:
-#      value_template: >-
-#        {%- if is_state("sensor.linear_unknown_type2001_id0102_alarm_level_2_1", "255") -%}
-#          open
-#        {%- else -%}
-#          closed
-#        {%- endif %}
 
 - platform: template
   sensors:

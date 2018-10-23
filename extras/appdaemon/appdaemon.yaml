@@ -12,7 +12,7 @@ log:
   logfile: /var/log/appdaemon.log
   accessfile: /var/log/appdaemon.log
 
-hadashboard:
-  dash_url: http://10.0.1.22:5050
-  dash_force_compile: 1
-  dash_compile_on_start: 1
+#hadashboard:
+#  dash_url: http://10.0.1.22:5050
+#  dash_force_compile: 1
+#  dash_compile_on_start: 1

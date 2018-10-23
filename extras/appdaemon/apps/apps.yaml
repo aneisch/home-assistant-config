@@ -3,7 +3,7 @@ AC AutoAdjust:
   class: AutoAdjust
   thermostats: climate.thermostat
   device_tracker: group.trackers
-  door_trigger: sensor.front_door_status
+  door_trigger: binary_sensor.front_door
   override_input_boolean: input_boolean.ac_automation
   morning_adjust_weekday: '10:00:00'
   morning_adjust_weekend: '11:00:00'
@@ -41,7 +41,7 @@ House Lamp Automation:
 Door Notify:
   module: door_open
   class: DoorNotify
-  door_sensor: sensor.front_door_status,sensor.back_door_status
+  door_sensor: binary_sensor.front_door,binary_sensor.back_door
   notify: home_assistant
 
 Living Room Light at Night With Door:
@@ -49,7 +49,7 @@ Living Room Light at Night With Door:
   class: DoorLight
   constrain_end_time: sunrise
   constrain_start_time: sunset
-  door_sensor: sensor.front_door_status
+  door_sensor: binary_sensor.front_door
   lights: group.living_room_lamps
   time_on: '30'
 

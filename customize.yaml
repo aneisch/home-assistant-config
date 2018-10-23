@@ -176,14 +176,18 @@ input_boolean.weather:
   config:
     weather: weather.yweather
     sun: sun.sun
+script.set_ac_70:
+  friendly_name: Set AC 70
+  emulated_hue_hidden: false
 script.set_ac_72:
   friendly_name: Set AC 72
   emulated_hue_hidden: false
 script.set_ac_75:
-  emulated_hue_hidden: false
-script.set_ac_76:
-  emulated_hue_hidden: false
-script.set_ac_77:
+  friendly_name: Set AC 75
   emulated_hue_hidden: false
 script.set_ac_78:
+  friendly_name: Set AC 78
+  emulated_hue_hidden: false
+script.set_ac_82:
+  friendly_name: Set AC 82
   emulated_hue_hidden: false

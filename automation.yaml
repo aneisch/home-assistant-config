@@ -113,6 +113,34 @@
         message: >
           Package delivered...
 
+- alias: "Front Door Open Length"
+  initial_state: on
+  trigger:
+    platform: state
+    to: 'on'
+    entity_id: binary_sensor.front_door
+    for:
+      minutes: 1
+  action:
+    - service: notify.home_assistant
+      data_template:
+        message: >
+          The front door has been opened for 1 minute.. 
+
+- alias: "Back Door Open Length"
+  initial_state: on
+  trigger:
+    platform: state
+    to: 'on'
+    entity_id: binary_sensor.back_door
+    for:
+      minutes: 1
+  action:
+    - service: notify.home_assistant
+      data_template:
+        message: >
+          The back door has been opened for 1 minute..
+
 #Switch
 - alias: "Arlo Arm"
   initial_state: 'on'
@@ -421,9 +449,9 @@
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: sensor.desk_keyboard_drawer
-    from: 'closed'
-    to: 'open'
+    entity_id: binary_sensor.desk_keyboard_drawer
+    from: 'off'
+    to: 'on'
   action:
     service: homeassistant.toggle
     entity_id: group.andrew_desk

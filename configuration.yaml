@@ -204,8 +204,6 @@ frontend:
 history:
   exclude:
     entities:
-      - sensor.backdoor
-      - sensor.frontdoor
       - sensor.last_boot
       - sensor.moon_phase
       - sensor.bed_toggle_switch
@@ -263,9 +261,9 @@ emulated_hue:
   #See customize.yaml for exposed entites
 
 #Seems to be broken, makes HASS hang..
-#arlo:
-#  username: !secret arlo_username
-#  password: !secret arlo_password
+arlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
 
 panel_iframe:
   plane_tracking:
@@ -324,6 +322,8 @@ notify:
     name: home assistant
     api_key: !secret pushover_api_key
     user_key: !secret pushover_user_key
+  - name: android-app
+    platform: fcm-android
 
 light:
   - platform: limitlessled
@@ -350,14 +350,10 @@ netatmo:
 digital_ocean:
   access_token: !secret DO_token
 
-binary_sensor:
-  - platform: digital_ocean
-    droplets:
-      - !secret DO_host
-
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml
+binary_sensor: !include binary_sensor.yaml
 sensor: !include sensors.yaml
 automation: !include automation.yaml
 group: !include group.yaml

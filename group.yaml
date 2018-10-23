@@ -100,8 +100,8 @@ security:
   control: hidden
   entities:
     - input_boolean.arlo_status
-    - sensor.front_door_status
-    - sensor.back_door_status
+    - binary_sensor.front_door
+    - binary_sensor.back_door
 
 #This helps us determine who is home also!
 trackers:
