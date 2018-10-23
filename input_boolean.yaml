@@ -10,7 +10,7 @@ door_notify:
 
 ac_automation:
   name: AC Automation
-  #initial: on
+  initial: on
   icon: mdi:fan
 
 ac_change_notification:
@@ -24,7 +24,7 @@ occusim:
 
 plant_light_automation:
   name: Plant Light Automation
-  #initial: on
+  initial: on
   icon: mdi:lightbulb
 
 alarm_clock_automation:
@@ -33,10 +33,12 @@ alarm_clock_automation:
 
 guest_automation:
   name: Guest Bedroom Automation
+  initial: on
   icon: mdi:account-plus
 
 house_lamps_automation:
   name: House-Wide Lamps Automation
+  initial: on
   icon: mdi:lamp
 
 security_camera_automation:
