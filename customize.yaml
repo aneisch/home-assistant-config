@@ -30,8 +30,6 @@ fan.office_ceiling_fan_level:
   friendly_name: Ceiling Fan
   emulated_hue_hidden: false
   emulated_hue_name: "Office Ceiling Fan"
-switch.rack_exhaust_fan:
-  icon: mdi:fan
 switch.master_bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
