@@ -9,13 +9,13 @@ AC AutoAdjust:
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
-  # This depends on the manual setting of heat or cool on the thermostat
+  # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '78'
   cool_night: '74'
   cool_unoccupied: '82'
   heat_day: '66'
   heat_night: '62'
-  heat_unoccupied: '62'
+  heat_unoccupied: '58'
 
 Master Bedroom Light Dim:
   module: light_automation

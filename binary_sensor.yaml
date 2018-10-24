@@ -21,7 +21,6 @@
   payload_on: "true"
   payload_off: "false"
   device_class: door
-  value_template: "{{ value_json.opened }}"
 
 - platform: mqtt
   state_topic: "sensor/desk_keyboard_drawer"

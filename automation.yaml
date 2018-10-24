@@ -113,6 +113,24 @@
         message: >
           Package delivered...
 
+- alias: "Door Notification Off with Occupancy Simulator"
+  trigger:
+    platform: state
+    entity_id: input_boolean.occusim
+    to: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: input_boolean.door_notify
+
+- alias: "Door Notification On with Occupancy Simulator"
+  trigger:
+    platform: state
+    entity_id: input_boolean.occusim
+    to: 'off'
+  action:
+    service: homeassistant.turn_off
+    entity_id: input_boolean.door_notify
+
 - alias: "Front Door Open Length"
   initial_state: on
   trigger:
@@ -125,7 +143,7 @@
     - service: notify.home_assistant
       data_template:
         message: >
-          The front door has been opened for 1 minute.. 
+          The front door has been opened for 1 minute..
 
 - alias: "Back Door Open Length"
   initial_state: on
