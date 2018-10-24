@@ -9,37 +9,37 @@ AC AutoAdjust:
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
+  # This depends on the manual setting of heat or cool on the thermostat
   cool_day: '78'
   cool_night: '74'
-  summer_unoccupied: '82'
+  cool_unoccupied: '82'
   heat_day: '66'
   heat_night: '62'
-  winter_unoccupied: '62'
+  heat_unoccupied: '62'
 
 Master Bedroom Light Dim:
   module: light_automation
   class: DeviceOn
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  dependent_entity: light.master_bedroom # Optional entity to constrain automation (will only run if "on")
+  constrain_presence: anyone
   time_on: '23:00:00'
   entity: scene.master_bedroom_light_dim
-  # Only automate if this entity is "on" OPTIONAL
-  dependent_entity: light.master_bedroom
-  # Only automate if this device/group is "home"
-  device_tracker: group.trackers
 
-#All lamps in house at sunset
+# All lamps in house at sunset
 House Lamp Automation:
   module: light_automation
   class: DeviceOn
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  dependent_entity: input_boolean.house_lamps_automation  # Optional entity to constrain automation (will only run if "on")
+  constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via HASS automation, dependent on the guest automation boolean.
   entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch
-  # Only automate if this entity is "on" OPTIONAL
-  dependent_entity: input_boolean.house_lamps_automation
-  # Only automate if this device/group is "home"
-  device_tracker: group.trackers
 
 Door Notify:
   module: door_open
+  constrain_input_boolean: input_boolean.door_notify
   class: DoorNotify
   door_sensor: binary_sensor.front_door,binary_sensor.back_door
   notify: home_assistant
@@ -64,7 +64,7 @@ Minimote:
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
   scene_7_toggle: group.master_bedroom_lamps
-  scene_8_on: script.set_ac_72
+  scene_8_on: script.set_ac_70
 
 Occupancy Simulator:
   module: occusim
@@ -93,7 +93,7 @@ Plant Timer Morning:
   module: device_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.kitchen_plant_light_incandescent,switch.kitchen_plant_light_switch
+  devices: switch.kitchen_plant_light_switch
   time_on: '08:00:00'
   time_off: '12:00:00'
 
@@ -101,7 +101,7 @@ Plant Timer Afternoon:
   module: device_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.kitchen_plant_light_incandescent,switch.kitchen_plant_light_switch
+  devices: switch.kitchen_plant_light_switch
   time_on: '13:00:00'
   time_off: '21:00:00'
 
@@ -109,21 +109,21 @@ Brita Notification:
   module: countdown_notify
   class: Notify
   countdown_entity: sensor.brita_filter_change
-  notification_days: 0 #A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: True #An optional argument, if true we will continue to notify after 0
-  notify: home_assistant #The name of the notify service
+  notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
+  notify_overdue: True # An optional argument, if true we will continue to notify after 0
+  notify: home_assistant # The name of the notify service
   message: "It's time to change the Brita filter!"
 
 AC Filter Notification:
   module: countdown_notify
   class: Notify
   countdown_entity: sensor.ac_filter_change
-  notification_days: 0
-  notify_overdue: True #continue to notify after zero
-  notify: home_assistant
+  notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
+  notify_overdue: True # An optional argument, if true we will continue to notify after 0
+  notify: home_assistant # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
 
-#Algo Timer:
+# Algo Timer:
 #  module: algo_timer
 #  class: SmartTimer
 #  db_location: /opt/homeassistant/home-assistant_v2.db
