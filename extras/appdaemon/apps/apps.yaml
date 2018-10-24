@@ -1,10 +1,10 @@
 AC AutoAdjust:
   module: ac_automation
   class: AutoAdjust
+  constrain_input_boolean: input_boolean.ac_automation
   thermostats: climate.thermostat
   device_tracker: group.trackers
   door_trigger: binary_sensor.front_door
-  override_input_boolean: input_boolean.ac_automation
   morning_adjust_weekday: '10:00:00'
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
@@ -39,14 +39,15 @@ House Lamp Automation:
 
 Door Notify:
   module: door_open
-  constrain_input_boolean: input_boolean.door_notify
   class: DoorNotify
+  constrain_input_boolean: input_boolean.door_notify
   door_sensor: binary_sensor.front_door,binary_sensor.back_door
   notify: home_assistant
 
 Living Room Light at Night With Door:
   module: door_open
   class: DoorLight
+  constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
@@ -69,8 +70,8 @@ Minimote:
 Occupancy Simulator:
   module: occusim
   class: OccuSim
+  constrain_input_boolean: input_boolean.occusim
   dump_times: '1'
-  enable: input_boolean.occusim
   log: '1'
   random_house_end: Night
   random_house_maxduration: 01:00:00

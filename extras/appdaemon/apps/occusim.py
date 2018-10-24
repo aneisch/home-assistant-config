@@ -12,33 +12,33 @@ __version__ = "1.1.1"
 class OccuSim(hass.Hass):
 
   def initialize(self):
-  
+
     # Schedule a daily callback that will call run_daily() at 3am every night
     # To set the new callbacks
     if "test" in self.args:
       self.test = True
     else:
       self.test = False
-    
-    self.timers = ()  
-    
+
+    self.timers = ()
+
     # Set a timer to recreate the day's events at 3am
     if "reset_time" in self.args:
       time = self.parse_time(self.args["reset_time"])
     else:
       time = datetime.time(3, 0, 0)
     self.run_daily(self.create_events, time)
-    
+
     # Create today's random events
     self.create_events({})
-    
+
   def create_events(self, kwargs):
     #self.log_notify("Running Create Events")
-    
+
     events = {}
     steps = ()
     randoms = ()
-    
+
     for arg in self.args:
       m = re.search("step_(.+)_name", arg)
       if m:
@@ -46,7 +46,7 @@ class OccuSim(hass.Hass):
       m = re.search("random_(.+)_name", arg)
       if m:
         randoms = randoms + (m.group(1), )
-    
+
     # First pick up absolute events
     for step in steps:
       event = None
@@ -61,11 +61,11 @@ class OccuSim(hass.Hass):
         for arg in self.args:
           if re.match(step + "on", arg) or re.match(step + "off", arg):
             cbargs[arg] = self.args[arg]
-      
+
         start_p = self.args[step + "start"]
         start = self.parse_time(start_p)
         end_p = self.args.get(step + "end")
-        if end_p != None: 
+        if end_p != None:
           end = self.parse_time(end_p)
           start_ts = datetime.datetime.combine(self.date(), start).timestamp()
           end_ts = datetime.datetime.combine(self.date(), end).timestamp()
@@ -81,11 +81,11 @@ class OccuSim(hass.Hass):
         events[stepname] = {}
         events[stepname]["event"] = event
         events[stepname]["args"] = cbargs.copy()
-          
+
     # Now relative events - multiple passes required as the order could be arbitrary
-    
+
     changes = 1
-    
+
     while changes > 0:
       changes = 0
       for step in steps:
@@ -102,7 +102,7 @@ class OccuSim(hass.Hass):
             for arg in self.args:
               if re.match(step + "on", arg) or re.match(step + "off", arg):
                 cbargs[arg] = self.args[arg]
-                
+
             steprelative = self.args[step + "relative"]
             if steprelative in events:
               start_offset_p = self.args[step + "start_offset"]
@@ -120,23 +120,23 @@ class OccuSim(hass.Hass):
               elif span < 0:
                 self.log("step_{} end < start - ignoring end".format(i))
                 event = start
-            
+
               events[stepname] = {}
               events[stepname]["event"] = event
               events[stepname]["args"] = cbargs.copy()
               changes += 1
-      
+
     list = ""
     for step in steps:
       stepname = self.args["step_" + step + "_name"]
       if stepname not in events:
         list += stepname + " "
-        
+
     if list != "":
       self.log("unable to schedule the following steps due to missing prereq step: {}".format(list), "WARNING")
 
     # Schedule random events
-    
+
     for step in randoms:
       event = None
       step = "random_" + step + "_"
@@ -153,7 +153,7 @@ class OccuSim(hass.Hass):
           cbonargs[arg] = self.args[arg]
         if re.match(step + "off", arg):
           cboffargs[arg] = self.args[arg]
-      
+
       startstep = self.args[step + "start"]
       endstep = self.args[step + "end"]
       starttime = events[startstep]["event"]
@@ -171,7 +171,7 @@ class OccuSim(hass.Hass):
         end = start + datetime.timedelta(seconds=random.randrange(dspan))
         if end > endtime:
           end = endtime
-        
+
         eventname = stepname + "_on_" + str(i)
         events[eventname] = {}
         events[eventname]["event"] = start
@@ -183,14 +183,14 @@ class OccuSim(hass.Hass):
         events[eventname]["event"] = end
         cboffargs["step"] = eventname
         events[eventname]["args"] = cboffargs.copy()
-        
+
     # Take all the events we found and schedule them
-    
+
     for event in sorted(events.keys(), key=lambda event: events[event]["event"]):
       stepname = events[event]["args"]["step"]
       start = events[event]["event"]
       args = events[event]["args"]
-      if start > self.datetime(): 
+      if start > self.datetime():
         # schedule it
         if "enable" in self.args:
           args["constrain_input_boolean"] = self.args["enable"]
@@ -211,11 +211,11 @@ class OccuSim(hass.Hass):
         self.activate(kwargs[arg], "on")
       elif re.match(".+off.+", arg):
         self.activate(kwargs[arg], "off")
-        
+
   def activate(self, entity, action):
     type = action
     m = re.match('event\.(.+)\,(.+)', entity)
-    if m:  
+    if m:
       if not self.test: self.fire_event(m.group(1), **{m.group(2): self.step})
       if "log" in self.args:
         self.log("fired event {} with {} = {}".format(m.group(1), m.group(2), self.step))
@@ -233,14 +233,12 @@ class OccuSim(hass.Hass):
         if not self.test: self.turn_on(entity)
       else:
         if not self.test: self.turn_off(entity)
-        
+
     if "log" in self.args:
       self.log("turned {} {}".format(type, entity))
-    
+
   def log_notify(self, message):
     if "log" in self.args:
       self.log(message)
     if "notify" in self.args:
       self.notify(message)
-  
-    

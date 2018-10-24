@@ -38,31 +38,29 @@ class AutoAdjust(hass.Hass):
 
     # Change temperature in response to device tracker or door sensor
     def presence_adjust(self, entity, attribute, old, new, kwargs):
-        #Only change things if you AC automation switched to on
-        if self.get_state(self.args["override_input_boolean"]) == "on":
-            # If tracker changes to "home" OR the front door opens when no one was home
-            if (old == "not_home" and new == "home") or (old == "off" and new == "on" and self.get_state(self.args["device_tracker"]) == "not_home"):
-                if old == "off" and new == "on":
-                    self.log("Door open detected...")
-                    self.set_state(self.args["device_tracker"], state = "home")
+        # If tracker changes to "home" OR the front door opens when no one was home
+        if (old == "not_home" and new == "home") or (old == "off" and new == "on" and self.get_state(self.args["device_tracker"]) == "not_home"):
+            if old == "off" and new == "on":
+                self.log("Door open detected...")
+                self.set_state(self.args["device_tracker"], state = "home")
 
-                # Someone is home (door or tracker) decide if it's night or day and adjust accordingly
-                if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
-                    self.log("Someone came home during the day")
-                    self.adjust_morning(kwargs)
-                else:
-                    self.log("Someone came home at night")
-                    self.adjust_night(kwargs)
+            # Someone is home (door or tracker) decide if it's night or day and adjust accordingly
+            if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
+                self.log("Someone came home during the day")
+                self.adjust_morning(kwargs)
+            else:
+                self.log("Someone came home at night")
+                self.adjust_night(kwargs)
 
-            # If someone was home but the house is now unoccupied
-            elif old == "home" and new == "not_home":
-                if self.get_state("sensor.thermostat_operating_mode") == "Heat":
-                    self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
-                    self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
+        # If someone was home but the house is now unoccupied
+        elif old == "home" and new == "not_home":
+            if self.get_state("sensor.thermostat_operating_mode") == "Heat":
+                self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
+                self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
 
-                elif self.get_state("sensor.thermostat_operating_mode") == "Cool":
-                    self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
-                    self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
+            elif self.get_state("sensor.thermostat_operating_mode") == "Cool":
+                self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
+                self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
 
     # Set day time temperature
     def adjust_morning(self, kwargs):
