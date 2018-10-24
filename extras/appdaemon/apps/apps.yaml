@@ -9,11 +9,11 @@ AC AutoAdjust:
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '21:00:00'
   night_adjust_weekend: '21:00:00'
-  summer_day: '78'
-  summer_night: '74'
+  cool_day: '78'
+  cool_night: '74'
   summer_unoccupied: '82'
-  winter_day: '66'
-  winter_night: '62'
+  heat_day: '66'
+  heat_night: '62'
   winter_unoccupied: '62'
 
 Master Bedroom Light Dim:
@@ -122,7 +122,7 @@ AC Filter Notification:
   notify_overdue: True #continue to notify after zero
   notify: home_assistant
   message: "It's time to change the AC filter! (20x25x1)"
-  
+
 #Algo Timer:
 #  module: algo_timer
 #  class: SmartTimer
