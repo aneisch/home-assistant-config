@@ -15,252 +15,288 @@ views:
 ########
 # HOME #
 ########
-- title: Home
-  cards:
-
-  - type: entities
-    title: Thermostat
-    entities:
-    - climate.thermostat
-    - sensor.thermostat_temperature
-    - sensor.thermostat_setpoint
-    - sensor.thermostat_state
-    - sensor.thermostat_fan_status
-    - sensor.ac_runtime_today
-    - sensor.ac_runtime_yesterday
-
-  - type: custom:swipe-card
-    parameters:
-      spaceBetween: 8
-      scrollbar:
-        hide: false
-        draggable: true
-        snapOnRelease: true
+  - id: 0  # Automatically created id
+    title: Home
     cards:
-      - type: sensor
-        entity: sensor.thermostat_temperature
-        name: Thermostat Temperature
-        line_width: 8
-        line_color: '#FF6384'
-      - type: sensor
-        entity: sensor.thermostat_setpoint
-        name: Thermostat Setpoint
-        line_color: '#36A2EB'
-        line_width: 8
+      - id: 57c6ff96ae6a4b75abe4ce5dc35e0bb9  # Automatically created id
+        type: thermostat
+        entity: climate.thermostat
 
-  - type: entities
-    title: Automation Control
-    show_header_toggle: false
-    entities:
-    - input_boolean.door_notify
-    - input_boolean.ac_automation
-    - input_boolean.plant_light_automation
-    - input_boolean.ac_change_notification
-    - input_boolean.occusim
-    - input_boolean.guest_automation
-    - input_boolean.house_lamps_automation
-    - input_boolean.security_camera_automation
 
-  - type: entities
-    title: Scenes
-    entities:
-    - script.master_bedroom_light_full
-    - script.master_bedroom_light_dim
-    - script.master_bedroom_bedtime
+      - id: ffde4b2bfa2c43a79cf69cb4252cac06  # Automatically created id
+        type: entities
+        title: Thermostat
+        entities:
+          - climate.thermostat
+          - sensor.thermostat_temperature
+          - sensor.thermostat_setpoint
+          - sensor.thermostat_state
+          - sensor.thermostat_fan_status
+          - sensor.ac_runtime_today
+          - sensor.ac_runtime_yesterday
 
-  - type: entities
-    title: Security
-    show_header_toggle: false
-    entities:
-    - input_boolean.arlo_status
-    - binary_sensor.front_door
-    - binary_sensor.back_door
+      - id: dac87097e5304f5bab5e92d836eaef70  # Automatically created id
+        type: custom:swipe-card
+        parameters:
+          spaceBetween: 8
+          scrollbar:
+            hide: false
+            draggable: true
+            snapOnRelease: true
+        cards:
+          - type: sensor
+            entity: sensor.thermostat_temperature
+            name: Thermostat Temperature
+            line_width: 8
+            line_color: '#FF6384'
+          - type: sensor
+            entity: sensor.thermostat_setpoint
+            name: Thermostat Setpoint
+            line_color: '#36A2EB'
+            line_width: 8
 
-  - type: entities
-    title: Trackers
-    entities:
-    - device_tracker.owntracks_android
-    - device_tracker.bethany_iphone
+      - id: 4233cf08799a4d09a76ded4a4f9ad619  # Automatically created id
+        type: entities
+        title: Automation Control
+        show_header_toggle: false
+        entities:
+          - input_boolean.door_notify
+          - input_boolean.ac_automation
+          - input_boolean.plant_light_automation
+          - input_boolean.ac_change_notification
+          - input_boolean.occusim
+          - input_boolean.guest_automation
+          - input_boolean.house_lamps_automation
+          - input_boolean.security_camera_automation
 
-  - type: entities
-    title: Weather
-    entities:
-    - sensor.dark_sky_summary
-    - sensor.dark_sky_temperature
-    - sensor.dark_sky_humidity
-    - sensor.dark_sky_precip_probability
-    - sun.sun
-    - sensor.moon_phase
+      - id: 4fbdefc8a9b04b2398dc96e714cbb5c0  # Automatically created id
+        type: entities
+        title: Scenes
+        entities:
+          - script.master_bedroom_light_full
+          - script.master_bedroom_light_dim
+          - script.master_bedroom_bedtime
 
-  - type: "custom:weather-card"
-    entity_weather: weather.yweather
-    entity_sun: sun.sun
+      - id: 714aed0952d341f3b8d15c921b606a3b  # Automatically created id
+        type: entities
+        title: Security
+        show_header_toggle: false
+        entities:
+          - input_boolean.arlo_status
+          - binary_sensor.front_door
+          - binary_sensor.back_door
 
-  - type: iframe
-    aspect_ratio: 90%
-    url: !secret windy_url
+      - id: 4ab25c640bd445e9a3fa3d5a160a5747  # Automatically created id
+        type: entities
+        title: Trackers
+        entities:
+          - device_tracker.owntracks_android
+          - device_tracker.bethany_iphone
 
-  - type: picture-entity
-    entity: camera.weather_radar
+      - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id
+        type: entities
+        title: Weather
+        entities:
+          - sensor.dark_sky_summary
+          - sensor.dark_sky_temperature
+          - sensor.dark_sky_humidity
+          - sensor.dark_sky_precip_probability
+          - sun.sun
+          - sensor.moon_phase
 
-  - type: picture-entity
-    entity: camera.outdoor
+      - id: ab435da4384043c685f20f6f4e12715e  # Automatically created id
+        type: custom:weather-card
+        entity_weather: weather.yweather
+        entity_sun: sun.sun
 
-  - type: custom:mini-media-player
-    entity: media_player.spotify
-    icon: 'mdi:cast'
-    artwork_border: true
-    power_color: true
-    show_source: true
+  #- type: iframe
+  #  aspect_ratio: 90%
+  #  url: !secret windy_url
 
-  - type: entities
-    title: Misc
-    entities:
+      - id: c8862a9288e9486b8a267ef725d40e55  # Automatically created id
+        type: picture-entity
+        entity: camera.weather_radar
+
+      - id: ad9fae2dc645458d9f45bafe2f848132  # Automatically created id
+        type: picture-entity
+        entity: camera.outdoor
+
+      - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
+        type: custom:mini-media-player
+        entity: media_player.spotify
+        icon: mdi:cast
+        artwork_border: true
+        power_color: true
+        show_source: true
+
+      - id: e5f88e8e8dda4b078af8b42a7b17f8d3  # Automatically created id
+        type: entities
+        title: Misc
+        entities:
 #    - sensor.usps_mail
 #    - sensor.deliveries_today
 #    - sensor.packages_in_transit
-    - script.copy
+          - script.copy
 
 
 ##########
 # COMMON #
 ##########
-- title: Common Areas
-  cards:
+  - id: 1  # Automatically created id
+    title: Common Areas
+    cards:
 
-  - type: entities
-    title: Thermostat
-    entities:
-    - climate.thermostat
-    - sensor.thermostat_temperature
-    - sensor.thermostat_setpoint
-    - sensor.thermostat_state
-    - sensor.thermostat_fan_status
-    - sensor.ac_runtime_today
-    - sensor.ac_runtime_yesterday
+      - id: f84b8a512067410faf913bb7a855cab0  # Automatically created id
+        type: entities
+        title: Thermostat
+        entities:
+          - climate.thermostat
+          - sensor.thermostat_temperature
+          - sensor.thermostat_setpoint
+          - sensor.thermostat_state
+          - sensor.thermostat_fan_status
+          - sensor.ac_runtime_today
+          - sensor.ac_runtime_yesterday
 
-  - type: entities
-    title: Living Room
-    show_header_toggle: false
-    entities:
-    - switch.wemo_switch
-    - switch.living_room_lamp
-    - switch.tv
+      - id: 518be779d55344158e432b75c8d70d7a  # Automatically created id
+        type: entities
+        title: Living Room
+        show_header_toggle: false
+        entities:
+          - switch.wemo_switch
+          - switch.living_room_lamp
+          - switch.tv
 
-  - type: entities
-    title: Guest Bedroom
-    show_header_toggle: false
-    entities:
-    - switch.guest_lamp
+      - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
+        type: entities
+        title: Guest Bedroom
+        show_header_toggle: false
+        entities:
+          - switch.guest_lamp
 
-  - type: entities
-    title: Kitchen
-    show_header_toggle: false
-    entities:
-    - switch.kitchen_table_light_switch
-    - switch.kitchen_plant_light_switch
-    - switch.kitchen_plant_light_incandescent
+      - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
+        type: entities
+        title: Kitchen
+        show_header_toggle: false
+        entities:
+          - switch.kitchen_table_light_switch
+          - switch.kitchen_plant_light_switch
+          - switch.kitchen_plant_light_incandescent
 
-  - type: entities
-    title: Office
-    show_header_toggle: false
-    entities:
-    - fan.office_ceiling_fan_level
-    - switch.outdoor_zwave_switch
-    - entity: light.andrew_monitor_backlight
-      name: Monitor Backlight
-      hide_when_off: true
-      type: custom:slider-entity-row
-      break_slider: true
+      - id: 99c90437cecc4a649c1bb8478cb17205  # Automatically created id
+        type: entities
+        title: Office
+        show_header_toggle: false
+        entities:
+          - fan.office_ceiling_fan_level
+          - switch.outdoor_zwave_switch
+          - entity: light.andrew_monitor_backlight
+            name: Monitor Backlight
+            hide_when_off: true
+            type: custom:slider-entity-row
+            break_slider: true
 
-  - type: picture-entity
-    entity: camera.office
+      - id: b7af20433c784ccca205fa325641280f  # Automatically created id
+        type: picture-entity
+        entity: camera.office
 
-  - type: picture-entity
-    entity: camera.1
+      - id: d8815d1b15c24ac8970aa8003bef52ed  # Automatically created id
+        type: picture-entity
+        entity: camera.1
 
-  - type: picture-entity
-    entity: camera.2
+      - id: 9c6320bdd0604afe93bd64ee63a926f3  # Automatically created id
+        type: picture-entity
+        entity: camera.2
 
-  - type: picture-entity
-    entity: camera.3
+      - id: 8ca676339f03436ea002418fe777dc83  # Automatically created id
+        type: picture-entity
+        entity: camera.3
 
-  - type: custom:mini-media-player
-    entity: media_player.spotify
-    icon: 'mdi:cast'
-    artwork_border: true
-    power_color: true
-    show_source: true
+      - id: 7ed045db114e44a88505b94735871713  # Automatically created id
+        type: custom:mini-media-player
+        entity: media_player.spotify
+        icon: mdi:cast
+        artwork_border: true
+        power_color: true
+        show_source: true
 
 
 ##########
 # MASTER #
 ##########
-- title: Master Bedroom
-  cards:
-
-  - type: entities
+  - id: 2  # Automatically created id
     title: Master Bedroom
-    show_header_toggle: false
-    entities:
-    - sensor.master_bedroom_temperature
-    - light.master_bedroom
-    #- switch.master_bedroom_sound_machine
-    - fan.master_bedroom_ceiling_fan_level
-    - switch.master_bathroom_light_switch
-    - switch.andrews_lamp
-    - switch.bethanys_lamp
+    cards:
 
-  - type: entities
-    title: Scenes
-    entities:
-    - script.master_bedroom_light_full
-    - script.master_bedroom_light_dim
-    - script.master_bedroom_bedtime
+      - id: a75e35a4aa624d51a2a345b89e366774  # Automatically created id
+        type: entities
+        title: Master Bedroom
+        show_header_toggle: false
+        entities:
+          - sensor.master_bedroom_temperature
+          - light.master_bedroom
+          - switch.master_bedroom_sound_machine
+          - fan.master_bedroom_ceiling_fan_level
+          - switch.master_bathroom_light_switch
+          - switch.andrews_lamp
+          - switch.bethanys_lamp
 
-  - type: custom:mini-media-player
-    entity: media_player.spotify
-    icon: 'mdi:cast'
-    artwork_border: true
-    power_color: true
-    show_source: true
+      - id: 05b792f2dbf04373941dd053f3209dfd  # Automatically created id
+        type: entities
+        title: Scenes
+        entities:
+          - script.master_bedroom_light_full
+          - script.master_bedroom_light_dim
+          - script.master_bedroom_bedtime
+
+      - id: 300669cdcc1c4af0aae874434480e3c2  # Automatically created id
+        type: custom:mini-media-player
+        entity: media_player.spotify
+        icon: mdi:cast
+        artwork_border: true
+        power_color: true
+        show_source: true
 
 
 ##########
 # SERVER #
 ##########
-- title: Server Status
-  cards:
+  - id: 3  # Automatically created id
+    title: Server Status
+    cards:
 
-  - type: entities
-    title: System
-    show_header_toggle: false
-    entities:
-    - sensor.ssl_certificate_expiry
-    - sensor.rack_exhaust_temperature
-    - sensor.processor_use
-    - sensor.load_1m
-    - sensor.memory_use_percent
-    - sensor.disk_use_percent_
-    - sensor.disk_use_percent_home
-    - sensor.last_boot
-    - sensor.network_out_eno1
-    - sensor.network_in_eno1
-    - switch.nas
+      - id: bca91e04c9ae4c6582a951921b2c1b14  # Automatically created id
+        type: entities
+        title: System
+        show_header_toggle: false
+        entities:
+          - sensor.ssl_certificate_expiry
+          - sensor.rack_exhaust_temperature
+          - sensor.processor_use
+          - sensor.load_1m
+          - sensor.memory_use_percent
+          - sensor.disk_use_percent_
+          - sensor.disk_use_percent_home
+          - sensor.last_boot
+          - sensor.network_out_eno1
+          - sensor.network_in_eno1
+          - switch.nas
 
-  - type: entities
-    title: UPS
-    entities:
-    - sensor.ups_time_left
-    - sensor.ups_load
-    - sensor.ups_battery
+      - id: 4428e05e6a7143e0a2b2fbf52d92dfe0  # Automatically created id
+        type: entities
+        title: UPS
+        entities:
+          - sensor.ups_time_left
+          - sensor.ups_load
+          - sensor.ups_battery
 
-  - type: entities
-    title: Power
-    entities:
-    - sensor.sonoff_pow_current
-    - sensor.sonoff_pow_power
-    - sensor.sonoff_pow_today_energy
-    - sensor.sonoff_pow_today_cost
-    - sensor.sonoff_pow_yesterday_energy
-    - sensor.sonoff_pow_yesterday_cost
+      - id: 1658f3d4809c475eb362b0a55af2084d  # Automatically created id
+        type: entities
+        title: Power
+        entities:
+          - sensor.sonoff_pow_current
+          - sensor.sonoff_pow_power
+          - sensor.sonoff_pow_today_energy
+          - sensor.sonoff_pow_today_cost
+          - sensor.sonoff_pow_yesterday_energy
+          - sensor.sonoff_pow_yesterday_cost

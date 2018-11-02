@@ -5,8 +5,9 @@
 #- platform: usps
 #  scan_interval: 5
 
-- platform: generic
-  still_image_url: !secret weather_radar
+# Updating this with cronjob
+- platform: local_file
+  file_path: /tmp/radar.gif
   name: Weather Radar
 
 - platform: mjpeg
