@@ -110,6 +110,7 @@ trackers:
   entities:
     - device_tracker.owntracks_android
     - device_tracker.bethany_iphone
+    - device_tracker.owntracks_workphone
 
 #weather:
 #  name: Weather

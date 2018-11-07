@@ -189,3 +189,9 @@ script.set_ac_78:
 script.set_ac_82:
   friendly_name: Set AC 82
   emulated_hue_hidden: false
+script.too_cold:
+  friendly_name: Too Cold
+  emulated_hue_hidden: false
+script.too_hot:
+  friendly_name: Too Hot
+  emulated_hue_hidden: false

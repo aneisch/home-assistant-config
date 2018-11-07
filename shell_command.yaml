@@ -18,7 +18,7 @@ tv_fox: echo 38000,1,1,172,172,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,2
 
 nas_poweroff: "sudo umount -fl /plex; sudo ssh -i /home/aneisch/.ssh/id_rsa root@10.0.1.20 '/frontview/bin/autopoweroff &> /dev/null; exit'"
 
-owntracks_update: '/usr/local/bin/force_location_update'
+owntracks_update: '/usr/local/bin/force_location_update.sh'
 
 mount_plex: 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
 
