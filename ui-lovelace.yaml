@@ -90,8 +90,8 @@ views:
         type: entities
         title: Trackers
         entities:
-          - device_tracker.owntracks_android
-          - device_tracker.bethany_iphone
+          - device_tracker.owntracks_workphone
+          - device_tracker.bethanys_iphone
 
       - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id
         type: entities

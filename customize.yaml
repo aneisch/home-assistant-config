@@ -155,10 +155,10 @@ script.common_areas_off:
   emulated_hue_name: "Common Areas Off"
 
 #DEVICES
-device_tracker.owntracks_android:
+device_tracker.owntracks_workphone:
   friendly_name: Andrew's Phone
   entity_picture: /local/icons/tracker_icons/andrew.jpg
-device_tracker.bethany_iphone:
+device_tracker.bethanys_iphone:
   friendly_name: Bethany's iPhone
   entity_picture: /local/icons/tracker_icons/bethany.jpg
 

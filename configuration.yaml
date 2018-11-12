@@ -23,6 +23,8 @@ recorder:
   purge_interval: 1
   purge_keep_days: 7
 
+ios:
+
 sun:
 
 weather:
@@ -79,7 +81,7 @@ proximity:
   home:
     devices:
       - device_tracker.owntracks_android
-      - device_tracker.bethany_iphone
+      - device_tracker.bethanys_iphone
     tolerance: 50
     unit_of_measurement: mi
 
