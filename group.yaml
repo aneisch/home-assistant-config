@@ -108,9 +108,7 @@ security:
 trackers:
   name: Trackers
   entities:
-    #nmap
-    #- device_tracker.bethany_iphone
-    #ios
+    #- device_tracker.bethany_iphone_nmap
     - device_tracker.bethanys_iphone
     - device_tracker.owntracks_workphone
 
