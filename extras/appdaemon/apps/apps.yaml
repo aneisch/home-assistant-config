@@ -42,7 +42,7 @@ Door Notify:
   class: DoorNotify
   constrain_input_boolean: input_boolean.door_notify
   door_sensor: binary_sensor.front_door,binary_sensor.back_door
-  notify: home_assistant
+  notify: pushover
 
 Living Room Light at Night With Door:
   module: door_open
@@ -112,7 +112,7 @@ Brita Notification:
   countdown_entity: sensor.brita_filter_change
   notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
   notify_overdue: True # An optional argument, if true we will continue to notify after 0
-  notify: home_assistant # The name of the notify service
+  notify: pushover # The name of the notify service
   message: "It's time to change the Brita filter!"
 
 AC Filter Notification:
@@ -121,7 +121,7 @@ AC Filter Notification:
   countdown_entity: sensor.ac_filter_change
   notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
   notify_overdue: True # An optional argument, if true we will continue to notify after 0
-  notify: home_assistant # The name of the notify service
+  notify: pushover # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
 
 # Algo Timer:

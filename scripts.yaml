@@ -33,7 +33,7 @@ arlo_disarm:
         seconds: 5
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
-    - service: notify.home_assistant
+    - service: notify.pushover
       data:
         message: Disrmed!
 
@@ -41,7 +41,7 @@ arlo_arm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_arm"}
-    - service: notify.home_assistant
+    - service: notify.pushover
       data:
         message: Armed!
 
@@ -155,7 +155,7 @@ too_hot:
 
 panic:
   sequence:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data:
         message: "Help!"
         title: "Panic!!"

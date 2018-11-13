@@ -43,7 +43,7 @@
     entity_id: sensor.washing_machine_lid
     state: 'true'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: I think Bethany left the washer lid open..
 
@@ -108,7 +108,7 @@
     platform: state
     entity_id: sensor.deliveries_today
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           Package delivered...
@@ -140,7 +140,7 @@
     for:
       minutes: 1
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           The front door has been opened for 1 minute..
@@ -154,7 +154,7 @@
     for:
       minutes: 1
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           The back door has been opened for 1 minute..
@@ -339,7 +339,7 @@
         entity_id: sensor.thermostat_setpoint
         below: '68'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: AC Broke.. Turning Off...
     - service: climate.set_operation_mode
@@ -363,7 +363,7 @@
         entity_id: sensor.thermostat_setpoint
         above: '72'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: AC Broke.. Turning Off...
     - service: climate.set_operation_mode
@@ -388,7 +388,7 @@
       - condition: template
         value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
@@ -410,7 +410,7 @@
       - condition: template
         value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
@@ -445,7 +445,7 @@
     from: 'closed'
     to: 'open'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           Gate Opened
@@ -458,7 +458,7 @@
     from: 'open'
     to: 'closed'
   action:
-    - service: notify.home_assistant
+    - service: notify.pushover
       data_template:
         message: >
           Gate Closed

@@ -36,18 +36,18 @@ custom_updater:
     - https://raw.githubusercontent.com/kalkih/mini-graph-card/master/tracker.json
 
 zone:
-  name: Work
-  latitude: !secret work_lat
-  longitude: !secret work_long
+  name: Andrew Work
+  latitude: !secret andrew_work_lat
+  longitude: !secret andrew_work_long
   radius: 500
   icon: mdi:worker
 
 zone 2:
-  name: Bethany's House
-  latitude: !secret bethany_lat
-  longitude: !secret bethany_long
-  radius: 500
-  icon: mdi:heart
+  name: Bethany Work
+  latitude: !secret bethany_work_lat
+  longitude: !secret bethany_work_long
+  radius: 200
+  icon: mdi:worker
 
 zone 3:
   name: Dan and Marilyn's
@@ -319,9 +319,9 @@ climate:
 notify:
   - platform: pushbullet
     api_key: !secret pushbullet_key
-    name: notify_push_android
+    name: pushbullet
   - platform: pushover
-    name: home assistant
+    name: pushover
     api_key: !secret pushover_api_key
     user_key: !secret pushover_user_key
   - name: android-app
