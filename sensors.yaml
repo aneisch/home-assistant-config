@@ -28,7 +28,12 @@
   days_in_future: 90
 
 - platform: cert_expiry
+  name: !secret domain_name
   host: !secret domain
+
+- platform: cert_expiry
+  name: !secret domain_2_name
+  host: !secret domain_2
 
 - platform: plex
   server: nuc-nuc

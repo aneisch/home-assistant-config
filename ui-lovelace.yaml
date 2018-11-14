@@ -109,9 +109,9 @@ views:
         entity_weather: weather.yweather
         entity_sun: sun.sun
 
-  #- type: iframe
-  #  aspect_ratio: 90%
-  #  url: !secret windy_url
+      - type: iframe
+        aspect_ratio: 90%
+        url: !secret windy_url
 
       - id: c8862a9288e9486b8a267ef725d40e55  # Automatically created id
         type: picture-entity
@@ -270,7 +270,8 @@ views:
         title: System
         show_header_toggle: false
         entities:
-          - sensor.ssl_certificate_expiry
+          - !secret domain_expiry
+          - !secret domain_2_expiry
           - sensor.rack_exhaust_temperature
           - sensor.processor_use
           - sensor.load_1m
