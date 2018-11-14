@@ -1,0 +1,14 @@
+# Rest call to appdaemon api so we can intelligently trigger changes via appdaemon apps
+# these will be triggered by scripts
+
+adjust_night:
+  url: http://10.0.1.22:8888/api/appdaemon/adjust_night
+  method: POST
+  payload: '{"type": "Adjust Night"}'
+  content_type: 'application/json'
+
+adjust_morning:
+  url: http://10.0.1.22:8888/api/appdaemon/adjust_morning
+  method: POST
+  payload: '{"type": "Adjust Morning"}'
+  content_type: 'application/json'

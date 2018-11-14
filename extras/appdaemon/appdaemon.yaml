@@ -1,6 +1,7 @@
 appdaemon:
   threads: 10
   time_zone: America/Chicago
+  api_port: 8888
   plugins:
     HASS:
       type: hass

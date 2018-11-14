@@ -324,8 +324,6 @@ notify:
     name: pushover
     api_key: !secret pushover_api_key
     user_key: !secret pushover_user_key
-  - name: android-app
-    platform: fcm-android
 
 light:
   - platform: limitlessled
@@ -364,3 +362,4 @@ script: !include scripts.yaml
 input_boolean: !include input_boolean.yaml
 input_select: !include input_select.yaml
 shell_command: !include shell_command.yaml
+rest_command: !include rest_command.yaml

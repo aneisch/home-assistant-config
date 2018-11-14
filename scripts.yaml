@@ -104,6 +104,14 @@ copy:
   sequence:
     - service: shell_command.copy
 
+appdaemon_ac_night:
+  sequence:
+    - service: rest_command.adjust_night
+
+appdaemon_ac_morning:
+  sequence:
+    - service: rest_command.adjust_morning
+
 set_ac_70:
   sequence:
     - service: climate.set_temperature

@@ -4,6 +4,9 @@ import datetime
 class AutoAdjust(hass.Hass):
     def initialize(self):
 
+        self.register_endpoint(self.adjust_night, "adjust_night")
+        self.register_endpoint(self.adjust_morning, "adjust_morning")
+
         # Compute our times
         self.morning_adjust_weekday = datetime.datetime.strptime(self.args["morning_adjust_weekday"], '%H:%M:%S').time()
         self.night_adjust_weekday = datetime.datetime.strptime(self.args["night_adjust_weekday"], '%H:%M:%S').time()
@@ -23,6 +26,7 @@ class AutoAdjust(hass.Hass):
 
         # Set our door trigger callback
         self.listen_state(self.presence_adjust, self.args["door_trigger"])
+
 
     # Determine whether we're in daytime or nighttime
     def time_in_range(self, start, end, x):
@@ -77,12 +81,16 @@ class AutoAdjust(hass.Hass):
         # No one is home and we've gotten called to adjust for day based on time
         else:
             if self.get_state("sensor.thermostat_operating_mode") == "Heat":
-                self.log("Mode: Heat Night -- %s" % self.args["heat_unoccupied"])
+                self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
 
             elif self.get_state("sensor.thermostat_operating_mode") == "Cool":
-                self.log("Mode: Cool Night -- %s" % self.args["cool_unoccupied"])
+                self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
+
+        # For appdaemon api: curl -i -X POST -H "Content-Type: application/json" http://10.0.1.22:8888/api/appdaemon/adjust_morning
+        response = ""
+        return response, 200
 
 
     def adjust_night(self, kwargs):
@@ -98,9 +106,13 @@ class AutoAdjust(hass.Hass):
         # No one is home and we've gotten called back to adjust for night based on time
         else:
             if self.get_state("sensor.thermostat_operating_mode") == "Heat":
-                self.log("Mode: Heat Night -- %s" % self.args["heat_unoccupied"])
+                self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
 
             elif self.get_state("sensor.thermostat_operating_mode") == "Cool":
-                self.log("Mode: Cool Night -- %s" % self.args["cool_unoccupied"])
+                self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
+
+        # For appdaemon api: curl -i -X POST -H "Content-Type: application/json" http://10.0.1.22:8888/api/appdaemon/adjust_night
+        response = ""
+        return response, 200

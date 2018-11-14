@@ -131,6 +131,10 @@ sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
 #Scripts
+script.appdaemon_ac_night:
+  emulated_hue_hidden: false
+script.appdaemon_ac_morning:
+  emulated_hue_hidden: false
 script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
   icon: mdi:lightbulb
