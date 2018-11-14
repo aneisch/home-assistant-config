@@ -5,17 +5,17 @@ AC AutoAdjust:
   thermostats: climate.thermostat
   device_tracker: group.trackers
   door_trigger: binary_sensor.front_door
-  morning_adjust_weekday: '10:00:00'
+  morning_adjust_weekday: '09:00:00'
   morning_adjust_weekend: '11:00:00'
-  night_adjust_weekday: '21:00:00'
-  night_adjust_weekend: '21:00:00'
+  night_adjust_weekday: '23:00:00'
+  night_adjust_weekend: '23:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '78'
-  cool_night: '74'
+  cool_night: '72'
   cool_unoccupied: '82'
-  heat_day: '66'
-  heat_night: '62'
-  heat_unoccupied: '58'
+  heat_day: '64'
+  heat_night: '60'
+  heat_unoccupied: '55'
 
 Master Bedroom Light Dim:
   module: light_automation

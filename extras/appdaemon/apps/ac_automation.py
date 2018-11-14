@@ -42,6 +42,10 @@ class AutoAdjust(hass.Hass):
 
     # Change temperature in response to device tracker or door sensor
     def presence_adjust(self, entity, attribute, old, new, kwargs):
+        # Do nothing if AC off
+        if self.get_state("sensor.thermostat_operating_mode") == "Off":
+            return
+
         # If tracker changes to "home" OR the front door opens when no one was home
         if (old == "not_home" and new == "home") or (old == "off" and new == "on" and self.get_state(self.args["device_tracker"]) == "not_home"):
             if old == "off" and new == "on":
@@ -69,7 +73,11 @@ class AutoAdjust(hass.Hass):
     # Set day time temperature
     def adjust_morning(self, kwargs):
         if self.get_state(self.args["device_tracker"]) == "home":
-            if self.get_state("sensor.thermostat_operating_mode") == "Heat":
+            # Do nothing if AC off
+            if self.get_state("sensor.thermostat_operating_mode") == "Off":
+                return
+
+            elif self.get_state("sensor.thermostat_operating_mode") == "Heat":
                 self.log("Mode: Heat Day -- %s" % self.args["heat_day"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_day"])
 
@@ -80,6 +88,10 @@ class AutoAdjust(hass.Hass):
 
         # No one is home and we've gotten called to adjust for day based on time
         else:
+            # Do nothing if AC off
+            if self.get_state("sensor.thermostat_operating_mode") == "Off":
+                return
+
             if self.get_state("sensor.thermostat_operating_mode") == "Heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
@@ -95,6 +107,10 @@ class AutoAdjust(hass.Hass):
 
     def adjust_night(self, kwargs):
         if self.get_state(self.args["device_tracker"]) == "home":
+            # Do nothing if AC off
+            if self.get_state("sensor.thermostat_operating_mode") == "Off":
+                return
+
             if self.get_state("sensor.thermostat_operating_mode") == "Heat":
                 self.log("Mode: Heat Night -- %s" % self.args["heat_night"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_night"])
@@ -105,6 +121,10 @@ class AutoAdjust(hass.Hass):
 
         # No one is home and we've gotten called back to adjust for night based on time
         else:
+            # Do nothing if AC off
+            if self.get_state("sensor.thermostat_operating_mode") == "Off":
+                return
+
             if self.get_state("sensor.thermostat_operating_mode") == "Heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
