@@ -179,6 +179,16 @@ mom_and_dad_gate_toggle:
   sequence:
     - service: shell_command.mom_and_dad_gate_toggle
 
-######
-# IR #
-######
+spotify_occusim:
+  sequence:
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.spotify
+        volume_level: 0.6
+    - service: media_player.select_source
+      data:
+        entity_id: media_player.spotify
+        source: 'Everywhere'
+    - service: media_player.media_play
+      data:
+        entity_id: media_player.spotify

@@ -53,24 +53,6 @@
         message: >
           Package delivered...
 
-- alias: "Door Notification Off with Occupancy Simulator"
-  trigger:
-    platform: state
-    entity_id: input_boolean.occusim
-    to: 'on'
-  action:
-    service: homeassistant.turn_on
-    entity_id: input_boolean.door_notify
-
-- alias: "Door Notification On with Occupancy Simulator"
-  trigger:
-    platform: state
-    entity_id: input_boolean.occusim
-    to: 'off'
-  action:
-    service: homeassistant.turn_off
-    entity_id: input_boolean.door_notify
-
 - alias: "Front Door Open Length"
   initial_state: on
   trigger:
@@ -341,25 +323,3 @@
   action:
     service: homeassistant.toggle
     entity_id: group.andrew_desk
-
-#######
-# NAS #
-#######
-
-- alias: "NAS Morning On"
-  initial_state: 'on'
-  trigger:
-    platform: time
-    at: '05:59:30'
-  action:
-    service: switch.turn_on
-    entity_id: switch.nas
-
-- alias: "NAS Morning Off"
-  initial_state: 'on'
-  trigger:
-    platform: time
-    at: '08:00:00'
-  action:
-    service: switch.turn_off
-    entity_id: switch.nas

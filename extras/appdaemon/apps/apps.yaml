@@ -73,22 +73,30 @@ Occupancy Simulator:
   constrain_input_boolean: input_boolean.occusim
   dump_times: '1'
   log: '1'
-  random_house_end: Night
-  random_house_maxduration: 01:00:00
-  random_house_minduration: 00:20:00
+  step_morning_name: Morning
+  step_morning_start: 06:00:00
+  step_morning_days: monday,tuesday,wednesday,thursday,friday
+  step_morning_end: 08:00:00
+  step_morning_on_1: group.living_room_lamps
+  step_morning_off_1: group.living_room_lamps
+  step_morning_on_2: switch.kitchen_table_light_switch
+  step_morning_off_2: switch.kitchen_table_light_switch
   random_house_name: Random House
-  random_house_number: '5'
-  random_house_on_desk_lamp: switch.outdoor_zwave_switch
-  random_house_on_kitchen: switch.kitchen_table_light_switch
-  random_house_on_livingroom: group.living_room_lamps
-  random_house_off_kitchen: switch.kitchen_table_light_switch
-  random_house_off_livingroom: group.living_room_lamps
-  random_house_off_desk_lamp: switch.outdoor_zwave_switch
   random_house_start: Evening
+  random_house_end: Night
   step_evening_name: Evening
   step_evening_start: sunset - 00:45:00
   step_night_name: Night
   step_night_start: '23:59:59'
+  random_house_maxduration: 01:00:00
+  random_house_minduration: 00:20:00
+  random_house_number: '5'
+  random_house_on_desk_lamp: switch.outdoor_zwave_switch
+  random_house_off_desk_lamp: switch.outdoor_zwave_switch
+  random_house_on_kitchen: switch.kitchen_table_light_switch
+  random_house_off_kitchen: switch.kitchen_table_light_switch
+  random_house_on_livingroom: group.living_room_lamps
+  random_house_off_livingroom: group.living_room_lamps
 
 Plant Timer Morning:
   module: device_timer
@@ -105,6 +113,13 @@ Plant Timer Afternoon:
   devices: switch.kitchen_plant_light_switch
   time_on: '13:00:00'
   time_off: '21:00:00'
+
+NAS:
+  module: device_timer
+  class: Timer
+  devices: switch.nas
+  time_on: '05:59:00'
+  time_off: '08:00:00'
 
 Brita Notification:
   module: countdown_notify
@@ -140,6 +155,14 @@ Christmas Follow:
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
   follower: switch.christmas_tree,switch.entertainment_center_lights
+
+Door Notification Follow Occusim:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: input_boolean.occusim
+  # follower can be a comma separated list
+  follower: input_boolean.door_notify
 
 # Algo Timer:
 #  module: algo_timer
