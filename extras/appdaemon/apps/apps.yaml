@@ -34,8 +34,8 @@ House Lamp Automation:
   dependent_entity: input_boolean.house_lamps_automation  # Optional entity to constrain automation (will only run if "on")
   constrain_presence: anyone
   time_on: sunset - 00:30:00
-  # Guest bedroom and living room lamps "follow" master bedroom lamps via HASS automation, dependent on the guest automation boolean.
-  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch,switch.christmas_tree
+  # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
+  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch
 
 Door Notify:
   module: door_open
@@ -123,6 +123,23 @@ AC Filter Notification:
   notify_overdue: True # An optional argument, if true we will continue to notify after 0
   notify: pushover # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
+
+Lamps Follow:
+  module: follow_me
+  class: Follow
+  constrain_input_boolean: input_boolean.guest_automation
+  # leader can be a comma separated list
+  leader: group.master_bedroom_lamps
+  # follower can be a comma separated list
+  follower: group.living_room_lamps,switch.guest_lamp
+
+Christmas Follow:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: group.master_bedroom_lamps
+  # follower can be a comma separated list
+  follower: switch.christmas_tree,switch.entertainment_center_lights
 
 # Algo Timer:
 #  module: algo_timer

@@ -11,10 +11,10 @@ class DeviceOn(hass.Hass):
         if self.args["dependent_entity"]:
             if self.get_state(self.args["dependent_entity"]) == "on":
                 for entity in self.split_device_list(self.args["entity"]):
-                    self.log("Turning " + entity + " on")
+                    self.log("Turning on " + entity)
                     self.turn_on(entity)
         else:
             if self.get_state(self.args["device_tracker"]) == "home":
                 for entity in self.split_device_list(self.args["entity"]):
-                    self.log("Turning " + entity + " on")
+                    self.log("Turning on" + entity)
                     self.turn_on(entity)
