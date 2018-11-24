@@ -2,12 +2,15 @@
 # ANDREW CONTROL #
 ##################
 
-#Turn off all room things, arm security
+#Turn off master and common room things, arm security
 home_empty:
   sequence:
     - service: homeassistant.turn_off
       data:
         entity_id: group.master_bedroom
+    - service: homeassistant.turn_off
+      data:
+        entity_id: group.common_areas
     - delay:
         seconds: 5
     - service: homeassistant.turn_on
@@ -175,6 +178,7 @@ panic:
 mom_and_dad_gate_toggle:
   sequence:
     - service: shell_command.mom_and_dad_gate_toggle
+
 ######
 # IR #
 ######

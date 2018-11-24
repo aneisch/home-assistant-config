@@ -2,7 +2,6 @@
 ### CHANGES MIGHT NOT BE REFLECTED BELOW ###
 ###             NO PRMOSES!!             ###
 
-
 #TABS
 default_view:
   name: Home
@@ -14,12 +13,12 @@ default_view:
     - group.security
     - group.trackers
     - group.weather
-    - group.common
     - camera.outdoor
     - camera.usps_mail
     - group.misc
     - media_player.spotify
     - media_player.plex_web_chrome
+
 common_areas:
   name: Common Areas
   view: yes
@@ -30,6 +29,7 @@ common_areas:
     - group.office
     - group.guest_bedroom
     - media_player.spotify
+
 master:
   name: Master Bedroom
   view: yes
@@ -37,6 +37,7 @@ master:
     - group.master_bedroom
     - group.scenes
     - media_player.spotify
+
 ha_status:
   name: Server Status
   view: yes
@@ -59,6 +60,7 @@ thermostat:
     - sensor.thermostat_fan_status
     - sensor.ac_runtime_today
     - sensor.ac_runtime_yesterday
+
 scenes:
   name: Scenes
   control: hidden
@@ -87,8 +89,6 @@ master_bedroom:
     - switch.master_bathroom_light_switch
     - switch.andrews_lamp
     - switch.bethanys_lamp
-    #- input_boolean.alarm_clock_automation
-    #- input_select.alarm_clock
 
 guest_bedroom:
   name: Guest Bedroom
@@ -108,21 +108,8 @@ security:
 trackers:
   name: Trackers
   entities:
-    #- device_tracker.bethanys_iphone_nmap
     - device_tracker.bethanys_iphone
     - device_tracker.owntracks_workphone
-
-#weather:
-#  name: Weather
-#  entities:
-#    - sensor.dark_sky_summary
-#    - sensor.dark_sky_temperature
-#    - sensor.dark_sky_humidity
-#    - sensor.dark_sky_precip_probability
-#    - sun.sun
-#    - sensor.moon_phase
-#    - camera.weather_radar
-#    - camera.weather
 
 system:
   name: System
@@ -166,7 +153,6 @@ kitchen:
   entities:
     - switch.kitchen_table_light_switch
     - switch.kitchen_plant_light_switch
-    - switch.kitchen_plant_light_incandescent
 
 living_room:
   name: Living Room
@@ -175,6 +161,8 @@ living_room:
     - switch.wemo_switch
     - switch.living_room_lamp
     - switch.tv
+    - switch.christmas_tree
+    - switch.entertainment_center_lights
 
 living_room_lamps:
   name: Living Room Lamps
@@ -203,9 +191,6 @@ power:
 misc:
   name: Misc
   entities:
-#    - sensor.usps_mail
-#    - sensor.deliveries_today
-#    - sensor.packages_in_transit
      - shell_command.copy
 
 weather:

@@ -10,7 +10,7 @@
   host: 10.0.1.30
   mac: b4:43:0d:ae:61:36
   type:  sp2
-  friendly_name: 'Kitchen Plant Light Incandescent'
+  friendly_name: 'Entertainment Center Lights'
 
 #- platform : mqtt
 #  name: "Stupid Red Light"
@@ -30,7 +30,7 @@
   retain: true
 
 - platform : mqtt
-  name: "Washing Machine"
+  name: "Christmas Tree"
   state_topic: "stat/sonoff_pow_1/POWER"
   command_topic: "cmnd/sonoff_pow_1/POWER"
   payload_on: "ON"

@@ -27,10 +27,6 @@ plant_light_automation:
   initial: on
   icon: mdi:lightbulb
 
-alarm_clock_automation:
-  name: Alarm Clock
-  icon: mdi:alarm
-
 guest_automation:
   name: Guest Bedroom Automation
   initial: on

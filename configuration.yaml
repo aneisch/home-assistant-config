@@ -10,12 +10,6 @@ homeassistant:
 # Enable configuration panel
 config:
 
-logger:
-  default: info
-  logs:
-    homeassistant.components.shell_command: debug
-    homeassistant.components.arlo: debug
-
 # Enable map panel
 map:
 
@@ -233,7 +227,6 @@ logbook:
 http:
   api_password: !secret api_password
   server_port: 8123
-  #Using nginx proxy to serve https over ipv4/ipv6
 
 #Local MQTT Only (local devices publish here, and I subscribe over ssl via bridged remote MQTT)
 mqtt:
@@ -282,6 +275,10 @@ panel_iframe:
     url: !secret grafana
 
 alexa:
+
+google_assistant:
+  project_id: home-assistant-158717
+  api_key: !secret homegraph
 
 #usps:
 #  driver: chrome

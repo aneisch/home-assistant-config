@@ -1,63 +1,3 @@
-###################
-# Washing Machine #
-###################
-# Washer boolean turns on after power for 30 seconds.
-# If the lid is open after washer boolean on for 00:03:00, we notify.
-# If the washer has no power for 00:02:30 washer boolean turns off
-
-#Set washer_running boolean to on after 30 seconds of power
-- alias: Set washer boolean to running
-  trigger:
-    platform: numeric_state
-    entity_id: sensor.sonoff_pow_power
-    above: 3
-    for:
-      seconds: 30
-  action:
-    service: input_boolean.turn_on
-    entity_id: input_boolean.washer_running
-
-#Set washer_running boolean to off after 2:30 minutes of no power
-- alias: Set washer boolean to not running
-  trigger:
-    platform: numeric_state
-    entity_id: sensor.sonoff_pow_power
-    below: 1
-    for:
-      minutes: 2
-      seconds: 30
-  action:
-    service: input_boolean.turn_off
-    entity_id: input_boolean.washer_running
-
-#Notify when lid open for 3 minutes and washer_boolean on
-- alias: Notify if Washer Running with Lid Open
-  trigger:
-    platform: state
-    entity_id: input_boolean.washer_running
-    to: 'on'
-    for:
-      minutes: 3
-  condition:
-    condition: state
-    entity_id: sensor.washing_machine_lid
-    state: 'true'
-  action:
-    - service: notify.pushover
-      data_template:
-        message: I think Bethany left the washer lid open..
-
-#Make sure washing machine sonoff is always on..
-- alias: Ensure washing machine outlet is on
-  trigger:
-    platform: state
-    entity_id: switch.washing_machine
-    to: 'off'
-  action:
-    - service: homeassistant.turn_on
-      entity_id: switch.washing_machine
-
-
 #Workaround for fan speed on appdaemon dashboard
 #Set value of input select when fan speed changed on switch
 - alias: Set Master Bedroom Ceiling Fan Speed Selector
@@ -203,6 +143,7 @@
     entity_id: script.home_empty
 
 # Follow master bedroom lamps when guest automation active
+# Only works if guest automation on
 - alias: "Turn On Guest Lamp When Master Lamps Turn On"
   trigger:
     platform: state
@@ -216,6 +157,16 @@
     service: homeassistant.turn_on
     entity_id: switch.guest_lamp
 
+- alias: "Turn On Christmas Tree When Master Lamps Turn On"
+  trigger:
+    platform: state
+    entity_id: group.master_bedroom_lamps
+    to: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: group.living_room_lamps
+
+# Only works if guest automation on
 - alias: "Turn On Living Room Lamps When Master Lamps Turn On"
   trigger:
     platform: state
@@ -227,9 +178,28 @@
     state: 'on'
   action:
     service: homeassistant.turn_on
-    entity_id: group.living_room_lamps
+    entity_id: switch.christmas_tree
 
-# Follow master bedroom lamps when guest automation active
+- alias: "Turn On Entertainment Center Lights When Christmas Tree Turns On"
+  trigger:
+    platform: state
+    entity_id: switch.christmas_tree
+    to: 'on'
+  action:
+    service: homeassistant.turn_on
+    entity_id: switch.entertainment_center_lights
+
+- alias: "Turn Off Entertainment Center Lights When Christmas Tree Turns Off"
+  trigger:
+    platform: state
+    entity_id: switch.christmas_tree
+    to: 'off'
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.entertainment_center_lights
+
+# Turn off guest lamp when master bedroom lamps turn off
+# Only works if guest automation on
 - alias: "Turn Off Guest Lamp When Master Lamps Turn Off"
   trigger:
     platform: state
@@ -243,7 +213,8 @@
     service: homeassistant.turn_off
     entity_id: switch.guest_lamp
 
-- alias: "Turn Off Living Room Lamps When Master Lamps Turn Off"
+# Turn off living room when master bedroom lamps turn off
+- alias: "Turn Off Living Room"
   trigger:
     platform: state
     entity_id: group.master_bedroom_lamps
@@ -254,7 +225,9 @@
     state: 'on'
   action:
     service: homeassistant.turn_off
-    entity_id: group.living_room_lamps
+    entity_id: group.common_areas
+
+
 
 - alias: "Arrived at Home"
   trigger:
@@ -414,24 +387,6 @@
       data_template:
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
-
-- alias: 'Alarm Clock'
-  trigger:
-    platform: time
-    minutes: /5
-    seconds: 0
-  condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: input_boolean.alarm_clock_automation
-        state: 'on'
-      - condition: template
-        value_template: '{{ now().strftime("%H:%M") == states.input_select.alarm_clock.state }}'
-  action:
-    service: script.turn_on
-    entity_id: script.andrew_wakeup
-
 
 ####################
 # Mom and Dad Gate #

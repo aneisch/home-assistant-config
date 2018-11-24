@@ -11,7 +11,7 @@ AC AutoAdjust:
   night_adjust_weekend: '23:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '78'
-  cool_night: '72'
+  cool_night: '70'
   cool_unoccupied: '82'
   heat_day: '64'
   heat_night: '60'
@@ -35,7 +35,7 @@ House Lamp Automation:
   constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via HASS automation, dependent on the guest automation boolean.
-  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch
+  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch,switch.christmas_tree
 
 Door Notify:
   module: door_open

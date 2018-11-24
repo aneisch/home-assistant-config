@@ -166,6 +166,8 @@ views:
           - switch.wemo_switch
           - switch.living_room_lamp
           - switch.tv
+          - switch.christmas_tree
+          - switch.entertainment_center_lights
 
       - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
         type: entities
@@ -181,7 +183,6 @@ views:
         entities:
           - switch.kitchen_table_light_switch
           - switch.kitchen_plant_light_switch
-          - switch.kitchen_plant_light_incandescent
 
       - id: 99c90437cecc4a649c1bb8478cb17205  # Automatically created id
         type: entities
