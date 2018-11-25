@@ -119,7 +119,7 @@
     entity_id: group.trackers
     to: not_home
     for:
-      minutes: 10
+      minutes: 5
   action:
     service: homeassistant.turn_on
     entity_id: script.home_empty

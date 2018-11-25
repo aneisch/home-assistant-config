@@ -14,5 +14,5 @@ class Follow(hass.Hass):
                 self.turn_on(device)
         elif new == "off":
             for device in self.split_device_list(self.args["follower"]):
-                self.log("Turning on " + device)
+                self.log("Turning off " + device)
                 self.turn_off(device)
