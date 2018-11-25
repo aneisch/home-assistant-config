@@ -64,6 +64,10 @@ switch.guest_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
   emulated_hue_name: "Guest Bedroom Lamp"
+switch.christmas_tree:
+  icon: mdi:pine-tree
+  emulated_hue_hidden: false
+  emulated_hue_name: "Christmas Tree"
 
 #SENSORS
 sensor.dark_sky_summary:

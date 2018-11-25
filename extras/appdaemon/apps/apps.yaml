@@ -154,7 +154,15 @@ Christmas Follow:
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
-  follower: switch.christmas_tree,switch.entertainment_center_lights
+  follower: switch.christmas_tree
+
+Christmas Follow 2:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: switch.christmas_tree
+  # follower can be a comma separated list
+  follower: switch.entertainment_center_lights
 
 Door Notification Follow Occusim:
   module: follow_me
