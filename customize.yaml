@@ -134,8 +134,10 @@ sensor.ac_runtime_yesterday:
 
 #Scripts
 script.appdaemon_ac_night:
+  emulated_hue_name: "AC Night"
   emulated_hue_hidden: false
 script.appdaemon_ac_morning:
+  emulated_hue_name: "AC Morning"
   emulated_hue_hidden: false
 script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
