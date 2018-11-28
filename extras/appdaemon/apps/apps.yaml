@@ -31,7 +31,7 @@ House Lamp Automation:
   module: light_automation
   class: DeviceOn
   constrain_input_boolean: input_boolean.house_lamps_automation
-  dependent_entity: input_boolean.house_lamps_automation  # Optional entity to constrain automation (will only run if "on")
+  #dependent_entity: input_boolean.house_lamps_automation  # Optional entity to constrain automation (will only run if "on")
   constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
