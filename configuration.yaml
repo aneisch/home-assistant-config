@@ -285,11 +285,9 @@ google_assistant:
 #  username: !secret usps_username
 #  password: !secret usps_key
 
+owntracks:
+
 device_tracker:
-  - platform: owntracks
-  #- platform: bluetooth_tracker
-  #  interval_seconds: 30
-  #  track_new_devices: False
   - platform: nmap_tracker
     hosts: 10.0.1.13/32
     home_interval: 10

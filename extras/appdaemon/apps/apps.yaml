@@ -65,7 +65,7 @@ Minimote:
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
   scene_7_toggle: group.master_bedroom_lamps
-  scene_8_on: script.set_ac_70
+  scene_8_on: script.appdaemon_ac_night
 
 Occupancy Simulator:
   module: occusim
