@@ -72,6 +72,7 @@ Occupancy Simulator:
   class: OccuSim
   constrain_input_boolean: input_boolean.occusim
   dump_times: '1'
+  reset_time: 02:00:00
   log: '1'
   step_morning_name: Morning
   step_morning_start: 06:00:00
@@ -164,13 +165,13 @@ Christmas Follow 2:
   # follower can be a comma separated list
   follower: switch.entertainment_center_lights
 
-Door Notification Follow Occusim:
+Door Notification and Occusim Arlo Follow:
   module: follow_me
   class: Follow
   # leader can be a comma separated list
-  leader: input_boolean.occusim
+  leader: input_boolean.arlo_status
   # follower can be a comma separated list
-  follower: input_boolean.door_notify
+  follower: input_boolean.door_notify,input_boolean.occusim
 
 # Algo Timer:
 #  module: algo_timer
