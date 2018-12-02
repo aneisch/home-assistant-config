@@ -1,5 +1,4 @@
 - platform: orvibo
-  discovery: false
   switches:
   -  host: 10.0.1.11
      name: living_room_lamp

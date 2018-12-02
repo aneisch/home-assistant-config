@@ -16,13 +16,6 @@
   value_template: "{{ value_json.opened }}"
 
 - platform: mqtt
-  name: "Desk Keyboard Drawer"
-  state_topic: "sensor/desk_keyboard_drawer"
-  payload_on: "true"
-  payload_off: "false"
-  device_class: door
-
-- platform: mqtt
   state_topic: "sensor/desk_keyboard_drawer"
   payload_on: "open"
   payload_off: "closed"
