@@ -359,3 +359,5 @@
     - 'current_status'
     - 'download_speed'
     - 'upload_speed'
+
+- platform: api_streams
