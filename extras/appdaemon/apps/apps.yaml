@@ -21,6 +21,7 @@ Master Bedroom Light Dim:
   module: light_automation
   class: DeviceOn
   constrain_input_boolean: input_boolean.house_lamps_automation
+  # Optional entity to constrain automation (will only run if "on")
   dependent_entity: light.master_bedroom # Optional entity to constrain automation (will only run if "on")
   constrain_presence: anyone
   time_on: '23:00:00'
@@ -30,8 +31,9 @@ Master Bedroom Light Dim:
 House Lamp Automation:
   module: light_automation
   class: DeviceOn
-  constrain_input_boolean: input_boolean.house_lamps_automation
-  #dependent_entity: input_boolean.house_lamps_automation  # Optional entity to constrain automation (will only run if "on")
+  # Optional entity to constrain automation (will only run if "on")
+  # Using this instad of constrain_input_boolen
+  dependent_entity: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
@@ -52,12 +54,15 @@ Living Room Light at Night With Door:
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
   lights: group.living_room_lamps
+  # Seconds to turn entity on when triggered
   time_on: '30'
 
 Minimote:
   module: minimote
   class: MiniMote
   device: zwave.bedside_remote
+  # Toggle = short press
+  # On = long press
   scene_1_toggle: switch.master_bathroom_light_switch
   scene_2_on: script.master_bedroom_light_full
   scene_3_toggle: fan.master_bedroom_ceiling_fan_level
@@ -100,7 +105,7 @@ Occupancy Simulator:
   random_house_off_livingroom: group.living_room_lamps
 
 Plant Timer Morning:
-  module: device_timer
+  module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
   devices: switch.kitchen_plant_light_switch
@@ -108,7 +113,7 @@ Plant Timer Morning:
   time_off: '12:00:00'
 
 Plant Timer Afternoon:
-  module: device_timer
+  module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.plant_light_automation
   devices: switch.kitchen_plant_light_switch
@@ -116,7 +121,7 @@ Plant Timer Afternoon:
   time_off: '21:00:00'
 
 NAS:
-  module: device_timer
+  module: entity_timer
   class: Timer
   devices: switch.nas
   time_on: '05:59:00'
