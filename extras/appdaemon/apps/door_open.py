@@ -28,9 +28,9 @@ class DoorNotify(hass.Hass):
 
     def state_change(self, entity, attribute, old, new, kwargs):
         if entity == "binary_sensor.front_door" and new == "on":
-            self.log(entity + "changed to opened, notifying")
+            self.log(entity + " changed to opened, notifying")
             self.call_service("notify/" + self.args["notify"], title = "Home Assistant", message = "Front Door Opened")
 
         elif entity == "binary_sensor.back_door" and new == "on":
-            self.log(entity + "changed to opened, notifying")
+            self.log(entity + " changed to opened, notifying")
             self.call_service("notify/" + self.args["notify"], title = "Home Assistant", message = "Back Door Opened")
