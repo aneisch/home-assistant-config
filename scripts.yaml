@@ -10,7 +10,7 @@ home_empty:
         entity_id: group.master_bedroom
     - service: homeassistant.turn_off
       data:
-        entity_id: group.common_areas
+        entity_id: group.living_room
     - delay:
         seconds: 5
     - service: homeassistant.turn_on

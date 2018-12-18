@@ -10,9 +10,13 @@ homeassistant:
 # Enable configuration panel
 config:
 
+lovelace:
+  mode: yaml
+
 logger:
   default: info
-  #default: debug
+  logs:
+    homeassistant.core: debug
 
 # Enable map panel
 map:

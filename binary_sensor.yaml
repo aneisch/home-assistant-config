@@ -1,4 +1,3 @@
-
 - platform: mqtt
   name: "Back Door"
   state_topic: "sensor/backdoor"

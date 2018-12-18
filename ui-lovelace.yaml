@@ -15,6 +15,7 @@ views:
 ########
 # HOME #
 ########
+
   - id: 0  # Automatically created id
     title: Home
     cards:
@@ -25,6 +26,7 @@ views:
 
       - id: ffde4b2bfa2c43a79cf69cb4252cac06  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Thermostat
         entities:
           - climate.thermostat
@@ -57,6 +59,7 @@ views:
 
       - id: 4233cf08799a4d09a76ded4a4f9ad619  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Automation Control
         show_header_toggle: false
         entities:
@@ -71,6 +74,7 @@ views:
 
       - id: 4fbdefc8a9b04b2398dc96e714cbb5c0  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Scenes
         entities:
           - script.master_bedroom_light_full
@@ -79,6 +83,7 @@ views:
 
       - id: 714aed0952d341f3b8d15c921b606a3b  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Security
         show_header_toggle: false
         entities:
@@ -88,6 +93,7 @@ views:
 
       - id: 4ab25c640bd445e9a3fa3d5a160a5747  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Trackers
         entities:
           - device_tracker.owntracks_workphone
@@ -95,6 +101,7 @@ views:
 
       - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Weather
         entities:
           - sensor.dark_sky_summary
@@ -131,6 +138,7 @@ views:
 
       - id: e5f88e8e8dda4b078af8b42a7b17f8d3  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Misc
         entities:
 #    - sensor.usps_mail
@@ -148,6 +156,7 @@ views:
 
       - id: f84b8a512067410faf913bb7a855cab0  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Thermostat
         entities:
           - climate.thermostat
@@ -160,6 +169,7 @@ views:
 
       - id: 518be779d55344158e432b75c8d70d7a  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Living Room
         show_header_toggle: false
         entities:
@@ -171,6 +181,7 @@ views:
 
       - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Guest Bedroom
         show_header_toggle: false
         entities:
@@ -178,6 +189,7 @@ views:
 
       - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Kitchen
         show_header_toggle: false
         entities:
@@ -186,6 +198,7 @@ views:
 
       - id: 99c90437cecc4a649c1bb8478cb17205  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Office
         show_header_toggle: false
         entities:
@@ -231,8 +244,8 @@ views:
 
       - id: a75e35a4aa624d51a2a345b89e366774  # Automatically created id
         type: entities
-        title: Master Bedroom
         show_header_toggle: false
+        title: Master Bedroom
         entities:
           - sensor.master_bedroom_temperature
           - light.master_bedroom
@@ -244,6 +257,7 @@ views:
 
       - id: 05b792f2dbf04373941dd053f3209dfd  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Scenes
         entities:
           - script.master_bedroom_light_full
@@ -268,6 +282,7 @@ views:
 
       - id: bca91e04c9ae4c6582a951921b2c1b14  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: System
         show_header_toggle: false
         entities:
@@ -286,6 +301,7 @@ views:
 
       - id: 4428e05e6a7143e0a2b2fbf52d92dfe0  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: UPS
         entities:
           - sensor.ups_time_left
@@ -294,6 +310,7 @@ views:
 
       - id: 1658f3d4809c475eb362b0a55af2084d  # Automatically created id
         type: entities
+        show_header_toggle: false
         title: Power
         entities:
           - sensor.sonoff_pow_current
