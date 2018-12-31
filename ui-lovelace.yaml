@@ -5,7 +5,7 @@ resources:
     type: js
   - url: /local/js/slider-entity-row.js
     type: js
-  - url: /local/js/mini-media-player.js?v=0.8.3
+  - url: /local/js/mini-media-player-bundle.js
     type: module
   - url: /local/js/swipe-card.js?v=1.0
     type: js
@@ -61,7 +61,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Automation Control
-        show_header_toggle: false
         entities:
           - input_boolean.door_notify
           - input_boolean.ac_automation
@@ -85,7 +84,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Security
-        show_header_toggle: false
         entities:
           - input_boolean.arlo_status
           - binary_sensor.front_door
@@ -187,6 +185,15 @@ views:
         entities:
           - switch.guest_lamp
 
+      - id: 1
+        type: entities
+        show_header_toggle: false
+        title: Back Porch
+        show_header_toggle: false
+        entities:
+          - switch.outdoor_zwave_switch
+
+
       - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
         type: entities
         show_header_toggle: false
@@ -203,7 +210,8 @@ views:
         show_header_toggle: false
         entities:
           - fan.office_ceiling_fan_level
-          - switch.outdoor_zwave_switch
+          - switch.andrew_desk_lamp
+          - switch.bethany_desk_lamp
           - entity: light.andrew_monitor_backlight
             name: Monitor Backlight
             hide_when_off: true

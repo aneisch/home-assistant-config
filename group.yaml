@@ -75,7 +75,8 @@ office:
   entities:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
-    - switch.outdoor_zwave_switch
+    - switch.andrew_desk_lamp
+    - switch.bethany_desk_lamp
     - camera.office
 
 master_bedroom:
@@ -203,5 +204,5 @@ weather:
 andrew_desk:
   view: no
   entities:
-      - switch.outdoor_zwave_switch
+      - switch.andrew_desk_lamp
       - light.andrew_monitor_backlight

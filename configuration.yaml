@@ -17,6 +17,7 @@ logger:
   default: info
   logs:
     homeassistant.core: debug
+    custom_components.media_player.alexa: info
 
 # Enable map panel
 map:
@@ -356,6 +357,11 @@ netatmo:
 
 digital_ocean:
   access_token: !secret DO_token
+
+#tuya:
+#  username: !secret tuya_user
+#  password: !secret tuya_password
+#  country_code: 1
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

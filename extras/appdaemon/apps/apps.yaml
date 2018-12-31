@@ -37,7 +37,7 @@ House Lamp Automation:
   constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
-  entity: group.master_bedroom_lamps,switch.outdoor_zwave_switch
+  entity: group.master_bedroom_lamps,switch.andrew_desk_lamp,switch.bethany_desk_lamp
 
 Door Notify:
   module: door_open
@@ -81,7 +81,6 @@ Occupancy Simulator:
   log: '1'
   step_morning_name: Morning
   step_morning_start: 06:00:00
-  step_morning_days: monday,tuesday,wednesday,thursday,friday
   step_morning_end: 08:00:00
   step_morning_on_1: group.living_room_lamps
   step_morning_off_1: group.living_room_lamps
@@ -97,8 +96,8 @@ Occupancy Simulator:
   random_house_maxduration: 01:00:00
   random_house_minduration: 00:20:00
   random_house_number: '5'
-  random_house_on_desk_lamp: switch.outdoor_zwave_switch
-  random_house_off_desk_lamp: switch.outdoor_zwave_switch
+  random_house_on_desk_lamp: switch.andrew_desk_lamp
+  random_house_off_desk_lamp: switch.andrew_desk_lamp
   random_house_on_kitchen: switch.kitchen_table_light_switch
   random_house_off_kitchen: switch.kitchen_table_light_switch
   random_house_on_livingroom: group.living_room_lamps
@@ -152,7 +151,7 @@ Lamps Follow:
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
-  follower: group.living_room_lamps,switch.guest_lamp
+  follower: group.living_room_lamps,switch.guest_lamp,switch.bethany_desk_lamp
 
 Christmas Follow:
   module: follow_me

@@ -1,5 +1,3 @@
-- platform: arlo
-
 # Dead? https://github.com/home-assistant/home-assistant/issues/13131
 #- platform: fedex
 #  username: !secret fedex_username
@@ -346,12 +344,7 @@
     lat_sw: !secret netatmo_lat_sw
     lon_sw: !secret netatmo_lon_sw
     monitored_conditions:
-      - temperature
-      - pressure
-      - humidity
       - rain
-      - windstrength
-      - guststrength
 
 - platform: rtorrent
   url: !secret rtorrent
@@ -361,3 +354,7 @@
     - 'upload_speed'
 
 - platform: api_streams
+
+- platform: seventeentrack
+  username: !secret 17track_user
+  password: !secret 17track_pass

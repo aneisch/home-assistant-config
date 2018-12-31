@@ -18,7 +18,15 @@ switch.master_bedroom_sound_machine:
 switch.arlo_status:
   icon: mdi:camera
 switch.outdoor_zwave_switch:
-  friendly_name: Desk Lamp
+  friendly_name: Globe Lights
+  icon: mdi:lightbulb
+  emulated_hue_hidden: false
+  emulated_hue_name: "Outdoor Globe Lights"
+switch.andrew_desk_lamp:
+  friendly_name: Andrew Desk Lamp
+  icon: mdi:lamp
+switch.bethany_desk_lamp:
+  friendly_name: Bethany Desk Lamp
   icon: mdi:lamp
 fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
