@@ -18,6 +18,7 @@ logger:
   logs:
     homeassistant.core: debug
     custom_components.media_player.alexa: info
+    homeassistant.components.weather.yweather: debug
 
 # Enable map panel
 map:
@@ -31,8 +32,9 @@ ios:
 sun:
 
 weather:
-  - platform: yweather
-    woeid: !secret yahoo_woeid
+  - platform: darksky
+    api_key: !secret darksky_api_key
+    mode: daily
 
 custom_updater:
   card_urls:
