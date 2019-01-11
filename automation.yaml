@@ -288,7 +288,6 @@
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
 
-
 - alias: "Seventeentrack Update"
   initial_state: 'on'
   trigger:
@@ -302,17 +301,16 @@
       - condition: or
         conditions:
         - condition: template
-          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'tx' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+          value_template: "{{ 'tx' in trigger.event.data.new_state.attributes.info_text|lower }}"
         - condition: template
-          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'out for delivery' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+          value_template: "{{ 'out for delivery' in trigger.event.data.new_state.attributes.info_text|lower }}"
         - condition: template
-          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'delivered' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+          value_template: "{{ 'delivered' in trigger.event.data.new_state.attributes.info_text|lower }}"
   action:
     service: notify.pushover
     data_template:
       message: >
         {{ trigger.event.data.new_state.attributes.friendly_name | replace("Seventeentrack Package: ","") }}: {{ trigger.event.data.new_state.attributes.info_text }}
-
 
 ####################
 # Mom and Dad Gate #
