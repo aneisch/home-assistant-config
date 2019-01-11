@@ -88,8 +88,8 @@ master_bedroom:
     - switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
     - switch.master_bathroom_light_switch
-    - switch.andrews_lamp
-    - switch.bethanys_lamp
+    - switch.andrew_lamp
+    - switch.bethany_lamp
 
 guest_bedroom:
   name: Guest Bedroom
@@ -177,8 +177,8 @@ master_bedroom_lamps:
   name: Master Bedroom Lamps
   control: hidden
   entities:
-    - switch.andrews_lamp
-    - switch.bethanys_lamp
+    - switch.andrew_lamp
+    - switch.bethany_lamp
 
 power:
   name: Power

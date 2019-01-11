@@ -140,7 +140,7 @@ AC Filter Notification:
   class: Notify
   countdown_entity: sensor.ac_filter_change
   notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: True # An optional argument, if true we will continue to notify after 0
+  notify_overdue: False # An optional argument, if true we will continue to notify after 0
   notify: pushover # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
 
@@ -153,21 +153,21 @@ Lamps Follow:
   # follower can be a comma separated list
   follower: group.living_room_lamps,switch.guest_lamp,switch.bethany_desk_lamp
 
-Christmas Follow:
-  module: follow_me
-  class: Follow
-  # leader can be a comma separated list
-  leader: group.master_bedroom_lamps
-  # follower can be a comma separated list
-  follower: switch.christmas_tree
+#Christmas Follow:
+#  module: follow_me
+#  class: Follow
+#  # leader can be a comma separated list
+#  leader: group.master_bedroom_lamps
+#  # follower can be a comma separated list
+#  follower: switch.christmas_tree
 
-Christmas Follow 2:
-  module: follow_me
-  class: Follow
-  # leader can be a comma separated list
-  leader: switch.christmas_tree
-  # follower can be a comma separated list
-  follower: switch.entertainment_center_lights
+#Christmas Follow 2:
+#  module: follow_me
+#  class: Follow
+#  # leader can be a comma separated list
+#  leader: switch.christmas_tree
+#  # follower can be a comma separated list
+#  follower: switch.entertainment_center_lights
 
 Door Notification and Occusim Arlo Follow:
   module: follow_me

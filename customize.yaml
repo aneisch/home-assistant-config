@@ -60,11 +60,11 @@ switch.kitchen_plant_light_switch:
 switch.nas:
   emulated_hue_hidden: false
   emulated_hue_name: "Plex"
-switch.andrews_lamp:
+switch.andrew_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
   emulated_hue_name: "Andrew's Lamp"
-switch.bethanys_lamp:
+switch.bethany_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
   emulated_hue_name: "Bethany's Lamp"

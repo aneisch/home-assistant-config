@@ -1,6 +1,7 @@
 #Workaround for fan speed on appdaemon dashboard
 #Set value of input select when fan speed changed on switch
 - alias: Set Master Bedroom Ceiling Fan Speed Selector
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: fan.master_bedroom_ceiling_fan_level
@@ -13,6 +14,7 @@
 #Workaround for fan speed on appdaemon dashboard
 #Set fan speed when input changed
 - alias: Set Master Bedroom Ceiling Fan Speed
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: input_select.master_bedroom_ceiling_fan_speed
@@ -114,17 +116,19 @@
     entity_id: script.arlo_disarm
 
 - alias: "Turn off House"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: group.trackers
     to: not_home
     for:
-      minutes: 5
+      seconds: 5
   action:
     service: homeassistant.turn_on
     entity_id: script.home_empty
 
 - alias: "Arrived at Home"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: group.trackers
@@ -134,6 +138,7 @@
     entity_id: script.home_occupied
 
 - alias: "Turn on lamps when we get home"
+  initial_state: 'on'
   trigger:
     platform: state
     entity_id: group.trackers
@@ -283,11 +288,38 @@
         message: >
           Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
 
+
+- alias: "Seventeentrack Update"
+  initial_state: 'on'
+  trigger:
+    platform: event
+    event_type: state_changed
+  condition:
+    condition: and
+    conditions:
+      - condition: template
+        value_template: "{{ trigger.event.data.entity_id.startswith('sensor.17track_package_') }}"
+      - condition: or
+        conditions:
+        - condition: template
+          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'tx' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+        - condition: template
+          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'out for delivery' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+        - condition: template
+          value_template: "{%- for states in states.sensor if 'Seventeentrack Package:' in states.name -%}{%- if 'delivered' in state_attr(states.entity_id, 'info_text')|lower -%}{{ 'Seventeentrack Package:' in states.name }}{%- endif -%}{%- endfor -%}"
+  action:
+    service: notify.pushover
+    data_template:
+      message: >
+        {{ trigger.event.data.new_state.attributes.friendly_name | replace("Seventeentrack Package: ","") }}: {{ trigger.event.data.new_state.attributes.info_text }}
+
+
 ####################
 # Mom and Dad Gate #
 ####################
 
 - alias: "Webhook Trigger"
+  initial_state: 'on'
   trigger:
     platform: webhook
     webhook_id: !secret gate_webhook_id
@@ -331,3 +363,4 @@
   action:
     service: homeassistant.toggle
     entity_id: group.andrew_desk
+

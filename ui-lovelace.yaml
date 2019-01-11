@@ -169,7 +169,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Living Room
-        show_header_toggle: false
         entities:
           - switch.wemo_switch
           - switch.living_room_lamp
@@ -181,7 +180,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Guest Bedroom
-        show_header_toggle: false
         entities:
           - switch.guest_lamp
 
@@ -189,7 +187,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Back Porch
-        show_header_toggle: false
         entities:
           - switch.outdoor_zwave_switch
 
@@ -198,7 +195,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Kitchen
-        show_header_toggle: false
         entities:
           - switch.kitchen_table_light_switch
           - switch.kitchen_plant_light_switch
@@ -207,7 +203,6 @@ views:
         type: entities
         show_header_toggle: false
         title: Office
-        show_header_toggle: false
         entities:
           - fan.office_ceiling_fan_level
           - switch.andrew_desk_lamp
@@ -260,8 +255,8 @@ views:
           - switch.master_bedroom_sound_machine
           - fan.master_bedroom_ceiling_fan_level
           - switch.master_bathroom_light_switch
-          - switch.andrews_lamp
-          - switch.bethanys_lamp
+          - switch.andrew_lamp
+          - switch.bethany_lamp
 
       - id: 05b792f2dbf04373941dd053f3209dfd  # Automatically created id
         type: entities
@@ -292,7 +287,6 @@ views:
         type: entities
         show_header_toggle: false
         title: System
-        show_header_toggle: false
         entities:
           - !secret domain_expiry
           - !secret domain_2_expiry
@@ -300,7 +294,7 @@ views:
           - sensor.processor_use
           - sensor.load_1m
           - sensor.memory_use_percent
-          - sensor.disk_use_percent_
+          - sensor.disk_use_percent
           - sensor.disk_use_percent_home
           - sensor.last_boot
           - sensor.network_out_eno1
