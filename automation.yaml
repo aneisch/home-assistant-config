@@ -297,7 +297,7 @@
     condition: and
     conditions:
       - condition: template
-        value_template: "{{ trigger.event.data.entity_id.startswith('sensor.17track_package_') }}"
+        value_template: "{{ trigger.event.data.entity_id.startswith('sensor.seventeentrack_package_') }}"
       - condition: or
         conditions:
         - condition: template
