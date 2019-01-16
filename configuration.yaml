@@ -18,8 +18,6 @@ logger:
   logs:
     homeassistant.core: debug
     custom_components.media_player.alexa: info
-    homeassistant.components.weather.yweather: debug
-    sensor.seventeentrack: debug
 
 # Enable map panel
 map:
