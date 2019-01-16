@@ -4,9 +4,9 @@
 #  password: !secret fedex_password
 
 # Dead?
-#- platform: ups
-#  username: !secret ups_username
-#  password: !secret ups_password
+- platform: ups
+  username: !secret ups_username
+  password: !secret ups_password
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -256,17 +256,6 @@
 # TEMPLATES #
 #############
 
-- platform: template
-  sensors:
-    washing_machine_lid_status:
-      value_template: >-
-        {%- if is_state("sensor.washing_machine_lid", "true") %}
-          Open
-        {%- else %}
-          Closed
-        {%- endif %}
-      friendly_name: 'Washing Machine Lid Status'
-
 #- platform: template
 #  sensors:
 #    packages_in_transit:
@@ -317,16 +306,6 @@
   #########
   # OTHER #
   #########
-
-- platform: mqtt
-  state_topic: "sensor/washer_lid"
-  name: "Washing Machine Lid"
-  value_template: "{{ value_json.opened }}"
-
-- platform: mqtt
-  state_topic: "sensor/washer_distance"
-  name: "Washing Machine Lid Distance"
-  value_template: "{{ value_json.distance }}"
 
 - platform: haveibeenpwned
   email: 

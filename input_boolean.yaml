@@ -41,6 +41,3 @@ security_camera_automation:
   name: Security Camera Automation
   icon: mdi:camera
   initial: on
-
-washer_running:
-  name: Washer Running
