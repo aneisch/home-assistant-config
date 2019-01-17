@@ -1,4 +1,6 @@
 # Images go in www directory
+# Be sure to check ./storage/ for entity names, some entities
+# have been renamed in the entity_registry instead of here
 
 #LIGHTS
 light.master_bedroom:

@@ -359,10 +359,13 @@ netatmo:
 digital_ocean:
   access_token: !secret DO_token
 
-#tuya:
-#  username: !secret tuya_user
-#  password: !secret tuya_password
-#  country_code: 1
+# Using built-in Tuya component in addition to
+# custom_component because built-in is slow but
+# not all my Tuya devices work with it...
+tuya:
+  username: !secret tuya_user
+  password: !secret tuya_password
+  country_code: 1
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

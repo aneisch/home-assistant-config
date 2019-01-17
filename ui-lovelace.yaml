@@ -206,7 +206,6 @@ views:
         entities:
           - fan.office_ceiling_fan_level
           - switch.andrew_desk_lamp
-          - switch.bethany_desk_lamp
           - entity: light.andrew_monitor_backlight
             name: Monitor Backlight
             hide_when_off: true

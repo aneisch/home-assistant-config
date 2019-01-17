@@ -76,7 +76,6 @@ office:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
     - switch.andrew_desk_lamp
-    - switch.bethany_desk_lamp
     - camera.office
 
 master_bedroom:

@@ -307,14 +307,14 @@
   # OTHER #
   #########
 
-- platform: haveibeenpwned
-  email: 
-    - !secret haveibeenpwned_1
-    - !secret haveibeenpwned_2
-    - !secret haveibeenpwned_3
-    - !secret haveibeenpwned_4
-    - !secret haveibeenpwned_5
-    - !secret haveibeenpwned_6
+#- platform: haveibeenpwned
+#  email: 
+#    - !secret haveibeenpwned_1
+#    - !secret haveibeenpwned_2
+#    - !secret haveibeenpwned_3
+#    - !secret haveibeenpwned_4
+#    - !secret haveibeenpwned_5
+#    - !secret haveibeenpwned_6
 
 - platform: netatmo_public
   areas:
