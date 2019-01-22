@@ -162,7 +162,7 @@ living_room:
     - switch.wemo_switch
     - switch.living_room_lamp
     - switch.tv
-    - switch.christmas_tree
+    #- switch.christmas_tree
     - switch.entertainment_center_lights
 
 living_room_lamps:
