@@ -301,11 +301,11 @@
       - condition: or
         conditions:
         - condition: template
-          value_template: "{{ 'tx' in trigger.event.data.new_state.attributes.info_text|lower }}"
+          value_template: "{{ 'TX' in trigger.event.data.new_state.attributes.info_text }}"
         - condition: template
-          value_template: "{{ 'out for delivery' in trigger.event.data.new_state.attributes.info_text|lower }}"
+          value_template: "{{ 'Out for Delivery' in trigger.event.data.new_state.attributes.info_text }}"
         - condition: template
-          value_template: "{{ 'delivered' in trigger.event.data.new_state.attributes.info_text|lower }}"
+          value_template: "{{ 'Delivered' in trigger.event.data.new_state.attributes.info_text }}"
   action:
     service: notify.pushover
     data_template:
