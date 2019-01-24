@@ -339,7 +339,8 @@
   password: !secret 17track_pass
 
 - platform: template
-  solar_angle:
-    friendly_name: "Sun Angle"
-    unit_of_measurement: '°'
-    value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
+  sensors:
+    solar_angle:
+      friendly_name: "Sun Angle"
+      unit_of_measurement: '°'
+      value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"

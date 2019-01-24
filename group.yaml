@@ -12,9 +12,7 @@ default_view:
     - group.scenes
     - group.security
     - group.trackers
-    - group.weather
     - camera.outdoor
-    - camera.usps_mail
     - group.misc
     - media_player.spotify
     - media_player.plex_web_chrome
@@ -121,7 +119,7 @@ system:
     - sensor.processor_use
     - sensor.load_1m
     - sensor.memory_use_percent
-    - sensor.disk_use_percent_
+    - sensor.disk_use_percent
     - sensor.disk_use_percent_home
     - sensor.last_boot
     - sensor.network_out_eno1
@@ -192,13 +190,7 @@ power:
 misc:
   name: Misc
   entities:
-     - shell_command.copy
-
-weather:
-  name: Weather Forecast
-  view: no
-  entities:
-      - input_boolean.weather
+     - script.copy
 
 andrew_desk:
   view: no
