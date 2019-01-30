@@ -161,13 +161,13 @@ Lamps Follow:
 #  # follower can be a comma separated list
 #  follower: switch.christmas_tree
 
-#Christmas Follow 2:
-#  module: follow_me
-#  class: Follow
-#  # leader can be a comma separated list
-#  leader: switch.christmas_tree
-#  # follower can be a comma separated list
-#  follower: switch.entertainment_center_lights
+Entertainment Center Follow:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: group.living_room_lamps
+  # follower can be a comma separated list
+  follower: switch.entertainment_center_lights
 
 Door Notification and Occusim Arlo Follow:
   module: follow_me
