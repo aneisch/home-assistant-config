@@ -362,10 +362,12 @@ digital_ocean:
 # Using built-in Tuya component in addition to
 # custom_component because built-in is slow but
 # not all my Tuya devices work with it...
-tuya:
-  username: !secret tuya_user
-  password: !secret tuya_password
-  country_code: 1
+# 01/29/2019 - Nope! 
+# https://github.com/ct-Open-Source/tuya-convert
+#tuya:
+#  username: !secret tuya_user
+#  password: !secret tuya_password
+#  country_code: 1
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

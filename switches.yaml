@@ -70,3 +70,12 @@
   local_key: !secret guest_lamp_key
   device_id: !secret guest_lamp_id
   id: 1
+
+- platform : mqtt
+  name: "Andrew Desk Lamp"
+  state_topic: "stat/andrew_desk_lamp/POWER"
+  command_topic: "cmnd/andrew_desk_lamp/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
