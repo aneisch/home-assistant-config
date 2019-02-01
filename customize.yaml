@@ -25,10 +25,10 @@ switch.outdoor_zwave_switch:
   emulated_hue_hidden: false
   emulated_hue_name: "Outdoor Globe Lights"
 switch.andrew_desk_lamp:
-  friendly_name: Andrew Desk Lamp
+  friendly_name: Andrew's Desk Lamp
   icon: mdi:lamp
 switch.bethany_desk_lamp:
-  friendly_name: Bethany Desk Lamp
+  friendly_name: Bethany's Desk Lamp
   icon: mdi:lamp
 fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
@@ -62,18 +62,18 @@ switch.kitchen_plant_light_switch:
 switch.nas:
   emulated_hue_hidden: false
   emulated_hue_name: "Plex"
-switch.andrew_lamp:
+switch.andrew_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
   emulated_hue_name: "Andrew's Lamp"
-switch.bethany_lamp:
+switch.bethany_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
   emulated_hue_name: "Bethany's Lamp"
-switch.guest_lamp:
+switch.guest_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
-  emulated_hue_name: "Guest Bedroom Lamp"
+  emulated_hue_name: "Guest Nightstand Lamp"
 switch.christmas_tree:
   icon: mdi:pine-tree
   emulated_hue_hidden: false

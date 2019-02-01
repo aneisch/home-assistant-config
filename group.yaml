@@ -74,6 +74,7 @@ office:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
     - switch.andrew_desk_lamp
+    - switch.bethany_desk_lamp
     - camera.office
 
 master_bedroom:
@@ -85,8 +86,8 @@ master_bedroom:
     - switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
     - switch.master_bathroom_light_switch
-    - switch.andrew_lamp
-    - switch.bethany_lamp
+    - switch.andrew_nightstand_lamp
+    - switch.bethany_nightstand_lamp
 
 guest_bedroom:
   name: Guest Bedroom
@@ -174,8 +175,8 @@ master_bedroom_lamps:
   name: Master Bedroom Lamps
   control: hidden
   entities:
-    - switch.andrew_lamp
-    - switch.bethany_lamp
+    - switch.andrew_nightstand_lamp
+    - switch.bethany_nighstand_lamp
 
 power:
   name: Power

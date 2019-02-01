@@ -50,31 +50,46 @@
       command_on: echo 38000,1,1,172,172,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,22,64,22,21,22,21,22,64,22,64,22,21,22,21,22,64,22,21,22,64,22,64,22,21,22,21,22,64,22,64,22,21,22,1820 | nc 10.0.1.8 4998
       command_off: echo 38000,1,1,173,173,21,65,21,65,21,65,21,21,21,21,21,21,21,21,21,21,21,65,21,65,21,65,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,65,21,65,21,21,21,21,21,65,21,65,21,65,21,65,21,21,21,21,21,65,21,65,21,21,21,1832 | nc 10.0.1.8 4998
 
-- platform: custom_tuya
-  name: Andrew Lamp
-  host: 10.0.1.35
-  local_key: !secret andrew_lamp_key
-  device_id: !secret andrew_lamp_id
-  id: 1
-
-- platform: custom_tuya
-  name: Bethany Lamp
-  host: 10.0.1.38
-  local_key: !secret bethany_lamp_key
-  device_id: !secret bethany_lamp_id
-  id: 1
-
-- platform: custom_tuya
-  name: Guest Lamp
-  host: 10.0.1.39
-  local_key: !secret guest_lamp_key
-  device_id: !secret guest_lamp_id
-  id: 1
-
 - platform : mqtt
   name: "Andrew Desk Lamp"
   state_topic: "stat/andrew_desk_lamp/POWER"
   command_topic: "cmnd/andrew_desk_lamp/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
+- platform : mqtt
+  name: "Bethany Desk Lamp"
+  state_topic: "stat/bethany_desk_lamp/POWER"
+  command_topic: "cmnd/bethany_desk_lamp/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
+- platform : mqtt
+  name: "Andrew Nightstand Lamp"
+  state_topic: "stat/andrew_nightstand_lamp/POWER"
+  command_topic: "cmnd/andrew_nightstand_lamp/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
+- platform : mqtt
+  name: "Bethany Nightstand Lamp"
+  state_topic: "stat/bethany_nightstand_lamp/POWER"
+  command_topic: "cmnd/bethany_nightstand_lamp/POWER"
+  payload_on: "ON"
+  payload_off: "OFF"
+  optimistic: false
+  retain: true
+
+- platform : mqtt
+  name: "Guest Nightstand Lamp"
+  state_topic: "stat/guest_nightstand_lamp/POWER"
+  command_topic: "cmnd/guest_nightstand_lamp/POWER"
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
