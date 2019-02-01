@@ -18,10 +18,8 @@ My Home Assistant installtion contains many different components and runs on a G
 - Aeon Labs ZW090 Z Stick
 - Aeon Labs DSA03202 v1 - z-Wave Minimote
 - GE Z-wave in-wall switch/fan controllers
-- "Joyneed LED light Bulb Plug Wireless Lamp Adapter" for clean, W.A.F lamp control
-  - Using https://github.com/samuscherer/tuya-homeassistant for compatibility
-  - Have to sniff TuyaSmart Android app communication with Packet Capture Android app to get key and UUID
-    - Open TuyaSmart --> Add --> All Devices --> Other products --> Confirm --> Switch to packet capture and start sniffing --> etc.
+- "Lustreon E27" bulb holders for clean, W.A.F lamp control using Tasmota/MQTT
+  - Check out http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html for Tasmota flashing instructions
 - Various z-wave sensors
 - Various MQTT Sensors (eg: moon status, determined using bash and published to MQTT))
 - Arlo Cameras (controlled through IFTTT)
