@@ -176,7 +176,7 @@ master_bedroom_lamps:
   control: hidden
   entities:
     - switch.andrew_nightstand_lamp
-    - switch.bethany_nighstand_lamp
+    - switch.bethany_nightstand_lamp
 
 power:
   name: Power

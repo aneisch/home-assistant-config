@@ -151,7 +151,7 @@ Lamps Follow:
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
-  follower: group.living_room_lamps,switch.guest_lamp,switch.bethany_desk_lamp
+  follower: group.living_room_lamps,switch.guest_nightstand_lamp,switch.bethany_desk_lamp
 
 #Christmas Follow:
 #  module: follow_me
