@@ -57,7 +57,6 @@
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
-  retain: true
 
 - platform : mqtt
   name: "Bethany Desk Lamp"
@@ -66,7 +65,6 @@
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
-  retain: true
 
 - platform : mqtt
   name: "Andrew Nightstand Lamp"
@@ -75,7 +73,6 @@
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
-  retain: true
 
 - platform : mqtt
   name: "Bethany Nightstand Lamp"
@@ -84,7 +81,6 @@
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
-  retain: true
 
 - platform : mqtt
   name: "Guest Nightstand Lamp"
@@ -93,4 +89,3 @@
   payload_on: "ON"
   payload_off: "OFF"
   optimistic: false
-  retain: true
