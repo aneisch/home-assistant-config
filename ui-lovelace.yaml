@@ -37,26 +37,6 @@ views:
           - sensor.ac_runtime_today
           - sensor.ac_runtime_yesterday
 
-      - id: dac87097e5304f5bab5e92d836eaef70  # Automatically created id
-        type: custom:swipe-card
-        parameters:
-          spaceBetween: 8
-          scrollbar:
-            hide: false
-            draggable: true
-            snapOnRelease: true
-        cards:
-          - type: sensor
-            entity: sensor.thermostat_temperature
-            name: Thermostat Temperature
-            line_width: 8
-            line_color: '#FF6384'
-          - type: sensor
-            entity: sensor.thermostat_setpoint
-            name: Thermostat Setpoint
-            line_color: '#36A2EB'
-            line_width: 8
-
       - id: 4233cf08799a4d09a76ded4a4f9ad619  # Automatically created id
         type: entities
         show_header_toggle: false
@@ -95,7 +75,8 @@ views:
         title: Trackers
         entities:
           - device_tracker.owntracks_workphone
-          - device_tracker.owntracks_bethanyphone
+          #- device_tracker.owntracks_bethanyphone
+          - device_tracker.bethanys_iphone
 
       - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id
         type: entities

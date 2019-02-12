@@ -177,6 +177,9 @@ device_tracker.owntracks_workphone:
   friendly_name: Andrew's Phone
   entity_picture: /local/icons/tracker_icons/andrew.jpg
 device_tracker.owntracks_bethanyphone:
+  friendly_name: Bethany's iPhone Owntracks
+  entity_picture: /local/icons/tracker_icons/bethany.jpg
+device_tracker.bethanys_iphone:
   friendly_name: Bethany's iPhone
   entity_picture: /local/icons/tracker_icons/bethany.jpg
 
@@ -213,3 +216,6 @@ script.too_cold:
 script.too_hot:
   friendly_name: Too Hot
   emulated_hue_hidden: false
+script.copy:
+  friendly_name: Plex Copy
+  icon: mdi:content-copy
