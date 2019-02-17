@@ -23,7 +23,6 @@ switch.outdoor_zwave_switch:
   friendly_name: Globe Lights
   icon: mdi:lightbulb
   emulated_hue_hidden: false
-  emulated_hue_name: "Outdoor Globe Lights"
 switch.andrew_desk_lamp:
   friendly_name: Andrew's Desk Lamp
   icon: mdi:lamp
@@ -44,7 +43,6 @@ switch.master_bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
   emulated_hue_hidden: false
-  emulated_hue_name: "Bathroom Light"
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
   icon: mdi:lamp
@@ -55,25 +53,23 @@ switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
   emulated_hue_hidden: false
-  emulated_hue_name: "Kitchen Table Light"
 switch.kitchen_plant_light_switch:
   friendly_name: Kitchen Plant Light LED
   icon: mdi:flower
 switch.nas:
   emulated_hue_hidden: false
-  emulated_hue_name: "Plex"
+  friendly_name: "Plex"
 switch.andrew_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
-  emulated_hue_name: "Andrew's Lamp"
+  friendly_name: "Andrew's Lamp"
 switch.bethany_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
-  emulated_hue_name: "Bethany's Lamp"
+  friendly_name: "Bethany's Lamp"
 switch.guest_nightstand_lamp:
   icon: mdi:lamp
   emulated_hue_hidden: false
-  emulated_hue_name: "Guest Nightstand Lamp"
 switch.christmas_tree:
   icon: mdi:pine-tree
   emulated_hue_hidden: false
