@@ -362,3 +362,18 @@
     service: homeassistant.toggle
     entity_id: group.andrew_desk
 
+- alias: "Bethany Commute"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: device_tracker.bethanys_iphone
+    from: "Bethany Work"
+  condition:
+    condition: state
+    entity_id: device_tracker.owntracks_android
+    state: 'home'
+  action:
+    service: media_player.alexa_tts
+    entity_id: media_player.andrews_kitchen_echo
+    data:
+      message: "Bethany is on her way home"

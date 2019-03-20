@@ -17,7 +17,6 @@ logger:
   default: info
   logs:
     homeassistant.core: debug
-    custom_components.media_player.alexa: info
 
 # Enable map panel
 map:
@@ -25,6 +24,8 @@ map:
 recorder:
   purge_interval: 1
   purge_keep_days: 7
+
+system_health:
 
 ios:
 
@@ -34,10 +35,6 @@ weather:
   - platform: darksky
     api_key: !secret darksky_api_key
     mode: daily
-
-custom_updater:
-  card_urls:
-    - https://raw.githubusercontent.com/kalkih/mini-graph-card/master/tracker.json
 
 zone:
   name: Andrew Work
@@ -314,10 +311,12 @@ media_player:
     client_id: !secret spotify_client_id
     client_secret: !secret spotify_client_secret
   - platform: plex
-  - platform: alexa
-    email: !secret amazon_email
-    password: !secret amazon_pass
-    url: "amazon.com"
+
+alexa_media:
+  accounts:
+    - email: !secret amazon_email
+      password: !secret amazon_pass
+      url: "amazon.com"
 
 climate:
   platform: radiotherm

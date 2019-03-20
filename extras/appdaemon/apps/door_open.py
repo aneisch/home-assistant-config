@@ -9,7 +9,7 @@ class DoorLight(hass.Hass):
 
     def state_change(self, entity, attribute, old, new, kwargs):
         for device in self.split_device_list(self.args["lights"]):
-            if new == "on" and self.get_state(device) == "off":
+            if self.get_state(device) == "off":
                 self.log("Turning " + device + " On")
                 self.turn_on(device)
                 # Schedule the turn off
