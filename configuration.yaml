@@ -6,6 +6,9 @@ homeassistant:
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago
+  auth_providers:
+   - type: legacy_api_password
+     api_password: !secret api_password
 
 # Enable configuration panel
 config:
@@ -232,7 +235,6 @@ logbook:
       - sensor.average_load_1m
 
 http:
-  api_password: !secret api_password
   use_x_forwarded_for: true
   trusted_proxies: 
     - 127.0.0.1
