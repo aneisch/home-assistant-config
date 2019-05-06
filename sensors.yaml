@@ -21,7 +21,7 @@
   name: Brita Filter Change
   #Date last done/changed
   # dd-mm-yyyy
-  start_date: "01-01-2019 17:00"
+  start_date: "10-04-2019 20:00"
   #When to remind me in days
   days_in_future: 90
 
@@ -331,8 +331,6 @@
     - 'current_status'
     - 'download_speed'
     - 'upload_speed'
-
-- platform: api_streams
 
 - platform: seventeentrack
   username: !secret 17track_user

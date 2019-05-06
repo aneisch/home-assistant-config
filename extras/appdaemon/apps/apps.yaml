@@ -7,11 +7,11 @@ AC AutoAdjust:
   door_trigger: binary_sensor.front_door
   morning_adjust_weekday: '09:00:00'
   morning_adjust_weekend: '11:00:00'
-  night_adjust_weekday: '23:00:00'
-  night_adjust_weekend: '23:00:00'
+  night_adjust_weekday: '23:45:00'
+  night_adjust_weekend: '23:45:00'
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '78'
-  cool_night: '70'
+  cool_night: '68'
   cool_unoccupied: '82'
   heat_day: '64'
   heat_night: '60'

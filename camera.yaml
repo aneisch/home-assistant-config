@@ -15,5 +15,5 @@
   name: Outdoor
 
 - platform: arlo
-  ffmpeg_binary: '/usr/bin/ffmpeg'
-  ffmpeg_arguments: '-q:v 5'
+  #ffmpeg_binary: '/usr/bin/ffmpeg'
+  #ffmpeg_arguments: '-q:v 5'

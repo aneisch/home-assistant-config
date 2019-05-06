@@ -121,6 +121,8 @@ sensor.usps_mail:
 #THERMOSTAT
 climate.thermostat:
   friendly_name: Adjust
+  emulated_hue_hidden: false
+  emulated_hue_name: "Thermostat"
 sensor.thermostat_fan_status:
   friendly_name: Fan Status
   icon: mdi:fan
