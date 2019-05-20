@@ -117,6 +117,14 @@ sensor.deliveries_today:
   icon: mdi:package-variant
 sensor.usps_mail:
   friendly_name: Mail Delivered Today
+sensor.next_bus_home:
+  friendly_name: Home
+sensor.next_bus_work:
+  friendly_name: Work
+sensor.next_bus_home_string:
+  icon: mdi:bus
+sensor.next_bus_work_tring:
+  icon: mdi:bus
 
 #THERMOSTAT
 climate.thermostat:

@@ -140,7 +140,7 @@ AC Filter Notification:
   class: Notify
   countdown_entity: sensor.ac_filter_change
   notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: False # An optional argument, if true we will continue to notify after 0
+  notify_overdue: True # An optional argument, if true we will continue to notify after 0
   notify: pushover # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
 

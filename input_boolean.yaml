@@ -41,3 +41,8 @@ security_camera_automation:
   name: Security Camera Automation
   icon: mdi:camera
   initial: on
+
+bus_commute:
+  name: Bus Commute
+  icon: mdi:bus
+  initial: off
