@@ -121,7 +121,7 @@ views:
       - id: ad9fae2dc645458d9f45bafe2f848132  # Automatically created id
         type: picture-entity
         entity: camera.outdoor
-        camera_view: live
+        #camera_view: live
 
       - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
         type: custom:mini-media-player
