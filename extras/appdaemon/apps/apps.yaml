@@ -7,10 +7,10 @@ AC AutoAdjust:
   door_trigger: binary_sensor.front_door
   morning_adjust_weekday: '09:00:00'
   morning_adjust_weekend: '11:00:00'
-  night_adjust_weekday: '23:45:00'
+  night_adjust_weekday: '23:00:00'
   night_adjust_weekend: '23:45:00'
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: '78'
+  cool_day: '77'
   cool_night: '70'
   cool_unoccupied: '82'
   heat_day: '64'
@@ -79,13 +79,13 @@ Occupancy Simulator:
   dump_times: '1'
   reset_time: 02:00:00
   log: '1'
-  step_morning_name: Morning
-  step_morning_start: 06:00:00
-  step_morning_end: 08:00:00
-  step_morning_on_1: group.living_room_lamps
-  step_morning_off_1: group.living_room_lamps
-  step_morning_on_2: switch.kitchen_table_light_switch
-  step_morning_off_2: switch.kitchen_table_light_switch
+  #step_morning_name: Morning
+  #step_morning_start: 06:00:00
+  #step_morning_end: 08:00:00
+  #step_morning_on_1: group.living_room_lamps
+  #step_morning_off_1: group.living_room_lamps
+  #step_morning_on_2: switch.kitchen_table_light_switch
+  #step_morning_off_2: switch.kitchen_table_light_switch
   random_house_name: Random House
   random_house_start: Evening
   random_house_end: Night
