@@ -1,6 +1,6 @@
 # [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config) My Home Assistant Config
 
-I am using tasker directly with API calls to Home Assistant in order to trigger scenes based on location mostly and also act as a quick toggle for devices/scenes.
+Using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson)
 
 Also heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced automations/dashboard. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for more. 
 

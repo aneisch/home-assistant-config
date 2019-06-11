@@ -6,9 +6,6 @@ homeassistant:
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago
-  auth_providers:
-   - type: legacy_api_password
-     api_password: !secret api_password
 
 # Enable configuration panel
 config:
@@ -359,16 +356,6 @@ netatmo:
 
 digital_ocean:
   access_token: !secret DO_token
-
-# Using built-in Tuya component in addition to
-# custom_component because built-in is slow but
-# not all my Tuya devices work with it...
-# 01/29/2019 - Nope! 
-# https://github.com/ct-Open-Source/tuya-convert
-#tuya:
-#  username: !secret tuya_user
-#  password: !secret tuya_password
-#  country_code: 1
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

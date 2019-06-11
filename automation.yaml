@@ -328,17 +328,17 @@
     data:
       message: "Bethany is on her way home"
 
-#- alias: "Bus Commute Work Notify"
-#  initial_state: 'on'
-#  trigger:
-#    platform: state
-#    entity_id: sensor.next_bus_work
-#  condition:
-#    condition: and
-#    conditions:
-#      - condition: state
-#        entity_id: input_boolean.bus_commute
-#        state: 'on'
+- alias: "Desk Drawer Open Toggle"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.desk_keyboard_drawer
+    from: 'off'
+    to: 'on'
+  action:
+    service: homeassistant.toggle
+    entity_id: group.andrew_desk
+
 
 ####################
 # Mom and Dad Gate #
@@ -378,15 +378,4 @@
       data_template:
         message: >
           Gate Closed
-
-- alias: "Desk Drawer Open Toggle"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: binary_sensor.desk_keyboard_drawer
-    from: 'off'
-    to: 'on'
-  action:
-    service: homeassistant.toggle
-    entity_id: group.andrew_desk
 

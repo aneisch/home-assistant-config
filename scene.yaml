@@ -12,5 +12,5 @@
   entities:
     light.master_bedroom:
       state: on
-      brightness: 200
+      brightness: 255
       rgb_color: [255, 255, 255]
