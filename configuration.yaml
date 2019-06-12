@@ -357,6 +357,8 @@ netatmo:
 digital_ocean:
   access_token: !secret DO_token
 
+bus_times:
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

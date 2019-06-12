@@ -8,8 +8,6 @@
   username: !secret ups_username
   password: !secret ups_password
 
-- platform: bus_times
-
 #Tell me when to change a thing
 - platform: date_reminder
   name: AC Filter Change
