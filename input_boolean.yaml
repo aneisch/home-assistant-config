@@ -46,3 +46,8 @@ bus_commute:
   name: Bus Commute
   icon: mdi:bus
   initial: off
+
+panic_mode:
+  name: Panic Mode
+  icon: mdi:alert-decagram
+  initial: off

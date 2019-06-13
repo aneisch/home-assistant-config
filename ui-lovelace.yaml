@@ -50,6 +50,7 @@ views:
           - input_boolean.guest_automation
           - input_boolean.house_lamps_automation
           - input_boolean.security_camera_automation
+          - input_boolean.panic_mode
           - input_boolean.bus_commute
 
       - id: 4fbdefc8a9b04b2398dc96e714cbb5c0  # Automatically created id

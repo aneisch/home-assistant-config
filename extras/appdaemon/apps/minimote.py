@@ -33,12 +33,20 @@ class MiniMote(hass.Hass):
     on = "scene_{}_on".format(scene)
     off = "scene_{}_off".format(scene)
     toggle = "scene_{}_toggle".format(scene)
+    panic_mode = "off"
+    if "panic_mode_boolean" in self.args:
+      panic_mode = self.get_state(self.args["panic_mode_boolean"])
+      panic_entity = self.args["panic_entity"]
+
+    if panic_mode == "on":
+      self.log("Panic Mode! Turning {} on".format(panic_entity))
+      self.turn_on(panic_entity)
     
-    if on in self.args:
+    elif on in self.args:
       self.log("Turning {} on".format(self.args[on]))
       self.turn_on(self.args[on])
 
-    if off in self.args:
+    elif off in self.args:
       type, id = self.args[off].split(".")
       if type == "scene":
         self.log("Turning {} on".format(self.args[off]))
@@ -47,7 +55,7 @@ class MiniMote(hass.Hass):
         self.log("Turning {} off".format(self.args[off]))
         self.turn_off(self.args[off])
 
-    if toggle in self.args:
+    elif toggle in self.args:
       self.log("Toggling {}".format(self.args[toggle]))
       self.toggle(self.args[toggle])
       

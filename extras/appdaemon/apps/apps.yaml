@@ -61,6 +61,11 @@ Minimote:
   module: minimote
   class: MiniMote
   device: zwave.bedside_remote
+  # This is an optional mode controlled by input boolean
+  # when panic mode is on, all buttons will trigger the panic_entity
+  # this should probably be a script
+  panic_mode_boolean: input_boolean.panic_mode
+  panic_entity: script.panic
   # Toggle = short press
   # On = long press
   scene_1_toggle: switch.master_bathroom_light_switch
