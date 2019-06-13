@@ -16,7 +16,7 @@ from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_NAME = 'Bus Time'
+DEFAULT_NAME = 'Bus Times'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
@@ -31,7 +31,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 
 
 class Reminder(Entity):
-    """Implementation of the date reminder sensor."""
+    """Implementation of the bus times sensor."""
 
     def __init__(self, sensor_name, route):
         """Initialize the sensor."""
