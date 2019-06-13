@@ -3,6 +3,8 @@
 #  username: !secret fedex_username
 #  password: !secret fedex_password
 
+- platform: bus_times
+
 # Dead?
 - platform: ups
   username: !secret ups_username
