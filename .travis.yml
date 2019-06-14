@@ -9,4 +9,3 @@ before_install:
   - mv .travis_secrets.yaml secrets.yaml
   - sudo apt-get update
   - sudo apt install libudev-dev
-  - ls

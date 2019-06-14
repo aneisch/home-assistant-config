@@ -10,20 +10,19 @@ from urllib.request import urlopen
 import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
-from homeassistant.const import CONF_NAME
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = 'Bus Times'
+CONF_NAME = 'Bus Times'
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
 })
-
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices([Reminder("next_bus_home","home")])
