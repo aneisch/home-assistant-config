@@ -286,10 +286,6 @@ panel_iframe:
 
 alexa:
 
-google_assistant:
-  project_id: home-assistant-158717
-  api_key: !secret homegraph
-
 #usps:
 #  driver: chrome
 #  username: !secret usps_username
@@ -301,9 +297,9 @@ device_tracker:
   - platform: nmap_tracker
     hosts: 10.0.1.13/32
     home_interval: 10
-  - platform: tile
-    username: !secret tile_user
-    password: !secret tile_password
+#  - platform: tile
+#    username: !secret tile_user
+#    password: !secret tile_password
 
 media_player:
   - platform: spotify
