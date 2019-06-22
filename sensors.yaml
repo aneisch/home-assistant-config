@@ -286,37 +286,9 @@
 #        {% endmacro %}
 #        {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.ups)|int + delivered(states.sensor.fedex)|int}}
 
-- platform: mqtt
-  state_topic: "sensor/dht_mini_temp"
-  unit_of_measurement: "°F"
-  name: "Outdoor Plant Temperature"
-  value_template: "{{ value_json.temperature }}"
-
-- platform: mqtt
-  state_topic: "sensor/dht_mini_temp"
-  name: "Outdoor Plant Humidity"
-  unit_of_measurement: "%"
-  value_template: "{{ value_json.humidity }}"
-
-- platform: mqtt
-  state_topic: "sensor/dht_mini_temp"
-  name: "Outdoor Plant Heat Index"
-  unit_of_measurement: "°F"
-  value_template: "{{ value_json.heat_index }}"
-
-
   #########
   # OTHER #
   #########
-
-#- platform: haveibeenpwned
-#  email:
-#    - !secret haveibeenpwned_1
-#    - !secret haveibeenpwned_2
-#    - !secret haveibeenpwned_3
-#    - !secret haveibeenpwned_4
-#    - !secret haveibeenpwned_5
-#    - !secret haveibeenpwned_6
 
 - platform: netatmo
   areas:
@@ -379,4 +351,3 @@
         {% else %}
             {{ states('sensor.next_bus_work') }}
         {% endif %}
-

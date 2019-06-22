@@ -101,8 +101,8 @@ Occupancy Simulator:
   random_house_maxduration: 01:00:00
   random_house_minduration: 00:20:00
   random_house_number: '5'
-  random_house_on_desk_lamp: switch.andrew_desk_lamp
-  random_house_off_desk_lamp: switch.andrew_desk_lamp
+  random_house_on_master: group.master_bedroom_lamps
+  random_house_off_master: group.master_bedroom_lamps
   random_house_on_kitchen: switch.kitchen_table_light_switch
   random_house_off_kitchen: switch.kitchen_table_light_switch
   random_house_on_livingroom: group.living_room_lamps
@@ -156,7 +156,7 @@ Lamps Follow:
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
-  follower: group.living_room_lamps,switch.guest_nightstand_lamp,switch.bethany_desk_lamp
+  follower: group.living_room_lamps,switch.guest_nightstand_lamp
 
 #Christmas Follow:
 #  module: follow_me
