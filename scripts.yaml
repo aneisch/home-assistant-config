@@ -10,7 +10,7 @@ home_empty:
         entity_id: group.master_bedroom
     - service: homeassistant.turn_off
       data:
-        entity_id: group.living_room
+        entity_id: group.office
     - delay:
         seconds: 5
     - service: homeassistant.turn_on
@@ -23,6 +23,9 @@ home_occupied:
     - service: homeassistant.turn_off
       data:
         entity_id: input_boolean.arlo_status
+    - service: homeassistant.turn_on
+      data:
+        entity_id: group.master_bedroom_lamps
 
 bus_times_notify:
   sequence:

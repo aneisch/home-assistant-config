@@ -24,24 +24,36 @@
      data_template:
        speed: '{{ states.input_select.master_bedroom_ceiling_fan_speed.state }}'
 
-- alias: "Set dark theme for the night"
+- alias: "Set dark theme"
   initial_state: on
   trigger:
     - platform: time
-      at: '21:00'
+      at: '21:00:00'
+    - platform: homeassistant
+      event: start
+  condition:
+    condition: time
+    after: '20:59:00'
+    before: '08:59:00'
   action:
-    - service: frontend.set_theme
-      data:
-        name: midnight-remake
+    service: frontend.set_theme
+    data:
+      name: midnight-remake
 
 - alias: "Set light theme for day"
   initial_state: on
   trigger:
     - platform: time
-      at: '9:00'
+      at: '09:00'
+    - platform: homeassistant
+      event: start
+  condition:
+    condition: time
+    after: '08:59:00'
+    before: '20:59:00'
   action:
-    - service: frontend.set_theme
-      data:
+    service: frontend.set_theme
+    data:
         name: default
 
 - alias: "Package Delivered"
@@ -136,21 +148,6 @@
   action:
     service: homeassistant.turn_on
     entity_id: script.home_occupied
-
-- alias: "Turn on lamps when we get home"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: group.trackers
-    from: not_home
-    to: home
-  condition:
-    condition: sun
-    after: sunset
-    after_offset: "-00:30:00"
-  action:
-    service: homeassistant.turn_on
-    entity_id: group.master_bedroom_lamps
 
 - alias: "Button Press On!"
   initial_state: 'on'
