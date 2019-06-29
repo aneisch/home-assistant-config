@@ -50,15 +50,15 @@ class AutoAdjust(hass.Hass):
         # If tracker changes to "home" OR the front door opens when no one was home
         if (old == "not_home" and new == "home") or (old == "off" and new == "on" and self.get_state(self.args["device_tracker"]) == "not_home"):
             if old == "off" and new == "on":
-                self.log("Door open detected...")
-                self.set_state(self.args["device_tracker"], state = "home")
+                self.log("Door open detected: {}".format(entity))
+                #self.set_state(self.args["device_tracker"], state = "home")
 
             # Someone is home (door or tracker) decide if it's night or day and adjust accordingly
             if self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, datetime.datetime.now().time()) == True:
-                self.log("Someone came home during the day")
+                self.log("Someone came home during the day: {}".format(entity))
                 self.adjust_morning(kwargs)
             else:
-                self.log("Someone came home at night")
+                self.log("Someone came home at night: {}".format(entity))
                 self.adjust_night(kwargs)
 
         # If someone was home but the house is now unoccupied

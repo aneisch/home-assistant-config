@@ -149,7 +149,7 @@ AC Filter Notification:
   notify: pushover # The name of the notify service
   message: "It's time to change the AC filter! (20x25x1)"
 
-Lamps Follow:
+Living Room Lamps Follow:
   module: follow_me
   class: Follow
   constrain_input_boolean: input_boolean.guest_automation
@@ -158,14 +158,6 @@ Lamps Follow:
   # follower can be a comma separated list
   follower: group.living_room_lamps,switch.guest_nightstand_lamp
 
-#Christmas Follow:
-#  module: follow_me
-#  class: Follow
-#  # leader can be a comma separated list
-#  leader: group.master_bedroom_lamps
-#  # follower can be a comma separated list
-#  follower: switch.christmas_tree
-
 Entertainment Center Follow:
   module: follow_me
   class: Follow
@@ -173,6 +165,15 @@ Entertainment Center Follow:
   leader: group.living_room_lamps
   # follower can be a comma separated list
   follower: switch.entertainment_center_lights
+
+Guest Bedroom Lamps Follow:
+  module: follow_me
+  class: Follow
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  # leader can be a comma separated list
+  leader: group.master_bedroom_lamps
+  # follower can be a comma separated list
+  follower: group.living_room_lamps
 
 Door Notification and Occusim Arlo Follow:
   module: follow_me
