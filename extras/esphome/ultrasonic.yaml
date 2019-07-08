@@ -1,0 +1,23 @@
+esphome:
+  name: ultrasonic
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+  
+sensor:
+  - platform: ultrasonic
+    trigger_pin: D1
+    echo_pin: D2
+    name: "Ultrasonic Sensor"
+    update_interval: 1s
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:

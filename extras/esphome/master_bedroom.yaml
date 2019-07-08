@@ -1,0 +1,29 @@
+esphome:
+  name: master_bedroom
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+sensor:
+  - platform: dht
+    model: DHT22
+    pin: D4
+    temperature:
+      name: "Master Bedroom Temperature"
+      filters:
+      - lambda: return x * (9.0/5.0) + 32.0;
+      unit_of_measurement: "°F"
+    humidity:
+      name: "Master Bedroom Humidity"
+    update_interval: 10s
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:

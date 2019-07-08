@@ -1,0 +1,26 @@
+esphome:
+  name: door_sensor
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+binary_sensor:
+  - platform: gpio
+    pin: D3
+    name: "Back Door"
+    device_class: door
+  - platform: gpio
+    pin: D4
+    name: "Front Door"
+    device_class: door
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:

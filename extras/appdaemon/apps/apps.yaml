@@ -98,8 +98,8 @@ Occupancy Simulator:
   step_evening_start: sunset - 00:45:00
   step_night_name: Night
   step_night_start: '23:59:59'
-  random_house_maxduration: 01:00:00
-  random_house_minduration: 00:20:00
+  random_house_maxduration: 02:00:00
+  random_house_minduration: 00:30:00
   random_house_number: '5'
   random_house_on_master: group.master_bedroom_lamps
   random_house_off_master: group.master_bedroom_lamps
