@@ -19,6 +19,13 @@ sensor:
     humidity:
       name: "Master Bedroom Humidity"
     update_interval: 10s
+  - platform: uptime
+    name: "Master Bedroom Uptime"
+    
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Master Bedroom IP Address"
 
 # Enable logging
 logger:

@@ -1,25 +1,4 @@
 # Doors moved to ESPHome
-#- platform: mqtt
-#  name: "Back Door"
-#  state_topic: "sensor/backdoor"
-#  payload_on: "true"
-#  payload_off: "false"
-#  device_class: door
-#  value_template: "{{ value_json.opened }}"
-
-#- platform: mqtt
-#  name: "Front Door"
-#  state_topic: "sensor/frontdoor"
-#  payload_on: "true"
-#  payload_off: "false"
-#  device_class: door
-#  value_template: "{{ value_json.opened }}"
-
-- platform: mqtt
-  state_topic: "sensor/desk_keyboard_drawer"
-  payload_on: "open"
-  payload_off: "closed"
-  name: Desk Keyboard Drawer
 
 - platform: digital_ocean
   droplets:

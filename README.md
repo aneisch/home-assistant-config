@@ -28,6 +28,7 @@ My Home Assistant installation contains many different components and runs on a 
   - Custom routines configured in the Alexa App.
 - MQTT remote and local server (via Docker). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Custom weather card from https://www.reddit.com/r/homeassistant/comments/8dnxf0/easy_instructions_for_a_custom_weather_card/
+- ESPHome for management of ESP8266/Other sensors. See /extras/esphome for configs. 
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
  

@@ -1,5 +1,5 @@
 esphome:
-  name: door_sensor
+  name: desk_drawer
   platform: ESP8266
   board: d1_mini
 
@@ -9,22 +9,21 @@ wifi:
 
 binary_sensor:
   - platform: gpio
-    pin: D3
-    name: "Back Door"
-    device_class: door
-  - platform: gpio
-    pin: D4
-    name: "Front Door"
-    device_class: door
-    
+    pin: D8
+    name: "Desk Keyboard Drawer"
+    device_class: opening
+    filters:
+      #- delayed_on: 500ms
+      #- delayed_off: 500ms
+      
 sensor:
   - platform: uptime
-    name: "Door Sensor Uptime"
+    name: "Desk Keyboard Drawer Uptime"
     
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "Door Sensor IP Address"
+      name: "Desk Keyboard Drawer IP Address"
 
 # Enable logging
 logger:

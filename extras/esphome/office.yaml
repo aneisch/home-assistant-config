@@ -1,31 +1,35 @@
 esphome:
-  name: server_rack
+  name: office
   platform: ESP8266
   board: d1_mini
 
 wifi:
   ssid: "SSID"
   password: "WPA_KEY"
-
+  
+i2c:
+  sda: D2
+  scl: D1
+  scan: False
+  
 sensor:
-  - platform: dht
-    model: DHT22
-    pin: D4
+  - platform: sht3xd
     temperature:
-      name: "Rack Exhaust Temperature"
+      name: "Office Temperature"
       filters:
-      - lambda: return x * (9.0/5.0) + 32.0;
+        - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     humidity:
-      name: "Rack Exhaust Humidity"
+      name: "Office Humidity"
+    address: 0x45
     update_interval: 10s
   - platform: uptime
-    name: "Server Rack Uptime"
+    name: "Office Uptime"
     
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "Server Rack IP Address"
+      name: "Office IP Address"
 
 # Enable logging
 logger:

@@ -202,6 +202,7 @@ views:
         show_header_toggle: false
         title: Office
         entities:
+          - sensor.office_temperature
           - fan.office_ceiling_fan_level
           - switch.andrew_desk_lamp
           - entity: light.andrew_monitor_backlight
