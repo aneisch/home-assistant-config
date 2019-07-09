@@ -18,6 +18,14 @@ sensor:
       - sliding_window_moving_average:
           window_size: 4
           send_every: 1
+          
+  - platform: uptime
+    name: "Andrew Desk Keyboard Tray Uptime"
+    
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "Andrew Desk Keyboard Tray IP Address"
 
 binary_sensor:
   - platform: template
