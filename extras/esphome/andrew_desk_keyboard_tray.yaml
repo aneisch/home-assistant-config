@@ -15,10 +15,14 @@ sensor:
     echo_pin: D2
     update_interval: 1s
     filters:
+      - lambda: |-
+          if (x > 0.2) {
+            return x;
+          } 
       - sliding_window_moving_average:
-          window_size: 5
+          window_size: 4
           send_every: 1
-          
+
   - platform: uptime
     name: "Andrew Desk Keyboard Tray Uptime"
     
@@ -32,11 +36,11 @@ binary_sensor:
     name: "Andrew Desk Keyboard Tray"
     device_class: opening
     lambda: |-
-      if (id(ultrasonic_sensor).state > 0.30) {
-        // Tray is open.
+      if (id(ultrasonic_sensor).state > 0.34) {
+        // Tray is open
         return true;
       } else {
-        // Tray is closed.
+        // Tray is closed
         return false;
       }
 

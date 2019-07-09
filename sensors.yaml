@@ -76,12 +76,6 @@
     - timeleft
 
 - platform: mqtt
-  state_topic: 'office-toggle/state'
-  name: 'Office Toggle Switch'
-  qos: 1
-  value_template: "{{ value_json.enabled }}"
-
-- platform: mqtt
   state_topic: "owntracks/owntracks/Android"
   name: "Andrew Phone Battery"
   unit_of_measurement: "%"

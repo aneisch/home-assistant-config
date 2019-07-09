@@ -149,25 +149,15 @@
     service: homeassistant.turn_on
     entity_id: script.home_occupied
 
-- alias: "Button Press On!"
+- alias: "Desk Button Press"
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: sensor.office_toggle_switch
-    to: "true"
+    entity_id: binary_sensor.andrew_desk_button
+    to: 'on'
   action:
-    service: homeassistant.turn_on
-    entity_id: group.andrew_desk
-
-- alias: "Button Press Off!"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: sensor.office_toggle_switch
-    to: "false"
-  action:
-    service: homeassistant.turn_off
-    entity_id: group.andrew_desk
+    service: homeassistant.toggle
+    entity_id: switch.bethany_desk_lamp
 
 - alias: "Mount /Plex"
   initial_state: on
