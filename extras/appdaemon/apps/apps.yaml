@@ -183,6 +183,14 @@ Door Notification and Occusim Arlo Follow:
   # follower can be a comma separated list
   follower: input_boolean.door_notify,input_boolean.occusim
 
+Andrew Desk Keyboard Tray:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: binary_sensor.andrew_desk_keyboard_tray
+  # follower can be a comma separated list
+  follower: group.andrew_desk
+
 # Algo Timer:
 #  module: algo_timer
 #  class: SmartTimer

@@ -325,18 +325,6 @@
     data:
       message: "Bethany is on her way home"
 
-- alias: "Desk Drawer Open Toggle"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: binary_sensor.desk_keyboard_drawer
-    from: 'off'
-    to: 'on'
-  action:
-    service: homeassistant.toggle
-    entity_id: group.andrew_desk
-
-
 ####################
 # Mom and Dad Gate #
 ####################

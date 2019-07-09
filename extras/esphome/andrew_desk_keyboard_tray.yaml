@@ -1,0 +1,41 @@
+esphome:
+  name: andrew_desk_keyboard_tray
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+  
+sensor:
+  - platform: ultrasonic
+    # Setting ID only will make the sensor internal
+    id: "ultrasonic_sensor"
+    trigger_pin: D1
+    echo_pin: D2
+    update_interval: 1s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 4
+          send_every: 1
+
+binary_sensor:
+  - platform: template
+    name: "Andrew Desk Keyboard Tray"
+    device_class: opening
+    lambda: |-
+      if (id(ultrasonic_sensor).state > 0.30) {
+        // Tray is open.
+        return true;
+      } else {
+        // Tray is closed.
+        return false;
+      }
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
