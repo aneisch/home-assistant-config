@@ -283,6 +283,10 @@ panel_iframe:
     title: 'Grafana'
     icon: mdi:chart-areaspline
     url: !secret grafana
+  esphome:
+    title: 'ESPHome'
+    icon: mdi:memory
+    url: http://esphome/
 
 alexa:
 
