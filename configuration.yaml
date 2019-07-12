@@ -82,7 +82,9 @@ proximity:
   home:
     devices:
       - device_tracker.owntracks_android
+      - device_tracker.owntracks_workphone
       - device_tracker.owntracks_bethanyphone
+      - device_tracker.bethanys_iphone
     tolerance: 50
     unit_of_measurement: mi
 
@@ -299,11 +301,10 @@ owntracks:
 
 device_tracker:
   - platform: nmap_tracker
-    hosts: 10.0.1.13/32
     home_interval: 10
-#  - platform: tile
-#    username: !secret tile_user
-#    password: !secret tile_password
+    hosts: 
+      - 10.0.1.13/32
+      - 10.0.1.59/32
 
 media_player:
   - platform: spotify
@@ -356,6 +357,23 @@ netatmo:
 
 digital_ocean:
   access_token: !secret DO_token
+
+person:
+  - name: Andrew
+    id: andrew
+    device_trackers:
+      - device_tracker.owntracks_andrewworkphone
+      - device_tracker.andrews_phone_nmap
+  - name: Bethany
+    id: bethany
+    device_trackers:
+      - device_tracker.bethanys_iphone
+      - device_tracker.bethanys_iphone_nmap
+      - device_tracker.owntracks_bethanyphone
+
+googlehome:
+  devices:
+    - host: 10.0.1.49
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

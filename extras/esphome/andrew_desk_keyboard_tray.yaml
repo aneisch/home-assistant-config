@@ -13,15 +13,13 @@ sensor:
     id: "ultrasonic_sensor"
     trigger_pin: D1
     echo_pin: D2
+    accuracy_decimals: 5
     update_interval: 1s
     filters:
-      - lambda: |-
-          if (x > 0.2) {
-            return x;
-          } 
+      - lambda: if (x > 0.2000 && x < 0.6500) return x; else return {};
       - sliding_window_moving_average:
-          window_size: 4
-          send_every: 1
+          window_size: 5
+          send_every: 5
 
   - platform: uptime
     name: "Andrew Desk Keyboard Tray Uptime"
@@ -35,14 +33,7 @@ binary_sensor:
   - platform: template
     name: "Andrew Desk Keyboard Tray"
     device_class: opening
-    lambda: |-
-      if (id(ultrasonic_sensor).state > 0.34) {
-        // Tray is open
-        return true;
-      } else {
-        // Tray is closed
-        return false;
-      }
+    lambda: if (id(ultrasonic_sensor).state > 0.34) return true; else return false;
 
 # Enable logging
 logger:

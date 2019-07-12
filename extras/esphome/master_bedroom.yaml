@@ -1,13 +1,30 @@
 esphome:
   name: master_bedroom
   platform: ESP8266
-  board: d1_mini
+  board: d1_mini_pro
 
 wifi:
   ssid: "SSID"
   password: "WPA_KEY"
 
 sensor:
+  - platform: hx711
+    id: "master_bed"
+    dout_pin: D2
+    clk_pin: D3
+    gain: 128
+    update_interval: 1s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 5
+          send_every: 5
+    #filters:
+    #  - calibrate_linear:
+    #      - 641869.00000 -> 0
+          
+    unit_of_measurement: kg
+  - platform: uptime
+    name: "Master Bedroom Bed Uptime"
   - platform: dht
     model: DHT22
     pin: D4
@@ -19,13 +36,22 @@ sensor:
     humidity:
       name: "Master Bedroom Humidity"
     update_interval: 10s
-  - platform: uptime
-    name: "Master Bedroom Uptime"
     
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "Master Bedroom IP Address"
+      name: "Master Bedroom Bed Address"
+  - platform: template
+    name: "Master Bedroom Bed"
+    lambda: if (id(master_bed).state > 675000) return {"2"}; else if (id(master_bed).state > 644000) return {"1"}; else return {"0"};
+    update_interval: 1s
+    
+binary_sensor:
+  - platform: template
+    name: "Master Bedroom Bed"
+    device_class: occupancy
+    lambda: if (id(master_bed).state > 644000) return true; else return false;
+
 
 # Enable logging
 logger:
@@ -34,3 +60,4 @@ logger:
 api:
 
 ota:
+

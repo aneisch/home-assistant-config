@@ -10,9 +10,18 @@ class Follow(hass.Hass):
     def state_change(self, entity, attribute, old, new, kwargs):
         if new == "on":
             for device in self.split_device_list(self.args["follower"]):
-                self.log("Turning on " + device)
-                self.turn_on(device)
+                if "invert" in self.args:
+                    self.log("Turning off " + device)
+                    self.turn_off(device)
+                else:
+                    self.log("Turning on " + device)
+                    self.turn_on(device)
+
         elif new == "off":
             for device in self.split_device_list(self.args["follower"]):
-                self.log("Turning off " + device)
-                self.turn_off(device)
+                if "invert" in self.args:
+                    self.log("Turning on " + device)
+                    self.turn_on(device)
+                else:
+                    self.log("Turning off " + device)
+                    self.turn_off(device)

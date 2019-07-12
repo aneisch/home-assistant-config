@@ -148,6 +148,10 @@ sensor.ac_runtime_today:
 sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
+# Sensors
+binary_sensor.master_bedroom_bed:
+  icon: mdi:hotel
+
 #Scripts
 script.appdaemon_ac_night:
   emulated_hue_name: "AC Night"
@@ -178,15 +182,10 @@ script.common_areas_off:
   emulated_hue_hidden: false
   emulated_hue_name: "Common Areas Off"
 
-#DEVICES
-device_tracker.owntracks_workphone:
-  friendly_name: Andrew's Phone
+#People
+person.andrew:
   entity_picture: /local/icons/tracker_icons/andrew.jpg
-device_tracker.owntracks_bethanyphone:
-  friendly_name: Bethany's iPhone Owntracks
-  entity_picture: /local/icons/tracker_icons/bethany.jpg
-device_tracker.bethanys_iphone:
-  friendly_name: Bethany's iPhone
+person.bethany:
   entity_picture: /local/icons/tracker_icons/bethany.jpg
 
 ##OTHER

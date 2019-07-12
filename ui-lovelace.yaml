@@ -76,9 +76,8 @@ views:
         show_header_toggle: false
         title: Trackers
         entities:
-          - device_tracker.owntracks_workphone
-          #- device_tracker.owntracks_bethanyphone
-          - device_tracker.bethanys_iphone
+          - person.andrew
+          - person.bethany
 
       - id: bus-commute
         type: conditional
@@ -250,6 +249,7 @@ views:
         title: Master Bedroom
         entities:
           - sensor.master_bedroom_temperature
+          - binary_sensor.master_bedroom_bed
           - light.master_bedroom
           - switch.master_bedroom_sound_machine
           - fan.master_bedroom_ceiling_fan_level
