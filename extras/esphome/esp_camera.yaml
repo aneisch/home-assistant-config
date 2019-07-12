@@ -1,0 +1,59 @@
+esphome:
+  name: esp_camera
+  platform: ESP32
+  board: esp32dev
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+esp32_ble_tracker:
+  scan_interval: 60s
+
+# ESP32-CAM
+esp32_camera:
+  external_clock:
+    pin: GPIO0
+    frequency: 20MHz
+  i2c_pins:
+    sda: GPIO26
+    scl: GPIO27
+  data_pins: [GPIO5, GPIO18, GPIO19, GPIO21, GPIO36, GPIO39, GPIO34, GPIO35]
+  vsync_pin: GPIO25
+  href_pin: GPIO23
+  pixel_clock_pin: GPIO22
+  power_down_pin: GPIO32
+
+  name: "ESP Camera"
+  resolution: 1024x768
+  max_framerate: 4 fps
+  idle_framerate: 0 fps
+
+# Flashlight
+output:
+  - platform: gpio
+    pin: GPIO4
+    id: gpio_4
+
+light:
+  - platform: binary
+    output: gpio_4
+    name: "ESP Camera"
+    
+sensor:
+  - platform: uptime
+    name: "ESP Camera Uptime"
+    
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "ESP Camera IP Address"
+
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:

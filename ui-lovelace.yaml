@@ -187,6 +187,9 @@ views:
         entities:
           - switch.outdoor_zwave_switch
 
+      - id: backyard_camera
+        type: picture-entity
+        entity: camera.backyard
 
       - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
         type: entities
