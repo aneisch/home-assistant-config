@@ -7,6 +7,6 @@ script:
   - hass -c . --script check_config -i
 before_install:
   - mv .travis_secrets.yaml secrets.yaml
-  - sed -i -e '/- platform: bus_times//' sensors.yaml
+  - sed -i -e 's/- platform: bus_times//' sensors.yaml
   - sudo apt-get update
   - sudo apt install libudev-dev
