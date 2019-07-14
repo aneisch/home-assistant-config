@@ -123,6 +123,10 @@ views:
         entity: camera.outdoor
         #camera_view: live
 
+      - id: backyard_camera
+        type: picture-entity
+        entity: camera.backyard
+
       - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
         type: custom:mini-media-player
         entity: media_player.spotify
@@ -140,6 +144,11 @@ views:
 #    - sensor.deliveries_today
 #    - sensor.packages_in_transit
           - script.copy
+
+      - id: garden_plant
+        title: Garden
+        type: plant-status
+        entity: plant.garden
 
 
 ##########
@@ -186,10 +195,6 @@ views:
         title: Back Porch
         entities:
           - switch.outdoor_zwave_switch
-
-      - id: backyard_camera
-        type: picture-entity
-        entity: camera.backyard
 
       - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
         type: entities

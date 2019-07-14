@@ -375,6 +375,14 @@ googlehome:
   devices:
     - host: 10.0.1.49
 
+plant:
+  garden:
+    sensors:
+      moisture: sensor.miflora_moisture
+      temperature: sensor.miflora_temperature
+      conductivity: sensor.miflora_soil_conductivity
+      brightness: sensor.miflora_illuminance
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml
