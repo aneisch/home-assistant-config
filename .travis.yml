@@ -9,6 +9,6 @@ before_install:
   - ls
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
-  - sed -i -e 's/- platform: bus_times//' ~/home-assistant-config/sensors.yaml
+  - sed -i 's/- platform: bus_times//' sensors.yaml
   - sudo apt-get update
   - sudo apt install libudev-dev
