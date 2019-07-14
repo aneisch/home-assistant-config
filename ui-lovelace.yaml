@@ -127,6 +127,10 @@ views:
         type: picture-entity
         entity: camera.backyard
 
+      - id: backyard_camera
+        type: picture-entity
+        entity: camera.esp_camera
+
       - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
         type: custom:mini-media-player
         entity: media_player.spotify

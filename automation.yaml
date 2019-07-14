@@ -299,6 +299,20 @@
       message: >
         {{ trigger.event.data.new_state.attributes.friendly_name | replace("Seventeentrack Package: ","") }}: {{ trigger.event.data.new_state.attributes.info_text }}
 
+- alias: "Garden Timer Problem"
+  initial_state: 'on'
+  trigger:
+    - platform: time
+      at: '05:30:00'
+  condition:
+    condition: numeric_state
+    entity_id: sensor.miflora_moisture
+    below: 70
+  action:
+    service: notify.pushover
+    data_template:
+      message: >
+        Garden sensor reports a moisture level of {{ states.sensor.miflora_moisture.state }}%. Check hose timer. 
 
 ####################
 # Mom and Dad Gate #
