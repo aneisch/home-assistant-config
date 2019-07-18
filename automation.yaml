@@ -202,7 +202,7 @@
     - service: notify.pushover
       data_template:
         message: AC Broke.. Turning Off...
-    - service: climate.set_operation_mode
+    - service: climate.set_hvac_mode
       data:
         entity_id: climate.thermostat
         operation_mode: 'off'
@@ -226,7 +226,7 @@
     - service: notify.pushover
       data_template:
         message: AC Broke.. Turning Off...
-    - service: climate.set_operation_mode
+    - service: climate.set_hvac_mode
       data:
         entity_id: climate.thermostat
         operation_mode: 'off'
@@ -313,6 +313,29 @@
     data_template:
       message: >
         Garden sensor reports a moisture level of {{ states.sensor.miflora_moisture.state }}%. Check hose timer. 
+
+# Test data for html5 push notification acton
+#{
+#   "message": "Welcome home",
+#   "target": "Phone",
+#   "data": {
+#      "actions": [
+#         {
+#            "action": "action_1",
+#            "title": "Lamp Toggle"
+#         }
+#      ]
+#   }
+#}
+- alias: HTML5 push notification action button clicked
+  trigger:
+    platform: event
+    event_type: html5_notification.clicked
+    event_data:
+      action: action_1
+  action:
+    service: homeassistant.toggle
+    entity_id: switch.bethany_desk_lamp
 
 ####################
 # Mom and Dad Gate #

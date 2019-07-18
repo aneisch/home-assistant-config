@@ -76,7 +76,7 @@
     - timeleft
 
 - platform: mqtt
-  state_topic: "owntracks/owntracks/Android"
+  state_topic: "owntracks/owntracks/andrewworkphone"
   name: "Andrew Phone Battery"
   unit_of_measurement: "%"
   value_template: "{{ value_json.batt }}"
@@ -255,8 +255,8 @@
     lon_ne: !secret netatmo_lon_ne
     lat_sw: !secret netatmo_lat_sw
     lon_sw: !secret netatmo_lon_sw
-    monitored_conditions:
-      - rain
+#    monitored_conditions:
+#      - rain
 
 - platform: rtorrent
   url: !secret rtorrent
