@@ -3,12 +3,12 @@ python:
   - "3.6.8"
 install:
   - pip3 install homeassistant
-script:
-  - hass -c . --script check_config -i -f
+before_script:
+  - hass -v --config .
 before_install:
   - ls
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
   - sed -i "/bus_times/d" ./sensors.yaml
-  - sudo apt-get update
-  - sudo apt install libudev-dev
+script:
+  - hass -c . --script check_config -i -f
