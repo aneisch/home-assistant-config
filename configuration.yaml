@@ -13,6 +13,7 @@ config:
 lovelace:
   mode: yaml
 
+# Write flat log file
 logger:
   default: info
   logs:
