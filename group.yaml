@@ -1,71 +1,13 @@
 ### USING LOVELACE INSTEAD OF LEGACY UI  ###
-### CHANGES MIGHT NOT BE REFLECTED BELOW ###
-###             NO PRMOSES!!             ###
-
-#TABS
-default_view:
-  name: Home
-  view: yes
-  entities:
-    - group.thermostat
-    - group.automation_override
-    - group.scenes
-    - group.security
-    - group.trackers
-    - camera.outdoor
-    - group.misc
-    - media_player.spotify
-    - media_player.plex_web_chrome
 
 common_areas:
   name: Common Areas
   view: yes
   entities:
-    - group.thermostat
     - group.living_room
     - group.kitchen
     - group.office
     - group.guest_bedroom
-    - media_player.spotify
-
-master:
-  name: Master Bedroom
-  view: yes
-  entities:
-    - group.master_bedroom
-    - group.scenes
-    - media_player.spotify
-
-ha_status:
-  name: Server Status
-  view: yes
-  entities:
-    - group.system
-    - group.UPS
-    - group.power
-
-##########
-# GROUPS #
-##########
-thermostat:
-  name: Thermostat
-  control: hidden
-  entities:
-    - climate.thermostat
-    - sensor.thermostat_temperature
-    - sensor.thermostat_setpoint
-    - sensor.thermostat_state
-    - sensor.thermostat_fan_status
-    - sensor.ac_runtime_today
-    - sensor.ac_runtime_yesterday
-
-scenes:
-  name: Scenes
-  control: hidden
-  entities:
-    - script.master_bedroom_light_full
-    - script.master_bedroom_light_dim
-    - script.master_bedroom_bedtime
 
 office:
   name: Office
@@ -95,56 +37,11 @@ guest_bedroom:
   entities:
     - switch.guest_lamp
 
-security:
-  name: Security
-  control: hidden
-  entities:
-    - input_boolean.arlo_status
-    - binary_sensor.front_door
-    - binary_sensor.back_door
-
-#This helps us determine who is home also!
 trackers:
   name: Trackers
   entities:
     - person.andrew
     - person.bethany
-
-system:
-  name: System
-  control: hidden
-  entities:
-    - sensor.ssl_certificate_expiry
-    - sensor.rack_exhaust_temperature
-    - sensor.processor_use
-    - sensor.load_1m
-    - sensor.memory_use_percent
-    - sensor.disk_use_percent
-    - sensor.disk_use_percent_home
-    - sensor.last_boot
-    - sensor.network_out_eno1
-    - sensor.network_in_eno1
-    - switch.nas
-
-UPS:
-  name: UPS
-  entities:
-    - sensor.ups_time_left
-    - sensor.ups_load
-    - sensor.ups_battery
-
-automation_override:
-  name: Automation Control
-  control: hidden
-  entities:
-    - input_boolean.door_notify
-    - input_boolean.ac_automation
-    - input_boolean.plant_light_automation
-    - input_boolean.ac_change_notification
-    - input_boolean.occusim
-    - input_boolean.guest_automation
-    - input_boolean.house_lamps_automation
-    - input_boolean.security_camera_automation
 
 kitchen:
   name: Kitchen
@@ -176,21 +73,6 @@ master_bedroom_lamps:
   entities:
     - switch.andrew_nightstand_lamp
     - switch.bethany_nightstand_lamp
-
-power:
-  name: Power
-  entities:
-    - sensor.sonoff_pow_current
-    - sensor.sonoff_pow_power
-    - sensor.sonoff_pow_today_energy
-    - sensor.sonoff_pow_today_cost
-    - sensor.sonoff_pow_yesterday_energy
-    - sensor.sonoff_pow_yesterday_cost
-
-misc:
-  name: Misc
-  entities:
-     - script.copy
 
 andrew_desk:
   view: no
