@@ -17,13 +17,11 @@ office:
     - fan.office_ceiling_fan_level
     - switch.andrew_desk_lamp
     - switch.bethany_desk_lamp
-    - camera.office
 
 master_bedroom:
   name: Master Bedroom
   control: hidden
   entities:
-    - sensor.master_bedroom_temperature
     - light.master_bedroom
     - switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
@@ -57,7 +55,6 @@ living_room:
     - switch.wemo_switch
     - switch.living_room_lamp
     - switch.tv
-    #- switch.christmas_tree
     - switch.entertainment_center_lights
 
 living_room_lamps:
