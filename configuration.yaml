@@ -7,7 +7,7 @@ homeassistant:
   longitude: !secret home_long
   time_zone: America/Chicago
 
-# Enable configuration panel
+# Enable configuration tab
 config:
 
 lovelace:
