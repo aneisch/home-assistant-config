@@ -5,6 +5,8 @@
 
 - platform: bus_times
 
+- platform: arlo
+
 # Dead?
 - platform: ups
   username: !secret ups_username

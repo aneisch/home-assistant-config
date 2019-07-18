@@ -28,6 +28,9 @@ recorder:
 
 system_health:
 
+alarm_control_panel:
+  - platform: arlo
+
 ios:
 
 sun:
@@ -383,6 +386,8 @@ plant:
       temperature: sensor.miflora_temperature
       conductivity: sensor.miflora_soil_conductivity
       brightness: sensor.miflora_illuminance
+    min_moisture: 20
+    max_moisture: 100
 
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

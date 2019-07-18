@@ -65,6 +65,7 @@ views:
         show_header_toggle: false
         title: Security
         entities:
+          - alarm_control_panel.neisch
           - input_boolean.arlo_status
           - binary_sensor.front_door
           - binary_sensor.back_door
