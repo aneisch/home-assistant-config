@@ -14,3 +14,9 @@
       state: on
       brightness: 255
       rgb_color: [255, 255, 255]
+
+- name: Monitor Backlight Full
+  entities:
+    light.andrew_monitor_backlight:
+      state: on
+      brightness: 255

@@ -9,13 +9,19 @@ wifi:
 
 binary_sensor:
   - platform: gpio
-    pin: D3
+    pin:
+      mode: INPUT_PULLUP
+      number: D1
     name: "Back Door"
     device_class: door
+
   - platform: gpio
-    pin: D4
+    pin:
+      mode: INPUT_PULLUP
+      number: D2
     name: "Front Door"
     device_class: door
+
     
 sensor:
   - platform: uptime

@@ -302,6 +302,7 @@ views:
           - !secret domain_expiry
           - !secret domain_2_expiry
           - sensor.rack_exhaust_temperature
+          - fan.rack_fan
           - sensor.processor_use
           - sensor.load_1m
           - sensor.memory_use_percent

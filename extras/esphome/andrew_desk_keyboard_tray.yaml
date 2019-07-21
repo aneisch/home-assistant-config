@@ -8,22 +8,32 @@ wifi:
   password: "WPA_KEY"
   
 sensor:
+  # Read the sensor and pass to template to validate
   - platform: ultrasonic
-    # Setting ID only will make the sensor internal
-    id: "ultrasonic_sensor"
+    id: "ultrasonic_read"
     trigger_pin: D1
     echo_pin: D2
     accuracy_decimals: 5
     update_interval: 1s
+
+  # Validate reading and then pass to binary
+  - platform: template
+    id: "ultrasonic_smoothed"
+    lambda: |-
+      if (id(ultrasonic_read).state > 0.2000 && id(ultrasonic_read).state < 0.6500) {
+        return id(ultrasonic_read).state; 
+      } else {
+        return {};
+      }
+    update_interval: 1s
     filters:
-      - lambda: if (x > 0.2000 && x < 0.6500) return x; else return {};
       - sliding_window_moving_average:
           window_size: 5
-          send_every: 5
+          send_every: 2
 
   - platform: uptime
     name: "Andrew Desk Keyboard Tray Uptime"
-    
+
 text_sensor:
   - platform: wifi_info
     ip_address:
@@ -33,7 +43,7 @@ binary_sensor:
   - platform: template
     name: "Andrew Desk Keyboard Tray"
     device_class: opening
-    lambda: if (id(ultrasonic_sensor).state > 0.34) return true; else return false;
+    lambda: if (id(ultrasonic_smoothed).state > 0.31) return true; else return false;
 
 # Enable logging
 logger:

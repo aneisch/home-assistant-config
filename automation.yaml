@@ -337,6 +337,15 @@
     service: homeassistant.toggle
     entity_id: switch.bethany_desk_lamp
 
+- alias: Ensure 100% brightness for Andrew Backlight
+  trigger:
+    platform: state
+    to: 'on'
+    entity_id: light.andrew_monitor_backlight
+  action:
+    service: scene.turn_on
+    entity_id: scene.monitor_backlight_full
+
 ####################
 # Mom and Dad Gate #
 ####################
