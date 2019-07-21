@@ -22,7 +22,6 @@ binary_sensor:
     name: "Front Door"
     device_class: door
 
-    
 sensor:
   - platform: uptime
     name: "Door Sensor Uptime"

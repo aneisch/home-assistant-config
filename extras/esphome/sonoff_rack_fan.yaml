@@ -4,7 +4,7 @@ esphome:
   board: esp01_1m
 
 wifi:
-  ssid: SSID
+  ssid: "SSID"
   password: "WPA_KEY"
 
 api:
