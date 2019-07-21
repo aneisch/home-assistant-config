@@ -4,7 +4,7 @@ python:
 install:
   - pip3 install homeassistant
 before_script:
-  - tiimeout 60 hass -v --config .
+  - timeout 60 hass -v --config .
 before_install:
   - ls
   - pwd
