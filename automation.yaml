@@ -157,7 +157,7 @@
     to: 'on'
   action:
     service: homeassistant.toggle
-    entity_id: switch.bethany_desk_lamp
+    entity_id: light.bethany_desk_lamp
 
 - alias: "Mount /Plex"
   initial_state: on
@@ -335,7 +335,7 @@
       action: action_1
   action:
     service: homeassistant.toggle
-    entity_id: switch.bethany_desk_lamp
+    entity_id: light.bethany_desk_lamp
 
 - alias: Ensure 100% brightness for Andrew Backlight
   trigger:

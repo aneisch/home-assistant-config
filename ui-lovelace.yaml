@@ -190,7 +190,7 @@ views:
         show_header_toggle: false
         title: Guest Bedroom
         entities:
-          - switch.guest_nightstand_lamp
+          - light.guest_nightstand_lamp
 
       - id: 1
         type: entities
@@ -214,13 +214,13 @@ views:
         entities:
           - sensor.office_temperature
           - fan.office_ceiling_fan_level
-          - switch.andrew_desk_lamp
+          - light.andrew_desk_lamp
           - entity: light.andrew_monitor_backlight
             name: Monitor Backlight
             hide_when_off: true
             type: custom:slider-entity-row
             break_slider: true
-          - switch.bethany_desk_lamp
+          - light.bethany_desk_lamp
 
       - id: b7af20433c784ccca205fa325641280f  # Automatically created id
         type: picture-entity
@@ -266,8 +266,8 @@ views:
           - switch.master_bedroom_sound_machine
           - fan.master_bedroom_ceiling_fan_level
           - switch.master_bathroom_light_switch
-          - switch.andrew_nightstand_lamp
-          - switch.bethany_nightstand_lamp
+          - light.andrew_nightstand_lamp
+          - light.bethany_nightstand_lamp
 
       - id: 05b792f2dbf04373941dd053f3209dfd  # Automatically created id
         type: entities

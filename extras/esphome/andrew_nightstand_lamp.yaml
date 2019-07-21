@@ -1,0 +1,43 @@
+esphome:
+  name: andrew_nightstand_lamp
+  platform: ESP8266
+  board: esp01_1m  
+  esp8266_restore_from_flash: true
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+status_led:
+  pin:
+    number: GPIO12
+    inverted: yes
+
+binary_sensor:
+  - platform: gpio
+    id: button
+    pin:
+      number: GPIO5
+      mode: INPUT_PULLUP
+      inverted: True
+    on_press:
+      - light.toggle: lamp
+
+output:
+  - platform: gpio
+    id: relay
+    pin: GPIO4
+
+light:
+  - platform: binary
+    id: lamp
+    name: "Andrew Nightstand Lamp"
+    output: relay
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:

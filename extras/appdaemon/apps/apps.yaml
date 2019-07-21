@@ -157,7 +157,7 @@ House Lamp Automation:
   constrain_presence: anyone
   time_on: sunset - 00:30:00
   # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
-  entity: group.master_bedroom_lamps,switch.andrew_desk_lamp,switch.bethany_desk_lamp
+  entity: group.master_bedroom_lamps,light.andrew_desk_lamp,light.bethany_desk_lamp
 
 Lamps Follow:
   module: follow_me
@@ -166,7 +166,7 @@ Lamps Follow:
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list
-  follower: group.living_room_lamps,switch.guest_nightstand_lamp
+  follower: group.living_room_lamps,light.guest_nightstand_lamp
 
 Entertainment Center Follow:
   module: follow_me

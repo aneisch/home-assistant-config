@@ -13,16 +13,6 @@ logger:
 
 ota:
 
-binary_sensor:
-  - platform: gpio
-    pin:
-      number: GPIO0
-      mode: INPUT_PULLUP
-      inverted: True
-    name: "Rack Fan"
-    on_press:
-      - fan.toggle: rack_fan
-
 fan:
   - platform: binary
     name: "Rack Fan"
