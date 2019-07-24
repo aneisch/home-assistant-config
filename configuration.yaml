@@ -375,10 +375,6 @@ person:
       - device_tracker.bethanys_iphone_nmap
       - device_tracker.owntracks_bethanyphone
 
-googlehome:
-  devices:
-    - host: 10.0.1.49
-
 plant:
   garden:
     sensors:

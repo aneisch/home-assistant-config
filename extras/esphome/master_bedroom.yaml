@@ -43,14 +43,14 @@ text_sensor:
       name: "Master Bedroom Bed Address"
   - platform: template
     name: "Master Bedroom Bed"
-    lambda: if (id(master_bed).state > 675000) return {"2"}; else if (id(master_bed).state > 650000) return {"1"}; else return {"0"};
+    lambda: if (id(master_bed).state > 662000) return {"2"}; else if (id(master_bed).state > 635000) return {"1"}; else return {"0"};
     update_interval: 1s
     
 binary_sensor:
   - platform: template
     name: "Master Bedroom Bed"
     device_class: occupancy
-    lambda: if (id(master_bed).state > 650000) return true; else return false;
+    lambda: if (id(master_bed).state > 635000) return true; else return false;
 
 
 # Enable logging

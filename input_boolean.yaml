@@ -5,49 +5,39 @@ arlo_status:
 #used with appdaemon
 door_notify:
   name: Door Notifications
-  #initial: off
   icon: mdi:alert-circle
 
 ac_automation:
   name: AC Automation
-  initial: on
   icon: mdi:fan
 
 ac_change_notification:
   name: AC Change Notification
-  #initial: off
   icon: mdi:alert-circle
 
 occusim:
   name: Occupancy Simulator
-  #initial: off
 
 plant_light_automation:
   name: Plant Light Automation
-  initial: on
   icon: mdi:lightbulb
 
 guest_automation:
   name: Guest Bedroom Automation
-  initial: on
   icon: mdi:account-plus
 
 house_lamps_automation:
   name: House-Wide Lamps Automation
-  initial: on
   icon: mdi:lamp
 
 security_camera_automation:
   name: Security Camera Automation
   icon: mdi:camera
-  initial: on
 
 bus_commute:
   name: Bus Commute
   icon: mdi:bus
-  initial: off
 
 panic_mode:
   name: Panic Mode
   icon: mdi:alert-decagram
-  initial: off
