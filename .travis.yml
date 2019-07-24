@@ -8,5 +8,9 @@ before_install:
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
   - sed -i "/bus_times/d" ./sensors.yaml
+  # Add fake automation to stop home assistant after it's ready
+  - printf -- "- alias: Stop HomeAssistant with Travis\n initial_state: on\n  trigger:\n    - platform: homeassistant\n      event: start\n  action:\n    service: homeassistant.stop" > automation.yaml
+before_script:
+  - hass -v --config .
 script:
   - hass -c . --script check_config -i -f
