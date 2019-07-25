@@ -11,7 +11,6 @@ before_install:
   - |-
     printf -- '- alias: Stop HomeAssistant with Travis\n  initial_state: on\n  trigger:\n    - platform: homeassistant\n      event: start\n  action:\n    service: homeassistant.stop\n' >> automation.yaml
   - tail -20 automation.yaml
-  - hass -c . --script check_config -i -f
 before_script:
   - hass -v --config .
 script:
