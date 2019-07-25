@@ -2,7 +2,8 @@ language: python
 python:
   - "3.6.8"
 install:
-  - pip3 install homeassistant
+  #- pip3 install homeassistant
+  - pip3 install git+git://github.com/home-assistant/home-assistant.git@e8e84fb76427f797ae9efe26756622c1be5773c8
 before_install:
   - ls
   - pwd
