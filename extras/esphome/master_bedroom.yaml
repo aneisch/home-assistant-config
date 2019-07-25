@@ -48,4 +48,4 @@ binary_sensor:
   - platform: template
     name: "Master Bedroom Bed"
     device_class: occupancy
-    lambda: if (id(master_bed).state > 64000) return true; else return false;
+    lambda: if (id(master_bed).state > 640000) return true; else return false;
