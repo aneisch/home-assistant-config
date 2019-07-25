@@ -9,6 +9,7 @@ before_install:
   - mv .travis_secrets.yaml secrets.yaml
   - sed -i "/bus_times/d" ./sensors.yaml
   - printf -- - alias":" Stop HomeAssistant with Travis\n initial_state":" on\n  trigger:\n    - platform":" homeassistant\n      event":" start\n  action":"\n    service":" homeassistant.stop > automation.yaml
+  - cat automation.yaml
 before_script:
   - hass -v --config .
 script:

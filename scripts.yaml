@@ -43,8 +43,8 @@ arlo_disarm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
-    - delay:
-        seconds: 5
+    - service: alarm_control_panel.alarm_arm_home
+      entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
     - service: notify.pushover
@@ -55,6 +55,8 @@ arlo_arm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_arm"}
+    - service: alarm_control_panel.alarm_arm_away
+      entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: notify.pushover
       data:
         message: Armed!

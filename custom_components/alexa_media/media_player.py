@@ -9,6 +9,7 @@ https://community.home-assistant.io/t/echo-devices-alexa-as-media-player-testers
 """
 import logging
 
+from typing import List  # noqa pylint: disable=unused-import
 import voluptuous as vol
 from homeassistant import util
 from homeassistant.components.media_player import (MEDIA_PLAYER_SCHEMA,
@@ -29,17 +30,18 @@ from homeassistant.components.media_player.const import (
     SUPPORT_VOLUME_SET)
 from homeassistant.const import (STATE_IDLE, STATE_PAUSED, STATE_PLAYING,
                                  STATE_STANDBY)
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.event import call_later
 from homeassistant.helpers.service import extract_entity_ids
 
-from .const import ATTR_MESSAGE, PLAY_SCAN_INTERVAL, SERVICE_ALEXA_TTS
+from .const import ATTR_MESSAGE, PLAY_SCAN_INTERVAL
 
 from . import (
-        DOMAIN as ALEXA_DOMAIN,
-        DATA_ALEXAMEDIA,
-        MIN_TIME_BETWEEN_SCANS, MIN_TIME_BETWEEN_FORCED_SCANS,
-        hide_email, hide_serial)
+    DOMAIN as ALEXA_DOMAIN,
+    DATA_ALEXAMEDIA,
+    MIN_TIME_BETWEEN_SCANS, MIN_TIME_BETWEEN_FORCED_SCANS,
+    hide_email, hide_serial)
 SUPPORT_ALEXA = (SUPPORT_PAUSE | SUPPORT_PREVIOUS_TRACK |
                  SUPPORT_NEXT_TRACK | SUPPORT_STOP |
                  SUPPORT_VOLUME_SET | SUPPORT_PLAY |
@@ -50,40 +52,11 @@ _LOGGER = logging.getLogger(__name__)
 
 DEPENDENCIES = [ALEXA_DOMAIN]
 
-ALEXA_TTS_SCHEMA = MEDIA_PLAYER_SCHEMA.extend({
-    vol.Required(ATTR_MESSAGE): cv.string,
-})
-
 
 def setup_platform(hass, config, add_devices_callback,
                    discovery_info=None):
     """Set up the Alexa media player platform."""
-    def tts_handler(call):
-        for alexa in service_to_entities(call):
-            if call.service == SERVICE_ALEXA_TTS:
-                message = call.data.get(ATTR_MESSAGE)
-                alexa.send_tts(message)
-
-    def service_to_entities(call):
-        """Return the known devices that a service call mentions."""
-        entity_ids = extract_entity_ids(hass, call)
-        if entity_ids:
-            devices = []
-            for account, account_dict in (hass.data[DATA_ALEXAMEDIA]
-                                          ['accounts'].items()):
-                devices = devices + list(account_dict
-                                         ['entities']['media_player'].values())
-                _LOGGER.debug("Account: %s Devices: %s",
-                              hide_email(account),
-                              devices)
-            entities = [entity for entity in devices
-                        if entity.entity_id in entity_ids]
-        else:
-            entities = None
-
-        return entities
-
-    devices = []
+    devices = []  # type: List[AlexaClient]
     for account, account_dict in (hass.data[DATA_ALEXAMEDIA]
                                   ['accounts'].items()):
         for key, device in account_dict['devices']['media_player'].items():
@@ -98,9 +71,17 @@ def setup_platform(hass, config, add_devices_callback,
                  ['entities']
                  ['media_player'][key]) = alexa_client
     _LOGGER.debug("Adding %s", devices)
-    add_devices_callback(devices, True)
-    hass.services.register(DOMAIN, SERVICE_ALEXA_TTS, tts_handler,
-                           schema=ALEXA_TTS_SCHEMA)
+    try:
+        add_devices_callback(devices, True)
+    except HomeAssistantError as exception_:
+        message = exception_.message  # type: str
+        if message.startswith("Entity id already exists"):
+            _LOGGER.debug("Device already added: %s",
+                          message)
+        else:
+            _LOGGER.debug("Unable to add devices: %s : %s",
+                          devices,
+                          message)
 
 
 class AlexaClient(MediaPlayerDevice):
@@ -136,6 +117,7 @@ class AlexaClient(MediaPlayerDevice):
         self._available = None
         self._capabilities = []
         self._cluster_members = []
+        self._locale = None
         # Media
         self._session = None
         self._media_duration = None
@@ -190,6 +172,14 @@ class AlexaClient(MediaPlayerDevice):
                 force_refresh = not (self.hass.data[DATA_ALEXAMEDIA]
                                      ['accounts'][email]['websocket'])
                 self.schedule_update_ha_state(force_refresh=force_refresh)
+        elif 'bluetooth_change' in event.data:
+            if (event.data['bluetooth_change']['deviceSerialNumber'] ==
+                    self.device_serial_number):
+                self._bluetooth_state = event.data['bluetooth_change']
+                self._source = self._get_source()
+                self._source_list = self._get_source_list()
+                if (self.hass and self.schedule_update_ha_state):
+                    self.schedule_update_ha_state()
         elif 'player_state' in event.data:
             player_state = event.data['player_state']
             if (player_state['dopplerId']
@@ -204,6 +194,11 @@ class AlexaClient(MediaPlayerDevice):
                                   self.name,
                                   player_state['volumeSetting'])
                     self._media_vol_level = player_state['volumeSetting']/100
+                    if (self.hass and self.schedule_update_ha_state):
+                        self.schedule_update_ha_state()
+                elif 'dopplerConnectionState' in player_state:
+                    self._available = (player_state['dopplerConnectionState']
+                                       == "ONLINE")
                     if (self.hass and self.schedule_update_ha_state):
                         self.schedule_update_ha_state()
 
@@ -253,6 +248,7 @@ class AlexaClient(MediaPlayerDevice):
             self._capabilities = device['capabilities']
             self._cluster_members = device['clusterMembers']
             self._bluetooth_state = device['bluetooth_state']
+            self._locale = device['locale'] if 'locale' in device else 'en-US'
         if self._available is True:
             _LOGGER.debug("%s: Refreshing %s", self.account, self.name)
             self._source = self._get_source()
@@ -347,7 +343,9 @@ class AlexaClient(MediaPlayerDevice):
         sources = []
         if self._bluetooth_state['pairedDeviceList'] is not None:
             for devices in self._bluetooth_state['pairedDeviceList']:
-                sources.append(devices['friendlyName'])
+                if (devices['profiles'] and
+                        'A2DP-SOURCE' in devices['profiles']):
+                    sources.append(devices['friendlyName'])
         return ['Local Speaker'] + sources
 
     def _get_last_called(self):
@@ -513,7 +511,9 @@ class AlexaClient(MediaPlayerDevice):
             return
         self.alexa_api.set_volume(volume)
         self._media_vol_level = volume
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     @property
     def volume_level(self):
@@ -546,7 +546,9 @@ class AlexaClient(MediaPlayerDevice):
                 self.alexa_api.set_volume(self._previous_volume)
             else:
                 self.alexa_api.set_volume(50)
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     def media_play(self):
         """Send play command."""
@@ -554,7 +556,9 @@ class AlexaClient(MediaPlayerDevice):
                 and self.available):
             return
         self.alexa_api.play()
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     def media_pause(self):
         """Send pause command."""
@@ -562,7 +566,9 @@ class AlexaClient(MediaPlayerDevice):
                 and self.available):
             return
         self.alexa_api.pause()
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     def turn_off(self):
         """Turn the client off.
@@ -589,7 +595,9 @@ class AlexaClient(MediaPlayerDevice):
                 and self.available):
             return
         self.alexa_api.next()
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     def media_previous_track(self):
         """Send previous track command."""
@@ -597,7 +605,9 @@ class AlexaClient(MediaPlayerDevice):
                 and self.available):
             return
         self.alexa_api.previous()
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     def send_tts(self, message):
         """Send TTS to Device.
@@ -632,7 +642,9 @@ class AlexaClient(MediaPlayerDevice):
         else:
             self.alexa_api.play_music(media_type, media_id,
                                       customer_id=self._customer_id, **kwargs)
-        self.update()
+        if not (self.hass.data[DATA_ALEXAMEDIA]
+                ['accounts'][self._login.email]['websocket']):
+            self.update()
 
     @property
     def device_state_attributes(self):
