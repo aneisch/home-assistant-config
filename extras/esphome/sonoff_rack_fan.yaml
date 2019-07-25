@@ -3,15 +3,7 @@ esphome:
   platform: ESP8266
   board: esp01_1m
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
-
-api:
-
-logger:
-
-ota:
+<<: !include common.yaml
 
 fan:
   - platform: binary

@@ -3,9 +3,7 @@ esphome:
   platform: ESP8266
   board: d1_mini_pro
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
+<<: !include common.yaml
 
 sensor:
   - platform: hx711
@@ -43,21 +41,11 @@ text_sensor:
       name: "Master Bedroom Bed Address"
   - platform: template
     name: "Master Bedroom Bed"
-    lambda: if (id(master_bed).state > 662000) return {"2"}; else if (id(master_bed).state > 635000) return {"1"}; else return {"0"};
+    lambda: if (id(master_bed).state > 662000) return {"2"}; else if (id(master_bed).state > 640000) return {"1"}; else return {"0"};
     update_interval: 1s
     
 binary_sensor:
   - platform: template
     name: "Master Bedroom Bed"
     device_class: occupancy
-    lambda: if (id(master_bed).state > 635000) return true; else return false;
-
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:
-
+    lambda: if (id(master_bed).state > 64000) return true; else return false;

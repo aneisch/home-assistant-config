@@ -3,9 +3,7 @@ esphome:
   platform: ESP32
   board: esp32dev
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
+<<: !include common.yaml
 
 esp32_ble_tracker:
   scan_interval: 60s
@@ -48,12 +46,3 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "ESP Camera IP Address"
-
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:

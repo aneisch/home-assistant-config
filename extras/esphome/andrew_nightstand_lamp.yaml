@@ -4,9 +4,7 @@ esphome:
   board: esp01_1m  
   esp8266_restore_from_flash: true
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
+<<: !include common.yaml
 
 status_led:
   pin:
@@ -33,11 +31,3 @@ light:
     id: lamp
     name: "Andrew Nightstand Lamp"
     output: relay
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:

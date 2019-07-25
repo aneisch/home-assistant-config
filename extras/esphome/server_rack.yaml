@@ -3,9 +3,7 @@ esphome:
   platform: ESP8266
   board: d1_mini
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
+<<: !include common.yaml
 
 sensor:
   - platform: dht
@@ -26,11 +24,3 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "Server Rack IP Address"
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:

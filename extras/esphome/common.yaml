@@ -1,0 +1,9 @@
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+logger:
+
+api:
+
+ota:

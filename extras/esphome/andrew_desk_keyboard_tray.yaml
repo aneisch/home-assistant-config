@@ -3,10 +3,8 @@ esphome:
   platform: ESP8266
   board: d1_mini
 
-wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
-  
+<<: !include common.yaml
+
 sensor:
   # Read the sensor and pass to template to validate
   - platform: ultrasonic
@@ -44,11 +42,3 @@ binary_sensor:
     name: "Andrew Desk Keyboard Tray"
     device_class: opening
     lambda: if (id(ultrasonic_smoothed).state > 0.31) return true; else return false;
-
-# Enable logging
-logger:
-
-# Enable Home Assistant API
-api:
-
-ota:
