@@ -5,8 +5,9 @@ esphome:
 
 <<: !include common.yaml
 
-esp32_ble_tracker:
-  scan_interval: 60s
+esp32_ble_beacon:
+  type: iBeacon
+  uuid: '33d723f1-621e-68a5-59a0-8d15e3992d56'
 
 # ESP32-CAM
 esp32_camera:
@@ -46,3 +47,7 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "ESP Camera IP Address"
+
+switch:
+  - platform: restart
+    name: "ESP Camera Restart"

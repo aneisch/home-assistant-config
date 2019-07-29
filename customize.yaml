@@ -183,6 +183,7 @@ script.common_areas_off:
 #People
 person.andrew:
   entity_picture: /local/icons/tracker_icons/andrew.jpg
+  user_id: dd85e42ea84e4f4c87a6fa93ab87a870
 person.bethany:
   entity_picture: /local/icons/tracker_icons/bethany.jpg
 
@@ -222,3 +223,9 @@ script.too_hot:
 script.copy:
   friendly_name: Plex Copy
   icon: mdi:content-copy
+
+zone.home:
+  beacon:
+    uuid: 33d723f1-621e-68a5-59a0-8d15e3992d56
+    major: 0
+    minor: 0

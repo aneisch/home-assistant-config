@@ -59,3 +59,7 @@ text_sensor:
   - platform: wifi_info
     ip_address:
       name: "Backyard Camera IP Address"
+      
+switch:
+  - platform: restart
+    name: "Backyard Camera Restart"
