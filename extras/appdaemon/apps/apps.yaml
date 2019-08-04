@@ -127,15 +127,15 @@ Living Room Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-Bed Occupancy Lamp Automation Override:
-  # Stop master bedroom lamps from automatic when in bed
-  module: follow_me
-  class: Follow
-  # leader can be a comma separated list
-  leader: binary_sensor.master_bedroom_bed
-  # follower can be a comma separated list
-  follower: input_boolean.house_lamps_automation
-  invert: True
+#Bed Occupancy Lamp Automation Override:
+#  # Stop master bedroom lamps from automatic when in bed
+#  module: follow_me
+#  class: Follow
+#  # leader can be a comma separated list
+#  leader: binary_sensor.master_bedroom_bed
+#  # follower can be a comma separated list
+#  follower: input_boolean.house_lamps_automation
+#  invert: True
 
 Master Bedroom Light Dim:
   module: light_automation
