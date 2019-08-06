@@ -8,7 +8,7 @@ web_server:
 
 wifi:
   ssid: "SSID"
-  password: "WPA_KEY"
+  password: ""WPA_KEY""
 
 logger:
 
@@ -19,7 +19,7 @@ api:
 mqtt:
   broker: MQTT_BROKER
   username: gate
-  password: "WPA_KEY"
+  password: MQTT_PASS
 #   on_message:
 # #    topic: cmd/mom_and_dad_gate
 #     topic: cmd/test

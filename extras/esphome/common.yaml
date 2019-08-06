@@ -1,6 +1,6 @@
 wifi:
   ssid: "SSID"
-  password: "WPA_KEY"
+  password: ""WPA_KEY""
 
 logger:
 
