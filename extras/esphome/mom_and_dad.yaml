@@ -1,0 +1,64 @@
+esphome:
+  name: mom_and_dad
+  platform: ESP8266
+  board: d1_mini
+
+web_server:
+  port: 80
+
+wifi:
+  ssid: "SSID"
+  password: "WPA_KEY"
+
+logger:
+
+ota:
+
+api:
+
+mqtt:
+  broker: MQTT_BROKER
+  username: gate
+  password: "WPA_KEY"
+#   on_message:
+# #    topic: cmd/mom_and_dad_gate
+#     topic: cmd/test
+#     then:
+#       - switch.toggle:
+#           id: gate
+
+i2c:
+  sda: D2
+  scl: D1
+  scan: False
+  
+sensor:
+  - platform: qmc5883l
+    address: 0x0D
+    field_strength_x:
+      name: "QMC5883L Field Strength X"
+    field_strength_y:
+      name: "QMC5883L Field Strength Y"
+    field_strength_z:
+      name: "QMC5883L Field Strength Z"
+    heading:
+      name: "QMC5883L Heading"
+    data_rate: 10Hz
+    range: 200uT
+    oversampling: 512x
+    update_interval: 1s
+
+# switch:
+#   - platform: gpio
+#     id: relay
+#     pin:
+#       number: D1
+#       inverted: False
+#   - platform: template
+#     id: gate
+#     name: "Gate Remote"
+#     icon: "mdi:gate"
+#     turn_on_action:
+#     - switch.turn_on: relay
+#     - delay: 500ms
+#     - switch.turn_off: relay

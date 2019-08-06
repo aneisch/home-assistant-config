@@ -6,22 +6,27 @@ esphome:
 <<: !include common.yaml
 
 sensor:
-  - platform: hx711
-    id: "master_bed"
+  - platform: template
+    id: "master_bed_smoothed"
+    unit_of_measurement: kg
     name: "Master Bedroom Bed Raw"
-    dout_pin: D2
-    clk_pin: D3
-    gain: 128
+    lambda: |-
+      if (id(master_bed_read).state > 655000 && id(master_bed_read).state < 710000) {
+        return id(master_bed_read).state; 
+      } else {
+        return {};
+      }
     update_interval: 1s
     filters:
       - sliding_window_moving_average:
           window_size: 10
           send_every: 5
-    #filters:
-    #  - calibrate_linear:
-    #      - 641869.00000 -> 0
-          
-    unit_of_measurement: kg
+  - platform: hx711
+    id: "master_bed_read"
+    dout_pin: D2
+    clk_pin: D3
+    gain: 128
+    update_interval: 1s
   - platform: uptime
     name: "Master Bedroom Bed Uptime"
   - platform: dht
@@ -45,4 +50,4 @@ binary_sensor:
   - platform: template
     name: "Master Bedroom Bed"
     device_class: occupancy
-    lambda: if (id(master_bed).state > 670000) return true; else return false;
+    lambda: if (id(master_bed_smoothed).state > 664000) return true; else return false;

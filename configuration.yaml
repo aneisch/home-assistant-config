@@ -24,7 +24,7 @@ map:
 
 recorder:
   purge_interval: 1
-  purge_keep_days: 7
+  purge_keep_days: 3
 
 system_health:
 
