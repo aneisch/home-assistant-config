@@ -4,6 +4,7 @@ esphome:
   board: d1_mini
   on_boot:
     then:
+      # Set initial states
       - binary_sensor.template.publish:
           id: automation_safety
           state: OFF
@@ -24,6 +25,27 @@ ota:
 
 api:
 
+i2c:
+  sda: D2
+  scl: D1
+  scan: False
+
+script:
+  - id: gate_toggle
+    then:
+      if:
+        condition:
+          binary_sensor.is_off: automation_safety
+        then: 
+          - binary_sensor.template.publish:
+              id: automation_safety
+              state: ON
+          - switch.toggle: gate
+          - delay: 30s
+          - binary_sensor.template.publish:
+              id: automation_safety
+              state: OFF
+
 mqtt:
   broker: MQTT_BROKER
   username: gate
@@ -34,37 +56,28 @@ mqtt:
     topic: cmd/test
     then:
       - script.execute: gate_toggle
-      - binary_sensor.template.publish:
-          id: automation_safety
-          state: ON
 
-i2c:
-  sda: D2
-  scl: D1
-  scan: False
+# Evaluate our automation every second
+# only trigger gate if heading comparison has been
+# true for more than 3s and safety is off
+interval:
+ - interval: 1s
+   then:
+     if:
+       condition:
+         and:
+           - for:
+               time: 3s
+               condition:
+                 binary_sensor.is_on: heading_comparison
+           # This is intentionally duplicated
+           - binary_sensor.is_off: automation_safety
+       then:
+         - script.execute: gate_toggle
   
-script:
-  - id: gate_toggle
-    then:
-      if:
-        condition:
-          binary_sensor.is_off: automation_safety
-        then:
-          - switch.toggle: gate
-          - delay: 30s
-          - binary_sensor.template.publish:
-              id: automation_safety
-              state: OFF
-
 sensor:
   - platform: qmc5883l
     address: 0x0D
-#    field_strength_x:
-#      name: "QMC5883L Field Strength X"
-#    field_strength_y:
-#      name: "QMC5883L Field Strength Y"
-#    field_strength_z:
-#      name: "QMC5883L Field Strength Z"
     heading:
       id: heading
       name: "Gate Sensor Heading"
@@ -72,6 +85,8 @@ sensor:
     range: 200uT
     oversampling: 512x
     update_interval: 1s
+  # Template sensor to keep average of last 30 heading
+  # readings so we can detect significant change
   - platform: template
     id: heading_average
     name: "Gate Sensor Heading Average"
@@ -84,37 +99,25 @@ sensor:
           send_every: 1
 
 binary_sensor:
+  # Sensor to keep script from triggering in rapid succession
   - platform: template
     name: "Automation Safety"
     id: automation_safety
   - platform: template
     name: Heading Comparison Trigger
     id: heading_comparison
+    # Set our trigger to true if heading varies from avg more than 2.5deg 
     lambda: |-
-      if (id(heading).state > id(heading_average).state + 1.5) {
+      if (id(heading).state > id(heading_average).state + 2.5) {
         return true;
       }
-      if (id(heading).state < id(heading_average).state - 1.5) {
+      if (id(heading).state < id(heading_average).state - 2.5) {
         return true;
       }
       else {
         return false;
       }
 
-interval:
- - interval: 1s
-   then:
-     if:
-       condition:
-         for:
-           time: 3s
-           condition:
-             binary_sensor.is_on: heading_comparison
-       then:
-         - script.execute: gate_toggle
-         - binary_sensor.template.publish:
-             id: automation_safety
-             state: ON
 
 switch:
   - platform: gpio
