@@ -117,7 +117,32 @@ binary_sensor:
       else {
         return false;
       }
+  - platform: gpio
+    pin:
+      number: D8
+      #inverted: True
+    name: Gate Status
+    id: gate_status
+    device_class: door
+    filters:
+      - delayed_on: 10ms
 
+cover:
+  - platform: template
+    name: "Template Cover"
+    lambda: |-
+      if (id(gate_status).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - script.execute: gate_toggle
+    close_action:
+      - script.execute: gate_toggle
+    stop_action:
+      - script.execute: gate_toggle
+    optimistic: true
 
 switch:
   - platform: gpio
