@@ -7,6 +7,7 @@ before_install:
   - ls
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
+  - sudo apt-get update && sudo apt-get install -y libudev-dev 
 script:
   #- exit 0
   - hass -c . --script check_config -i -f
