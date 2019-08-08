@@ -41,7 +41,7 @@ script:
               id: automation_safety
               state: ON
           - switch.toggle: gate
-          - delay: 30s
+          - delay: 120s
           - binary_sensor.template.publish:
               id: automation_safety
               state: OFF
@@ -55,11 +55,11 @@ mqtt:
 #    topic: cmd/mom_and_dad_gate
     topic: cmd/test
     then:
-      - script.execute: gate_toggle
+      - switch.toggle: gate
 
 # Evaluate our automation every second
 # only trigger gate if heading comparison has been
-# true for more than 3s and safety is off
+# true for more than 5s and safety is off
 interval:
  - interval: 1s
    then:
@@ -67,7 +67,7 @@ interval:
        condition:
          and:
            - for:
-               time: 3s
+               time: 5s
                condition:
                  binary_sensor.is_on: heading_comparison
            # This is intentionally duplicated
@@ -95,7 +95,7 @@ sensor:
     lambda: return id(heading).state;
     filters:
       - sliding_window_moving_average:
-          window_size: 30
+          window_size: 15
           send_every: 1
 
 binary_sensor:
@@ -119,7 +119,7 @@ binary_sensor:
       }
   - platform: gpio
     pin:
-      number: D8
+      number: D7
       #inverted: True
     name: Gate Status
     id: gate_status
@@ -148,7 +148,7 @@ switch:
   - platform: gpio
     id: relay
     pin:
-      number: D1
+      number: D8
       inverted: False
   - platform: template
     id: gate
