@@ -8,5 +8,5 @@ before_install:
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
 script:
-  - exit 0
-  #- hass -c . --script check_config -i -f
+  #- exit 0
+  - hass -c . --script check_config -i -f
