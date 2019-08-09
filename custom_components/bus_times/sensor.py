@@ -7,9 +7,12 @@ from datetime import timedelta
 import logging
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
+
 import voluptuous as vol
+
 import homeassistant.helpers.config_validation as cv
 from homeassistant.components.sensor import PLATFORM_SCHEMA
+from homeassistant.const import CONF_NAME
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import Throttle
 
@@ -25,6 +28,8 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 })
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
+    sensor_name = config.get(CONF_NAME)
+
     add_devices([Reminder("next_bus_home","home")])
     add_devices([Reminder("next_bus_work","work")])
 
