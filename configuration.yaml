@@ -1,11 +1,11 @@
 homeassistant:
   name: Home
-  customize: !include customize.yaml
   elevation: 94
   unit_system: imperial
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago
+  customize: !include customize.yaml
 
 # Enable configuration panel 
 config:
@@ -86,8 +86,7 @@ zone 6:
 proximity:
   home:
     devices:
-      - device_tracker.owntracks_android
-      - device_tracker.owntracks_workphone
+      - device_tracker.owntracks_andrewworkphone
       - device_tracker.owntracks_bethanyphone
       - device_tracker.bethanys_iphone
     tolerance: 50
@@ -368,8 +367,8 @@ person:
   - name: Andrew
     id: andrew
     device_trackers:
-      - device_tracker.owntracks_andrewworkphone
       - device_tracker.andrews_phone_nmap
+      - device_tracker.owntracks_andrewworkphone
   - name: Bethany
     id: bethany
     device_trackers:
