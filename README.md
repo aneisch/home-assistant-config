@@ -16,24 +16,23 @@ My Home Assistant installation contains many different components and runs on a 
 - Aeon Labs ZW090 Z Stick
 - Aeon Labs DSA03202 v1 - z-wave Minimote
 - GE Z-wave in-wall switch/fan controllers
-- [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html)" bulb holders for clean, W.A.F lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
+- [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Various z-wave sensors
 - Various MQTT Sensors (eg: moon status, determined using bash and published to MQTT))
 - Arlo Cameras (controlled through IFTTT)
 - AppDaemon controlling a majority of automations.
 - Amazon Echo Dots
-  - Home Assistant Emulated Hue (devices are explicitly exposed via customize.yaml.
+  - Home Assistant Emulated Hue (devices are explicitly exposed via customize.yaml)
   - Custom skills via Alexa API.
   - Custom routines configured in the Alexa App.
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - MQTT remote and local server (via Docker). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
-- Custom weather card from https://www.reddit.com/r/homeassistant/comments/8dnxf0/easy_instructions_for_a_custom_weather_card/
 - Numerous Wemos D1 Mini sensors via ESPHome API. See /extras/esphome for configs. 
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
  
-Thanks to Deviant Engineer (https://deviantengineer.com/) for the guide(s) that helped me stay sane during installation!!
+Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/hass-centos7/) that helped me during installation!!
 
 
 # Interface
