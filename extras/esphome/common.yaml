@@ -1,3 +1,4 @@
+# Common settings to all my devices
 wifi:
   ssid: "SSID"
   password: ""WPA_KEY""
