@@ -1,3 +1,5 @@
+- platform: moon
+
 # Dead? https://github.com/home-assistant/home-assistant/issues/13131
 #- platform: fedex
 #  username: !secret fedex_username
