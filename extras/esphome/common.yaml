@@ -8,3 +8,5 @@ logger:
 api:
 
 ota:
+  safe_mode: True
+  password: esphome_recovery

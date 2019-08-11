@@ -80,7 +80,7 @@ sensor:
     address: 0x0D
     heading:
       id: heading
-      name: "Gate Sensor Heading"
+      #name: "Gate Sensor Heading"
     data_rate: 10Hz
     range: 200uT
     oversampling: 512x
@@ -89,7 +89,7 @@ sensor:
   # readings so we can detect significant change
   - platform: template
     id: heading_average
-    name: "Gate Sensor Heading Average"
+    #name: "Gate Sensor Heading Average"
     update_interval: 1s
     unit_of_measurement: "°"
     lambda: return id(heading).state;
@@ -97,6 +97,14 @@ sensor:
       - sliding_window_moving_average:
           window_size: 15
           send_every: 1
+  - platform: adc
+    pin: A0
+    name: "Gate Battery Voltage"
+    update_interval: 300s
+    accuracy_decimals: 4
+    filters:
+      - multiply: 3.3
+      - lambda: return x * 4.673;
 
 binary_sensor:
   # Sensor to keep script from triggering in rapid succession
@@ -129,7 +137,7 @@ binary_sensor:
 
 cover:
   - platform: template
-    name: "Template Cover"
+    name: "Gate"
     lambda: |-
       if (id(gate_status).state) {
         return COVER_OPEN;

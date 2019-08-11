@@ -386,6 +386,8 @@ plant:
     min_moisture: 20
     max_moisture: 100
 
+readme:
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

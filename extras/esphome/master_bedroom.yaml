@@ -40,7 +40,8 @@ sensor:
     humidity:
       name: "Master Bedroom Humidity"
     update_interval: 10s
-    
+
+
 text_sensor:
   - platform: wifi_info
     ip_address:

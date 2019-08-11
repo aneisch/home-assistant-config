@@ -385,3 +385,14 @@
         message: >
           Gate Closed
 
+- alias: "Battery Safe"
+  initial_state: 'on'
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.voltage
+      below: 13
+  action:
+    - service: notify.pushover
+      data_template:
+        message: >
+          Battery Low: {{ trigger.to_state.state }}
