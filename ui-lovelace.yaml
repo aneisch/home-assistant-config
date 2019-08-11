@@ -1,9 +1,11 @@
 resources:
+  # https://community.home-assistant.io/t/custom-animated-weather-card-for-lovelace/58338/1
   - url: /local/js/weather-card.js
     type: js
   - url: /local/js/slider-entity-row.js
     type: js
-  - url: /local/js/mini-media-player-bundle.js
+  # https://github.com/kalkih/mini-media-player
+  - url: /local/js/mini-media-player-bundle.js?v=1.2.2
     type: module
   - url: /local/js/swipe-card.js?v=1.0
     type: js
@@ -132,10 +134,13 @@ views:
       - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
         type: custom:mini-media-player
         entity: media_player.spotify
-        icon: mdi:cast
-        artwork_border: true
-        power_color: true
-        show_source: true
+        icon: mdi:spotify
+        hide:
+          power_state: true
+        tts:
+          platform: alexa
+          type: announce
+          entity_id: media_player.everywhere
 
       - id: e5f88e8e8dda4b078af8b42a7b17f8d3  # Automatically created id
         type: entities
