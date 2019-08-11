@@ -104,7 +104,7 @@ sensor:
     accuracy_decimals: 4
     filters:
       - multiply: 3.3
-      - lambda: return x * 4.673;
+      - lambda: return x * 5; //4.673;
 
 binary_sensor:
   # Sensor to keep script from triggering in rapid succession
@@ -128,7 +128,7 @@ binary_sensor:
   - platform: gpio
     pin:
       number: D7
-      #inverted: True
+      mode: INPUT_PULLUP
     name: Gate Status
     id: gate_status
     device_class: door
