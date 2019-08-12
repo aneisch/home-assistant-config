@@ -8,7 +8,7 @@ AC AutoAdjust:
   morning_adjust_weekday: '09:00:00'
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '23:00:00'
-  night_adjust_weekend: '23:45:00'
+  night_adjust_weekend: '23:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '76'
   cool_night: '70'
