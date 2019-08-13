@@ -82,16 +82,15 @@ sensor:
     address: 0x0D
     heading:
       id: heading
-      #name: "Gate Sensor Heading"
     data_rate: 10Hz
     range: 200uT
     oversampling: 512x
     update_interval: 1s
+
   # Template sensor to keep average of last 30 heading
   # readings so we can detect significant change
   - platform: template
     id: heading_average
-    #name: "Gate Sensor Heading Average"
     update_interval: 1s
     unit_of_measurement: "°"
     lambda: return id(heading).state;
@@ -99,6 +98,7 @@ sensor:
       - sliding_window_moving_average:
           window_size: 15
           send_every: 1
+
   - platform: adc
     pin: A0
     name: "Gate Battery Voltage"
@@ -112,6 +112,8 @@ binary_sensor:
   - platform: template
     name: "Automation Safety"
     id: automation_safety
+
+  # This is what is used to trigger the automation
   - platform: template
     name: Heading Comparison Trigger
     id: heading_comparison
@@ -126,6 +128,8 @@ binary_sensor:
       else {
         return false;
       }
+
+  # Magnet sensor to get real-world state
   - platform: gpio
     pin:
       number: D7
@@ -137,11 +141,14 @@ binary_sensor:
       - delayed_on: 10ms
 
 switch:
+  # Actual GPIO output
   - platform: gpio
     id: relay
     pin:
       number: D8
       inverted: False
+  
+  # Switch which toggles the relay on and off
   - platform: template
     id: gate
     name: "Gate Remote"
