@@ -37,13 +37,15 @@ automation:
     initial_state: 'on'
     trigger:
       - platform: numeric_state
-        entity_id: sensor.voltage
+        entity_id: sensor.gate_battery_voltage
         below: 13
     action:
       - service: notify.pushover
         data_template:
           message: >
-            Battery Low: {{ trigger.to_state.state }}
+            Battery Low: {{ states.sensor.gate_battery_voltage.state }}
+          data:
+            priority: 1
 
   - alias: "Webhook Trigger"
     initial_state: 'on'

@@ -5,6 +5,14 @@ esphome:
 
 <<: !include common.yaml
 
+time:
+  - platform: sntp
+    # ...
+    on_time:
+      - cron: '0 0 * * * *'
+        then:
+          - switch.toggle: restart_device
+
 esp32_ble_beacon:
   type: iBeacon
   uuid: '33d723f1-621e-68a5-59a0-8d15e3992d56'
@@ -50,4 +58,5 @@ text_sensor:
 
 switch:
   - platform: restart
+    id: restart_device
     name: "ESP Camera Restart"
