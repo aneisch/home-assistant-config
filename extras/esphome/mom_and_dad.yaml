@@ -16,7 +16,7 @@ web_server:
   port: 80
 
 wifi:
-  ssid: "SSIDroam"
+  ssid: "SSID"
   password: "WPA_KEY"
 
 logger:

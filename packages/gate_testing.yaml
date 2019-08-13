@@ -21,7 +21,7 @@ binary_sensor:
 
 
 automation:
-  - alias: "Heading Comparison Action"
+  - alias: "Gate Heading Comparison Action"
     initial_state: 'on'
     trigger:
       - platform: state
@@ -33,7 +33,7 @@ automation:
           message: >
             Automation Fired!
 
-  - alias: "Battery Safe"
+  - alias: "Gate Battery Safety Notify"
     initial_state: 'on'
     trigger:
       - platform: numeric_state

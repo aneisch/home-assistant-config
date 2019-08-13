@@ -338,3 +338,19 @@ views:
           - sensor.sonoff_pow_today_cost
           - sensor.sonoff_pow_yesterday_energy
           - sensor.sonoff_pow_yesterday_cost
+
+  - id: 4
+    title: Gate Testing
+    cards:
+      - id: sfljflfjdlfdjdlfjdlfjdfldjg
+        type: entities
+        show_header_toggle: false
+        title: System
+        entities:
+          - binary_sensor.gate_status
+          - binary_sensor.gate_automation_safety
+          - binary_sensor.gate_heading_comparison
+          - sensor.gate_battery_voltage
+          - automation.gate_heading_comparison_action
+          - automation.gate_battery_safety_notify
+
