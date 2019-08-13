@@ -38,7 +38,10 @@ script:
     then:
       if:
         condition:
-          binary_sensor.is_off: automation_safety
+          and:
+            - binary_sensor.is_off: automation_safety
+            # Make sure gate is closed.. uncomment this
+            #- binary_sensor.is_off: automation_safety
         then: 
           - binary_sensor.template.publish:
               id: automation_safety
@@ -160,3 +163,10 @@ switch:
     - switch.turn_on: relay
     - delay: 500ms
     - switch.turn_off: relay
+    - binary_sensor.template.publish:
+        id: automation_safety
+        state: ON
+    - delay: 60s
+    - binary_sensor.template.publish:
+        id: automation_safety
+        state: OFF

@@ -25,7 +25,7 @@ automation:
     initial_state: 'on'
     trigger:
       - platform: state
-        entity_id: binary_sensor.gate_automation_safe
+        entity_id: binary_sensor.gate_automation_safety
         to: 'on'
     action:
       - service: notify.pushover

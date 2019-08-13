@@ -7,7 +7,7 @@ before_install:
   - ls
   - pwd
   - mv .travis_secrets.yaml secrets.yaml
-  #- "sed -e 's/- platform: bus_times/#- platform: bus_times/' sensors.yaml"
+  - "sed -e 's/- platform: bus_times/#- platform: bus_times/' sensors.yaml"
   - sudo apt-get update && sudo apt-get install -y libudev-dev 
 script:
   #- exit 0
