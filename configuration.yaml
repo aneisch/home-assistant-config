@@ -6,6 +6,8 @@ homeassistant:
   longitude: !secret home_long
   time_zone: America/Chicago
   customize: !include customize.yaml
+  packages:
+    gate_testing: !include packages/gate_testing.yaml
 
 # Enable configuration panel 
 config:

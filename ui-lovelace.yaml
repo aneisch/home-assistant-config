@@ -108,6 +108,7 @@ views:
 
       - id: ab435da4384043c685f20f6f4e12715e  # Automatically created id
         type: custom:weather-card
+        entity_weather: weather.dark_sky
         entity: weather.dark_sky
 
       - type: iframe

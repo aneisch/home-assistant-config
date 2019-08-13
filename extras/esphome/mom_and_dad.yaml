@@ -16,14 +16,14 @@ web_server:
   port: 80
 
 wifi:
-  ssid: "SSID"
-  password: ""WPA_KEY""
+  ssid: "SSIDroam"
+  password: "WPA_KEY"
 
 logger:
 
 ota:
-
-api:
+  safe_mode: True
+  password: esphome_recovery
 
 i2c:
   sda: D2
@@ -52,10 +52,12 @@ mqtt:
   password: MQTT_PASS
   log_topic:
   on_message:
-#    topic: cmd/mom_and_dad_gate
-    topic: cmd/test
-    then:
-      - switch.toggle: gate
+    - topic: cmd/mom_and_dad_gate
+      then:
+        - switch.toggle: gate
+    - topic: cmd/test
+      then:
+        - switch.toggle: gate
 
 # Evaluate our automation every second
 # only trigger gate if heading comparison has been
@@ -103,8 +105,7 @@ sensor:
     update_interval: 300s
     accuracy_decimals: 4
     filters:
-      - multiply: 3.3
-      - lambda: return x * 5; //4.673;
+      - multiply: 15.43
 
 binary_sensor:
   # Sensor to keep script from triggering in rapid succession
@@ -135,23 +136,6 @@ binary_sensor:
     filters:
       - delayed_on: 10ms
 
-cover:
-  - platform: template
-    name: "Gate"
-    lambda: |-
-      if (id(gate_status).state) {
-        return COVER_OPEN;
-      } else {
-        return COVER_CLOSED;
-      }
-    open_action:
-      - script.execute: gate_toggle
-    close_action:
-      - script.execute: gate_toggle
-    stop_action:
-      - script.execute: gate_toggle
-    optimistic: true
-
 switch:
   - platform: gpio
     id: relay
@@ -163,10 +147,6 @@ switch:
     name: "Gate Remote"
     icon: "mdi:gate"
     turn_on_action:
-    - homeassistant.service:
-        service: notify.pushover
-        data:
-          message: "Opening!"
     - switch.turn_on: relay
     - delay: 500ms
     - switch.turn_off: relay
