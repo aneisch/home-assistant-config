@@ -1,19 +1,19 @@
 sensor:
   - platform: mqtt
     state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
-    name: sensor.gate_battery_voltage
+    name: gate_battery_voltage
     unit_of_measurement: 'V'
 
 
 binary_sensor:
   - platform: mqtt
     state_topic: "mom_and_dad/binary_sensor/gate_status/state"
-    name: sensor.gate_status
+    name: gate_status
     device_class: door
 
   - platform: mqtt
     state_topic: "mom_and_dad/binary_sensor/heading_comparison_trigger/state"
-    name: sensor.gate_heading_comparison
+    name: gate_heading_comparison
 
   - platform: mqtt
     state_topic: "mom_and_dad/binary_sensor/automation_safety/state"
@@ -21,7 +21,7 @@ binary_sensor:
 
 
 automation:
-  - alias: "Magnet Sensor Action"
+  - alias: "Heading Comparison Action"
     initial_state: 'on'
     trigger:
       - platform: state
@@ -32,6 +32,7 @@ automation:
         data_template:
           message: >
             Automation Fired!
+
   - alias: "Battery Safe"
     initial_state: 'on'
     trigger:
