@@ -1,0 +1,64 @@
+sensor:
+  - platform: mqtt
+    state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
+    name: gate_battery_voltage
+    unit_of_measurement: 'V'
+
+
+binary_sensor:
+  - platform: mqtt
+    state_topic: "mom_and_dad/binary_sensor/gate_status/state"
+    name: gate_status
+    device_class: door
+
+  - platform: mqtt
+    state_topic: "mom_and_dad/binary_sensor/heading_comparison_trigger/state"
+    name: gate_heading_comparison
+
+  - platform: mqtt
+    state_topic: "mom_and_dad/binary_sensor/automation_safety/state"
+    name: gate_automation_safety
+
+
+automation:
+  - alias: "Gate Heading Comparison Action"
+    initial_state: 'on'
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.gate_automation_safe
+        to: 'ON'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: >
+            Automation Fired!
+
+  - alias: "Gate Battery Safety Notify"
+    initial_state: 'on'
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.voltage
+        below: 13
+    action:
+      - service: notify.pushover
+        data_template:
+          message: >
+            Battery Low: {{ trigger.to_state.state }}
+
+  - alias: "Webhook Trigger"
+    initial_state: 'on'
+    trigger:
+      platform: webhook
+      webhook_id: !secret gate_webhook_id
+    action:
+      service: script.turn_on
+      entity_id: script.mom_and_dad_gate_toggle
+
+
+script:
+  mom_and_dad_gate_toggle:
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: "cmd/mom_and_dad_gate"
+          payload: 'toggle'

@@ -345,16 +345,3 @@
   action:
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
-
-####################
-# Mom and Dad Gate #
-####################
-
-- alias: "Webhook Trigger"
-  initial_state: 'on'
-  trigger:
-    platform: webhook
-    webhook_id: !secret gate_webhook_id
-  action:
-    service: script.turn_on
-    entity_id: script.mom_and_dad_gate_toggle

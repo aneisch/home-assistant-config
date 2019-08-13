@@ -188,18 +188,6 @@ panic:
           expire: 3600
           retry: 30
 
-
-##### Gate #####
-
-mom_and_dad_gate_toggle:
-  sequence:
-    - service: mqtt.publish
-      data:
-        topic: "cmd/mom_and_dad_gate"
-        payload: 'toggle'
-    
-################
-
 spotify_occusim:
   sequence:
     - service: media_player.select_source

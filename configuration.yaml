@@ -7,7 +7,7 @@ homeassistant:
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
-    gate_testing: !include packages/gate_testing.yaml
+    gate_testing: !include packages/mom_and_dad_gate.yaml
 
 # Enable configuration panel 
 config:

@@ -90,9 +90,6 @@
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
-- platform: mqtt
-  state_topic: "sensor/mom_and_dad_gate"
-  name: "Mom and Dad Gate"
 
 ####################
 # BEGIN SONOFF POW #
