@@ -16,8 +16,11 @@ web_server:
   port: 80
 
 wifi:
-  ssid: "SSID"
-  password: "WPA_KEY"
+  networks:
+  - ssid: SSID
+    password: WPA_KEY
+  - ssid: SSID
+    password: WPA_KEY
 
 logger:
 
