@@ -5,7 +5,7 @@
 #  username: !secret fedex_username
 #  password: !secret fedex_password
 
-- platform: bus_times
+#- platform: bus_times
 
 - platform: arlo
 
@@ -78,6 +78,7 @@
     - loadpct
     - bcharge
     - timeleft
+    - linev
 
 - platform: mqtt
   state_topic: "owntracks/owntracks/andrewworkphone"

@@ -15,14 +15,15 @@ esphome:
 web_server:
   port: 80
 
+logger:
+  level: NONE
+
 wifi:
   networks:
   - ssid: SSID
     password: WPA_KEY
   - ssid: SSID
     password: WPA_KEY
-
-logger:
 
 ota:
   safe_mode: True
@@ -108,7 +109,7 @@ sensor:
   - platform: adc
     pin: A0
     name: "Gate Battery Voltage"
-    update_interval: 300s
+    update_interval: 600s
     accuracy_decimals: 4
     filters:
       - multiply: 15.43

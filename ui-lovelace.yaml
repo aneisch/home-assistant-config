@@ -323,9 +323,10 @@ views:
         show_header_toggle: false
         title: UPS
         entities:
+          - sensor.ups_input_voltage
+          - sensor.ups_battery
           - sensor.ups_time_left
           - sensor.ups_load
-          - sensor.ups_battery
 
       - id: 1658f3d4809c475eb362b0a55af2084d  # Automatically created id
         type: entities
