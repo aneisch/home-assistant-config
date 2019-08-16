@@ -1,0 +1,85 @@
+sensor:
+  - platform : mqtt
+    state_topic: "sensor/power/ups"
+    name: UPS Monitor
+    value_template: '{{ value_json["State"] }}'
+    json_attributes:
+      - Remaining Runtime
+      - Load
+      - Power Supply by
+      - Last Power Event
+      - Test Result
+      - Utility Voltage
+      - Line Interaction
+      - Battery Capacity
+  - platform: template
+    sensors:
+      ups_time_left:
+        friendly_name: "UPS Time Remaining"
+        value_template: "{{ state_attr('sensor.ups_monitor', 'Remaining Runtime').split(' ')[0] }}"
+        unit_of_measurement: 'minutes'
+      ups_load:
+        friendly_name: "UPS Load"
+        value_template: "{{ state_attr('sensor.ups_monitor', 'Load').split(' ')[0] }}"
+        unit_of_measurement: 'Watts'
+      ups_input_voltage:
+        friendly_name: "UPS Utility Voltage"
+        value_template: "{{ state_attr('sensor.ups_monitor', 'Utility Voltage').split(' ')[0] }}"
+        unit_of_measurement: 'V'
+      ups_battery:
+        friendly_name: "UPS Capacity"
+        value_template: "{{ state_attr('sensor.ups_monitor', 'Battery Capacity').split(' ')[0] }}"
+        unit_of_measurement: '%'
+
+
+automation:
+  - alias: "Power Outage Alert"
+    trigger:
+      platform: state
+      entity_id: sensor.ups_monitor
+      from: 'Normal'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: "Power Outage: {{ now().strftime('%Y-%m-%d %T') }}"
+
+  - alias: "Power Return Alert"
+    trigger:
+      platform: state
+      entity_id: sensor.ups_monitor
+      to: 'Normal'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: "Power Recovered: {{ now().strftime('%Y-%m-%d %T') }}"
+
+  - alias: "Turn Off NAS After 10 Minute Outage"
+    trigger:
+      platform: template
+      value_template: "{{ not is_state('sensor.ups_monitor', 'Normal') }}"
+      for:
+        minutes: 10
+    condition:
+      condition: state
+      entity_id: switch.nas
+      state: 'on'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: "UPS battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
+      - service: switch.turn_off
+        entity_id: switch.nas
+
+  - alias: "Turn Off NUC When 5 Minutes Remain"
+    trigger:
+      platform: numeric_state
+      entity_id: sensor.ups_time_left
+      below: 5
+    condition:
+      - condition: template
+        value_template: "{{ not is_state('sensor.ups_monitor', 'Normal') }}"
+    action:
+      - service: notify.pushover
+        data_template:
+          message: "UPS battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
+      - service: shell_command.nuc_poweroff

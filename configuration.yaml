@@ -8,6 +8,7 @@ homeassistant:
   customize: !include customize.yaml
   packages:
     gate_testing: !include packages/mom_and_dad_gate.yaml
+    ups_monitoring: !include packages/ups_monitor.yaml
 
 # Enable configuration panel 
 config:
@@ -93,10 +94,6 @@ proximity:
       - device_tracker.bethanys_iphone
     tolerance: 50
     unit_of_measurement: mi
-
-apcupsd:
-  host: 10.0.1.6
-  port: 3551
 
 # Checks for available updates
 updater:
@@ -283,10 +280,6 @@ panel_iframe:
     title: 'Plane Tracking'
     icon: mdi:airplane
     url: !secret plane
-  ups:
-    title: 'UPS Status'
-    icon: mdi:car-battery
-    url: !secret ups
   grafana:
     title: 'Grafana'
     icon: mdi:chart-areaspline
@@ -294,7 +287,7 @@ panel_iframe:
   esphome:
     title: 'ESPHome'
     icon: mdi:memory
-    url: http://esphome/
+    url: http://10.0.1.22:6052
 
 alexa:
 

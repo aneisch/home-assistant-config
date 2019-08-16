@@ -323,6 +323,7 @@ views:
         show_header_toggle: false
         title: UPS
         entities:
+          - sensor.ups_monitor
           - sensor.ups_input_voltage
           - sensor.ups_battery
           - sensor.ups_time_left

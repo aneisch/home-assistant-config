@@ -73,13 +73,6 @@
     - type: processor_use
     - type: load_1m
 
-- platform: apcupsd
-  resources:
-    - loadpct
-    - bcharge
-    - timeleft
-    - linev
-
 - platform: mqtt
   state_topic: "owntracks/owntracks/andrewworkphone"
   name: "Andrew Phone Battery"
@@ -277,6 +270,20 @@
       friendly_name: "Sun Angle"
       unit_of_measurement: '°'
       value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
+
+- platform : rest 
+  resource: http://10.0.1.22:5002/pwrstat 
+  name: Battery Backup 
+  value_template: '{{ value_json["State"] }}' 
+  json_attributes:  
+    - Remaining Runtime 
+    - Load 
+    - Power Supply by 
+    - Last Power Event 
+    - Test Result 
+    - Utility Voltage 
+    - Line Interaction 
+    - Battery Capacity 
 
 - platform: template
   sensors:

@@ -1,0 +1,52 @@
+version: '3'
+services:
+    mosquitto:
+        restart: always
+        ports:
+            - '1883:1883'
+        volumes:
+            - '/opt/mqtt/config:/mqtt/config:ro'
+            - '/opt/mqtt/log:/mqtt/log'
+            - '/opt/mqtt/data/:/mqtt/data/'
+        container_name: mqtt-compose
+        image: toke/mosquitto
+    grafana:
+        ports:
+            - '3000:3000'
+        restart: always
+        container_name: grafana-compose
+        image: grafana/grafana
+    influxdb:
+        container_name: influxDB-compose
+        restart: always
+        volumes:
+            - '/opt/influxdb:/data'
+        ports:
+            - '8083:8083'
+            - '8086:8086'
+        image: tutum/influxdb
+    esphome:
+        container_name: esphome-compose
+        image: esphome/esphome
+        volumes:
+            - /opt/esphome/:/config:rw
+            # Use local time for logging timestamps
+            - /etc/localtime:/etc/localtime:ro
+        network_mode: host
+        restart: always
+    pwr_stat:
+        container_name: pwr_stat-compose
+        hostname: pwr_stat
+        restart: always
+        image: dwinks/pwrstat_docker:latest
+        devices:
+            - /dev/bus/usb/001/005:/dev/bus/usb/001/001
+        volumes:
+            - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
+        healthcheck:
+            test: ["CMD", "curl", "-sI", "http://127.0.0.1:5002/pwrstat"]
+            interval: 30s
+            timeout: 1s
+            retries: 24
+        privileged: true
+        network_mode: host

@@ -1,0 +1,32 @@
+version: '3'
+services:
+    pms-docker:
+        container_name: plex
+        environment:
+            - TZ=America/Chicago
+            - PLEX_CLAIM=XXXXXXXXXXXX
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            - TERM=xterm
+            - LANG=C.UTF-8
+            - LC_ALL=C.UTF-8
+            - CHANGE_CONFIG_DIR_OWNERSHIP=true
+            - HOME=/config
+        volumes:
+            - '/opt/plex/db/:/config'
+            - '/opt/plex/transcode/:/transcode'
+            - '/plex/:/data'
+            - /config
+            - /transcode
+        restart: always
+        image: plexinc/pms-docker
+    portainer:
+        container_name: portainer
+        environment:
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - /data
+        ports:
+            - '9000:9000'
+        restart: always
+        image: portainer/portainer

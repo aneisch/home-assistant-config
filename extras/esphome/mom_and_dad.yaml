@@ -148,6 +148,9 @@ binary_sensor:
       - delayed_on: 10ms
 
 switch:
+
+  - platform: shutdown
+    name: "shut down"
   # Actual GPIO output
   - platform: gpio
     id: relay
