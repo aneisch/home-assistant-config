@@ -252,9 +252,9 @@ mqtt:
   password: !secret owntracks_password
 
 influxdb:
-  host: localhost
-  username: !secret influx_user
-  password: !secret influx_password
+  host: 10.0.1.22
+  #username: !secret influx_user
+  #password: !secret influx_password
 
 ifttt:
   key: !secret ifttt_key
@@ -288,6 +288,10 @@ panel_iframe:
     title: 'ESPHome'
     icon: mdi:memory
     url: http://10.0.1.22:6052
+  portainer:
+    title: 'Portainer'
+    icon: mdi:ferry
+    url: 'http://10.0.1.22:9000/#/containers'
 
 alexa:
 

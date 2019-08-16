@@ -1,7 +1,7 @@
 version: '3'
 services:
     pms-docker:
-        container_name: plex
+        container_name: plex-compose
         environment:
             - TZ=America/Chicago
             - PLEX_CLAIM=XXXXXXXXXXXX
@@ -20,12 +20,12 @@ services:
         restart: always
         image: plexinc/pms-docker
     portainer:
-        container_name: portainer
+        container_name: portainer-compose
         environment:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
-            - /data
+            - '/opt/portainer:/data'
         ports:
             - '9000:9000'
         restart: always

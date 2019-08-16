@@ -13,6 +13,8 @@ services:
     grafana:
         ports:
             - '3000:3000'
+        volumes:
+            - /opt/grafana:/var/lib/grafana
         restart: always
         container_name: grafana-compose
         image: grafana/grafana
@@ -24,10 +26,10 @@ services:
         ports:
             - '8083:8083'
             - '8086:8086'
-        image: tutum/influxdb
+        image: influxdb
     esphome:
         container_name: esphome-compose
-        image: esphome/esphome
+        image: esphome-dev
         volumes:
             - /opt/esphome/:/config:rw
             # Use local time for logging timestamps
