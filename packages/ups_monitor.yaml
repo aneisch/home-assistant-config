@@ -33,7 +33,7 @@ sensor:
 
 
 automation:
-  - alias: "Power Outage Alert"
+  - alias: "UPS Alert"
     trigger:
       platform: state
       entity_id: sensor.ups_monitor
@@ -41,9 +41,9 @@ automation:
     action:
       - service: notify.pushover
         data_template:
-          message: "Power Outage: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: "UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
-  - alias: "Power Return Alert"
+  - alias: "UPS Recovery"
     trigger:
       platform: state
       entity_id: sensor.ups_monitor
@@ -51,12 +51,13 @@ automation:
     action:
       - service: notify.pushover
         data_template:
-          message: "Power Recovered: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: "UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
   - alias: "Turn Off NAS After 10 Minute Outage"
     trigger:
-      platform: template
-      value_template: "{{ not is_state('sensor.ups_monitor', 'Normal') }}"
+      platform: state
+      entity_id: sensor.ups_battery
+      to: "Power Failure"
       for:
         minutes: 10
     condition:
@@ -76,8 +77,9 @@ automation:
       entity_id: sensor.ups_time_left
       below: 5
     condition:
-      - condition: template
-        value_template: "{{ not is_state('sensor.ups_monitor', 'Normal') }}"
+      - condition: state
+        entity_id: sensor.ups_battery
+        state: "Power Failure"
     action:
       - service: notify.pushover
         data_template:

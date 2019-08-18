@@ -42,7 +42,8 @@ services:
         restart: always
         image: dwinks/pwrstat_docker:latest
         devices:
-            - /dev/bus/usb/001/005:/dev/bus/usb/001/001
+            #- /dev/bus/usb/001/005:/dev/bus/usb/001/001
+            - /dev/ups_monitor
         volumes:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
         healthcheck:
