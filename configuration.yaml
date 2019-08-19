@@ -9,6 +9,7 @@ homeassistant:
   packages:
     gate_testing: !include packages/mom_and_dad_gate.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
+    #bus_time: !include packages/bus_time.yaml
 
 # Enable configuration panel 
 config:
@@ -283,7 +284,8 @@ panel_iframe:
   grafana:
     title: 'Grafana'
     icon: mdi:chart-areaspline
-    url: !secret grafana
+    #url: !secret grafana
+    url: http://10.0.1.22:3000
   esphome:
     title: 'ESPHome'
     icon: mdi:memory

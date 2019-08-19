@@ -27,14 +27,6 @@ home_occupied:
       data:
         entity_id: group.master_bedroom_lamps
 
-bus_times_notify:
-  sequence:
-    - service: notify.pushover
-      data:
-        message: "Home: {{ states('sensor.next_bus_home') }}
-
-Work: {{ states('sensor.next_bus_work') }}"
-
 ############
 # SECURITY #
 ############

@@ -5,14 +5,12 @@
 #  username: !secret fedex_username
 #  password: !secret fedex_password
 
-#- platform: bus_times
-
 - platform: arlo
 
 # Dead?
-- platform: ups
-  username: !secret ups_username
-  password: !secret ups_password
+#- platform: ups
+#  username: !secret ups_username
+#  password: !secret ups_password
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -270,38 +268,3 @@
       friendly_name: "Sun Angle"
       unit_of_measurement: '°'
       value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
-
-- platform: template
-  sensors:
-    next_bus_home_string:
-      friendly_name: "Next Bus Arriving at Home"
-      entity_id: sensor.rack_exhaust_heat_index
-      value_template: >-
-        {% if not states('sensor.next_bus_home') == "Check back tomorrow" %}
-            {%- set time = as_timestamp(states('sensor.next_bus_home')) - as_timestamp(now()) | int %}
-            {%- set minutes = (time / 60) | int %}
-            {%- set seconds = (time - (minutes*60)) | int %}
-            {% if minutes < 0 -%}
-                {{ minutes | string | replace("-","") }} minutes and {{ seconds | string | replace("-","")}} seconds ago
-            {% else %}
-                {{ minutes | string }} minutes and {{ seconds | string }} seconds
-            {% endif %}
-        {% else %}
-            {{ states('sensor.next_bus_home') }}
-        {% endif %}
-    next_bus_work_string:
-      friendly_name: "Next Bus Arriving at Work"
-      entity_id: sensor.rack_exhaust_heat_index
-      value_template: >-
-        {% if not states('sensor.next_bus_work') == "Check back tomorrow" %}
-            {%- set time = as_timestamp(states('sensor.next_bus_work')) - as_timestamp(now()) | int %}
-            {%- set minutes = (time / 60) | int %}
-            {%- set seconds = (time - (minutes*60)) | int %}
-            {% if minutes < 0 -%}
-                {{ minutes | string | replace("-","") }} minutes and {{ seconds | string | replace("-","")}} seconds ago
-            {% else %}
-                {{ minutes | string }} minutes and {{ seconds | string }} seconds
-            {% endif %}
-        {% else %}
-            {{ states('sensor.next_bus_work') }}
-        {% endif %}

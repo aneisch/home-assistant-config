@@ -51,7 +51,7 @@ views:
           - input_boolean.house_lamps_automation
           - input_boolean.security_camera_automation
           - input_boolean.panic_mode
-          - input_boolean.bus_commute
+          #- input_boolean.bus_commute
 
       - id: 4fbdefc8a9b04b2398dc96e714cbb5c0  # Automatically created id
         type: entities
@@ -80,18 +80,18 @@ views:
           - person.andrew
           - person.bethany
 
-      - id: bus-commute
-        type: conditional
-        conditions:
-          - entity: input_boolean.bus_commute
-            state: 'on'
-        card:
-            type: entities
-            entities:
-              - sensor.next_bus_home
-              - sensor.next_bus_home_string
-              - sensor.next_bus_work
-              - sensor.next_bus_work_string
+#      - id: bus-commute
+#        type: conditional
+#        conditions:
+#          - entity: input_boolean.bus_commute
+#            state: 'on'
+#        card:
+#            type: entities
+#            entities:
+#              - sensor.next_bus_home
+#              - sensor.next_bus_home_string
+#              - sensor.next_bus_work
+#              - sensor.next_bus_work_string
 
 
       - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id

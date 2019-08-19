@@ -22,6 +22,7 @@ sensor:
         friendly_name: "UPS Load"
         value_template: "{{ state_attr('sensor.ups_monitor', 'Load').split(' ')[0] }}"
         unit_of_measurement: 'Watts'
+        device_class: "power"
       ups_input_voltage:
         friendly_name: "UPS Utility Voltage"
         value_template: "{{ state_attr('sensor.ups_monitor', 'Utility Voltage').split(' ')[0] }}"
@@ -30,7 +31,7 @@ sensor:
         friendly_name: "UPS Capacity"
         value_template: "{{ state_attr('sensor.ups_monitor', 'Battery Capacity').split(' ')[0] }}"
         unit_of_measurement: '%'
-
+        device_class: "battery"
 
 automation:
   - alias: "UPS Alert"
@@ -51,7 +52,12 @@ automation:
     action:
       - service: notify.pushover
         data_template:
-          message: "UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: > 
+             {% if trigger.from_state.state == "Power Failure" %}
+               UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
+             {% else %}
+               UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
+             {% endif %}
 
   - alias: "Turn Off NAS After 10 Minute Outage"
     trigger:
