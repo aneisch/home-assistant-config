@@ -90,23 +90,23 @@
             The back door has been opened for 1 minute..
           {% endif %}
 
-- alias: "Arlo Arm/Disarm"
+- alias: "Security Arm/Disarm"
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: input_boolean.arlo_status
+    entity_id: input_boolean.security_status
   condition:
     condition: state
-    entity_id: input_boolean.security_camera_automation
+    entity_id: input_boolean.security_automation
     state: 'on'
   action:
     service: script.turn_on
     data_template:
       entity_id: >-
         {% if trigger.to_state.state == "on" %}
-          script.arlo_arm
+          script.security_arm
         {% elif trigger.to_state.state == "off" %}
-          script.arlo_disarm
+          script.security_disarm
         {% endif %}
 
 - alias: "House Occupied/Empty"

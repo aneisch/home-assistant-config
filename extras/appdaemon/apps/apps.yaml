@@ -176,11 +176,11 @@ Entertainment Center Follow:
   # follower can be a comma separated list
   follower: switch.entertainment_center_lights
 
-Door Notification and Occusim Arlo Follow:
+Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
   # leader can be a comma separated list
-  leader: input_boolean.arlo_status
+  leader: input_boolean.security_status
   # follower can be a comma separated list
   follower: input_boolean.door_notify,input_boolean.occusim
 

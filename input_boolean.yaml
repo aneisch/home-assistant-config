@@ -1,5 +1,5 @@
-arlo_status:
-  name: Arlo Status
+security_status:
+  name: Security Status
   icon: mdi:camera
 
 #used with appdaemon
@@ -30,8 +30,8 @@ house_lamps_automation:
   name: House-Wide Lamps Automation
   icon: mdi:lamp
 
-security_camera_automation:
-  name: Security Camera Automation
+security_automation:
+  name: Security Automation
   icon: mdi:camera
 
 panic_mode:

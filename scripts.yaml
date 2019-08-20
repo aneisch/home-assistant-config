@@ -15,14 +15,14 @@ home_empty:
         seconds: 5
     - service: homeassistant.turn_on
       data:
-        entity_id: input_boolean.arlo_status
+        entity_id: input_boolean.security_status
 
 # Turn on lights and disarm security
 home_occupied:
   sequence:
     - service: homeassistant.turn_off
       data:
-        entity_id: input_boolean.arlo_status
+        entity_id: input_boolean.security_status
     - service: homeassistant.turn_on
       data:
         entity_id: group.master_bedroom_lamps
@@ -31,7 +31,7 @@ home_occupied:
 # SECURITY #
 ############
 
-arlo_disarm:
+security_disarm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_disarm"}
@@ -43,7 +43,7 @@ arlo_disarm:
       data:
         message: Disrmed!
 
-arlo_arm:
+security_arm:
   sequence:
     - service: ifttt.trigger
       data: {"event":"arlo_arm"}

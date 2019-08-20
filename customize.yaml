@@ -17,7 +17,7 @@ switch.tv:
   icon: mdi:television-classic
 switch.master_bedroom_sound_machine:
   friendly_name: Sound Machine
-switch.arlo_status:
+switch.security_status:
   icon: mdi:camera
 switch.outdoor_zwave_switch:
   friendly_name: Globe Lights
@@ -164,10 +164,10 @@ script.master_bedroom_bedtime:
   icon: mdi:theme-light-dark
   emulated_hue_hidden: false
   emulated_hue_name: "Bedtime"
-script.arlo_arm:
-  friendly_name: Arlo Arm
-script.arlo_disarm:
-  friendly_name: Arlo Disarm
+script.security_arm:
+  friendly_name: Security Arm
+script.security_disarm:
+  friendly_name: Security Disarm
 script.common_areas_off:
   emulated_hue_hidden: false
   emulated_hue_name: "Common Areas Off"

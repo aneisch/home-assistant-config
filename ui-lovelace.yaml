@@ -49,7 +49,7 @@ views:
           - input_boolean.occusim
           - input_boolean.guest_automation
           - input_boolean.house_lamps_automation
-          - input_boolean.security_camera_automation
+          - input_boolean.security_automation
           - input_boolean.panic_mode
           #- input_boolean.bus_commute
 
@@ -68,7 +68,7 @@ views:
         title: Security
         entities:
           - alarm_control_panel.neisch
-          - input_boolean.arlo_status
+          - input_boolean.security_status
           - binary_sensor.front_door
           - binary_sensor.back_door
 
