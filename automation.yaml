@@ -201,9 +201,9 @@
     - service: notify.pushover
       data_template:
         message: >
-          {% if trigger.to_state.entity_id == "sensor.thermostat_setpoint" %}
+          {% if trigger.entity_id == "sensor.thermostat_setpoint" %}
             Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
-          {% elif trigger.to_state.entity_id == "sensor.thermostat_mode" %}
+          {% elif trigger.entity_id == "sensor.thermostat_mode" %}
             Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
           {% endif %}
 
