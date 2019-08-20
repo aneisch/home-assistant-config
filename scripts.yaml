@@ -2,7 +2,7 @@
 # ANDREW CONTROL #
 ##################
 
-#Turn off master and common room things, arm security
+# Turn off master and common room things, arm security
 home_empty:
   sequence:
     - service: homeassistant.turn_off
@@ -17,7 +17,7 @@ home_empty:
       data:
         entity_id: input_boolean.arlo_status
 
-#Turn on lights and disarm cameras, notify
+# Turn on lights and disarm security
 home_occupied:
   sequence:
     - service: homeassistant.turn_off
@@ -193,3 +193,9 @@ spotify_occusim:
     - service: media_player.media_play
       data:
         entity_id: media_player.spotify
+
+turn_ac_off:
+  sequence:
+    - service: climate.turn_off
+      data:
+        entity_id: climate.thermostat

@@ -24,7 +24,7 @@
      data_template:
        speed: '{{ states.input_select.master_bedroom_ceiling_fan_speed.state }}'
 
-- alias: "Set dark theme"
+- alias: "Set dark theme for night"
   initial_state: on
   trigger:
     - platform: time
@@ -67,87 +67,68 @@
         message: >
           Package delivered...
 
-- alias: "Front Door Open Length"
+- alias: "Door Open Length"
   initial_state: on
   trigger:
-    platform: state
-    to: 'on'
-    entity_id: binary_sensor.front_door
-    for:
-      minutes: 1
+    - platform: state
+      to: 'on'
+      entity_id: binary_sensor.front_door
+      for:
+        minutes: 1
+    - platform: state
+      to: 'on'
+      entity_id: binary_sensor.back_door
+      for:
+        minutes: 1
   action:
     - service: notify.pushover
       data_template:
         message: >
-          The front door has been opened for 1 minute..
+          {% if trigger.entity_id == "binary_sensor.front_door" %}
+            The front door has been opened for 1 minute..
+          {% elif trigger.entity_id == "binary_sensor.back_door" %}
+            The back door has been opened for 1 minute..
+          {% endif %}
 
-- alias: "Back Door Open Length"
-  initial_state: on
-  trigger:
-    platform: state
-    to: 'on'
-    entity_id: binary_sensor.back_door
-    for:
-      minutes: 1
-  action:
-    - service: notify.pushover
-      data_template:
-        message: >
-          The back door has been opened for 1 minute..
-
-#Switch
-- alias: "Arlo Arm"
+- alias: "Arlo Arm/Disarm"
   initial_state: 'on'
   trigger:
     platform: state
     entity_id: input_boolean.arlo_status
-    from: 'off'
-    to: 'on'
   condition:
     condition: state
     entity_id: input_boolean.security_camera_automation
     state: 'on'
   action:
     service: script.turn_on
-    entity_id: script.arlo_arm
+    data_template:
+      entity_id: >-
+        {% if trigger.to_state.state == "on" %}
+          script.arlo_arm
+        {% elif trigger.to_state.state == "off" %}
+          script.arlo_disarm
+        {% endif %}
 
-#Switch
-- alias: "Arlo Disarm"
+- alias: "House Occupied/Empty"
   initial_state: 'on'
   trigger:
-    platform: state
-    entity_id: input_boolean.arlo_status
-    from: 'on'
-    to: 'off'
-  condition:
-    condition: state
-    entity_id: input_boolean.security_camera_automation
-    state: 'on'
+    - platform: state
+      entity_id: group.trackers
+      to: not_home
+      for:
+        seconds: 5
+    - platform: state
+      entity_id: group.trackers
+      to: home
   action:
     service: script.turn_on
-    entity_id: script.arlo_disarm
-
-- alias: "Turn off House"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: group.trackers
-    to: not_home
-    for:
-      seconds: 5
-  action:
-    service: homeassistant.turn_on
-    entity_id: script.home_empty
-
-- alias: "Arrived at Home"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: group.trackers
-    to: home
-  action:
-    service: homeassistant.turn_on
-    entity_id: script.home_occupied
+    data_template: 
+      entity_id: >-
+        {% if trigger.to_state.state == "home" %}
+          script.home_occupied
+        {% elif trigger.to_state.state == "not_home" %}
+          script.home_empty
+        {% endif %}
 
 - alias: "Desk Button Press"
   initial_state: 'on'
@@ -171,80 +152,41 @@
   action:
     service: shell_command.mount_plex
 
-#- id: ac_broken_cool
-- alias: "Notify Andrew when AC BREAKS"
+- alias: "Notify when AC BREAKS"
   initial_state: 'on'
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
   condition:
-    condition: and
+    condition: or
     conditions:
-      - condition: state
-        entity_id: climate.thermostat
-        state: 'cool'
-      - condition: numeric_state
-        entity_id: sensor.thermostat_setpoint
-        below: '68'
-  action:
-    - service: notify.pushover
-      data_template:
-        message: AC Broke.. Turning Off...
-    - service: climate.set_hvac_mode
-      data:
-        entity_id: climate.thermostat
-        operation_mode: 'off'
-
-#- id: ac_broken_heat
-- alias: "Notify Andrew when AC BREAKS"
-  initial_state: 'on'
-  trigger:
-    - platform: state
-      entity_id: sensor.thermostat_setpoint
-  condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: climate.thermostat
-        state: 'heat'
-      - condition: numeric_state
-        entity_id: sensor.thermostat_setpoint
-        above: '72'
-  action:
-    - service: notify.pushover
-      data_template:
-        message: AC Broke.. Turning Off...
-    - service: climate.set_hvac_mode
-      data:
-        entity_id: climate.thermostat
-        operation_mode: 'off'
-
-#- id: ac_setpoint_change
-- alias: "Notify Andrew when AC setpoint changes"
-  initial_state: 'on'
-  trigger:
-    - platform: state
-      entity_id: sensor.thermostat_setpoint
-  condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: input_boolean.ac_change_notification
-        state: 'on'
       - condition: template
-        value_template: '{{ trigger.entity_id != None }}'
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "Heat") }}'
       - condition: template
-        value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "Cool") }}'
   action:
     - service: notify.pushover
       data_template:
-        message: >
-          Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+        message: >-
+          {% if states.sensor.thermostat_operating_mode.state == "Heat" %}
+            AC Broke.. Turning Off.. Mode: Heat Setpoint: {{ states.sensor.thermostat_setpoint.state }}
+          {% elif states.sensor.thermostat_operating_mode.state == "Cool" %}
+            AC Broke.. Turning Off.. Mode: Cool Setpoint: {{ states.sensor.thermostat_setpoint.state }}
+          {% endif %}
+    # Push actionable HTML5 notification to allow timely shutoff
+    - service: notify.html5
+      data_template:
+        message: "AC Exception. Mode: {{ states.sensor.thermostat_operating_mode.state }} Setpoint: {{ states.sensor.thermostat_setpoint.state }}"
+        data:
+          actions:
+            - action: turn_ac_off
+              title: Set AC mode to off
 
-#- id: ac_mode_change
-- alias: "Notify Andrew when AC Mode changes"
+- alias: "Notify when AC setting changes"
   initial_state: 'on'
   trigger:
+    - platform: state
+      entity_id: sensor.thermostat_setpoint
     - platform: state
       entity_id: sensor.thermostat_operating_mode
   condition:
@@ -254,14 +196,16 @@
         entity_id: input_boolean.ac_change_notification
         state: 'on'
       - condition: template
-        value_template: '{{ trigger.entity_id != None }}'
-      - condition: template
         value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
     - service: notify.pushover
       data_template:
         message: >
-          Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
+          {% if trigger.to_state.entity_id == "sensor.thermostat_setpoint" %}
+            Setpoint Trigger: {{ trigger.to_state.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+          {% elif trigger.to_state.entity_id == "sensor.thermostat_mode" %}
+            Mode Trigger: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ trigger.to_state.state }}
+          {% endif %}
 
 - alias: "Seventeentrack Update"
   initial_state: 'on'
@@ -302,28 +246,16 @@
       message: >
         Garden sensor reports a moisture level of {{ states.sensor.miflora_moisture.state }}%. Check hose timer. 
 
-# Test data for html5 push notification acton
-#{
-#   "message": "Welcome home",
-#   "target": "Phone",
-#   "data": {
-#      "actions": [
-#         {
-#            "action": "action_1",
-#            "title": "Lamp Toggle"
-#         }
-#      ]
-#   }
-#}
+# Handle all actions for html5 notifications
 - alias: HTML5 push notification action button clicked
   trigger:
     platform: event
     event_type: html5_notification.clicked
-    event_data:
-      action: action_1
   action:
-    service: homeassistant.toggle
-    entity_id: light.bethany_desk_lamp
+    service_template: >-
+      {% if trigger.event.data.action == "turn_ac_off" %}
+        script.turn_ac_off
+      {% endif %}
 
 - alias: Ensure 100% brightness for Andrew Backlight
   trigger:
