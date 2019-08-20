@@ -389,6 +389,16 @@ plant:
 
 readme:
 
+input_datetime:
+  brita_change:
+    name: Last Brita Change Date
+    has_date: true
+    has_time: false
+  ac_filter_change:
+    name: Last Ac Filter Change Date
+    has_date: true
+    has_time: false
+
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

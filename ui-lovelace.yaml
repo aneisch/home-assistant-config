@@ -79,6 +79,8 @@ views:
         entities:
           - person.andrew
           - person.bethany
+          - input_datetime.ac_filter_change
+          - input_datetime.brita_change
 
 #      - id: bus-commute
 #        type: conditional
