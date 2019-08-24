@@ -1,6 +1,6 @@
 version: '3'
 services:
-    pms-docker:
+    plex:
         container_name: plex-compose
         environment:
             - TZ=America/Chicago
@@ -18,6 +18,7 @@ services:
             - /config
             - /transcode
         restart: always
+        network_mode: host
         image: plexinc/pms-docker
     portainer:
         container_name: portainer-compose

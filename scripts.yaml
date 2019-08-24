@@ -111,6 +111,9 @@ common_areas_off:
 copy:
   sequence:
     - service: shell_command.copy
+    - service: notify.pushover
+      data:
+        message: Copy script complete!
 
 appdaemon_ac_night:
   sequence:
