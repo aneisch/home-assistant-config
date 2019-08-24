@@ -1,16 +1,6 @@
 - platform: moon
 
-# Dead? https://github.com/home-assistant/home-assistant/issues/13131
-#- platform: fedex
-#  username: !secret fedex_username
-#  password: !secret fedex_password
-
 - platform: arlo
-
-# Dead?
-#- platform: ups
-#  username: !secret ups_username
-#  password: !secret ups_password
 
 #Tell me when to change a thing
 - platform: date_reminder
@@ -203,34 +193,6 @@
 #############
 # TEMPLATES #
 #############
-
-#- platform: template
-#  sensors:
-#    packages_in_transit:
-#      friendly_name: "Packages in Transit"
-#      value_template: >
-#        {% macro in_transit(sensor) %}
-#          {{sensor.state|int - delivered(sensor)|int}}
-#        {% endmacro %}
-#        {% macro delivered(sensor) %}
-#          {% if 'delivered' in sensor.attributes %}
-#            {{sensor.attributes.delivered}}
-#          {% else %}
-#             0
-#          {% endif %}
-#        {% endmacro %}
-#        {{in_transit(states.sensor.usps_packages)|int + in_transit(states.sensor.ups)|int + in_transit(states.sensor.fedex)|int}}
-#    deliveries_today:
-#      friendly_name: "Packages Delivered Today"
-#      value_template: >
-#        {% macro delivered(sensor) %}
-#          {% if 'delivered' in sensor.attributes %}
-#            {{sensor.attributes.delivered}}
-#          {% else %}
-#             0
-#          {% endif %}
-#        {% endmacro %}
-#        {{delivered(states.sensor.usps_packages)|int + delivered(states.sensor.ups)|int + delivered(states.sensor.fedex)|int}}
 
   #########
   # OTHER #

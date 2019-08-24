@@ -18,9 +18,10 @@ sensor:
       }
     update_interval: 1s
     filters:
-      - sliding_window_moving_average:
-          window_size: 10
-          send_every: 5
+      # - sliding_window_moving_average:
+      #     window_size: 10
+      #     send_every: 5
+      - delta: 1000
   - platform: hx711
     id: "master_bed_read"
     dout_pin: D2

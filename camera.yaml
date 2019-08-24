@@ -2,9 +2,6 @@
 #  still_image_url: !secret weather_url
 #  name: Weather
 
-#- platform: usps
-#  scan_interval: 5
-
 # Updating this with cronjob
 - platform: local_file
   file_path: /tmp/radar.gif

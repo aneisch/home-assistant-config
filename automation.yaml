@@ -261,3 +261,22 @@
   action:
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
+
+- alias: Thermostat LED for filter change
+  trigger:
+    - platform: time
+      at: "07:00:00"
+    - platform: homeassistant
+      event: start
+  action:
+    service: rest_command.set_thermostat_led
+    data_template:
+      color: >
+        {% if state_attr('sensor.ac_filter_change','days_remaining') <= 0 %}
+        red
+        {% elif state_attr('sensor.ac_filter_change','days_remaining') <= 5 %}
+        yellow
+        {% else %}
+        off
+        {% endif %}
+    

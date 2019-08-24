@@ -150,9 +150,6 @@ views:
         show_header_toggle: false
         title: Misc
         entities:
-#    - sensor.usps_mail
-#    - sensor.deliveries_today
-#    - sensor.packages_in_transit
           - script.copy
 
       - id: garden_plant
