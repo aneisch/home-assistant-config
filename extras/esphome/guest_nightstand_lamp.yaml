@@ -1,6 +1,6 @@
 substitutions:
   name: guest_nightstand_lamp
-  friendly_name: "Guest Nightstand"
+  friendly_name: "Guest Nightstand Lamp"
 
 esphome:
   name: ${name}
@@ -33,5 +33,5 @@ output:
 light:
   - platform: binary
     id: lamp
-    name: "${friendly_name} Lamp"
+    name: "${friendly_name}"
     output: relay

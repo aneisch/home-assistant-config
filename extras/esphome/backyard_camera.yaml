@@ -1,6 +1,6 @@
 substitutions:
   name: backyard_camera
-  friendly_name: "Backyard"
+  friendly_name: "Backyard Camera"
 
 esphome:
   name: ${name}
@@ -47,7 +47,7 @@ output:
 light:
   - platform: binary
     output: gpio_4
-    name: "${friendly_name} Camera"
+    name: "${friendly_name}"
     
 sensor:
   - platform: xiaomi_miflora

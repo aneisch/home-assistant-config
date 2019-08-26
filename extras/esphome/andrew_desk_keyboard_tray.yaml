@@ -1,6 +1,6 @@
 substitutions:
   name: andrew_desk_keyboard_tray
-  friendly_name: "Andrew Desk"
+  friendly_name: "Andrew Desk Keyboard Tray"
 
 esphome:
   name: ${name}
@@ -35,6 +35,6 @@ sensor:
 
 binary_sensor:
   - platform: template
-    name: "${friendly_name} Keyboard Tray"
+    name: "${friendly_name}"
     device_class: opening
     lambda: if (id(ultrasonic_smoothed).state > 0.31) return true; else return false;

@@ -22,15 +22,15 @@ sensor:
     cf_pin: GPIO5
     cf1_pin: GPIO14
     current:
-      name: ${friendly_name} Current
+      name: "${friendly_name} Current"
     power:
-      name: ${friendly_name} Power
+      name: "${friendly_name} Power"
       id: power
       filters:
         # Some calibration
         - multiply: 0.4545
     voltage:
-      name: ${friendly_name} Voltage
+      name: "${friendly_name} Voltage"
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8
@@ -38,7 +38,7 @@ sensor:
 
   # Sum power readings over the day
   - platform: total_daily_energy
-    name: ${friendly_name} Total Daily Energy
+    name: "${friendly_name} Total Daily Energy"
     power_id: power
     filters:
       - multiply: 0.001   # convert Wh to kWh
@@ -58,7 +58,6 @@ binary_sensor:
   - platform: gpio
     pin: GPIO13
     id: button
-    name: ${friendly_name} Button
     on_press:
       - switch.toggle: relay
     internal: True
@@ -73,7 +72,7 @@ switch:
   - platform: gpio
     pin: GPIO4
     id: relay
-    name: ${friendly_name}
+    name: "${friendly_name}"
     # Tie Blue LED to relay
     on_turn_on:
     - switch.turn_on: blue_led
