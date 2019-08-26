@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: esp_camera
+  friendly_name: "ESP Camera"
+
+esphome:
+  name: ${name}
   platform: ESP32
   board: esp32dev
 
@@ -30,7 +34,7 @@ esp32_camera:
   href_pin: GPIO23
   pixel_clock_pin: GPIO22
   power_down_pin: GPIO32
-  name: "ESP Camera"
+  name: "${friendly_name}"
   resolution: 1024x768
   max_framerate: 5 fps
   idle_framerate: 0.05 fps
@@ -44,18 +48,4 @@ output:
 light:
   - platform: binary
     output: gpio_4
-    name: "ESP Camera"
-    
-sensor:
-  - platform: uptime
-    name: "ESP Camera Uptime"
-    
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "ESP Camera IP Address"
-
-switch:
-  - platform: restart
-    id: restart_device
-    name: "ESP Camera Restart"
+    name: "${friendly_name}"

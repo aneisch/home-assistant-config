@@ -24,9 +24,33 @@ Door Notify:
   door_sensor: binary_sensor.front_door,binary_sensor.back_door
   notify: pushover
 
-Minimote:
+Minimote Morning:
   module: minimote
   class: MiniMote
+  constrain_start_time: "05:00:00"
+  constrain_end_time: "08:00:00"
+  device: zwave.bedside_remote
+  # Panic is is an optional mode controlled by input boolean
+  # when panic mode is on, all buttons will trigger the panic_entity
+  # this should probably be a script
+  panic_mode_boolean: input_boolean.panic_mode
+  panic_entity: script.panic
+  # Toggle = short press
+  # On = long press
+  scene_1_toggle: fan.master_bedroom_ceiling_fan_level
+  scene_2_on: fan.master_bedroom_ceiling_fan_level
+  scene_3_toggle: fan.master_bedroom_ceiling_fan_level
+  scene_4_on: fan.master_bedroom_ceiling_fan_level
+  scene_5_toggle: fan.master_bedroom_ceiling_fan_level
+  scene_6_on: fan.master_bedroom_ceiling_fan_level
+  scene_7_toggle: fan.master_bedroom_ceiling_fan_level
+  scene_8_on: fan.master_bedroom_ceiling_fan_level
+
+Minimote Non-Morning:
+  module: minimote
+  class: MiniMote
+  constrain_start_time: "08:00:00"
+  constrain_end_time: "05:00:00"
   device: zwave.bedside_remote
   # Panic is is an optional mode controlled by input boolean
   # when panic mode is on, all buttons will trigger the panic_entity

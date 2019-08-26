@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: andrew_desk_keyboard_tray
+  friendly_name: "Andrew Desk"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini
 
@@ -29,16 +33,8 @@ sensor:
           window_size: 5
           send_every: 2
 
-  - platform: uptime
-    name: "Andrew Desk Keyboard Tray Uptime"
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Andrew Desk Keyboard Tray IP Address"
-
 binary_sensor:
   - platform: template
-    name: "Andrew Desk Keyboard Tray"
+    name: "${friendly_name} Keyboard Tray"
     device_class: opening
     lambda: if (id(ultrasonic_smoothed).state > 0.31) return true; else return false;

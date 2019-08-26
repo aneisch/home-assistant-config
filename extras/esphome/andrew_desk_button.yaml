@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: andrew_desk_button
+  friendly_name: "Andrew Desk Button"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini
 
@@ -8,17 +12,8 @@ esphome:
 binary_sensor:
   - platform: gpio
     pin: D3
-    name: "Andrew Desk Button"
+    name: "${friendly_name}"
     filters:
       - invert:
       - delayed_on: 100ms
       - delayed_off: 100ms
-
-sensor:
-  - platform: uptime
-    name: "Andrew Desk Button Uptime"
-    
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Andrew Desk Button IP Address"

@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: guest_nightstand_lamp
+  friendly_name: "Guest Nightstand"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: esp01_1m
   esp8266_restore_from_flash: true
@@ -29,5 +33,5 @@ output:
 light:
   - platform: binary
     id: lamp
-    name: "Guest Nightstand Lamp"
+    name: "${friendly_name} Lamp"
     output: relay

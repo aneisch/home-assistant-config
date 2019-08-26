@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: office
+  friendly_name: "Office"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini
 
@@ -13,18 +17,11 @@ i2c:
 sensor:
   - platform: sht3xd
     temperature:
-      name: "Office Temperature"
+      name: "${friendly_name} Temperature"
       filters:
         - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     humidity:
-      name: "Office Humidity"
+      name: "${friendly_name} Humidity"
     address: 0x45
     update_interval: 10s
-  - platform: uptime
-    name: "Office Uptime"
-    
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Office IP Address"

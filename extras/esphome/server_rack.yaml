@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: server_rack
+  friendly_name: "Rack Exhaust"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini
 
@@ -10,17 +14,10 @@ sensor:
     model: DHT22
     pin: D4
     temperature:
-      name: "Rack Exhaust Temperature"
+      name: "${friendly_name} Temperature"
       filters:
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     humidity:
-      name: "Rack Exhaust Humidity"
+      name: "${friendly_name} Humidity"
     update_interval: 10s
-  - platform: uptime
-    name: "Server Rack Uptime"
-    
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Server Rack IP Address"

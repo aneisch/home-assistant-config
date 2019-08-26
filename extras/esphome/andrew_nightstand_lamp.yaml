@@ -1,3 +1,7 @@
+substitutions:
+  name: andrew_nightstand_lamp
+  friendly_name: "Andrew Nightstand"
+
 esphome:
   name: andrew_nightstand_lamp
   platform: ESP8266
@@ -29,5 +33,5 @@ output:
 light:
   - platform: binary
     id: lamp
-    name: "Andrew Nightstand Lamp"
+    name: "${friendly_name} Lamp"
     output: relay

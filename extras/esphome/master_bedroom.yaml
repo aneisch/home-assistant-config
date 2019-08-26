@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: master_bedroom
+  friendly_name: "Master Bedroom"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini_pro
 
@@ -9,7 +13,7 @@ sensor:
   - platform: template
     id: "master_bed_smoothed"
     unit_of_measurement: kg
-    name: "Master Bedroom Bed Raw"
+    name: "${friendly_name} Bed Raw"
     lambda: |-
       if (id(master_bed_read).state > 655000 && id(master_bed_read).state < 710000) {
         return id(master_bed_read).state; 
@@ -28,28 +32,20 @@ sensor:
     clk_pin: D3
     gain: 128
     update_interval: 1s
-  - platform: uptime
-    name: "Master Bedroom Bed Uptime"
   - platform: dht
     model: DHT22
     pin: D4
     temperature:
-      name: "Master Bedroom Temperature"
+      name: "${friendly_name} Temperature"
       filters:
       - lambda: return x * (9.0/5.0) + 32.0;
       unit_of_measurement: "°F"
     humidity:
-      name: "Master Bedroom Humidity"
+      name: "${friendly_name} Humidity"
     update_interval: 10s
-
-
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Master Bedroom Bed Address"
 
 binary_sensor:
   - platform: template
-    name: "Master Bedroom Bed"
+    name: "${friendly_name} Bed"
     device_class: occupancy
     lambda: if (id(master_bed_smoothed).state > 664000) return true; else return false;

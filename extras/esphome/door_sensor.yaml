@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: door_sensor
+  friendly_name: "Door Sensor"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: d1_mini
 
@@ -19,12 +23,3 @@ binary_sensor:
       number: D2
     name: "Front Door"
     device_class: door
-
-sensor:
-  - platform: uptime
-    name: "Door Sensor Uptime"
-    
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "Door Sensor IP Address"

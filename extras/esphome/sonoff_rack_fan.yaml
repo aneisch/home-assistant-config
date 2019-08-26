@@ -1,5 +1,9 @@
-esphome:
+substitutions:
   name: sonoff_rack_fan
+  friendly_name: "Rack Fan"
+
+esphome:
+  name: ${name}
   platform: ESP8266
   board: esp01_1m
 
@@ -7,7 +11,7 @@ esphome:
 
 fan:
   - platform: binary
-    name: "Rack Fan"
+    name: "${friendly_name}"
     id: rack_fan
     output: relay
 
