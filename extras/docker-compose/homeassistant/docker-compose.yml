@@ -8,7 +8,7 @@ services:
             - '/opt/mqtt/config:/mqtt/config:ro'
             - '/opt/mqtt/log:/mqtt/log'
             - '/opt/mqtt/data/:/mqtt/data/'
-        container_name: mqtt-compose
+        container_name: mqtt
         image: toke/mosquitto
     grafana:
         ports:
@@ -16,10 +16,12 @@ services:
         volumes:
             - /opt/grafana:/var/lib/grafana
         restart: always
-        container_name: grafana-compose
+        container_name: grafana
         image: grafana/grafana
+        environment:
+            - GF_SECURITY_ALLOW_EMBEDDING=true
     influxdb:
-        container_name: influxDB-compose
+        container_name: influxdb
         restart: always
         volumes:
             - '/opt/influxdb:/data'
@@ -28,7 +30,8 @@ services:
             - '8086:8086'
         image: influxdb
     esphome:
-        container_name: esphome-compose
+        container_name: esphome
+        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
         image: esphome-dev
         volumes:
             - /opt/esphome/:/config:rw
@@ -37,12 +40,12 @@ services:
         network_mode: host
         restart: always
     pwr_stat:
-        container_name: pwr_stat-compose
+        container_name: pwr_stat
         hostname: pwr_stat
         restart: always
         image: dwinks/pwrstat_docker:latest
         devices:
-            #- /dev/bus/usb/001/005:/dev/bus/usb/001/001
+            # USB udev rule for device static symlink
             - /dev/ups_monitor
         volumes:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro

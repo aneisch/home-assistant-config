@@ -3,6 +3,9 @@ sensor:
     state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
     name: gate_battery_voltage
     unit_of_measurement: 'V'
+  - platform: mqtt
+    state_topic: "mom_and_dad/sensor/ip_address/state"
+    name: gate_ip_address
 
 
 binary_sensor:

@@ -1,7 +1,7 @@
 version: '3'
 services:
     plex:
-        container_name: plex-compose
+        container_name: plex
         environment:
             - TZ=America/Chicago
             - PLEX_CLAIM=XXXXXXXXXXXX
@@ -21,7 +21,7 @@ services:
         network_mode: host
         image: plexinc/pms-docker
     portainer:
-        container_name: portainer-compose
+        container_name: portainer
         environment:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         volumes:

@@ -33,7 +33,10 @@ recorder:
 system_health:
 
 alarm_control_panel:
-  - platform: arlo
+  #- platform: arlo
+  - platform: aarlo
+    home_mode_name: Armed
+    away_mode_name: Disarmed
   - platform: alexa_media
 
 ios:
@@ -271,8 +274,8 @@ emulated_hue:
   expose_by_default: false
   #See customize.yaml for exposed entites
 
-#Seems to be broken, makes HASS hang..
-arlo:
+#arlo:
+aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
 

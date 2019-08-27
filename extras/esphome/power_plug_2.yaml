@@ -1,6 +1,6 @@
 substitutions:
-  name: bethany_power_plug
-  friendly_name: "Bethany Power Plug"
+  name: power_plug_2
+  friendly_name: "Power Plug 2"
   # Higher value gives lower watt readout
   current_res: "0.00221"
   # Lower value gives lower voltage readout
@@ -72,7 +72,6 @@ switch:
   - platform: gpio
     pin: GPIO4
     id: relay
-    restore_mode: ALWAYS_ON
     name: "${friendly_name}"
     # Tie Blue LED to relay
     on_turn_on:

@@ -1,7 +1,7 @@
 esphome:
   name: mom_and_dad
   platform: ESP8266
-  board: d1_mini
+  board: d1_mini_pro
   on_boot:
     then:
       # Set initial states
@@ -20,6 +20,8 @@ logger:
 
 wifi:
   networks:
+  - ssid: SSID
+    password: WPA_KEY
   - ssid: SSID
     password: WPA_KEY
   - ssid: SSID
@@ -148,9 +150,8 @@ binary_sensor:
       - delayed_on: 10ms
 
 switch:
-
   - platform: shutdown
-    name: "shut down"
+    name: "Shut Down"
   # Actual GPIO output
   - platform: gpio
     id: relay
@@ -174,3 +175,8 @@ switch:
     - binary_sensor.template.publish:
         id: automation_safety
         state: OFF
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"

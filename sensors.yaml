@@ -1,6 +1,14 @@
 - platform: moon
 
-- platform: arlo
+#- platform: arlo
+
+- platform: aarlo
+  monitored_conditions:
+  - last_capture
+  - total_cameras
+  - battery_level
+  - captured_today
+  - signal_strength
 
 #Tell me when to change a thing
 - platform: date_reminder

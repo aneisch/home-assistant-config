@@ -9,6 +9,8 @@ resources:
     type: module
   - url: /local/js/swipe-card.js?v=1.0
     type: js
+  - url: /local/js/aarlo-glance.js
+    type: module
 
 views:
 
@@ -67,7 +69,8 @@ views:
         show_header_toggle: false
         title: Security
         entities:
-          - alarm_control_panel.neisch
+          - !secret alarm_panel_1
+          - !secret alarm_panel_2
           - input_boolean.security_status
           - binary_sensor.front_door
           - binary_sensor.back_door
@@ -128,7 +131,7 @@ views:
 
       - id: backyard_camera
         type: picture-entity
-        entity: camera.backyard
+        entity: camera.backyard_camera
 
       - id: backyard_camera
         type: picture-entity
@@ -227,20 +230,69 @@ views:
           - light.bethany_desk_lamp
 
       - id: b7af20433c784ccca205fa325641280f  # Automatically created id
-        type: picture-entity
-        entity: camera.office
+        type: 'custom:aarlo-glance'
+        entity: camera.aarlo_office
+        name: Office
+        show:
+          - motion
+          - sound
+          - snapshot
+          - captured_today
+          - image_date
+        top_title: false
+        top_status: false
+        top_date: false
+        image_click: play
 
       - id: d8815d1b15c24ac8970aa8003bef52ed  # Automatically created id
-        type: picture-entity
-        entity: camera.1
+        type: 'custom:aarlo-glance'
+        entity: camera.aarlo_1
+        name: Front Door
+        show:
+          - motion
+          - sound  
+          - battery
+          - snapshot  
+          - captured_today
+          - image_date
+        top_title: false
+        top_status: false
+        top_date: false 
+        image_click: play
 
       - id: 9c6320bdd0604afe93bd64ee63a926f3  # Automatically created id
         type: picture-entity
-        entity: camera.2
+        type: 'custom:aarlo-glance'
+        entity: camera.aarlo_2
+        name: Back Door
+        show:
+          - motion
+          - sound
+          - battery
+          - snapshot
+          - captured_today
+          - image_date   
+        top_title: false
+        top_status: false
+        top_date: false  
+        image_click: play
 
       - id: 8ca676339f03436ea002418fe777dc83  # Automatically created id
         type: picture-entity
-        entity: camera.3
+        type: 'custom:aarlo-glance'
+        entity: camera.aarlo_3
+        name: Kitchen
+        show:
+          - motion
+          - sound
+          - battery
+          - snapshot
+          - captured_today
+          - image_date   
+        top_title: false
+        top_status: false
+        top_date: false  
+        image_click: play
 
       - id: 7ed045db114e44a88505b94735871713  # Automatically created id
         type: custom:mini-media-player
@@ -351,6 +403,7 @@ views:
           - binary_sensor.gate_status
           - binary_sensor.gate_automation_safety
           - binary_sensor.gate_heading_comparison
+          - sensor.gate_ip_address
           - sensor.gate_battery_voltage
           - automation.gate_heading_comparison_action
           - automation.gate_battery_safety_notify

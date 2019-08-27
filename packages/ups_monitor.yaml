@@ -91,3 +91,8 @@ automation:
         data_template:
           message: "UPS battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - service: shell_command.nuc_poweroff
+
+homeassistant:
+  customize:
+    sensor.ups_time_left:
+      icon: mdi:clock-outline

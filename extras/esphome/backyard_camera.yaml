@@ -8,14 +8,7 @@ esphome:
   board: esp32dev
 
 <<: !include common.yaml
-
-time:
-  - platform: sntp
-    # ...
-    on_time:
-      - cron: '0 0 * * * *'
-        then:
-          - switch.toggle: restart_device
+<<: !include midnight_reboot.yaml
 
 esp32_ble_tracker:
   scan_interval: 60s
