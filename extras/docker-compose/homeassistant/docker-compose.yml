@@ -24,9 +24,8 @@ services:
         container_name: influxdb
         restart: always
         volumes:
-            - '/opt/influxdb:/data'
+            - '/opt/influxdb:/var/lib/influxdb'
         ports:
-            - '8083:8083'
             - '8086:8086'
         image: influxdb
     esphome:
@@ -46,7 +45,7 @@ services:
         image: dwinks/pwrstat_docker:latest
         devices:
             # USB udev rule for device static symlink
-            - /dev/ups_monitor
+            - /dev/ups_monitor:/dev/bus/usb/001/001
         volumes:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
         healthcheck:
