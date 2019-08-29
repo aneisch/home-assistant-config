@@ -152,6 +152,26 @@
   action:
     service: shell_command.mount_plex
 
+- alias: "Master Bedroom Fan Bethany"
+  trigger: 
+    platform: numeric_state
+    entity_id: sensor.bethany_power_plug_power
+    below: 1
+    for: 
+      seconds: 5
+  condition:
+    condition: time
+    after: '06:00:00'
+    before: '08:00:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id: fan.master_bedroom_ceiling_fan_level
+    - delay: '00:03:00'
+    - service: homeassistant.turn_on
+      entity_id: fan.master_bedroom_ceiling_fan_level
+    
+  
+
 - alias: "Notify when AC BREAKS"
   initial_state: 'on'
   trigger:

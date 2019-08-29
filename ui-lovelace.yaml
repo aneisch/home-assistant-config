@@ -46,6 +46,7 @@ views:
         entities:
           - input_boolean.door_notify
           - input_boolean.ac_automation
+          - automation.master_bedroom_fan_bethany
           - input_boolean.plant_light_automation
           - input_boolean.ac_change_notification
           - input_boolean.occusim
