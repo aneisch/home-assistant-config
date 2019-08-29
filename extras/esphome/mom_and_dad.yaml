@@ -44,7 +44,7 @@ script:
           and:
             - binary_sensor.is_off: automation_safety
             # Make sure gate is closed.. uncomment this
-            #- binary_sensor.is_off: automation_safety
+            #- binary_sensor.is_off: gate_status
         then: 
           - binary_sensor.template.publish:
               id: automation_safety
