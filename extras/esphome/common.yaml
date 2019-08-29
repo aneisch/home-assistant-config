@@ -14,7 +14,7 @@ ota:
 sensor:
   - platform: uptime
     name: "${friendly_name} Uptime"
-    
+
 text_sensor:
   - platform: wifi_info
     ip_address:

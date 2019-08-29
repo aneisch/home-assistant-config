@@ -156,7 +156,7 @@
   trigger: 
     platform: numeric_state
     entity_id: sensor.bethany_power_plug_power
-    below: 1
+    below: 0.01
     for: 
       seconds: 5
   condition:
@@ -169,8 +169,6 @@
     - delay: '00:03:00'
     - service: homeassistant.turn_on
       entity_id: fan.master_bedroom_ceiling_fan_level
-    
-  
 
 - alias: "Notify when AC BREAKS"
   initial_state: 'on'
@@ -299,3 +297,4 @@
         {% else %}
         off
         {% endif %}
+
