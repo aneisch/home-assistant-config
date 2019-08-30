@@ -163,10 +163,16 @@
     condition: time
     after: '06:00:00'
     before: '08:00:00'
+    weekday:
+      - mon
+      - tue
+      - wed
+      - thu
+      - fri
   action:
     - service: homeassistant.turn_off
       entity_id: fan.master_bedroom_ceiling_fan_level
-    - delay: '00:03:00'
+    - delay: '00:01:00'
     - service: homeassistant.turn_on
       entity_id: fan.master_bedroom_ceiling_fan_level
 
