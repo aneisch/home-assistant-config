@@ -406,6 +406,8 @@ views:
           - binary_sensor.gate_heading_comparison
           - sensor.gate_ip_address
           - sensor.gate_battery_voltage
+          - sensor.gate_uptime
+          - sensor.gate_online_offline
           - automation.gate_heading_comparison_action
           - automation.gate_battery_safety_notify
 
