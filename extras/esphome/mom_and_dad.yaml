@@ -4,7 +4,7 @@ esphome:
   board: d1_mini_pro
   on_boot:
     then:
-      # Set initial states
+      # Set/get initial states
       - binary_sensor.template.publish:
           id: automation_safety
           state: OFF
@@ -64,9 +64,6 @@ mqtt:
   log_topic:
   on_message:
     - topic: cmd/mom_and_dad_gate
-      then:
-        - switch.toggle: gate
-    - topic: cmd/test
       then:
         - switch.toggle: gate
 
