@@ -1,3 +1,2 @@
-# /etc/udev/rules.d/99-usb-serial.rules for automatic static USB symlink creation
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0658", ATTRS{idProduct}=="0200", SYMLINK+="zwave"
-ATTRS{idVendor}=="0764", ATTRS{idProduct}=="0501", SYMLINK+="ups_monitor"
+ATTRS{idVendor}=="0764", ATTRS{idProduct}=="0501", SYMLINK+="ups_monitor", RUN+="/usr/bin/docker start pwr_stat"

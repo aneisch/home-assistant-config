@@ -17,7 +17,7 @@ services:
             - '/plex/:/data'
             - /config
             - /transcode
-        restart: always
+        restart: on-failure
         network_mode: host
         image: plexinc/pms-docker
     portainer:
@@ -29,5 +29,5 @@ services:
             - '/opt/portainer:/data'
         ports:
             - '9000:9000'
-        restart: always
+        restart: on-failure
         image: portainer/portainer

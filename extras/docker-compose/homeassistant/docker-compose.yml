@@ -37,11 +37,11 @@ services:
             # Use local time for logging timestamps
             - /etc/localtime:/etc/localtime:ro
         network_mode: host
-        restart: always
+        restart: on-failure
     pwr_stat:
         container_name: pwr_stat
         hostname: pwr_stat
-        restart: always
+        restart: on-failure
         image: dwinks/pwrstat_docker:latest
         devices:
             # USB udev rule for device static symlink
