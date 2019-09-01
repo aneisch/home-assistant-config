@@ -410,4 +410,5 @@ views:
           - sensor.gate_online_offline
           - automation.gate_heading_comparison_action
           - automation.gate_battery_safety_notify
+          - script.mom_and_dad_gate_toggle
 
