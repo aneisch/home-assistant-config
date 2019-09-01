@@ -1,4 +1,4 @@
-version: '3'
+version: '3.2'
 services:
     plex:
         container_name: plex
@@ -17,7 +17,7 @@ services:
             - '/plex/:/data'
             - /config
             - /transcode
-        restart: on-failure
+        restart: "no"
         network_mode: host
         image: plexinc/pms-docker
     portainer:
@@ -29,5 +29,5 @@ services:
             - '/opt/portainer:/data'
         ports:
             - '9000:9000'
-        restart: on-failure
+        restart: "no"
         image: portainer/portainer

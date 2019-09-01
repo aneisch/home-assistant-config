@@ -1,15 +1,26 @@
-version: '3'
+version: '3.2'
 services:
+    #mosquitto:
+    #    restart: always
+    #    ports:
+    #        - '1883:1883'
+    #    volumes:
+    #        - '/opt/mqtt/config:/mqtt/config:ro'
+    #        - '/opt/mqtt/log:/mqtt/log'
+    #        - '/opt/mqtt/data/:/mqtt/data/'
+    #    container_name: mqtt
+    #    image: toke/mosquitto
     mosquitto:
+        container_name: mosquitto
         restart: always
         ports:
             - '1883:1883'
         volumes:
-            - '/opt/mqtt/config:/mqtt/config:ro'
-            - '/opt/mqtt/log:/mqtt/log'
-            - '/opt/mqtt/data/:/mqtt/data/'
-        container_name: mqtt
-        image: toke/mosquitto
+            - '/etc/ssl/certs:/mosquitto/certs:ro'
+            - '/opt/mqtt/config:/mosquitto/config:ro'
+            - '/opt/mqtt/log:/mosquitto/log'
+            - '/opt/mqtt/data:/mosquitto/data'
+        image: eclipse-mosquitto
     grafana:
         ports:
             - '3000:3000'
@@ -37,11 +48,12 @@ services:
             # Use local time for logging timestamps
             - /etc/localtime:/etc/localtime:ro
         network_mode: host
-        restart: on-failure
+        restart: "no"
     pwr_stat:
+        # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat
         hostname: pwr_stat
-        restart: on-failure
+        restart: "no"
         image: dwinks/pwrstat_docker:latest
         devices:
             # USB udev rule for device static symlink
