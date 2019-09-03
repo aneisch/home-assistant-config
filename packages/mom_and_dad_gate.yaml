@@ -41,14 +41,14 @@ automation:
       - service: notify.pushover
         data_template:
           message: >
-            Automation Fired!
+            Vehicle Sensor Automation Fired!
 
   - alias: "Gate Battery Safety Notify"
     initial_state: 'on'
     trigger:
       - platform: numeric_state
         entity_id: sensor.gate_battery_voltage
-        below: 13
+        below: 8
     action:
       - service: notify.pushover
         data_template:

@@ -287,12 +287,11 @@ panel_iframe:
   grafana:
     title: 'Grafana'
     icon: mdi:chart-areaspline
-    #url: !secret grafana
-    url: http://10.0.1.22:3000
+    url: !secret grafana
   esphome:
     title: 'ESPHome'
     icon: mdi:memory
-    url: http://10.0.1.22:6052
+    url: !secret esphome
   portainer:
     title: 'Portainer'
     icon: mdi:ferry
@@ -398,7 +397,7 @@ input_datetime:
     has_date: true
     has_time: false
   ac_filter_change:
-    name: Last Ac Filter Change Date
+    name: Last AC Filter Change Date
     has_date: true
     has_time: false
 

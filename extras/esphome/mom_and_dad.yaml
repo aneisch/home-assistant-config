@@ -124,7 +124,7 @@ sensor:
     pin: A0
     id: battery_level
     name: "Gate Battery Voltage"
-    update_interval: 600s
+    update_interval: 60s
     accuracy_decimals: 4
     filters:
       - multiply: 15.43
@@ -163,11 +163,13 @@ binary_sensor:
     id: gate_status
     device_class: door
     filters:
-      - delayed_on: 10ms
+      - delayed_on: 100ms
+      - delayed_off: 100ms
 
 switch:
-  - platform: shutdown
-    name: "Shut Down"
+  - platform: restart
+    name: "Reboot"
+    
   # Actual GPIO output
   - platform: gpio
     id: relay
