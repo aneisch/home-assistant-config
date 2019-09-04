@@ -161,7 +161,7 @@
       seconds: 5
   condition:
     condition: time
-    after: '06:00:00'
+    after: '06:30:00'
     before: '08:00:00'
     weekday:
       - mon
