@@ -401,6 +401,7 @@ input_datetime:
     has_date: true
     has_time: false
 
+homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml

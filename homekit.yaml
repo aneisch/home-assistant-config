@@ -1,0 +1,36 @@
+  filter:
+    exclude_domains:
+      - light
+      - device_tracker
+      - input_boolean
+      - remote
+      - script
+      - alarm_control_panel
+      - sensor
+      - automation
+      - media_player
+      - binary_sensor
+      - scene
+      - person
+      - switch
+      - climate
+    include_entities:
+      - light.master_bedroom
+      - light.andrew_nightstand_lamp
+      - light.bethany_nightstand_lamp
+      - light.guest_nightstand_lamp
+      - switch.nas
+      - switch.christmas_tree
+      - climate.thermostat
+      - script.appdaemon_ac_night
+      - script.appdaemon_ac_morning
+      - script.common_areas_off
+      - script.set_ac_70
+      - script.set_ac_72
+      - script.set_ac_75
+      - script.set_ac_78
+      - script.set_ac_82
+      - script.too_cold
+      - script.too_hot
+      - group.living_room_lamps
+      - group.master_bedroom_lamps

@@ -124,7 +124,7 @@ sensor:
     pin: A0
     id: battery_level
     name: "Gate Battery Voltage"
-    update_interval: 60s
+    update_interval: 600s
     accuracy_decimals: 4
     filters:
       - multiply: 15.43
@@ -163,8 +163,8 @@ binary_sensor:
     id: gate_status
     device_class: door
     filters:
-      - delayed_on: 100ms
-      - delayed_off: 100ms
+      - delayed_on: 1s
+      - delayed_off: 1s
 
 switch:
   - platform: restart
@@ -186,13 +186,15 @@ switch:
     - switch.turn_on: relay
     - delay: 500ms
     - switch.turn_off: relay
-    - binary_sensor.template.publish:
-        id: automation_safety
-        state: ON
-    - delay: 60s
-    - binary_sensor.template.publish:
-        id: automation_safety
-        state: OFF
+    # No need to turn on automation safety if called by MQTT
+    # if triggered by sensor automation_safety will turn on via script
+    # - binary_sensor.template.publish:
+    #     id: automation_safety
+    #     state: ON
+    # - delay: 60s
+    # - binary_sensor.template.publish:
+    #     id: automation_safety
+    #     state: OFF
 
 text_sensor:
   - platform: wifi_info
