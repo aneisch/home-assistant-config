@@ -53,7 +53,7 @@ services:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat
         hostname: pwr_stat
-        restart: "no"
+        restart: always
         image: dwinks/pwrstat_docker:latest
         devices:
             # USB udev rule for device static symlink
@@ -67,3 +67,13 @@ services:
             retries: 24
         privileged: true
         network_mode: host
+
+    docker_mon:
+      image: philhawthorne/ha-dockermon
+      container_name: ha_dockermon
+      restart: always
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /opt/docker_mon:/config
+      ports:
+        - 8126:8126

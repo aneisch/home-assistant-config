@@ -256,7 +256,7 @@ mqtt:
   password: !secret owntracks_password
 
 influxdb:
-  host: 10.0.1.22
+  host: localhost
   #username: !secret influx_user
   #password: !secret influx_password
 
@@ -407,6 +407,9 @@ input_datetime:
     name: Last AC Filter Change Date
     has_date: true
     has_time: false
+
+# https://github.com/Sanderhuisman/home-assistant-custom-components
+docker_monitor:
 
 homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml

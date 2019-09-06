@@ -393,6 +393,20 @@ views:
           - sensor.sonoff_pow_yesterday_energy
           - sensor.sonoff_pow_yesterday_cost
 
+      - id: 1658f3d4809c475eb362b0a55af2084c  # Automatically created id
+        type: entities
+        show_header_toggle: false
+        title: Docker
+        entities:
+          - switch.docker_esphome
+          - switch.docker_grafana
+          - switch.docker_ha_dockermon
+          - switch.docker_influxdb
+          - switch.docker_mosquitto
+          - switch.docker_plex
+          - switch.docker_portainer
+          - switch.docker_pwr_stat
+
   - id: 4
     title: Gate Testing
     cards:

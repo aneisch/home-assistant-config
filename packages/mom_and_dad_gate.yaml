@@ -44,7 +44,6 @@ automation:
             Vehicle Sensor Automation Fired!
 
   - alias: "Gate Battery Safety Notify"
-    initial_state: 'on'
     trigger:
       - platform: numeric_state
         entity_id: sensor.gate_battery_voltage
