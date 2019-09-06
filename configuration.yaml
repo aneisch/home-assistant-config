@@ -396,8 +396,6 @@ plant:
     min_moisture: 20
     max_moisture: 100
 
-readme:
-
 input_datetime:
   brita_change:
     name: Last Brita Change Date
@@ -410,6 +408,9 @@ input_datetime:
 
 # https://github.com/Sanderhuisman/home-assistant-custom-components
 docker_monitor:
+
+hacs:
+  token: !secret hacs_token
 
 homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml

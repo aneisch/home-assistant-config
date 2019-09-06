@@ -47,7 +47,6 @@ DEFAULT_NAME = 'Docker'
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 DOCKER_TYPE = [
-    'sensor',
     'switch'
 ]
 

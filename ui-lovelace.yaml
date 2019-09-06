@@ -1,15 +1,13 @@
 resources:
-  # https://community.home-assistant.io/t/custom-animated-weather-card-for-lovelace/58338/1
-  - url: /local/js/weather-card.js
-    type: js
-  - url: /local/js/slider-entity-row.js
-    type: js
-  # https://github.com/kalkih/mini-media-player
-  - url: /local/js/mini-media-player-bundle.js?v=1.2.2
+  - url: /community_plugin/weather-card/weather-card.js
     type: module
-  - url: /local/js/swipe-card.js?v=1.0
+  - url: /community_plugin/lovelace-slider-entity-row/slider-entity-row.js
     type: js
-  - url: /local/js/aarlo-glance.js
+  - url: /community_plugin/swipe-card/swipe-card.js
+    type: module
+  - url: /community_plugin/lovelace-hass-aarlo/hass-aarlo.js
+    type: module
+  - url: /community_plugin/mini-media-player/mini-media-player-bundle.js
     type: module
 
 views:
@@ -114,7 +112,6 @@ views:
 
       - id: ab435da4384043c685f20f6f4e12715e  # Automatically created id
         type: custom:weather-card
-        entity_weather: weather.dark_sky
         entity: weather.dark_sky
 
       - type: iframe
