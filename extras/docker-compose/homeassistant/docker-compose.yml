@@ -79,7 +79,7 @@ services:
             # Top USB on back
             - '/dev/usb/hiddev1:/dev/usb/hiddev0'
         volumes:
-            - /opt/pwr_stat/pwrstat_api_650.py:/pwrstat_api.py:ro
+            - /opt/pwr_stat/pwrstat_api.py:/pwrstat_api.py:ro
             - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         healthcheck:

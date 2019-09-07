@@ -422,6 +422,7 @@ views:
           - switch.docker_plex
           - switch.docker_portainer
           - switch.docker_pwr_stat
+          - switch.docker_pwr_stat_650
 
   - id: 4
     title: Gate Testing
