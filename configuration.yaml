@@ -416,6 +416,7 @@ homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml
 switch: !include switches.yaml
+fan: !include fans.yaml
 binary_sensor: !include binary_sensor.yaml
 sensor: !include sensors.yaml
 automation: !include automation.yaml

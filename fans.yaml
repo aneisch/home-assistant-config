@@ -1,0 +1,14 @@
+- platform: template
+  fans:
+    # Dummy for HomeKit
+    master_bedroom_ceiling_fan:
+      friendly_name: "Master Bedroom Ceiling Fan"
+      value_template: "{{ is_state('fan.master_bedroom_ceiling_fan_level', 'on') }}"
+      turn_on:
+        service: fan.turn_on
+        data:
+          entity_id: fan.master_bedroom_ceiling_fan_level
+      turn_off:
+        service: fan.turn_off
+        data:
+          entity_id: fan.master_bedroom_ceiling_fan_level

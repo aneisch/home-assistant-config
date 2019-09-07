@@ -14,22 +14,15 @@
       - person
       - switch
       - climate
+      - fan
     include_entities:
-      - light.master_bedroom
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
       - light.guest_nightstand_lamp
-      - switch.nas
-      - switch.christmas_tree
       - climate.thermostat
       - script.appdaemon_ac_night
       - script.appdaemon_ac_morning
-      - script.common_areas_off
-      - script.set_ac_70
-      - script.set_ac_72
-      - script.set_ac_75
-      - script.set_ac_78
-      - script.set_ac_82
+      - fan.master_bedroom_ceiling_fan
       - script.too_cold
       - script.too_hot
       - group.living_room_lamps

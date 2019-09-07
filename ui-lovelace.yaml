@@ -9,6 +9,13 @@ resources:
     type: module
   - url: /community_plugin/mini-media-player/mini-media-player-bundle.js
     type: module
+  - url: /community_plugin/compact-custom-header/compact-custom-header.js
+    type: module
+
+cch:
+  options: clock
+  swipe: true
+  swipe_animate: swipe
 
 views:
 
@@ -378,6 +385,17 @@ views:
           - sensor.ups_time_left
           - sensor.ups_load
 
+      - id: 4428e05e6a7143e0a2b2fbf52d92dfe1  # Automatically created id
+        type: entities
+        show_header_toggle: false
+        title: 650 UPS
+        entities:
+          - sensor.650_ups_monitor
+          - sensor.650_ups_input_voltage
+          - sensor.650_ups_battery
+          - sensor.650_ups_time_left
+          - sensor.650_ups_load
+
       - id: 1658f3d4809c475eb362b0a55af2084d  # Automatically created id
         type: entities
         show_header_toggle: false
@@ -400,6 +418,7 @@ views:
           - switch.docker_ha_dockermon
           - switch.docker_influxdb
           - switch.docker_mosquitto
+          - switch.docker_ozwcp
           - switch.docker_plex
           - switch.docker_portainer
           - switch.docker_pwr_stat

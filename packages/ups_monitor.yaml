@@ -12,6 +12,19 @@ sensor:
       - Utility Voltage
       - Line Interaction
       - Battery Capacity
+  - platform : mqtt
+    state_topic: "sensor/power/ups_650"
+    name: 650 UPS Monitor
+    value_template: '{{ value_json["State"] }}'
+    json_attributes:
+      - Remaining Runtime
+      - Load
+      - Power Supply by
+      - Last Power Event
+      - Test Result
+      - Utility Voltage
+      - Line Interaction
+      - Battery Capacity
   - platform: template
     sensors:
       ups_time_left:
@@ -30,6 +43,24 @@ sensor:
       ups_battery:
         friendly_name: "UPS Capacity"
         value_template: "{{ state_attr('sensor.ups_monitor', 'Battery Capacity').split(' ')[0] }}"
+        unit_of_measurement: '%'
+        device_class: "battery"
+      650_ups_time_left:
+        friendly_name: "UPS Time Remaining"
+        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Remaining Runtime').split(' ')[0] }}"
+        unit_of_measurement: 'minutes'
+      650_ups_load:
+        friendly_name: "UPS Load"
+        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Load').split(' ')[0] }}"
+        unit_of_measurement: 'Watts'
+        device_class: "power"
+      650_ups_input_voltage:
+        friendly_name: "UPS Utility Voltage"
+        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Utility Voltage').split(' ')[0] }}"
+        unit_of_measurement: 'V'
+      650_ups_battery:
+        friendly_name: "UPS Capacity"
+        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Battery Capacity').split(' ')[0] }}"
         unit_of_measurement: '%'
         device_class: "battery"
 

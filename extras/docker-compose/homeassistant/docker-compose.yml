@@ -31,6 +31,7 @@ services:
         image: grafana/grafana
         environment:
             - GF_SECURITY_ALLOW_EMBEDDING=true
+            - GF_SECURITY_COOKIE_SAMESITE=none
     influxdb:
         container_name: influxdb
         restart: always
@@ -56,24 +57,54 @@ services:
         restart: always
         image: dwinks/pwrstat_docker:latest
         devices:
-            # USB udev rule for device static symlink
-            - /dev/ups_monitor:/dev/bus/usb/001/001
+            # Bottom USB on back
+            - '/dev/usb/hiddev0:/dev/usb/hiddev0'
         volumes:
+            - /opt/pwr_stat/pwrstat_api.py:/pwrstat_api.py:ro
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
+            - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         healthcheck:
             test: ["CMD", "curl", "-sI", "http://127.0.0.1:5002/pwrstat"]
             interval: 30s
             timeout: 1s
             retries: 24
-        privileged: true
         network_mode: host
-
-    docker_mon:
-      image: philhawthorne/ha-dockermon
-      container_name: ha_dockermon
-      restart: always
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
-        - /opt/docker_mon:/config
-      ports:
-        - 8126:8126
+    pwr_stat_650:
+        # https://github.com/DanielWinks/pwrstat_docker
+        container_name: pwr_stat_650
+        hostname: pwr_stat_650
+        restart: always
+        image: dwinks/pwrstat_docker:latest
+        devices:
+            # Top USB on back
+            - '/dev/usb/hiddev1:/dev/usb/hiddev0'
+        volumes:
+            - /opt/pwr_stat/pwrstat_api_650.py:/pwrstat_api.py:ro
+            - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
+            - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
+        healthcheck:
+            test: ["CMD", "curl", "-sI", "http://127.0.0.1:5004/pwrstat"]
+            interval: 30s
+            timeout: 1s
+            retries: 24
+        network_mode: host
+    ha_dockermon:
+        image: philhawthorne/ha-dockermon
+        container_name: ha_dockermon
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /opt/ha_dockermon:/config
+        ports:
+            - 8126:8126
+    ozwcp:
+        container_name: ozwcp
+        restart: 'no'
+        volumes:
+            - '/opt/homeassistant/options.xml:/home/ozwcp_user/open-zwave-control-panel/options.xml'
+            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/home/ozwcp_user/open-zwave-control-panel/zwcfg_0xc564203a.xml'
+        ports:
+            - '8008:8008'
+        devices:
+            - '/dev/zwave:/dev/zwave'
+        image: openzwave/openzwave-control-panel
