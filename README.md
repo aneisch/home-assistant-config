@@ -38,6 +38,28 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
  
 Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/hass-centos7/) that helped me during installation!!
 
+## Some statistics about my installation:
+Description | value
+-- | --
+Number of entities (total) | 370  
+Number of sensors (total) | 165  
+Number of switches | 51  
+Number of fans | 4  
+Number of binary_sensors | 11  
+Number of automations | 24  
+Number of groups | 17  
+Number of scenes | 5  
+Number of scripts | 5  
+Number of input_boolean | 10  
+Number of input_select | 2  
+
+
+## The custom_components that I use:
+[Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
+[HACS (Home Assistant Community Store)](https://custom-components.github.io/hacs)  
+[Generate readme](https://github.com/custom-components/readme)  
+[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
+
 # Interface
 ![UI](images/screenshot1.png)  
 ![UI](images/screenshot2.png)  
