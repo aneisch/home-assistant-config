@@ -41,6 +41,7 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
+Lines of YAML | 2446
 Number of entities (total) | 370  
 Number of sensors (total) | 165  
 Number of switches | 51  
