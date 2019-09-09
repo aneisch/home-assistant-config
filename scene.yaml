@@ -20,3 +20,17 @@
     light.andrew_monitor_backlight:
       state: on
       brightness: 255
+
+- name: Monitor Backlight Full Red
+  entities:
+    light.andrew_monitor_backlight:
+      state: on
+      brightness: 255
+      rgb_color: [255, 0, 0]
+
+- name: Monitor Backlight Full White
+  entities:
+    light.andrew_monitor_backlight:
+      state: on
+      brightness: 255
+      rgb_color: [255, 255, 255]

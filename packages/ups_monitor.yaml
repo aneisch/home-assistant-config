@@ -1,3 +1,5 @@
+# UPS monitoring via docker and https://github.com/DanielWinks/pwrstat_docker
+
 sensor:
   - platform : mqtt
     state_topic: "sensor/power/ups"

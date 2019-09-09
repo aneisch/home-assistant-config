@@ -10,9 +10,10 @@
     after: '20:59:00'
     before: '08:59:00'
   action:
-    service: frontend.set_theme
-    data:
-      name: midnight-remake
+    - service: frontend.set_theme
+      data:
+        name: midnight-remake
+    - service: readme.generate
 
 - alias: "Set light theme for day"
   initial_state: on
@@ -251,7 +252,7 @@
         script.turn_ac_off
       {% endif %}
 
-- alias: Ensure 100% brightness for Andrew Backlight
+- alias: Ensure 100% brightness for Andrew monitor backlight
   trigger:
     platform: state
     to: 'on'
@@ -260,6 +261,7 @@
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
 
+# Change LED color when filter change day approaches
 - alias: Thermostat LED for filter change
   trigger:
     - platform: time
@@ -278,3 +280,31 @@
         off
         {% endif %}
 
+# Change monitor backlight color based on internet reachability
+# ...but only if the backlight is already on.
+- alias: Internet Reachability Visual Notify
+  initial_state: on
+  trigger:
+    - platform: state
+      to: 'off' 
+      for: 
+        seconds: 5
+      entity_id: binary_sensor.internet_reachability
+    - platform: state
+      to: 'on'
+      for:
+        seconds: 5
+      entity_id: binary_sensor.internet_reachability
+  condition:
+    condition: state
+    entity_id: light.andrew_monitor_backlight
+    state: 'on'
+  action:
+    service: scene.turn_on
+    data_template:
+      entity_id: >-
+        {% if trigger.to_state.state == "on" %}
+          scene.monitor_backlight_full_white
+        {% elif trigger.to_state.state == "off" %}
+          scene.monitor_backlight_full_red
+        {% endif %}

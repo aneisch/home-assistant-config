@@ -1,0 +1,17 @@
+{
+    "config": {
+        "title": "Generate readme",
+        "step": {
+            "user": {
+                "title": "Generate readme",
+                "description": "If you need help with the configuration have a look here: https://github.com/custom-components/readme",
+                "data": {
+                    "convert": "Convert lovelace configuration"
+                }
+            }
+        },
+        "abort": {
+            "single_instance_allowed": "Only a single configuration of Readme is allowed."
+        }
+    }
+}

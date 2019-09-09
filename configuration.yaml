@@ -406,6 +406,8 @@ input_datetime:
     has_date: true
     has_time: false
 
+readme:
+
 # https://github.com/Sanderhuisman/home-assistant-custom-components
 docker_monitor:
 

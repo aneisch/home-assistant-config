@@ -3,7 +3,7 @@
     # Dummy for HomeKit
     master_bedroom_ceiling_fan:
       friendly_name: "Master Bedroom Ceiling Fan"
-      value_template: "{{ is_state('fan.master_bedroom_ceiling_fan_level', 'on') }}"
+      value_template: "{{ states.fan.master_bedroom_ceiling_fan_level.state }}"
       turn_on:
         service: fan.turn_on
         data:

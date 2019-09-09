@@ -266,7 +266,6 @@ views:
         image_click: play
 
       - id: 9c6320bdd0604afe93bd64ee63a926f3  # Automatically created id
-        type: picture-entity
         type: 'custom:aarlo-glance'
         entity: camera.aarlo_2
         name: Back Door
@@ -283,7 +282,6 @@ views:
         image_click: play
 
       - id: 8ca676339f03436ea002418fe777dc83  # Automatically created id
-        type: picture-entity
         type: 'custom:aarlo-glance'
         entity: camera.aarlo_3
         name: Kitchen

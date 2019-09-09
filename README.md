@@ -32,10 +32,35 @@ My Home Assistant installation contains many different components and runs on a 
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - MQTT remote and local server (via Docker). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Numerous Wemos D1 Mini sensors via [ESPHome API](https://esphome.io/components/api.html). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
+- UPS monitoring using [pwrstat_docker](https://github.com/DanielWinks/pwrstat_docker)
 
 Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. 
  
 Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/hass-centos7/) that helped me during installation!!
+
+## Some statistics about my installation:
+Description | value
+-- | --
+Number of entities (total) | 375  
+Number of sensors (total) | 165  
+Number of switches | 56  
+Number of fans | 4  
+Number of binary_sensors | 11  
+Number of automations | 24  
+Number of groups | 17  
+Number of scenes | 5  
+Number of scripts | 5  
+Number of input_boolean | 10  
+Number of input_select | 2  
+Number of shell_commands | 0  
+Number of rest_commands | 0  
+
+
+### The custom_components that I use:
+[Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
+[HACS (Home Assistant Community Store)](https://custom-components.github.io/hacs)  
+[Generate readme](https://github.com/custom-components/readme)  
+[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 
 
 # Interface
