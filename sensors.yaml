@@ -62,6 +62,8 @@
     - type: last_boot
     - type: processor_use
     - type: load_1m
+    - type: load_5m
+    - type: load_15m
 
 - platform: mqtt
   state_topic: "owntracks/owntracks/andrewworkphone"
