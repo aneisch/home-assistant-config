@@ -43,16 +43,21 @@ Description | value
 -- | --
 Lines of YAML configuration | 2446
 Number of entities (total) | 370  
-Number of sensors (total) | 165  
-Number of switches | 51  
 Number of fans | 4  
+Number of switches | 51  
+Number of lights | 9  
+Number of cameras | 8  
+Number of sensors | 165  
 Number of binary_sensors | 11  
+Number of device_trackers | 7  
+Number of media_players | 7  
 Number of automations | 24  
 Number of groups | 17  
 Number of scenes | 5  
 Number of scripts | 5  
 Number of input_boolean | 10  
 Number of input_select | 2  
+Number of zones | 7  
 
 
 ## The custom_components that I use:
