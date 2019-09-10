@@ -20,8 +20,8 @@ lovelace:
 # Write flat log file
 logger:
   default: info
-  logs:
-    homeassistant.core: debug
+  #logs:
+  #  homeassistant.core: debug
 
 # Enable map panel
 map:

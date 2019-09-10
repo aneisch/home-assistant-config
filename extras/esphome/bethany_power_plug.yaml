@@ -41,7 +41,7 @@ sensor:
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8
-    update_interval: 1s      # default 60s
+    update_interval: 5s      # default 60s
 
   # Sum power readings over the day
   - platform: total_daily_energy

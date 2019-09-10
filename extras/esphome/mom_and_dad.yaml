@@ -52,6 +52,9 @@ script:
               id: automation_safety
               state: ON
           - switch.toggle: gate
+          - text_sensor.template.publish:
+              id: gate_movement_cause
+              state: 'magnetometer'
           - delay: 120s
           - binary_sensor.template.publish:
               id: automation_safety
@@ -66,24 +69,9 @@ mqtt:
     - topic: cmd/mom_and_dad_gate
       then:
         - switch.toggle: gate
-
-# Evaluate our automation every second
-# only trigger gate if heading comparison has been
-# true for more than 5s and safety is off
-# interval:
-#   - interval: 1s
-#     then:
-#       if:
-#         condition:
-#           and:
-#             - for:
-#                 time: 5s
-#                 condition:
-#                   binary_sensor.is_on: heading_comparison
-#             # This is intentionally duplicated
-#             - binary_sensor.is_off: automation_safety
-#         then:
-#           - script.execute: gate_toggle
+        - text_sensor.template.publish:
+            id: gate_movement_cause
+            state: 'mqtt'
   
 sensor:
   - platform: qmc5883l
@@ -186,17 +174,11 @@ switch:
     - switch.turn_on: relay
     - delay: 500ms
     - switch.turn_off: relay
-    # No need to turn on automation safety if called by MQTT
-    # if triggered by sensor automation_safety will turn on via script
-    # - binary_sensor.template.publish:
-    #     id: automation_safety
-    #     state: ON
-    # - delay: 60s
-    # - binary_sensor.template.publish:
-    #     id: automation_safety
-    #     state: OFF
 
 text_sensor:
   - platform: wifi_info
     ip_address:
       name: "IP Address"
+  - platform: template
+    name: "Gate Movement Cause"
+    id: gate_movement_cause

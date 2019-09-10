@@ -8,5 +8,4 @@
   name: internet_reachability
   host: 8.8.4.4
   count: 1
-  scan_interval: 2
-
+  scan_interval: 10

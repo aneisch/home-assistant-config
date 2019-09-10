@@ -7,6 +7,9 @@ sensor:
     state_topic: "mom_and_dad/sensor/ip_address/state"
     name: gate_ip_address
   - platform: mqtt
+    state_topic: "mom_and_dad/sensor/gate_movement_cause/state"
+    name: gate_movement_cause
+  - platform: mqtt
     state_topic: "mom_and_dad/sensor/uptime/state"
     name: gate_uptime
     unit_of_measurement: 's'

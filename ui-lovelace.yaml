@@ -433,6 +433,7 @@ views:
         title: System
         entities:
           - binary_sensor.gate_status
+          - sensor.gate_movement_cause
           - binary_sensor.gate_automation_safety
           - binary_sensor.gate_heading_comparison
           - sensor.gate_ip_address

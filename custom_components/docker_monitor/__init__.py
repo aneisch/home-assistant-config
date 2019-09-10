@@ -206,7 +206,7 @@ class DockerAPI:
                 'kernel': raw_stats.get('KernelVersion', None),
             }
         except Exception as e:
-            _LOGGER.error("Cannot get Docker version ({})".format(e))
+            pass
 
         return version
 
@@ -332,8 +332,6 @@ class DockerContainerAPI:
                             raw['cpu_stats']['cpu_usage']['percpu_usage'] or [])
                 except KeyError as e:
                     # raw do not have CPU information
-                    _LOGGER.info("Cannot grab CPU usage for container {} ({})".format(
-                        self._container.id, e))
                     _LOGGER.debug(raw)
                 else:
                     if cpu_old:
@@ -382,8 +380,6 @@ class DockerContainerAPI:
 
                 except KeyError as e:
                     # raw_stats do not have NETWORK information
-                    _LOGGER.info("Cannot grab NET usage for container {} ({})".format(
-                        self._container.id, e))
                     _LOGGER.debug(raw)
                 else:
                     if network_old:

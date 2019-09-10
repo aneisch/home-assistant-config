@@ -64,7 +64,7 @@ services:
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         healthcheck:
             test: ["CMD", "curl", "-sI", "http://127.0.0.1:5002/pwrstat"]
-            interval: 30s
+            interval: 60s
             timeout: 1s
             retries: 24
         network_mode: host
@@ -82,12 +82,13 @@ services:
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         healthcheck:
             test: ["CMD", "curl", "-sI", "http://127.0.0.1:5004/pwrstat"]
-            interval: 30s
+            interval: 60s
             timeout: 1s
             retries: 24
         network_mode: host
     ha_dockermon:
-        image: philhawthorne/ha-dockermon
+        #image: philhawthorne/ha-dockermon
+        image: aneisch/dev_hadockermon
         container_name: ha_dockermon
         restart: always
         volumes:
