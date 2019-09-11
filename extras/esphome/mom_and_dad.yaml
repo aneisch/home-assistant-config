@@ -119,6 +119,7 @@ sensor:
 
   - platform: uptime
     name: "Uptime"
+    update_interval: 600s
 
 binary_sensor:
   # Sensor to keep script from triggering in rapid succession
