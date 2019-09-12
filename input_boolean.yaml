@@ -18,10 +18,6 @@ ac_change_notification:
 occusim:
   name: Occupancy Simulator
 
-plant_light_automation:
-  name: Plant Light Automation
-  icon: mdi:lightbulb
-
 guest_automation:
   name: Guest Bedroom Automation
   icon: mdi:account-plus

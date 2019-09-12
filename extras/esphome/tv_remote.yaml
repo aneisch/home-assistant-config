@@ -1,0 +1,44 @@
+substitutions:
+  name: tv_remote
+  friendly_name: "TV Remote"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+remote_transmitter:
+  pin:
+    number: D3
+    inverted: False
+  carrier_duty_percent: 50%
+  
+remote_receiver:
+  pin: 
+    number: D4
+    inverted: yes
+    mode: INPUT_PULLUP
+  dump: samsung
+  
+binary_sensor:
+  - platform: remote_receiver
+    name: "Samsung Remote"
+    samsung:
+      data : 0xE0E040BF
+    filters:
+      - delayed_off: 200ms
+
+switch:
+  - platform: template
+    name: "${friendly_name} Power"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E040BF
+
+  - platform: template
+    name: "${friendly_name} Input"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0807F

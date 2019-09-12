@@ -52,7 +52,6 @@ views:
           - input_boolean.door_notify
           - input_boolean.ac_automation
           - automation.master_bedroom_fan_bethany
-          - input_boolean.plant_light_automation
           - input_boolean.ac_change_notification
           - input_boolean.occusim
           - input_boolean.guest_automation
@@ -191,9 +190,10 @@ views:
         show_header_toggle: false
         title: Living Room
         entities:
-          - switch.wemo_switch
+          - switch.living_room_lamp_2
           - switch.living_room_lamp
-          - switch.tv
+          - switch.tv_remote_power
+          - switch.tv_remote_input
           #- switch.christmas_tree
           - switch.entertainment_center_lights
 
@@ -217,7 +217,6 @@ views:
         title: Kitchen
         entities:
           - switch.kitchen_table_light_switch
-          - switch.kitchen_plant_light_switch
 
       - id: 99c90437cecc4a649c1bb8478cb17205  # Automatically created id
         type: entities

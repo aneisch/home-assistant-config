@@ -55,7 +55,11 @@ script:
           - text_sensor.template.publish:
               id: gate_movement_cause
               state: 'magnetometer'
-          - delay: 120s
+          - delay: 60s
+          - text_sensor.template.publish:
+              id: gate_movement_cause
+              state: ''
+          - delay: 60s
           - binary_sensor.template.publish:
               id: automation_safety
               state: OFF
@@ -72,6 +76,10 @@ mqtt:
         - text_sensor.template.publish:
             id: gate_movement_cause
             state: 'mqtt'
+        - delay: 60s
+        - text_sensor.template.publish:
+            id: gate_movement_cause
+            state: ''
   
 sensor:
   - platform: qmc5883l

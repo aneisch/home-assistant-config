@@ -1,7 +1,7 @@
 - platform: orvibo
   switches:
   -  host: 10.0.1.11
-     name: living_room_lamp
+     name: orvibo_1
   -  host: 10.0.1.21
      name: master_bedroom_sound_machine
 
@@ -20,15 +20,6 @@
 #  retain: true
 
 - platform : mqtt
-  name: "Sketchy Sonoff Green Cable"
-  state_topic: "cmnd/sonoff_plant_light/POWER"
-  command_topic: "cmnd/sonoff_plant_light/POWER"
-  payload_on: "ON"
-  payload_off: "OFF"
-  optimistic: false
-  retain: true
-
-- platform : mqtt
   name: "Christmas Tree"
   state_topic: "stat/sonoff_pow_1/POWER"
   command_topic: "cmnd/sonoff_pow_1/POWER"
@@ -43,10 +34,3 @@
   host: 10.0.1.20
   turn_off:
       service: shell_command.nas_poweroff
-
-- platform: command_line
-  switches:
-    tv:
-      command_on: echo 38000,1,1,172,172,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,22,64,22,64,22,64,22,21,22,21,22,21,22,21,22,21,22,64,22,21,22,21,22,64,22,64,22,21,22,21,22,64,22,21,22,64,22,64,22,21,22,21,22,64,22,64,22,21,22,1820 | nc 10.0.1.8 4998
-      command_off: echo 38000,1,1,173,173,21,65,21,65,21,65,21,21,21,21,21,21,21,21,21,21,21,65,21,65,21,65,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,21,65,21,65,21,21,21,21,21,65,21,65,21,65,21,65,21,21,21,21,21,65,21,65,21,21,21,1832 | nc 10.0.1.8 4998
-

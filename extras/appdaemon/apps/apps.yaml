@@ -99,22 +99,6 @@ Occupancy Simulator:
   random_house_on_livingroom: group.living_room_lamps
   random_house_off_livingroom: group.living_room_lamps
 
-Plant Timer Morning:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.kitchen_plant_light_switch
-  time_on: '08:00:00'
-  time_off: '12:00:00'
-
-Plant Timer Afternoon:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.plant_light_automation
-  devices: switch.kitchen_plant_light_switch
-  time_on: '13:00:00'
-  time_off: '21:00:00'
-
 NAS:
   module: entity_timer
   class: Timer

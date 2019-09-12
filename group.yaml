@@ -46,15 +46,14 @@ kitchen:
   control: hidden
   entities:
     - switch.kitchen_table_light_switch
-    - switch.kitchen_plant_light_switch
 
 living_room:
   name: Living Room
   control: hidden
   entities:
-    - switch.wemo_switch
+    - switch.living_room_lamp_2
     - switch.living_room_lamp
-    - switch.tv
+    - switch.tv_remote_power
     - switch.entertainment_center_lights
 
 living_room_lamps:
@@ -62,7 +61,7 @@ living_room_lamps:
   control: hidden
   entities:
     - switch.living_room_lamp
-    - switch.wemo_switch
+    - switch.living_room_lamp_2
 
 master_bedroom_lamps:
   name: Master Bedroom Lamps

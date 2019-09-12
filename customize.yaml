@@ -36,9 +36,10 @@ light.guest_nightstand_lamp:
 
 
 ### SWITCHES ###
-switch.tv:
+switch.tv_remote_power:
   friendly_name: TV
   icon: mdi:television-classic
+  emulated_hue_hidden: false
 
 switch.master_bedroom_sound_machine:
   friendly_name: Sound Machine
@@ -62,6 +63,10 @@ switch.living_room_lamp:
   icon: mdi:lamp
 
 switch.wemo_switch:
+  friendly_name: Wemo Switch
+  icon: mdi:lamp
+
+switch.living_room_lamp_2:
   friendly_name: Living Room Lamp 2
   icon: mdi:lamp
 
@@ -72,10 +77,6 @@ switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
   emulated_hue_hidden: false
-
-switch.kitchen_plant_light_switch:
-  friendly_name: Kitchen Plant Light LED
-  icon: mdi:flower
 
 switch.nas:
   emulated_hue_hidden: false
