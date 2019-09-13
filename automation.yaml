@@ -202,29 +202,29 @@
         message: >
           {% if trigger.entity_id == "sensor.thermostat_setpoint" %}Setpoint{% elif trigger.entity_id == "sensor.thermostat_mode" %}Mode{% endif %}: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
-- alias: "Seventeentrack Update"
-  initial_state: 'on'
-  trigger:
-    platform: event
-    event_type: state_changed
-  condition:
-    condition: and
-    conditions:
-      - condition: template
-        value_template: "{{ trigger.event.data.entity_id.startswith('sensor.seventeentrack_package_') }}"
-      - condition: or
-        conditions:
-        - condition: template
-          value_template: "{{ 'TX' in trigger.event.data.new_state.attributes.info_text }}"
-        - condition: template
-          value_template: "{{ 'Out for Delivery' in trigger.event.data.new_state.attributes.info_text }}"
-        - condition: template
-          value_template: "{{ 'Delivered' in trigger.event.data.new_state.attributes.info_text }}"
-  action:
-    service: notify.pushover
-    data_template:
-      message: >
-        {{ trigger.event.data.new_state.attributes.friendly_name | replace("Seventeentrack Package: ","") }}: {{ trigger.event.data.new_state.attributes.info_text }}
+#- alias: "Seventeentrack Update"
+#  initial_state: 'on'
+#  trigger:
+#    platform: event
+#    event_type: state_changed
+#  condition:
+#    condition: and
+#    conditions:
+#      - condition: template
+#        value_template: "{{ trigger.event.data.entity_id.startswith('sensor.seventeentrack_package_') }}"
+#      - condition: or
+#        conditions:
+#        - condition: template
+#          value_template: "{{ 'TX' in trigger.event.data.new_state.attributes.info_text }}"
+#        - condition: template
+#          value_template: "{{ 'Out for Delivery' in trigger.event.data.new_state.attributes.info_text }}"
+#        - condition: template
+#          value_template: "{{ 'Delivered' in trigger.event.data.new_state.attributes.info_text }}"
+#  action:
+#    service: notify.pushover
+#    data_template:
+#      message: >
+#        {{ trigger.event.data.new_state.attributes.friendly_name | replace("Seventeentrack Package: ","") }}: {{ trigger.event.data.new_state.attributes.info_text }}
 
 - alias: "Garden Timer Problem"
   initial_state: 'on'

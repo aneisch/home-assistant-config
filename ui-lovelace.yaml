@@ -414,7 +414,6 @@ views:
         entities:
           - switch.docker_esphome
           - switch.docker_grafana
-          - switch.docker_ha_dockermon
           - switch.docker_influxdb
           - switch.docker_mosquitto
           - switch.docker_ozwcp
