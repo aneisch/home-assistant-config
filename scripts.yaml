@@ -204,3 +204,9 @@ turn_ac_off:
     - service: climate.turn_off
       data:
         entity_id: climate.thermostat
+
+tv_change_input:
+  sequence:
+    - service: homeassistant.turn_on
+      data:
+        entity_id: switch.tv_remote_input
