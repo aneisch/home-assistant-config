@@ -266,9 +266,9 @@ ifttt:
 zwave:
   usb_path: /dev/zwave
 
-wemo:
-  static:
-    - 10.0.1.48
+#wemo:
+#  static:
+#    - 10.0.1.48
 
 emulated_hue:
   expose_by_default: false

@@ -1,7 +1,7 @@
 - platform: orvibo
   switches:
-  -  host: 10.0.1.11
-     name: orvibo_1
+#  -  host: 10.0.1.11
+#     name: orvibo_1
   -  host: 10.0.1.21
      name: master_bedroom_sound_machine
 
