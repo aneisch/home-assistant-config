@@ -7,7 +7,6 @@ common_areas:
     - group.living_room
     - group.kitchen
     - group.office
-    - group.guest_bedroom
 
 office:
   name: Office

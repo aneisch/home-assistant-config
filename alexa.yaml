@@ -1,0 +1,133 @@
+smart_home:
+  endpoint: https://api.amazonalexa.com/v3/events
+  client_id: !secret alexa_client_id
+  client_secret: !secret alexa_client_secret
+  filter:
+    exclude_domains:
+      - alert
+      - automation
+      - cover
+      - fan
+      - group
+      - input_boolean
+      - binary_sensor
+      - light
+      - lock
+      - media_player
+      - scene
+      - script
+      - sensor
+      - switch
+    include_entities:
+      - climate.thermostat
+      - fan.master_bedroom_ceiling_fan_level
+      - fan.office_ceiling_fan_level
+      - group.living_room_lamps
+      - group.master_bedroom_lamps
+      - group.common_areas
+      - light.bethany_nightstand_lamp
+      - light.bethany_desk_lamp
+      - light.andrew_nightstand_lamp
+      - light.andrew_desk_lamp
+      - light.guest_nightstand_lamp
+      - script.appdaemon_ac_night
+      - script.appdaemon_ac_morning
+      - script.too_cold
+      - script.too_hot
+      - sensor.master_bedroom_temperature
+      - switch.tv
+      - switch.kitchen_table_light_switch
+      - switch.master_bathroom_light_switch
+      - switch.nas
+  entity_config:
+    climate.thermostat:
+      name: "Thermostat"
+      display_categories: THERMOSTAT
+
+    fan.master_bedroom_ceiling_fan_level:
+      name: "Master Bedroom Ceiling Fan"
+      display_categories: FAN
+
+    fan.office_ceiling_fan_level:
+      name: "Office Ceiling Fan"
+      display_categories: FAN
+
+    group.living_room_lamps:
+      name: "Living Room Lamps"
+      display_categories: LIGHT
+
+    group.master_bedroom_lamps:
+      name: "Master Bedroom Lamps"
+      display_categories: LIGHT
+
+    group.master_common_areas:
+      name: "Common Areas"
+      display_categories: LIGHT
+
+    light.andrew_nightstand_lamp:
+      name: "Andrew's Lamp"
+      description: "Andrew's nightstand lamp"
+      display_categories: LIGHT  
+
+    light.bethany_nightand_lamp:
+      name: "Bethany's Lamp"
+      description: "Bethany's nightstand lamp"
+      display_categories: LIGHT
+
+    light.andrew_desk_lamp:
+      name: "Andrew Desk Lamp"
+      display_categories: LIGHT
+
+    light.bethany_desk_lamp:
+      name: "Bethany Desk Lamp"
+      display_categories: LIGHT
+
+    light.guest_nightstand_lamp:
+      name: "Guest Bedroom Lamp"
+      display_categories: LIGHT
+
+    script.appdaemon_ac_night:
+      name: "AC Night Mode"  
+      description: "Change AC to nighttime temperature"
+      display_categories: SCENE_TRIGGER
+
+    script.appdaemon_ac_morning:
+      name: "AC Day Mode"     
+      description: "Change AC to daytime temperature"
+      display_categories: SCENE_TRIGGER
+
+    script.too_cold:
+      name: "Too Cold"     
+      description: "Raise temperature by a few degrees"
+      display_categories: SCENE_TRIGGER
+
+    script.too_hot:
+      name: "Too Hot"
+      description: "Lower temperature by a few degrees"
+      display_categories: SCENE_TRIGGER
+
+    sensor.master_bedroom_temperature:
+      name: "Master Bedroom Temperature"
+      display_categories: TEMPERATURE_SENSOR
+
+    sensor.office_temperature:
+      name: "Office Temperature"
+      display_categories: TEMPERATURE_SENSOR
+
+    switch.tv:
+      name: "TV"
+      description: "TV Power"
+      display_categories: TV
+
+    switch.master_bathroom_light_switch:
+      name: "Bathroom Light"
+      description: "Master Bathroom Light"
+      display_categories: LIGHT
+
+    switch.kitchen_table_light_switch:
+      name: "Kitchen Table Light"
+      display_categories: LIGHT
+
+    switch.nas:
+      name: "Plex"
+      display_categories: SWITCH

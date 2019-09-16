@@ -20,8 +20,8 @@ lovelace:
 # Write flat log file
 logger:
   default: info
-  #logs:
-  #  homeassistant.core: debug
+  logs:
+    homeassistant.core: debug
 
 # Enable map panel
 map:
@@ -37,7 +37,7 @@ alarm_control_panel:
   - platform: aarlo
     home_mode_name: Armed
     away_mode_name: Disarmed
-  - platform: alexa_media
+#  - platform: alexa_media
 
 ios:
 
@@ -270,8 +270,8 @@ zwave:
 #  static:
 #    - 10.0.1.48
 
-emulated_hue:
-  expose_by_default: false
+#emulated_hue:
+#  expose_by_default: false
   #See customize.yaml for exposed entites
 
 #arlo:
@@ -304,7 +304,6 @@ panel_custom:
     sidebar_icon: mdi:access-point-network
     url_path: zwave
 
-alexa:
 
 owntracks:
 
@@ -414,6 +413,7 @@ docker_monitor:
 hacs:
   token: !secret hacs_token
 
+alexa: !include alexa.yaml
 homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml
 camera: !include camera.yaml

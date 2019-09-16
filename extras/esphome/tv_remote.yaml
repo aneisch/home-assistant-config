@@ -36,9 +36,15 @@ switch:
     turn_on_action:
       - remote_transmitter.transmit_samsung:
           data: 0xE0E040BF
+    turn_off_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E040BF
 
   - platform: template
     name: "${friendly_name} Input"
     turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0807F
+    turn_off_action:
       - remote_transmitter.transmit_samsung:
           data: 0xE0E0807F

@@ -100,12 +100,6 @@ master_bedroom_bedtime:
       data:
         entity_id: switch.master_bathroom_light_switch
 
-common_areas_off:
-  sequence:
-    - service: homeassistant.turn_off
-      data:
-        entity_id: group.common_areas
-
 #########
 # OTHER #
 #########
@@ -124,41 +118,6 @@ appdaemon_ac_night:
 appdaemon_ac_morning:
   sequence:
     - service: rest_command.adjust_morning
-
-set_ac_70:
-  sequence:
-    - service: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: 70
-
-set_ac_72:
-  sequence:
-    - service: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: 72
-
-set_ac_75:
-  sequence:
-    - service: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: 75
-
-set_ac_78:
-  sequence:
-    - service: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: 78
-
-set_ac_82:
-  sequence:
-    - service: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: 82
 
 too_cold:
   sequence:

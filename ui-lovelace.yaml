@@ -192,7 +192,7 @@ views:
         entities:
           - switch.living_room_lamp_2
           - switch.living_room_lamp
-          - switch.tv_remote_power
+          - switch.tv
           - script.tv_change_input
           #- switch.christmas_tree
           - switch.entertainment_center_lights

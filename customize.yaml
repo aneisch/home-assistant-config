@@ -13,8 +13,6 @@ light.bethany_desk_lamp:
 
 light.master_bedroom:
   friendly_name: Bedroom Light
-  emulated_hue_hidden: false
-  emulated_hue_name: "Bedroom Light"
 
 light.andrew_monitor_backlight:
   friendly_name: Monitor Backlight
@@ -22,24 +20,25 @@ light.andrew_monitor_backlight:
 
 light.andrew_nightstand_lamp:
   icon: mdi:lamp
-  emulated_hue_hidden: false
-  friendly_name: "Andrew's Lamp"
 
 light.bethany_nightstand_lamp:
   icon: mdi:lamp
-  emulated_hue_hidden: false
-  friendly_name: "Bethany's Lamp"
 
 light.guest_nightstand_lamp:
   icon: mdi:lamp
-  emulated_hue_hidden: false
-
 
 ### SWITCHES ###
 switch.tv_remote_power:
+  friendly_name: TV Power
+  icon: mdi:television-classic
+
+switch.tv:
   friendly_name: TV
   icon: mdi:television-classic
-  emulated_hue_hidden: false
+
+script.tv_change_input:
+  friendly_name: TV Input
+  icon: mdi:television-classic
 
 switch.master_bedroom_sound_machine:
   friendly_name: Sound Machine
@@ -51,12 +50,10 @@ switch.security_status:
 switch.outdoor_zwave_switch:
   friendly_name: Globe Lights
   icon: mdi:lightbulb
-  emulated_hue_hidden: false
 
 switch.master_bathroom_light_switch:
   friendly_name: Bathroom Light
   icon: mdi:lightbulb
-  emulated_hue_hidden: false
 
 switch.living_room_lamp:
   friendly_name: Living Room Lamp
@@ -76,30 +73,22 @@ switch.entertainment_center_lights:
 switch.kitchen_table_light_switch:
   friendly_name: Kitchen Table Light
   icon: mdi:lightbulb
-  emulated_hue_hidden: false
 
 switch.nas:
-  emulated_hue_hidden: false
   friendly_name: "Plex"
 
 switch.christmas_tree:
   icon: mdi:pine-tree
-  emulated_hue_hidden: false
-  emulated_hue_name: "Christmas Tree"
 
 
 ### FANS ##
 fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
-  emulated_hue_hidden: false
-  emulated_hue_name: "Master Bedroom Ceiling Fan"
 
 fan.office_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
-  emulated_hue_hidden: false
-  emulated_hue_name: "Office Ceiling Fan"
 
 
 ### SENSORS ###
@@ -153,8 +142,6 @@ binary_sensor.master_bedroom_bed:
 ### THERMOSTAT ###
 climate.thermostat:
   friendly_name: Adjust
-  emulated_hue_hidden: false
-  emulated_hue_name: "Thermostat"
 
 sensor.thermostat_fan_status:
   friendly_name: Fan Status
@@ -180,31 +167,17 @@ sensor.ac_runtime_yesterday:
 
 
 ### SCRIPTS ###
-script.appdaemon_ac_night:
-  emulated_hue_name: "AC Night"
-  emulated_hue_hidden: false
-
-script.appdaemon_ac_morning:
-  emulated_hue_name: "AC Morning"
-  emulated_hue_hidden: false
-
 script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
   icon: mdi:lightbulb
-  emulated_hue_hidden: false
-  emulated_hue_name: "Light Full"
 
 script.master_bedroom_light_dim:
   friendly_name: Master Bedroom Light Dim
   icon: mdi:lightbulb-outline
-  emulated_hue_hidden: false
-  emulated_hue_name: "Light Dim"
 
 script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark
-  emulated_hue_hidden: false
-  emulated_hue_name: "Bedtime"
 
 script.security_arm:
   friendly_name: Security Arm
@@ -212,37 +185,11 @@ script.security_arm:
 script.security_disarm:
   friendly_name: Security Disarm
 
-script.common_areas_off:
-  emulated_hue_hidden: false
-  emulated_hue_name: "Common Areas Off"
-
-script.set_ac_70:
-  friendly_name: Set AC 70
-  emulated_hue_hidden: false
-
-script.set_ac_72:
-  friendly_name: Set AC 72
-  emulated_hue_hidden: false
-
-script.set_ac_75:
-  friendly_name: Set AC 75
-  emulated_hue_hidden: false
-
-script.set_ac_78:
-  friendly_name: Set AC 78
-  emulated_hue_hidden: false
-
-script.set_ac_82:
-  friendly_name: Set AC 82
-  emulated_hue_hidden: false
-
 script.too_cold:
   friendly_name: Too Cold
-  emulated_hue_hidden: false
 
 script.too_hot:
   friendly_name: Too Hot
-  emulated_hue_hidden: false
 
 script.copy:
   friendly_name: Plex Copy
@@ -259,14 +206,6 @@ person.bethany:
 
 
 ### OTHER ###
-group.living_room_lamps:
-  emulated_hue_hidden: false
-  emulated_hue_name: "Living Room Lamps"
-
-group.master_bedroom_lamps:
-  emulated_hue_hidden: false
-  emulated_hue_name: "Master Bedroom Lamps"
-
 zone.home:
   beacon:
     uuid: 33d723f1-621e-68a5-59a0-8d15e3992d56

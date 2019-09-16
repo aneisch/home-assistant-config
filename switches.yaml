@@ -34,3 +34,16 @@
   host: 10.0.1.20
   turn_off:
       service: shell_command.nas_poweroff
+
+- platform: template
+  switches:
+    tv:
+      value_template: "{{ states.sensor.power_plug_2_power.state | int > 1 }}"
+      turn_on:
+        service: switch.turn_on
+        data:
+          entity_id: switch.tv_remote_power
+      turn_off:
+        service: switch.turn_off
+        data:
+          entity_id: switch.tv_remote_power
