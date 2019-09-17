@@ -52,7 +52,6 @@ living_room:
   entities:
     - switch.living_room_lamp_2
     - switch.living_room_lamp
-    - switch.tv_remote_power
     - switch.entertainment_center_lights
 
 living_room_lamps:

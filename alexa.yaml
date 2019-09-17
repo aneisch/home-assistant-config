@@ -35,6 +35,7 @@ smart_home:
       - script.too_cold
       - script.too_hot
       - script.master_bedroom_bedtime
+      - script.master_bedroom_wakeup
       - sensor.master_bedroom_temperature
       - switch.tv
       - switch.kitchen_table_light_switch
@@ -110,6 +111,11 @@ smart_home:
     script.master_bedroom_bedtime:
       name: "Master Bedroom Bedtime"
       description: "Get Master Bedroom Ready for Bed"
+      display_categories: SCENE_TRIGGER
+
+    script.master_bedroom_wakeup:
+      name: "Master Bedroom Wakeup"
+      description: "Get Master Bedroom Ready for Day"
       display_categories: SCENE_TRIGGER
 
     sensor.master_bedroom_temperature:

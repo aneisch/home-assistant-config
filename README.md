@@ -41,8 +41,8 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2395
-Number of entities (total) | 352  
+Lines of YAML configuration | 2409
+Number of entities (total) | 353  
 Number of fans | 2  
 Number of switches | 50  
 Number of lights | 9  

@@ -81,12 +81,7 @@ master_bedroom_light_dim:
 
 master_bedroom_bedtime:
   sequence:
-#    - service: switch.turn_on
-#      data:
-#        entity_id: switch.master_bedroom_sound_machine
-#    - service: scene.turn_on
-#      data:
-#        entity_id: scene.master_bedroom_light_dim
+    - service: script.appdaemon_ac_night
     - service: fan.turn_on
       data:
         entity_id: fan.master_bedroom_ceiling_fan_level
@@ -97,6 +92,22 @@ master_bedroom_bedtime:
       data:
         entity_id: group.master_bedroom_lamps
     - service: homeassistant.turn_off
+      data:
+        entity_id: switch.master_bathroom_light_switch
+
+master_bedroom_wakeup:
+  sequence:
+    - service: script.appdaemon_ac_morning
+    - service: fan.turn_off
+      data:
+        entity_id: fan.master_bedroom_ceiling_fan_level
+    - service: light.turn_on
+      data:
+        entity_id: light.master_bedroom
+    - service: homeassistant.turn_on
+      data:
+        entity_id: group.master_bedroom_lamps
+    - service: homeassistant.turn_on
       data:
         entity_id: switch.master_bathroom_light_switch
 
