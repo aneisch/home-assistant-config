@@ -1,0 +1,9 @@
+latest=$(curl -s https://github.com/home-assistant/home-assistant/releases/latest | sed -e 's/.*tag\///' -e 's/".*//')
+running=$(cat /home/aneisch/homeassistant/.HA_VERSION)
+
+if [ "$latest" == "$running" ]; then
+    VERSION_BADGE="https://img.shields.io/badge/Running%20Home%20Assistant-$running%20(Latest)-brightgreen"
+else
+    VERSION_BADGE="https://img.shields.io/badge/Running%20Home%20Assistant%20-$running%20(Out%20of%20Date)-Red"
+fi
+sed -i -e "s~VERSION_BADGE_HERE~$VERSION_BADGE~" README.md

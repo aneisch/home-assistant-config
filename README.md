@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 ![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)
-![HA Version](https://img.shields.io/badge/Home%20Assistant-0.98.5-blue.svg)
+![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.98.5%20(Latest)-brightgreen)
 
 
 I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. 
