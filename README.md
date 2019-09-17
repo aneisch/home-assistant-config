@@ -1,7 +1,7 @@
 # My Home Assistant Config
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
-![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)
+[![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
 [![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.98.5%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 
 
