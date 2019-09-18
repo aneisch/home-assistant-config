@@ -17,13 +17,6 @@ AC AutoAdjust:
   heat_night: '60'
   heat_unoccupied: '55'
 
-Door Notify:
-  module: door_open
-  class: DoorNotify
-  constrain_input_boolean: input_boolean.door_notify
-  door_sensor: binary_sensor.front_door,binary_sensor.back_door
-  notify: pushover
-
 Minimote Morning:
   module: minimote
   class: MiniMote
