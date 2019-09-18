@@ -73,4 +73,5 @@ Number of zones | 7
 ![UI](images/screenshot2.png)  
 ![UI](images/screenshot3.png)
 ![UI](images/screenshot4.png)
-![UI](images/grafana.png)
+![Grafana](images/grafana.png)
+![Node-Red](images/nodered.png)
