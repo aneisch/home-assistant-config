@@ -19,7 +19,7 @@ lovelace:
 
 # Write flat log file
 logger:
-  default: debug
+  default: info
   logs:
     homeassistant.core: debug
 
