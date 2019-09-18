@@ -42,3 +42,13 @@ light:
   - platform: binary
     output: gpio_4
     name: "${friendly_name}"
+    
+sensor:
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

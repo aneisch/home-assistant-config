@@ -10,17 +10,8 @@ api:
 ota:
   safe_mode: True
   password: esphome_recovery
-  
-sensor:
-  - platform: uptime
-    name: "${friendly_name} Uptime"
 
 text_sensor:
   - platform: wifi_info
     ip_address:
       name: "${friendly_name} IP Address"
-
-switch:
-  - platform: restart
-    id: restart_device
-    name: "${friendly_name} Restart"

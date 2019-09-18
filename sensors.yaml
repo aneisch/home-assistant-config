@@ -217,12 +217,12 @@
 #    monitored_conditions:
 #      - rain
 
-- platform: rtorrent
-  url: !secret rtorrent
-  monitored_variables:
-    - 'current_status'
-    - 'download_speed'
-    - 'upload_speed'
+#- platform: rtorrent
+#  url: !secret rtorrent
+#  monitored_variables:
+#    - 'current_status'
+#    - 'download_speed'
+#    - 'upload_speed'
 
 - platform: seventeentrack
   username: !secret 17track_user

@@ -20,4 +20,13 @@ sensor:
       unit_of_measurement: "°F"
     humidity:
       name: "${friendly_name} Humidity"
-    update_interval: 10s
+    update_interval: 30s
+
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

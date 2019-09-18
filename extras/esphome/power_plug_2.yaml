@@ -44,6 +44,10 @@ sensor:
       - multiply: 0.001   # convert Wh to kWh
     unit_of_measurement: kWh
 
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
+
 # Enable getting local time for total daily energy calculation
 time:
   - platform: homeassistant
@@ -79,3 +83,7 @@ switch:
     - switch.turn_on: blue_led
     on_turn_off:
     - switch.turn_off: blue_led
+    
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

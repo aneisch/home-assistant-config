@@ -17,3 +17,13 @@ binary_sensor:
       - invert:
       - delayed_on: 100ms
       - delayed_off: 100ms
+      
+sensor:
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

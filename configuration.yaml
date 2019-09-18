@@ -19,7 +19,7 @@ lovelace:
 
 # Write flat log file
 logger:
-  default: info
+  default: debug
   logs:
     homeassistant.core: debug
 
@@ -300,6 +300,9 @@ readme:
 
 # https://github.com/Sanderhuisman/home-assistant-custom-components
 docker_monitor:
+  events: True
+  monitored_conditions:
+    - container_status
 
 hacs:
   token: !secret hacs_token

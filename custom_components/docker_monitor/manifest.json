@@ -1,0 +1,11 @@
+{
+    "domain": "docker_monitor",
+    "name": "Docker Monitor",
+    "documentation": "https://github.com/Sanderhuisman/home-assistant-custom-components",
+    "requirements": [],
+    "codeowners": ["@Sanderhuisman", "@lociii"],
+    "dependencies": [],
+    "config_flow": false,
+    "homeassistant": "0.88.0"
+  }
+  

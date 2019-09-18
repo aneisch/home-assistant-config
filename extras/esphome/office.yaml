@@ -24,4 +24,13 @@ sensor:
     humidity:
       name: "${friendly_name} Humidity"
     address: 0x45
-    update_interval: 10s
+    update_interval: 30s
+
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

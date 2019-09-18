@@ -31,17 +31,6 @@
     data:
         name: default
 
-- alias: "Package Delivered"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: sensor.deliveries_today
-  action:
-    - service: notify.pushover
-      data_template:
-        message: >
-          Package delivered...
-
 - alias: "Door Open Length"
   initial_state: on
   trigger:

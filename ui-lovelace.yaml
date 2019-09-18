@@ -413,11 +413,11 @@ views:
         entities:
           - switch.docker_esphome
           - switch.docker_grafana
-          - switch.docker_influxdb
-          - switch.docker_mosquitto
-          - switch.docker_ozwcp
           - switch.docker_plex
           - switch.docker_portainer
+          - switch.docker_influxdb
+          - switch.docker_mosquitto
+          - switch.docker_nodered
           - switch.docker_pwr_stat
           - switch.docker_pwr_stat_650
 

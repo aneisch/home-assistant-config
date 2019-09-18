@@ -22,16 +22,17 @@ sensor:
       }
     update_interval: 1s
     filters:
-      # - sliding_window_moving_average:
-      #     window_size: 10
-      #     send_every: 5
-      - delta: 1000
+      - sliding_window_moving_average:
+          window_size: 10
+          send_every: 5
+
   - platform: hx711
     id: "master_bed_read"
     dout_pin: D2
     clk_pin: D3
     gain: 128
-    update_interval: 1s
+    update_interval: 5s
+
   - platform: dht
     model: DHT22
     pin: D4
@@ -42,10 +43,19 @@ sensor:
       unit_of_measurement: "°F"
     humidity:
       name: "${friendly_name} Humidity"
-    update_interval: 10s
+    update_interval: 30s
+
+  - platform: uptime
+    update_interval: 600s
+    name: "${friendly_name} Uptime"
 
 binary_sensor:
   - platform: template
     name: "${friendly_name} Bed"
     device_class: occupancy
     lambda: if (id(master_bed_smoothed).state > 664000) return true; else return false;
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
