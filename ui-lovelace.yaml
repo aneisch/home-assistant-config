@@ -1,4 +1,6 @@
 resources:
+  - url: /community_plugin/toggle-lock-entity-row/toggle-lock-entity-row.js
+    type: js
   - url: /community_plugin/weather-card/weather-card.js
     type: module
   - url: /community_plugin/lovelace-slider-entity-row/slider-entity-row.js
@@ -415,11 +417,16 @@ views:
           - switch.docker_grafana
           - switch.docker_plex
           - switch.docker_portainer
-          - switch.docker_influxdb
-          - switch.docker_mosquitto
-          - switch.docker_nodered
-          - switch.docker_pwr_stat
-          - switch.docker_pwr_stat_650
+          - entity: switch.docker_influxdb
+            type: custom:toggle-lock-entity-row
+          - entity: switch.docker_mosquitto
+            type: custom:toggle-lock-entity-row
+          - entity: switch.docker_nodered
+            type: custom:toggle-lock-entity-row
+          - entity: switch.docker_pwr_stat
+            type: custom:toggle-lock-entity-row
+          - entity: switch.docker_pwr_stat_650
+            type: custom:toggle-lock-entity-row
 
   - id: 4
     title: Gate Testing

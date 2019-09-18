@@ -1,3 +1,15 @@
+- alias: "Update README"
+  initial_state: on
+  trigger:
+    - platform: time
+      at: '11:00:00'
+    - platform: time
+      at: '21:00:00'
+    - platform: homeassistant
+      event: start
+  action:
+    - service: readme.generate
+
 - alias: "Set dark theme for night"
   initial_state: on
   trigger:
@@ -13,7 +25,6 @@
     - service: frontend.set_theme
       data:
         name: midnight-remake
-    - service: readme.generate
 
 - alias: "Set light theme for day"
   initial_state: on
