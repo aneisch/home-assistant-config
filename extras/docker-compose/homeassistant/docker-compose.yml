@@ -107,3 +107,12 @@ services:
         devices:
             - '/dev/zwave:/dev/zwave'
         image: openzwave/openzwave-control-panel
+    nodered:
+        container_name: nodered
+        image: nodered/node-red-docker:latest
+        volumes:
+          - /opt/nodered:/data
+          - /etc/localtime:/etc/localtime:ro
+        ports:
+          - "1880:1880"
+        restart: always

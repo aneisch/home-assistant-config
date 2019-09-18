@@ -184,6 +184,10 @@ panel_iframe:
     title: 'Portainer'
     icon: mdi:ferry
     url: 'http://10.0.1.22:9000/#/containers'
+  nodered:
+    title: 'Node-Red'
+    icon: mdi:sitemap
+    url: !secret nodered
 
 panel_custom:
   # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00

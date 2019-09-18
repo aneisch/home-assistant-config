@@ -127,30 +127,6 @@
   action:
     service: shell_command.mount_plex
 
-- alias: "Master Bedroom Fan Bethany"
-  trigger: 
-    platform: numeric_state
-    entity_id: sensor.bethany_power_plug_power
-    below: 0.01
-    for: 
-      seconds: 5
-  condition:
-    condition: time
-    after: '06:30:00'
-    before: '08:00:00'
-    weekday:
-      - mon
-      - tue
-      - wed
-      - thu
-      - fri
-  action:
-    - service: homeassistant.turn_off
-      entity_id: fan.master_bedroom_ceiling_fan_level
-    - delay: '00:01:00'
-    - service: homeassistant.turn_on
-      entity_id: fan.master_bedroom_ceiling_fan_level
-
 - alias: "Notify when AC BREAKS"
   initial_state: 'on'
   trigger:
@@ -260,51 +236,3 @@
   action:
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
-
-# Change LED color when filter change day approaches
-- alias: Thermostat LED for filter change
-  trigger:
-    - platform: time
-      at: "07:00:00"
-    - platform: homeassistant
-      event: start
-  action:
-    service: rest_command.set_thermostat_led
-    data_template:
-      color: >
-        {% if state_attr('sensor.ac_filter_change','days_remaining') <= 0 %}
-        red
-        {% elif state_attr('sensor.ac_filter_change','days_remaining') <= 5 %}
-        yellow
-        {% else %}
-        off
-        {% endif %}
-
-# Change monitor backlight color based on internet reachability
-# ...but only if the backlight is already on.
-- alias: Internet Reachability Visual Notify
-  initial_state: on
-  trigger:
-    - platform: state
-      to: 'off' 
-      for: 
-        seconds: 5
-      entity_id: binary_sensor.internet_reachability
-    - platform: state
-      to: 'on'
-      for:
-        seconds: 5
-      entity_id: binary_sensor.internet_reachability
-  condition:
-    condition: state
-    entity_id: light.andrew_monitor_backlight
-    state: 'on'
-  action:
-    service: scene.turn_on
-    data_template:
-      entity_id: >-
-        {% if trigger.to_state.state == "on" %}
-          scene.monitor_backlight_full_white
-        {% elif trigger.to_state.state == "off" %}
-          scene.monitor_backlight_full_red
-        {% endif %}
