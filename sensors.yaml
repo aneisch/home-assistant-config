@@ -29,11 +29,6 @@
   name: !secret domain_2_name
   host: !secret domain_2
 
-- platform: plex
-  server: nuc-nuc
-  username: !secret plex_user
-  password: !secret plex_password
-
 - platform: darksky
   api_key: !secret darksky_api_key
   monitored_conditions:

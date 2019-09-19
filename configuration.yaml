@@ -209,7 +209,12 @@ media_player:
   - platform: spotify
     client_id: !secret spotify_client_id
     client_secret: !secret spotify_client_secret
-  - platform: plex
+
+plex:
+  host: 10.0.1.22
+  token: !secret plex_token
+  media_player:
+    use_episode_art: false
 
 alexa_media:
   accounts:
