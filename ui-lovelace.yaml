@@ -15,9 +15,10 @@ resources:
     type: module
 
 cch:
-  options: clock
+  options: show
   swipe: true
   swipe_animate: swipe
+  swipe_amount: 5
 
 views:
 

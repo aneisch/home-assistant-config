@@ -32,12 +32,16 @@ recorder:
 
 system_health:
 
+alexa_media:
+  accounts:
+    - email: !secret amazon_email
+      password: !secret amazon_pass
+      url: "amazon.com"
+
 alarm_control_panel:
-  #- platform: arlo
   - platform: aarlo
     home_mode_name: Armed
     away_mode_name: Disarmed
-#  - platform: alexa_media
 
 ios:
 
@@ -215,12 +219,6 @@ plex:
   token: !secret plex_token
   media_player:
     use_episode_art: false
-
-alexa_media:
-  accounts:
-    - email: !secret amazon_email
-      password: !secret amazon_pass
-      url: "amazon.com"
 
 climate:
   platform: radiotherm
