@@ -27,8 +27,7 @@ My Home Assistant installation contains many different components and runs on a 
 - Arlo Cameras (controlled through IFTTT)
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a majority of automations. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - Amazon Echo Dots
-  - Home Assistant Emulated Hue (devices are explicitly exposed via customize.yaml)
-  - Custom skills via Alexa API.
+  - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda 
   - Custom routines configured in the Alexa App.
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - MQTT remote and local server (via Docker). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
