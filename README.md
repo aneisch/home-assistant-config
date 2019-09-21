@@ -42,7 +42,7 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2304
-Number of entities (total) | 395  
+Number of entities (total) | 396  
 Number of fans | 2  
 Number of switches | 67  
 Number of lights | 9  
