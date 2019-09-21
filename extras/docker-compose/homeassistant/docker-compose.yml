@@ -86,16 +86,6 @@ services:
             timeout: 1s
             retries: 24
         network_mode: host
-#    ha_dockermon:
-#        #image: philhawthorne/ha-dockermon
-#        image: aneisch/dev_hadockermon
-#        container_name: ha_dockermon
-#        restart: always
-#        volumes:
-#            - /var/run/docker.sock:/var/run/docker.sock
-#            - /opt/ha_dockermon:/config
-#        ports:
-#            - 8126:8126
     ozwcp:
         container_name: ozwcp
         restart: 'no'
@@ -116,3 +106,5 @@ services:
         ports:
           - "1880:1880"
         restart: always
+        environment:
+          - TZ=America/Chicago
