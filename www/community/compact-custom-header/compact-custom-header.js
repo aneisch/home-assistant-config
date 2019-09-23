@@ -33,7 +33,9 @@ const defaultConfig = {
   background: "",
   hide_tabs: [],
   show_tabs: [],
-  default_tab: [],
+  edit_mode_show_tabs: false,
+  default_tab: "",
+  default_tab_template: "",
   kiosk_mode: false,
   sidebar_swipe: true,
   sidebar_closed: false,
@@ -43,12 +45,14 @@ const defaultConfig = {
   hide_unused: false,
   tab_color: {},
   button_color: {},
+  statusbar_color: "",
   swipe: false,
   swipe_amount: "15",
   swipe_animate: "none",
   swipe_skip: "",
   swipe_wrap: true,
   swipe_prevent_default: false,
+  swipe_skip_hidden: true,
   warning: true,
   compact_header: true
 };
@@ -59,6 +63,7 @@ root = root && root.querySelector("home-assistant-main");
 const main = root;
 root = root && root.shadowRoot;
 root = root && root.querySelector("app-drawer-layout partial-panel-resolver");
+const panelResolver = root;
 root = (root && root.shadowRoot) || root;
 root = root && root.querySelector("ha-panel-lovelace");
 root = root && root.shadowRoot;
@@ -66,28 +71,25 @@ root = root && root.querySelector("hui-root");
 const lovelace = root.lovelace;
 root = root.shadowRoot;
 
-const newSidebar = !root.querySelector("hui-notification-drawer");
-
-let notifications = notificationCount();
+const frontendVersion = Number(window.frontendVersion);
+const newSidebar = frontendVersion >= 20190710;
 const header = root.querySelector("app-header");
 let cchConfig = buildConfig(lovelace.config.cch || {});
-const view = root.querySelector("ha-app-layout").querySelector('[id="view"]');
+const view = root.querySelector("ha-app-layout").querySelector("#view");
+const disabled =
+  window.location.href.includes("disable_cch") || cchConfig.disable;
 
 let defaultTabRedirect = false;
 let sidebarClosed = false;
 let editMode = header.className == "edit-mode";
 let firstRun = true;
-let condState = [];
-let prevColor = {};
-let prevState = [];
 let buttons = {};
+let prevColor = {};
 
 run();
 breakingChangeNotification();
 
 function run() {
-  const disable = cchConfig.disable;
-  const urlDisable = window.location.href.includes("disable_cch");
   const tabContainer = root.querySelector("paper-tabs");
   const tabs = tabContainer
     ? Array.from(tabContainer.querySelectorAll("paper-tab"))
@@ -100,32 +102,35 @@ function run() {
     return;
   }
 
-  if (!disable && !urlDisable) {
+  if (!disabled) {
     insertEditMenu(tabs);
     hideMenuItems();
     styleHeader(tabContainer, tabs, header);
-    styleButtons(tabs);
-    defaultTab(tabs, tabContainer);
-    hideTabs(tabContainer, tabs);
-    for (let button in buttons) {
-      if (cchConfig[button] == "clock") insertClock(button);
-    }
+    styleButtons(tabs, tabContainer);
     if (firstRun) {
       sidebarMod();
       conditionalStyling(tabs, header);
+    }
+    hideTabs(tabContainer, tabs);
+    defaultTab(tabs, tabContainer);
+    for (let button in buttons) {
+      if (cchConfig[button] == "clock") insertClock(button);
     }
     if (!editMode) tabContainerMargin(tabContainer);
     if (cchConfig.swipe) swipeNavigation(tabs, tabContainer);
   }
 
-  if (!disable && firstRun) observers(tabContainer, tabs, urlDisable, header);
+  if (firstRun) observers(tabContainer, tabs, header);
   fireEvent(header, "iron-resize");
   firstRun = false;
+  scrollTabIconIntoView(tabContainer);
 }
 
 function buildConfig(config) {
   let exceptionConfig = {};
   let highestMatch = 0;
+
+  // Count number of matching conditions and choose config with most matches.
   if (config.exceptions) {
     config.exceptions.forEach(exception => {
       const matches = countMatches(exception.conditions);
@@ -136,6 +141,8 @@ function buildConfig(config) {
     });
   }
 
+  // If exception config uses hide_tabs and main config uses show_tabs,
+  // delete show_tabs and vice versa.
   if (
     exceptionConfig.hide_tabs &&
     config.show_tabs &&
@@ -151,6 +158,7 @@ function buildConfig(config) {
   ) {
     delete config.hide_tabs;
   }
+
   return { ...defaultConfig, ...config, ...exceptionConfig };
 
   function countMatches(conditions) {
@@ -158,12 +166,9 @@ function buildConfig(config) {
     let count = 0;
     for (const cond in conditions) {
       if (cond == "user" && conditions[cond].includes(",")) {
-        let userList = conditions[cond].split(/[ ,]+/);
-        for (let user in userList) {
-          if (userVars[cond] == userList[user]) {
-            count++;
-          }
-        }
+        conditions[cond].split(/[ ,]+/).forEach(user => {
+          if (userVars[cond] == user) count++;
+        });
       } else {
         if (
           userVars[cond] == conditions[cond] ||
@@ -182,44 +187,59 @@ function buildConfig(config) {
   }
 }
 
-function observers(tabContainer, tabs, urlDisable, header) {
+function observers(tabContainer, tabs, header) {
   const callback = function(mutations) {
     mutations.forEach(mutation => {
-      if (mutation.target.className == "edit-mode") {
+      if (
+        mutation.addedNodes.length &&
+        mutation.target.nodeName == "PARTIAL-PANEL-RESOLVER"
+      ) {
+        // Navigated back to lovelace from elsewhere in HA.
+        buttons = getButtonElements();
+        run();
+      } else if (mutation.target.className == "edit-mode") {
+        // Entered edit mode.
         editMode = true;
-        if (!cchConfig.disable) removeStyles(tabContainer, tabs, header);
+        if (!disabled) removeStyles(tabContainer, tabs, header);
         buttons.options = root.querySelector("paper-menu-button");
         insertEditMenu(tabs);
       } else if (mutation.target.nodeName == "APP-HEADER") {
+        // Exited edit mode.
         for (let node of mutation.addedNodes) {
           if (node.nodeName == "APP-TOOLBAR") {
             editMode = false;
-            buttons = getButtonElements(tabContainer);
+            buttons = getButtonElements();
             run();
-            return;
+            if (!disabled) conditionalStyling(tabs, header);
           }
         }
-      } else if (mutation.addedNodes.length) {
-        if (mutation.addedNodes[0].nodeName == "HUI-UNUSED-ENTITIES") return;
+      } else if (
+        // Viewing unused entities
+        frontendVersion < 20190911 &&
+        mutation.addedNodes.length &&
+        !mutation.addedNodes[0].nodeName == "HUI-UNUSED-ENTITIES"
+      ) {
         let editor = root
           .querySelector("ha-app-layout")
           .querySelector("editor");
         if (editor) root.querySelector("ha-app-layout").removeChild(editor);
-        if (!editMode && !urlDisable && cchConfig.conditional_styles) {
+        if (cchConfig.conditional_styles) {
+          buttons = getButtonElements(tabContainer);
           conditionalStyling(tabs, header);
         }
       }
     });
   };
-  new MutationObserver(callback).observe(view, { childList: true });
-  new MutationObserver(callback).observe(root.querySelector("app-header"), {
+  let observer = new MutationObserver(callback);
+  observer.observe(panelResolver, { childList: true });
+  observer.observe(view, { childList: true });
+  observer.observe(root.querySelector("app-header"), {
     childList: true
   });
 
-  if (!urlDisable) {
+  if (!disabled) {
     window.hassConnection.then(({ conn }) => {
       conn.socket.onmessage = () => {
-        notifications = notificationCount();
         if (cchConfig.conditional_styles && !editMode) {
           conditionalStyling(tabs, header);
         }
@@ -228,28 +248,7 @@ function observers(tabContainer, tabs, urlDisable, header) {
   }
 }
 
-function notificationCount() {
-  if (newSidebar) {
-    let badge = main.shadowRoot
-      .querySelector("ha-sidebar")
-      .shadowRoot.querySelector("span.notification-badge");
-    if (!badge) {
-      return 0;
-    } else {
-      return parseInt(badge.innerHTML);
-    }
-  }
-  let i = 0;
-  let drawer = root
-    .querySelector("hui-notification-drawer")
-    .shadowRoot.querySelector(".notifications");
-  for (let notification of drawer.querySelectorAll(".notification")) {
-    if (notification.style.display !== "none") i++;
-  }
-  return i;
-}
-
-function getButtonElements(tabContainer) {
+function getButtonElements() {
   let buttons = {};
   buttons.options = root.querySelector("paper-menu-button");
   if (!editMode) {
@@ -259,15 +258,10 @@ function getButtonElements(tabContainer) {
       buttons.notifications = root.querySelector("hui-notifications-button");
     }
   }
-  if (buttons.menu && newSidebar) {
-    new MutationObserver(() => {
-      if (buttons.menu.style.visibility == "hidden") {
-        buttons.menu.style.display = "none";
-      } else {
-        buttons.menu.style.display = "";
-      }
-      tabContainerMargin(tabContainer);
-    }).observe(buttons.menu, { attributeFilter: ["style"] });
+  if (buttons.menu && buttons.menu.style.visibility == "hidden" && !disabled) {
+    buttons.menu.style.display = "none";
+  } else if (buttons.menu) {
+    buttons.menu.style.display = "";
   }
   return buttons;
 }
@@ -296,38 +290,57 @@ function tabContainerMargin(tabContainer) {
   }
 }
 
+function scrollTabIconIntoView(tabContainer) {
+  if (!tabContainer || !tabContainer.querySelector(".iron-selected")) return;
+  let currentTab = tabContainer.querySelector(".iron-selected");
+  let tabBounds = currentTab.getBoundingClientRect();
+  let containerBounds = tabContainer.getBoundingClientRect();
+  let chev = tabContainer.shadowRoot.querySelectorAll(
+    '[icon^="paper-tabs:chevron"]'
+  );
+  if (
+    (cchConfig.chevrons &&
+      chev[0] &&
+      tabBounds.left < chev[0].getBoundingClientRect().right + 5) ||
+    (cchConfig.chevrons &&
+      chev[1] &&
+      tabBounds.right > chev[1].getBoundingClientRect().left - 5) ||
+    (!cchConfig.chevrons &&
+      (tabBounds.left < containerBounds.right + 5 ||
+        tabBounds.right > containerBounds.left - 5))
+  ) {
+    currentTab.scrollIntoView({ inline: "center" });
+  }
+}
+
 function hideMenuItems() {
   if (cchConfig.hide_help || cchConfig.hide_config || cchConfig.hide_unused) {
-    let menuItems = buttons.options
+    const itemCheck = (item, string) => {
+      let localized = hass.localize(`ui.panel.lovelace.menu.${string}`);
+      return (
+        item.innerHTML.includes(localized) ||
+        item.getAttribute("aria-label") == localized
+      );
+    };
+    buttons.options
       .querySelector("paper-listbox")
-      .querySelectorAll("paper-item");
-    for (let item of menuItems) {
-      if (
-        (item.innerHTML.includes("Help") ||
-          item.getAttribute("aria-label") == "Help") &&
-        cchConfig.hide_help
-      ) {
-        item.parentNode.removeChild(item);
-      } else if (
-        (item.innerHTML.includes("Unused entities") ||
-          item.getAttribute("aria-label") == "Unused entities") &&
-        cchConfig.hide_unused
-      ) {
-        item.parentNode.removeChild(item);
-      } else if (
-        (item.innerHTML.includes("Configure UI") ||
-          item.getAttribute("aria-label") == "Configure UI") &&
-        cchConfig.hide_config
-      ) {
-        item.parentNode.removeChild(item);
-      }
-    }
+      .querySelectorAll("paper-item")
+      .forEach(item => {
+        if (
+          (cchConfig.hide_help && itemCheck(item, "help")) ||
+          (cchConfig.hide_unused && itemCheck(item, "unused_entities")) ||
+          (cchConfig.hide_config && itemCheck(item, "configure_ui"))
+        ) {
+          item.parentNode.removeChild(item);
+        }
+      });
   }
 }
 
 function insertEditMenu(tabs) {
   if (buttons.options && editMode) {
-    if (cchConfig.hide_tabs) {
+    // If any tabs are hidden, add "show all tabs" option.
+    if (cchConfig.hide_tabs && !cchConfig.edit_mode_show_tabs) {
       let show_tabs = document.createElement("paper-item");
       show_tabs.setAttribute("id", "show_tabs");
       show_tabs.addEventListener("click", () => {
@@ -339,6 +352,7 @@ function insertEditMenu(tabs) {
       insertMenuItem(buttons.options.querySelector("paper-listbox"), show_tabs);
     }
 
+    // Add menu item to open CCH settings.
     let cchSettings = document.createElement("paper-item");
     cchSettings.setAttribute("id", "cch_settings");
     cchSettings.addEventListener("click", () => {
@@ -346,30 +360,75 @@ function insertEditMenu(tabs) {
     });
     cchSettings.innerHTML = "CCH Settings";
     insertMenuItem(buttons.options.querySelector("paper-listbox"), cchSettings);
+    if (!disabled) hideMenuItems();
   }
 }
 
 function removeStyles(tabContainer, tabs, header) {
-  let header_colors = root.querySelector('[id="cch_header_colors"]');
+  root.querySelectorAll("[id^='cch'], style").forEach(style => {
+    style.remove();
+  });
+
+  if (cchConfig.tab_css) {
+    for (let [key, value] of Object.entries(cchConfig.tab_css)) {
+      key = getViewIndex(key);
+      value = value.replace(/: /g, ":").replace(/; /g, ";");
+      let css = tabs[key].style.cssText.replace(/: /g, ":").replace(/; /g, ";");
+      tabs[key].style.cssText = css.replace(value, "");
+    }
+  }
+  if (cchConfig.header_css) {
+    let value = cchConfig.header_css.replace(/: /g, ":").replace(/; /g, ";");
+    let css = header.style.cssText.replace(/: /g, ":").replace(/; /g, ";");
+    header.style.cssText = css.replace(value, "");
+  }
   if (tabContainer) {
     tabContainer.style.marginLeft = "";
     tabContainer.style.marginRight = "";
   }
-  header.style.background = null;
-  view.style.minHeight = "";
-  view.style.marginTop = "";
-  view.style.paddingTop = "";
-  view.style.boxSizing = "";
-  if (root.querySelector('[id="cch_iron_selected"]')) {
-    root.querySelector('[id="cch_iron_selected"]').outerHTML = "";
-  }
-  if (header_colors) header_colors.parentNode.removeChild(header_colors);
+  header.style.background = "";
+  view.style = "";
   for (let i = 0; i < tabs.length; i++) {
     tabs[i].style.color = "";
+  }
+  if (cchConfig.edit_mode_show_tabs) {
+    for (let i = 0; i < tabs.length; i++) {
+      tabs[i].style.removeProperty("display");
+    }
   }
 }
 
 function styleHeader(tabContainer, tabs, header) {
+  document.body.style.backgroundColor = getComputedStyle(
+    document.body
+  ).getPropertyValue("--background-color");
+  let headerBackground =
+    cchConfig.background ||
+    getComputedStyle(document.body).getPropertyValue("--cch-background") ||
+    getComputedStyle(document.body).getPropertyValue("--primary-color");
+  let statusBarColor = cchConfig.statusbar_color || headerBackground;
+  // Match mobile status bar color to header color.
+  let themeColor = document.querySelector('[name="theme-color"]');
+  function colorStatusBar() {
+    statusBarColor =
+      cchConfig.statusbar_color ||
+      cchConfig.background ||
+      getComputedStyle(document.body).getPropertyValue("--cch-background") ||
+      getComputedStyle(document.body).getPropertyValue("--primary-color");
+    themeColor = document.querySelector('[name="theme-color"]');
+    themeColor.content = statusBarColor;
+    themeColor.setAttribute("default-content", statusBarColor);
+  }
+  colorStatusBar();
+  // If app/browser is idle or in background sometimes theme-color needs reset.
+  let observeStatus = new MutationObserver(() => {
+    if (themeColor.content != statusBarColor) colorStatusBar();
+  });
+  if (firstRun) {
+    observeStatus.observe(themeColor, { attributeFilter: ["content"] });
+  }
+
+  // Adjust view size & padding for new header size.
   if (!cchConfig.header || cchConfig.kiosk_mode) {
     header.style.display = "none";
     view.style.minHeight = "100vh";
@@ -378,43 +437,37 @@ function styleHeader(tabContainer, tabs, header) {
     view.style.marginTop = "-48.5px";
     view.style.paddingTop = "48.5px";
     view.style.boxSizing = "border-box";
-    header.style.background =
-      cchConfig.background ||
-      getComputedStyle(document.body).getPropertyValue("--cch-background") ||
-      "var(--primary-color)";
+    header.style.background = headerBackground;
     header.querySelector("app-toolbar").style.background = "transparent";
+    if (
+      frontendVersion >= 20190911 &&
+      !root.querySelector("#cch_view_styling")
+    ) {
+      let style = document.createElement("style");
+      style.setAttribute("id", "cch_view_styling");
+      style.innerHTML = `
+        hui-view {
+          margin-top: -48.5px;
+          padding-top: 52px;
+          ${cchConfig.view_css ? cchConfig.view_css : ""}
+        }`;
+      root.appendChild(style);
+    }
   }
 
+  // Match sidebar elements to header's size.
   if (newSidebar && cchConfig.compact_header) {
     let sidebar = main.shadowRoot.querySelector("ha-sidebar").shadowRoot;
     sidebar.querySelector(".menu").style = "height:49px;";
     sidebar.querySelector("paper-listbox").style = "height:calc(100% - 180px);";
   }
-  let indicator = cchConfig.tab_indicator_color;
-  if (
-    indicator &&
-    !root.querySelector('[id="cch_header_colors"]') &&
-    !editMode
-  ) {
-    let style = document.createElement("style");
-    style.setAttribute("id", "cch_header_colors");
-    style.innerHTML = `
-          paper-tabs {
-            ${
-              indicator
-                ? `--paper-tabs-selection-bar-color: ${indicator} !important`
-                : "var(--cch-tab-indicator-color) !important"
-            }
-          }
-        `;
-    root.appendChild(style);
-  }
 
+  // Current tab icon color.
   let conditionalTabs = cchConfig.conditional_styles
     ? JSON.stringify(cchConfig.conditional_styles).includes("tab")
     : false;
   if (
-    !root.querySelector('[id="cch_iron_selected"]') &&
+    !root.querySelector("#cch_iron_selected") &&
     !editMode &&
     !conditionalTabs &&
     tabContainer
@@ -422,16 +475,35 @@ function styleHeader(tabContainer, tabs, header) {
     let style = document.createElement("style");
     style.setAttribute("id", "cch_iron_selected");
     style.innerHTML = `
-            .iron-selected {
+              .iron-selected {
+                ${
+                  cchConfig.active_tab_color
+                    ? `color: ${cchConfig.active_tab_color + " !important"}`
+                    : "var(--cch-active-tab-color)"
+                }
+              }
+            `;
+    tabContainer.appendChild(style);
+  }
+
+  // Style current tab indicator.
+  let indicator = cchConfig.tab_indicator_color;
+  if (indicator && !root.querySelector("#cch_header_colors") && !editMode) {
+    let style = document.createElement("style");
+    style.setAttribute("id", "cch_header_colors");
+    style.innerHTML = `
+            paper-tabs {
               ${
-                cchConfig.active_tab_color
-                  ? `color: ${cchConfig.active_tab_color + " !important"}`
-                  : "var(--cch-active-tab-color)"
+                indicator
+                  ? `--paper-tabs-selection-bar-color: ${indicator} !important`
+                  : "var(--cch-tab-indicator-color) !important"
               }
             }
           `;
-    tabContainer.appendChild(style);
+    root.appendChild(style);
   }
+
+  // Tab's icon color.
   let all_tabs_color = cchConfig.all_tabs_color || "var(--cch-all-tabs-color)";
   if (
     (cchConfig.tab_color && Object.keys(cchConfig.tab_color).length) ||
@@ -442,14 +514,35 @@ function styleHeader(tabContainer, tabs, header) {
     }
   }
 
+  // Add header custom css.
+  if (cchConfig.header_css) header.style.cssText += cchConfig.header_css;
+
+  // Add view custom css.
+  if (cchConfig.view_css && frontendVersion < 20190911) {
+    view.style.cssText += cchConfig.view_css;
+  }
+
+  // Add tab custom css.
+  let tabCss = cchConfig.tab_css;
+  if (tabCss) {
+    for (let [key, value] of Object.entries(tabCss)) {
+      key = getViewIndex(key);
+      if (tabs[key]) tabs[key].style.cssText += value;
+    }
+  }
+
   if (tabContainer) {
     // Shift the header up to hide unused portion.
     root.querySelector("app-toolbar").style.marginTop = cchConfig.compact_header
       ? "-64px"
       : "";
 
+    tabs.forEach(tab => {
+      tab.style.marginTop = "-1px";
+    });
+
+    // Show/hide tab navigation chevrons.
     if (!cchConfig.chevrons) {
-      // Hide chevrons.
       let chevron = tabContainer.shadowRoot.querySelectorAll(
         '[icon^="paper-tabs:chevron"]'
       );
@@ -460,80 +553,57 @@ function styleHeader(tabContainer, tabs, header) {
       let style = document.createElement("style");
       style.setAttribute("id", "cch_chevron");
       style.innerHTML = `
-            .not-visible {
-              display:none;
-            }
-          `;
+              .not-visible {
+                display:none;
+              }
+            `;
       tabContainer.shadowRoot.appendChild(style);
     }
   }
 }
 
-function styleButtons(tabs) {
+function styleButtons(tabs, tabContainer) {
   let topMargin =
     tabs.length > 0 && cchConfig.compact_header ? "margin-top:111px;" : "";
+  let topMarginMenu =
+    tabs.length > 0 && cchConfig.compact_header ? "margin-top:115px;" : "";
+  // Reverse buttons object so menu is first in overflow menu.
   buttons = reverseObject(buttons);
-  if (
-    newSidebar &&
-    cchConfig.menu != "hide" &&
-    !buttons.menu.shadowRoot.querySelector('[id="cch_dot"]')
-  ) {
-    let style = document.createElement("style");
-    style.setAttribute("id", "cch_dot");
-    let indicator =
-      cchConfig.notify_indicator_color ||
-      getComputedStyle(header).getPropertyValue("--cch-tab-indicator-color") ||
-      "";
-    let border = getComputedStyle(header)
-      .getPropertyValue("background")
-      .includes("url")
-      ? "border-color: transparent !important"
-      : `border-color: ${getComputedStyle(header).getPropertyValue(
-          "background-color"
-        )} !important;`;
-    style.innerHTML = `
-        .dot {
-          ${topMargin}
-          z-index: 2;
-          ${indicator ? `background: ${indicator} !important` : ""}
-          ${border}
-        }
-    `;
-    buttons.menu.shadowRoot.appendChild(style);
-  }
   for (const button in buttons) {
     if (!buttons[button]) continue;
     if (button == "options" && cchConfig[button] == "overflow") {
       cchConfig[button] = "show";
     }
+    let buttonStyle = `
+        z-index:1;
+        ${
+          button == "menu"
+            ? `padding: 8px 0; margin-bottom:5px; ${topMarginMenu}`
+            : "padding: 4px 0;"
+        }
+        ${button == "menu" ? "" : topMargin}
+        ${button == "options" ? "margin-right:-5px;" : ""}
+      `;
     if (cchConfig[button] == "show" || cchConfig[button] == "clock") {
       if (button == "menu") {
         let paperIconButton = buttons[button].querySelector("paper-icon-button")
           ? buttons[button].querySelector("paper-icon-button")
           : buttons[button].shadowRoot.querySelector("paper-icon-button");
         if (!paperIconButton) continue;
-        paperIconButton.style.cssText = `
-          z-index:1;
-          ${topMargin}
-          ${button == "options" ? "margin-right:-5px; padding:0;" : ""}
-        `;
+        paperIconButton.style.cssText = buttonStyle;
       } else {
-        buttons[button].style.cssText = `
-              z-index:1;
-              ${topMargin}
-              ${button == "options" ? "margin-right:-5px; padding:0;" : ""}
-            `;
+        buttons[button].style.cssText = buttonStyle;
       }
     } else if (cchConfig[button] == "overflow") {
       const menu_items = buttons.options.querySelector("paper-listbox");
       let paperIconButton = buttons[button].querySelector("paper-icon-button")
         ? buttons[button].querySelector("paper-icon-button")
         : buttons[button].shadowRoot.querySelector("paper-icon-button");
-      if (paperIconButton.hasAttribute("hidden")) {
+      if (paperIconButton && paperIconButton.hasAttribute("hidden")) {
         continue;
       }
       const id = `menu_item_${button}`;
-      if (!menu_items.querySelector(`[id="${id}"]`)) {
+      if (!menu_items.querySelector(`#${id}`)) {
         const wrapper = document.createElement("paper-item");
         wrapper.setAttribute("id", id);
         wrapper.innerText = getTranslation(button);
@@ -546,30 +616,43 @@ function styleButtons(tabs) {
         if (button == "notifications" && !newSidebar) {
           let style = document.createElement("style");
           style.innerHTML = `
-                .indicator {
-                  top: 5px;
-                  right: 0px;
-                  width: 10px;
-                  height: 10px;
-                  ${
-                    cchConfig.notify_indicator_color
-                      ? `background-color:${cchConfig.notify_indicator_color}`
-                      : ""
+                  .indicator {
+                    top: 5px;
+                    right: 0px;
+                    width: 10px;
+                    height: 10px;
+                    ${
+                      cchConfig.notify_indicator_color
+                        ? `background-color:${cchConfig.notify_indicator_color}`
+                        : ""
+                    }
                   }
-                }
-                .indicator > div{
-                  display:none;
-                }
-              `;
+                  .indicator > div{
+                    display:none;
+                  }
+                `;
           paperIconButton.parentNode.appendChild(style);
         }
       }
     } else if (cchConfig[button] == "hide") {
       buttons[button].style.display = "none";
     }
+    // Hide menu button if hiding the sidebar.
     if (newSidebar && (cchConfig.kiosk_mode || cchConfig.disable_sidebar)) {
       buttons.menu.style.display = "none";
     }
+  }
+
+  // Remove empty space taken up by hidden menu button.
+  if (buttons.menu && newSidebar && !disabled) {
+    new MutationObserver(() => {
+      if (buttons.menu.style.visibility == "hidden") {
+        buttons.menu.style.display = "none";
+      } else {
+        buttons.menu.style.display = "";
+      }
+      tabContainerMargin(tabContainer);
+    }).observe(buttons.menu, { attributeFilter: ["style"] });
   }
 
   // Use color vars set in HA theme.
@@ -591,17 +674,62 @@ function styleButtons(tabs) {
     }
   }
 
-  if (cchConfig.notify_indicator_color && cchConfig.notifications == "show") {
+  // Notification indicator's color for HA 0.96 and above.
+  if (
+    newSidebar &&
+    cchConfig.menu != "hide" &&
+    !buttons.menu.shadowRoot.querySelector("#cch_dot")
+  ) {
+    let style = document.createElement("style");
+    style.setAttribute("id", "cch_dot");
+    let indicator =
+      cchConfig.notify_indicator_color ||
+      getComputedStyle(header).getPropertyValue("--cch-tab-indicator-color") ||
+      "";
+    let border = getComputedStyle(header)
+      .getPropertyValue("background")
+      .includes("url")
+      ? "border-color: transparent !important"
+      : `border-color: ${getComputedStyle(header).getPropertyValue(
+          "background-color"
+        )} !important;`;
+    style.innerHTML = `
+          .dot {
+            ${topMargin}
+            z-index: 2;
+            ${indicator ? `background: ${indicator} !important` : ""}
+            ${border}
+          }
+      `;
+    buttons.menu.shadowRoot.appendChild(style);
+  } else if (
+    // Notification indicator's color for HA 0.95 and below.
+    cchConfig.notify_indicator_color &&
+    cchConfig.notifications == "show" &&
+    !newSidebar
+  ) {
     let style = document.createElement("style");
     style.innerHTML = `
-          .indicator {
-            background-color:${cchConfig.notify_indicator_color ||
-              "var(--cch-notify-indicator-color)"} !important;
-            color: ${cchConfig.notify_text_color ||
-              "var(--cch-notify-text-color), var(--primary-text-color)"};
-          }
-        `;
-    if (!newSidebar) buttons.notifications.shadowRoot.appendChild(style);
+            .indicator {
+              background-color:${cchConfig.notify_indicator_color ||
+                "var(--cch-notify-indicator-color)"} !important;
+              color: ${cchConfig.notify_text_color ||
+                "var(--cch-notify-text-color), var(--primary-text-color)"};
+            }
+          `;
+    buttons.notifications.shadowRoot.appendChild(style);
+  }
+
+  // Add buttons's custom css.
+  let buttonCss = cchConfig.button_css;
+  if (buttonCss) {
+    for (const [key, value] of Object.entries(buttonCss)) {
+      if (!buttons[key]) {
+        continue;
+      } else {
+        buttons[key].style.cssText += value;
+      }
+    }
   }
 }
 
@@ -615,24 +743,17 @@ function getTranslation(button) {
 }
 
 function defaultTab(tabs, tabContainer) {
-  if (cchConfig.default_tab && !defaultTabRedirect && tabContainer) {
-    let default_tab = cchConfig.default_tab;
+  let default_tab = cchConfig.default_tab;
+  let template = cchConfig.default_tab_template;
+  if ((default_tab || template) && !defaultTabRedirect && tabContainer) {
+    if (template) default_tab = templateEval(template, hass.states);
+    default_tab = getViewIndex(default_tab);
     let activeTab = tabs.indexOf(tabContainer.querySelector(".iron-selected"));
-    if (isNaN(default_tab)) {
-      let views = lovelace.config.views;
-      for (let view in views) {
-        if (
-          views[view]["title"] == default_tab ||
-          views[view]["path"] == default_tab
-        ) {
-          default_tab = view;
-        }
-      }
-    }
     if (
       activeTab != default_tab &&
       activeTab == 0 &&
-      !cchConfig.hide_tabs.includes(default_tab)
+      (!cchConfig.redirect ||
+        (cchConfig.redirect && tabs[default_tab].style.display != "none"))
     ) {
       tabs[default_tab].click();
     }
@@ -644,6 +765,7 @@ function sidebarMod() {
   let menu = buttons.menu.querySelector("paper-icon-button");
   let sidebar = main.shadowRoot.querySelector("app-drawer");
 
+  // HA 0.95 and below
   if (!newSidebar) {
     if (!cchConfig.sidebar_swipe || cchConfig.kiosk_mode) {
       sidebar.removeAttribute("swipe-open");
@@ -652,10 +774,8 @@ function sidebarMod() {
       if (sidebar.hasAttribute("opened")) menu.click();
       sidebarClosed = true;
     }
-  } else if (
-    newSidebar &&
-    (cchConfig.disable_sidebar || cchConfig.kiosk_mode)
-  ) {
+    // HA 0.96 and above
+  } else if (cchConfig.disable_sidebar || cchConfig.kiosk_mode) {
     sidebar.style.display = "none";
     sidebar.addEventListener(
       "mouseenter",
@@ -732,7 +852,7 @@ function hideTabs(tabContainer, tabs) {
 
 function insertMenuItem(menu_items, element) {
   let first_item = menu_items.querySelector("paper-item");
-  if (!menu_items.querySelector(`[id="${element.id}"]`)) {
+  if (!menu_items.querySelector(`#${element.id}`)) {
     first_item.parentNode.insertBefore(element, first_item);
   }
 }
@@ -742,39 +862,41 @@ function insertClock(button) {
     ? buttons[button]
     : buttons[button].shadowRoot;
   const clockIcon = clock_button.querySelector("paper-icon-button");
-  const clockIronIcon = clockIcon.shadowRoot.querySelector("iron-icon");
+  const clockIronIcon =
+    clockIcon.querySelector("iron-icon") ||
+    clockIcon.shadowRoot.querySelector("iron-icon");
   const clockWidth =
     (cchConfig.clock_format == 12 && cchConfig.clock_am_pm) ||
     cchConfig.clock_date
-      ? 110
+      ? 105
       : 80;
 
   if (
     !newSidebar &&
     cchConfig.notifications == "clock" &&
     cchConfig.clock_date &&
-    !buttons.notifications.shadowRoot.querySelector('[id="cch_indicator"]')
+    !buttons.notifications.shadowRoot.querySelector("#cch_indicator")
   ) {
     let style = document.createElement("style");
     style.setAttribute("id", "cch_indicator");
     style.innerHTML = `
-          .indicator {
-            top: unset;
-            bottom: -3px;
-            right: 0px;
-            width: 90%;
-            height: 3px;
-            border-radius: 0;
-            ${
-              cchConfig.notify_indicator_color
-                ? `background-color:${cchConfig.notify_indicator_color}`
-                : ""
+            .indicator {
+              top: unset;
+              bottom: -3px;
+              right: 0px;
+              width: 90%;
+              height: 3px;
+              border-radius: 0;
+              ${
+                cchConfig.notify_indicator_color
+                  ? `background-color:${cchConfig.notify_indicator_color}`
+                  : ""
+              }
             }
-          }
-          .indicator > div{
-            display:none;
-          }
-        `;
+            .indicator > div{
+              display:none;
+            }
+          `;
     buttons.notifications.shadowRoot.appendChild(style);
   }
 
@@ -785,10 +907,10 @@ function insertClock(button) {
   }
   if (!clockElement) {
     clockIcon.style.cssText = `
-              margin-right:-5px;
-              width:${clockWidth}px;
-              text-align: center;
-            `;
+                margin-right:-5px;
+                width:${clockWidth}px;
+                text-align: center;
+              `;
     clockElement = document.createElement("p");
     clockElement.setAttribute("id", "cch_clock");
     let clockAlign = "center";
@@ -804,13 +926,24 @@ function insertClock(button) {
       fontSize = "font-size:12pt";
     }
     clockElement.style.cssText = `
-              margin-top: ${cchConfig.clock_date ? "-4px" : "2px"};
-              text-align: ${clockAlign};
-              ${padding};
-              ${fontSize};
-            `;
+                margin-top: ${cchConfig.clock_date ? "-4px" : "2px"};
+                text-align: ${clockAlign};
+                ${padding};
+                ${fontSize};
+              `;
     clockIronIcon.parentNode.insertBefore(clockElement, clockIronIcon);
     clockIronIcon.style.display = "none";
+    let style = document.createElement("style");
+    style.setAttribute("id", "cch_clock");
+    style.innerHTML = `
+            time {
+              ${cchConfig.time_css}
+            }
+            date {
+              ${cchConfig.date_css}
+            }
+          `;
+    clockIronIcon.parentNode.insertBefore(style, clockIronIcon);
   }
 
   const clockFormat = {
@@ -831,12 +964,12 @@ function updateClock(clock, clockFormat) {
     day: "2-digit"
   };
   date = cchConfig.clock_date
-    ? `</br>${date.toLocaleDateString(locale, options)}`
+    ? `</br><date>${date.toLocaleDateString(locale, options)}</date>`
     : "";
   if (!cchConfig.clock_am_pm && cchConfig.clock_format == 12) {
-    clock.innerHTML = time.slice(0, -3) + date;
+    clock.innerHTML = `<time>${time.slice(0, -3)}</time>${date}`;
   } else {
-    clock.innerHTML = time + date;
+    clock.innerHTML = `<time>${time}</time>${date}`;
   }
   window.setTimeout(() => updateClock(clock, clockFormat), 60000);
 }
@@ -846,31 +979,8 @@ function conditionalStyling(tabs, header) {
   let _hass = document.querySelector("home-assistant").hass;
   const conditional_styles = cchConfig.conditional_styles;
   let tabContainer = tabs[0] ? tabs[0].parentNode : "";
-  let elem, color, bg, hide, onIcon, offIcon, iconElem;
-
-  const styleElements = () => {
-    if (bg && elem == "background") header.style.background = bg;
-    else if (color) elem.style.color = color;
-    if (onIcon && iconElem) iconElem.setAttribute("icon", onIcon);
-    if (hide && elem !== "background" && !editMode) {
-      elem.style.display = "none";
-    }
-  };
-
-  const getElements = (key, elemArray, i, obj, styling) => {
-    elem = elemArray[key];
-    color = styling[i][obj][key].color;
-    onIcon = styling[i][obj][key].on_icon;
-    offIcon = styling[i][obj][key].off_icon;
-    hide = styling[i][obj][key].hide;
-    if (!prevColor[key]) {
-      prevColor[key] = window
-        .getComputedStyle(elem, null)
-        .getPropertyValue("color");
-    }
-  };
-
   let styling = [];
+
   if (Array.isArray(conditional_styles)) {
     for (let i = 0; i < conditional_styles.length; i++) {
       styling.push(Object.assign({}, conditional_styles[i]));
@@ -879,108 +989,155 @@ function conditionalStyling(tabs, header) {
     styling.push(Object.assign({}, conditional_styles));
   }
 
+  function exists(configItem) {
+    return configItem !== undefined && configItem !== null;
+  }
+
+  function notificationCount() {
+    if (newSidebar) {
+      let badge = main.shadowRoot
+        .querySelector("ha-sidebar")
+        .shadowRoot.querySelector("span.notification-badge");
+      if (!badge) return 0;
+      else return parseInt(badge.innerHTML);
+    }
+    let i = 0;
+    let drawer = root
+      .querySelector("hui-notification-drawer")
+      .shadowRoot.querySelector(".notifications");
+    for (let notification of drawer.querySelectorAll(".notification")) {
+      if (notification.style.display !== "none") i++;
+    }
+    return i;
+  }
+
   for (let i = 0; i < styling.length; i++) {
     let template = styling[i].template;
+    let condition = styling[i].condition;
+
     if (template) {
       if (!template.length) template = [template];
       template.forEach(template => {
         templates(template, tabs, _hass, header);
       });
-    } else if (conditional_styles) {
+    } else if (condition) {
       let entity = styling[i].entity;
       if (_hass.states[entity] == undefined && entity !== "notifications") {
         console.log(`CCH conditional styling: ${entity} does not exist.`);
         continue;
       }
-      if (entity == "notifications") condState[i] = notifications;
-      else condState[i] = _hass.states[entity].state;
+      let entState =
+        entity == "notifications"
+          ? notificationCount()
+          : _hass.states[entity].state;
+      let condState = condition.state;
+      let above = condition.above;
+      let below = condition.below;
 
-      if (condState[i] !== prevState[i] || !condState.length) {
-        prevState[i] = condState[i];
-        let above = styling[i].condition.above;
-        let below = styling[i].condition.below;
+      let toStyle =
+        (exists(condState) && entState == condState) ||
+        (exists(above) &&
+          exists(below) &&
+          entState > above &&
+          entState < below) ||
+        (exists(above) && entState > above) ||
+        (exists(below) && entState < below);
 
-        for (const obj in styling[i]) {
-          let key;
-          if (styling[i][obj]) {
-            key = Object.keys(styling[i][obj])[0];
-          }
-          if (obj == "background") {
-            elem = "background";
-            color = styling[i][obj].color;
-            bg = styling[i][obj];
-            iconElem = false;
-            if (!prevColor[obj]) {
-              prevColor[obj] = window
-                .getComputedStyle(header, null)
-                .getPropertyValue("background");
-            }
-          } else if (obj == "button") {
-            if (newSidebar && key == "notifications") continue;
-            getElements(key, buttons, i, obj, styling);
-            if (key == "menu") {
-              iconElem = elem
-                .querySelector("paper-icon-button")
-                .shadowRoot.querySelector("iron-icon");
-            } else {
-              iconElem = elem.shadowRoot
-                .querySelector("paper-icon-button")
-                .shadowRoot.querySelector("iron-icon");
-            }
-          } else if (obj == "tab") {
-            if (isNaN(key)) {
-              let views = lovelace.config.views;
-              for (let view in views) {
-                if (views[view]["title"] == key || views[view]["path"] == key) {
-                  styling[i][obj][view] = styling[i][obj][key];
-                  delete styling[i][obj][key];
-                  key = view;
-                }
-              }
-            }
-            getElements(key, tabs, i, obj, styling);
-            iconElem = elem.querySelector("ha-icon");
-          }
+      let tabIndex = styling[i].tab ? Object.keys(styling[i].tab)[0] : null;
+      let tabCondition = styling[i].tab ? styling[i].tab[tabIndex] : null;
+      let tabElem = tabs[getViewIndex(tabIndex)];
+      let tabkey = `tab_${getViewIndex(tabIndex)}`;
+      let button = styling[i].button ? Object.keys(styling[i].button)[0] : null;
+      let background = styling[i].background;
 
-          if (condState[i] == styling[i].condition.state) {
-            styleElements();
-          } else if (
-            above !== undefined &&
-            below !== undefined &&
-            condState[i] > above &&
-            condState[i] < below
-          ) {
-            styleElements();
-          } else if (
-            above !== undefined &&
-            below == undefined &&
-            condState[i] > above
-          ) {
-            styleElements();
-          } else if (
-            above == undefined &&
-            below !== undefined &&
-            condState[i] < below
-          ) {
-            styleElements();
-          } else {
-            if (elem !== "background" && hide && elem.style.display == "none") {
-              elem.style.display = "";
-            }
-            if (bg && elem == "background") {
-              header.style.background = prevColor[obj];
-            } else if (
-              obj !== "background" &&
-              obj !== "entity" &&
-              obj !== "condition"
-            ) {
-              elem.style.color = prevColor[key];
-            }
-            if (onIcon && offIcon) {
-              iconElem.setAttribute("icon", offIcon);
-            }
+      // Conditionally style tabs.
+      if (toStyle && exists(tabIndex)) {
+        if (tabCondition.hide) tabElem.style.display = "none";
+        if (tabCondition.color) {
+          if (prevColor[tabkey] == undefined) {
+            Object.assign(prevColor, {
+              [tabkey]: window
+                .getComputedStyle(tabElem, null)
+                .getPropertyValue("color")
+            });
           }
+          tabElem.style.color = tabCondition.color;
         }
+        if (tabCondition.on_icon) {
+          tabElem
+            .querySelector("ha-icon")
+            .setAttribute("icon", tabCondition.on_icon);
+        }
+      } else if (!toStyle && exists(tabIndex)) {
+        if (tabCondition.hide) {
+          tabElem.style.display = "";
+        }
+        if (tabCondition.color && prevColor[tabkey]) {
+          tabElem.style.color = prevColor[tabkey];
+        }
+        if (tabCondition.off_icon) {
+          tabElem
+            .querySelector("ha-icon")
+            .setAttribute("icon", tabCondition.off_icon);
+        }
+      }
+
+      if (toStyle && button) {
+        let buttonCondition = styling[i].button[button];
+        let buttonElem = buttons[button].querySelector("paper-icon-button")
+          ? buttons[button].querySelector("paper-icon-button")
+          : buttons[button].shadowRoot.querySelector("paper-icon-button");
+        if (buttonCondition.hide) {
+          buttonElem.style.display = "none";
+        }
+        if (buttonCondition.color) {
+          if (prevColor.button == undefined) prevColor.button = {};
+          if (prevColor.button[button] == undefined) {
+            prevColor.button[button] = window
+              .getComputedStyle(buttonElem, null)
+              .getPropertyValue("color");
+          }
+          buttonElem.style.color = buttonCondition.color;
+        }
+        if (buttonCondition.on_icon) {
+          let icon =
+            buttonElem.querySelector("iron-icon") ||
+            buttonElem.shadowRoot.querySelector("iron-icon");
+          icon.setAttribute("icon", buttonCondition.on_icon);
+        }
+      } else if (!toStyle && button) {
+        let buttonCondition = styling[i].button[button];
+        let buttonElem = buttons[button].querySelector("paper-icon-button")
+          ? buttons[button].querySelector("paper-icon-button")
+          : buttons[button].shadowRoot.querySelector("paper-icon-button");
+        if (buttonCondition.hide) {
+          buttonElem.style.display = "";
+        }
+        if (
+          buttonCondition.color &&
+          prevColor.button &&
+          prevColor.button[button]
+        ) {
+          buttonElem.style.color = prevColor.button[button];
+        }
+        if (buttonCondition.off_icon) {
+          let icon =
+            buttonElem.querySelector("iron-icon") ||
+            buttonElem.shadowRoot.querySelector("iron-icon");
+          icon.setAttribute("icon", buttonCondition.off_icon);
+        }
+      }
+
+      // Conditionally style background.
+      if (toStyle && background) {
+        if (prevColor.background == undefined) {
+          prevColor.background = window
+            .getComputedStyle(header, null)
+            .getPropertyValue("background");
+        }
+        header.style.background = styling[i].background;
+      } else if (!toStyle && background) {
+        header.style.background = prevColor.background;
       }
     }
   }
@@ -988,54 +1145,25 @@ function conditionalStyling(tabs, header) {
 }
 
 function templates(template, tabs, _hass, header) {
-  // Variables for templates.
   let states = _hass.states;
-  let entity = states;
-
-  const templateEval = template => {
-    try {
-      if (template.includes("return")) {
-        return eval(`(function() {${template}}())`);
-      } else {
-        return eval(template);
-      }
-    } catch (e) {
-      console.log("CCH styling template failed.");
-      console.log(e);
-    }
-  };
-
   for (const condition in template) {
     if (condition == "tab") {
       for (const tab in template[condition]) {
         let tempCond = template[condition][tab];
         if (!tempCond.length) tempCond = [tempCond];
         tempCond.forEach(templateObj => {
-          let tabIndex = Object.keys(template[condition]);
-          let views = lovelace.config.views;
-          if (isNaN(tabIndex)) {
-            for (let view in views) {
-              if (
-                views[view]["title"] == tabIndex ||
-                views[view]["path"] == tabIndex
-              ) {
-                tabIndex = view;
-              }
-            }
-          } else {
-            tabIndex = parseInt(tabIndex);
-          }
+          let tabIndex = getViewIndex(Object.keys(template[condition]));
           let styleTarget = Object.keys(templateObj);
           let tabTemplate = templateObj[styleTarget];
           let tabElement = tabs[tabIndex];
           if (styleTarget == "icon") {
             tabElement
               .querySelector("ha-icon")
-              .setAttribute("icon", templateEval(tabTemplate, entity));
+              .setAttribute("icon", templateEval(tabTemplate, states));
           } else if (styleTarget == "color") {
-            tabElement.style.color = templateEval(tabTemplate, entity);
+            tabElement.style.color = templateEval(tabTemplate, states);
           } else if (styleTarget == "display") {
-            templateEval(tabTemplate, entity) == "show"
+            templateEval(tabTemplate, states) == "show"
               ? (tabElement.style.display = "")
               : (tabElement.style.display = "none");
           }
@@ -1055,20 +1183,21 @@ function templates(template, tabs, _hass, header) {
             ? buttonElem.querySelector("paper-icon-button")
             : buttonElem.shadowRoot.querySelector("paper-icon-button");
           if (styleTarget == "icon") {
-            iconTarget.setAttribute("icon", templateEval(tempCond, entity));
+            iconTarget.setAttribute("icon", templateEval(tempCond, states));
           } else if (styleTarget == "color") {
-            iconTarget.shadowRoot.querySelector(
-              "iron-icon"
-            ).style.color = templateEval(tempCond, entity);
+            let tar =
+              iconTarget.querySelector("iron-icon") ||
+              iconTarget.shadowRoot.querySelector("iron-icon");
+            tar.style.color = templateEval(tempCond, states);
           } else if (styleTarget == "display") {
-            templateEval(tempCond, entity) == "show"
+            templateEval(tempCond, states) == "show"
               ? (buttonElem.style.display = "")
               : (buttonElem.style.display = "none");
           }
         });
       }
     } else if (condition == "background") {
-      header.style.background = templateEval(template[condition], entity);
+      header.style.background = templateEval(template[condition], states);
     }
   }
 }
@@ -1111,24 +1240,40 @@ function showEditor() {
     const container = document.createElement("editor");
     const nest = document.createElement("div");
     nest.style.cssText = `
-      padding: 20px;
-      max-width: 600px;
-      margin: 15px auto;
-      background: var(--paper-card-background-color);
-      border: 6px solid var(--paper-card-background-color);
-    `;
+        padding: 20px;
+        max-width: 600px;
+        margin: 15px auto;
+        background: var(--paper-card-background-color);
+        border: 6px solid var(--paper-card-background-color);
+      `;
     container.style.cssText = `
-      width: 100%;
-      min-height: 100%;
-      box-sizing: border-box;
-      position: absolute;
-      background: var(--background-color, grey);
-      z-index: 2;
-      padding: 5px;
-    `;
+        width: 100%;
+        min-height: 100%;
+        box-sizing: border-box;
+        position: absolute;
+        background: var(--background-color, grey);
+        z-index: 2;
+        padding: 5px;
+      `;
     root.querySelector("ha-app-layout").insertBefore(container, view);
     container.appendChild(nest);
     nest.appendChild(document.createElement("compact-custom-header-editor"));
+  }
+}
+
+function getViewIndex(viewString) {
+  let views = lovelace.config.views;
+  if (isNaN(viewString)) {
+    for (let view in views) {
+      if (
+        views[view]["title"] == viewString ||
+        views[view]["path"] == viewString
+      ) {
+        return view;
+      }
+    }
+  } else {
+    return parseInt(viewString);
   }
 }
 
@@ -1143,10 +1288,29 @@ function reverseObject(object) {
   return newObject;
 }
 
+function templateEval(template, states) {
+  let entity = states;
+  try {
+    if (template.includes("return")) {
+      return eval(`(function() {${template}}())`);
+    } else {
+      return eval(template);
+    }
+  } catch (e) {
+    console.log(
+      `%cCCH Template Failed:%c\n${template}\n%c${e}`,
+      "text-decoration: underline;",
+      "",
+      "color: red;"
+    );
+  }
+}
+
 function swipeNavigation(tabs, tabContainer) {
   // To make it easier to update lovelace-swipe-navigation
   // keep this as close to the standalone lovelace addon as possible.
   let swipe_amount = cchConfig.swipe_amount || 15;
+  let swipe_groups = cchConfig.swipe_groups;
   let animate = cchConfig.swipe_animate || "none";
   let skip_tabs = cchConfig.swipe_skip
     ? buildRanges(cchConfig.swipe_skip.split(","))
@@ -1159,13 +1323,16 @@ function swipeNavigation(tabs, tabContainer) {
 
   swipe_amount /= Math.pow(10, 2);
   const appLayout = root.querySelector("ha-app-layout");
-  let xDown, yDown, xDiff, yDiff, activeTab, firstTab, lastTab, left;
+  let inGroup = true;
+  let xDown, yDown, xDiff, yDiff, activeTab, firstTab, lastTab, left, fTabs;
 
   appLayout.addEventListener("touchstart", handleTouchStart, { passive: true });
   appLayout.addEventListener("touchmove", handleTouchMove, { passive: false });
   appLayout.addEventListener("touchend", handleTouchEnd, { passive: true });
 
   function handleTouchStart(event) {
+    filterTabs();
+    if (swipe_groups && !inGroup) return;
     let ignored = ["APP-HEADER", "HA-SLIDER", "SWIPE-CARD", "HUI-MAP-CARD"];
     let path = (event.composedPath && event.composedPath()) || event.path;
     if (path) {
@@ -1176,8 +1343,6 @@ function swipeNavigation(tabs, tabContainer) {
     }
     xDown = event.touches[0].clientX;
     yDown = event.touches[0].clientY;
-    if (!lastTab) filterTabs();
-    activeTab = tabs.indexOf(tabContainer.querySelector(".iron-selected"));
   }
 
   function handleTouchMove(event) {
@@ -1197,90 +1362,137 @@ function swipeNavigation(tabs, tabContainer) {
     }
     if (xDiff > Math.abs(screen.width * swipe_amount)) {
       left = false;
-      activeTab == tabs.length - 1 ? click(firstTab) : click(activeTab + 1);
+      if (!wrap && fTabs[activeTab] == lastTab) return;
+      else if (fTabs[activeTab] == lastTab && wrap) click(firstTab);
+      else click(fTabs[activeTab + 1]);
     } else if (xDiff < -Math.abs(screen.width * swipe_amount)) {
       left = true;
-      activeTab == 0 ? click(lastTab) : click(activeTab - 1);
+      if (!wrap && fTabs[activeTab] == firstTab) return;
+      else if (fTabs[activeTab] == firstTab && wrap) click(lastTab);
+      else click(fTabs[activeTab - 1]);
     }
     xDown = yDown = xDiff = yDiff = null;
   }
 
   function filterTabs() {
-    tabs = tabs.filter(element => {
-      return (
-        !skip_tabs.includes(tabs.indexOf(element)) &&
-        getComputedStyle(element, null).display != "none"
-      );
-    });
-    firstTab = wrap ? 0 : null;
-    lastTab = wrap ? tabs.length - 1 : null;
+    let currentTab = tabs.indexOf(tabContainer.querySelector(".iron-selected"));
+    if (swipe_groups) {
+      let groups = swipe_groups.replace(/, /g, ",").split(",");
+      for (let group in groups) {
+        let firstLast = groups[group].replace(/ /g, "").split("to");
+        if (wrap && currentTab >= firstLast[0] && currentTab <= firstLast[1]) {
+          inGroup = true;
+          firstTab = tabs[parseInt(firstLast[0])];
+          lastTab = tabs[parseInt(firstLast[1])];
+          fTabs = tabs.filter(element => {
+            return (
+              tabs.indexOf(element) >= firstLast[0] &&
+              tabs.indexOf(element) <= firstLast[1]
+            );
+          });
+          break;
+        } else {
+          inGroup = false;
+        }
+      }
+    }
+    if (cchConfig.swipe_skip_hidden) {
+      fTabs = tabs.filter(element => {
+        return (
+          !skip_tabs.includes(tabs.indexOf(element)) &&
+          getComputedStyle(element, null).display != "none"
+        );
+      });
+    } else {
+      fTabs = tabs.filter(element => {
+        return !skip_tabs.includes(tabs.indexOf(element));
+      });
+    }
+    if (!swipe_groups) {
+      firstTab = fTabs[0];
+      lastTab = fTabs[fTabs.length - 1];
+    }
+    activeTab = fTabs.indexOf(tabContainer.querySelector(".iron-selected"));
   }
 
-  function click(index) {
-    if (
-      (activeTab == 0 && !wrap && left) ||
-      (activeTab == tabs.length - 1 && !wrap && !left)
-    ) {
-      return;
-    }
-    if (animate == "swipe") {
-      let _in = left ? `${screen.width / 1.5}px` : `-${screen.width / 1.5}px`;
-      let _out = left ? `-${screen.width / 1.5}px` : `${screen.width / 1.5}px`;
-      view.style.transitionDuration = "200ms";
-      view.style.opacity = 0;
-      view.style.transform = `translateX(${_in})`;
-      view.style.transition = "transform 0.20s, opacity 0.20s";
-      setTimeout(function() {
-        tabs[index].dispatchEvent(
-          new MouseEvent("click", { bubbles: false, cancelable: true })
-        );
-        view.style.transitionDuration = "0ms";
-        view.style.transform = `translateX(${_out})`;
-        view.style.transition = "transform 0s";
-      }, 210);
-      setTimeout(function() {
-        view.style.transitionDuration = "200ms";
-        view.style.opacity = 1;
-        view.style.transform = `translateX(0px)`;
-        view.style.transition = "transform 0.20s, opacity 0.20s";
-      }, 215);
-    } else if (animate == "fade") {
-      view.style.transitionDuration = "200ms";
-      view.style.transition = "opacity 0.20s";
-      view.style.opacity = 0;
-      setTimeout(function() {
-        tabs[index].dispatchEvent(
-          new MouseEvent("click", { bubbles: false, cancelable: true })
-        );
-        view.style.transitionDuration = "0ms";
-        view.style.opacity = 0;
-        view.style.transition = "opacity 0s";
-      }, 210);
-      setTimeout(function() {
-        view.style.transitionDuration = "200ms";
-        view.style.transition = "opacity 0.20s";
-        view.style.opacity = 1;
-      }, 250);
-    } else if (animate == "flip") {
-      view.style.transitionDuration = "200ms";
-      view.style.transform = "rotatey(90deg)";
-      view.style.transition = "transform 0.20s, opacity 0.20s";
-      view.style.opacity = 0.25;
-      setTimeout(function() {
-        tabs[index].dispatchEvent(
-          new MouseEvent("click", { bubbles: false, cancelable: true })
-        );
-      }, 210);
-      setTimeout(function() {
-        view.style.transitionDuration = "200ms";
-        view.style.transform = "rotatey(0deg)";
-        view.style.transition = "transform 0.20s, opacity 0.20s";
-        view.style.opacity = 1;
-      }, 250);
-    } else {
-      tabs[index].dispatchEvent(
+  function animation(secs, transform, opacity, timeout) {
+    setTimeout(() => {
+      view.style.transition = `transform ${secs}s, opacity ${secs}s`;
+      view.style.transform = transform ? transform : "";
+      view.style.opacity = opacity;
+    }, timeout);
+  }
+
+  function navigate(tab, timeout) {
+    setTimeout(() => {
+      tab.dispatchEvent(
         new MouseEvent("click", { bubbles: false, cancelable: true })
       );
+    }, timeout);
+  }
+
+  function click(tab) {
+    if (!tab || (tab.style.display == "none" && cchConfig.swipe_skip_hidden)) {
+      return;
+    }
+    if (
+      !wrap &&
+      ((activeTab == firstTab && left) || (activeTab == lastTab && !left))
+    ) {
+      return;
+    } else if (animate == "swipe") {
+      let width = screen.width / 1.5 + "px";
+      // Swipe view off screen.
+      animation(0.16, `translateX(${left ? "" : "-"}${width})`, 0, 0);
+      // Watch for content to load.
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeName) {
+              // Move view to other side of screen.
+              let neg = view.style.transform.includes("-") ? "" : "-";
+              animation(0, `translateX(${neg}${width})`, 0, 0);
+              // Slide view back on screen.
+              animation(0.16, "translateX(0px)", 1, 50);
+              observer.disconnect();
+              return;
+            }
+          });
+        });
+      });
+      observer.observe(view, { childList: true });
+      // Navigate to next view and trigger the observer.
+      navigate(tab, 180);
+    } else if (animate == "fade") {
+      animation(0.16, "", 0, 0);
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeName == "HUI-VIEW") {
+              animation(0.16, "", 1, 0);
+              observer.disconnect();
+            }
+          });
+        });
+      });
+      observer.observe(view, { childList: true });
+      navigate(tab, 170);
+    } else if (animate == "flip") {
+      animation(0.25, "rotatey(90deg)", 0.25, 0);
+      const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeName == "HUI-VIEW") {
+              animation(0.25, "rotatey(0deg)", 1, 50);
+              observer.disconnect();
+            }
+          });
+        });
+      });
+      observer.observe(view, { childList: true });
+      navigate(tab, 270);
+    } else {
+      navigate(tab, 0);
     }
   }
 }
@@ -1305,7 +1517,7 @@ function breakingChangeNotification() {
   }
 }
 
-// EDITOR //////////////////////////////////////////////////////////////////
+// EDITOR //////////////////////////////////////////////////////////////////////
 
 const buttonOptions = ["show", "hide", "clock", "overflow"];
 const overflowOptions = ["show", "hide", "clock"];
@@ -1383,7 +1595,7 @@ class CompactCustomHeaderEditor extends LitElement {
       <br />
       <h4
         style="background:var(--paper-card-background-color);
-      margin-bottom:-20px;"
+        margin-bottom:-20px;"
         class="underline"
       >
         ${!this.exception
@@ -2082,87 +2294,87 @@ class CchConfigEditor extends LitElement {
         </paper-toggle-button>
         ${this.config.swipe
           ? html`
-        <paper-toggle-button
-          class="${
-            this.exception && this.config.swipe_wrap === undefined
-              ? "inherited"
-              : ""
-          }"
-          ?checked="${this.getConfig("swipe_wrap") !== false}"
-          .configValue="${"swipe_wrap"}"
-          @change="${this._valueChanged}"
-          title="Wrap from first to last tab and vice versa."
-        >
-          Wrapping
-        </paper-toggle-button>
-        <paper-toggle-button
-          class="${
-            this.exception && this.config.swipe_prevent_default === undefined
-              ? "inherited"
-              : ""
-          }"
-          ?checked="${this.getConfig("swipe_prevent_default") !== false}"
-          .configValue="${"swipe_prevent_default"}"
-          @change="${this._valueChanged}"
-          title="Prevent browsers default horizontal swipe action."
-        >
-          Prevent Default
-        </paper-toggle-button>
-        <div
-        class="${
-          this.exception && this.config.swipe_animate === undefined
-            ? "inherited"
-            : ""
-        }"
-      >
-      </div>
-      <div class="side-by-side">
-        <paper-dropdown-menu
-          @value-changed="${this._valueChanged}"
-          label="Swipe Animation:"
-          .configValue="${"swipe_animate"}"
-        >
-          <paper-listbox
-            slot="dropdown-content"
-            .selected="${swipeAnimation.indexOf(
-              this.getConfig("swipe_animate")
-            )}"
+          <paper-toggle-button
+            class="${
+              this.exception && this.config.swipe_wrap === undefined
+                ? "inherited"
+                : ""
+            }"
+            ?checked="${this.getConfig("swipe_wrap") !== false}"
+            .configValue="${"swipe_wrap"}"
+            @change="${this._valueChanged}"
+            title="Wrap from first to last tab and vice versa."
           >
-            ${swipeAnimation.map(option => {
-              return html`
-                <paper-item>${option}</paper-item>
-              `;
-            })}
-          </paper-listbox>
-        </paper-dropdown-menu>
-      </div>
-      <paper-input
-      class="${
-        this.exception && this.config.swipe_amount === undefined
-          ? "inherited"
-          : ""
-      }"
-      label="Percentage of screen width needed for swipe:"
-      .value="${this.getConfig("swipe_amount")}"
-      .configValue="${"swipe_amount"}"
-      @value-changed="${this._valueChanged}"
-    >
-    </paper-input>
+            Wrapping
+          </paper-toggle-button>
+          <paper-toggle-button
+            class="${
+              this.exception && this.config.swipe_prevent_default === undefined
+                ? "inherited"
+                : ""
+            }"
+            ?checked="${this.getConfig("swipe_prevent_default") !== false}"
+            .configValue="${"swipe_prevent_default"}"
+            @change="${this._valueChanged}"
+            title="Prevent browsers default horizontal swipe action."
+          >
+            Prevent Default
+          </paper-toggle-button>
+          <div
+          class="${
+            this.exception && this.config.swipe_animate === undefined
+              ? "inherited"
+              : ""
+          }"
+        >
+        </div>
+        <div class="side-by-side">
+          <paper-dropdown-menu
+            @value-changed="${this._valueChanged}"
+            label="Swipe Animation:"
+            .configValue="${"swipe_animate"}"
+          >
+            <paper-listbox
+              slot="dropdown-content"
+              .selected="${swipeAnimation.indexOf(
+                this.getConfig("swipe_animate")
+              )}"
+            >
+              ${swipeAnimation.map(option => {
+                return html`
+                  <paper-item>${option}</paper-item>
+                `;
+              })}
+            </paper-listbox>
+          </paper-dropdown-menu>
         </div>
         <paper-input
         class="${
-          this.exception && this.config.swipe_skip === undefined
+          this.exception && this.config.swipe_amount === undefined
             ? "inherited"
             : ""
         }"
-        label="Comma-separated list of tabs to skip over on swipe:"
-        .value="${this.getConfig("swipe_skip")}"
-        .configValue="${"swipe_skip"}"
+        label="Percentage of screen width needed for swipe:"
+        .value="${this.getConfig("swipe_amount")}"
+        .configValue="${"swipe_amount"}"
         @value-changed="${this._valueChanged}"
       >
       </paper-input>
-      </div>
-    `
+          </div>
+          <paper-input
+          class="${
+            this.exception && this.config.swipe_skip === undefined
+              ? "inherited"
+              : ""
+          }"
+          label="Comma-separated list of tabs to skip over on swipe:"
+          .value="${this.getConfig("swipe_skip")}"
+          .configValue="${"swipe_skip"}"
+          @value-changed="${this._valueChanged}"
+        >
+        </paper-input>
+        </div>
+      `
           : ""}
       </div>
     `;
@@ -2174,9 +2386,9 @@ class CchConfigEditor extends LitElement {
   }
 
   _tabVisibility() {
-    let show = this.shadowRoot.querySelector('[id="show"]');
-    let hide = this.shadowRoot.querySelector('[id="hide"]');
-    if (this.shadowRoot.querySelector('[id="tabs"]').value == "Hide Tabs") {
+    let show = this.shadowRoot.querySelector("#show");
+    let hide = this.shadowRoot.querySelector("#hide");
+    if (this.shadowRoot.querySelector("#tabs").value == "Hide Tabs") {
       show.style.display = "none";
       hide.style.display = "initial";
     } else {
@@ -2504,24 +2716,18 @@ class CchConditionsEditor extends LitElement {
         };
       }
     }
-    fireEvent(this, "cch-conditions-changed", {
-      conditions: this.conditions
-    });
+    fireEvent(this, "cch-conditions-changed", { conditions: this.conditions });
   }
 }
 
 customElements.define("cch-conditions-editor", CchConditionsEditor);
 
 function deepcopy(value) {
-  if (!(!!value && typeof value == "object")) {
-    return value;
-  }
+  if (!(!!value && typeof value == "object")) return value;
   if (Object.prototype.toString.call(value) == "[object Date]") {
     return new Date(value.getTime());
   }
-  if (Array.isArray(value)) {
-    return value.map(deepcopy);
-  }
+  if (Array.isArray(value)) return value.map(deepcopy);
   var result = {};
   Object.keys(value).forEach(function(key) {
     result[key] = deepcopy(value[key]);
@@ -2530,7 +2736,7 @@ function deepcopy(value) {
 }
 
 console.info(
-  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.3.5     `,
+  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.3.8     `,
   "color: orange; font-weight: bold; background: black",
   "color: white; font-weight: bold; background: dimgray"
 );
