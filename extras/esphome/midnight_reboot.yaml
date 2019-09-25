@@ -2,6 +2,6 @@ time:
   - platform: homeassistant
     id: homeassistant_time
     on_time:
-      - cron: '00 00 * * * *'
+      - cron: '00 05 * * * *'
         then:
           - switch.toggle: restart_device

@@ -31,3 +31,23 @@ services:
             - '9000:9000'
         restart: "no"
         image: portainer/portainer
+    pihole:
+      container_name: pihole
+      image: pihole/pihole:latest
+      ports:
+        - "53:53/tcp"
+        - "53:53/udp"
+        - "8000:80/tcp"
+      environment:
+        TZ: 'America/Chicago'
+        DNS1: '10.0.1.1'
+        ServerIPv6: '2001:470:1f0f:f4:ffff:242:ac11:2'
+        IPv6: 'True'
+        DNSMASQ_LISTENING: all
+      volumes:
+        - '/opt/pihole/etc-pihole/:/etc/pihole/'
+        - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+      dns:
+        - 10.0.1.1
+      restart: unless-stopped
+      network_mode: 'bridge'

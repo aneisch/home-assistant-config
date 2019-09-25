@@ -33,7 +33,6 @@ views:
         type: thermostat
         entity: climate.thermostat
 
-
       - id: ffde4b2bfa2c43a79cf69cb4252cac06  # Automatically created id
         type: entities
         show_header_toggle: false
@@ -133,7 +132,6 @@ views:
       - id: ad9fae2dc645458d9f45bafe2f848132  # Automatically created id
         type: picture-entity
         entity: camera.outdoor
-        #camera_view: live
 
       - id: backyard_camera
         type: picture-entity
@@ -428,6 +426,8 @@ views:
             type: custom:toggle-lock-entity-row
           - entity: switch.docker_pwr_stat_650
             type: custom:toggle-lock-entity-row
+          - entity: switch.docker_pihole
+            type: custom:toggle-lock-entity-row
 
   - id: 4
     title: Gate Testing
@@ -448,4 +448,18 @@ views:
           - automation.gate_heading_comparison_action
           - automation.gate_battery_safety_notify
           - script.mom_and_dad_gate_toggle
+
+
+  - id: 4
+    title: Timelapse
+    cards:
+      - id: c8862a9288e9486b8a267ef725d40e59  # Automatically created id
+        type: picture-entity
+        entity: camera.garden_timelapse
+      - id: c8862a9288e9486b8a267ef725d40e60  # Automatically created id
+        type: picture-entity
+        entity: camera.front_timelapse
+      - id: c8862a9288e9486b8a267ef725d40e61  # Automatically created id
+        type: picture-entity
+        entity: camera.side_timelapse
 

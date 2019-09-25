@@ -68,7 +68,7 @@ mqtt:
   broker: MQTT_BROKER
   username: gate
   password: MQTT_PASS
-  log_topic:
+  log_topic: 
   on_message:
     - topic: cmd/mom_and_dad_gate
       then:
@@ -86,6 +86,7 @@ sensor:
     address: 0x0D
     heading:
       id: heading
+      #name: "reading"
     data_rate: 10Hz
     range: 200uT
     oversampling: 512x
@@ -94,6 +95,7 @@ sensor:
   # Template sensor to keep average of last 15 heading
   # readings so we can detect significant change
   - platform: template
+    #name: "heading_average"
     id: heading_average
     update_interval: 1s
     unit_of_measurement: "°"
