@@ -32,6 +32,7 @@ services:
         restart: "no"
         image: portainer/portainer
     pihole:
+      # Adding ip route proxy in /etc/rc.local
       container_name: pihole
       image: pihole/pihole:latest
       ports:
