@@ -47,10 +47,6 @@
   trigger:
     platform: state
     entity_id: input_boolean.security_status
-  condition:
-    condition: state
-    entity_id: input_boolean.security_automation
-    state: 'on'
   action:
     service: script.turn_on
     data_template:
@@ -72,6 +68,10 @@
     - platform: state
       entity_id: group.trackers
       to: home
+  condition:
+    condition: state
+    entity_id: input_boolean.guest_mode
+    state: 'off'
   action:
     service: script.turn_on
     data_template: 

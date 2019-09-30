@@ -163,7 +163,7 @@ House Lamp Automation:
 Lamps Follow:
   module: follow_me
   class: Follow
-  constrain_input_boolean: input_boolean.guest_automation
+  constrain_input_boolean: input_boolean.guest_mode,off
   # leader can be a comma separated list
   leader: group.master_bedroom_lamps
   # follower can be a comma separated list

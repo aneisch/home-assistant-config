@@ -21,11 +21,14 @@
 - platform: ffmpeg
   input: /opt/nodered/garden_timelapse/garden_timelapse.mp4
   name: Garden Timelapse
+  extra_arguments: '-q:v 2 -r 3'
 
 - platform: ffmpeg
   input: /opt/nodered/front_timelapse/front_timelapse.mp4
   name: Front Timelapse
+  extra_arguments: '-q:v 2 -r 3'
 
 - platform: ffmpeg
   input: /opt/nodered/side_timelapse/side_timelapse.mp4
   name: Side Timelapse
+  extra_arguments: '-q:v 2 -r 3'

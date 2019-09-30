@@ -1,11 +1,16 @@
+console.info(
+  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.4.1     `,
+  "color: orange; font-weight: bold; background: black",
+  "color: white; font-weight: bold; background: dimgray"
+);
+
 const LitElement = Object.getPrototypeOf(
   customElements.get("ha-panel-lovelace")
 );
 const html = LitElement.prototype.html;
 const hass = document.querySelector("home-assistant").hass;
 
-const fireEvent = (node, type, detail, options) => {
-  options = options || {};
+const fireEvent = (node, type, detail, options = {}) => {
   detail = detail === null || detail === undefined ? {} : detail;
   const event = new Event(type, {
     bubbles: options.bubbles === undefined ? true : options.bubbles,
@@ -54,7 +59,13 @@ const defaultConfig = {
   swipe_prevent_default: false,
   swipe_skip_hidden: true,
   warning: true,
-  compact_header: true
+  compact_header: true,
+  view_css: "",
+  time_css: "",
+  date_css: "",
+  header_css: "",
+  tab_css: {},
+  button_css: {}
 };
 
 let root = document.querySelector("home-assistant");
@@ -75,11 +86,11 @@ const frontendVersion = Number(window.frontendVersion);
 const newSidebar = frontendVersion >= 20190710;
 const header = root.querySelector("app-header");
 let cchConfig = buildConfig(lovelace.config.cch || {});
+if (typeof cchConfig.background == "boolean") cchConfig.background = "";
 const view = root.querySelector("ha-app-layout").querySelector("#view");
 const disabled =
   window.location.href.includes("disable_cch") || cchConfig.disable;
 
-let defaultTabRedirect = false;
 let sidebarClosed = false;
 let editMode = header.className == "edit-mode";
 let firstRun = true;
@@ -94,14 +105,12 @@ function run() {
   const tabs = tabContainer
     ? Array.from(tabContainer.querySelectorAll("paper-tab"))
     : [];
-
   if (firstRun || buttons == undefined) {
     buttons = getButtonElements(tabContainer);
   }
   if (!buttons.menu || !buttons.options || header.className == "edit-mode") {
     return;
   }
-
   if (!disabled) {
     insertEditMenu(tabs);
     hideMenuItems();
@@ -112,24 +121,23 @@ function run() {
       conditionalStyling(tabs, header);
     }
     hideTabs(tabContainer, tabs);
-    defaultTab(tabs, tabContainer);
     for (let button in buttons) {
       if (cchConfig[button] == "clock") insertClock(button);
     }
     if (!editMode) tabContainerMargin(tabContainer);
     if (cchConfig.swipe) swipeNavigation(tabs, tabContainer);
   }
-
-  if (firstRun) observers(tabContainer, tabs, header);
-  fireEvent(header, "iron-resize");
+  if (firstRun) {
+    observers(tabContainer, tabs, header);
+    defaultTab(tabs, tabContainer);
+  }
   firstRun = false;
-  scrollTabIconIntoView(tabContainer);
+  fireEvent(header, "iron-resize");
 }
 
 function buildConfig(config) {
   let exceptionConfig = {};
   let highestMatch = 0;
-
   // Count number of matching conditions and choose config with most matches.
   if (config.exceptions) {
     config.exceptions.forEach(exception => {
@@ -140,7 +148,6 @@ function buildConfig(config) {
       }
     });
   }
-
   // If exception config uses hide_tabs and main config uses show_tabs,
   // delete show_tabs and vice versa.
   if (
@@ -188,36 +195,46 @@ function buildConfig(config) {
 }
 
 function observers(tabContainer, tabs, header) {
-  const callback = function(mutations) {
-    mutations.forEach(mutation => {
-      if (
-        mutation.addedNodes.length &&
-        mutation.target.nodeName == "PARTIAL-PANEL-RESOLVER"
-      ) {
+  const callback = mutations => {
+    // Theme Changed.
+    if (mutations[0].target.nodeName == "HTML") {
+      mutations = [mutations[0]];
+      styleHeader(tabContainer, tabs, header);
+      conditionalStyling(tabs, header);
+      return;
+    }
+    mutations.forEach(({ addedNodes, target }) => {
+      if (addedNodes.length && target.nodeName == "PARTIAL-PANEL-RESOLVER") {
         // Navigated back to lovelace from elsewhere in HA.
         buttons = getButtonElements();
         run();
-      } else if (mutation.target.className == "edit-mode") {
+      } else if (target.className == "edit-mode" && addedNodes.length) {
         // Entered edit mode.
         editMode = true;
         if (!disabled) removeStyles(tabContainer, tabs, header);
         buttons.options = root.querySelector("paper-menu-button");
         insertEditMenu(tabs);
-      } else if (mutation.target.nodeName == "APP-HEADER") {
+        fireEvent(header, "iron-resize");
+      } else if (target.nodeName == "APP-HEADER" && addedNodes.length) {
         // Exited edit mode.
-        for (let node of mutation.addedNodes) {
+        for (let node of addedNodes) {
           if (node.nodeName == "APP-TOOLBAR") {
             editMode = false;
             buttons = getButtonElements();
-            run();
-            if (!disabled) conditionalStyling(tabs, header);
+            root.querySelectorAll("[id^='cch']").forEach(style => {
+              style.remove();
+            });
+            setTimeout(() => {
+              run();
+              if (!disabled) conditionalStyling(tabs, header);
+            }, 100);
           }
         }
       } else if (
         // Viewing unused entities
         frontendVersion < 20190911 &&
-        mutation.addedNodes.length &&
-        !mutation.addedNodes[0].nodeName == "HUI-UNUSED-ENTITIES"
+        addedNodes.length &&
+        !addedNodes[0].nodeName == "HUI-UNUSED-ENTITIES"
       ) {
         let editor = root
           .querySelector("ha-app-layout")
@@ -227,15 +244,16 @@ function observers(tabContainer, tabs, header) {
           buttons = getButtonElements(tabContainer);
           conditionalStyling(tabs, header);
         }
+      } else if (target.id == "view" && addedNodes.length) {
+        scrollTabIconIntoView();
       }
     });
   };
   let observer = new MutationObserver(callback);
   observer.observe(panelResolver, { childList: true });
+  observer.observe(document.querySelector("html"), { attributes: true });
   observer.observe(view, { childList: true });
-  observer.observe(root.querySelector("app-header"), {
-    childList: true
-  });
+  observer.observe(root.querySelector("app-header"), { childList: true });
 
   if (!disabled) {
     window.hassConnection.then(({ conn }) => {
@@ -270,7 +288,13 @@ function tabContainerMargin(tabContainer) {
   let marginRight = 0;
   let marginLeft = 15;
   for (const button in buttons) {
-    let visible = buttons[button].style.display !== "none";
+    let paperIconButton =
+      buttons[button].querySelector("paper-icon-button") ||
+      buttons[button].shadowRoot.querySelector("paper-icon-button");
+    let visible = paperIconButton
+      ? buttons[button].style.display !== "none" &&
+        !paperIconButton.hasAttribute("hidden")
+      : buttons[button].style.display !== "none";
     if (cchConfig[button] == "show" && visible) {
       if (button == "menu") marginLeft += 45;
       else marginRight += 45;
@@ -285,31 +309,27 @@ function tabContainerMargin(tabContainer) {
     }
   }
   if (tabContainer) {
-    tabContainer.style.marginRight = marginRight + "px";
-    tabContainer.style.marginLeft = marginLeft + "px";
+    tabContainer.style.marginRight = `${marginRight}px`;
+    tabContainer.style.marginLeft = `${marginLeft}px`;
   }
 }
 
-function scrollTabIconIntoView(tabContainer) {
-  if (!tabContainer || !tabContainer.querySelector(".iron-selected")) return;
-  let currentTab = tabContainer.querySelector(".iron-selected");
-  let tabBounds = currentTab.getBoundingClientRect();
-  let containerBounds = tabContainer.getBoundingClientRect();
-  let chev = tabContainer.shadowRoot.querySelectorAll(
-    '[icon^="paper-tabs:chevron"]'
-  );
-  if (
-    (cchConfig.chevrons &&
-      chev[0] &&
-      tabBounds.left < chev[0].getBoundingClientRect().right + 5) ||
-    (cchConfig.chevrons &&
-      chev[1] &&
-      tabBounds.right > chev[1].getBoundingClientRect().left - 5) ||
-    (!cchConfig.chevrons &&
-      (tabBounds.left < containerBounds.right + 5 ||
-        tabBounds.right > containerBounds.left - 5))
-  ) {
-    currentTab.scrollIntoView({ inline: "center" });
+function scrollTabIconIntoView() {
+  let paperTabs = root.querySelector("paper-tabs");
+  let currentTab = paperTabs.querySelector(".iron-selected");
+  if (!paperTabs || !currentTab) return;
+  let tab = currentTab.getBoundingClientRect();
+  let container = paperTabs.shadowRoot
+    .querySelector("#tabsContainer")
+    .getBoundingClientRect();
+  if (container.right < tab.right || container.left > tab.left) {
+    if ("scrollMarginInline" in document.documentElement.style) {
+      currentTab.scrollIntoView({ inline: "center" });
+    } else if (Element.prototype.scrollIntoViewIfNeeded) {
+      currentTab.scrollIntoViewIfNeeded(true);
+    } else {
+      currentTab.scrollIntoView();
+    }
   }
 }
 
@@ -364,11 +384,11 @@ function insertEditMenu(tabs) {
   }
 }
 
-function removeStyles(tabContainer, tabs, header) {
-  root.querySelectorAll("[id^='cch'], style").forEach(style => {
+function removeStyles(tabContainer, tabs, { style }) {
+  root.querySelector("app-header").style.backgroundColor = "#455a64";
+  root.querySelectorAll("[id^='cch']").forEach(style => {
     style.remove();
   });
-
   if (cchConfig.tab_css) {
     for (let [key, value] of Object.entries(cchConfig.tab_css)) {
       key = getViewIndex(key);
@@ -379,14 +399,13 @@ function removeStyles(tabContainer, tabs, header) {
   }
   if (cchConfig.header_css) {
     let value = cchConfig.header_css.replace(/: /g, ":").replace(/; /g, ";");
-    let css = header.style.cssText.replace(/: /g, ":").replace(/; /g, ";");
-    header.style.cssText = css.replace(value, "");
+    let css = style.cssText.replace(/: /g, ":").replace(/; /g, ";");
+    style.cssText = css.replace(value, "");
   }
   if (tabContainer) {
     tabContainer.style.marginLeft = "";
     tabContainer.style.marginRight = "";
   }
-  header.style.background = "";
   view.style = "";
   for (let i = 0; i < tabs.length; i++) {
     tabs[i].style.color = "";
@@ -396,28 +415,51 @@ function removeStyles(tabContainer, tabs, header) {
       tabs[i].style.removeProperty("display");
     }
   }
+  let viewStyle = document.createElement("style");
+  viewStyle.setAttribute("id", "cch_view_styling");
+  viewStyle.innerHTML = `
+    hui-view {
+      min-height: 100vh;
+    }
+    hui-panel-view {
+      min-height: calc(100vh - 52px);
+    }
+    `;
+  root.appendChild(viewStyle);
 }
 
 function styleHeader(tabContainer, tabs, header) {
   document.body.style.backgroundColor = getComputedStyle(
     document.body
   ).getPropertyValue("--background-color");
-  let headerBackground =
+  prevColor.background =
     cchConfig.background ||
     getComputedStyle(document.body).getPropertyValue("--cch-background") ||
     getComputedStyle(document.body).getPropertyValue("--primary-color");
-  let statusBarColor = cchConfig.statusbar_color || headerBackground;
+  let statusBarColor = cchConfig.statusbar_color || prevColor.background;
   // Match mobile status bar color to header color.
   let themeColor = document.querySelector('[name="theme-color"]');
+  let themeColorApple =
+    document.querySelector('[name="apple-mobile-web-app-status-bar-style"]') ||
+    document.createElement("meta");
   function colorStatusBar() {
     statusBarColor =
       cchConfig.statusbar_color ||
       cchConfig.background ||
       getComputedStyle(document.body).getPropertyValue("--cch-background") ||
       getComputedStyle(document.body).getPropertyValue("--primary-color");
-    themeColor = document.querySelector('[name="theme-color"]');
-    themeColor.content = statusBarColor;
+    themeColor = document.querySelector("meta[name=theme-color]");
+    themeColor.setAttribute("content", statusBarColor);
     themeColor.setAttribute("default-content", statusBarColor);
+    if (
+      !document.querySelector('[name="apple-mobile-web-app-status-bar-style"]')
+    ) {
+      themeColorApple.name = "apple-mobile-web-app-status-bar-style";
+      themeColorApple.content = statusBarColor;
+      document.getElementsByTagName("head")[0].appendChild(themeColorApple);
+    } else {
+      themeColorApple.setAttribute("content", statusBarColor);
+    }
   }
   colorStatusBar();
   // If app/browser is idle or in background sometimes theme-color needs reset.
@@ -432,26 +474,50 @@ function styleHeader(tabContainer, tabs, header) {
   if (!cchConfig.header || cchConfig.kiosk_mode) {
     header.style.display = "none";
     view.style.minHeight = "100vh";
+    if (
+      frontendVersion >= 20190911 &&
+      !root.querySelector("#cch_view_styling")
+    ) {
+      let viewStyle = document.createElement("style");
+      viewStyle.setAttribute("id", "cch_view_styling");
+      viewStyle.innerHTML = `
+        hui-view {
+          ${cchConfig.view_css ? cchConfig.view_css : ""}
+        }
+        hui-panel-view {
+          ${cchConfig.view_css ? cchConfig.view_css : ""}
+        }
+        `;
+      root.appendChild(viewStyle);
+    }
   } else {
     view.style.minHeight = "100vh";
     view.style.marginTop = "-48.5px";
     view.style.paddingTop = "48.5px";
     view.style.boxSizing = "border-box";
-    header.style.background = headerBackground;
+    header.style.background = prevColor.background;
     header.querySelector("app-toolbar").style.background = "transparent";
     if (
       frontendVersion >= 20190911 &&
       !root.querySelector("#cch_view_styling")
     ) {
-      let style = document.createElement("style");
-      style.setAttribute("id", "cch_view_styling");
-      style.innerHTML = `
+      let viewStyle = document.createElement("style");
+      viewStyle.setAttribute("id", "cch_view_styling");
+      viewStyle.innerHTML = `
         hui-view {
           margin-top: -48.5px;
           padding-top: 52px;
+          min-height: 100vh;
           ${cchConfig.view_css ? cchConfig.view_css : ""}
-        }`;
-      root.appendChild(style);
+        }
+        hui-panel-view {
+          margin-top: -48.5px;
+          padding-top: 52px;
+          min-height: calc(100vh - 52px);
+          ${cchConfig.view_css ? cchConfig.view_css : ""}
+        }
+        `;
+      root.appendChild(viewStyle);
     }
   }
 
@@ -478,7 +544,7 @@ function styleHeader(tabContainer, tabs, header) {
               .iron-selected {
                 ${
                   cchConfig.active_tab_color
-                    ? `color: ${cchConfig.active_tab_color + " !important"}`
+                    ? `color: ${`${cchConfig.active_tab_color} !important`}`
                     : "var(--cch-active-tab-color)"
                 }
               }
@@ -537,8 +603,8 @@ function styleHeader(tabContainer, tabs, header) {
       ? "-64px"
       : "";
 
-    tabs.forEach(tab => {
-      tab.style.marginTop = "-1px";
+    tabs.forEach(({ style }) => {
+      style.marginTop = "-1px";
     });
 
     // Show/hide tab navigation chevrons.
@@ -562,11 +628,11 @@ function styleHeader(tabContainer, tabs, header) {
   }
 }
 
-function styleButtons(tabs, tabContainer) {
+function styleButtons({ length }, tabContainer) {
   let topMargin =
-    tabs.length > 0 && cchConfig.compact_header ? "margin-top:111px;" : "";
+    length > 0 && cchConfig.compact_header ? "margin-top:111px;" : "";
   let topMarginMenu =
-    tabs.length > 0 && cchConfig.compact_header ? "margin-top:115px;" : "";
+    length > 0 && cchConfig.compact_header ? "margin-top:115px;" : "";
   // Reverse buttons object so menu is first in overflow menu.
   buttons = reverseObject(buttons);
   for (const button in buttons) {
@@ -743,21 +809,22 @@ function getTranslation(button) {
 }
 
 function defaultTab(tabs, tabContainer) {
+  let firstTab = tabs.indexOf(tabs.filter(tab => tab.style.display == "")[0]);
   let default_tab = cchConfig.default_tab;
+  if (!default_tab || default_tab == []) return;
   let template = cchConfig.default_tab_template;
-  if ((default_tab || template) && !defaultTabRedirect && tabContainer) {
+  if ((default_tab || template) && tabContainer) {
     if (template) default_tab = templateEval(template, hass.states);
     default_tab = getViewIndex(default_tab);
     let activeTab = tabs.indexOf(tabContainer.querySelector(".iron-selected"));
     if (
       activeTab != default_tab &&
-      activeTab == 0 &&
+      activeTab == firstTab &&
       (!cchConfig.redirect ||
         (cchConfig.redirect && tabs[default_tab].style.display != "none"))
     ) {
       tabs[default_tab].click();
     }
-    defaultTabRedirect = true;
   }
 }
 
@@ -779,7 +846,7 @@ function sidebarMod() {
     sidebar.style.display = "none";
     sidebar.addEventListener(
       "mouseenter",
-      function(event) {
+      event => {
         event.stopPropagation();
       },
       true
@@ -1051,7 +1118,7 @@ function conditionalStyling(tabs, header) {
       let background = styling[i].background;
 
       // Conditionally style tabs.
-      if (toStyle && exists(tabIndex)) {
+      if (toStyle && exists(tabIndex) && tabElem) {
         if (tabCondition.hide) tabElem.style.display = "none";
         if (tabCondition.color) {
           if (prevColor[tabkey] == undefined) {
@@ -1068,7 +1135,7 @@ function conditionalStyling(tabs, header) {
             .querySelector("ha-icon")
             .setAttribute("icon", tabCondition.on_icon);
         }
-      } else if (!toStyle && exists(tabIndex)) {
+      } else if (!toStyle && exists(tabIndex) && tabElem) {
         if (tabCondition.hide) {
           tabElem.style.display = "";
         }
@@ -1083,6 +1150,7 @@ function conditionalStyling(tabs, header) {
       }
 
       if (toStyle && button) {
+        if (!buttons[button]) continue;
         let buttonCondition = styling[i].button[button];
         let buttonElem = buttons[button].querySelector("paper-icon-button")
           ? buttons[button].querySelector("paper-icon-button")
@@ -1144,7 +1212,7 @@ function conditionalStyling(tabs, header) {
   tabContainerMargin(tabContainer);
 }
 
-function templates(template, tabs, _hass, header) {
+function templates(template, tabs, _hass, { style }) {
   let states = _hass.states;
   for (const condition in template) {
     if (condition == "tab") {
@@ -1197,7 +1265,7 @@ function templates(template, tabs, _hass, header) {
         });
       }
     } else if (condition == "background") {
-      header.style.background = templateEval(template[condition], states);
+      style.background = templateEval(template[condition], states);
     }
   }
 }
@@ -1321,10 +1389,18 @@ function swipeNavigation(tabs, tabContainer) {
       ? cchConfig.swipe_prevent_default
       : false;
 
-  swipe_amount /= Math.pow(10, 2);
+  swipe_amount /= 10 ** 2;
   const appLayout = root.querySelector("ha-app-layout");
   let inGroup = true;
-  let xDown, yDown, xDiff, yDiff, activeTab, firstTab, lastTab, left, fTabs;
+  let xDown;
+  let yDown;
+  let xDiff;
+  let yDiff;
+  let activeTab;
+  let firstTab;
+  let lastTab;
+  let left;
+  let fTabs;
 
   appLayout.addEventListener("touchstart", handleTouchStart, { passive: true });
   appLayout.addEventListener("touchmove", handleTouchMove, { passive: false });
@@ -1333,12 +1409,19 @@ function swipeNavigation(tabs, tabContainer) {
   function handleTouchStart(event) {
     filterTabs();
     if (swipe_groups && !inGroup) return;
-    let ignored = ["APP-HEADER", "HA-SLIDER", "SWIPE-CARD", "HUI-MAP-CARD"];
+    let ignored = [
+      "APP-HEADER",
+      "HA-SLIDER",
+      "SWIPE-CARD",
+      "HUI-MAP-CARD",
+      "ROUND-SLIDER",
+      "HUI-THERMOSTAT-CARD"
+    ];
     let path = (event.composedPath && event.composedPath()) || event.path;
     if (path) {
       for (let element of path) {
         if (element.nodeName == "HUI-VIEW") break;
-        else if (ignored.indexOf(element.nodeName) > -1) return;
+        else if (ignored.includes(element.nodeName)) return;
       }
     }
     xDown = event.touches[0].clientX;
@@ -1384,12 +1467,11 @@ function swipeNavigation(tabs, tabContainer) {
           inGroup = true;
           firstTab = tabs[parseInt(firstLast[0])];
           lastTab = tabs[parseInt(firstLast[1])];
-          fTabs = tabs.filter(element => {
-            return (
+          fTabs = tabs.filter(
+            element =>
               tabs.indexOf(element) >= firstLast[0] &&
               tabs.indexOf(element) <= firstLast[1]
-            );
-          });
+          );
           break;
         } else {
           inGroup = false;
@@ -1397,16 +1479,15 @@ function swipeNavigation(tabs, tabContainer) {
       }
     }
     if (cchConfig.swipe_skip_hidden) {
-      fTabs = tabs.filter(element => {
-        return (
+      fTabs = tabs.filter(
+        element =>
           !skip_tabs.includes(tabs.indexOf(element)) &&
           getComputedStyle(element, null).display != "none"
-        );
-      });
+      );
     } else {
-      fTabs = tabs.filter(element => {
-        return !skip_tabs.includes(tabs.indexOf(element));
-      });
+      fTabs = tabs.filter(
+        element => !skip_tabs.includes(tabs.indexOf(element))
+      );
     }
     if (!swipe_groups) {
       firstTab = fTabs[0];
@@ -1415,12 +1496,49 @@ function swipeNavigation(tabs, tabContainer) {
     activeTab = fTabs.indexOf(tabContainer.querySelector(".iron-selected"));
   }
 
+  if (!root.querySelector("#cch_swipe_animation")) {
+    let swipeAnimations = document.createElement("style");
+    swipeAnimations.setAttribute("id", "cch_swipe_animation");
+    swipeAnimations.innerHTML = `
+        @keyframes swipeOutRight {
+          0% { transform: translateX(0px); }
+          100% { transform: translateX(${screen.width / 1.5}px); opacity: 0; }
+        }
+        @keyframes swipeOutLeft {
+          0% { transform: translateX(0px); }
+          100% { transform: translateX(-${screen.width / 1.5}px); opacity: 0; }
+        }
+        @keyframes swipeInRight {
+          0% { transform: translateX(${screen.width / 1.5}px); opacity: 0; }
+          100% { transform: translateX(0px); opacity: 1; }
+        }
+        @keyframes swipeInLeft {
+          0% { transform: translateX(-${screen.width / 1.5}px); opacity: 0; }
+          100% { transform: translateX(0px); opacity: 1; }
+        }
+        .swipeOutRight, .swipeOutLeft, .swipeInRight, .swipeInLeft {
+          animation-fill-mode: forwards;
+        }
+        .swipeOutRight { animation: swipeOutRight .20s 1; }
+        .swipeOutLeft { animation: swipeOutLeft .20s 1; }
+        .swipeInRight { animation: swipeInRight .20s 1; }
+        .swipeInLeft { animation: swipeInLeft .20s 1; }
+    `;
+    view.parentNode.appendChild(swipeAnimations);
+  }
+
   function animation(secs, transform, opacity, timeout) {
     setTimeout(() => {
       view.style.transition = `transform ${secs}s, opacity ${secs}s`;
       view.style.transform = transform ? transform : "";
       view.style.opacity = opacity;
     }, timeout);
+  }
+
+  function clear(huiView) {
+    huiView.className = "";
+    huiView.style.overflowX = "";
+    view.style.overflowX = "";
   }
 
   function navigate(tab, timeout) {
@@ -1441,20 +1559,38 @@ function swipeNavigation(tabs, tabContainer) {
     ) {
       return;
     } else if (animate == "swipe") {
-      let width = screen.width / 1.5 + "px";
-      // Swipe view off screen.
-      animation(0.16, `translateX(${left ? "" : "-"}${width})`, 0, 0);
-      // Watch for content to load.
+      const getHuiView = () => {
+        return (
+          view.querySelector("hui-view") || view.querySelector("hui-panel-view")
+        );
+      };
+      if (window.cch_animation_running) return;
+      window.cch_animation_running = true;
+      let huiView = getHuiView();
+      huiView.style.overflowX = "hidden";
+      view.style.overflowX = "hidden";
+      // Swipe view off screen and fade out.
+      huiView.className = "";
+      view.style.transition = `opacity 0.20s`;
+      view.style.opacity = 1;
+      huiView.classList.add(left ? "swipeOutRight" : "swipeOutLeft");
+      view.style.opacity = 0;
+      setTimeout(() => clear(huiView), 210);
       const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeName) {
-              // Move view to other side of screen.
-              let neg = view.style.transform.includes("-") ? "" : "-";
-              animation(0, `translateX(${neg}${width})`, 0, 0);
-              // Slide view back on screen.
-              animation(0.16, "translateX(0px)", 1, 50);
-              observer.disconnect();
+        mutations.forEach(({ addedNodes }) => {
+          addedNodes.forEach(({ nodeName }) => {
+            if (nodeName) {
+              // Swipe view on screen and fade in.
+              huiView = getHuiView();
+              huiView.style.overflowX = "hidden";
+              view.style.overflowX = "hidden";
+              view.style.opacity = 1;
+              huiView.classList.add(left ? "swipeInLeft" : "swipeInRight");
+              setTimeout(() => {
+                clear(huiView);
+                observer.disconnect();
+                window.cch_animation_running = false;
+              }, 210);
               return;
             }
           });
@@ -1462,13 +1598,13 @@ function swipeNavigation(tabs, tabContainer) {
       });
       observer.observe(view, { childList: true });
       // Navigate to next view and trigger the observer.
-      navigate(tab, 180);
+      navigate(tab, 220);
     } else if (animate == "fade") {
       animation(0.16, "", 0, 0);
       const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeName == "HUI-VIEW") {
+        mutations.forEach(({ addedNodes }) => {
+          addedNodes.forEach(({ nodeName }) => {
+            if (nodeName == "HUI-VIEW") {
               animation(0.16, "", 1, 0);
               observer.disconnect();
             }
@@ -1480,9 +1616,9 @@ function swipeNavigation(tabs, tabContainer) {
     } else if (animate == "flip") {
       animation(0.25, "rotatey(90deg)", 0.25, 0);
       const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeName == "HUI-VIEW") {
+        mutations.forEach(({ addedNodes }) => {
+          addedNodes.forEach(({ nodeName }) => {
+            if (nodeName == "HUI-VIEW") {
               animation(0.25, "rotatey(0deg)", 1, 50);
               observer.disconnect();
             }
@@ -1526,9 +1662,7 @@ let _lovelace;
 
 class CompactCustomHeaderEditor extends LitElement {
   static get properties() {
-    return {
-      _config: {}
-    };
+    return { _config: {} };
   }
 
   firstUpdated() {
@@ -1561,8 +1695,8 @@ class CompactCustomHeaderEditor extends LitElement {
       <h4 class="underline">Exceptions</h4>
       <br />
       ${this._config.exceptions
-        ? this._config.exceptions.map((exception, index) => {
-            return html`
+        ? this._config.exceptions.map(
+            (exception, index) => html`
               <cch-exception-editor
                 .config="${this._config}"
                 .exception="${exception}"
@@ -1571,8 +1705,8 @@ class CompactCustomHeaderEditor extends LitElement {
                 @cch-exception-delete="${this._exceptionDelete}"
               >
               </cch-exception-editor>
-            `;
-          })
+            `
+          )
         : ""}
       <br />
       ${this._mwc_button
@@ -1622,21 +1756,16 @@ class CompactCustomHeaderEditor extends LitElement {
   }
 
   _save() {
-    for (var key in this._config) {
-      if (this._config[key] == defaultConfig[key]) {
-        delete this._config[key];
-      }
+    for (const key in this._config) {
+      if (this._config[key] == defaultConfig[key]) delete this._config[key];
     }
-    let newConfig = {
-      ..._lovelace.config,
-      ...{ cch: this._config }
-    };
+    let newConfig = { ..._lovelace.config, ...{ cch: this._config } };
     try {
       _lovelace.saveConfig(newConfig).then(() => {
         location.reload(true);
       });
     } catch (e) {
-      alert("Save failed: " + e);
+      alert(`Save failed: ${e}`);
     }
   }
 
@@ -1665,73 +1794,39 @@ class CompactCustomHeaderEditor extends LitElement {
     let newExceptions;
     if (this._config.exceptions) {
       newExceptions = this._config.exceptions.slice(0);
-      newExceptions.push({
-        conditions: {},
-        config: {}
-      });
+      newExceptions.push({ conditions: {}, config: {} });
     } else {
-      newExceptions = [
-        {
-          conditions: {},
-          config: {}
-        }
-      ];
+      newExceptions = [{ conditions: {}, config: {} }];
     }
-    this._config = {
-      ...this._config,
-      exceptions: newExceptions
-    };
+    this._config = { ...this._config, exceptions: newExceptions };
 
-    fireEvent(this, "config-changed", {
-      config: this._config
-    });
+    fireEvent(this, "config-changed", { config: this._config });
   }
 
-  _configChanged(ev) {
-    if (!this._config) {
-      return;
-    }
-    this._config = {
-      ...this._config,
-      ...ev.detail.config
-    };
-    fireEvent(this, "config-changed", {
-      config: this._config
-    });
+  _configChanged({ detail }) {
+    if (!this._config) return;
+    this._config = { ...this._config, ...detail.config };
+    fireEvent(this, "config-changed", { config: this._config });
   }
 
   _exceptionChanged(ev) {
-    if (!this._config) {
-      return;
-    }
+    if (!this._config) return;
     const target = ev.target.index;
     const newExceptions = this._config.exceptions.slice(0);
     newExceptions[target] = ev.detail.exception;
-    this._config = {
-      ...this._config,
-      exceptions: newExceptions
-    };
+    this._config = { ...this._config, exceptions: newExceptions };
 
-    fireEvent(this, "config-changed", {
-      config: this._config
-    });
+    fireEvent(this, "config-changed", { config: this._config });
   }
 
   _exceptionDelete(ev) {
-    if (!this._config) {
-      return;
-    }
+    if (!this._config) return;
     const target = ev.target;
     const newExceptions = this._config.exceptions.slice(0);
     newExceptions.splice(target.index, 1);
-    this._config = {
-      ...this._config,
-      exceptions: newExceptions
-    };
+    this._config = { ...this._config, exceptions: newExceptions };
 
-    fireEvent(this, "config-changed", {
-      config: this._config
-    });
+    fireEvent(this, "config-changed", { config: this._config });
     this.requestUpdate();
   }
 
@@ -1836,7 +1931,7 @@ class CchConfigEditor extends LitElement {
       ${!this.exception
         ? html`
             <h1 style="margin-top:-20px;margin-bottom:0;" class="underline">
-              Compact Custom Header
+              Compact Custom Header &nbsp;₁.₄.₁
             </h1>
             <h4
               style="margin-top:-5px;padding-top:10px;font-size:12pt;"
@@ -2078,11 +2173,11 @@ class CchConfigEditor extends LitElement {
               slot="dropdown-content"
               .selected="${buttonOptions.indexOf(this.getConfig("menu"))}"
             >
-              ${buttonOptions.map(option => {
-                return html`
+              ${buttonOptions.map(
+                option => html`
                   <paper-item>${option}</paper-item>
-                `;
-              })}
+                `
+              )}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -2101,11 +2196,11 @@ class CchConfigEditor extends LitElement {
               slot="dropdown-content"
               .selected="${buttonOptions.indexOf(this.getConfig("voice"))}"
             >
-              ${buttonOptions.map(option => {
-                return html`
+              ${buttonOptions.map(
+                option => html`
                   <paper-item>${option}</paper-item>
-                `;
-              })}
+                `
+              )}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -2129,11 +2224,11 @@ class CchConfigEditor extends LitElement {
               slot="dropdown-content"
               .selected="${overflowOptions.indexOf(this.getConfig("options"))}"
             >
-              ${overflowOptions.map(option => {
-                return html`
+              ${overflowOptions.map(
+                option => html`
                   <paper-item>${option}</paper-item>
-                `;
-              })}
+                `
+              )}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -2155,11 +2250,11 @@ class CchConfigEditor extends LitElement {
                 this.getConfig("notifications")
               )}"
             >
-              ${buttonOptions.map(option => {
-                return html`
+              ${buttonOptions.map(
+                option => html`
                   <paper-item>${option}</paper-item>
-                `;
-              })}
+                `
+              )}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -2340,11 +2435,11 @@ class CchConfigEditor extends LitElement {
                 this.getConfig("swipe_animate")
               )}"
             >
-              ${swipeAnimation.map(option => {
-                return html`
+              ${swipeAnimation.map(
+                option => html`
                   <paper-item>${option}</paper-item>
-                `;
-              })}
+                `
+              )}
             </paper-listbox>
           </paper-dropdown-menu>
         </div>
@@ -2398,13 +2493,9 @@ class CchConfigEditor extends LitElement {
   }
 
   _valueChanged(ev) {
-    if (!this.config) {
-      return;
-    }
+    if (!this.config) return;
     const target = ev.target;
-    if (this[`_${target.configValue}`] === target.value) {
-      return;
-    }
+    if (this[`_${target.configValue}`] === target.value) return;
     if (target.configValue) {
       if (target.value === "") {
         delete this.config[target.configValue];
@@ -2416,9 +2507,7 @@ class CchConfigEditor extends LitElement {
         };
       }
     }
-    fireEvent(this, "cch-config-changed", {
-      config: this.config
-    });
+    fireEvent(this, "cch-config-changed", { config: this.config });
   }
 
   renderStyle() {
@@ -2506,11 +2595,7 @@ customElements.define("cch-config-editor", CchConfigEditor);
 
 class CchExceptionEditor extends LitElement {
   static get properties() {
-    return {
-      config: {},
-      exception: {},
-      _closed: {}
-    };
+    return { config: {}, exception: {}, _closed: {} };
   }
 
   constructor() {
@@ -2612,28 +2697,17 @@ class CchExceptionEditor extends LitElement {
     fireEvent(this, "cch-exception-delete");
   }
 
-  _conditionsChanged(ev) {
-    if (!this.exception) {
-      return;
-    }
-    const newException = {
-      ...this.exception,
-      conditions: ev.detail.conditions
-    };
-    fireEvent(this, "cch-exception-changed", {
-      exception: newException
-    });
+  _conditionsChanged({ detail }) {
+    if (!this.exception) return;
+    const newException = { ...this.exception, conditions: detail.conditions };
+    fireEvent(this, "cch-exception-changed", { exception: newException });
   }
 
   _configChanged(ev) {
     ev.stopPropagation();
-    if (!this.exception) {
-      return;
-    }
+    if (!this.exception) return;
     const newException = { ...this.exception, config: ev.detail.config };
-    fireEvent(this, "cch-exception-changed", {
-      exception: newException
-    });
+    fireEvent(this, "cch-exception-changed", { exception: newException });
   }
 }
 
@@ -2641,31 +2715,23 @@ customElements.define("cch-exception-editor", CchExceptionEditor);
 
 class CchConditionsEditor extends LitElement {
   static get properties() {
-    return {
-      conditions: {}
-    };
+    return { conditions: {} };
   }
-
   get _user() {
     return this.conditions.user || "";
   }
-
   get _user_agent() {
     return this.conditions.user_agent || "";
   }
-
   get _media_query() {
     return this.conditions.media_query || "";
   }
-
   get _query_string() {
     return this.conditions.query_string || "";
   }
 
   render() {
-    if (!this.conditions) {
-      return html``;
-    }
+    if (!this.conditions) return html``;
     return html`
       <paper-input
         label="User (Seperate multiple users with a comma.)"
@@ -2699,13 +2765,9 @@ class CchConditionsEditor extends LitElement {
   }
 
   _valueChanged(ev) {
-    if (!this.conditions) {
-      return;
-    }
+    if (!this.conditions) return;
     const target = ev.target;
-    if (this[`_${target.configValue}`] === target.value) {
-      return;
-    }
+    if (this[`_${target.configValue}`] === target.value) return;
     if (target.configValue) {
       if (target.value === "") {
         delete this.conditions[target.configValue];
@@ -2728,15 +2790,9 @@ function deepcopy(value) {
     return new Date(value.getTime());
   }
   if (Array.isArray(value)) return value.map(deepcopy);
-  var result = {};
-  Object.keys(value).forEach(function(key) {
+  const result = {};
+  Object.keys(value).forEach(key => {
     result[key] = deepcopy(value[key]);
   });
   return result;
 }
-
-console.info(
-  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.3.8     `,
-  "color: orange; font-weight: bold; background: black",
-  "color: white; font-weight: bold; background: dimgray"
-);

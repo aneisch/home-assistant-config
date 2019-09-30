@@ -55,9 +55,8 @@ views:
           - input_boolean.ac_automation
           - input_boolean.ac_change_notification
           - input_boolean.occusim
-          - input_boolean.guest_automation
+          - input_boolean.guest_mode
           - input_boolean.house_lamps_automation
-          - input_boolean.security_automation
           - input_boolean.panic_mode
           #- input_boolean.bus_commute
 

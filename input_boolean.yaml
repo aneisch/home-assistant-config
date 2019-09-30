@@ -18,17 +18,13 @@ ac_change_notification:
 occusim:
   name: Occupancy Simulator
 
-guest_automation:
-  name: Guest Bedroom Automation
+guest_mode:
+  name: Guest Mode
   icon: mdi:account-plus
 
 house_lamps_automation:
   name: House-Wide Lamps Automation
   icon: mdi:lamp
-
-security_automation:
-  name: Security Automation
-  icon: mdi:camera
 
 panic_mode:
   name: Panic Mode

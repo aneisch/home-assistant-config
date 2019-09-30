@@ -32,6 +32,9 @@ recorder:
 
 system_health:
 
+pi_hole:
+  host: 'localhost:8000'
+
 alexa_media:
   accounts:
     - email: !secret amazon_email

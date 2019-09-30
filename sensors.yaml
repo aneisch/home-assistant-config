@@ -189,11 +189,6 @@
   duration:
     hours: 24
 
-#######
-# DHT #
-#######
-
-# Moved to ESPHome
 
 #############
 # TEMPLATES #
