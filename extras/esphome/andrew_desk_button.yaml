@@ -12,12 +12,40 @@ esphome:
 binary_sensor:
   - platform: gpio
     pin: D3
-    name: "${friendly_name}"
+    id: button
     filters:
       - invert:
-      - delayed_on: 100ms
-      - delayed_off: 100ms
-      
+      # - delayed_on: 100ms
+      # - delayed_off: 100ms
+    on_click:
+      min_length: 500ms
+      max_length: 3000ms
+      then:
+        - binary_sensor.template.publish:
+            id: single_press
+            state: ON
+        - delay: 1s
+        - binary_sensor.template.publish:
+            id: single_press
+            state: OFF
+    on_double_click:
+      min_length: 50ms
+      max_length: 350ms
+      then:
+        - binary_sensor.template.publish:
+            id: double_press
+            state: ON 
+        - delay: 1s
+        - binary_sensor.template.publish:
+            id: double_press
+            state: OFF
+  - platform: template
+    id: single_press
+    name: "${friendly_name} Single"
+  - platform: template
+    id: double_press
+    name: "${friendly_name} Double"
+
 sensor:
   - platform: uptime
     update_interval: 600s

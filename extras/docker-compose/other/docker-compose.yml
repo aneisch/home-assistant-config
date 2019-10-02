@@ -52,3 +52,14 @@ services:
         - 10.0.1.1
       restart: unless-stopped
       network_mode: 'bridge'
+    ozwcp:
+        container_name: ozwcp
+        restart: 'no'
+        volumes:
+            - '/opt/homeassistant/options.xml:/home/ozwcp_user/open-zwave-control-panel/options.xml'
+            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/home/ozwcp_user/open-zwave-control-panel/zwcfg_0xc564203a.xml'
+        ports:
+            - '8008:8008'
+        devices:
+            - '/dev/zwave:/dev/zwave'
+        image: openzwave/openzwave-control-panel

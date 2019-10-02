@@ -82,15 +82,25 @@
           script.home_empty
         {% endif %}
 
-- alias: "Desk Button Press"
+- alias: "Desk Button Single Press"
   initial_state: 'on'
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_desk_button
+    entity_id: binary_sensor.andrew_desk_button_single
     to: 'on'
   action:
     service: homeassistant.toggle
     entity_id: light.bethany_desk_lamp
+
+- alias: "Desk Button Double Press"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.andrew_desk_button_double
+    to: 'on'
+  action:
+    service: homeassistant.toggle
+    entity_id: group.andrew_desk
 
 - alias: "Mount /Plex"
   initial_state: on

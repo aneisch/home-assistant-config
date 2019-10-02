@@ -86,20 +86,9 @@ services:
             timeout: 1s
             retries: 24
         network_mode: host
-    ozwcp:
-        container_name: ozwcp
-        restart: 'no'
-        volumes:
-            - '/opt/homeassistant/options.xml:/home/ozwcp_user/open-zwave-control-panel/options.xml'
-            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/home/ozwcp_user/open-zwave-control-panel/zwcfg_0xc564203a.xml'
-        ports:
-            - '8008:8008'
-        devices:
-            - '/dev/zwave:/dev/zwave'
-        image: openzwave/openzwave-control-panel
     nodered:
         container_name: nodered
-        image: nodered/node-red-docker:latest
+        image: nodered/node-red:latest
         volumes:
           - /opt/nodered:/data
           - /etc/localtime:/etc/localtime:ro
