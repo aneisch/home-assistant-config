@@ -221,15 +221,15 @@ views:
             cards:
               - type: "custom:button-card"
                 entity: switch.tv_remote_volume_down
-                size: 30%
+                size: 40%
                 show_name: false
               - type: "custom:button-card"
                 entity: switch.tv_remote_mute
-                size: 30%
+                size: 40%
                 show_name: false
               - type: "custom:button-card"
                 entity: switch.tv_remote_volume_up
-                size: 30%
+                size: 40%
                 show_name: false
 
       - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
