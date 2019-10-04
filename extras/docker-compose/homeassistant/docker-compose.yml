@@ -1,15 +1,5 @@
 version: '3.2'
 services:
-    #mosquitto:
-    #    restart: always
-    #    ports:
-    #        - '1883:1883'
-    #    volumes:
-    #        - '/opt/mqtt/config:/mqtt/config:ro'
-    #        - '/opt/mqtt/log:/mqtt/log'
-    #        - '/opt/mqtt/data/:/mqtt/data/'
-    #    container_name: mqtt
-    #    image: toke/mosquitto
     mosquitto:
         container_name: mosquitto
         restart: always

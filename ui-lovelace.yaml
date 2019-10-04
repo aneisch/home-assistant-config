@@ -13,6 +13,8 @@ resources:
     type: module
   - url: /community_plugin/compact-custom-header/compact-custom-header.js
     type: module
+  - url: /community_plugin/button-card/button-card.js
+    type: module
 
 cch:
   options: show
@@ -191,10 +193,44 @@ views:
         entities:
           - switch.living_room_lamp_2
           - switch.living_room_lamp
-          - switch.tv
-          - script.tv_change_input
           #- switch.christmas_tree
           - switch.entertainment_center_lights
+
+      - type: vertical-stack
+        cards:
+          - type: "custom:button-card"
+            entity: switch.tv
+            size: 20%
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                entity: switch.tv_remote_hdmi_1
+                name: Xbox
+                icon: mdi:xbox
+              - type: "custom:button-card"
+                entity: switch.tv_remote_hdmi_2
+                name: Chromecast
+                icon: mdi:google-chrome
+              - type: "custom:button-card"
+                entity: switch.tv_remote_hdmi_3
+                name: HDMI 3
+              - type: "custom:button-card"
+                entity: switch.tv_remote_hdmi_4
+                name: HDMI 4
+          - type: horizontal-stack
+            cards:
+              - type: "custom:button-card"
+                entity: switch.tv_remote_volume_down
+                size: 30%
+                show_name: false
+              - type: "custom:button-card"
+                entity: switch.tv_remote_mute
+                size: 30%
+                show_name: false
+              - type: "custom:button-card"
+                entity: switch.tv_remote_volume_up
+                size: 30%
+                show_name: false
 
       - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
         type: entities

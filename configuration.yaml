@@ -33,7 +33,7 @@ recorder:
 system_health:
 
 pi_hole:
-  host: 'localhost:8000'
+  host: '10.0.1.22:8000'
 
 alexa_media:
   accounts:
@@ -155,7 +155,7 @@ mqtt:
   password: !secret owntracks_password
 
 influxdb:
-  host: localhost
+  host: 10.0.1.22
   #username: !secret influx_user
   #password: !secret influx_password
 

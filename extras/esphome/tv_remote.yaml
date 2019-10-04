@@ -35,24 +35,73 @@ switch:
     name: "${friendly_name} Power"
     turn_on_action:
       - remote_transmitter.transmit_samsung:
-          data: 0xE0E040BF
+          data: 0xE0E09966
     turn_off_action:
       - remote_transmitter.transmit_samsung:
-          data: 0xE0E040BF
+          data: 0xE0E019E6
 
   - platform: template
     name: "${friendly_name} Input"
+    icon: "mdi:video-input-hdmi"
     turn_on_action:
       - remote_transmitter.transmit_samsung:
           data: 0xE0E0807F
-    turn_off_action:
+
+  - platform: template
+    name: "${friendly_name} HDMI 1"
+    icon: "mdi:numeric-1-box"
+    turn_on_action:  
       - remote_transmitter.transmit_samsung:
-          data: 0xE0E0807F
+          data: 0xE0E09768
+  
+  - platform: template
+    name: "${friendly_name} HDMI 2"
+    icon: "mdi:numeric-2-box"
+    turn_on_action: 
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E07D82
+
+  - platform: template
+    name: "${friendly_name} HDMI 3"
+    icon: "mdi:numeric-3-box"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E043BC
+
+  - platform: template
+    name: "${friendly_name} HDMI 4"
+    icon: "mdi:numeric-4-box"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0A35C
+
+  - platform: template
+    name: "${friendly_name} Volume Up"
+    icon: "mdi:volume-plus"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0E01F
+
+  - platform: template
+    name: "${friendly_name} Volume Down"
+    icon: "mdi:volume-minus"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0D02F
+
+  - platform: template
+    name: "${friendly_name} Mute"
+    icon: "mdi:volume-mute"
+    turn_on_action:
+      - remote_transmitter.transmit_samsung:
+          data: 0xE0E0F00F
+
+
 
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"
-  
+
 sensor:
   - platform: uptime
     update_interval: 600s

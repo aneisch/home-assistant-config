@@ -41,16 +41,16 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2332
-Number of entities (total) | 404  
-Number of fans | 4  
-Number of switches | 61  
+Lines of YAML configuration | 2362
+Number of entities (total) | 384  
+Number of fans | 2  
+Number of switches | 59  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 191  
+Number of sensors | 186  
 Number of binary_sensors | 13  
 Number of device_trackers | 7  
-Number of media_players | 9  
+Number of media_players | 7  
 Number of automations | 20  
 Number of groups | 17  
 Number of scenes | 5  

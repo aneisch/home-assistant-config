@@ -1,12 +1,10 @@
 - platform: orvibo
   switches:
-#  -  host: 10.0.1.11
-#     name: orvibo_1
   -  host: 10.0.1.21
      name: master_bedroom_sound_machine
 
 - platform: broadlink
-  host: 10.0.1.30
+  host: 10.0.1.11
   mac: b4:43:0d:ae:61:36
   type:  sp2
   friendly_name: 'Entertainment Center Lights'
@@ -38,7 +36,7 @@
 - platform: template
   switches:
     tv:
-      value_template: "{{ states.sensor.power_plug_2_power.state | int > 1 }}"
+      value_template: "{{ states.binary_sensor.power_plug_2_power.state }}"
       turn_on:
         service: switch.turn_on
         data:

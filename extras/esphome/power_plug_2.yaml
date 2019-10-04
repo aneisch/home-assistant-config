@@ -21,28 +21,15 @@ sensor:
       inverted: True
     cf_pin: GPIO5
     cf1_pin: GPIO14
-    current:
-      name: "${friendly_name} Current"
     power:
-      name: "${friendly_name} Power"
       id: power
       filters:
         # Some calibration
         - multiply: 0.4545
-    voltage:
-      name: "${friendly_name} Voltage"
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8
-    update_interval: 10s      # default 60s
-
-  # Sum power readings over the day
-  - platform: total_daily_energy
-    name: "${friendly_name} Total Daily Energy"
-    power_id: power
-    filters:
-      - multiply: 0.001   # convert Wh to kWh
-    unit_of_measurement: kWh
+    update_interval: 1s      # default 60s
 
   - platform: uptime
     update_interval: 600s
@@ -65,6 +52,11 @@ binary_sensor:
     on_press:
       - switch.toggle: relay
     internal: True
+
+  - platform: template
+    name: "${friendly_name} Power"
+    device_class: occupancy
+    lambda: if (id(power).state > 1) return true; else return false;
 
 switch:
   - platform: gpio
