@@ -1,0 +1,31 @@
+esphome:
+  name: test
+  platform: ESP8266
+  board: esp01
+
+sensor:
+  - platform: adc
+    pin: A0
+    id: adc_read
+    update_interval: 1s
+    on_value:
+      then:
+        if:
+          condition:
+            - for:
+                time: 2s
+                condition:
+                  binary_sensor.is_on: adc_trigger
+          then:
+            - binary_sensor.template.publish:
+                id: adc_trigger_push
+                state: true
+
+
+binary_sensor:
+  - platform: template
+    id: adc_trigger
+    lambda: return id(adc_read).state < 0.2;
+  - platform: template
+    id: adc_trigger_push
+    name: "ADC Trigger"

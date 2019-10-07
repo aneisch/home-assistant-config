@@ -56,8 +56,9 @@ services:
         container_name: ozwcp
         restart: 'no'
         volumes:
-            - '/opt/homeassistant/options.xml:/home/ozwcp_user/open-zwave-control-panel/options.xml'
-            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/home/ozwcp_user/open-zwave-control-panel/zwcfg_0xc564203a.xml'
+            - '/opt/homeassistant/options.xml:/etc/openzwave/options.xml'
+            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/etc/openzwave/zwcfg_0xc564203a.xml'
+            - '/opt/homeassistant/manufacturer_specific.xml:/etc/openzwave/manufacturer_specific.xml'
         ports:
             - '8008:8008'
         devices:

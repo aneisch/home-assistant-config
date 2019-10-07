@@ -172,20 +172,6 @@ views:
   - id: 1  # Automatically created id
     title: Common Areas
     cards:
-
-      - id: f84b8a512067410faf913bb7a855cab0  # Automatically created id
-        type: entities
-        show_header_toggle: false
-        title: Thermostat
-        entities:
-          - climate.thermostat
-          - sensor.thermostat_temperature
-          - sensor.thermostat_setpoint
-          - sensor.thermostat_state
-          - sensor.thermostat_fan_status
-          - sensor.ac_runtime_today
-          - sensor.ac_runtime_yesterday
-
       - id: 518be779d55344158e432b75c8d70d7a  # Automatically created id
         type: entities
         show_header_toggle: false
@@ -201,6 +187,11 @@ views:
           - type: "custom:button-card"
             entity: switch.tv
             size: 20%
+            hold_action:
+              action: call-service
+              service: switch.turn_on
+              service_data:
+                entity_id: switch.tv_remote_power
           - type: horizontal-stack
             cards:
               - type: "custom:button-card"
@@ -480,8 +471,7 @@ views:
           - sensor.gate_battery_voltage
           - sensor.gate_uptime
           - sensor.gate_online_offline
-          - automation.gate_heading_comparison_action
-          - automation.gate_battery_safety_notify
+          - automation.gate_heading_comparison_action_notify
           - script.mom_and_dad_gate_toggle
 
 

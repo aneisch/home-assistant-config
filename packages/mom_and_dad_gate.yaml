@@ -34,7 +34,7 @@ binary_sensor:
 
 
 automation:
-  - alias: "Gate Heading Comparison Action"
+  - alias: "Gate Heading Comparison Action Notify"
     initial_state: 'on'
     trigger:
       - platform: state
@@ -45,19 +45,6 @@ automation:
         data_template:
           message: >
             Vehicle Sensor Automation Fired!
-
-  - alias: "Gate Battery Safety Notify"
-    trigger:
-      - platform: numeric_state
-        entity_id: sensor.gate_battery_voltage
-        below: 8
-    action:
-      - service: notify.pushover
-        data_template:
-          message: >
-            Battery Low: {{ states.sensor.gate_battery_voltage.state }}
-          data:
-            priority: 1
 
   - alias: "Webhook Trigger"
     initial_state: 'on'
