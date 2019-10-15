@@ -1,0 +1,35 @@
+title: Master Bedroom
+cards:
+  - !include cards/kitchen_timer.yaml
+
+  - id: a75e35a4aa624d51a2a345b89e366774  # Automatically created id
+    type: entities
+    show_header_toggle: false
+    title: Master Bedroom
+    entities:
+      - sensor.master_bedroom_temperature
+      - binary_sensor.master_bedroom_bed
+      - sensor.master_bedroom_bed_raw
+      - light.master_bedroom
+      - switch.master_bedroom_sound_machine
+      - fan.master_bedroom_ceiling_fan_level
+      - switch.master_bathroom_light_switch
+      - light.andrew_nightstand_lamp
+      - light.bethany_nightstand_lamp
+
+  - id: 05b792f2dbf04373941dd053f3209dfd  # Automatically created id
+    type: entities
+    show_header_toggle: false
+    title: Scenes
+    entities:
+      - script.master_bedroom_light_full
+      - script.master_bedroom_light_dim
+      - script.master_bedroom_bedtime
+
+  - id: 300669cdcc1c4af0aae874434480e3c2  # Automatically created id
+    type: custom:mini-media-player
+    entity: media_player.spotify
+    icon: mdi:cast
+    artwork_border: true
+    power_color: true
+    show_source: true

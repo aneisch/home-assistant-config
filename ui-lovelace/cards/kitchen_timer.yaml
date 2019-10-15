@@ -1,0 +1,10 @@
+type: conditional
+conditions:
+  - entity: sensor.kitchen_next_timer
+    state_not: "None"
+card:
+  type: entities
+  entities:
+    - entity: sensor.kitchen_next_timer
+      name: Kitchen Timer
+      format: relative

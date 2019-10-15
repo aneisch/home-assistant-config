@@ -1,0 +1,15 @@
+title: Timelapse
+cards:
+  - !include cards/kitchen_timer.yaml
+
+  - id: c8862a9288e9486b8a267ef725d40e59  # Automatically created id
+    type: picture-entity
+    entity: camera.garden_timelapse
+
+  - id: c8862a9288e9486b8a267ef725d40e60  # Automatically created id
+    type: picture-entity
+    entity: camera.front_timelapse
+
+  - id: c8862a9288e9486b8a267ef725d40e61  # Automatically created id
+    type: picture-entity
+    entity: camera.side_timelapse

@@ -222,6 +222,7 @@ plex:
   token: !secret plex_token
   media_player:
     use_episode_art: false
+    show_all_controls: true
 
 climate:
   platform: radiotherm

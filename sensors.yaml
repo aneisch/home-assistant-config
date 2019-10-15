@@ -10,6 +10,7 @@
   - captured_today
   - signal_strength
 
+
 #Tell me when to change a thing
 - platform: date_reminder
   name: AC Filter Change

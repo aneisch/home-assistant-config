@@ -10,6 +10,18 @@
   action:
     - service: readme.generate
 
+- alias: "Alexa Timer Webhook"
+  initial_state: 'on'
+  trigger:
+    platform: webhook
+    webhook_id: !secret alexa_timer_webhook_id
+  action:
+    - service: script.flash_kitchen_table
+    - service: notify.pushover
+    - service: notify.ios_bethanys_iphone
+      data_template:
+        message: 'Kitchen timer expired!'
+
 - alias: "Set dark theme for night"
   initial_state: on
   trigger:

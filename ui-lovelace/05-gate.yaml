@@ -1,0 +1,20 @@
+title: Gate Testing
+cards:
+  - !include cards/kitchen_timer.yaml
+
+  - id: sfljflfjdlfdjdlfjdlfjdfldjg
+    type: entities
+    show_header_toggle: false
+    title: System
+    entities:
+      - binary_sensor.gate_status
+      - sensor.gate_movement_cause
+      - binary_sensor.gate_automation_safety
+      - binary_sensor.gate_heading_comparison
+      - sensor.gate_ip_address
+      - sensor.gate_battery_voltage
+      - sensor.gate_uptime
+      - sensor.gate_online_offline
+      - automation.gate_heading_comparison_action_notify
+      - script.mom_and_dad_gate_toggle
+

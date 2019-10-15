@@ -9,6 +9,9 @@ esphome:
 
 <<: !include common.yaml
 
+# See https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/ for
+# allowable pins
+
 binary_sensor:
   - platform: gpio
     pin:
