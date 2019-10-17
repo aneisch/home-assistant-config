@@ -176,17 +176,51 @@ class AlexaClient(MediaPlayerDevice):
         is self.update will pull data from Amazon, while schedule_update
         assumes the MediaClient state is already updated.
         """
+        async def _refresh_if_no_audiopush(already_refreshed=False):
+            email = self._login.email
+            seen_commands = ((self.hass.data[DATA_ALEXAMEDIA]['accounts']
+                              [email]['websocket_commands'].keys()
+                             if 'websocket_commands' in (
+                                    self.hass.data[DATA_ALEXAMEDIA]
+                                    ['accounts']
+                                    [email]) else None))
+            if (not already_refreshed and seen_commands and
+                    'PUSH_AUDIO_PLAYER_STATE' not in seen_commands):
+                # force refresh if player_state update not found, see #397
+                _LOGGER.debug(
+                    "%s: No PUSH_AUDIO_PLAYER_STATE in %s; forcing refresh",
+                    hide_email(email),
+                    seen_commands)
+                await self.async_update()
         try:
             if not self.enabled:
                 return
         except AttributeError:
             pass
+        already_refreshed = False
+        event_serial = None
         if 'last_called_change' in event.data:
             event_serial = (event.data['last_called_change']['serialNumber']
                             if event.data['last_called_change'] else None)
-            if (event_serial and (event_serial == self.device_serial_number or
+        elif 'bluetooth_change' in event.data:
+            event_serial = (event.data['bluetooth_change']['deviceSerialNumber']
+                            if event.data['bluetooth_change'] else None)
+        elif 'player_state' in event.data:
+            event_serial = (event.data['player_state']['dopplerId']
+                            ['deviceSerialNumber']
+                            if event.data['player_state'] else None)
+        elif 'queue_state' in event.data:
+            event_serial = (event.data['queue_state']['dopplerId']
+                            ['deviceSerialNumber']
+                            if event.data['queue_state'] else None)
+        if not event_serial:
+            return
+        self._available = True
+        self.async_schedule_update_ha_state()
+        if 'last_called_change' in event.data:
+            if (event_serial == self.device_serial_number or
                 any(item['serialNumber'] ==
-                    event_serial for item in self._app_device_list))):
+                    event_serial for item in self._app_device_list)):
                 _LOGGER.debug("%s is last_called: %s", self.name,
                               hide_serial(self.device_serial_number))
                 self._last_called = True
@@ -199,8 +233,7 @@ class AlexaClient(MediaPlayerDevice):
                 self.async_schedule_update_ha_state(
                     force_refresh=force_refresh)
         elif 'bluetooth_change' in event.data:
-            if (event.data['bluetooth_change']['deviceSerialNumber'] ==
-                    self.device_serial_number):
+            if event_serial == self.device_serial_number:
                 _LOGGER.debug("%s bluetooth_state update: %s",
                               self.name,
                               hide_serial(event.data['bluetooth_change']))
@@ -215,13 +248,20 @@ class AlexaClient(MediaPlayerDevice):
                     self.async_schedule_update_ha_state()
         elif 'player_state' in event.data:
             player_state = event.data['player_state']
-            if (player_state['dopplerId']
-                    ['deviceSerialNumber'] == self.device_serial_number):
+            if event_serial == self.device_serial_number:
                 if 'audioPlayerState' in player_state:
                     _LOGGER.debug("%s state update: %s",
                                   self.name,
                                   player_state['audioPlayerState'])
                     await self.async_update()
+                    already_refreshed = True
+                    # refresh is necessary to pull all data
+                elif 'mediaReferenceId' in player_state:
+                    _LOGGER.debug("%s media update: %s",
+                                  self.name,
+                                  player_state['mediaReferenceId'])
+                    await self.async_update()
+                    already_refreshed = True
                     # refresh is necessary to pull all data
                 elif 'volumeSetting' in player_state:
                     _LOGGER.debug("%s volume updated: %s",
@@ -235,10 +275,10 @@ class AlexaClient(MediaPlayerDevice):
                                        == "ONLINE")
                     if (self.hass and self.async_schedule_update_ha_state):
                         self.async_schedule_update_ha_state()
+                await _refresh_if_no_audiopush(already_refreshed)
         if 'queue_state' in event.data:
             queue_state = event.data['queue_state']
-            if (queue_state['dopplerId']
-                    ['deviceSerialNumber'] == self.device_serial_number):
+            if event_serial == self.device_serial_number:
                 if ('trackOrderChanged' in queue_state and
                         not queue_state['trackOrderChanged'] and
                         'loopMode' in queue_state):
@@ -255,6 +295,7 @@ class AlexaClient(MediaPlayerDevice):
                                   self.name,
                                   self._shuffle,
                                   queue_state['playBackOrder'])
+                await _refresh_if_no_audiopush(already_refreshed)
 
     async def _clear_media_details(self):
         """Set all Media Items to None."""
@@ -306,6 +347,8 @@ class AlexaClient(MediaPlayerDevice):
             self._cluster_members = device['clusterMembers']
             self._bluetooth_state = device['bluetooth_state']
             self._locale = device['locale'] if 'locale' in device else 'en-US'
+            self._timezone = (device['timeZoneId']
+                              if 'timeZoneId' in device else 'UTC')
             self._dnd = device['dnd'] if 'dnd' in device else None
             await self._set_authentication_details(device['auth_info'])
         session = None
@@ -512,12 +555,21 @@ class AlexaClient(MediaPlayerDevice):
                   ['devices']
                   ['media_player']
                   [self.unique_id])
+        seen_commands = ((self.hass.data[DATA_ALEXAMEDIA]['accounts']
+                          [email]['websocket_commands'].keys()
+                          if 'websocket_commands' in (
+                                self.hass.data[DATA_ALEXAMEDIA]
+                                ['accounts']
+                                [email]) else None))
         await self.refresh(device,  # pylint: disable=unexpected-keyword-arg
                            no_throttle=True)
         if (self.state in [STATE_PLAYING] and
                 #  only enable polling if websocket not connected
                 (not self.hass.data[DATA_ALEXAMEDIA]
-                 ['accounts'][email]['websocket'])):
+                 ['accounts'][email]['websocket'] or
+                 # or if no PUSH_AUDIO_PLAYER_STATE
+                 not seen_commands or
+                 'PUSH_AUDIO_PLAYER_STATE' not in seen_commands)):
             self._should_poll = False  # disable polling since manual update
             if(self._last_update == 0 or util.dt.as_timestamp(util.utcnow()) -
                util.dt.as_timestamp(self._last_update)

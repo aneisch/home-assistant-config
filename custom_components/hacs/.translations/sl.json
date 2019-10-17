@@ -39,6 +39,9 @@
         },
         "title": "HACS (Home Assistant Community Store)"
     },
+    "confirm": {
+        "delete": "Ali ste prepričani, da želite izbrisati \"{item}\"?"
+    },
     "options": {
         "step": {
             "user": {
@@ -91,6 +94,6 @@
         "upgrade_all": "Nadgradite vse"
     },
     "store": {
-        "placeholder_search": "Prosim vnesite iskalni izraz..."
+        "placeholder_search": "Prosim vnesite iskalni izraz ..."
     }
 }

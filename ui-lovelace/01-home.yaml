@@ -110,14 +110,10 @@ cards:
       type: announce
       entity_id: media_player.everywhere
 
-  - id: e5f88e8e8dda4b078af8b42a7b17f8d3  # Automatically created id
-    type: entities
-    show_header_toggle: false
-    title: Misc
-    entities:
-      - script.copy
-
   - id: garden_plant
-    title: Garden
+    name: Garden
     type: plant-status
     entity: plant.garden
+ 
+  - type: shopping-list
+    title: Shopping List

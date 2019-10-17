@@ -39,6 +39,9 @@
         },
         "title": "HACS (Home Assistant Community Store)"
     },
+    "confirm": {
+        "delete": "Er du sikker på at du vil slette \"{item}\"?"
+    },
     "options": {
         "step": {
             "user": {
@@ -51,6 +54,7 @@
         }
     },
     "repository": {
+        "authors": "Forfatter(e)",
         "available": "Tilgjengeleg",
         "back_to": "Tilbake til",
         "changelog": "Endre logg",

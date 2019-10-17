@@ -4,8 +4,8 @@ from homeassistant.core import callback
 from .hacsbase import Hacs
 
 
-@callback
-def hacs_settings(hass, connection, msg):
+@websocket_api.async_response
+async def hacs_settings(hass, connection, msg):
     """Handle get media player cover command."""
     action = msg["action"]
     Hacs().logger.debug(f"WS action '{action}'")
@@ -19,11 +19,11 @@ def hacs_settings(hass, connection, msg):
     else:
         Hacs().logger.error(f"WS action '{action}' is not valid")
 
-    hacs_config(hass, connection, msg)
+    hass.bus.fire("hacs/config", {})
 
 
-@callback
-def hacs_config(hass, connection, msg):
+@websocket_api.async_response
+async def hacs_config(hass, connection, msg):
     """Handle get media player cover command."""
     config = Hacs().configuration
 
@@ -146,9 +146,10 @@ async def hacs_repository_data(hass, connection, msg):
     data = msg["data"]
 
     if action == "add":
-        if "github.com" in repo_id:
+        if "github." in repo_id:
             repo_id = repo_id.split("github.com/")[1]
-        await Hacs().register_repository(repo_id, data.lower())
+        if not Hacs().get_by_name(repo_id):
+            await Hacs().register_repository(repo_id, data.lower())
         repository = Hacs().get_by_name(repo_id)
     else:
         repository = Hacs().get_by_id(repo_id)
