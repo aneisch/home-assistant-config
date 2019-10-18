@@ -23,8 +23,8 @@
   days_in_future: 90
 
 - platform: cert_expiry
-  name: !secret domain_name
-  host: !secret domain
+  name: !secret domain_1_name
+  host: !secret domain_1
 
 - platform: cert_expiry
   name: !secret domain_2_name

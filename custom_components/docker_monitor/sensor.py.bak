@@ -16,6 +16,7 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP
 )
 from homeassistant.helpers.entity import Entity
+from homeassistant.util import slugify
 
 from custom_components.docker_monitor import (
     _CONTAINER_MON_COND,
@@ -141,6 +142,10 @@ class DockerUtilSensor(Entity):
     def device_state_attributes(self):
         """Return the state attributes."""
         return self._attributes
+
+    @property
+    def unique_id(self):
+        return slugify(f'{self.device_class}_{self.name}')
 
 
 class DockerContainerSensor(Entity):
@@ -271,3 +276,7 @@ class DockerContainerSensor(Entity):
     def device_state_attributes(self):
         """Return the state attributes."""
         return self._attributes
+
+    @property
+    def unique_id(self):
+        return slugify(f'{self.device_class}_{self.name}')

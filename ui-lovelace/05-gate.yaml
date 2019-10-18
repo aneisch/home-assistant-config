@@ -2,8 +2,7 @@ title: Gate Testing
 cards:
   - !include cards/kitchen_timer.yaml
 
-  - id: sfljflfjdlfdjdlfjdlfjdfldjg
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: System
     entities:

@@ -2,14 +2,12 @@ title: Common Areas
 cards:
   - !include cards/kitchen_timer.yaml
 
-  - id: 518be779d55344158e432b75c8d70d7a  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Living Room
     entities:
       - switch.living_room_lamp_2
       - switch.living_room_lamp
-      #- switch.christmas_tree
       - switch.entertainment_center_lights
 
   - type: vertical-stack
@@ -49,29 +47,25 @@ cards:
             entity: switch.tv_remote_volume_up
             show_name: false
 
-  - id: 978fc571fdc747aeb25f4203a7e0c03e  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Guest Bedroom
     entities:
       - light.guest_nightstand_lamp
 
-  - id: 1
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Back Porch
     entities:
       - switch.outdoor_zwave_switch
 
-  - id: 5f76373e110246899a4bccdb4ffa98ac  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Kitchen
     entities:
       - switch.kitchen_table_light_switch
 
-  - id: 99c90437cecc4a649c1bb8478cb17205  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Office
     entities:
@@ -85,8 +79,7 @@ cards:
         break_slider: true
       - light.bethany_desk_lamp
 
-  - id: b7af20433c784ccca205fa325641280f  # Automatically created id
-    type: 'custom:aarlo-glance'
+  - type: 'custom:aarlo-glance'
     entity: camera.aarlo_office
     name: Office
     show:
@@ -100,8 +93,7 @@ cards:
     top_date: false
     image_click: play
 
-  - id: d8815d1b15c24ac8970aa8003bef52ed  # Automatically created id
-    type: 'custom:aarlo-glance'
+  - type: 'custom:aarlo-glance'
     entity: camera.aarlo_1
     name: Front Door
     show:
@@ -116,8 +108,7 @@ cards:
     top_date: false 
     image_click: play
 
-  - id: 9c6320bdd0604afe93bd64ee63a926f3  # Automatically created id
-    type: 'custom:aarlo-glance'
+  - type: 'custom:aarlo-glance'
     entity: camera.aarlo_2
     name: Back Door
     show:
@@ -132,8 +123,7 @@ cards:
     top_date: false  
     image_click: play
 
-  - id: 8ca676339f03436ea002418fe777dc83  # Automatically created id
-    type: 'custom:aarlo-glance'
+  - type: 'custom:aarlo-glance'
     entity: camera.aarlo_3
     name: Kitchen
     show:
@@ -148,8 +138,7 @@ cards:
     top_date: false  
     image_click: play
 
-  - id: 7ed045db114e44a88505b94735871713  # Automatically created id
-    type: custom:mini-media-player
+  - type: custom:mini-media-player
     entity: media_player.spotify
     icon: mdi:cast
     artwork_border: true

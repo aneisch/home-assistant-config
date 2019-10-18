@@ -2,12 +2,10 @@ title: Home
 cards:
   - !include cards/kitchen_timer.yaml
 
-  - id: 57c6ff96ae6a4b75abe4ce5dc35e0bb9  # Automatically created id
-    type: thermostat
+  - type: thermostat
     entity: climate.thermostat
 
-  - id: ffde4b2bfa2c43a79cf69cb4252cac06  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Thermostat
     entities:
@@ -19,8 +17,7 @@ cards:
       - sensor.ac_runtime_today
       - sensor.ac_runtime_yesterday
 
-  - id: 4233cf08799a4d09a76ded4a4f9ad619  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Automation Control
     entities:
@@ -31,10 +28,8 @@ cards:
       - input_boolean.guest_mode
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
-      #- input_boolean.bus_commute
 
-  - id: 4fbdefc8a9b04b2398dc96e714cbb5c0  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Scenes
     entities:
@@ -42,8 +37,7 @@ cards:
       - script.master_bedroom_light_dim
       - script.master_bedroom_bedtime
 
-  - id: 714aed0952d341f3b8d15c921b606a3b  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Security
     entities:
@@ -53,8 +47,7 @@ cards:
       - binary_sensor.front_door
       - binary_sensor.back_door
 
-  - id: 4ab25c640bd445e9a3fa3d5a160a5747  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Trackers
     entities:
@@ -63,8 +56,7 @@ cards:
       - input_datetime.ac_filter_change
       - input_datetime.brita_change
 
-  - id: 1133c1074f6d45149117c1599bcb0104  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Weather
     entities:
@@ -75,32 +67,26 @@ cards:
       - sun.sun
       - sensor.moon_phase
 
-  - id: ab435da4384043c685f20f6f4e12715e  # Automatically created id
-    type: custom:weather-card
+  - type: custom:weather-card
     entity: weather.dark_sky
 
   - type: iframe
     aspect_ratio: 90%
     url: !secret windy_url
 
-  - id: c8862a9288e9486b8a267ef725d40e55  # Automatically created id
-    type: picture-entity
+  - type: picture-entity
     entity: camera.weather_radar
 
-  - id: ad9fae2dc645458d9f45bafe2f848132  # Automatically created id
-    type: picture-entity
+  - type: picture-entity
     entity: camera.outdoor
 
-  - id: backyard_camera
-    type: picture-entity
+  - type: picture-entity
     entity: camera.backyard_camera
 
-  - id: backyard_camera
-    type: picture-entity
+  - type: picture-entity
     entity: camera.esp_camera
 
-  - id: 5fa7ce1139834e41bf2a35c0e1ebf52e  # Automatically created id
-    type: custom:mini-media-player
+  - type: custom:mini-media-player
     entity: media_player.spotify
     icon: mdi:spotify
     hide:
@@ -110,9 +96,8 @@ cards:
       type: announce
       entity_id: media_player.everywhere
 
-  - id: garden_plant
+  - type: plant-status
     name: Garden
-    type: plant-status
     entity: plant.garden
  
   - type: shopping-list

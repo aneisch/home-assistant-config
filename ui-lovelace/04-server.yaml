@@ -2,30 +2,40 @@ title: Server Status
 cards:
   - !include cards/kitchen_timer.yaml
 
-  - id: bca91e04c9ae4c6582a951921b2c1b14  # Automatically created id
-    type: vertical-stack
+  - type: horizontal-stack
     cards:
-      - type: entities
-        show_header_toggle: false
-        title: System
-        entities:
-          - !secret domain_expiry
-          - !secret domain_2_expiry
-          - sensor.rack_exhaust_temperature
-          - fan.rack_fan
-          - sensor.load_1m
-          - sensor.load_5m
-          - sensor.load_15m
-          - sensor.disk_use_percent_home
-          - sensor.last_boot
-          - sensor.network_out_eno1
-          - sensor.network_in_eno1
-          - switch.nas
+      - type: sensor
+        entity: !secret domain_1_expiry_sensor
+        name: !secret domain_1
+      - type: sensor
+        entity: !secret domain_2_expiry_sensor
+        name: !secret domain_2
+
+  - type: vertical-stack
+    cards:
       - type: sensor
         entity: sensor.rack_exhaust_temperature
         graph: line
         name: Rack Temperature
         detail: 2
+      - type: entities
+        entities:
+          - fan.rack_fan
+
+  - type: vertical-stack
+    cards:
+      - type: entities
+        show_header_toggle: false
+        title: System
+        entities:
+          - sensor.load_1m
+          - sensor.load_5m
+          - sensor.load_15m
+          - sensor.disk_use_percent_home
+          - sensor.network_out_eno1
+          - sensor.network_in_eno1
+          - sensor.last_boot
+
       - type: horizontal-stack
         cards:
           - type: gauge
@@ -37,11 +47,14 @@ cards:
           - type: gauge
             entity: sensor.processor_use
             name: CPU
+      - type: sensor
+        entity: sensor.processor_use
+        graph: line
+        name: CPU History
+        detail: 2
           
-  
-  - id: e5f88e8e8dda4b078af8b42a7b17f8d3  # Automatically created id
+  - type: conditional
     title: Misc
-    type: conditional
     conditions:
       - entity: switch.nas
         state: "on"
@@ -50,8 +63,7 @@ cards:
       entities:
         - script.copy
 
-  - id: 4428e05e6a7143e0a2b2fbf52d92dfe0  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: UPS
     entities:
@@ -61,8 +73,7 @@ cards:
       - sensor.ups_time_left
       - sensor.ups_load
 
-  - id: 4428e05e6a7143e0a2b2fbf52d92dfe1  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: 650 UPS
     entities:
@@ -72,8 +83,7 @@ cards:
       - sensor.650_ups_time_left
       - sensor.650_ups_load
 
-  - id: 1658f3d4809c475eb362b0a55af2084d  # Automatically created id
-    type: entities
+  - type: entities
     show_header_toggle: false
     title: Power
     entities:
@@ -84,8 +94,11 @@ cards:
       - sensor.sonoff_pow_yesterday_energy
       - sensor.sonoff_pow_yesterday_cost
 
-  - id: 1658f3d4809c475eb362b0a55af2084c  # Automatically created id
-    type: entities
+  - type: entities
+    entities:
+      - switch.nas
+
+  - type: entities
     show_header_toggle: false
     title: Docker
     entities:
@@ -106,4 +119,4 @@ cards:
       - entity: switch.docker_pihole
         type: custom:toggle-lock-entity-row
 
-  - type: custom:gui-sandbox
+  #- type: custom:gui-sandbox

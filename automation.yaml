@@ -211,3 +211,10 @@
   action:
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
+
+- alias: Clear Alexa History
+  trigger:
+    platform: time
+    at: "22:00:00"
+  action:
+    - service: alexa_media.clear_history

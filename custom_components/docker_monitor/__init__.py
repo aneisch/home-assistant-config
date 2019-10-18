@@ -47,7 +47,6 @@ DEFAULT_NAME = 'Docker'
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 DOCKER_TYPE = [
-    'sensor',
     'switch'
 ]
 
@@ -316,6 +315,7 @@ class DockerContainerAPI:
             stats = {}
 
             stats['info'] = self.get_info()
+            """
             if stats['info']['status'] in ('running', 'paused'):
                 stats['read'] = parser.parse(raw['read'])
 
@@ -404,6 +404,7 @@ class DockerContainerAPI:
                 stats['cpu'] = {}
                 stats['memory'] = {}
                 stats['network'] = {}
+            """
 
             self._notify(stats)
             time.sleep(interval)

@@ -121,10 +121,14 @@ history:
       - sensor.ac_history
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
+      - !secret domain_2_expiry_sensor
+      - !secret domain_1_expiry_sensor
     domains:
       - automation
+      - alarm_panel
       - camera
       - group
+      - media_player
       - notify
       - scene
       - script

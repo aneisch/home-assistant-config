@@ -76,6 +76,7 @@ switch.kitchen_table_light_switch:
 
 switch.nas:
   friendly_name: "Plex"
+  icon: mdi:server
 
 switch.christmas_tree:
   icon: mdi:pine-tree
