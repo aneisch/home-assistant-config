@@ -42,7 +42,7 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2379
-Number of entities (total) | 394  
+Number of entities (total) | 393  
 Number of fans | 2  
 Number of switches | 62  
 Number of lights | 9  
@@ -51,7 +51,7 @@ Number of sensors | 190
 Number of binary_sensors | 14  
 Number of device_trackers | 7  
 Number of media_players | 7  
-Number of automations | 21  
+Number of automations | 20  
 Number of groups | 17  
 Number of scenes | 5  
 Number of scripts | 5  
@@ -64,8 +64,8 @@ Number of zones | 7
 [Generate readme](https://github.com/custom-components/readme)  
 [Docker Monitor](https://github.com/Sanderhuisman/home-assistant-custom-components)  
 [Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
-[HACS (Home Assistant Community Store)](https://custom-components.github.io/hacs)  
 [Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
+[HACS (Home Assistant Community Store)](https://custom-components.github.io/hacs)  
 
 # Interface
 ![UI](images/screenshot1.png)  

@@ -1,6 +1,6 @@
 substitutions:
   name: test
-  friendly_name: "Test"
+  friendly_name: "Kitchen Timer"
 
 esphome:
   name: ${name}
@@ -11,5 +11,17 @@ esphome:
 
 text_sensor:
   - platform: homeassistant
-    id: test
+    id: next_timer_countdown
     entity_id: sensor.kitchen_timer_countdown
+
+display:
+  - platform: ili9341
+    model: M5Stack
+    update_interval: 1.0s
+    cs_pin: 14
+    dc_pin: 27
+    led_pin: 32
+    reset_pin: 33
+    rotation: 0
+    lambda: |-
+      it.printf(0, 0, id(inconsolata), ili9341::WHITE, id(next_timer_countdown).state);
