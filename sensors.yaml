@@ -14,7 +14,7 @@
   sensors:
     kitchen_timer_countdown:
       value_template: ""
-      icon: mdi-timer
+      icon_template: "mdi-timer"
 
 #Tell me when to change a thing
 - platform: date_reminder
