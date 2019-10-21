@@ -53,16 +53,6 @@ cards:
         name: CPU History
         detail: 2
           
-  - type: conditional
-    title: Misc
-    conditions:
-      - entity: switch.nas
-        state: "on"
-    card:
-      type: entities
-      entities:
-        - script.copy
-
   - type: entities
     show_header_toggle: false
     title: UPS
@@ -94,9 +84,21 @@ cards:
       - sensor.sonoff_pow_yesterday_energy
       - sensor.sonoff_pow_yesterday_cost
 
-  - type: entities
-    entities:
-      - switch.nas
+  - type: vertical-stack
+    cards:
+      - type: entities
+        entities:
+          - entity: switch.nas
+            name: "NAS / Plex"
+      - type: conditional
+        title: Misc
+        conditions:
+          - entity: switch.nas
+            state: "on"
+        card:
+          type: entities
+          entities:
+            - script.copy
 
   - type: entities
     show_header_toggle: false

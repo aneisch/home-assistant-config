@@ -5,8 +5,6 @@ conditions:
   - entity: sensor.kitchen_next_timer
     state_not: "unknown"
 card:
-  type: entities
-  entities:
-    - entity: sensor.kitchen_next_timer
-      name: Kitchen Timer
-      format: relative
+  type: custom:bignumber-card
+  entity: sensor.kitchen_timer_countdown
+  title: Kitchen Timer

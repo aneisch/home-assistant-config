@@ -123,6 +123,7 @@ history:
       - sensor.dark_sky_summary
       - !secret domain_2_expiry_sensor
       - !secret domain_1_expiry_sensor
+      - sensor.kitchen_timer_countdown
     domains:
       - automation
       - alarm_panel
@@ -160,8 +161,9 @@ mqtt:
 
 influxdb:
   host: 10.0.1.22
-  #username: !secret influx_user
-  #password: !secret influx_password
+  exclude:
+    entities:
+      - sensor.kitchen_timer_countdown
 
 ifttt:
   key: !secret ifttt_key

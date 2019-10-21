@@ -1,0 +1,15 @@
+substitutions:
+  name: test
+  friendly_name: "Test"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+text_sensor:
+  - platform: homeassistant
+    id: test
+    entity_id: sensor.kitchen_timer_countdown

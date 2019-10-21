@@ -19,6 +19,8 @@ resources:
     type: module
   - url: /community_plugin/lovelace-gui-sandbox/gui-sandbox.js
     type: module
+  - url: /community_plugin/bignumber-card/bignumber-card.js
+    type: js
 
 cch:
   options: show
