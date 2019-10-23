@@ -122,7 +122,7 @@ sensor:
     pin: A0
     id: battery_level
     name: "Gate Battery Voltage"
-    update_interval: 600s
+    update_interval: 60s
     accuracy_decimals: 4
     filters:
       - multiply: 15.43

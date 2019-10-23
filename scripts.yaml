@@ -177,21 +177,3 @@ tv_change_input:
     - service: homeassistant.turn_on
       data:
         entity_id: switch.tv_remote_input
-
-flash_kitchen_table:
-  sequence:
-    - service: homeassistant.toggle
-      entity_id: switch.kitchen_table_light_switch
-    - delay:
-        seconds: 1
-    - service: homeassistant.toggle
-      entity_id: switch.kitchen_table_light_switch
-    - delay:
-        seconds: 1
-    - service: homeassistant.toggle
-      entity_id: switch.kitchen_table_light_switch
-    - delay:
-        seconds: 1
-    - service: homeassistant.toggle
-      entity_id: switch.kitchen_table_light_switch
-    

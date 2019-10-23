@@ -29,3 +29,6 @@ house_lamps_automation:
 panic_mode:
   name: Panic Mode
   icon: mdi:alert-decagram
+
+gate_alert:
+  name: Gate Alert Notify

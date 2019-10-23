@@ -105,20 +105,23 @@ cards:
     title: Docker
     entities:
       - switch.docker_esphome
+      - switch.docker_esphome_m5
       - switch.docker_grafana
       - switch.docker_plex
       - switch.docker_portainer
+      - entity: switch.docker_appdaemon
+        type: custom:toggle-lock-entity-row
       - entity: switch.docker_influxdb
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_mosquitto
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_nodered
         type: custom:toggle-lock-entity-row
+      - entity: switch.docker_pihole
+        type: custom:toggle-lock-entity-row
       - entity: switch.docker_pwr_stat
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_pwr_stat_650
-        type: custom:toggle-lock-entity-row
-      - entity: switch.docker_pihole
         type: custom:toggle-lock-entity-row
 
   #- type: custom:gui-sandbox

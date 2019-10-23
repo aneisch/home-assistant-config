@@ -16,4 +16,5 @@ cards:
       - sensor.gate_online_offline
       - automation.gate_heading_comparison_action_notify
       - script.mom_and_dad_gate_toggle
+      - input_boolean.gate_alert
 

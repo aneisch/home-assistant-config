@@ -40,6 +40,16 @@ services:
             - /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
+    esphome-m5:
+        container_name: esphome-m5
+        # This is a custom build for now. Based on https://github.com/mvturnho/esphome.git#ili9341
+        image: esphome-ili9341
+        volumes:
+            - /opt/esphome/:/config:rw
+            # Use local time for logging timestamps
+            - /etc/localtime:/etc/localtime:ro
+        network_mode: host
+        restart: "no"
     pwr_stat:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat
@@ -87,3 +97,11 @@ services:
         restart: always
         environment:
           - TZ=America/Chicago
+
+    appdaemon:
+        container_name: appdaemon
+        image: acockburn/appdaemon:latest
+        volumes:
+          - /etc/localtime:/etc/localtime
+          - /opt/appdaemon:/conf
+        restart: always
