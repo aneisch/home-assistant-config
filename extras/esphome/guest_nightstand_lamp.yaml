@@ -41,7 +41,7 @@ sensor:
     update_interval: 600s
     name: "${friendly_name} Uptime"
     
-switch;
+switch:
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"

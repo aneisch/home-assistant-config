@@ -29,6 +29,34 @@ map:
 recorder:
   purge_interval: 1
   purge_keep_days: 3
+  exclude:
+    entities:
+      - sensor.last_boot
+      - sensor.moon_phase
+      - sensor.dark_sky_icon
+      - sensor.dark_sky_summary
+      - !secret domain_2_expiry_sensor
+      - !secret domain_1_expiry_sensor
+      - sensor.kitchen_timer_countdown
+      - binary_sensor.internet_reachability
+      - sensor.network_in_eno1
+      - sensor.load_1m
+      - sensor.load_5m
+      - sensor.load_15m
+    domains:
+      - automation
+      - alarm_panel
+      - camera
+      - group
+      - media_player
+      - notify
+      - person
+      - scene
+      - script
+      - shell_command
+      - sun
+      - zone
+      - zwave
 
 system_health:
 
@@ -110,39 +138,11 @@ proximity:
 updater:
   include_used_components: true
 
-
 # Enables support for tracking state changes over time.
 history:
-  exclude:
-    entities:
-      - sensor.last_boot
-      - sensor.moon_phase
-      - sensor.bed_toggle_switch
-      - sensor.ac_history
-      - sensor.dark_sky_icon
-      - sensor.dark_sky_summary
-      - !secret domain_2_expiry_sensor
-      - !secret domain_1_expiry_sensor
-      - sensor.kitchen_timer_countdown
-    domains:
-      - automation
-      - alarm_panel
-      - camera
-      - group
-      - media_player
-      - notify
-      - scene
-      - script
-      - shell_command
-      - sun
-      - zone
-      - zwave
 
 # View all events in a logbook
 logbook:
-  exclude:
-    entities:
-      - sensor.average_load_1m
 
 http:
   use_x_forwarded_for: true

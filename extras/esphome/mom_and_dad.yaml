@@ -51,7 +51,8 @@ script:
           - binary_sensor.template.publish:
               id: automation_safety
               state: ON
-          - switch.toggle: gate
+          # DISABLED GATE DUE TO BROKEN SENSOR
+          #- switch.toggle: gate
           - text_sensor.template.publish:
               id: gate_movement_cause
               state: 'magnetometer'
@@ -122,7 +123,7 @@ sensor:
     pin: A0
     id: battery_level
     name: "Gate Battery Voltage"
-    update_interval: 60s
+    update_interval: 600s
     accuracy_decimals: 4
     filters:
       - multiply: 15.43
