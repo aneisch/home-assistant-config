@@ -206,3 +206,5 @@ Timer:
   timer_entity: sensor.kitchen_next_timer
   # what entity will hold the countdown state? 
   countdown_destination_entity: sensor.kitchen_timer_countdown
+  # Publish to MQTT (remove mqtt entry if you don't want..)
+  mqtt: True

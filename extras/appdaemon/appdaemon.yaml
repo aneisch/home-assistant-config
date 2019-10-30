@@ -7,6 +7,9 @@ appdaemon:
       type: hass
       token: !secret hass_password
       ha_url: http://10.0.1.22:8123
+    MQTT:
+      type: mqtt
+      client_host: 10.0.1.22
 
 log:
   errorfile: /conf/logs/appdaemon.log

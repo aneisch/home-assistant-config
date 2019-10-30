@@ -73,7 +73,7 @@
   value_template: "{{ value_json.batt }}"
 
 - platform: mqtt
-  state_topic: "moon"
+  state_topic: "sensor/moon"
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
@@ -125,39 +125,39 @@
 ###################
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat Temperature"
   unit_of_measurement: "°F"
   value_template: "{{ value_json.temp }}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat Operating Mode"
   value_template: "{% if value_json.tmode == 0 %}Off{% elif value_json.tmode == 1 %}Heat{% elif value_json.tmode == 2 %}Cool{% elif value_json.tmode == 3 %}Auto{% endif %}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat Fan Mode"
   value_template: "{% if value_json.fmode == 0 %}Auto{% elif value_json.fmode == 1 %}Auto/Circulate{% elif value_json.fmode == 2 %}On{% endif %}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat State"
   value_template: "{% if value_json.tstate == 0 %}Idle{% elif value_json.tstate == 1 %}Heating{% elif value_json.tstate == 2 %}Cooling{% endif %}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   unit_of_measurement: "°F"
   name: "Thermostat Setpoint"
   value_template: "{{ value_json.setpoint }}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat Fan Status"
   value_template: "{% if value_json.fstate == 0 %}Off{% elif value_json.fstate == 1 %}On{% endif %}"
 
 - platform: mqtt
-  state_topic: "thermostat"
+  state_topic: "sensor/thermostat"
   name: "Thermostat Hold"
   value_template: "{% if value_json.hold == 1 %}True{% else %}False{% endif %}"
 
