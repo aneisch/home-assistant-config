@@ -1,5 +1,18 @@
 version: '3.2'
 services:
+    homeassistant:
+        container_name: hass
+        image: homeassistant/home-assistant:stable
+        volumes:
+          - /opt/homeassistant:/config
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /home/aneisch/.docker_pipe:/docker_pipe
+        environment:
+          - TZ=America/Chicago
+        devices:
+            - /dev/zwave:/dev/zwave
+        restart: always
+        network_mode: host
     mosquitto:
         container_name: mosquitto
         restart: always

@@ -50,6 +50,7 @@ class CompactCustomHeader {
     this.defaultConfig = {
       header: true,
       disable: false,
+      yaml_editor: false,
       menu: "show",
       voice: "show",
       notifications: "show",
@@ -116,10 +117,7 @@ class CompactCustomHeader {
       this.hideMenuItems();
       this.styleHeader(tabContainer, tabs);
       this.styleButtons(tabs, tabContainer);
-      if (this.firstRun) {
-        this.sidebarMod();
-        this.conditionalStyling(tabs, this.header);
-      }
+      if (this.firstRun) this.sidebarMod();
       this.hideTabs(tabContainer, tabs);
       for (let button in this.buttons) {
         if (this.cchConfig[button] == "clock") this.insertClock(button);
@@ -262,7 +260,7 @@ class CompactCustomHeader {
         } else if (target.id == "view" && addedNodes.length) {
           // Navigating to new tab/view.
           this.run();
-          this.scrollTabIconIntoView();
+          if (tabContainer) this.scrollTabIconIntoView();
         }
       });
     };
@@ -394,7 +392,10 @@ class CompactCustomHeader {
   }
 
   insertEditMenu(tabs, disabled) {
-    if (this.buttons.options && this.editMode) {
+    if (
+      this.buttons.options &&
+      (this.editMode || this.lovelace.mode == "yaml" && this.cchConfig.yaml_editor)
+    ) {
       // If any tabs are hidden, add "show all tabs" option.
       if (this.cchConfig.hide_tabs && !this.cchConfig.edit_mode_show_tabs) {
         let show_tabs = document.createElement("paper-item");
@@ -527,6 +528,7 @@ class CompactCustomHeader {
       this.view.style.paddingTop = "48.5px";
       this.view.style.boxSizing = "border-box";
       this.header.style.background = this.prevColor.background;
+      this.conditionalStyling(tabs, this.header);
       this.header.querySelector("app-toolbar").style.background = "transparent";
       if (
         this.frontendVersion >= 20190911 &&
@@ -542,7 +544,7 @@ class CompactCustomHeader {
           ${this.cchConfig.view_css ? this.cchConfig.view_css : ""}
         }
         hui-panel-view {
-          margin-top: -48.5px;
+          margin-top: -52px;
           padding-top: 52px;
           min-height: calc(100vh - 52px);
           ${this.cchConfig.view_css ? this.cchConfig.view_css : ""}
@@ -1347,7 +1349,10 @@ class CompactCustomHeader {
               ? buttonElem.querySelector("paper-icon-button")
               : buttonElem.shadowRoot.querySelector("paper-icon-button");
             if (styleTarget == "icon") {
-              iconTarget.setAttribute("icon", this.templateEval(tempCond, states));
+              iconTarget.setAttribute(
+                "icon",
+                this.templateEval(tempCond, states)
+              );
             } else if (styleTarget == "color") {
               let tar =
                 iconTarget.querySelector("iron-icon") ||
@@ -1475,6 +1480,7 @@ class CompactCustomHeader {
   swipeNavigation(tabs, tabContainer) {
     // To make it easier to update lovelace-swipe-navigation
     // keep this as close to the standalone lovelace addon as possible.
+    if (!tabContainer) return;
     let swipe_amount = this.cchConfig.swipe_amount || 15;
     let swipe_groups = this.cchConfig.swipe_groups;
     let animate = this.cchConfig.swipe_animate || "none";
@@ -1949,23 +1955,32 @@ class CompactCustomHeaderEditor extends cch.LitElement {
       }
     }
     let newConfig = { ...this._lovelace.config, ...{ cch: this._config } };
-    try {
-      this._lovelace.saveConfig(newConfig).then(() => {
-        location.reload(true);
-      });
-    } catch (e) {
-      alert(`Save failed: ${e}`);
+    if (cch.lovelace.mode == "storage") {
+      try {
+        this._lovelace.saveConfig(newConfig).then(() => {
+          window.location.href = window.location.href;
+        });
+      } catch (e) {
+        alert(`Save failed: ${e}`);
+      }
+    } else {
+      window.prompt(
+        "Copy to clipboard: Ctrl+C, Enter\n" +
+        "This option is experimental, check the copied config and backup.",
+        this.obj2yaml({ cch: newConfig.cch })
+      );
     }
   }
 
   get _save_button() {
+    let text = cch.lovelace.mode == "storage" ? "Save and Reload" : "Copy YAML";
     return this._mwc_button
       ? this.html`
-          <mwc-button raised @click="${this._save}">Save and Reload</mwc-button>
+          <mwc-button raised @click="${this._save}">${text}</mwc-button>
         `
       : this.html`
           <paper-button raised @click="${this._save}"
-            >Save and Reload</paper-button
+            >${text}</paper-button
           >
         `;
   }
@@ -2030,6 +2045,105 @@ class CompactCustomHeaderEditor extends cch.LitElement {
       result[key] = this.deepcopy(value[key]);
     });
     return result;
+  }
+
+  obj2yaml(obj) {
+    if (typeof obj == "string") obj = JSON.parse(obj);
+    const ret = [];
+    convert(obj, ret);
+    return ret.join("\n");
+    function getType(obj) {
+      if (obj instanceof Array) {
+        return "array";
+      } else if (typeof obj == "string") {
+        return "string";
+      } else if (typeof obj == "boolean") {
+        return "boolean";
+      } else if (typeof obj == "number") {
+        return "number";
+      } else if (typeof obj == "undefined" || obj === null) {
+        return "null";
+      } else {
+        return "hash";
+      }
+    }
+    function convert(obj, ret) {
+      const type = getType(obj);
+      switch (getType(obj)) {
+        case "array":
+          convertArray(obj, ret);
+          break;
+        case "hash":
+          convertHash(obj, ret);
+          break;
+        case "string":
+          convertString(obj, ret);
+          break;
+        case "null":
+          ret.push("null");
+          break;
+        case "number":
+          ret.push(obj.toString());
+          break;
+        case "boolean":
+          ret.push(obj ? "true" : "false");
+          break;
+      }
+    }
+    function convertArray(obj, ret) {
+      if (obj.length === 0) ret.push("[]");
+      for (let i = 0; i < obj.length; i++) {
+        const ele = obj[i];
+        const recurse = [];
+        convert(ele, recurse);
+        for (let j = 0; j < recurse.length; j++) {
+          ret.push((j == 0 ? "- " : "  ") + recurse[j]);
+        }
+      }
+    }
+    function convertHash(obj, ret) {
+      for (const k in obj) {
+        const recurse = [];
+        if (obj.hasOwnProperty(k)) {
+          const ele = obj[k];
+          convert(ele, recurse);
+          const type = getType(ele);
+          if (
+            type == "string" ||
+            type == "null" ||
+            type == "number" ||
+            type == "boolean"
+          ) {
+            ret.push(`${k}: ${recurse[0]}`);
+          } else {
+            ret.push(`${k}: `);
+            for (let i = 0; i < recurse.length; i++) {
+              ret.push(`  ${recurse[i]}`);
+            }
+          }
+        }
+      }
+    }
+    function convertString(obj, ret) {
+      if ((obj.includes("'") && obj.includes('"')) || obj.length > 45) {
+        if (obj.includes(";")) {
+          obj = obj.includes("; ") ? obj.split("; ") : obj.split(";");
+          obj[0] = `>\n            ${obj[0]}`;
+          if (obj[obj.length - 1].trim() == "") obj.pop();
+          obj = obj.join(";\n            ");
+          obj = obj.replace(/\n$/, "");
+          ret.push(obj);
+        } else {
+          ret.push(`>\n            ${obj}`);
+        }
+      } else if (obj.includes('"')) {
+        obj = obj.replace(/\n$/, "");
+        ret.push(`'${obj}'`);
+      } else {
+        obj = obj.replace(/\n$/, "");
+        ret.push(`"${obj}"`);
+      }
+    }
   }
 
   renderStyle() {
