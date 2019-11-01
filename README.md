@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.100.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-0.101.0%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 
 
 I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. 
@@ -42,12 +42,12 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2372
-Number of entities (total) | 396  
-Number of fans | 2  
-Number of switches | 65  
+Number of entities (total) | 416  
+Number of fans | 4  
+Number of switches | 72  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 190  
+Number of sensors | 191  
 Number of binary_sensors | 14  
 Number of device_trackers | 7  
 Number of media_players | 7  
@@ -63,9 +63,9 @@ Number of zones | 7
 ## The custom_components that I use:
 [Generate readme](https://github.com/custom-components/readme)  
 [Docker Monitor](https://github.com/Sanderhuisman/home-assistant-custom-components)  
-[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 [Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
 [HACS (Home Assistant Community Store)](https://hacs.xyz)  
+[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 
 # Interface
 ![UI](images/screenshot1.png)  
