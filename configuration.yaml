@@ -313,7 +313,6 @@ readme:
 
 # https://github.com/Sanderhuisman/home-assistant-custom-components
 docker_monitor:
-  events: True
   monitored_conditions:
     - container_status
 

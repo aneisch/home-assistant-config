@@ -105,7 +105,6 @@ cards:
     title: Docker
     entities:
       - switch.docker_esphome
-      - switch.docker_esphome_m5
       - switch.docker_grafana
       - switch.docker_plex
       - switch.docker_portainer

@@ -35,4 +35,4 @@ views:
   - !include ui-lovelace/03-master.yaml
   - !include ui-lovelace/04-server.yaml
   - !include ui-lovelace/05-gate.yaml
-  - !include ui-lovelace/06-timelapse.yaml
+  #- !include ui-lovelace/06-timelapse.yaml

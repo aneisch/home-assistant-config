@@ -967,7 +967,7 @@ class CompactCustomHeader {
     // Set the tab config source.
     if (!hidden_tabs && shown_tabs) {
       let all_tabs = [];
-      shown_tabs = buildRanges(shown_tabs);
+      shown_tabs = this.buildRanges(shown_tabs);
       for (let i = 0; i < tabs.length; i++) all_tabs.push(i);
       // Invert shown_tabs to hidden_tabs.
       hidden_tabs = all_tabs.filter(el => !shown_tabs.includes(el));
