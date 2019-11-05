@@ -1,6 +1,6 @@
 language: python
 python:
-  - "3.6.8"
+  - "3.7.4"
 install:
   - pip3 install homeassistant
 before_install:
