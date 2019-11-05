@@ -5,6 +5,6 @@ install:
   - pip3 install homeassistant
 before_install:
   - mv travis_secrets.yaml secrets.yaml
-  - sudo apt-get update && sudo apt-get install -y libudev-dev 
+  - sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config libavformat-dev libavcodec-dev libavdevice-dev libavutil-dev libswscale-dev libavresample-dev libavfilter-dev
 script:
   - hass -c . --script check_config -i -f
