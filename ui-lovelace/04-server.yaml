@@ -124,3 +124,13 @@ cards:
         type: custom:toggle-lock-entity-row
 
   #- type: custom:gui-sandbox
+
+  - type: vertical-stack
+    cards:
+      - type: entities
+        title: Home Assistant
+        show_header_toggle: false
+        entities:
+          - sensor.ha_version
+          - sensor.ha_github_version
+          - sensor.ha_docker_version_stable

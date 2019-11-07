@@ -27,6 +27,11 @@
   start_date_input: input_datetime.brita_change
   days_in_future: 90
 
+- platform: date_reminder
+  name: Andrew Vehicle Registration
+  start_date_input: input_datetime.andrew_vehicle_registration
+  days_in_future: 360
+
 - platform: cert_expiry
   name: !secret domain_1_name
   host: !secret domain_1
