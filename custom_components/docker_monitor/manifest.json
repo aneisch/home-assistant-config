@@ -2,7 +2,7 @@
     "domain": "docker_monitor",
     "name": "Docker Monitor",
     "documentation": "https://github.com/Sanderhuisman/home-assistant-custom-components",
-    "requirements": [],
+    "requirements": ['docker', 'python-dateutil==2.7.5'],
     "codeowners": ["@Sanderhuisman", "@lociii"],
     "dependencies": [],
     "config_flow": false,

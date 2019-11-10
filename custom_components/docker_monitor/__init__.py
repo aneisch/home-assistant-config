@@ -25,7 +25,7 @@ from homeassistant.util import slugify as util_slugify
 
 VERSION = '0.0.3'
 
-REQUIREMENTS = ['docker==3.7.0', 'python-dateutil==2.7.5']
+REQUIREMENTS = ['docker', 'python-dateutil==2.7.5']
 
 _LOGGER = logging.getLogger(__name__)
 
