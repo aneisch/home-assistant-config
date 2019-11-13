@@ -30,6 +30,7 @@ smart_home:
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
       - light.guest_nightstand_lamp
+      - media_player.plex_chromecast
       - script.appdaemon_ac_night
       - script.appdaemon_ac_morning
       - script.too_cold

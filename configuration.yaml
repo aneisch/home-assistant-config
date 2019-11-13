@@ -11,6 +11,12 @@ homeassistant:
     ups_monitoring: !include packages/ups_monitor.yaml
     #bus_time: !include packages/bus_time.yaml
     docker_image_update: !include packages/docker_image_update.yaml
+  auth_providers:
+    - type: homeassistant
+    - type: trusted_networks
+      trusted_networks:
+        - 10.0.1.0/24
+      allow_bypass_login: true
 
 # Enable configuration panel 
 config:
