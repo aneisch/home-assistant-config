@@ -7,6 +7,6 @@ before_install:
   - mv travis_secrets.yaml secrets.yaml
   - sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
   # Cause the stream component causes travis fail?
-  - sed -i -e 's/- camera/#- camera/' -e 's/^camera/^#camera/' configuration.yaml
+  - sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
 script:
   - hass -c . --script check_config -i -f
