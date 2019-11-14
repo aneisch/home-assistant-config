@@ -13,9 +13,9 @@ AC AutoAdjust:
   cool_day: '76'
   cool_night: '70'
   cool_unoccupied: '82'
-  heat_day: '64'
+  heat_day: '65'
   heat_night: '60'
-  heat_unoccupied: '55'
+  heat_unoccupied: '60'
 
 Minimote Morning:
   module: minimote
@@ -184,7 +184,7 @@ Entertainment Center Follow:
   # leader can be a comma separated list
   leader: group.living_room_lamps
   # follower can be a comma separated list
-  follower: switch.entertainment_center_lights
+  follower: switch.entertainment_center_lights,switch.christmas_tree
 
 Door Notification and Occusim Security Follow:
   module: follow_me

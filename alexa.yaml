@@ -38,6 +38,7 @@ smart_home:
       - script.master_bedroom_bedtime
       - script.master_bedroom_wakeup
       - sensor.master_bedroom_temperature
+      - switch.christmas_tree
       - switch.tv
       - switch.kitchen_table_light_switch
       - switch.master_bathroom_light_switch

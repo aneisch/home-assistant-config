@@ -73,16 +73,16 @@ cards:
       - sensor.650_ups_time_left
       - sensor.650_ups_load
 
-  - type: entities
-    show_header_toggle: false
-    title: Power
-    entities:
-      - sensor.sonoff_pow_current
-      - sensor.sonoff_pow_power
-      - sensor.sonoff_pow_today_energy
-      - sensor.sonoff_pow_today_cost
-      - sensor.sonoff_pow_yesterday_energy
-      - sensor.sonoff_pow_yesterday_cost
+  #- type: entities
+  #  show_header_toggle: false
+  #  title: Power
+  #  entities:
+  #    - sensor.sonoff_pow_current
+  #    - sensor.sonoff_pow_power
+  #    - sensor.sonoff_pow_today_energy
+  #    - sensor.sonoff_pow_today_cost
+  #    - sensor.sonoff_pow_yesterday_energy
+  #    - sensor.sonoff_pow_yesterday_cost
 
   - type: vertical-stack
     cards:

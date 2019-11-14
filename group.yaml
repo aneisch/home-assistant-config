@@ -53,6 +53,7 @@ living_room:
     - switch.living_room_lamp_2
     - switch.living_room_lamp
     - switch.entertainment_center_lights
+    - switch.christmas_tree
 
 living_room_lamps:
   name: Living Room Lamps

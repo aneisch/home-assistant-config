@@ -78,10 +78,6 @@ switch.nas:
   friendly_name: "Plex"
   icon: mdi:server
 
-switch.christmas_tree:
-  icon: mdi:pine-tree
-
-
 ### FANS ##
 fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
