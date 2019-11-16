@@ -167,7 +167,7 @@
   value_template: "{% if value_json.hold == 1 %}True{% else %}False{% endif %}"
 
 - platform: history_stats
-  name: ac_runtime_today
+  name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state
   state: 'Cooling'
   type: time
@@ -183,7 +183,7 @@
   end: '{{ now() }}'
 
 - platform: history_stats
-  name: ac_runtime_yesterday
+  name: ac_runtime_yesterday_cool
   entity_id: sensor.thermostat_state
   state: 'Cooling'
   type: time
@@ -200,6 +200,20 @@
   duration:
     hours: 24
 
+- platform: template
+  sensors:
+    ac_runtime_today:
+      friendly_name: "AC Runtime Today"
+      unit_of_measurement: 'h'
+      value_template: "{{ (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float) }}"
+      attribute_templates:
+        value: "{{ (60 * (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float)) | int }}m"
+    ac_runtime_yesterday:
+      friendly_name: "AC Runtime Today"
+      unit_of_measurement: 'h'
+      value_template: "{{ (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float) }}"
+      attribute_templates:
+        value: "{{ (60 * (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float)) | int }}m"
 
 #############
 # TEMPLATES #

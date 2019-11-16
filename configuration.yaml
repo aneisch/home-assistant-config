@@ -70,6 +70,8 @@ system_health:
 pi_hole:
   host: '10.0.1.22:8000'
 
+shopping_list:
+
 alexa_media:
   accounts:
     - email: !secret amazon_email

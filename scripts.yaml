@@ -104,6 +104,7 @@ master_bedroom_wakeup:
     - service: light.turn_on
       data:
         entity_id: light.master_bedroom
+    - delay: '00:00:01'
     - service: homeassistant.turn_on
       data:
         entity_id: group.master_bedroom_lamps

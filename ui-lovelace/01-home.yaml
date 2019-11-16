@@ -16,8 +16,6 @@ cards:
       - sensor.thermostat_fan_status
       - sensor.ac_runtime_today
       - sensor.ac_runtime_yesterday
-      - sensor.ac_runtime_today_heat
-      - sensor.ac_runtime_yesterday_heat
 
   - type: entities
     show_header_toggle: false

@@ -91,6 +91,8 @@ Occupancy Simulator:
   random_house_off_kitchen: switch.kitchen_table_light_switch
   random_house_on_livingroom: group.living_room_lamps
   random_house_off_livingroom: group.living_room_lamps
+  random_house_on_office: group.office_lamps
+  random_house_off_office: group.office_lamps
 
 NAS:
   module: entity_timer
@@ -137,16 +139,6 @@ Living Room Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-#Bed Occupancy Lamp Automation Override:
-#  # Stop master bedroom lamps from automatic when in bed
-#  module: follow_me
-#  class: Follow
-#  # leader can be a comma separated list
-#  leader: binary_sensor.master_bedroom_bed
-#  # follower can be a comma separated list
-#  follower: input_boolean.house_lamps_automation
-#  invert: True
-
 Master Bedroom Light Dim:
   module: light_automation
   class: DeviceOn
@@ -157,41 +149,46 @@ Master Bedroom Light Dim:
   time_on: '23:00:00'
   entity: scene.master_bedroom_light_dim
 
-# All lamps in house at sunset
-House Lamp Automation:
+Nap Time Lamp Automation Override:
+  # Stop master bedroom lamps from automatic when napping
+  module: follow_me
+  class: Follow
+  leader: fan.master_bedroom_ceiling_fan
+  follower: input_boolean.house_lamps_automation
+  invert: True
+
+House Lamp Automation Sunset:
   module: light_automation
   class: DeviceOn
-  # Optional entity to constrain automation (will only run if "on")
-  # Using this instad of constrain_input_boolen
-  dependent_entity: input_boolean.house_lamps_automation
+  constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:30:00
-  # Guest bedroom and living room lamps "follow" master bedroom lamps via "follow_me app"
-  entity: group.master_bedroom_lamps,light.andrew_desk_lamp,light.bethany_desk_lamp
+  entity: group.office_lamps,group.living_room_lamps,group.master_bedroom_lamps
 
-Lamps Follow:
+Living Room Lamp Follow:
+  module: follow_me
+  class: Follow
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  leader: group.master_bedroom_lamps
+  follower: group.living_room_lamps
+
+Guest Lamp Follow Master:
   module: follow_me
   class: Follow
   constrain_input_boolean: input_boolean.guest_mode,off
-  # leader can be a comma separated list
   leader: group.master_bedroom_lamps
-  # follower can be a comma separated list
-  follower: group.living_room_lamps,light.guest_nightstand_lamp
+  follower: light.guest_nightstand_lamp
 
-Entertainment Center Follow:
+Entertainment Center and Tree Follow Living Room:
   module: follow_me
   class: Follow
-  # leader can be a comma separated list
   leader: group.living_room_lamps
-  # follower can be a comma separated list
   follower: switch.entertainment_center_lights,switch.christmas_tree
 
 Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
-  # leader can be a comma separated list
   leader: input_boolean.security_status
-  # follower can be a comma separated list
   follower: input_boolean.door_notify,input_boolean.occusim
 
 Andrew Desk Keyboard Tray:

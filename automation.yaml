@@ -218,3 +218,15 @@
     - service: persistent_notification.dismiss
       data:
         notification_id: config_entry_discovery
+
+# Sync Alexa Shopping list --> Home Assistant
+- alias: 'Add shopping list'
+  trigger:
+    platform: event
+    event_type: ifttt_webhook_received
+    event_data:
+      action: call_service
+  action:
+    service_template: '{{ trigger.event.data.service }}'
+    data_template:
+      name: '{{ trigger.event.data.name }}'

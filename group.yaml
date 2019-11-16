@@ -17,6 +17,11 @@ office:
     - light.andrew_desk_lamp
     - light.bethany_desk_lamp
 
+office_lamps:
+  entities:
+    - light.andrew_desk_lamp
+    - light.bethany_desk_lamp
+
 master_bedroom:
   name: Master Bedroom
   control: hidden
