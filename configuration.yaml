@@ -18,6 +18,9 @@ homeassistant:
         - 10.0.1.0/24
       allow_bypass_login: true
 
+frontend:
+  themes: !include_dir_merge_named themes
+
 # Enable configuration panel 
 config:
 
@@ -327,8 +330,10 @@ docker_monitor:
 
 hacs:
   token: !secret hacs_token
+  python_script: true
+  appdaemon: true
+  theme: true
 
-frontend: !include frontend.yaml
 alexa: !include alexa.yaml
 homekit: !include homekit.yaml
 intent_script: !include intent_script.yaml

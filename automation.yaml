@@ -24,7 +24,7 @@
   action:
     - service: frontend.set_theme
       data:
-        name: midnight-remake
+        name: amoled
 
 - alias: "Set light theme for day"
   initial_state: on

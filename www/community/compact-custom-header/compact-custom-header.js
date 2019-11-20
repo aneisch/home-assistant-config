@@ -1,5 +1,5 @@
 console.info(
-  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.4.5     `,
+  `%c COMPACT-CUSTOM-HEADER \n%c     Version 1.4.9     `,
   "color: orange; font-weight: bold; background: black",
   "color: white; font-weight: bold; background: dimgray"
 );
@@ -289,7 +289,9 @@ class CompactCustomHeader {
     buttons.options = this.root.querySelector("paper-menu-button");
     if (!this.editMode) {
       buttons.menu = this.root.querySelector("ha-menu-button");
-      buttons.voice = this.root.querySelector("ha-start-voice-button");
+      buttons.voice =
+        this.root.querySelector("ha-start-voice-button") ||
+        this.root.querySelector('[icon="hass:microphone"]');
       if (!this.newSidebar) {
         buttons.notifications = this.root.querySelector(
           "hui-notifications-button"
@@ -313,6 +315,7 @@ class CompactCustomHeader {
     let marginRight = 0;
     let marginLeft = 15;
     for (const button in this.buttons) {
+      if (!this.buttons[button]) continue;
       let paperIconButton =
         this.buttons[button].querySelector("paper-icon-button") ||
         this.buttons[button].shadowRoot.querySelector("paper-icon-button");
@@ -394,7 +397,8 @@ class CompactCustomHeader {
   insertEditMenu(tabs, disabled) {
     if (
       this.buttons.options &&
-      (this.editMode || this.lovelace.mode == "yaml" && this.cchConfig.yaml_editor)
+      (this.editMode ||
+        (this.lovelace.mode == "yaml" && this.cchConfig.yaml_editor))
     ) {
       // If any tabs are hidden, add "show all tabs" option.
       if (this.cchConfig.hide_tabs && !this.cchConfig.edit_mode_show_tabs) {
@@ -700,7 +704,12 @@ class CompactCustomHeader {
         ${
           button == "menu"
             ? `padding: 8px 0; margin-bottom:5px; ${topMarginMenu}`
-            : "padding: 4px 0;"
+            : "padding: 8px;"
+        }
+        ${
+          button == "voice" && this.cchConfig["voice"] == "clock"
+            ? "width: 100px; padding:4px;"
+            : ""
         }
         ${button == "menu" ? "" : topMargin}
         ${button == "options" ? "margin-right:-5px;" : ""}
@@ -799,7 +808,7 @@ class CompactCustomHeader {
       this.buttons.notifications.style.color =
         "var(--cch-button-color-notifications)";
     }
-    this.buttons.voice.style.color = "var(--cch-button-color-voice)";
+    if (this.buttons.voice) this.buttons.voice.style.color = "var(--cch-button-color-voice)";
     this.buttons.options.style.color = "var(--cch-button-color-options)";
     if (this.cchConfig.all_buttons_color) {
       this.root.querySelector("app-toolbar").style.color =
@@ -1008,10 +1017,12 @@ class CompactCustomHeader {
   }
 
   insertClock(button) {
+    if (!this.buttons[button]) return;
     const clock_button = this.buttons[button].querySelector("paper-icon-button")
       ? this.buttons[button]
       : this.buttons[button].shadowRoot;
-    const clockIcon = clock_button.querySelector("paper-icon-button");
+    const clockIcon =
+      clock_button.querySelector("paper-icon-button") || this.buttons[button];
     const clockIronIcon =
       clockIcon.querySelector("iron-icon") ||
       clockIcon.shadowRoot.querySelector("iron-icon");
@@ -1966,7 +1977,7 @@ class CompactCustomHeaderEditor extends cch.LitElement {
     } else {
       window.prompt(
         "Copy to clipboard: Ctrl+C, Enter\n" +
-        "This option is experimental, check the copied config and backup.",
+          "This option is experimental, check the copied config and backup.",
         this.obj2yaml({ cch: newConfig.cch })
       );
     }
@@ -2255,7 +2266,7 @@ class CchConfigEditor extends cch.LitElement {
         !this.exception
           ? this.html`
             <h1 style="margin-top:-20px;margin-bottom:0;" class="underline">
-              Compact Custom Header &nbsp;₁.₄.₅
+              Compact Custom Header &nbsp;₁.₄.₉
             </h1>
             <h4
               style="margin-top:-5px;padding-top:10px;font-size:12pt;"
