@@ -35,7 +35,6 @@ binary_sensor:
 
 automation:
   - alias: "Gate Heading Comparison Action Notify"
-    initial_state: 'on'
     trigger:
       - platform: state
         entity_id: binary_sensor.gate_automation_safety

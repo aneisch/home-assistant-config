@@ -204,7 +204,7 @@ panel_iframe:
   portainer:
     title: 'Portainer'
     icon: mdi:ferry
-    url: 'http://10.0.1.22:9000/#/containers'
+    url: !secret portainer
   nodered:
     title: 'Node-Red'
     icon: mdi:sitemap
