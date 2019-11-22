@@ -139,16 +139,6 @@ Living Room Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-Master Bedroom Light Dim:
-  module: light_automation
-  class: DeviceOn
-  constrain_input_boolean: input_boolean.house_lamps_automation
-  # Optional entity to constrain automation (will only run if "on")
-  dependent_entity: light.master_bedroom # Optional entity to constrain automation (will only run if "on")
-  constrain_presence: anyone
-  time_on: '23:00:00'
-  entity: scene.master_bedroom_light_dim
-
 Nap Time Lamp Automation Override:
   # Stop master bedroom lamps from automatic when napping
   module: follow_me

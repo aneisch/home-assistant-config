@@ -30,12 +30,12 @@
   initial_state: on
   trigger:
     - platform: time
-      at: '09:00'
+      at: '08:00'
     - platform: homeassistant
       event: start
   condition:
     condition: time
-    after: '08:59:00'
+    after: '07:59:00'
     before: '20:59:00'
   action:
     service: frontend.set_theme

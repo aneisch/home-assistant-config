@@ -1,0 +1,109 @@
+title: Floorplan
+path: floorplan
+panel: true
+icon: mdi:floor-plan
+cards:
+  - type: picture-elements
+    image: /local/master_base.png
+    elements:
+      - type: image
+        entity: light.andrew_nightstand_lamp
+        #tap_action: none
+        hold_action: none
+        state_image:
+          "on": /local/master_andrew_on.png
+          "off": /local/transparent_square.png
+        style:
+          top: 50%
+          left: 50%
+          width: 100%
+
+      - type: image
+        entity: light.bethany_nightstand_lamp
+        tap_action: none
+        hold_action: none
+        state_image:
+          "on": /local/master_bethany_on.png
+          "off": /local/transparent_square.png
+        style:
+          top: 50%
+          left: 50%
+          width: 100%
+
+      - type: image
+        entity: switch.master_bathroom_light_switch
+        tap_action: none
+        hold_action: none
+        state_image:
+          "on": /local/master_bathroom_on.png
+          "off": /local/transparent_square.png
+        style:
+          top: 50%
+          left: 50%
+          width: 100%
+
+      - type: image
+        entity: switch.master_bathroom_light_switch
+        tap_action: none
+        hold_action: none
+        state_image:
+          "on": /local/transparent_square.png
+          "off": /local/transparent_square.png
+
+      - type: image
+        entity: fan.master_bedroom_ceiling_fan
+        tap_action: none
+        hold_action: none
+        image: /local/master_fan.png
+        style:
+          top: 50%
+          left: 50%
+          width: 100%
+
+      - type: state-label
+        entity: sensor.master_bedroom_temperature
+        style:
+          top: 63%
+          left: 44%
+          color: "#000"
+          border-radius: 50%
+          text-align: center
+          background-color: "rgba(255, 255, 255, 0.3)"
+          font-size: 12px
+          font-weight: bold
+
+      - type: image
+        entity: light.andrew_nightstand_lamp
+        tap_action:
+          action: toggle
+        image: /local/transparent_square.png
+        style:
+          top: 21%
+          left: 42.5%
+
+      - type: image
+        entity: light.bethany_nightstand_lamp
+        tap_action:
+          action: toggle
+        image: /local/transparent_square.png
+        style:
+          top: 21%
+          left: 74.5%
+
+      - type: image
+        entity: switch.master_bathroom_light_switch
+        tap_action:
+          action: toggle
+        image: /local/transparent_square.png
+        style:
+          top: 49%
+          left: 22%
+
+      - type: image
+        entity: fan.master_bedroom_ceiling_fan
+        tap_action:
+          action: toggle
+        image: /local/transparent_square.png
+        style:
+          top: 45%
+          left: 58.5%

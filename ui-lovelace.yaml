@@ -1,6 +1,4 @@
 resources:
-  - url: /local/content-card-example.js
-    type: js
   - url: /community_plugin/toggle-lock-entity-row/toggle-lock-entity-row.js
     type: js
   - url: /community_plugin/weather-card/weather-card.js
@@ -21,6 +19,8 @@ resources:
     type: module
   - url: /community_plugin/bignumber-card/bignumber-card.js
     type: js
+  - url: /community_plugin/lovelace-card-mod/card-mod.js
+    type: module
 
 cch:
   options: show
@@ -35,4 +35,5 @@ views:
   - !include ui-lovelace/03-master.yaml
   - !include ui-lovelace/04-server.yaml
   - !include ui-lovelace/05-gate.yaml
+  - !include ui-lovelace/07-elements.yaml
   #- !include ui-lovelace/06-timelapse.yaml

@@ -2,7 +2,8 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: homeassistant/home-assistant:stable
+        #image: homeassistant/home-assistant:stable
+        image: homeassistant/home-assistant:0.101.3
         volumes:
           - /opt/homeassistant:/config
           - /var/run/docker.sock:/var/run/docker.sock
@@ -66,11 +67,6 @@ services:
         volumes:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
-        healthcheck:
-            test: ["CMD", "curl", "-sI", "http://127.0.0.1:5002/pwrstat"]
-            interval: 60s
-            timeout: 1s
-            retries: 24
         network_mode: host
     pwr_stat_650:
         # https://github.com/DanielWinks/pwrstat_docker
@@ -84,11 +80,6 @@ services:
         volumes:
             - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
-        healthcheck:
-            test: ["CMD", "curl", "-sI", "http://127.0.0.1:5004/pwrstat"]
-            interval: 60s
-            timeout: 1s
-            retries: 24
         network_mode: host
     nodered:
         container_name: nodered
