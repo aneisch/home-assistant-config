@@ -100,6 +100,7 @@ NAS:
   devices: switch.nas
   time_on: '05:59:00'
   time_off: '08:00:00'
+  constrain_days: wed
 
 Brita Notification:
   module: countdown_notify
