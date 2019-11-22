@@ -2,8 +2,8 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        #image: homeassistant/home-assistant:stable
-        image: homeassistant/home-assistant:0.101.3
+        image: homeassistant/home-assistant:stable
+        #image: homeassistant/home-assistant:0.101.3
         volumes:
           - /opt/homeassistant:/config
           - /var/run/docker.sock:/var/run/docker.sock

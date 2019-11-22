@@ -5,6 +5,7 @@ icon: mdi:floor-plan
 cards:
   - type: picture-elements
     image: /local/floorplan/master/master_base.png
+    # Requires card-mod plugin, allows fan to rotate with animation
     style: |
       @keyframes rotation {
         from {
