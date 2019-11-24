@@ -1,6 +1,6 @@
 title: Home
 cards:
-  - !include cards/kitchen_timer.yaml
+  - !include .cards/kitchen_timer.yaml
 
   - type: thermostat
     entity: climate.thermostat

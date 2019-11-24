@@ -28,12 +28,4 @@ cch:
   swipe_animate: swipe
   swipe_amount: 5
 
-#views: !include_dir_list ui-lovelace/
-views:
-  - !include ui-lovelace/01-home.yaml
-  - !include ui-lovelace/02-common.yaml
-  - !include ui-lovelace/03-master.yaml
-  - !include ui-lovelace/04-server.yaml
-  - !include ui-lovelace/05-gate.yaml
-  - !include ui-lovelace/07-floorplan.yaml
-  #- !include ui-lovelace/06-timelapse.yaml
+views: !include_dir_list ui-lovelace/

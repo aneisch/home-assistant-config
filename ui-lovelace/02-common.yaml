@@ -1,6 +1,6 @@
 title: Common Areas
 cards:
-  - !include cards/kitchen_timer.yaml
+  - !include .cards/kitchen_timer.yaml
 
   - type: entities
     show_header_toggle: false

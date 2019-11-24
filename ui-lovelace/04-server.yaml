@@ -1,6 +1,6 @@
 title: Server Status
 cards:
-  - !include cards/kitchen_timer.yaml
+  - !include .cards/kitchen_timer.yaml
 
   - type: horizontal-stack
     cards:
