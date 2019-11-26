@@ -9,4 +9,6 @@ owntracks_update: 'echo "/usr/local/bin/force_location_update.sh" > /docker_pipe
 
 mount_plex: 'echo "mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex" > /docker_pipe'
 
+umount_plex: 'echo "umount -f /plex; docker stop plex" > /docker_pipe'
+
 copy: 'echo "/usr/local/bin/nas-copy.sh" > /docker_pipe'

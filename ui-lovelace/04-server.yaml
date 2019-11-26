@@ -5,9 +5,6 @@ cards:
   - type: horizontal-stack
     cards:
       - type: sensor
-        entity: !secret domain_1_expiry_sensor
-        name: !secret domain_1
-      - type: sensor
         entity: !secret domain_2_expiry_sensor
         name: !secret domain_2
 

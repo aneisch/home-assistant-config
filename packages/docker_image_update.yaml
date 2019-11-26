@@ -1,21 +1,4 @@
 sensor:
-#  - platform: rest
-#    name: HA Docker Version
-#    resource: 'https://registry.hub.docker.com/v2/repositories/homeassistant/home-assistant/tags'
-#    value_template: >-
-#      {% set results = value_json.results %}
-#      {%-set res-%}
-#      {%-set pipe = joiner('|')-%}
-#      {% for result in results if not result.name |regex_search("[a-z]",ignorecase=TRUE) -%} 
-#        {{ pipe()}}{{result.name}}      
-#      {% else %}        
-#        -1 
-#      {% endfor -%}
-#      {% endset -%}
-#      {% set res = res.split('|')|list -%}
-#      {{res[0]}}
-#    scan_interval: 1800
-
   - platform: version
     beta: false
     source: docker

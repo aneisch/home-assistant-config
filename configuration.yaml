@@ -46,7 +46,6 @@ recorder:
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
       - !secret domain_2_expiry_sensor
-      - !secret domain_1_expiry_sensor
       - sensor.kitchen_timer_countdown
       - binary_sensor.internet_reachability
       - sensor.network_in_eno1
@@ -179,11 +178,6 @@ ifttt:
 zwave:
   usb_path: /dev/zwave
 
-#wemo:
-#  static:
-#    - 10.0.1.48
-
-#arlo:
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
@@ -327,6 +321,7 @@ readme:
 docker_monitor:
   monitored_conditions:
     - container_status
+  scan_interval: 60
 
 hacs:
   token: !secret hacs_token

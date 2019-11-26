@@ -22,13 +22,14 @@ sensor:
     cf_pin: GPIO5
     cf1_pin: GPIO14
     current:
-      name: "${friendly_name} Current"
+      #name: "${friendly_name} Current"
+      id: current
       filters:
         - sliding_window_moving_average:
             window_size: 10
             send_every: 2
     power:
-      name: "${friendly_name} Power"
+      #name: "${friendly_name} Power"
       id: power
       filters:
         # Some calibration
@@ -37,7 +38,8 @@ sensor:
             window_size: 10
             send_every: 2
     voltage:
-      name: "${friendly_name} Voltage"
+      #name: "${friendly_name} Voltage"
+      id: voltage
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8

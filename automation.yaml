@@ -102,17 +102,28 @@
     service: homeassistant.toggle
     entity_id: group.andrew_desk
 
-- alias: "Mount /Plex"
+- alias: "Mount/Umount /Plex"
   initial_state: on
   trigger:
-    platform: state
-    entity_id: switch.nas
-    from: 'off'
-    to: 'on'
-    for:
-      seconds: 30
+    - platform: state
+      entity_id: switch.nas
+      from: 'off'
+      to: 'on'
+      for:
+        seconds: 30
+    - platform: state
+      entity_id: switch.nas
+      from: 'on'
+      to: 'off'
+      for:
+        seconds: 30
   action:
-    service: shell_command.mount_plex
+    service_template: >-
+      {% if trigger.to_state.state == "on" %}
+      shell_command.mount_plex
+      {% elif trigger.to_state.state == "off" %}
+      shell_command.umount_plex
+      {% endif %}
 
 - alias: "Notify when AC BREAKS"
   initial_state: 'on'
