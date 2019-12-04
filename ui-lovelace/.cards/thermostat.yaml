@@ -1,0 +1,10 @@
+type: 'custom:simple-thermostat'
+name: false
+entity: climate.thermostat
+step_size: 1
+sensors:
+  - entity: sensor.master_bedroom_temperature
+    name: Master
+  - entity: sensor.office_temperature
+    name: Office
+control: false

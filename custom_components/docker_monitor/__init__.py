@@ -304,107 +304,16 @@ class DockerContainerAPI:
     def _runnable(self, interval):
         from dateutil import parser
 
-        stream = self._container.stats(stream=True, decode=True)
+        stream = self._container.stats(stream=False)
 
-        cpu_old = {}
-        network_old = {}
-        for raw in stream:
+        #for raw in stream:
+        while True:
             if self._stopper.isSet():
                 break
 
             stats = {}
 
             stats['info'] = self.get_info()
-            """
-            if stats['info']['status'] in ('running', 'paused'):
-                stats['read'] = parser.parse(raw['read'])
-
-                cpu_stats = {}
-                try:
-                    cpu_new = {}
-                    cpu_new['total'] = raw['cpu_stats']['cpu_usage']['total_usage']
-                    cpu_new['system'] = raw['cpu_stats']['system_cpu_usage']
-
-                    # Compatibility wih older Docker API
-                    if 'online_cpus' in raw['cpu_stats']:
-                        cpu_stats['online_cpus'] = raw['cpu_stats']['online_cpus']
-                    else:
-                        cpu_stats['online_cpus'] = len(
-                            raw['cpu_stats']['cpu_usage']['percpu_usage'] or [])
-                except KeyError as e:
-                    # raw do not have CPU information
-                    _LOGGER.info("Cannot grab CPU usage for container {} ({})".format(
-                        self._container.id, e))
-                    _LOGGER.debug(raw)
-                else:
-                    if cpu_old:
-                        cpu_delta = float(cpu_new['total'] - cpu_old['total'])
-                        system_delta = float(
-                            cpu_new['system'] - cpu_old['system'])
-
-                        cpu_stats['total'] = round(0.0, PRECISION)
-                        if cpu_delta > 0.0 and system_delta > 0.0:
-                            cpu_stats['total'] = round(
-                                (cpu_delta / system_delta) * float(cpu_stats['online_cpus']) * 100.0, PRECISION)
-
-                    cpu_old = cpu_new
-
-                memory_stats = {}
-                try:
-                    memory_stats['usage'] = raw['memory_stats']['usage']
-                    memory_stats['limit'] = raw['memory_stats']['limit']
-                    memory_stats['max_usage'] = raw['memory_stats']['max_usage']
-                except (KeyError, TypeError) as e:
-                    # raw_stats do not have MEM information
-                    _LOGGER.info("Cannot grab MEM usage for container {} ({})".format(
-                        self._container.id, e))
-                    _LOGGER.debug(raw)
-                else:
-                    memory_stats['usage_percent'] = round(
-                        float(memory_stats['usage']) / float(memory_stats['limit']) * 100.0, PRECISION)
-
-                network_stats = {}
-                try:
-                    network_new = {}
-                    _LOGGER.debug("Found network stats: {}".format(raw["networks"]))
-                    network_stats['total_tx'] = 0
-                    network_stats['total_rx'] = 0
-                    for if_name, data in raw["networks"].items():
-                        _LOGGER.debug("Stats for interface {} -> up {} / down {}".format(
-                            if_name, data["tx_bytes"], data["rx_bytes"]))
-                        network_stats['total_tx'] += data["tx_bytes"]
-                        network_stats['total_rx'] += data["rx_bytes"]
-
-                    network_new = {
-                        'read': stats['read'],
-                        'total_tx': network_stats['total_tx'],
-                        'total_rx': network_stats['total_rx'],
-                    }
-
-                except KeyError as e:
-                    # raw_stats do not have NETWORK information
-                    _LOGGER.info("Cannot grab NET usage for container {} ({})".format(
-                        self._container.id, e))
-                    _LOGGER.debug(raw)
-                else:
-                    if network_old:
-                        tx = network_new['total_tx'] - network_old['total_tx']
-                        rx = network_new['total_rx'] - network_old['total_rx']
-                        tim = (network_new['read'] - network_old['read']).total_seconds()
-
-                        network_stats['speed_tx'] = round(float(tx) / tim, PRECISION)
-                        network_stats['speed_rx'] = round(float(rx) / tim, PRECISION)
-
-                    network_old = network_new
-
-                stats['cpu'] = cpu_stats
-                stats['memory'] = memory_stats
-                stats['network'] = network_stats
-            else:
-                stats['cpu'] = {}
-                stats['memory'] = {}
-                stats['network'] = {}
-            """
 
             self._notify(stats)
             time.sleep(interval)

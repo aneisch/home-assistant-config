@@ -2,20 +2,16 @@ title: Home
 cards:
   - !include .cards/kitchen_timer.yaml
 
-  - type: thermostat
-    entity: climate.thermostat
 
-  - type: entities
-    show_header_toggle: false
-    title: Thermostat
-    entities:
-      - climate.thermostat
-      - sensor.thermostat_temperature
-      - sensor.thermostat_setpoint
-      - sensor.thermostat_state
-      - sensor.thermostat_fan_status
-      - sensor.ac_runtime_today
-      - sensor.ac_runtime_yesterday
+  - type: vertical-stack
+    cards:
+      - !include .cards/thermostat.yaml
+      - type: entities
+        show_header_toggle: false
+        title: Thermostat
+        entities:
+          - sensor.ac_runtime_today
+          - sensor.ac_runtime_yesterday
 
   - type: entities
     show_header_toggle: false

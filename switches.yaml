@@ -45,3 +45,12 @@
         service: switch.turn_off
         data:
           entity_id: switch.tv_remote_power
+
+#- platform: command_line
+#  switches:
+#    docker_appdaemon:
+#      command_on: "docker start appdaemon"
+#      command_off: "docker stop appdaemon"
+#      command_state: 'docker ps --filter "name=hass"'
+#      value_template: '{{ "Up " in value }}'
+#      friendly_name: Docker appdaemon

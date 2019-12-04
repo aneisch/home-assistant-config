@@ -32,6 +32,7 @@ logger:
   default: info
   logs:
     homeassistant.core: debug
+    #custom_components.docker_monitor: debug
 
 # Enable map panel
 map:
@@ -49,9 +50,9 @@ recorder:
       - sensor.kitchen_timer_countdown
       - binary_sensor.internet_reachability
       - sensor.network_in_eno1
-      - sensor.load_1m
-      - sensor.load_5m
-      - sensor.load_15m
+      #- sensor.load_1m
+      #- sensor.load_5m
+      #- sensor.load_15m
     domains:
       - automation
       - alarm_panel
@@ -321,7 +322,7 @@ readme:
 docker_monitor:
   monitored_conditions:
     - container_status
-  scan_interval: 60
+  scan_interval: 10
 
 hacs:
   token: !secret hacs_token

@@ -21,6 +21,8 @@ resources:
     type: js
   - url: /community_plugin/lovelace-card-mod/card-mod.js
     type: module
+  - url: /community_plugin/simple-thermostat/simple-thermostat.js
+    type: module
 
 cch:
   options: show
