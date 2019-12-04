@@ -13,9 +13,9 @@ sensor:
   - platform: template
     id: "master_bed_smoothed"
     unit_of_measurement: kg
-    name: "${friendly_name} Bed Raw"
+    #name: "${friendly_name} Bed Raw"
     lambda: |-
-      if (id(master_bed_read).state > 655000 && id(master_bed_read).state < 710000) {
+      if (id(master_bed_read).state > 600000 && id(master_bed_read).state < 710000) {
         return id(master_bed_read).state; 
       } else {
         return {};
