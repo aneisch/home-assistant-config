@@ -263,7 +263,8 @@ class DockerContainerAPI:
         if self._thread is not None:
             self._stopper.set()
 
-    def stats(self, callback, interval=10):
+    # Hard coded interval
+    def stats(self, callback, interval=60):
         if not self._subscribers:
             self._stopper = threading.Event()
             thread = threading.Thread(target=self._runnable, kwargs={
@@ -292,9 +293,19 @@ class DockerContainerAPI:
         _LOGGER.info("Start container {}".format(self._name))
         self._container.start()
 
+        # Update our stats after sending command so our switch immediately updates
+        stats = {}
+        stats['info'] = self.get_info()
+        self._notify(stats)
+
     def stop(self, timeout=10):
         _LOGGER.info("Stop container {}".format(self._name))
         self._container.stop(timeout=timeout)
+
+        # Update our stats after sending command so our switch immediately updates
+        stats = {}
+        stats['info'] = self.get_info()
+        self._notify(stats)
 
     def _notify(self, message):
         _LOGGER.debug("Send notify for container {}".format(self._name))
@@ -306,14 +317,12 @@ class DockerContainerAPI:
 
         stream = self._container.stats(stream=False)
 
-        #for raw in stream:
+        # Run a loop to periodically update container status
         while True:
             if self._stopper.isSet():
                 break
 
             stats = {}
-
             stats['info'] = self.get_info()
-
             self._notify(stats)
             time.sleep(interval)

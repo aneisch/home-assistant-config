@@ -37,6 +37,8 @@
   host: !secret domain_2
 
 - platform: darksky
+  scan_interval:
+    minutes: 30
   api_key: !secret darksky_api_key
   monitored_conditions:
     - summary
@@ -51,6 +53,8 @@
     - icon
 
 - platform: systemmonitor
+  scan_interval:
+    seconds: 30
   resources:
     - type: disk_use_percent
       arg: /home

@@ -26,7 +26,7 @@ ATTR_MINUTES = 'minutes'
 DEFAULT_NAME = "Countdown"
 CONF_DATE = 'date'
 
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=60)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_DATE): cv.string,

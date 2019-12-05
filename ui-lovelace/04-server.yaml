@@ -105,6 +105,7 @@ cards:
       - switch.docker_grafana
       - switch.docker_plex
       - switch.docker_portainer
+      - switch.docker_ozwcp
       - entity: switch.docker_appdaemon
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_influxdb

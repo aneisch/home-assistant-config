@@ -322,7 +322,9 @@ readme:
 docker_monitor:
   monitored_conditions:
     - container_status
-  scan_interval: 10
+  # Interval is hard coded in __init__.py
+  # scan_interval:
+  #   seconds: 10
 
 hacs:
   token: !secret hacs_token

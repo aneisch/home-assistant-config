@@ -68,6 +68,8 @@ services:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         network_mode: host
+        healthcheck:
+            disable: true
     pwr_stat_650:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat_650
@@ -81,6 +83,8 @@ services:
             - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         network_mode: host
+        healthcheck:
+            disable: true
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
