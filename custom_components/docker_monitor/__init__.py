@@ -50,42 +50,7 @@ DOCKER_TYPE = [
     'switch'
 ]
 
-CONF_EVENTS = 'events'
 CONF_CONTAINERS = 'containers'
-
-UTILISATION_MONITOR_VERSION = 'utilization_version'
-
-CONTAINER_MONITOR_STATUS = 'container_status'
-CONTAINER_MONITOR_UPTIME = 'container_uptime'
-CONTAINER_MONITOR_IMAGE = 'container_image'
-CONTAINER_MONITOR_CPU_PERCENTAGE = 'container_cpu_percentage_usage'
-CONTAINER_MONITOR_MEMORY_USAGE = 'container_memory_usage'
-CONTAINER_MONITOR_MEMORY_PERCENTAGE = 'container_memory_percentage_usage'
-CONTAINER_MONITOR_NETWORK_SPEED_UP = 'container_network_speed_up'
-CONTAINER_MONITOR_NETWORK_SPEED_DOWN = 'container_network_speed_down'
-CONTAINER_MONITOR_NETWORK_TOTAL_UP = 'container_network_total_up'
-CONTAINER_MONITOR_NETWORK_TOTAL_DOWN = 'container_network_total_down'
-
-_UTILISATION_MON_COND = {
-    UTILISATION_MONITOR_VERSION: ['Version', None, 'mdi:information-outline', None],
-}
-
-_CONTAINER_MON_COND = {
-    CONTAINER_MONITOR_STATUS: ['Status', None, 'mdi:checkbox-marked-circle-outline', None],
-    CONTAINER_MONITOR_UPTIME: ['Up Time', '', 'mdi:clock', 'timestamp'],
-    CONTAINER_MONITOR_IMAGE: ['Image', None, 'mdi:information-outline', None],
-    CONTAINER_MONITOR_CPU_PERCENTAGE: ['CPU use', '%', 'mdi:chip', None],
-    CONTAINER_MONITOR_MEMORY_USAGE: ['Memory use', 'MB', 'mdi:memory', None],
-    CONTAINER_MONITOR_MEMORY_PERCENTAGE: ['Memory use (percent)', '%', 'mdi:memory', None],
-    CONTAINER_MONITOR_NETWORK_SPEED_UP: ['Network speed Up', 'kB/s', 'mdi:upload', None],
-    CONTAINER_MONITOR_NETWORK_SPEED_DOWN: ['Network speed Down', 'kB/s', 'mdi:download', None],
-    CONTAINER_MONITOR_NETWORK_TOTAL_UP: ['Network total Up', 'MB', 'mdi:upload', None],
-    CONTAINER_MONITOR_NETWORK_TOTAL_DOWN: ['Network total Down', 'MB', 'mdi:download', None],
-}
-
-_MONITORED_CONDITIONS = \
-    list(_UTILISATION_MON_COND.keys()) + \
-    list(_CONTAINER_MON_COND.keys())
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
@@ -95,10 +60,6 @@ CONFIG_SCHEMA = vol.Schema({
             cv.string,
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL):
             cv.time_period,
-        vol.Optional(CONF_EVENTS, default=False):
-            cv.boolean,
-        vol.Optional(CONF_MONITORED_CONDITIONS, default=_MONITORED_CONDITIONS):
-            vol.All(cv.ensure_list, [vol.In(_MONITORED_CONDITIONS)]),
         vol.Optional(CONF_CONTAINERS):
             cv.ensure_list,
     })
@@ -125,7 +86,6 @@ def setup(hass, config):
         hass.data[DOCKER_HANDLE][DATA_CONFIG] = {
             CONF_NAME: config[DOMAIN][CONF_NAME],
             CONF_CONTAINERS: config[DOMAIN].get(CONF_CONTAINERS, [container.get_name() for container in api.get_containers()]),
-            CONF_MONITORED_CONDITIONS: config[DOMAIN].get(CONF_MONITORED_CONDITIONS),
             CONF_SCAN_INTERVAL: config[DOMAIN].get(CONF_SCAN_INTERVAL),
         }
 
@@ -138,14 +98,6 @@ def setup(hass, config):
             api.exit()
 
         hass.bus.listen_once(EVENT_HOMEASSISTANT_STOP, monitor_stop)
-
-        def event_listener(message):
-            event = util_slugify("{} {}".format(config[DOMAIN][CONF_NAME], EVENT_CONTAINER))
-            _LOGGER.debug("Sending event {} notification with message {}".format(event, message))
-            hass.bus.fire(event, message)
-
-        if config[DOMAIN][CONF_EVENTS]:
-            api.events(event_listener)
 
         return True
 
@@ -166,7 +118,6 @@ class DockerAPI:
 
         self._containers = {}
         self._event_callback_listeners = []
-        self._events = None
 
         try:
             self._client = docker.DockerClient(base_url=self._base_url)
@@ -181,18 +132,8 @@ class DockerAPI:
 
     def exit(self):
         _LOGGER.info("Stopping threads for Docker monitor")
-        if self._events:
-            self._events.close()
         for container in self._containers.values():
             container.exit()
-
-    def events(self, callback):
-        if not self._event_callback_listeners:
-            thread = threading.Thread(target=self._runnable, kwargs={})
-            thread.start()
-
-        if callback not in self._event_callback_listeners:
-            self._event_callback_listeners.append(callback)
 
     def get_info(self):
         version = {}
@@ -209,27 +150,6 @@ class DockerAPI:
             _LOGGER.error("Cannot get Docker version ({})".format(e))
 
         return version
-
-    def _runnable(self):
-        self._events = self._client.events(decode=True)
-        for event in self._events:
-            _LOGGER.debug("Event: ({})".format(event))
-            try:
-                # Only interested in container events
-                if event['Type'] == 'container':
-                    message = {
-                        'Container': event['Actor']['Attributes'].get('name'),
-                        'Image': event['from'],
-                        'Status': event['status'],
-                        'Id': event['id'],
-                    }
-                    _LOGGER.info("Container event: ({})".format(message))
-
-                    for callback in self._event_callback_listeners:
-                        callback(message)
-            except KeyError as e:
-                _LOGGER.error("Key error: ({})".format(e))
-                pass
 
     def get_containers(self):
         return list(self._containers.values())
@@ -280,11 +200,7 @@ class DockerContainerAPI:
 
         self._container.reload()
         info = {
-            'id': self._container.id,
-            'image': self._container.image.tags,
-            'status': self._container.attrs['State']['Status'],
-            'created': parser.parse(self._container.attrs['Created']),
-            'started': parser.parse(self._container.attrs['State']['StartedAt']),
+            'status': self._container.attrs['State']['Status']
         }
 
         return info

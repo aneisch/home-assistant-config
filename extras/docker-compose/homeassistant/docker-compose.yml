@@ -3,48 +3,47 @@ services:
     homeassistant:
         container_name: hass
         image: homeassistant/home-assistant:stable
-        #image: homeassistant/home-assistant:0.101.3
         volumes:
           - /opt/homeassistant:/config
           - /var/run/docker.sock:/var/run/docker.sock
           - /home/aneisch/.docker_pipe:/docker_pipe
           - /tmp/radar.gif:/tmp/radar.gif
-        environment:
-          - TZ=America/Chicago
         devices:
             - /dev/zwave:/dev/zwave
-        restart: always
+        environment:
+          - TZ=America/Chicago
         network_mode: host
+        restart: always
     mosquitto:
         container_name: mosquitto
-        restart: always
-        ports:
-            - '1883:1883'
+        image: eclipse-mosquitto
         volumes:
             - '/etc/ssl/certs:/mosquitto/certs:ro'
             - '/opt/mqtt/config:/mosquitto/config:ro'
             - '/opt/mqtt/log:/mosquitto/log'
             - '/opt/mqtt/data:/mosquitto/data'
-        image: eclipse-mosquitto
-    grafana:
         ports:
-            - '3000:3000'
-        volumes:
-            - /opt/grafana:/var/lib/grafana
-        restart: "no"
+            - '1883:1883'
+        restart: always
+    grafana:
         container_name: grafana
         image: grafana/grafana
+        volumes:
+            - /opt/grafana:/var/lib/grafana
+        ports:
+            - '3000:3000'
         environment:
             - GF_SECURITY_ALLOW_EMBEDDING=true
             - GF_SECURITY_COOKIE_SAMESITE=none
+        restart: "no"
     influxdb:
         container_name: influxdb
-        restart: always
+        image: influxdb
         volumes:
             - '/opt/influxdb:/var/lib/influxdb'
         ports:
             - '8086:8086'
-        image: influxdb
+        restart: always
     esphome:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
@@ -58,33 +57,33 @@ services:
     pwr_stat:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat
-        hostname: pwr_stat
-        restart: always
         image: dwinks/pwrstat_docker:latest
-        devices:
-            # Bottom USB on back
-            - '/dev/usb/hiddev0:/dev/usb/hiddev0'
+        hostname: pwr_stat
         volumes:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
+        devices:
+            # Bottom USB on back
+            - '/dev/usb/hiddev0:/dev/usb/hiddev0'
         network_mode: host
         healthcheck:
             disable: true
+        restart: always
     pwr_stat_650:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat_650
-        hostname: pwr_stat_650
-        restart: always
         image: dwinks/pwrstat_docker:latest
-        devices:
-            # Top USB on back
-            - '/dev/usb/hiddev1:/dev/usb/hiddev0'
+        hostname: pwr_stat_650
         volumes:
             - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
+        devices:
+            # Top USB on back
+            - '/dev/usb/hiddev1:/dev/usb/hiddev0'
         network_mode: host
         healthcheck:
             disable: true
+        restart: always
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
@@ -93,15 +92,15 @@ services:
           - /etc/localtime:/etc/localtime:ro
         ports:
           - "1880:1880"
-        restart: always
         environment:
           - TZ=America/Chicago
+        restart: always
     appdaemon:
         container_name: appdaemon
         image: acockburn/appdaemon:latest
-        ports:
-            - '8888:8888'
         volumes:
           - /etc/localtime:/etc/localtime
           - /opt/appdaemon:/conf
+        ports:
+            - '8888:8888'
         restart: always

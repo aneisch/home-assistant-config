@@ -320,8 +320,6 @@ readme:
 
 # https://github.com/Sanderhuisman/home-assistant-custom-components
 docker_monitor:
-  monitored_conditions:
-    - container_status
   # Interval is hard coded in __init__.py
   # scan_interval:
   #   seconds: 10

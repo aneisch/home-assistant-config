@@ -2,6 +2,13 @@ version: '3.2'
 services:
     plex:
         container_name: plex
+        image: plexinc/pms-docker
+        volumes:
+            - '/opt/plex/db/:/config'
+            - '/opt/plex/transcode/:/transcode'
+            - '/plex/:/data'
+            - /config
+            - /transcode
         environment:
             - TZ=America/Chicago
             - PLEX_CLAIM=XXXXXXXXXXXX
@@ -11,30 +18,26 @@ services:
             - LC_ALL=C.UTF-8
             - CHANGE_CONFIG_DIR_OWNERSHIP=true
             - HOME=/config
-        volumes:
-            - '/opt/plex/db/:/config'
-            - '/opt/plex/transcode/:/transcode'
-            - '/plex/:/data'
-            - /config
-            - /transcode
-        restart: "no"
         network_mode: host
-        image: plexinc/pms-docker
+        restart: "no"
     portainer:
         container_name: portainer
-        environment:
-            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        image: portainer/portainer
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
             - '/opt/portainer:/data'
         ports:
             - '9000:9000'
+        environment:
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
-        image: portainer/portainer
     pihole:
       # Adding ip route proxy in /etc/rc.local
       container_name: pihole
       image: pihole/pihole:latest
+      volumes:
+        - '/opt/pihole/etc-pihole/:/etc/pihole/'
+        - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
       ports:
         - "53:53/tcp"
         - "53:53/udp"
@@ -45,16 +48,13 @@ services:
         ServerIPv6: '2001:470:1f0f:f4:ffff:242:ac11:2'
         IPv6: 'True'
         DNSMASQ_LISTENING: all
-      volumes:
-        - '/opt/pihole/etc-pihole/:/etc/pihole/'
-        - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
       dns:
         - 10.0.1.1
-      restart: unless-stopped
       network_mode: 'bridge'
+      restart: unless-stopped
     ozwcp:
         container_name: ozwcp
-        restart: 'no'
+        image: openzwave/openzwave-control-panel
         volumes:
             - '/opt/homeassistant/options.xml:/etc/openzwave/options.xml'
             - '/opt/homeassistant/zwcfg_0xc564203a.xml:/etc/openzwave/zwcfg_0xc564203a.xml'
@@ -63,4 +63,4 @@ services:
             - '8008:8008'
         devices:
             - '/dev/zwave:/dev/zwave'
-        image: openzwave/openzwave-control-panel
+        restart: 'no'
