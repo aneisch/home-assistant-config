@@ -38,6 +38,7 @@ services:
       volumes:
         - '/opt/pihole/etc-pihole/:/etc/pihole/'
         - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+        - '/opt/pihole/logs:/var/log'
       ports:
         - "53:53/tcp"
         - "53:53/udp"
