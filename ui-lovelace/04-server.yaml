@@ -28,7 +28,7 @@ cards:
           - sensor.load_1m
           - sensor.load_5m
           - sensor.load_15m
-          - sensor.disk_use_percent_home
+          - sensor.disk_use_percent
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot

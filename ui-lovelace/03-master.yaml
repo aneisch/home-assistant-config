@@ -8,7 +8,6 @@ cards:
     entities:
       - sensor.master_bedroom_temperature
       - binary_sensor.master_bedroom_bed
-      - sensor.master_bedroom_bed_raw
       - light.master_bedroom
       - switch.master_bedroom_sound_machine
       - fan.master_bedroom_ceiling_fan_level
