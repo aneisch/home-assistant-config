@@ -27,7 +27,8 @@ services:
         restart: always
     grafana:
         container_name: grafana
-        image: grafana/grafana
+        image: grafana/grafana:6.4.5
+        #image: grafana/grafana
         volumes:
             - /opt/grafana:/var/lib/grafana
         ports:
