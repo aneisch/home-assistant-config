@@ -10,17 +10,6 @@ cards:
 
   - type: vertical-stack
     cards:
-      - type: sensor
-        entity: sensor.rack_exhaust_temperature
-        graph: line
-        name: Rack Temperature
-        detail: 2
-      - type: entities
-        entities:
-          - fan.rack_fan
-
-  - type: vertical-stack
-    cards:
       - type: entities
         show_header_toggle: false
         title: System
@@ -83,6 +72,11 @@ cards:
 
   - type: vertical-stack
     cards:
+      - type: sensor
+        entity: sensor.rack_exhaust_temperature
+        graph: line
+        name: Rack Temperature
+        detail: 2
       - type: entities
         entities:
           - entity: switch.nas
@@ -95,6 +89,7 @@ cards:
         card:
           type: entities
           entities:
+            - fan.rack_fan
             - script.copy
 
   - type: entities

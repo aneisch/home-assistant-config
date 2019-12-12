@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.102.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.103.0%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 
 
 I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. All of my home automation software runs as docker containers (see [docker-compose config](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)) with the exception of a few helper scritps. 
@@ -41,10 +41,10 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2532
-Number of entities (total) | 426  
-Number of fans | 4  
-Number of switches | 71  
+Lines of YAML configuration | 2528
+Number of entities (total) | 406  
+Number of fans | 2  
+Number of switches | 64  
 Number of lights | 9  
 Number of cameras | 11  
 Number of sensors | 198  
@@ -64,8 +64,8 @@ Number of zones | 7
 [Generate readme](https://github.com/custom-components/readme)  
 [Docker Monitor](https://github.com/aneisch/docker_monitor)  
 [Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
-[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 [HACS (Home Assistant Community Store)](https://hacs.xyz)  
+[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 
 # Interface
 ![UI](images/screenshot1.png)  

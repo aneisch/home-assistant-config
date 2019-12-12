@@ -28,7 +28,7 @@
 
 - platform: wake_on_lan
   name: "NAS"
-  mac_address: "e8:fc:af:e6:22:26"
+  mac: "e8:fc:af:e6:22:26"
   host: 10.0.1.20
   turn_off:
       service: shell_command.nas_poweroff
