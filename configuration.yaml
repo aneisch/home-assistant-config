@@ -323,6 +323,8 @@ docker_monitor:
   # scan_interval:
   #   seconds: 10
 
+mobile_app:
+
 hacs:
   token: !secret hacs_token
   python_script: true

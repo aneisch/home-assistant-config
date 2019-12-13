@@ -184,7 +184,7 @@ class DockerContainerAPI:
             self._stopper.set()
 
     # Hard coded interval
-    def stats(self, callback, interval=60):
+    def stats(self, callback, interval=120):
         if not self._subscribers:
             self._stopper = threading.Event()
             thread = threading.Thread(target=self._runnable, kwargs={
@@ -214,7 +214,7 @@ class DockerContainerAPI:
         stats['info'] = self.get_info()
         self._notify(stats)
 
-    def stop(self, timeout=10):
+    def stop(self, timeout=30):
         _LOGGER.info("Stop container {}".format(self._name))
         self._container.stop(timeout=timeout)
 

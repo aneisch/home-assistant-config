@@ -24,13 +24,13 @@ My Home Assistant installation contains many different components and runs on a 
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Various z-wave sensors
 - Various MQTT Sensors (eg: [moon status](https://github.com/aneisch/home-assistant-config/blob/master/extras/helper_scripts/moon_phase_mqtt), determined using bash and published to MQTT))
-- Arlo Cameras (controlled through IFTTT)
+- Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a majority of automations. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - Amazon Echo Dots
   - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda 
   - Custom routines configured in the Alexa App.
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
-- MQTT remote and local server (via Docker). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
+- MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Numerous Wemos D1 Mini sensors via [ESPHome API](https://esphome.io/components/api.html). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - UPS monitoring using [pwrstat_docker](https://github.com/DanielWinks/pwrstat_docker)
 
@@ -41,15 +41,15 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2529
+Lines of YAML configuration | 2530
 Number of entities (total) | 394  
 Number of fans | 2  
 Number of switches | 65  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 185  
+Number of sensors | 184  
 Number of binary_sensors | 13  
-Number of device_trackers | 7  
+Number of device_trackers | 8  
 Number of media_players | 7  
 Number of automations | 23  
 Number of groups | 18  
