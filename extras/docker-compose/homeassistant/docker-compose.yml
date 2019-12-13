@@ -105,3 +105,11 @@ services:
         ports:
             - '8888:8888'
         restart: always
+    thermostat_mqtt:
+        container_name: thermostat_mqtt
+        image: aneisch/thermostat_mqtt_docker:latest
+        environment:
+          - MQTT_SERVER=10.0.1.22
+          - MQTT_PORT=1883
+          - THERMOSTAT_IP=10.0.1.29
+        restart: always

@@ -115,6 +115,8 @@ cards:
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_pwr_stat_650
         type: custom:toggle-lock-entity-row
+      - entity: switch.docker_thermostat_mqtt
+        type: custom:toggle-lock-entity-row
 
   #- type: custom:gui-sandbox
 

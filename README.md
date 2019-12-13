@@ -12,7 +12,7 @@ My Home Assistant installation contains many different components and runs on a 
 - Owntracks for iOS and Android
 - [Sonoff Switches](https://www.itead.cc/sonoff-wifi-wireless-switch.html) running [ESPHome](https://esphome.io/index.html)
 - Orvibo Switches
-- Radio Thermostat CT-50 (monitoring done through bash script querying local API and publishing to MQTT)
+- Radio Thermostat CT-50 (additional monitoring done through [docker container](https://hub.docker.com/r/aneisch/thermostat_mqtt_docker))
 - Raspberry Pi hosted USB Camera (M-JPEG streamer)
 - ESP32 Cameras running ESPHome
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
@@ -41,13 +41,13 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2528
-Number of entities (total) | 406  
+Lines of YAML configuration | 2529
+Number of entities (total) | 394  
 Number of fans | 2  
-Number of switches | 64  
+Number of switches | 65  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 198  
+Number of sensors | 185  
 Number of binary_sensors | 13  
 Number of device_trackers | 7  
 Number of media_players | 7  

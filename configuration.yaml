@@ -60,7 +60,6 @@ recorder:
       - group
       - media_player
       - notify
-      - person
       - scene
       - script
       - shell_command
