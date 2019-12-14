@@ -61,20 +61,20 @@ Number of input_select | 2
 Number of zones | 7  
 
 ## The custom_components that I use:
-[swipe-card](https://github.com/bramkragten/swipe-card)\n
-[weather-card](https://github.com/bramkragten/weather-card)\n
-[bignumber-card](https://github.com/custom-cards/bignumber-card)\n
-[button-card](https://github.com/custom-cards/button-card)\n
-[alexa_media_player](https://github.com/custom-components/alexa_media_player)\n
-[readme](https://github.com/custom-components/readme)\n
-[integration](https://github.com/hacs/integration)\n
-[mini-media-player](https://github.com/kalkih/mini-media-player)\n
-[compact-custom-header](https://github.com/maykar/compact-custom-header)\n
-[lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)\n
-[lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)\n
-[lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)\n
-[hass-aarlo](https://github.com/twrecked/hass-aarlo)\n
-[lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)\n
+[swipe-card](https://github.com/bramkragten/swipe-card)  
+[weather-card](https://github.com/bramkragten/weather-card)  
+[bignumber-card](https://github.com/custom-cards/bignumber-card)  
+[button-card](https://github.com/custom-cards/button-card)  
+[alexa_media_player](https://github.com/custom-components/alexa_media_player)  
+[readme](https://github.com/custom-components/readme)  
+[integration](https://github.com/hacs/integration)  
+[mini-media-player](https://github.com/kalkih/mini-media-player)  
+[compact-custom-header](https://github.com/maykar/compact-custom-header)  
+[lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)  
+[lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)  
+[lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)  
+[hass-aarlo](https://github.com/twrecked/hass-aarlo)  
+[lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)  
 
 # Interface
 ![UI](images/screenshot1.png)  
