@@ -43,12 +43,12 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2530
-Number of entities (total) | 406  
-Number of fans | 2  
-Number of switches | 65  
+Number of entities (total) | 427  
+Number of fans | 4  
+Number of switches | 72  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 196  
+Number of sensors | 197  
 Number of binary_sensors | 13  
 Number of device_trackers | 8  
 Number of media_players | 7  
@@ -60,13 +60,21 @@ Number of input_boolean | 9
 Number of input_select | 2  
 Number of zones | 7  
 
-
 ## The custom_components that I use:
-[Generate readme](https://github.com/custom-components/readme)  
-[Docker Monitor](https://github.com/aneisch/docker_monitor)  
-[HACS (Home Assistant Community Store)](https://hacs.xyz)  
-[Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
-[Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
+[swipe-card](https://github.com/bramkragten/swipe-card)
+[weather-card](https://github.com/bramkragten/weather-card)
+[bignumber-card](https://github.com/custom-cards/bignumber-card)
+[button-card](https://github.com/custom-cards/button-card)
+[alexa_media_player](https://github.com/custom-components/alexa_media_player)
+[readme](https://github.com/custom-components/readme)
+[integration](https://github.com/hacs/integration)
+[mini-media-player](https://github.com/kalkih/mini-media-player)
+[compact-custom-header](https://github.com/maykar/compact-custom-header)
+[lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)
+[lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)
+[lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)
+[hass-aarlo](https://github.com/twrecked/hass-aarlo)
+[lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)
 
 # Interface
 ![UI](images/screenshot1.png)  
