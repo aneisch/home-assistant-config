@@ -1,10 +1,10 @@
 - platform: orvibo
   switches:
-  -  host: 10.0.1.21
+  -  host: 10.0.0.21
      name: master_bedroom_sound_machine
 
 - platform: broadlink
-  host: 10.0.1.11
+  host: 10.0.0.11
   mac: b4:43:0d:ae:61:36
   type:  sp2
   friendly_name: 'Entertainment Center Lights'

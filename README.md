@@ -3,6 +3,7 @@
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
 [![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.103.0%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+<a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 
 I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. All of my home automation software runs as docker containers (see [docker-compose config](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)) with the exception of a few helper scritps. 
@@ -42,12 +43,12 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2530
-Number of entities (total) | 394  
+Number of entities (total) | 406  
 Number of fans | 2  
 Number of switches | 65  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 184  
+Number of sensors | 196  
 Number of binary_sensors | 13  
 Number of device_trackers | 8  
 Number of media_players | 7  
@@ -63,8 +64,8 @@ Number of zones | 7
 ## The custom_components that I use:
 [Generate readme](https://github.com/custom-components/readme)  
 [Docker Monitor](https://github.com/aneisch/docker_monitor)  
-[Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
 [HACS (Home Assistant Community Store)](https://hacs.xyz)  
+[Alexa Media Player](https://github.com/custom-components/alexa_media_player/wiki)  
 [Arlo Camera Support](https://github.com/twrecked/hass-aarlo/blob/master/README.md)  
 
 # Interface

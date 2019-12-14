@@ -235,7 +235,7 @@ plex:
 climate:
   platform: radiotherm
   host:
-    - 10.0.1.29
+    - 10.0.0.29
   hold_temp: True
 
 notify:
@@ -256,7 +256,7 @@ notify:
 light:
   - platform: limitlessled
     bridges:
-      - host: 10.0.1.47
+      - host: 10.0.0.47
         version: 5
         port: 8899
         groups:
