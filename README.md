@@ -60,7 +60,7 @@ Number of input_boolean | 9
 Number of input_select | 2  
 Number of zones | 7  
 
-## The custom_components that I use:
+## The HACS integrations/plugins that I use:
 [swipe-card](https://github.com/bramkragten/swipe-card)  
 [weather-card](https://github.com/bramkragten/weather-card)  
 [bignumber-card](https://github.com/custom-cards/bignumber-card)  
