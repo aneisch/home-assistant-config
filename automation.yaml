@@ -24,7 +24,7 @@
   action:
     - service: frontend.set_theme
       data:
-        name: amoled
+        name: "aqua-fiesta"
 
 - alias: "Set light theme for day"
   initial_state: on

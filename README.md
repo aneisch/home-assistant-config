@@ -43,12 +43,12 @@ Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/has
 Description | value
 -- | --
 Lines of YAML configuration | 2530
-Number of entities (total) | 427  
-Number of fans | 4  
-Number of switches | 72  
+Number of entities (total) | 395  
+Number of fans | 2  
+Number of switches | 65  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 197  
+Number of sensors | 185  
 Number of binary_sensors | 13  
 Number of device_trackers | 8  
 Number of media_players | 7  
