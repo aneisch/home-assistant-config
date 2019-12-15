@@ -33,6 +33,8 @@ logger:
   logs:
     homeassistant.core: debug
     #custom_components.docker_monitor: debug
+    custom_components.hacs: debug
+    hacs: debug
 
 # Enable map panel
 map:

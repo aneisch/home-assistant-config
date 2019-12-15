@@ -13,7 +13,14 @@ cards:
       - sensor.gate_ip_address
       - sensor.gate_battery_voltage
       - sensor.gate_uptime
-      - sensor.gate_online_offline
+      - entity: sensor.gate_online_offline
+        style: |
+          :host {
+              {% if states(config.entity) == "offline" %}
+                color: red
+              {% endif %}
+              ;
+          }
       - automation.gate_heading_comparison_action_notify
       - script.mom_and_dad_gate_toggle
       - input_boolean.gate_alert

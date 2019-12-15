@@ -102,6 +102,8 @@ services:
         volumes:
           - /etc/localtime:/etc/localtime
           - /opt/appdaemon:/conf
+          # Mount directory of appdaemon apps installed by HACS
+          - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
         ports:
             - '8888:8888'
         restart: always
