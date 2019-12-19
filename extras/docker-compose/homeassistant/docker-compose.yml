@@ -2,7 +2,8 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: homeassistant/home-assistant:stable
+        image: homeassistant/home-assistant:0.103.0
+        #image: homeassistant/home-assistant:stable
         volumes:
           - /opt/homeassistant:/config
           - /var/run/docker.sock:/var/run/docker.sock
@@ -25,18 +26,6 @@ services:
         ports:
             - '1883:1883'
         restart: always
-    grafana:
-        container_name: grafana
-        image: grafana/grafana:6.4.5
-        #image: grafana/grafana
-        volumes:
-            - /opt/grafana:/var/lib/grafana
-        ports:
-            - '3000:3000'
-        environment:
-            - GF_SECURITY_ALLOW_EMBEDDING=true
-            - GF_SECURITY_COOKIE_SAMESITE=none
-        restart: "no"
     influxdb:
         container_name: influxdb
         image: influxdb
@@ -45,16 +34,6 @@ services:
         ports:
             - '8086:8086'
         restart: always
-    esphome:
-        container_name: esphome
-        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
-        image: esphome-dev
-        volumes:
-            - /opt/esphome/:/config:rw
-            # Use local time for logging timestamps
-            - /etc/localtime:/etc/localtime:ro
-        network_mode: host
-        restart: "no"
     pwr_stat:
         # https://github.com/DanielWinks/pwrstat_docker
         container_name: pwr_stat

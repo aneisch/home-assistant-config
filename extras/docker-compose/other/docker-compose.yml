@@ -65,3 +65,25 @@ services:
         devices:
             - '/dev/zwave:/dev/zwave'
         restart: 'no'
+    grafana:
+        container_name: grafana
+        image: grafana/grafana:6.4.5
+        #image: grafana/grafana
+        volumes:
+            - /opt/grafana:/var/lib/grafana
+        ports:
+            - '3000:3000'
+        environment:
+            - GF_SECURITY_ALLOW_EMBEDDING=true
+            - GF_SECURITY_COOKIE_SAMESITE=none
+        restart: "no"
+    esphome:
+        container_name: esphome
+        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
+        image: esphome-dev
+        volumes:
+            - /opt/esphome/:/config:rw
+            # Use local time for logging timestamps
+            - /etc/localtime:/etc/localtime:ro
+        network_mode: host
+        restart: "no"
