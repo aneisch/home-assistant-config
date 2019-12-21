@@ -241,3 +241,17 @@
     service_template: '{{ trigger.event.data.service }}'
     data_template:
       name: '{{ trigger.event.data.name }}'
+
+- alias: 'Update door last oepened'
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.front_door
+      to: 'on'
+    - platform: state
+      entity_id: binary_sensor.back_door
+      to: 'on'
+  action:
+    service: input_datetime.set_datetime
+    data_template:
+      entity_id: '{% if trigger.entity_id == "binary_sensor.front_door" %}input_datetime.front_door_last{% else %}input_datetime.back_door_last{% endif %}'
+      datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"

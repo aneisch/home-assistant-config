@@ -33,15 +33,22 @@ cards:
       - script.master_bedroom_light_dim
       - script.master_bedroom_bedtime
 
-  - type: entities
-    show_header_toggle: false
-    title: Security
-    entities:
-      - !secret alarm_panel_1
-      - !secret alarm_panel_2
-      - input_boolean.security_status
-      - binary_sensor.front_door
-      - binary_sensor.back_door
+  - type: vertical-stack
+    cards:
+      - type: entities
+        show_header_toggle: false
+        title: Security
+        entities:
+          - !secret alarm_panel_1
+          - !secret alarm_panel_2
+          - input_boolean.security_status
+          - binary_sensor.front_door
+          - binary_sensor.back_door
+
+      - type: markdown
+        content: |    
+          {{ states.input_datetime.front_door_last.name | capitalize }}: **{{ (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state | default(0)) | int ) | timestamp_custom("%Hh %Mm", false)}}**
+          {{ states.input_datetime.back_door_last.name | capitalize }}: **{{ (as_timestamp(now()) - as_timestamp(states.input_datetime.back_door_last.state | default(0)) | int ) | timestamp_custom("%Hh %Mm", false)}}**
 
   - type: entities
     show_header_toggle: false
