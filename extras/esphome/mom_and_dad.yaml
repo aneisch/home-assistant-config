@@ -51,15 +51,10 @@ script:
           - binary_sensor.template.publish:
               id: automation_safety
               state: ON
-          # DISABLED GATE DUE TO BROKEN SENSOR
-          #- switch.toggle: gate
+          - switch.toggle: gate
           - text_sensor.template.publish:
               id: gate_movement_cause
               state: 'magnetometer'
-          - delay: 60s
-          - text_sensor.template.publish:
-              id: gate_movement_cause
-              state: ''
           - delay: 60s
           - binary_sensor.template.publish:
               id: automation_safety
@@ -77,10 +72,6 @@ mqtt:
         - text_sensor.template.publish:
             id: gate_movement_cause
             state: 'mqtt'
-        - delay: 60s
-        - text_sensor.template.publish:
-            id: gate_movement_cause
-            state: ''
   
 sensor:
   - platform: qmc5883l
@@ -157,7 +148,7 @@ binary_sensor:
   # Magnet sensor to get real-world state
   - platform: gpio
     pin:
-      number: D7
+      number: D5
       mode: INPUT_PULLUP
     name: Gate Status
     id: gate_status
