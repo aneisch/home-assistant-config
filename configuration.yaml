@@ -41,7 +41,7 @@ map:
 
 recorder:
   purge_interval: 1
-  purge_keep_days: 3
+  purge_keep_days: 7
   exclude:
     entities:
       - sensor.last_boot

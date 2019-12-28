@@ -47,8 +47,17 @@ cards:
 
       - type: markdown
         content: |    
-          {{ states.input_datetime.front_door_last.name | capitalize }}: **{{ (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state | default(0)) | int ) | timestamp_custom("%Hh %Mm", false)}}**
-          {{ states.input_datetime.back_door_last.name | capitalize }}: **{{ (as_timestamp(now()) - as_timestamp(states.input_datetime.back_door_last.state | default(0)) | int ) | timestamp_custom("%Hh %Mm", false)}}**
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state)) | int %}
+          {%- set minutes = (seconds // 60) | int %}
+          {%- set hours = (minutes // 60) | int %}
+          {%- set days = (hours // 24) | int %}
+          {{ states.input_datetime.front_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.back_door_last.state)) | int %}
+          {%- set minutes = (seconds // 60) | int %}
+          {%- set hours = (minutes // 60) | int %}
+          {%- set days = (hours // 24) | int %}
+          {{ states.input_datetime.back_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - type: entities
     show_header_toggle: false

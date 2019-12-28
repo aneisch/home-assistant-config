@@ -87,3 +87,12 @@ services:
             - /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
+    thermopro_mqtt:
+        container_name: thermopro_mqtt
+        image: aneisch/rtl_433_mqtt:latest
+        environment:
+          - MQTT_SERVER=10.0.1.22
+          - MQTT_PORT=1883
+        restart: 'no'
+        devices:
+          - '/dev/bus/usb/003/002'

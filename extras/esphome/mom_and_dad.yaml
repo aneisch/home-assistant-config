@@ -55,7 +55,7 @@ script:
           - text_sensor.template.publish:
               id: gate_movement_cause
               state: 'magnetometer'
-          - delay: 60s
+          - delay: 120s
           - binary_sensor.template.publish:
               id: automation_safety
               state: OFF
