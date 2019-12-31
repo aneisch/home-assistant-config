@@ -82,6 +82,24 @@
   name: "Moon Phase"
   value_template: "{{ value_json.phase }}"
 
+# sensor/thermopro {"time":"2019-12-31 07:48:22","model":"Thermopro TP12 Thermometer","id":77,"temperature_1_C":19.7,"temperature_2_C":320.0}
+- platform: mqtt
+  state_topic: sensor/thermopro
+  name: "Grill Probe 1"
+  unit_of_measurement: '°F'
+  value_template: >-
+    {% if value_json.temperature_1_C != 320.0 %}
+      {{ ((value_json.temperature_1_C | int) * 9 / 5) + 32 | round(1) }}
+    {% endif %}
+
+- platform: mqtt
+  state_topic: sensor/thermopro
+  name: "Grill Probe 2"
+  unit_of_measurement: '°F'
+  value_template: >-
+    {% if value_json.temperature_2_C != 320.0 %}
+      {{ ((value_json.temperature_2_C | int) * 9 / 5) + 32 | round(1) }}
+    {% endif %}
 
 ####################
 # BEGIN SONOFF POW #
