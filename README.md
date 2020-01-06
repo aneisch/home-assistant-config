@@ -6,7 +6,7 @@
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
-I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. All of my home automation software runs as docker containers (see [docker-compose config](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)) with the exception of a few helper scritps. 
+I do my best to keep Home Assistant on the latest release. I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. Most of my home automation software pieces run as Docker containers (see [docker-compose config](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). 
 
 My Home Assistant installation contains many different components and runs on a Gen7 i3 NUC running Centos 7:
 
@@ -35,20 +35,19 @@ My Home Assistant installation contains many different components and runs on a 
 - Numerous Wemos D1 Mini sensors via [ESPHome API](https://esphome.io/components/api.html). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - UPS monitoring using [pwrstat_docker](https://github.com/DanielWinks/pwrstat_docker)
 
-Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. Home Assistant, along with a few other web apps, are proxied through my firewall and served via Cloudflare.
+Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. Home Assistant, along with a few other web apps, are proxied through my firewall and are frinted by Cloudflare.
  
-Thanks to Deviant Engineer for the [guides](https://deviant.engineer/2016/11/hass-centos7/) that helped me during installation!!
 
 ## Some statistics about my installation:
 Description | value
 -- | --
 Lines of YAML configuration | 2630
-Number of entities (total) | 435  
-Number of fans | 4  
-Number of switches | 73  
+Number of entities (total) | 406  
+Number of fans | 2  
+Number of switches | 58  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 199  
+Number of sensors | 198  
 Number of binary_sensors | 13  
 Number of device_trackers | 8  
 Number of media_players | 7  
