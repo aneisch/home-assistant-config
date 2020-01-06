@@ -1,6 +1,7 @@
 title: Master Bedroom
 cards:
   - !include .cards/kitchen_timer.yaml
+  - !include .cards/grill.yaml
 
   - type: entities
     show_header_toggle: false

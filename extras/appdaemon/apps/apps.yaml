@@ -115,8 +115,8 @@ Andrew Vehicle:
   module: countdown_notify
   class: Notify
   countdown_entity: sensor.andrew_vehicle_registration
-  notification_days: 0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: True # An optional argument, if true we will continue to notify after 0
+  notification_days: 7,2,0 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
+  notify_overdue: False # An optional argument, if true we will continue to notify after 0
   notify: pushover # The name of the notify service
   message: "It's time to renew Andrew's vehicle registration!"
 

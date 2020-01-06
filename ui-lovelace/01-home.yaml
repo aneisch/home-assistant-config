@@ -3,7 +3,6 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
-
   - type: vertical-stack
     cards:
       - !include .cards/thermostat.yaml

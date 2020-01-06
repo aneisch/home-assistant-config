@@ -11,6 +11,7 @@ homeassistant:
     ups_monitoring: !include packages/ups_monitor.yaml
     #bus_time: !include packages/bus_time.yaml
     docker_image_update: !include packages/docker_image_update.yaml
+    grill: !include packages/grill.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks

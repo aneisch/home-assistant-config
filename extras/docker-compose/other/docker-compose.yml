@@ -32,27 +32,27 @@ services:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
     pihole:
-      # Adding ip route proxy in /etc/rc.local
-      container_name: pihole
-      image: pihole/pihole:latest
-      volumes:
-        - '/opt/pihole/etc-pihole/:/etc/pihole/'
-        - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
-        - '/opt/pihole/logs:/var/log'
-      ports:
-        - "53:53/tcp"
-        - "53:53/udp"
-        - "8000:80/tcp"
-      environment:
-        TZ: 'America/Chicago'
-        DNS1: '10.0.1.1'
-        ServerIPv6: '2001:470:1f0f:f4:ffff:242:ac11:2'
-        IPv6: 'True'
-        DNSMASQ_LISTENING: all
-      dns:
-        - 10.0.1.1
-      network_mode: 'bridge'
-      restart: unless-stopped
+        # Adding ip route proxy in /etc/rc.local
+        container_name: pihole
+        image: pihole/pihole:latest
+        volumes:
+            - '/opt/pihole/etc-pihole/:/etc/pihole/'
+            - '/opt/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/'
+            - '/opt/pihole/logs:/var/log'
+        ports:
+            - "53:53/tcp"
+            - "53:53/udp"
+            - "8000:80/tcp"
+        environment:
+            - TZ='America/Chicago'
+            - DNS1=10.0.1.1
+            - ServerIPv6=2001:470:1f0f:f4:ffff:242:ac11:2
+            - IPv6=true
+            - DNSMASQ_LISTENING=all
+        dns:
+            - 10.0.1.1
+        network_mode: 'bridge'
+        restart: unless-stopped
     ozwcp:
         container_name: ozwcp
         image: openzwave/openzwave-control-panel
@@ -91,8 +91,32 @@ services:
         container_name: thermopro_mqtt
         image: aneisch/rtl_433_mqtt:latest
         environment:
-          - MQTT_SERVER=10.0.1.22
-          - MQTT_PORT=1883
+            - MQTT_SERVER=10.0.1.22
+            - MQTT_PORT=1883
         restart: 'no'
         devices:
-          - '/dev/bus/usb'
+            - '/dev/bus/usb'
+    bitwarden:
+        container_name: bitwarden
+        image: bitwardenrs/server:latest
+        volumes:
+            - /opt/bw-data/:/data/
+            - /etc/localtime:/etc/localtime:ro
+        environment:
+            - SIGNUPS_VERIFY=true
+            - SIGNUPS_ALLOWED=false
+            - INVITATIONS_ALLOWED=true
+            - LOG_FILE=/data/bitwarden.log
+            - LOG_LEVEL=info
+            - EXTENDED_LOGGING=true
+            - DOMAIN=URL
+            - SMTP_HOST=HOST
+            - SMTP_FROM=FROM
+            - SMTP_FROM=FROM
+            - SMTP_SSL=true
+            - SMTP_USERNAME=USER
+            - SMTP_PASSWORD=PASS
+        ports:
+            - '8777:80'
+        logging:
+            driver: none
