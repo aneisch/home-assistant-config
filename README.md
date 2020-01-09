@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.103.5%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.103.6%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -42,12 +42,12 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
 Description | value
 -- | --
 Lines of YAML configuration | 2630
-Number of entities (total) | 406  
-Number of fans | 2  
-Number of switches | 58  
+Number of entities (total) | 436  
+Number of fans | 4  
+Number of switches | 74  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 198  
+Number of sensors | 199  
 Number of binary_sensors | 13  
 Number of device_trackers | 8  
 Number of media_players | 7  

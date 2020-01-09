@@ -45,8 +45,7 @@ services:
             - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         devices:
-            # Bottom USB on back
-            - '/dev/usb/hiddev0:/dev/usb/hiddev0'
+            - '/dev/ups_monitor:/dev/usb/hiddev0'
         network_mode: host
         healthcheck:
             disable: true
@@ -60,8 +59,7 @@ services:
             - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
             - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
         devices:
-            # Top USB on back
-            - '/dev/usb/hiddev1:/dev/usb/hiddev0'
+            - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         network_mode: host
         healthcheck:
             disable: true

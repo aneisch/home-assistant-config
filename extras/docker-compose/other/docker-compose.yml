@@ -95,7 +95,7 @@ services:
             - MQTT_PORT=1883
         restart: 'no'
         devices:
-            - '/dev/bus/usb'
+            - '/dev/rtl_sdr:/dev/bus/usb/003/002'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:latest
@@ -120,3 +120,4 @@ services:
             - '8777:80'
         logging:
             driver: none
+        restart: always

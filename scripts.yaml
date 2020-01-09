@@ -44,7 +44,7 @@ security_disarm:
       entity_id: !secret alarm_panel_2
     - service: notify.pushover
       data:
-        message: Disrmed!
+        message: Disarmed!
 
 security_arm:
   sequence:
