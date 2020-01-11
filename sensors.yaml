@@ -214,6 +214,18 @@
       attribute_templates:
         value: "{{ (60 * (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float)) | int }}m"
 
+- platform: template
+  sensors:
+    netatmo_home_rain_sum_rain_24_in:
+      friendly_name: Home Rain Last 24 Hours
+      unit_of_measurement: in
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_rain_sum_rain_24.state | float) / 25.4) }}"
+    netatmo_home_rain_sum_rain_1_in:
+      friendly_name: Home Rain Last 1 Hour
+      unit_of_measurement: in
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_rain_sum_rain_1.state | float) / 25.4) }}"
+      
+
 #############
 # TEMPLATES #
 #############

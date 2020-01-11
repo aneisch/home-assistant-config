@@ -77,8 +77,14 @@ cards:
       - sun.sun
       - sensor.moon_phase
 
-  - type: custom:weather-card
-    entity: weather.dark_sky
+  - type: vertical-stack
+    cards:
+      - type: custom:weather-card
+        entity: weather.dark_sky
+      - type: entities
+        entities:
+          - sensor.netatmo_home_rain_sum_rain_1_in
+          - sensor.netatmo_home_rain_sum_rain_24_in
 
   - type: iframe
     aspect_ratio: 90%
