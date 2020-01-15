@@ -42,10 +42,9 @@ cards:
           
   - type: entities
     show_header_toggle: false
-    title: UPS
+    title: 950 UPS
     entities:
-      - sensor.ups_monitor
-      - sensor.ups_input_voltage
+      - sensor.ups_status
       - sensor.ups_battery
       - sensor.ups_time_left
       - sensor.ups_load
@@ -54,8 +53,7 @@ cards:
     show_header_toggle: false
     title: 650 UPS
     entities:
-      - sensor.650_ups_monitor
-      - sensor.650_ups_input_voltage
+      - sensor.650_ups_status
       - sensor.650_ups_battery
       - sensor.650_ups_time_left
       - sensor.650_ups_load
@@ -80,6 +78,7 @@ cards:
         detail: 2
       - type: entities
         entities:
+          - fan.rack_fan
           - entity: switch.nas
             name: "NAS / Plex"
       - type: conditional
@@ -90,7 +89,6 @@ cards:
         card:
           type: entities
           entities:
-            - fan.rack_fan
             - script.copy
 
   - type: entities
@@ -103,6 +101,10 @@ cards:
       - switch.docker_portainer
       - switch.docker_ozwcp
       - switch.docker_thermopro_mqtt
+      - entity: switch.docker_apcupsd_950
+        type: custom:toggle-lock-entity-row
+      - entity: switch.docker_apcupsd_650
+        type: custom:toggle-lock-entity-row
       - entity: switch.docker_appdaemon
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_influxdb
@@ -112,10 +114,6 @@ cards:
       - entity: switch.docker_nodered
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_pihole
-        type: custom:toggle-lock-entity-row
-      - entity: switch.docker_pwr_stat
-        type: custom:toggle-lock-entity-row
-      - entity: switch.docker_pwr_stat_650
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_thermostat_mqtt
         type: custom:toggle-lock-entity-row

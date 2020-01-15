@@ -77,11 +77,6 @@
   unit_of_measurement: "%"
   value_template: "{{ value_json.batt }}"
 
-- platform: mqtt
-  state_topic: "sensor/moon"
-  name: "Moon Phase"
-  value_template: "{{ value_json.phase }}"
-
 ####################
 # BEGIN SONOFF POW #
 ####################
@@ -251,3 +246,4 @@
       friendly_name: "Sun Angle"
       unit_of_measurement: '°'
       value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
+

@@ -75,7 +75,7 @@ cards:
       - sensor.dark_sky_humidity
       - sensor.dark_sky_precip_probability
       - sun.sun
-      - sensor.moon_phase
+      - sensor.moon
 
   - type: vertical-stack
     cards:

@@ -10,7 +10,7 @@ homeassistant:
     gate_testing: !include packages/mom_and_dad_gate.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     #bus_time: !include packages/bus_time.yaml
-    docker_image_update: !include packages/docker_image_update.yaml
+    hass_docker_image_update: !include packages/hass_docker_image_update.yaml
     grill: !include packages/grill.yaml
   auth_providers:
     - type: homeassistant
@@ -33,7 +33,6 @@ logger:
   default: info
   logs:
     homeassistant.core: debug
-    #custom_components.docker_monitor: debug
     custom_components.hacs: debug
     hacs: debug
 
@@ -338,9 +337,7 @@ mobile_app:
 
 hacs:
   token: !secret hacs_token
-  python_script: true
   appdaemon: true
-  theme: true
 
 alexa: !include alexa.yaml
 homekit: !include homekit.yaml

@@ -36,34 +36,6 @@ services:
         ports:
             - '8086:8086'
         restart: always
-    pwr_stat:
-        # https://github.com/DanielWinks/pwrstat_docker
-        container_name: pwr_stat
-        image: dwinks/pwrstat_docker:latest
-        hostname: pwr_stat
-        volumes:
-            - /opt/pwr_stat/pwrstat.yaml:/pwrstat.yaml:ro
-            - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
-        devices:
-            - '/dev/ups_monitor:/dev/usb/hiddev0'
-        network_mode: host
-        healthcheck:
-            disable: true
-        restart: always
-    pwr_stat_650:
-        # https://github.com/DanielWinks/pwrstat_docker
-        container_name: pwr_stat_650
-        image: dwinks/pwrstat_docker:latest
-        hostname: pwr_stat_650
-        volumes:
-            - /opt/pwr_stat/pwrstat_650.yaml:/pwrstat.yaml:ro
-            - /opt/pwr_stat/pwrstatd.conf:/etc/pwrstatd.conf:ro
-        devices:
-            - '/dev/ups_monitor_650:/dev/usb/hiddev0'
-        network_mode: host
-        healthcheck:
-            disable: true
-        restart: always
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
@@ -93,4 +65,24 @@ services:
           - MQTT_SERVER=10.0.1.22
           - MQTT_PORT=1883
           - THERMOSTAT_IP=10.0.0.29
+        restart: always
+    apcupsd_950:
+        container_name: apcupsd_950
+        image: gersilex/apcupsd
+        ports:
+            - '3551:3551'
+        volumes:
+            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+        devices:
+            - '/dev/ups_monitor_950:/dev/usb/hiddev0'
+        restart: always
+    apcupsd_650:
+        container_name: apcupsd_650
+        image: gersilex/apcupsd
+        ports:
+            - '3552:3551'
+        volumes:
+            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+        devices:
+            - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         restart: always

@@ -1,102 +1,68 @@
 # UPS monitoring via docker and https://github.com/DanielWinks/pwrstat_docker
 
+# 650: NUC, AP, Modem, Switch
+# 950: NAS, Firewall
+
+#apcusd_950
+apcupsd:
+  port: 3551
+
+#apcusd_650
+apcupsd2:
+  port: 3552
+
 sensor:
-  - platform : mqtt
-    state_topic: "sensor/power/ups"
-    name: UPS Monitor
-    value_template: '{{ value_json["State"] }}'
-    json_attributes:
-      - Remaining Runtime
-      - Load
-      - Power Supply by
-      - Last Power Event
-      - Test Result
-      - Utility Voltage
-      - Line Interaction
-      - Battery Capacity
-  - platform : mqtt
-    state_topic: "sensor/power/ups_650"
-    name: 650 UPS Monitor
-    value_template: '{{ value_json["State"] }}'
-    json_attributes:
-      - Remaining Runtime
-      - Load
-      - Power Supply by
-      - Last Power Event
-      - Test Result
-      - Utility Voltage
-      - Line Interaction
-      - Battery Capacity
-  - platform: template
-    sensors:
-      ups_time_left:
-        friendly_name: "UPS Time Remaining"
-        value_template: "{{ state_attr('sensor.ups_monitor', 'Remaining Runtime').split(' ')[0] }}"
-        unit_of_measurement: 'minutes'
-      ups_load:
-        friendly_name: "UPS Load"
-        value_template: "{{ state_attr('sensor.ups_monitor', 'Load').split(' ')[0] }}"
-        unit_of_measurement: 'Watts'
-        device_class: "power"
-      ups_input_voltage:
-        friendly_name: "UPS Utility Voltage"
-        value_template: "{{ state_attr('sensor.ups_monitor', 'Utility Voltage').split(' ')[0] }}"
-        unit_of_measurement: 'V'
-      ups_battery:
-        friendly_name: "UPS Capacity"
-        value_template: "{{ state_attr('sensor.ups_monitor', 'Battery Capacity').split(' ')[0] }}"
-        unit_of_measurement: '%'
-        device_class: "battery"
-      650_ups_time_left:
-        friendly_name: "UPS Time Remaining"
-        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Remaining Runtime').split(' ')[0] }}"
-        unit_of_measurement: 'minutes'
-      650_ups_load:
-        friendly_name: "UPS Load"
-        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Load').split(' ')[0] }}"
-        unit_of_measurement: 'Watts'
-        device_class: "power"
-      650_ups_input_voltage:
-        friendly_name: "UPS Utility Voltage"
-        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Utility Voltage').split(' ')[0] }}"
-        unit_of_measurement: 'V'
-      650_ups_battery:
-        friendly_name: "UPS Capacity"
-        value_template: "{{ state_attr('sensor.650_ups_monitor', 'Battery Capacity').split(' ')[0] }}"
-        unit_of_measurement: '%'
-        device_class: "battery"
+  - platform: apcupsd
+    resources:
+      - loadpct
+      - bcharge
+      - timeleft
+      - status
+
+  - platform: apcupsd2
+    resources:
+      - loadpct
+      - bcharge
+      - timeleft
+      - status
 
 automation:
   - alias: "UPS Alert"
     trigger:
-      platform: state
-      entity_id: sensor.ups_monitor
-      from: 'Normal'
+      - platform: state
+        entity_id: sensor.ups_status
+        from: 'ONLINE'
+      - platform: state
+        entity_id: sensor.650_ups_status
+        from: 'ONLINE'
     action:
       - service: notify.pushover
         data_template:
-          message: "UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
   - alias: "UPS Recovery"
     trigger:
-      platform: state
-      entity_id: sensor.ups_monitor
-      to: 'Normal'
+      - platform: state
+        entity_id: sensor.ups_status
+        to: 'ONLINE'
+      - platform: state
+        entity_id: sensor.650_ups_status
+        to: 'ONLINE'
     action:
       - service: notify.pushover
         data_template:
           message: > 
-             {% if trigger.from_state.state == "Power Failure" %}
-               UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
+             {% if trigger.from_state.state == "ONBATT" %}
+               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
              {% else %}
-               UPS {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
+               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
              {% endif %}
 
   - alias: "Turn Off NAS After 10 Minute Outage"
     trigger:
       platform: state
-      entity_id: sensor.ups_battery
-      to: "Power Failure"
+      entity_id: sensor.ups_status
+      to: "ONBATT"
       for:
         minutes: 10
     condition:
@@ -106,26 +72,32 @@ automation:
     action:
       - service: notify.pushover
         data_template:
-          message: "UPS battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
+          message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
       - service: switch.turn_off
         entity_id: switch.nas
 
-  - alias: "Turn Off NUC When 5 Minutes Remain"
+  - alias: "Turn Off NUC When <10 Minutes Remain"
     trigger:
       platform: numeric_state
-      entity_id: sensor.ups_time_left
-      below: 5
+      entity_id: sensor.650_ups_time_left
+      below: 10
     condition:
       - condition: state
-        entity_id: sensor.ups_battery
-        state: "Power Failure"
+        entity_id: sensor.650_ups_status
+        state: "ONBATT"
     action:
       - service: notify.pushover
         data_template:
-          message: "UPS battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
+          message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.650_ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - service: shell_command.nuc_poweroff
 
 homeassistant:
   customize:
+    sensor.ups_battery:
+      friendly_name: 950 UPS Battery
+    sensor.ups_load:
+      friendly_name: 950 UPS Load
+    sensor.ups_status:
+      friendly_name: 950 UPS Status
     sensor.ups_time_left:
-      icon: mdi:clock-outline
+      friendly_name: 950 UPS Time Left
