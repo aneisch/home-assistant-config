@@ -81,6 +81,7 @@ cards:
           - fan.rack_fan
           - entity: switch.nas
             name: "NAS / Plex"
+            type: custom:toggle-lock-entity-row
       - type: conditional
         title: Misc
         conditions:
