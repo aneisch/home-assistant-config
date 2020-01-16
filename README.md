@@ -60,33 +60,33 @@ Number of input_select | 2
 Number of zones | 7  
 
 ## The HACS integrations/plugins that I use:
-aFFekopp/dark_teal(https://github.com/aFFekopp/dark_teal)
-aneisch/follow_me_appdaemon(https://github.com/aneisch/follow_me_appdaemon)
-bramkragten/swipe-card(https://github.com/bramkragten/swipe-card)
-bramkragten/weather-card(https://github.com/bramkragten/weather-card)
-custom-cards/bar-card(https://github.com/custom-cards/bar-card)
-custom-cards/bignumber-card(https://github.com/custom-cards/bignumber-card)
-custom-cards/button-card(https://github.com/custom-cards/button-card)
-custom-components/alexa_media_player(https://github.com/custom-components/alexa_media_player)
-custom-components/readme(https://github.com/custom-components/readme)
-hacs/integration(https://github.com/hacs/integration)
-home-assistant-community-themes/amoled(https://github.com/home-assistant-community-themes/amoled)
-home-assistant-community-themes/aqua-fiesta(https://github.com/home-assistant-community-themes/aqua-fiesta)
-home-assistant-community-themes/blue-night(https://github.com/home-assistant-community-themes/blue-night)
-home-assistant-community-themes/dark-mint(https://github.com/home-assistant-community-themes/dark-mint)
-home-assistant-community-themes/grey-night(https://github.com/home-assistant-community-themes/grey-night)
-kalkih/mini-media-player(https://github.com/kalkih/mini-media-player)
-maykar/custom-header(https://github.com/maykar/custom-header)
-maykar/lovelace-swipe-navigation(https://github.com/maykar/lovelace-swipe-navigation)
-naofireblade/clear-theme-dark(https://github.com/naofireblade/clear-theme-dark)
-nervetattoo/simple-thermostat(https://github.com/nervetattoo/simple-thermostat)
-seangreen2/slate_theme(https://github.com/seangreen2/slate_theme)
-thomasloven/lovelace-card-mod(https://github.com/thomasloven/lovelace-card-mod)
-thomasloven/lovelace-gui-sandbox(https://github.com/thomasloven/lovelace-gui-sandbox)
-thomasloven/lovelace-slider-entity-row(https://github.com/thomasloven/lovelace-slider-entity-row)
-thomasloven/lovelace-toggle-lock-entity-row(https://github.com/thomasloven/lovelace-toggle-lock-entity-row)
-twrecked/hass-aarlo(https://github.com/twrecked/hass-aarlo)
-twrecked/lovelace-hass-aarlo(https://github.com/twrecked/lovelace-hass-aarlo)
+[aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
+[aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
+[bramkragten/swipe-card](https://github.com/bramkragten/swipe-card)<br>
+[bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
+[custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
+[custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
+[custom-cards/button-card](https://github.com/custom-cards/button-card)<br>
+[custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
+[custom-components/readme](https://github.com/custom-components/readme)<br>
+[hacs/integration](https://github.com/hacs/integration)<br>
+[home-assistant-community-themes/amoled](https://github.com/home-assistant-community-themes/amoled)<br>
+[home-assistant-community-themes/aqua-fiesta](https://github.com/home-assistant-community-themes/aqua-fiesta)<br>
+[home-assistant-community-themes/blue-night](https://github.com/home-assistant-community-themes/blue-night)<br>
+[home-assistant-community-themes/dark-mint](https://github.com/home-assistant-community-themes/dark-mint)<br>
+[home-assistant-community-themes/grey-night](https://github.com/home-assistant-community-themes/grey-night)<br>
+[kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
+[maykar/custom-header](https://github.com/maykar/custom-header)<br>
+[maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>
+[naofireblade/clear-theme-dark](https://github.com/naofireblade/clear-theme-dark)<br>
+[nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
+[seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
+[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
+[thomasloven/lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)<br>
+[thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
+[thomasloven/lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)<br>
+[twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
+[twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>
 
 # Interface
 ![UI](images/screenshot1.png)  
