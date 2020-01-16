@@ -41,7 +41,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2621
+Lines of YAML configuration | 2618
 Number of entities (total) | 440  
 Number of fans | 4  
 Number of switches | 76  

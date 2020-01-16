@@ -48,7 +48,6 @@ recorder:
       - sensor.moon_phase
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
-      - !secret domain_2_expiry_sensor
       - sensor.kitchen_timer_countdown
       - binary_sensor.internet_reachability
       - sensor.network_in_eno1
