@@ -218,18 +218,6 @@
   action:
     - service: alexa_media.clear_history
 
-- alias: 'Remove new devices notification'
-  trigger:
-    - platform: state
-      entity_id: persistent_notification.config_entry_discovery
-      to: notifying
-    - platform: homeassistant
-      event: start
-  action:
-    - service: persistent_notification.dismiss
-      data:
-        notification_id: config_entry_discovery
-
 # Sync Alexa Shopping list --> Home Assistant
 - alias: 'Add shopping list'
   trigger:

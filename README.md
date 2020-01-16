@@ -41,8 +41,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2642
-Number of entities (total) | 470  
+Lines of YAML configuration | 2631
+Number of entities (total) | 469  
 Number of fans | 4  
 Number of switches | 76  
 Number of lights | 9  
@@ -51,7 +51,7 @@ Number of sensors | 228
 Number of binary_sensors | 16  
 Number of device_trackers | 8  
 Number of media_players | 13  
-Number of automations | 24  
+Number of automations | 23  
 Number of groups | 11  
 Number of scenes | 5  
 Number of scripts | 5  
@@ -60,20 +60,33 @@ Number of input_select | 2
 Number of zones | 7  
 
 ## The HACS integrations/plugins that I use:
-[bramkragten/swipe-card](https://github.com/bramkragten/swipe-card)  
-[bramkragten/weather-card](https://github.com/bramkragten/weather-card)  
-[custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)  
-[custom-cards/button-card](https://github.com/custom-cards/button-card)  
-[custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)  
-[custom-components/readme](https://github.com/custom-components/readme)  
-[hacs/integration](https://github.com/hacs/integration)  
-[kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)  
-[maykar/compact-custom-header](https://github.com/maykar/compact-custom-header)  
-[thomasloven/lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)  
-[thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)  
-[thomasloven/lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)  
-[twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)  
-[twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)  
+aFFekopp/dark_teal(https://github.com/aFFekopp/dark_teal)
+aneisch/follow_me_appdaemon(https://github.com/aneisch/follow_me_appdaemon)
+bramkragten/swipe-card(https://github.com/bramkragten/swipe-card)
+bramkragten/weather-card(https://github.com/bramkragten/weather-card)
+custom-cards/bar-card(https://github.com/custom-cards/bar-card)
+custom-cards/bignumber-card(https://github.com/custom-cards/bignumber-card)
+custom-cards/button-card(https://github.com/custom-cards/button-card)
+custom-components/alexa_media_player(https://github.com/custom-components/alexa_media_player)
+custom-components/readme(https://github.com/custom-components/readme)
+hacs/integration(https://github.com/hacs/integration)
+home-assistant-community-themes/amoled(https://github.com/home-assistant-community-themes/amoled)
+home-assistant-community-themes/aqua-fiesta(https://github.com/home-assistant-community-themes/aqua-fiesta)
+home-assistant-community-themes/blue-night(https://github.com/home-assistant-community-themes/blue-night)
+home-assistant-community-themes/dark-mint(https://github.com/home-assistant-community-themes/dark-mint)
+home-assistant-community-themes/grey-night(https://github.com/home-assistant-community-themes/grey-night)
+kalkih/mini-media-player(https://github.com/kalkih/mini-media-player)
+maykar/custom-header(https://github.com/maykar/custom-header)
+maykar/lovelace-swipe-navigation(https://github.com/maykar/lovelace-swipe-navigation)
+naofireblade/clear-theme-dark(https://github.com/naofireblade/clear-theme-dark)
+nervetattoo/simple-thermostat(https://github.com/nervetattoo/simple-thermostat)
+seangreen2/slate_theme(https://github.com/seangreen2/slate_theme)
+thomasloven/lovelace-card-mod(https://github.com/thomasloven/lovelace-card-mod)
+thomasloven/lovelace-gui-sandbox(https://github.com/thomasloven/lovelace-gui-sandbox)
+thomasloven/lovelace-slider-entity-row(https://github.com/thomasloven/lovelace-slider-entity-row)
+thomasloven/lovelace-toggle-lock-entity-row(https://github.com/thomasloven/lovelace-toggle-lock-entity-row)
+twrecked/hass-aarlo(https://github.com/twrecked/hass-aarlo)
+twrecked/lovelace-hass-aarlo(https://github.com/twrecked/lovelace-hass-aarlo)
 
 # Interface
 ![UI](images/screenshot1.png)  
