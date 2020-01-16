@@ -3,12 +3,6 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
-  - type: horizontal-stack
-    cards:
-      - type: sensor
-        entity: !secret domain_2_expiry_sensor
-        name: !secret domain_2
-
   - type: vertical-stack
     cards:
       - type: entities

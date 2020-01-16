@@ -24,7 +24,7 @@
   action:
     - service: frontend.set_theme
       data:
-        name: "aqua-fiesta"
+        name: "Google Dark Theme"
 
 - alias: "Set light theme for day"
   initial_state: on

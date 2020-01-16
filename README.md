@@ -41,14 +41,14 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2631
-Number of entities (total) | 469  
+Lines of YAML configuration | 2621
+Number of entities (total) | 440  
 Number of fans | 4  
 Number of switches | 76  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 228  
-Number of binary_sensors | 16  
+Number of sensors | 201  
+Number of binary_sensors | 15  
 Number of device_trackers | 8  
 Number of media_players | 13  
 Number of automations | 23  
@@ -75,6 +75,7 @@ Number of zones | 7
 [home-assistant-community-themes/blue-night](https://github.com/home-assistant-community-themes/blue-night)<br>
 [home-assistant-community-themes/dark-mint](https://github.com/home-assistant-community-themes/dark-mint)<br>
 [home-assistant-community-themes/grey-night](https://github.com/home-assistant-community-themes/grey-night)<br>
+[JuanMTech/google_dark_theme](https://github.com/JuanMTech/google_dark_theme)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>

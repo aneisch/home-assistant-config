@@ -32,10 +32,6 @@
   start_date_input: input_datetime.andrew_vehicle_registration
   days_in_future: 360
 
-- platform: cert_expiry
-  name: !secret domain_2_name
-  host: !secret domain_2
-
 - platform: darksky
   scan_interval:
     minutes: 30
