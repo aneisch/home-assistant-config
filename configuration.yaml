@@ -52,6 +52,7 @@ recorder:
       - sensor.kitchen_timer_countdown
       - binary_sensor.internet_reachability
       - sensor.network_in_eno1
+      - sensor.moon
       #- sensor.load_1m
       #- sensor.load_5m
       #- sensor.load_15m

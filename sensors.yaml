@@ -247,3 +247,8 @@
       unit_of_measurement: '°'
       value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
 
+- platform: command_line
+  name: CPU Temperature
+  command: "echo $(($(cat /sys/class/thermal/thermal_zone0/temp)/1000))"
+  unit_of_measurement: "°F"
+  value_template: "{{ ((value | int) * 9 / 5) + 32 | round(1) }}"

@@ -58,23 +58,17 @@ cards:
       - sensor.650_ups_time_left
       - sensor.650_ups_load
 
-  #- type: entities
-  #  show_header_toggle: false
-  #  title: Power
-  #  entities:
-  #    - sensor.sonoff_pow_current
-  #    - sensor.sonoff_pow_power
-  #    - sensor.sonoff_pow_today_energy
-  #    - sensor.sonoff_pow_today_cost
-  #    - sensor.sonoff_pow_yesterday_energy
-  #    - sensor.sonoff_pow_yesterday_cost
-
   - type: vertical-stack
     cards:
       - type: sensor
         entity: sensor.rack_exhaust_temperature
         graph: line
         name: Rack Temperature
+        detail: 2
+      - type: sensor
+        entity: sensor.cpu_temperature
+        graph: line
+        name: NUC CPU Temperature
         detail: 2
       - type: entities
         entities:
@@ -130,3 +124,29 @@ cards:
           - sensor.ha_version
           - sensor.ha_github_version
           - sensor.ha_docker_version_stable
+
+  - type: entities 
+    show_header_toggle: false
+    title: Pi-Hole      
+    entities:
+      - entity: switch.pihole_switch
+        icon: mdi:pi-hole 
+        name: Pi-Hole Ad Block State
+      - type: custom:bar-card
+        title: Ads Blocked Today
+        title_position: inside
+        entity: sensor.pi_hole_ads_blocked_today
+        decimal: 0
+        max: 10000
+      - type: custom:bar-card
+        title: DNS Queries
+        title_position: inside
+        entity: sensor.pi_hole_dns_queries_today
+        decimal: 0
+        max: 100000
+      - type: custom:bar-card
+        title: Pi-Hole DNS Unique Clients
+        title_position: inside
+        entity: sensor.pi_hole_dns_unique_clients
+        decimal: 0
+        # max: 25

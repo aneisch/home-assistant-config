@@ -11,8 +11,6 @@ resources:
     type: module
   - url: /community_plugin/mini-media-player/mini-media-player-bundle.js
     type: module
-  - url: /community_plugin/compact-custom-header/compact-custom-header.js
-    type: module
   - url: /community_plugin/button-card/button-card.js
     type: module
   - url: /community_plugin/lovelace-gui-sandbox/gui-sandbox.js
@@ -23,11 +21,26 @@ resources:
     type: module
   - url: /community_plugin/simple-thermostat/simple-thermostat.js
     type: module
+  - url: /community_plugin/bar-card/bar-card.js
+    type: js
+  - url: /community_plugin/custom-header/custom-header.js
+    type: module
+  - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
+    type: js
 
-cch:
-  options: show
+custom_header:
+  compact_mode: true
+  hide_help: true
+  hide_config: true
+  background: var(--app-header-background-color)
+  elements_color: var(--app-header-text-color)
+  chevrons: false
+  hide_tabs: '{% if is_state("switch.docker_thermopro_mqtt", "off") %}7{% endif %}'
+
+swipe_nav:
   swipe: true
   swipe_animate: swipe
   swipe_amount: 5
 
 views: !include_dir_list ui-lovelace/
+

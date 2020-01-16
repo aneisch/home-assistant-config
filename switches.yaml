@@ -46,11 +46,10 @@
         data:
           entity_id: switch.tv_remote_power
 
-#- platform: command_line
-#  switches:
-#    docker_appdaemon:
-#      command_on: "docker start appdaemon"
-#      command_off: "docker stop appdaemon"
-#      command_state: 'docker ps --filter "name=hass"'
-#      value_template: '{{ "Up " in value }}'
-#      friendly_name: Docker appdaemon
+- platform: command_line
+  switches:
+    pihole_switch:
+      command_on: "curl -X GET 'http://localhost:8000/admin/api.php?enable&auth='"
+      command_off: "curl -X GET 'http://localhost:8000/admin/api.php?disable=3600&auth='"
+      command_state: "curl -X GET 'http://localhost:8000/admin/api.php?status'"
+      value_template: "{{ value_json.status == 'enabled' }}"
