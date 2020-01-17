@@ -1,5 +1,7 @@
 name: Check HA Release Dev
-on: [repository_dispatch]
+on:
+  repository_dispatch:
+    types: dev
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
