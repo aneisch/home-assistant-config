@@ -41,13 +41,13 @@ Also using Grafana/Influx for graphing, both running in Docker containers on my 
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2628
-Number of entities (total) | 437  
+Lines of YAML configuration | 2638
+Number of entities (total) | 442  
 Number of fans | 4  
-Number of switches | 74  
+Number of switches | 76  
 Number of lights | 9  
 Number of cameras | 11  
-Number of sensors | 198  
+Number of sensors | 201  
 Number of binary_sensors | 15  
 Number of device_trackers | 8  
 Number of media_players | 13  
