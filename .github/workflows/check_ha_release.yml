@@ -1,6 +1,5 @@
 name: Check HA Releases
 on: [push]
-resolves: 
 jobs:
   check-ha-release:
     runs-on: ubuntu-latest
