@@ -10,7 +10,7 @@ cards:
       - switch.living_room_lamp_2
       - switch.living_room_lamp
       - switch.entertainment_center_lights
-      - switch.christmas_tree
+      #- switch.christmas_tree
 
   - type: vertical-stack
     cards:
