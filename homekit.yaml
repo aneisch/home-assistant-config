@@ -20,8 +20,6 @@
       - light.bethany_nightstand_lamp
       - light.guest_nightstand_lamp
       - climate.thermostat
-      - script.appdaemon_ac_night
-      - script.appdaemon_ac_morning
       - fan.master_bedroom_ceiling_fan
       - script.too_cold
       - script.too_hot

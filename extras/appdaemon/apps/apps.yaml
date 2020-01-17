@@ -174,7 +174,7 @@ Entertainment Center and Tree Follow Living Room:
   module: follow_me
   class: Follow
   leader: group.living_room_lamps
-  follower: switch.entertainment_center_lights,switch.christmas_tree
+  follower: switch.entertainment_center_lights
 
 Door Notification and Occusim Security Follow:
   module: follow_me
