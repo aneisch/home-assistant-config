@@ -1,9 +1,21 @@
 name: Check HA Releases
 on: [push]
 jobs:
-  check-ha-release:
+  check-ha-config:
     runs-on: ubuntu-latest
-    env:
-      ACTION_VERSION: RC
     steps:
-      - uses: ludeeus/action-ha-config-check@0.0.1
+      - name: Set up Python
+        uses: actions/setup-python@v1   
+        with:
+          python-version: "3.7.4"
+          
+      - name: Install Home Assistant
+        run: pip3 install homeassistant
+
+      - name: Check Config
+        run: |
+          mv travis_secrets.yaml secrets.yaml
+          sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
+          sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
+          hass -c . --script check_config -i -f
+          
