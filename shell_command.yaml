@@ -1,14 +1,14 @@
-# These commands are all sent to a named pipe to be run on the host
-# see systemd service for docker_pipe and /usr/local/bin/docker_pipe.sh
+# SSH to host to run shell commands
+# SSH key shared via Docker volume
 
-nas_poweroff: 'echo "/usr/local/bin/nas-poweroff.sh" > /docker_pipe'
+nas_poweroff: ssh nuc '/usr/local/bin/nas-poweroff.sh'
 
-nuc_poweroff: 'echo "shutdown -h 2" > /docker_pipe'
+nuc_poweroff: ssh nuc 'sudo shutdown -h 2'
 
-owntracks_update: 'echo "/usr/local/bin/force_location_update.sh" > /docker_pipe'
+owntracks_update: ssh nuc '/usr/local/bin/force_location_update.sh'
 
-mount_plex: 'echo "mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex" > /docker_pipe'
+mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
 
-umount_plex: 'echo "umount -f /plex; docker stop plex" > /docker_pipe'
+umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'
 
-copy: 'echo "/usr/local/bin/nas-copy.sh" > /docker_pipe'
+copy: ssh nuc '/usr/local/bin/nas-copy.sh'
