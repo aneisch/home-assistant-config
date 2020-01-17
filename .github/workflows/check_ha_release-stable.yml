@@ -13,11 +13,13 @@ jobs:
       - name: Install Home Assistant
         run: pip3 install homeassistant
 
+      - name: Install DEPS
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
+
       - name: Check Config
         run: |
           ls
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
-          sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
           hass -c . --script check_config -i -f
           
