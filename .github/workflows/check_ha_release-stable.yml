@@ -1,5 +1,5 @@
 name: Check HA Release Stable
-on: [push]
+on: [repository_dispatch]
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
