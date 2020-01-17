@@ -1,4 +1,4 @@
-name: Check HA Releases
+name: Check HA Release Stable
 on: [push]
 jobs:
   check-ha-config:
