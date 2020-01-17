@@ -1,5 +1,6 @@
 name: Check HA Release Stable
-on: [repository_dispatch]
+  repository_dispatch:
+    types: dev
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
