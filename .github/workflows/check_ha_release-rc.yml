@@ -1,0 +1,25 @@
+name: Check HA Release Pre
+on: [push]
+jobs:
+  check-ha-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v1   
+        with:
+          python-version: "3.7.x"
+          
+      - name: Install Home Assistant
+        run: pip3 install --pre homeassistant
+
+      - name: Install DEPS
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
+
+      - name: Check Config
+        run: |
+          ls
+          mv travis_secrets.yaml secrets.yaml
+          sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
+          hass -c . --script check_config -i -f
+          
