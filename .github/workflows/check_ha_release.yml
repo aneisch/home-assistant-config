@@ -2,4 +2,6 @@ name: Check HA Releases
 on: [push]
 jobs:
   check-ha-release:
-    uses: ludeeus/action-ha-config-check@0.0.1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ludeeus/action-ha-config-check@0.0.1
