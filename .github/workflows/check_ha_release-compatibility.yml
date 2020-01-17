@@ -1,7 +1,5 @@
-name: Check HA Release Pre
-on:
-  repository_dispatch:
-    types: rc
+name: Check HA Release Compatibility
+on: repository_dispatch
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
@@ -12,8 +10,17 @@ jobs:
         with:
           python-version: "3.7.x"
           
-      - name: Install Home Assistant
+      - name: Install Home Assistant Stable
+        if: ${{ github.event.client_payload.release}} == "stable"
+        run: pip3 install homeassistant
+      
+      - name: Install Home Assistant RC
+        if: ${{ github.event.client_payload.release}} == "rc"
         run: pip3 install --pre homeassistant
+
+      - name: Install Home Assistant Dev
+        if: ${{ github.event.client_payload.release}} == "dev"
+        run: pip3 install git+git://github.com/home-assistant/home-assistant.git@dev
 
       - name: Install DEPS
         run: sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
