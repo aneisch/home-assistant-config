@@ -48,7 +48,7 @@ automation:
       - service: notify.pushover
         data_template:
           message: >-
-            New Home Assistant version available: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}. Configuration compability tested at: https://github.com/aneisch/home-assistant-config/actions
+            New version available: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
 
   - alias: "Github Action Docker Beta"
     initial_state: 'on'
@@ -63,7 +63,6 @@ automation:
 
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"type\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
-
 
 homeassistant:
   customize:
