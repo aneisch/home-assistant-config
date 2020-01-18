@@ -27,6 +27,8 @@ resources:
     type: module
   - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
     type: js
+  - url: /community_plugin/favicon-counter/favicon-counter.js
+    type: module
 
 custom_header:
   compact_mode: true
