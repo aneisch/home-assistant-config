@@ -48,7 +48,7 @@ automation:
       - service: notify.pushover
         data_template:
           message: >-
-            New version available: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
+            New Version: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
 
   - alias: "Github Action Docker Beta"
     initial_state: 'on'
