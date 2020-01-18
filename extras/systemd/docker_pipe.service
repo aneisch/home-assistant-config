@@ -1,4 +1,0 @@
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/docker_pipe.sh
-PIDFile=/tmp/docker_pipe.pid

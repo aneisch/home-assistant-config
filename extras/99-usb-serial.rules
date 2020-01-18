@@ -1,2 +1,9 @@
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0658", ATTRS{idProduct}=="0200", SYMLINK+="zwave"
-ATTRS{idVendor}=="0764", ATTRS{idProduct}=="0501", SYMLINK+="ups_monitor", RUN+="/usr/bin/docker start pwr_stat"
+# Make it point to hiddev device
+SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{product}=="ST Series", SYMLINK+="ups_monitor_950" MODE="0666"
+#SUBSYSTEM=="usb", ATTRS{product}=="ST Series", SYMLINK+="ups_monitor_950" MODE="0666"
+# Make it point to hiddev device
+SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{product}=="EC650LCD", SYMLINK+="ups_monitor_650", MODE="0666"
+#SUBSYSTEM=="usb", ATTRS{product}=="EC650LCD", SYMLINK+="ups_monitor_650", MODE="0666"
+# Make it point to usb device
+SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", SYMLINK+="rtl_sdr", MODE="0666"
