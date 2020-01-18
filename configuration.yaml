@@ -45,7 +45,6 @@ recorder:
   exclude:
     entities:
       - sensor.last_boot
-      - sensor.moon_phase
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown

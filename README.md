@@ -24,7 +24,7 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Various z-wave sensors
-- Various MQTT Sensors (eg: [moon status](https://github.com/aneisch/home-assistant-config/blob/master/extras/helper_scripts/moon_phase_mqtt), determined using bash and published to MQTT))
+- Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a majority of automations. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - Amazon Echo Dots
@@ -42,7 +42,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2661
+Lines of YAML configuration | 2660
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 25
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 15
