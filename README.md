@@ -33,32 +33,42 @@ My Home Assistant installation contains many different components and runs on a 
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Numerous Wemos D1 Mini sensors via [ESPHome API](https://esphome.io/components/api.html). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
-- UPS monitoring using [pwrstat_docker](https://github.com/DanielWinks/pwrstat_docker)
+- UPS monitoring using [apcupsd](https://github.com/gersilex/apcupsd-docker)
+- Github actions to test beta and stable builds against config.
 
-Also using Grafana/Influx for graphing, both running in Docker containers on my NUC. Home Assistant, along with a few other web apps, are proxied through my firewall and are frinted by Cloudflare.
+Also using Grafana/Influx for graphing, both running in Docker containers on Intel NUC. Home Assistant, along with a few other web apps, are proxied through my firewall and fronted by Cloudflare.
  
 
 ## Some statistics about my installation:
 Description | value
 -- | --
 Lines of YAML configuration | 2661
-Number of entities (total) | 444  
-Number of fans | 4  
-Number of switches | 76  
-Number of lights | 9  
-Number of cameras | 11  
-Number of sensors | 202  
-Number of binary_sensors | 15  
-Number of device_trackers | 8  
-Number of media_players | 13  
-Number of automations | 25  
-Number of groups | 11  
-Number of scenes | 5  
-Number of scripts | 5  
-Number of input_boolean | 9  
-Number of input_select | 2  
-Number of zones | 7  
-
+Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 25
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 15
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 11
+Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 8
+Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 4
+Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 11
+Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 9
+Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 5
+Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 2
+Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 2
+Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 9
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 13
+Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
+Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
+Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
+Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 5
+Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 18
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 202
+Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 76
+Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
+Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
+Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
+Total state objects | 443
 ## The HACS integrations/plugins that I use:
 [aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
