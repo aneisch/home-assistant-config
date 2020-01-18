@@ -10,7 +10,7 @@ homeassistant:
     gate_testing: !include packages/mom_and_dad_gate.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     #bus_time: !include packages/bus_time.yaml
-    hass_docker_image_update: !include packages/hass_docker_image_update.yaml
+    hass_update_check: !include packages/hass_update_check.yaml
     grill: !include packages/grill.yaml
   auth_providers:
     - type: homeassistant

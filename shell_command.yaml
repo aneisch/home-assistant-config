@@ -12,5 +12,3 @@ mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backu
 umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'
 
 copy: ssh nuc '/usr/local/bin/nas-copy.sh'
-
-github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"type\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"

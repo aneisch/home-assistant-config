@@ -1,0 +1,81 @@
+# Get latest stable and beta versions
+# as well as running version. Do things
+# like run our current config against
+# beta and stable releases to check 
+# compatibility and notify of available 
+# upgrade. 
+
+sensor:
+  - platform: version
+    source: docker
+    name: ha_docker_version_stable
+
+  - platform: version
+    beta: true
+    source: docker
+    name: ha_docker_version_beta
+
+  - platform: version
+    name: ha_version
+    source: local
+
+  - platform: rest
+    name: ha_github_version
+    resource: 'https://api.github.com/repos/home-assistant/home-assistant/releases/latest'
+    headers:
+      accept: application/vnd.github.v3+json
+      content-type: application/json
+      user-agent: home-assistant/rest-sensor
+    value_template: >-
+      {{ value_json.tag_name if value_json.tag_name.split('.')|length != 2 else value_json.tag_name ~ '.0' }}
+    scan_interval: 1800
+
+automation:
+  - alias: "Notify Docker Update and Trigger Github Action"
+    initial_state: 'on'
+    trigger:
+      platform: state
+      entity_id: sensor.ha_docker_version_stable
+    action:
+      - service: shell_command.github_action_trigger
+        data:
+          github_token: !secret github_token
+          # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
+          # Options are: dev, rc, stable
+          version: stable
+      - delay:
+          minutes: 5
+      - service: notify.pushover
+        data_template:
+          message: >-
+            New Home Assistant version available: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}. Configuration compability tested at: https://github.com/aneisch/home-assistant-config/actions
+
+  - alias: "Github Action Docker Beta"
+    initial_state: 'on'
+    trigger:
+      platform: state
+      entity_id: sensor.ha_docker_version_beta
+    action:
+      - service: shell_command.github_action_trigger
+        data:
+          github_token: !secret github_token
+          version: rc
+
+shell_command:
+  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"type\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
+
+
+homeassistant:
+  customize:
+    sensor.ha_docker_version_stable:
+      icon: mdi:docker
+      friendly_name: Latest Docker
+    sensor.ha_docker_version_beta:
+      icon: mdi:docker
+      friendly_name: Beta Docker
+    sensor.ha_github_version:
+      icon: mdi:github-circle
+      friendly_name: Latest Github
+    sensor.ha_version:
+      icon: mdi:home-assistant
+      friendly_name: Running Version

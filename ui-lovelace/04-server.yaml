@@ -119,6 +119,7 @@ cards:
           - sensor.ha_version
           - sensor.ha_github_version
           - sensor.ha_docker_version_stable
+          - sensor.ha_docker_version_beta
 
   - type: entities 
     show_header_toggle: false
