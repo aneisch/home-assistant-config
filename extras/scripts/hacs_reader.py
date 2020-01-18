@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-# Find what is installed by HACS for README
+# Read hacs repo file Find what is installed 
+# by HACS so it can be populated in README
 
 import json
 
