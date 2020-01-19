@@ -18,6 +18,7 @@ smart_home:
       - script
       - sensor
       - switch
+      - input_number
     include_entities:
       - climate.thermostat
       - fan.master_bedroom_ceiling_fan_level
@@ -37,6 +38,8 @@ smart_home:
       - script.too_hot
       - script.master_bedroom_bedtime
       - script.master_bedroom_wakeup
+      - sensor.grill_probe_1
+      - sensor.grill_probe_2
       - sensor.master_bedroom_temperature
       - sensor.office_temperature
       - switch.christmas_tree
@@ -128,6 +131,14 @@ smart_home:
 
     sensor.office_temperature:
       name: "Office Temperature"
+      display_categories: TEMPERATURE_SENSOR
+
+    sensor.grill_probe_1:
+      name: "Probe 1"
+      display_categories: TEMPERATURE_SENSOR
+
+    sensor.grill_probe_2:
+      name: "Probe 2"
       display_categories: TEMPERATURE_SENSOR
 
     switch.tv:
