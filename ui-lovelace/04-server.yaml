@@ -120,6 +120,8 @@ cards:
           - sensor.ha_github_version
           - sensor.ha_docker_version_stable
           - sensor.ha_docker_version_beta
+          - entity: sensor.hacs
+            name: HACS Updates
 
   - type: entities 
     show_header_toggle: false
