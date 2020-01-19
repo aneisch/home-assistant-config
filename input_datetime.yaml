@@ -1,0 +1,20 @@
+brita_change:
+  name: Last Brita Change Date
+  has_date: true
+  has_time: false
+ac_filter_change:
+  name: Last AC Filter Change Date
+  has_date: true
+  has_time: false
+andrew_vehicle_registration:
+  name: Andrew Vehicle Registration
+  has_date: true
+  has_time: false
+front_door_last:
+  name: Front Door Last Opened
+  has_date: true
+  has_time: true
+back_door_last:
+  name: Back Door Last Opened
+  has_date: true
+  has_time: true
