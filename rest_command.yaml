@@ -14,6 +14,6 @@ adjust_morning:
   content_type: 'application/json'
 
 set_thermostat_led:
-  url: http://10.0.1.29/tstat/led
+  url: http://10.0.0.29/tstat/led
   method: POST
   payload: '{"energy_led": {% if color == "red" %}4{% elif color == "yellow" %}2{% elif color == "green" %}1{% elif color == "off" %}0{% else %}0{% endif %}}'

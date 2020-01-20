@@ -11,7 +11,7 @@ services:
             - /transcode
         environment:
             - TZ=America/Chicago
-            - PLEX_CLAIM=XXXXXXXXXXXX
+            - PLEX_CLAIM=REDACT
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
             - TERM=xterm
             - LANG=C.UTF-8
@@ -109,15 +109,24 @@ services:
             - LOG_FILE=/data/bitwarden.log
             - LOG_LEVEL=info
             - EXTENDED_LOGGING=true
-            - DOMAIN=URL
-            - SMTP_HOST=HOST
-            - SMTP_FROM=FROM
-            - SMTP_FROM=FROM
+            - DOMAIN=REDACT
+            - SMTP_HOST=REDACT
+            - SMTP_FROM=REDACT
+            - SMTP_FROM_NAME='Bitwarden Password Manager'
             - SMTP_SSL=true
-            - SMTP_USERNAME=USER
-            - SMTP_PASSWORD=PASS
+            - SMTP_USERNAME=REDACT
+            - SMTP_PASSWORD=REDACT
         ports:
             - '8777:80'
         logging:
             driver: none
         restart: always
+    bitwarden_backup:
+        container_name: bitwarden_backup
+        image: shivpatel/bitwarden_rs_dropbox_backup:latest
+        restart: always
+        volumes:
+          - /opt/bw-data/db.sqlite3:/db.sqlite3
+        environment:
+          - DROPBOX_ACCESS_TOKEN=REDACT
+          - BACKUP_ENCRYPTION_KEY=REDACT
