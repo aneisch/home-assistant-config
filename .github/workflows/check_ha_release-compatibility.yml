@@ -4,26 +4,30 @@ jobs:
   check-ha-config:
     runs-on: ubuntu-latest
     steps:
+      - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
+      - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
+      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
+
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1   
         with:
           python-version: '3.7.x'
+
+      - name: Install Deps
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
       - name: Install Home Assistant Stable
-        if: github.event.client_payload.type == 'stable'
+        if: github.event.client_payload.branch == 'stable'
         run: pip3 install homeassistant
       
       - name: Install Home Assistant RC
-        if: github.event.client_payload.type == 'rc'
+        if: github.event.client_payload.branch == 'rc'
         run: pip3 install --pre homeassistant
 
       - name: Install Home Assistant Dev
-        if: github.event.client_payload.type == 'dev'
+        if: github.event.client_payload.branch == 'dev'
         run: pip3 install git+git://github.com/home-assistant/home-assistant.git@dev
-
-      - name: Install DEPS
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
 
       - name: Check Config
         run: |
@@ -31,3 +35,11 @@ jobs:
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           hass -c . --script check_config -i -f
           
+  upgrade_hass:
+    runs-on: ubuntu-latest
+    needs: check-ha-config
+    if: github.event.client_payload.branch == 'stable'
+    steps:
+      - name: Upgrade HASS Minor Release
+        run: curl -X POST ${{ secrets.HASS_WEBHOOK }}
+        if: github.event.client_payload.release_type == 'minor'
