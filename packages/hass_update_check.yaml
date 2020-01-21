@@ -27,7 +27,7 @@ sensor:
       content-type: application/json
       user-agent: home-assistant/rest-sensor
     value_template: >-
-      {{ value_json.tag_name if value_json.tag_name.split('.')|length != 2 else value_json.tag_name ~ '.0' }}
+      {{ value_json.tag_name }}
     scan_interval: 1800
 
 automation:
@@ -36,33 +36,60 @@ automation:
     trigger:
       platform: state
       entity_id: sensor.ha_docker_version_stable
+    condition:
+      - condition: template
+        value_template: '{{ trigger.to_state.state > trigger.from_state.state }}'
     action:
       - service: shell_command.github_action_trigger
-        data:
+        data_template:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
           # Options are: dev, rc, stable
-          version: stable
+          branch: stable
+          # If release is "minor" we auto-apply the update
+          release_type: '{% if states.sensor.ha_docker_version_stable.state[-2:] == ".0" %}major{% else %}minor{% endif %}'
+          version: '{{ states.sensor.ha_docker_version_stable.state }}'
       - delay:
-          minutes: 5
+          minutes: 6
       - service: notify.pushover
         data_template:
           message: >-
-            New Version: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
+            New Version Not Auto-Applied: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
 
   - alias: "Github Action Docker Beta"
     initial_state: 'on'
     trigger:
       platform: state
       entity_id: sensor.ha_docker_version_beta
+    condition:
+      - condition: template
+        value_template: '{{ trigger.to_state.state > trigger.from_state.state }}'
     action:
       - service: shell_command.github_action_trigger
         data:
           github_token: !secret github_token
-          version: rc
+          branch: rc
+          release_type: None
+          version: '{{ states.sensor.ha_docker_version_stable.state }}'
+
+  # Triggered from Github action. We only auto-apply minor releases.
+  - alias: "Upgrade HASS From Webhook"
+    initial_state: 'on'
+    trigger:
+      platform: webhook
+      webhook_id: !secret hass_upgrade_webhook
+    action:
+      - service: notify.pushover
+        data_template:
+          message: >-
+            New Version Auto-Applied: {{ states.sensor.ha_docker_version_stable.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
+      - service: shell_command.upgrade_hass
 
 shell_command:
-  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"type\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
+  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
+
+  upgrade_hass: ssh nuc 'docker-compose -f /opt/docker-compose/homeassistant/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/homeassistant/docker-compose.yml up -d homeassistant'
+
 
 homeassistant:
   customize:
