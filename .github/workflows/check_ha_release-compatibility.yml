@@ -24,9 +24,6 @@ jobs:
         if: github.event.client_payload.branch == 'dev'
         run: pip3 install git+git://github.com/home-assistant/home-assistant.git@dev
 
-      - name: Install Deps
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
-
       - name: Check Config
         run: |
           mv travis_secrets.yaml secrets.yaml
