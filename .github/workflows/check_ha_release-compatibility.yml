@@ -6,6 +6,8 @@ jobs:
     steps:
       - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
       - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
+      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
+
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1   
