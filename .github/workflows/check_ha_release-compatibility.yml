@@ -11,6 +11,9 @@ jobs:
         uses: actions/setup-python@v1   
         with:
           python-version: '3.7.x'
+
+      - name: Install Deps
+        run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
       - name: Install Home Assistant Stable
         if: github.event.client_payload.branch == 'stable'
