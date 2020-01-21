@@ -4,6 +4,7 @@ jobs:
   check-ha-config:
     runs-on: ubuntu-latest
     steps:
+      - run: 'echo "Client Payload: ${{ github.event.client_payload }}"'
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v1   
