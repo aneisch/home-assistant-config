@@ -38,5 +38,6 @@ jobs:
     needs: check-ha-config
     if: github.event.client_payload.branch == 'stable'
     steps:
-      - run: curl -X POST ${{ secrets.HASS_WEBHOOK }}
+      - name: Upgrade HASS Minor Release
+        run: curl -X POST ${{ secrets.HASS_WEBHOOK }}
         if: github.event.client_payload.release_type == 'minor'
