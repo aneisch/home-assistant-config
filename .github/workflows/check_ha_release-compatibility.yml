@@ -37,3 +37,4 @@ jobs:
     if: github.event.client_payload.type == 'stable'
     steps:
       - run: curl -X POST ${{ secrets.HASS_WEBHOOK }}
+        if: github.event.client_payload.release == 'minor'
