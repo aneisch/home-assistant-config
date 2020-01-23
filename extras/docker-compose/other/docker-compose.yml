@@ -127,6 +127,7 @@ services:
         restart: always
         volumes:
           - /opt/bw-data/db.sqlite3:/db.sqlite3
+          - /etc/localtime:/etc/localtime:ro
         environment:
           - DROPBOX_ACCESS_TOKEN=REDACT
           - BACKUP_ENCRYPTION_KEY=REDACT

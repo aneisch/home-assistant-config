@@ -14,6 +14,12 @@
     - fixed the broken new line in the node tooltips
     - you can now click on the node to see the entity dialog
 
+  Version 2.1: (20 September 2019)
+    - added Tools to graph legends so you can easily navigate to Z-Wave Network Management
+    - fixed (hopefully) the problem with the graph requiring page reload then navigating to it
+
+  Version 2.2: (04 October 2019)
+    - ability to turn off node grouping. Having the nodes grouped requires editing locations defined in the zwcfg_*.cfg
  -->
 
 <dom-module id='ha-panel-zwavegraph2'>
@@ -248,20 +254,32 @@
         // panel.config contains config passed to register_panel serverside
         panel: Object,
 
-        controls:             { type: Object },
-        controlsLoaded:       { type: Boolean, value: false },
+        controls: {
+          type: Object
+        },
+        controlsLoaded: {
+          type: Boolean,
+          value: false
+        },
 
-        settings:             { type: Boolean, value: false },
+        settings: {
+          type: Boolean,
+          value: false
+        },
 
       };
     }
 
     ready() {
       super.ready();
-      this.paintGraph("network-simplex", "relevant");
+      this.$.svg.innerHTML = ""
+      var that = this;
+      setTimeout(function() {
+        that.paintGraph("network-simplex", "relevant", "z-wave");
+      }, 100);
     }
 
-    paintGraph(ranker, edgeVisibility) {
+    paintGraph(ranker, edgeVisibility, grouping) {
       var legends = [{
           shape: "rect",
           color: "#3598DB",
@@ -362,8 +380,39 @@
         }
       ];
 
+      var groupingLegend = [{
+          shape: "rect",
+          color: "#3598DB",
+          stroke: "#2470A2",
+          textcolor: "#2470A2",
+          text: "Z-Wave Locations",
+          grouping: "z-wave",
+          cursor: "pointer"
+        },
+        {
+          shape: "rect",
+          color: "#3598DB",
+          stroke: "#2470A2",
+          textcolor: "#2470A2",
+          text: "Ungrouped",
+          grouping: "ungrouped",
+          cursor: "pointer"
+        }
+      ];
+
+      var links = [{
+        shape: "rect",
+        color: "#3598DB",
+        stroke: "#2470A2",
+        textcolor: "#2470A2",
+        text: "Network Management",
+        cursor: "hand",
+        url: "/config/zwave",
+      }, ];
+
       this.ranker = ranker;
       this.edgeVisibility = edgeVisibility;
+      this.grouping = grouping;
 
       var data = this.listNodes(this.hass);
 
@@ -397,7 +446,7 @@
       for (var i = 0; i < nodes.length; i++) {
         var node = nodes[i];
         g.setNode(node.id, node);
-        if (node.location != "" && node.location != undefined) {
+        if (this.grouping !== "ungrouped" && node.location != "" && node.location != undefined) {
           g.setNode(node.location, {
             label: node.location,
             clusterLabelPos: 'bottom',
@@ -461,14 +510,12 @@
           return g.edges(d).layer;
         });
 
-      // this.$.miniSvg.setAttribute("height", g.graph().height / 4);
-      // this.$.miniSvg.setAttribute("width", g.graph().width / 4);
-      // this.$.scopeContainer.setAttribute("height", g.graph().height / 4);
-      // this.$.scopeContainer.setAttribute("width", g.graph().width / 4);
       var that = this;
-      var handleClick = function(d, i, nodeList) { // Add interactivity
+      var handleClick = function (d, i, nodeList) { // Add interactivity
         var node = nodes[i];
-        that.fire('hass-more-info', { entityId: node.entity_id});
+        that.fire('hass-more-info', {
+          entityId: node.entity_id
+        });
       };
 
       // append handlers
@@ -478,9 +525,11 @@
         .on("click", handleClick);
 
 
-      this.addLegend(this.$, svg, legends, 5, 20, "Node Colors", ranker, this.edgeVisibility);
-      this.addLegend(this.$, svg, layout, 150, 20, "Tree Layout", ranker, this.edgeVisibility);
-      this.addLegend(this.$, svg, edgesLegend, 300, 20, "Neighbors", ranker, this.edgeVisibility);
+      this.addLegend(this.$, svg, legends, 5, 20, "Node Colors", ranker, this.edgeVisibility, this.grouping);
+      this.addLegend(this.$, svg, layout, 150, 20, "Tree Layout", ranker, this.edgeVisibility, this.grouping);
+      this.addLegend(this.$, svg, edgesLegend, 320, 20, "Neighbors", ranker, this.edgeVisibility, this.grouping);
+      this.addLegend(this.$, svg, groupingLegend, 510, 20, "Grouping", ranker, this.edgeVisibility, this.grouping);
+      this.addLegend(this.$, svg, links, 700, 20, "Tools", ranker, this.edgeVisibility, this.grouping);
 
       this.$.miniSvg.innerHTML = this.$.svg.innerHTML;
 
@@ -789,20 +838,27 @@
 
 
 
-    addLegend($, svg, legends, startX, startY, title, ranker, edges) {
+    addLegend($, svg, legends, startX, startY, title, ranker, edges, grouping) {
 
       var that = this;
 
       var handleClick = function (d, i, nodeList) {
+
+        if (nodeList[0].dataset.url !== undefined) {
+          window.location = nodeList[0].dataset.url;
+        }
+
         var ranker = nodeList[0].dataset.ranker || that.ranker;
         var edges = nodeList[0].dataset.edges || that.edgeVisibility;
+        var grouping = nodeList[0].dataset.grouping || that.grouping;
+
         svg.selectAll("*").remove();
 
         // Destroy svgpanzoom
         svgPanZoom($.svg).destroy();
         svgPanZoom($.miniSvg).destroy();
 
-        that.paintGraph(ranker, edges);
+        that.paintGraph(ranker, edges, grouping);
       }
 
       var shape = svg.append('text')
@@ -815,41 +871,70 @@
 
       for (var counter = 0; counter < legends.length; counter++) {
 
-        var shape = svg.append(legends[counter].shape)
-          .attr('x', startX)
-          .attr('y', startY + 20 * (counter + 1))
-          .attr('width', 10)
-          .attr('height', 10)
-          .style("stroke", legends[counter].stroke)
-          .style("fill", legends[counter].color)
-          .style("cursor", legends[counter].cursor);
+        var isLink = legends[counter].url !== undefined;
 
-        var text = svg.append('text')
-          .attr("x", startX + 20)
-          .attr("y", startY + 10 + 20 * (counter + 1))
-          .attr("class", "textselected")
-          .text(legends[counter].text)
-          .style("text-anchor", "start")
-          .style("fill", legends[counter].textcolor)
-          .style("font-size", 15)
-          .style("cursor", legends[counter].cursor);
+        if (isLink) {
+          var text = svg.append('text')
+            .attr("x", startX)
+            .attr("y", startY + 10 + 20 * (counter + 1))
+            .attr("class", "textselected")
+            .attr('data-url', legends[counter].url)
+            .text(legends[counter].text)
+            .style("text-anchor", "start")
+            .style("fill", legends[counter].textcolor)
+            .style("font-size", 15)
+            .style("text-decoration", "underline")
+            .style("cursor", legends[counter].cursor)
+            .on("click", handleClick);
+        } else {
 
-        if (legends[counter].ranker) {
-          shape.attr('data-ranker', legends[counter].ranker)
-            .on("click", handleClick);
-          text.attr('data-ranker', legends[counter].ranker)
-            .on("click", handleClick);
-          if (legends[counter].ranker !== ranker) {
-            shape.style("fill", "transparent");
+          var shape = svg.append(legends[counter].shape)
+            .attr('x', startX)
+            .attr('y', startY + 20 * (counter + 1))
+            .attr('width', 10)
+            .attr('height', 10)
+            .style("stroke", legends[counter].stroke)
+            .style("fill", legends[counter].color)
+            .style("cursor", legends[counter].cursor);
+
+          var text = svg.append('text')
+            .attr("x", startX + 20)
+            .attr("y", startY + 10 + 20 * (counter + 1))
+            .attr("class", "textselected")
+            .text(legends[counter].text)
+            .style("text-anchor", "start")
+            .style("fill", legends[counter].textcolor)
+            .style("font-size", 15)
+            .style("cursor", legends[counter].cursor);
+
+          var dataLabel, dataValue, dataState;
+
+          if (legends[counter].ranker) {
+            dataLabel = 'data-ranker';
+            dataValue = legends[counter].ranker;
+            dataState = ranker;
           }
-        }
-        if (legends[counter].edges) {
-          shape.attr('data-edges', legends[counter].edges)
-            .on("click", handleClick);
-          text.attr('data-edges', legends[counter].edges)
-            .on("click", handleClick);
-          if (legends[counter].edges !== edges) {
-            shape.style("fill", "transparent");
+
+          if (legends[counter].edges) {
+            dataLabel = 'data-edges';
+            dataValue = legends[counter].edges;
+            dataState = edges;
+          }
+
+          if (legends[counter].grouping) {
+            dataLabel = 'data-grouping';
+            dataValue = legends[counter].grouping;
+            dataState = grouping;
+          }
+
+          if (dataLabel !== undefined) {
+            shape.attr(dataLabel, dataValue)
+              .on("click", handleClick);
+            text.attr(dataLabel, dataValue)
+              .on("click", handleClick);
+              if (dataValue !== dataState) {
+                shape.style("fill", "transparent");
+              }
           }
         }
       }
@@ -984,18 +1069,18 @@
     }
 
     fire(type, detail, options) {
-        options = options || {};
-        detail = (detail === null || detail === undefined) ? {} : detail;
-        const event = new Event(type, {
-          bubbles: options.bubbles === undefined ? true : options.bubbles,
-          cancelable: Boolean(options.cancelable),
-          composed: options.composed === undefined ? true : options.composed
-        });
-        event.detail = detail;
-        const node = options.node || this;
-        node.dispatchEvent(event);
-        return event;
-      }
+      options = options || {};
+      detail = (detail === null || detail === undefined) ? {} : detail;
+      const event = new Event(type, {
+        bubbles: options.bubbles === undefined ? true : options.bubbles,
+        cancelable: Boolean(options.cancelable),
+        composed: options.composed === undefined ? true : options.composed
+      });
+      event.detail = detail;
+      const node = options.node || this;
+      node.dispatchEvent(event);
+      return event;
+    }
 
   }
   customElements.define(HaPanelZWave.is, HaPanelZWave);
