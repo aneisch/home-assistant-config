@@ -42,7 +42,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2707
+Lines of YAML configuration | 2703
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 26
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 15
@@ -63,13 +63,13 @@ Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 5
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 18
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 202
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 203
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 77
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-Total state objects | 447
+Total state objects | 448
 ## The HACS integrations/plugins that I use:
 [aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -80,6 +80,7 @@ Total state objects | 447
 [custom-cards/button-card](https://github.com/custom-cards/button-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
+[custom-components/breaking_changes](https://github.com/custom-components/breaking_changes)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
 [home-assistant-community-themes/amoled](https://github.com/home-assistant-community-themes/amoled)<br>

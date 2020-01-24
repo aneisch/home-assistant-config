@@ -19,16 +19,114 @@ homeassistant:
         - 10.0.1.0/24
       allow_bypass_login: true
 
+aarlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
+
+alarm_control_panel:
+  - platform: aarlo
+    home_mode_name: Armed
+    away_mode_name: Disarmed
+
+alexa: !include alexa.yaml
+
+alexa_media:
+  accounts:
+    - email: !secret amazon_email
+      password: !secret amazon_pass
+      url: "amazon.com"
+
+automation: !include automation.yaml
+
+binary_sensor: !include binary_sensor.yaml
+
+breaking_changes:
+
+camera: !include camera.yaml
+
+climate:
+  platform: radiotherm
+  host:
+    - 10.0.0.29
+  hold_temp: True
+
+config:
+
+device_tracker:
+  - platform: nmap_tracker
+    home_interval: 10
+    hosts: 
+      - 10.0.1.13/32
+      - 10.0.1.59/32
+
+# https://github.com/aneisch/docker_monitor
+docker_monitor:
+  # Interval is hard coded in __init__.py
+  # scan_interval:
+  #   seconds: 10
+
+digital_ocean:
+  access_token: !secret DO_token
+
+fan: !include fans.yaml
+
 frontend:
   themes: !include_dir_merge_named themes
 
-# Enable configuration panel 
-config:
+group: !include group.yaml
 
-lovelace:
-  mode: yaml
+hacs:
+  token: !secret hacs_token
+  appdaemon: true
 
-# Write flat log file
+history:
+
+homekit: !include homekit.yaml
+
+http:
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 127.0.0.1
+    - ::1
+  server_port: 8123
+
+ifttt:
+  key: !secret ifttt_key
+
+influxdb:
+  host: 10.0.1.22
+  exclude:
+    entities:
+      - sensor.kitchen_timer_countdown
+
+input_boolean: !include input_boolean.yaml
+
+input_datetime: !include input_datetime.yaml
+
+input_select: !include input_select.yaml
+
+intent_script: !include intent_script.yaml
+
+ios:
+
+light:
+  - platform: limitlessled
+    bridges:
+      - host: 10.0.0.47
+        version: 5
+        port: 8899
+        groups:
+        - number: 1
+          type: rgbw
+          name: master_bedroom
+          fade: on
+        - number: 2
+          type: rgbw
+          name: andrew_monitor_backlight
+          fade: on
+
+logbook:
+
 logger:
   default: info
   logs:
@@ -36,8 +134,121 @@ logger:
     custom_components.hacs: debug
     hacs: debug
 
-# Enable map panel
+lovelace:
+  mode: yaml
+
+media_player:
+  - platform: spotify
+    client_id: !secret spotify_client_id
+    client_secret: !secret spotify_client_secret
+
 map:
+
+mobile_app:
+
+# Local Docker MQTT Only (local devices publish here, and I subscribe over ssl via bridged remote MQTT)
+mqtt:
+  broker: 127.0.0.1
+  port: 1883
+  keepalive: 60
+  username: !secret owntracks_user
+  password: !secret owntracks_password
+
+netatmo:
+  api_key: !secret netatmo_key
+  secret_key: !secret netatmo_secret
+  username: !secret netatmo_user
+  password: !secret netatmo_pass
+
+notify:
+  - platform: pushbullet
+    api_key: !secret pushbullet_key
+    name: pushbullet
+  - platform: pushover
+    name: pushover
+    api_key: !secret pushover_api_key
+    user_key: !secret pushover_user_key
+  - platform: html5
+    name: html5
+    vapid_pub_key: !secret vapid_pub_key
+    vapid_prv_key: !secret vapid_prv_key
+    vapid_email: !secret vapid_email
+  - platform: alexa_media
+
+owntracks:
+
+panel_custom:
+  # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
+  - name: zwavegraph2
+    sidebar_title: Z-Wave Graph
+    sidebar_icon: mdi:access-point-network
+    url_path: zwave
+
+panel_iframe:
+  plane_tracking:
+    title: 'Plane Tracking'
+    icon: mdi:airplane
+    url: !secret plane
+  grafana:
+    title: 'Grafana'
+    icon: mdi:chart-areaspline
+    url: !secret grafana
+  esphome:
+    title: 'ESPHome'
+    icon: mdi:memory
+    url: !secret esphome
+  portainer:
+    title: 'Portainer'
+    icon: mdi:ferry
+    url: !secret portainer
+  nodered:
+    title: 'Node-Red'
+    icon: mdi:sitemap
+    url: !secret nodered
+
+person:
+  - name: Andrew
+    id: andrew
+    device_trackers:
+      - device_tracker.andrews_phone_nmap
+      - device_tracker.owntracks_andrewworkphone
+  - name: Bethany
+    id: bethany
+    device_trackers:
+      - device_tracker.bethanys_iphone
+      - device_tracker.bethanys_iphone_nmap
+      - device_tracker.owntracks_bethanyphone
+
+pi_hole:
+  host: '10.0.1.22:8000'
+
+plant:
+  garden:
+    sensors:
+      moisture: sensor.miflora_moisture
+      temperature: sensor.miflora_temperature
+      conductivity: sensor.miflora_soil_conductivity
+      brightness: sensor.miflora_illuminance
+    min_moisture: 20
+    max_moisture: 100
+
+plex:
+  host: 10.0.1.22
+  token: !secret plex_token
+  media_player:
+    use_episode_art: false
+    show_all_controls: true
+
+proximity:
+  home:
+    devices:
+      - device_tracker.owntracks_andrewworkphone
+      - device_tracker.owntracks_bethanyphone
+      - device_tracker.bethanys_iphone
+    tolerance: 50
+    unit_of_measurement: mi
+
+readme:
 
 recorder:
   purge_interval: 1
@@ -68,27 +279,23 @@ recorder:
       - zone
       - zwave
 
-system_health:
+rest_command: !include rest_command.yaml
 
-pi_hole:
-  host: '10.0.1.22:8000'
+scene: !include scene.yaml
+
+script: !include scripts.yaml
+
+sensor: !include sensors.yaml
+
+shell_command: !include shell_command.yaml
 
 shopping_list:
 
-alexa_media:
-  accounts:
-    - email: !secret amazon_email
-      password: !secret amazon_pass
-      url: "amazon.com"
-
-alarm_control_panel:
-  - platform: aarlo
-    home_mode_name: Armed
-    away_mode_name: Disarmed
-
-ios:
-
 sun:
+
+switch: !include switches.yaml
+
+system_health:
 
 weather:
   - platform: darksky
@@ -137,200 +344,5 @@ zone 6:
   radius: 500
   icon: mdi:home-variant
 
-proximity:
-  home:
-    devices:
-      - device_tracker.owntracks_andrewworkphone
-      - device_tracker.owntracks_bethanyphone
-      - device_tracker.bethanys_iphone
-    tolerance: 50
-    unit_of_measurement: mi
-
-# Enables support for tracking state changes over time.
-history:
-
-# View all events in a logbook
-logbook:
-
-http:
-  use_x_forwarded_for: true
-  trusted_proxies: 
-    - 127.0.0.1
-    - ::1
-  server_port: 8123
-
-# Local Docker MQTT Only (local devices publish here, and I subscribe over ssl via bridged remote MQTT)
-mqtt:
-  broker: 127.0.0.1
-  port: 1883
-  keepalive: 60
-  username: !secret owntracks_user
-  password: !secret owntracks_password
-
-influxdb:
-  host: 10.0.1.22
-  exclude:
-    entities:
-      - sensor.kitchen_timer_countdown
-
-ifttt:
-  key: !secret ifttt_key
-
 zwave:
   usb_path: /dev/zwave
-
-aarlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
-
-panel_iframe:
-  plane_tracking:
-    title: 'Plane Tracking'
-    icon: mdi:airplane
-    url: !secret plane
-  grafana:
-    title: 'Grafana'
-    icon: mdi:chart-areaspline
-    url: !secret grafana
-  esphome:
-    title: 'ESPHome'
-    icon: mdi:memory
-    url: !secret esphome
-  portainer:
-    title: 'Portainer'
-    icon: mdi:ferry
-    url: !secret portainer
-  nodered:
-    title: 'Node-Red'
-    icon: mdi:sitemap
-    url: !secret nodered
-
-panel_custom:
-  # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
-  - name: zwavegraph2
-    sidebar_title: Z-Wave Graph
-    sidebar_icon: mdi:access-point-network
-    url_path: zwave
-
-owntracks:
-
-device_tracker:
-  - platform: nmap_tracker
-    home_interval: 10
-    hosts: 
-      - 10.0.1.13/32
-      - 10.0.1.59/32
-
-media_player:
-  - platform: spotify
-    client_id: !secret spotify_client_id
-    client_secret: !secret spotify_client_secret
-
-plex:
-  host: 10.0.1.22
-  token: !secret plex_token
-  media_player:
-    use_episode_art: false
-    show_all_controls: true
-
-climate:
-  platform: radiotherm
-  host:
-    - 10.0.0.29
-  hold_temp: True
-
-notify:
-  - platform: pushbullet
-    api_key: !secret pushbullet_key
-    name: pushbullet
-  - platform: pushover
-    name: pushover
-    api_key: !secret pushover_api_key
-    user_key: !secret pushover_user_key
-  - platform: html5
-    name: html5
-    vapid_pub_key: !secret vapid_pub_key
-    vapid_prv_key: !secret vapid_prv_key
-    vapid_email: !secret vapid_email
-  - platform: alexa_media
-
-light:
-  - platform: limitlessled
-    bridges:
-      - host: 10.0.0.47
-        version: 5
-        port: 8899
-        groups:
-        - number: 1
-          type: rgbw
-          name: master_bedroom
-          fade: on
-        - number: 2
-          type: rgbw
-          name: andrew_monitor_backlight
-          fade: on
-
-netatmo:
-  api_key: !secret netatmo_key
-  secret_key: !secret netatmo_secret
-  username: !secret netatmo_user
-  password: !secret netatmo_pass
-
-digital_ocean:
-  access_token: !secret DO_token
-
-person:
-  - name: Andrew
-    id: andrew
-    device_trackers:
-      - device_tracker.andrews_phone_nmap
-      - device_tracker.owntracks_andrewworkphone
-  - name: Bethany
-    id: bethany
-    device_trackers:
-      - device_tracker.bethanys_iphone
-      - device_tracker.bethanys_iphone_nmap
-      - device_tracker.owntracks_bethanyphone
-
-plant:
-  garden:
-    sensors:
-      moisture: sensor.miflora_moisture
-      temperature: sensor.miflora_temperature
-      conductivity: sensor.miflora_soil_conductivity
-      brightness: sensor.miflora_illuminance
-    min_moisture: 20
-    max_moisture: 100
-
-
-readme:
-
-# https://github.com/Sanderhuisman/home-assistant-custom-components
-docker_monitor:
-  # Interval is hard coded in __init__.py
-  # scan_interval:
-  #   seconds: 10
-
-mobile_app:
-
-hacs:
-  token: !secret hacs_token
-  appdaemon: true
-
-alexa: !include alexa.yaml
-homekit: !include homekit.yaml
-intent_script: !include intent_script.yaml
-camera: !include camera.yaml
-switch: !include switches.yaml
-fan: !include fans.yaml
-binary_sensor: !include binary_sensor.yaml
-sensor: !include sensors.yaml
-automation: !include automation.yaml
-group: !include group.yaml
-scene: !include scene.yaml
-script: !include scripts.yaml
-input_boolean: !include input_boolean.yaml
-input_datetime: !include input_datetime.yaml
-input_select: !include input_select.yaml
-shell_command: !include shell_command.yaml
-rest_command: !include rest_command.yaml
