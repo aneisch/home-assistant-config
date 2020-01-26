@@ -25,14 +25,6 @@ cards:
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
 
-  - type: entities
-    show_header_toggle: false
-    title: Scenes
-    entities:
-      - script.master_bedroom_light_full
-      - script.master_bedroom_light_dim
-      - script.master_bedroom_bedtime
-
   - type: vertical-stack
     cards:
       - type: entities
