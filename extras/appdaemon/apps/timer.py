@@ -18,7 +18,7 @@ class Timer(hass.Hass):
                 self.call_service("mqtt/publish", topic="appdaemon/" + countdown_destination_entity, payload=state)
         else:
             new_stripped = new[:-6]
-            datetime_object = datetime.datetime.strptime(new_stripped, '%Y-%m-%dT%H:%M:%S.%f')
+            datetime_object = datetime.datetime.strptime(new_stripped, '%Y-%m-%dT%H:%M:%S')
             remaining = datetime_object - datetime.datetime.now()
             self.log("New timer set: {} from now, ending at {}".format(remaining,new))
             while True:
