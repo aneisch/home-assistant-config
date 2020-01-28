@@ -44,7 +44,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2707
+Lines of YAML configuration | 2706
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 26
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 15
@@ -108,6 +108,8 @@ Total state objects | 448
 ![UI](images/screenshot2.png)  
 ![UI](images/screenshot3.png)
 ![UI](images/screenshot4.png)
+![UI](images/screenshot5.png)
+![UI](images/screenshot6.png)
 ![Grafana](images/grafana.png)
 ![Node-Red](images/nodered.png)
 Auto generated using: `docker run --rm -it --cap-add=SYS_ADMIN -v /tmp:/output tonious/chromeshot --delay=1000 --url=http://10.0.1.22:1880 --viewportWidth=2000 --viewportHeight=1800 --output=/output/nodered.png; sudo convert /tmp/nodered.png -crop 1350x1400+180+10 /tmp/ss.png`
