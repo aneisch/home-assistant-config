@@ -87,3 +87,12 @@ services:
         devices:
             - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         restart: always
+    hass-configurator:
+        container_name: configurator
+        image: causticlab/hass-configurator-docker:x86_64
+        restart: 'no'
+        ports:
+          - "3218:3218/tcp"
+        volumes:
+          - "/opt/hass-configurator:/config"
+          - "/opt/homeassistant:/hass-config"

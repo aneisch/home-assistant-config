@@ -103,6 +103,7 @@ services:
             - /opt/bw-data/:/data/
             - /etc/localtime:/etc/localtime:ro
         environment:
+            - DISABLE_ADMIN_TOKEN=true
             - SIGNUPS_VERIFY=true
             - SIGNUPS_ALLOWED=false
             - INVITATIONS_ALLOWED=true

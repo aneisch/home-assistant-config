@@ -185,6 +185,10 @@ panel_custom:
     url_path: zwave
 
 panel_iframe:
+  configurator:
+    title: Configurator
+    icon: mdi:wrench
+    url: !secret configurator_url 
   plane_tracking:
     title: 'Plane Tracking'
     icon: mdi:airplane

@@ -1,4 +1,5 @@
 title: Master Bedroom
+icon: mdi:bed-empty
 cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
@@ -30,3 +31,4 @@ cards:
     artwork_border: true
     power_color: true
     show_source: true
+
