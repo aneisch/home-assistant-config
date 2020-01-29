@@ -1,7 +1,9 @@
 appdaemon:
   threads: 10
-  time_zone: America/Chicago
-  api_port: 8888
+  time_zone: !secret timezone
+  latitude: !secret latitude
+  longitude: !secret longitude
+  elevation: !secret elevation
   plugins:
     HASS:
       type: hass
@@ -11,7 +13,18 @@ appdaemon:
   # Apps and apps.yaml files when AppDaemon is restarted
   production_mode: True
 
-log:
-  errorfile: /conf/logs/appdaemon.log
-  logfile: /conf/logs/appdaemon.log
-  accessfile: /conf/logs/appdaemon.log
+http:
+    url: http://10.0.1.22:8888
+
+api:
+
+# Expose admin interface on http://10.0.1.22:8888
+admin:
+
+logs:
+  error_log:
+    filename: /conf/logs/appdaemon.log
+  main_log:
+    filename: /conf/logs/appdaemon.log
+  access_log:
+    filename: /conf/logs/appdaemon.log

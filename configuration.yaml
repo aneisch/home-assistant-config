@@ -1,6 +1,6 @@
 homeassistant:
   name: Home
-  elevation: 94
+  elevation: !secret elevation
   unit_system: imperial
   latitude: !secret home_lat
   longitude: !secret home_long

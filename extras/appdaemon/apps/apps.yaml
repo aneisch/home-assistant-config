@@ -170,7 +170,7 @@ Guest Lamp Follow Master:
   leader: group.master_bedroom_lamps
   follower: light.guest_nightstand_lamp
 
-Entertainment Center and Tree Follow Living Room:
+Entertainment Center Follow Living Room:
   module: follow_me
   class: Follow
   leader: group.living_room_lamps
