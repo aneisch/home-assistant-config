@@ -33,7 +33,7 @@ jobs:
         run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
-          hass -c . --script check_config -i -f
+          hass -c . --script check_config
           
   upgrade_hass:
     runs-on: ubuntu-latest
