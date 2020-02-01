@@ -63,14 +63,14 @@ automation:
       entity_id: sensor.ha_docker_version_beta
     condition:
       - condition: template
-        value_template: '{{ trigger.to_state.state > trigger.from_state.state }}'
+        value_template: '{{ trigger.to_state.state != trigger.from_state.state }}'
     action:
       - service: shell_command.github_action_trigger
-        data:
+        data_template:
           github_token: !secret github_token
           branch: rc
-          release_type: '{% if states.sensor.ha_docker_version_stable.state[-2:] == ".0" %}major{% else %}minor{% endif %}'
-          version: '{{ states.sensor.ha_docker_version_stable.state }}'
+          release_type: '{% if states.sensor.ha_docker_version_beta.state[-4:-2] == ".0" %}major{% else %}minor{% endif %}'
+          version: '{{ states.sensor.ha_docker_version_beta.state }}'
 
   # Triggered from Github action. We only auto-apply minor releases.
   - alias: "Upgrade HASS From Webhook"
