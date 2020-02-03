@@ -266,5 +266,5 @@
     - service: homeassistant.toggle
       entity_id: switch.master_bathroom_light_switch
     - delay: '00:00:01'
-    - service: homeassistant.toggle
+    - service: switch.toggle
       entity_id: switch.master_bathroom_light_switch
