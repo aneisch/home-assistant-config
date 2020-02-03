@@ -108,7 +108,7 @@ services:
             - SIGNUPS_ALLOWED=false
             - INVITATIONS_ALLOWED=true
             - LOG_FILE=/data/bitwarden.log
-            - LOG_LEVEL=info
+            - LOG_LEVEL=error
             - EXTENDED_LOGGING=true
             - DOMAIN=REDACT
             - SMTP_HOST=REDACT

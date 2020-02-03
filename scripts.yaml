@@ -145,6 +145,8 @@ too_hot:
         entity_id: climate.thermostat
         temperature: '{{ float(states("sensor.thermostat_setpoint")) - 2 }}'
 
+# Triggered by appdaemon app
+# See associated automation
 panic:
   sequence:
     - service: notify.pushover
@@ -155,6 +157,7 @@ panic:
           priority: 2
           expire: 3600
           retry: 30
+          callback: !secret panic_script_webhook_full
 
 spotify_occusim:
   sequence:

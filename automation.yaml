@@ -255,3 +255,16 @@
     data_template:
       entity_id: '{% if trigger.entity_id == "binary_sensor.front_door" %}input_datetime.front_door_last{% else %}input_datetime.back_door_last{% endif %}'
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+# Blink a light when the panic pushover alert is acknowledged
+- alias: "Panic Script Webhook Trigger"
+  initial_state: 'on'
+  trigger:
+    platform: webhook
+    webhook_id: !secret panic_script_webhook
+  action:
+    - service: homeassistant.toggle
+      entity_id: switch.master_bathroom_light_switch
+    - delay: '00:00:01'
+    - service: homeassistant.toggle
+      entity_id: switch.master_bathroom_light_switch
