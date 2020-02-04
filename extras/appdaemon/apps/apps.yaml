@@ -66,33 +66,48 @@ Occupancy Simulator:
   class: OccuSim
   constrain_input_boolean: input_boolean.occusim
   dump_times: '1'
+  log_msg: '1'
   reset_time: 02:00:00
-  log: '1'
-  #step_morning_name: Morning
-  #step_morning_start: 06:00:00
-  #step_morning_end: 08:00:00
-  #step_morning_on_1: group.living_room_lamps
-  #step_morning_off_1: group.living_room_lamps
-  #step_morning_on_2: switch.kitchen_table_light_switch
-  #step_morning_off_2: switch.kitchen_table_light_switch
-  random_house_name: Random House
-  random_house_start: Evening
-  random_house_end: Night
   step_evening_name: Evening
   step_evening_start: sunset - 00:45:00
   step_night_name: Night
   step_night_start: '23:59:59'
-  random_house_maxduration: 02:00:00
-  random_house_minduration: 00:30:00
-  random_house_number: '5'
-  random_house_on_master: group.master_bedroom_lamps
-  random_house_off_master: group.master_bedroom_lamps
-  random_house_on_kitchen: switch.kitchen_table_light_switch
-  random_house_off_kitchen: switch.kitchen_table_light_switch
-  random_house_on_livingroom: group.living_room_lamps
-  random_house_off_livingroom: group.living_room_lamps
-  random_house_on_office: group.office_lamps
-  random_house_off_office: group.office_lamps
+
+  random_master_name: Master
+  random_master_start: Evening
+  random_master_end: Night
+  random_master_maxduration: 02:00:00
+  random_master_minduration: 00:30:00
+  random_master_number: '2'
+  random_master_on_1: group.master_bedroom_lamps
+  random_master_off_1: group.master_bedroom_lamps
+
+  random_kitchen_name: Kitchen
+  random_kitchen_start: Evening
+  random_kitchen_end: Night
+  random_kitchen_maxduration: 02:00:00
+  random_kitchen_minduration: 00:30:00
+  random_kitchen_number: '5'
+  random_kitchen_on_1: switch.kitchen_table_light_switch
+  random_kitchen_off_1: switch.kitchen_table_light_switch
+
+  random_living_name: Living Room
+  random_living_start: Evening
+  random_living_end: Night
+  random_living_maxduration: 02:00:00
+  random_living_minduration: 00:30:00
+  random_living_number: '5'
+  random_living_on_1: group.living_room_lamps
+  random_living_off_1: group.living_room_lamps
+
+  random_office_name: Office
+  random_office_start: Evening
+  random_office_end: Night
+  random_office_maxduration: 02:00:00
+  random_office_minduration: 00:30:00
+  random_office_number: '2'
+  random_office_on_1: group.office_lamps
+  random_office_off_1: group.office_lamps
 
 NAS:
   module: entity_timer
@@ -205,3 +220,12 @@ Timer:
   countdown_destination_entity: sensor.kitchen_timer_countdown
   # Publish to MQTT (remove mqtt entry if you don't want..)
   mqtt: True
+
+#Timer2:
+#  module: timer
+#  class: Timer2
+#  timer_entity: sensor.kitchen_all_timers
+#  # what entity will hold the countdown state? 
+#  countdown_destination_entity_prefix: sensor.kitchen_timer_countdown
+#  # Publish to MQTT (remove mqtt entry if you don't want..)
+#  mqtt: True

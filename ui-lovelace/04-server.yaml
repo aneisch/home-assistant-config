@@ -88,7 +88,6 @@ cards:
     entities:
       - switch.docker_esphome
       - switch.docker_configurator
-      - switch.docker_thermopro_mqtt
       - switch.docker_grafana
       - switch.docker_plex
       - switch.docker_portainer

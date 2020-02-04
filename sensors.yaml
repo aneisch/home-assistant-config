@@ -248,3 +248,20 @@
   command: "echo $(($(cat /sys/class/thermal/thermal_zone0/temp)/1000))"
   unit_of_measurement: "°F"
   value_template: "{{ ((value | int) * 9 / 5) + 32 | round(1) }}"
+
+- platform: template
+  sensors:
+    kitchen_all_timers:
+      friendly_name: "All Kitchen Timers"
+      value_template: "{{ state_attr('sensor.kitchen_next_timer','sorted_active') | from_json | length }}"
+      attribute_templates:
+        timers_ending: >-
+          {% set ns = namespace(timers=[]) %}
+          {% for i in (state_attr('sensor.kitchen_next_timer','sorted_active') | from_json) -%}
+          {% set last_update = as_timestamp(states.sensor.kitchen_next_timer.last_updated) -%}
+          {% set remain = i[1]['remainingTime']/1000 -%}
+          {% set end_epoch = remain + last_update -%}
+          {% set end_time = end_epoch | timestamp_custom('%Y-%m-%dT%H:%M:%S', True) -%}
+          {% set ns.timers = ns.timers + [end_time] %}
+          {% endfor %}
+          {{ ns.timers }}

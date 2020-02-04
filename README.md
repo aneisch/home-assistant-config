@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-0.104.3%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.104.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -44,7 +44,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2725
+Lines of YAML configuration | 2740
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 27
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 13
@@ -59,13 +59,12 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 2
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 9
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 7
-Entities in the [`persistent_notification`](https://www.home-assistant.io/components/persistent_notification) domain | 1
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 5
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 18
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 201
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 202
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 75
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
