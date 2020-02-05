@@ -9,4 +9,4 @@ before_install:
   # Cause the stream component causes travis fail?
   - sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
 script:
-  - hass -c . --script check_config -i -f
+  - hass -c . --script check_config

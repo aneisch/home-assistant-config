@@ -2,7 +2,6 @@
 
 common_areas:
   name: Common Areas
-  view: yes
   entities:
     - group.living_room
     - group.kitchen
@@ -68,7 +67,6 @@ master_bedroom_lamps:
     - light.bethany_nightstand_lamp
 
 andrew_desk:
-  view: no
   entities:
       - light.andrew_desk_lamp
       - light.andrew_monitor_backlight
