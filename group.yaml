@@ -10,7 +10,6 @@ common_areas:
 
 office:
   name: Office
-  control: hidden
   entities:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
@@ -24,7 +23,6 @@ office_lamps:
 
 master_bedroom:
   name: Master Bedroom
-  control: hidden
   entities:
     - light.master_bedroom
     - switch.master_bedroom_sound_machine
@@ -35,7 +33,6 @@ master_bedroom:
 
 guest_bedroom:
   name: Guest Bedroom
-  control: hidden
   entities:
     - light.guest_nightstand_lamp
 
@@ -47,13 +44,11 @@ trackers:
 
 kitchen:
   name: Kitchen
-  control: hidden
   entities:
     - switch.kitchen_table_light_switch
 
 living_room:
   name: Living Room
-  control: hidden
   entities:
     - switch.living_room_lamp_2
     - switch.living_room_lamp
@@ -62,14 +57,12 @@ living_room:
 
 living_room_lamps:
   name: Living Room Lamps
-  control: hidden
   entities:
     - switch.living_room_lamp
     - switch.living_room_lamp_2
 
 master_bedroom_lamps:
   name: Master Bedroom Lamps
-  control: hidden
   entities:
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
