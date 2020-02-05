@@ -69,7 +69,7 @@ automation:
         data_template:
           github_token: !secret github_token
           branch: rc
-          release_type: '{% if states.sensor.ha_docker_version_beta.state[-4:-2] == ".0" %}major{% else %}minor{% endif %}'
+          release_type: '{% states.sensor.ha_docker_version_beta.state.split(".")[-1:][0] == ".0" %}major{% else %}minor{% endif %}'
           version: '{{ states.sensor.ha_docker_version_beta.state }}'
 
   # Triggered from Github action. We only auto-apply minor releases.
