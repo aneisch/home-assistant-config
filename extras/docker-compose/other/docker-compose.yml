@@ -46,7 +46,7 @@ services:
         environment:
             - TZ='America/Chicago'
             - DNS1=10.0.1.1
-            - DNS2='no'
+            - DNS2=no
             - ServerIPv6=2001:470:1f0f:f4:ffff:242:ac11:2
             - IPv6=true
             - DNSMASQ_LISTENING=all
