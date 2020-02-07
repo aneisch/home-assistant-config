@@ -47,7 +47,7 @@ automation:
           # Options are: dev, rc, stable
           branch: stable
           # If release is "minor" we auto-apply the update
-          release_type: '{% if states.sensor.ha_docker_version_stable.state[-2:] == ".0" %}major{% else %}minor{% endif %}'
+          release_type: '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
           version: '{{ states.sensor.ha_docker_version_stable.state }}'
       - delay:
           minutes: 6
@@ -69,7 +69,7 @@ automation:
         data_template:
           github_token: !secret github_token
           branch: rc
-          release_type: '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0] == ".0" %}major{% else %}minor{% endif %}'
+          release_type: '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
           version: '{{ states.sensor.ha_docker_version_beta.state }}'
 
   # Triggered from Github action. We only auto-apply minor releases.
