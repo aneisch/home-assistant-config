@@ -52,7 +52,7 @@ services:
             - DNSMASQ_LISTENING=all
         dns:
             - 10.0.1.1
-        network_mode: 'bridge'
+        #network_mode: 'bridge'
         restart: unless-stopped
     ozwcp:
         container_name: ozwcp
