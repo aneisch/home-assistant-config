@@ -7,6 +7,8 @@ sensor:
     value_template: >-
       {% if value_json.temperature_1_C != 320.0 %}
         {{ ((value_json.temperature_1_C | int) * 9 / 5) + 32 | round(1) }}
+      {% else %}
+        unknown
       {% endif %}
 
   - platform: mqtt
@@ -16,6 +18,8 @@ sensor:
     value_template: >-
       {% if value_json.temperature_2_C != 320.0 %}
         {{ ((value_json.temperature_2_C | int) * 9 / 5) + 32 | round(1) }}
+      {% else %}
+        unknown
       {% endif %}
 
 input_number:

@@ -5,9 +5,20 @@ conditions:
 card:
   type: vertical-stack
   cards:
-    - type: custom:bignumber-card
-      entity: sensor.grill_probe_1
-      title: Probe 1
-    - type: custom:bignumber-card
-      entity: sensor.grill_probe_2
-      title: Probe 2
+
+    - type: conditional
+      conditions:
+        - entity: sensor.grill_probe_1
+          state_not: "unknown"
+      card:
+        type: custom:bignumber-card
+        entity: sensor.grill_probe_1
+        title: Probe 1
+    - type: conditional
+      conditions:
+        - entity: sensor.grill_probe_2
+          state_not: "unknown"
+      card:
+        type: custom:bignumber-card
+        entity: sensor.grill_probe_2
+        title: Probe 2
