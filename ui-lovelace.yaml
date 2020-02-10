@@ -25,8 +25,8 @@ resources:
     type: js
   - url: /community_plugin/custom-header/custom-header.js
     type: module
-  - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
-    type: js
+#  - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
+#    type: js
   - url: /community_plugin/favicon-counter/favicon-counter.js
     type: module
 
@@ -39,11 +39,10 @@ custom_header:
   chevrons: false
   hide_tabs: '{% if is_state("switch.docker_thermopro_mqtt", "off") %}7{% endif %}'
   tab_indicator_color: 'rgb(214, 122, 127)'
+  footer_mode: '{% if "Pixel 2" in userAgent %}true{% else %}false{% endif %}'
 
-swipe_nav:
-  swipe: true
-  swipe_animate: swipe
-  swipe_amount: 5
+#swipe_nav:
+#  swipe_animate: fade
 
 views: !include_dir_list ui-lovelace/
 

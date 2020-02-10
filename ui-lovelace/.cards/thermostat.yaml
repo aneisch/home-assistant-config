@@ -2,9 +2,19 @@ type: 'custom:simple-thermostat'
 name: false
 entity: climate.thermostat
 step_size: 1
+hide:
+  temperature: True
+  state: True
 sensors:
+  - entity: sensor.thermostat_state
+  - entity: sensor.thermostat_temperature
+    name: Kitchen
   - entity: sensor.master_bedroom_temperature
     name: Master
   - entity: sensor.office_temperature
     name: Office
+  - entity: sensor.ac_runtime_today
+    name: Today
+  - entity: sensor.ac_runtime_yesterday
+    name: Yesterday
 control: false

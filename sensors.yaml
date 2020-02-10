@@ -210,11 +210,29 @@
     netatmo_home_rain_sum_rain_24_in:
       friendly_name: Home Rain Last 24 Hours
       unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_rain_sum_rain_24.state | float) / 25.4) }}"
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) / 25.4) }}"
+      icon_template: >-
+        {% set amount = (states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) %}
+        {% if amount > 0.00 and amount < 0.50 %}
+          mdi:weather-pouring
+        {% elif amount > 0.00 %}
+          mdi:weather-rainy
+        {% else %}
+          mdi:cloud-outline
+        {% endif %}
     netatmo_home_rain_sum_rain_1_in:
       friendly_name: Home Rain Last 1 Hour
       unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_rain_sum_rain_1.state | float) / 25.4) }}"
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) / 25.4) }}"
+      icon_template: >-
+        {% set amount = (states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) %}
+        {% if amount > 0.00 and amount < 0.50 %}
+          mdi:weather-pouring
+        {% elif amount > 0.00 %}
+          mdi:weather-rainy
+        {% else %}
+          mdi:cloud-outline
+        {% endif %}
       
 
 #############

@@ -3,16 +3,7 @@ icon: mdi:home-circle
 cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
-
-  - type: vertical-stack
-    cards:
-      - !include .cards/thermostat.yaml
-      - type: entities
-        show_header_toggle: false
-        title: Thermostat
-        entities:
-          - sensor.ac_runtime_today
-          - sensor.ac_runtime_yesterday
+  - !include .cards/thermostat.yaml
 
   - type: entities
     show_header_toggle: false
@@ -57,25 +48,22 @@ cards:
       - person.andrew
       - person.bethany
 
-  - type: entities
-    show_header_toggle: false
-    title: Weather
-    entities:
-      - sensor.dark_sky_summary
-      - sensor.dark_sky_temperature
-      - sensor.dark_sky_humidity
-      - sensor.dark_sky_precip_probability
-      - sun.sun
-      - sensor.moon
-
   - type: vertical-stack
     cards:
-      - type: custom:weather-card
-        entity: weather.dark_sky
       - type: entities
+        show_header_toggle: false
+        title: Weather
         entities:
+          - sensor.dark_sky_summary
+          - sensor.dark_sky_temperature
+          - sensor.dark_sky_humidity
+          - sensor.dark_sky_precip_probability
+          - sun.sun
+          - sensor.moon
           - sensor.netatmo_home_rain_sum_rain_1_in
           - sensor.netatmo_home_rain_sum_rain_24_in
+      - type: custom:weather-card
+        entity: weather.dark_sky
 
   - type: iframe
     aspect_ratio: 90%

@@ -44,7 +44,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2737
+Lines of YAML configuration | 2754
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 27
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 13
@@ -59,7 +59,6 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 2
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 9
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 9
-Entities in the [`persistent_notification`](https://www.home-assistant.io/components/persistent_notification) domain | 1
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
@@ -71,7 +70,7 @@ Entities in the [`switch`](https://www.home-assistant.io/components/switch) doma
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 2
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-Total state objects | 444
+Total state objects | 443
 ## The HACS integrations/plugins that I use:
 [aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
