@@ -1,726 +1,710 @@
-"""
-Support for Netgear Arlo IP cameras.
-
-For more details about this platform, please refer to the documentation at
-https://home-assistant.io/components/camera.arlo/
-"""
 import base64
-import logging
-from datetime import timedelta
+import threading
+import time
+import zlib
 
-import voluptuous as vol
-
-import homeassistant.helpers.config_validation as cv
-import homeassistant.util.dt as dt_util
-from homeassistant.components import websocket_api
-from homeassistant.components.camera import (ATTR_FILENAME,
-                                             CAMERA_SERVICE_SCHEMA,
-                                             CAMERA_SERVICE_SNAPSHOT,
-                                             DOMAIN,
-                                             STATE_IDLE,
-                                             STATE_RECORDING,
-                                             STATE_STREAMING,
-                                             Camera)
-from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.const import (ATTR_ATTRIBUTION,
-                                 ATTR_BATTERY_LEVEL,
-                                 ATTR_ENTITY_ID)
-from homeassistant.core import callback
-from homeassistant.exceptions import HomeAssistantError
-from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
-from homeassistant.helpers.config_validation import (PLATFORM_SCHEMA)
-from homeassistant.helpers.event import async_track_point_in_time
-from . import CONF_ATTRIBUTION, DATA_ARLO, DEFAULT_BRAND
-
-_LOGGER = logging.getLogger(__name__)
-
-ARLO_MODE_ARMED = 'armed'
-ARLO_MODE_DISARMED = 'disarmed'
-
-ATTR_BATTERY_TECH = 'battery_tech'
-ATTR_BRIGHTNESS = 'brightness'
-ATTR_FLIPPED = 'flipped'
-ATTR_MIRRORED = 'mirrored'
-ATTR_MOTION = 'motion_detection_sensitivity'
-ATTR_POWERSAVE = 'power_save_mode'
-ATTR_SIGNAL_STRENGTH = 'signal_strength'
-ATTR_UNSEEN_VIDEOS = 'unseen_videos'
-ATTR_RECENT_ACTIVITY = 'recent_activity'
-ATTR_IMAGE_SRC = 'image_source'
-ATTR_CHARGING = 'charging'
-ATTR_CHARGER_TYPE = 'charger_type'
-ATTR_WIRED = 'wired'
-ATTR_WIRED_ONLY = 'wired_only'
-ATTR_LAST_VIDEO = 'last_video'
-ATTR_VOLUME = 'volume'
-ATTR_LAST_THUMBNAIL = 'last_thumbnail'
-ATTR_DURATION = 'duration'
-ATTR_TIME_ZONE = 'time_zone'
-
-CONF_FFMPEG_ARGUMENTS = 'ffmpeg_arguments'
-
-DEPENDENCIES = ['aarlo', 'ffmpeg']
-
-POWERSAVE_MODE_MAPPING = {
-    1: 'best_battery_life',
-    2: 'optimized',
-    3: 'best_video'
-}
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Optional(CONF_FFMPEG_ARGUMENTS): cv.string,
-})
-
-SERVICE_REQUEST_SNAPSHOT = 'aarlo_request_snapshot'
-SERVICE_REQUEST_SNAPSHOT_TO_FILE = 'aarlo_request_snapshot_to_file'
-SERVICE_REQUEST_VIDEO_TO_FILE = 'aarlo_request_video_to_file'
-SERVICE_STOP_ACTIVITY = 'aarlo_stop_activity'
-SERVICE_SIREN_ON = 'aarlo_siren_on'
-SERVICE_SIREN_OFF = 'aarlo_siren_off'
-SERVICE_RECORD_START = 'aarlo_start_recording'
-SERVICE_RECORD_STOP = 'aarlo_stop_recording'
-SIREN_ON_SCHEMA = vol.Schema({
-    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    vol.Required(ATTR_DURATION): cv.positive_int,
-    vol.Required(ATTR_VOLUME): cv.positive_int,
-})
-SIREN_OFF_SCHEMA = vol.Schema({
-    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-})
-RECORD_START_SCHEMA = vol.Schema({
-    vol.Required(ATTR_ENTITY_ID): cv.comp_entity_ids,
-    vol.Required(ATTR_DURATION): cv.positive_int,
-})
-
-WS_TYPE_VIDEO_URL = 'aarlo_video_url'
-WS_TYPE_LIBRARY = 'aarlo_library'
-WS_TYPE_STREAM_URL = 'aarlo_stream_url'
-WS_TYPE_SNAPSHOT_IMAGE = 'aarlo_snapshot_image'
-WS_TYPE_VIDEO_DATA = 'aarlo_video_data'
-WS_TYPE_STOP_ACTIVITY = 'aarlo_stop_activity'
-WS_TYPE_SIREN_ON = 'aarlo_camera_siren_on'
-WS_TYPE_SIREN_OFF = 'aarlo_camera_siren_off'
-SCHEMA_WS_VIDEO_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_VIDEO_URL,
-    vol.Required('entity_id'): cv.entity_id,
-    vol.Required('index'): cv.positive_int
-})
-SCHEMA_WS_LIBRARY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_LIBRARY,
-    vol.Required('entity_id'): cv.entity_id,
-    vol.Required('at_most'): cv.positive_int
-})
-SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_STREAM_URL,
-    vol.Required('entity_id'): cv.entity_id
-})
-SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_SNAPSHOT_IMAGE,
-    vol.Required('entity_id'): cv.entity_id
-})
-SCHEMA_WS_VIDEO_DATA = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_VIDEO_DATA,
-    vol.Required('entity_id'): cv.entity_id
-})
-SCHEMA_WS_STOP_ACTIVITY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_STOP_ACTIVITY,
-    vol.Required('entity_id'): cv.entity_id
-})
-SCHEMA_WS_SIREN_ON = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_SIREN_ON,
-    vol.Required('entity_id'): cv.entity_id,
-    vol.Required(ATTR_DURATION): cv.positive_int,
-    vol.Required(ATTR_VOLUME): cv.positive_int
-})
-SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend({
-    vol.Required('type'): WS_TYPE_SIREN_OFF,
-    vol.Required('entity_id'): cv.entity_id
-})
+from .constant import (ACTIVITY_STATE_KEY, BRIGHTNESS_KEY,
+                       CAPTURED_TODAY_KEY, FLIP_KEY, IDLE_SNAPSHOT_PATH, LAST_CAPTURE_KEY,
+                       CRY_DETECTION_KEY, LIGHT_BRIGHTNESS_KEY, LIGHT_MODE_KEY,
+                       LAST_IMAGE_DATA_KEY, LAST_IMAGE_KEY, LAMP_STATE_KEY,
+                       LAST_IMAGE_SRC_KEY, MEDIA_COUNT_KEY,
+                       MEDIA_UPLOAD_KEYS, MIRROR_KEY, MOTION_SENS_KEY,
+                       POWER_SAVE_KEY, PRELOAD_DAYS, PRIVACY_KEY,
+                       RECORD_START_PATH, RECORD_STOP_PATH,
+                       SNAPSHOT_KEY, SIREN_STATE_KEY, STREAM_SNAPSHOT_KEY,
+                       STREAM_SNAPSHOT_PATH, STREAM_START_PATH, CAMERA_MEDIA_DELAY,
+                       AUDIO_POSITION_KEY, AUDIO_TRACK_KEY, DEFAULT_TRACK_ID, MEDIA_PLAYER_RESOURCE_ID)
+from .device import ArloChildDevice
+from .util import http_get, http_get_img
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
-    """Set up an Arlo IP Camera."""
-    arlo = hass.data[DATA_ARLO]
-    component = hass.data[DOMAIN]
+class ArloCamera(ArloChildDevice):
 
-    cameras = []
-    cameras_with_siren = False
-    for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, config))
-        if camera.has_capability('siren'):
-            cameras_with_siren = True
-
-    async_add_entities(cameras)
-
-    # Services
-    component.async_register_entity_service(
-        SERVICE_REQUEST_SNAPSHOT, CAMERA_SERVICE_SCHEMA,
-        aarlo_snapshot_service_handler
-    )
-    component.async_register_entity_service(
-        SERVICE_REQUEST_SNAPSHOT_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
-        aarlo_snapshot_to_file_service_handler
-    )
-    component.async_register_entity_service(
-        SERVICE_REQUEST_VIDEO_TO_FILE, CAMERA_SERVICE_SNAPSHOT,
-        aarlo_video_to_file_service_handler
-    )
-    component.async_register_entity_service(
-        SERVICE_STOP_ACTIVITY, CAMERA_SERVICE_SCHEMA,
-        aarlo_stop_activity_handler
-    )
-    if cameras_with_siren:
-        component.async_register_entity_service(
-            SERVICE_SIREN_ON, SIREN_ON_SCHEMA,
-            aarlo_siren_on_service_handler
-        )
-        component.async_register_entity_service(
-            SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA,
-            aarlo_siren_off_service_handler
-        )
-    component.async_register_entity_service(
-        SERVICE_RECORD_START, RECORD_START_SCHEMA,
-        aarlo_start_recording_handler
-    )
-    component.async_register_entity_service(
-        SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA,
-        aarlo_stop_recording_handler
-    )
-
-    # Websockets
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_VIDEO_URL, websocket_video_url,
-        SCHEMA_WS_VIDEO_URL
-    )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_LIBRARY, websocket_library,
-        SCHEMA_WS_LIBRARY
-    )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_STREAM_URL, websocket_stream_url,
-        SCHEMA_WS_STREAM_URL
-    )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_SNAPSHOT_IMAGE, websocket_snapshot_image,
-        SCHEMA_WS_SNAPSHOT_IMAGE
-    )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_VIDEO_DATA, websocket_video_data,
-        SCHEMA_WS_VIDEO_DATA
-    )
-    hass.components.websocket_api.async_register_command(
-        WS_TYPE_STOP_ACTIVITY, websocket_stop_activity,
-        SCHEMA_WS_STOP_ACTIVITY
-    )
-    if cameras_with_siren:
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_ON, websocket_siren_on,
-            SCHEMA_WS_SIREN_ON
-        )
-        hass.components.websocket_api.async_register_command(
-            WS_TYPE_SIREN_OFF, websocket_siren_off,
-            SCHEMA_WS_SIREN_OFF
-        )
-
-
-class ArloCam(Camera):
-    """An implementation of a Netgear Arlo IP camera."""
-
-    def __init__(self, camera, config):
-        """Initialize an Arlo camera."""
-        super().__init__()
-        self._name = camera.name
-        self._unique_id = self._name.lower().replace(' ', '_')
-        self._camera = camera
-        self._state = None
+    def __init__(self, name, arlo, attrs):
+        super().__init__(name, arlo, attrs)
         self._recent = False
-        self._motion_status = False
-        self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
-        _LOGGER.info('ArloCam: %s created', self._name)
+        self._recent_job = None
+        self._cache_count = None
+        self._cached_videos = None
+        self._min_days_vdo_cache = PRELOAD_DAYS
+        self._lock = threading.Condition()
+        self._snapshot_state = 'idle'
+        self._clear_snapshot_cb = None
+        self._arlo.bg.run_in(self._update_media, CAMERA_MEDIA_DELAY)
 
-    async def stream_source(self):
-        """Return the source of the stream."""
-        return self._camera.get_stream()
+    def _set_recent(self, timeo):
+        with self._lock:
+            self._recent = True
+            self._arlo.bg.cancel(self._recent_job)
+            self._recent_job = self._arlo.bg.run_in(self._clear_recent, timeo)
+        self._arlo.debug('turning recent ON for ' + self._name)
+        self._do_callbacks('recentActivity', True)
 
-    def async_stream_source(self):
-        return self.hass.async_add_job(self._camera.stream_source)
+    def _clear_recent(self):
+        with self._lock:
+            self._recent = False
+            self._recent_job = None
+        self._arlo.debug('turning recent OFF for ' + self._name)
+        self._do_callbacks('recentActivity', False)
 
-    def camera_image(self):
-        """Return a still image response from the camera."""
-        return self._camera.last_image_from_cache
+    # media library finished. Update our counts
+    def _update_media(self):
+        self._arlo.debug('reloading cache for ' + self._name)
+        count, videos = self._arlo.ml.videos_for(self)
+        if videos:
+            captured_today = len([video for video in videos if video.created_today])
+            last_captured = videos[0].created_at_pretty(self._arlo.cfg.last_format)
+        else:
+            captured_today = 0
+            last_captured = None
 
-    async def async_added_to_hass(self):
-        """Register callbacks."""
+        # update local copies
+        with self._lock:
+            self._cache_count = count
+            self._cached_videos = videos
 
-        @callback
-        def update_state(_device, attr, value):
-            _LOGGER.debug('callback:' + self._name + ':' + attr + ':' + str(value)[:80])
+        # signal video up!
+        self._save_and_do_callbacks(CAPTURED_TODAY_KEY, captured_today)
+        if last_captured is not None:
+            self._save_and_do_callbacks(LAST_CAPTURE_KEY, last_captured)
+        self._do_callbacks('mediaUploadNotification', True)
 
-            # set state 
-            if attr == 'activityState' or attr == 'connectionState':
-                if value == 'thermalShutdownCold':
-                    self._state = 'Offline, Too Cold'
-                elif value == 'userStreamActive':
-                    self._state = STATE_STREAMING
-                elif value == 'alertStreamActive':
-                    self._state = STATE_RECORDING
-                elif value == 'unavailable':
-                    self._state = 'Unavailable'
-                else:
-                    self._state = STATE_IDLE
-            if attr == 'recentActivity':
-                self._recent = value
+    def _clear_snapshot(self):
+        # signal to anybody waiting
+        with self._lock:
+            if self._snapshot_state != 'idle':
+                self._arlo.debug('our snapshot finished, signal real state')
+                self._snapshot_state = 'idle'
+                self._lock.notify_all()
 
-            self.async_schedule_update_ha_state()
+        # signal real mode, safe to call multiple times
+        self._save_and_do_callbacks(ACTIVITY_STATE_KEY,
+                                    self._arlo.st.get([self._device_id, ACTIVITY_STATE_KEY], 'unknown'))
 
-        self._camera.add_attr_callback('privacyActive', update_state)
-        self._camera.add_attr_callback('recentActivity', update_state)
-        self._camera.add_attr_callback('activityState', update_state)
-        self._camera.add_attr_callback('connectionState', update_state)
-        self._camera.add_attr_callback('presignedLastImageData', update_state)
-        self._camera.add_attr_callback('mediaUploadNotification', update_state)
-        self._camera.add_attr_callback('chargingState', update_state)
-        self._camera.add_attr_callback('chargingTech', update_state)
+    def _update_media_and_thumbnail(self):
+        self._arlo.debug('getting media image for ' + self.name)
+        self._update_media()
+        url = None
+        with self._lock:
+            if self._cached_videos:
+                url = self._cached_videos[0].thumbnail_url
+        if url is not None:
+            self._save(LAST_IMAGE_KEY, url)
+            self._update_last_image()
 
-    async def handle_async_mjpeg_stream(self, request):
-        """Generate an HTTP MJPEG stream from the camera."""
-        from haffmpeg.camera import CameraMjpeg
-        video = self._camera.last_video
-        if not video:
-            error_msg = \
-                'Video not found for {0}. Is it older than {1} days?'.format(
-                    self._name, self._camera.min_days_vdo_cache)
-            _LOGGER.error(error_msg)
+    def _update_last_image(self):
+        self._arlo.debug('getting image for ' + self.name)
+
+        # Get image and date, if fails set to blank.
+        img, date = http_get_img(self._arlo.st.get([self.device_id, LAST_IMAGE_KEY], None))
+        if img is None:
+            self._arlo.debug('using blank image for ' + self.name)
+            img = self._arlo.blank_image
+
+        # signal up if needed
+        date = date.strftime(self._arlo.cfg.last_format)
+        self._save(LAST_IMAGE_SRC_KEY, 'capture/' + date)
+        self._save_and_do_callbacks(LAST_CAPTURE_KEY, date)
+        self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
+
+        # handle snapshot not being handled...
+        self._clear_snapshot()
+
+    def _update_last_image_from_snapshot(self):
+        self._arlo.debug('getting image for ' + self.name)
+
+        # Get image and date, if fails ignore.
+        img, date = http_get_img(self._arlo.st.get([self.device_id, SNAPSHOT_KEY], None))
+        if img is not None:
+            date = date.strftime(self._arlo.cfg.last_format)
+            self._save(LAST_IMAGE_SRC_KEY, 'snapshot/' + date)
+            self._save_and_do_callbacks(LAST_IMAGE_DATA_KEY, img)
+
+        # handle snapshot finished
+        self._clear_snapshot()
+
+    def _parse_statistic(self, data, scale):
+        """Parse binary statistics returned from the history API"""
+        i = 0
+        for byte in bytearray(data):
+            i = (i << 8) + byte
+
+        if i == 32768:
+            return None
+
+        if scale == 0:
+            return i
+
+        return float(i) / (scale * 10)
+
+    def _decode_sensor_data(self, properties):
+        """Decode, decompress, and parse the data from the history API"""
+        b64_input = ""
+        for s in properties.get('payload', []):
+            # pylint: disable=consider-using-join
+            b64_input += s
+        if b64_input == "":
+            return None
+
+        decoded = base64.b64decode(b64_input)
+        data = zlib.decompress(decoded)
+        points = []
+        i = 0
+
+        while i < len(data):
+            points.append({
+                'timestamp': int(1e3 * self._parse_statistic(data[i:(i + 4)], 0)),
+                'temperature': self._parse_statistic(data[(i + 8):(i + 10)], 1),
+                'humidity': self._parse_statistic(data[(i + 14):(i + 16)], 1),
+                'airQuality': self._parse_statistic(data[(i + 20):(i + 22)], 1)
+            })
+            i += 22
+
+        return points[-1]
+
+    def _event_handler(self, resource, event):
+        self._arlo.debug(self.name + ' CAMERA got one ' + resource)
+
+        # stream has stopped or recording has stopped
+        if resource == 'mediaUploadNotification':
+
+            # look for all possible keys
+            for key in MEDIA_UPLOAD_KEYS:
+                value = event.get(key, None)
+                if value is not None:
+                    self._save_and_do_callbacks(key, value)
+
+            # catch this one, update URL if passed in notification
+            if LAST_IMAGE_KEY in event:
+                self._arlo.debug(self.name + ' thumbnail changed')
+                self.update_last_image()
+
+            # recording stopped then reload library
+            if event.get('recordingStopped', False):
+                self._arlo.debug('recording stopped, updating library')
+                self._arlo.ml.queue_update(self._update_media)
+
+            # snapshot happened?
+            value = event.get(STREAM_SNAPSHOT_KEY, '')
+            if '/snapshots/' in value:
+                self._arlo.debug('our snapshot finished, downloading it')
+                self._save(SNAPSHOT_KEY, value)
+                self._arlo.bg.run_low(self._update_last_image_from_snapshot)
+
+            # something just happened!
+            self._set_recent(self._arlo.cfg.recent_time)
+
             return
 
-        ffmpeg_manager = self.hass.data[DATA_FFMPEG]
-        stream = CameraMjpeg(ffmpeg_manager.binary, loop=self.hass.loop)
-        await stream.open_camera(
-            video.video_url, extra_cmd=self._ffmpeg_arguments)
+        # no media uploads and stream stopped?
+        if self._arlo.cfg.no_media_upload:
+            if event.get('properties', {}).get('activityState', 'unknown') == 'idle' and self.is_recording:
+                self._arlo.debug('got a stream stop')
+                self._arlo.bg.run_in(self._arlo.ml.queue_update, 5, cb=self._update_media_and_thumbnail)
 
-        try:
-            stream_reader = await stream.get_reader()
-            return await async_aiohttp_proxy_stream(
-                self.hass, request, stream_reader,
-                ffmpeg_manager.ffmpeg_stream_content_type)
+        # get it an update last image
+        if event.get('action', '') == 'fullFrameSnapshotAvailable':
+            value = event.get('properties', {}).get('presignedFullFrameSnapshotUrl', None)
+            if value is not None:
+                self._arlo.debug('queing snapshot update')
+                self._save(SNAPSHOT_KEY, value)
+                self._arlo.bg.run_low(self._update_last_image_from_snapshot)
 
-        finally:
-            await stream.close()
+        # ambient sensors update
+        if resource.endswith('/ambientSensors/history'):
+            data = self._decode_sensor_data(event.get('properties', {}))
+            if data is not None:
+                self._save_and_do_callbacks('temperature', data.get('temperature'))
+                self._save_and_do_callbacks('humidity', data.get('humidity'))
+                self._save_and_do_callbacks('airQuality', data.get('airQuality'))
 
-    @property
-    def unique_id(self):
-        """Return a unique ID."""
-        return self._unique_id
+        # night light
+        nightlight = event.get("properties", {}).get("nightLight", None)
+        if nightlight is not None:
+            self._arlo.debug("got a night light {}".format(nightlight.get("enabled", False)))
+            if nightlight.get("enabled", False) is True:
+                self._save_and_do_callbacks(LAMP_STATE_KEY, "on")
+            else:
+                self._save_and_do_callbacks(LAMP_STATE_KEY, "off")
 
-    @property
-    def is_recording(self):
-        return self._camera.is_recording
+            brightness = nightlight.get("brightness")
+            if brightness is not None:
+                self._save_and_do_callbacks(LIGHT_BRIGHTNESS_KEY, brightness)
 
-    @property
-    def is_on(self):
-        return self._camera.is_on
+            mode = nightlight.get("mode")
+            if mode is not None:
+                rgb = nightlight.get("rgb")
+                temperature = nightlight.get("temperature")
 
-    def turn_off(self):
-        self._camera.turn_off()
-        return True
+                light_mode = {
+                    'mode': mode
+                }
 
-    def turn_on(self):
-        self._camera.turn_on()
-        return True
+                if rgb is not None:
+                    light_mode['rgb'] = rgb
+                if temperature is not None:
+                    light_mode['temperature'] = temperature
 
-    @property
-    def state(self):
-        return self._camera.state
+                self._save_and_do_callbacks(LIGHT_MODE_KEY, light_mode)
 
-    @property
-    def device_state_attributes(self):
-        """Return the state attributes."""
-        attrs = {
-            name: value for name, value in (
-                (ATTR_BATTERY_LEVEL, self._camera.battery_level),
-                (ATTR_BATTERY_TECH, self._camera.battery_tech),
-                (ATTR_BRIGHTNESS, self._camera.brightness),
-                (ATTR_FLIPPED, self._camera.flip_state),
-                (ATTR_MIRRORED, self._camera.mirror_state),
-                (ATTR_MOTION, self._camera.motion_detection_sensitivity),
-                (ATTR_POWERSAVE, POWERSAVE_MODE_MAPPING.get(self._camera.powersave_mode)),
-                (ATTR_SIGNAL_STRENGTH, self._camera.signal_strength),
-                (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
-                (ATTR_RECENT_ACTIVITY, self._camera.recent),
-                (ATTR_IMAGE_SRC, self._camera.last_image_source),
-                (ATTR_CHARGING, self._camera.charging),
-                (ATTR_CHARGER_TYPE, self._camera.charger_type),
-                (ATTR_WIRED, self._camera.wired),
-                (ATTR_WIRED_ONLY, self._camera.wired_only),
-                (ATTR_LAST_THUMBNAIL, self.last_thumbnail_url),
-                (ATTR_LAST_VIDEO, self.last_video_url),
-                (ATTR_TIME_ZONE, self._camera.timezone),
-            ) if value is not None
-        }
+        # audio analytics
+        audioanalytics = event.get("properties", {}).get("audioAnalytics", None)
+        if audioanalytics is not None:
+            if audioanalytics.get(CRY_DETECTION_KEY, {}).get("triggered") is True:
+                self._save_and_do_callbacks(CRY_DETECTION_KEY, "on")
+            else:
+                self._save_and_do_callbacks(CRY_DETECTION_KEY, "off")
 
-        attrs[ATTR_ATTRIBUTION] = CONF_ATTRIBUTION
-        attrs['brand'] = DEFAULT_BRAND
-        attrs['device_id'] = self._camera.device_id
-        attrs['model_id'] = self._camera.model_id
-        attrs['parent_id'] = self._camera.parent_id
-        attrs['friendly_name'] = self._name
-        attrs['siren'] = self._camera.has_capability('siren')
-
-        return attrs
+        # pass on to lower layer
+        super()._event_handler(resource, event)
 
     @property
-    def model(self):
-        """Return the camera model."""
-        return self._camera.model_id
+    def resource_type(self):
+        return "cameras"
 
     @property
-    def brand(self):
-        """Return the camera brand."""
-        return DEFAULT_BRAND
+    def last_image(self):
+        return self._arlo.st.get([self._device_id, LAST_IMAGE_KEY], None)
+
+    # fill this out...
+    @property
+    def last_image_from_cache(self):
+        return self._arlo.st.get([self._device_id, LAST_IMAGE_DATA_KEY], self._arlo.blank_image)
 
     @property
-    def motion_detection_enabled(self):
-        """Return the camera motion detection status."""
-        return self._motion_status
+    def last_image_source(self):
+        return self._arlo.st.get([self._device_id, LAST_IMAGE_SRC_KEY], '')
 
     @property
     def last_video(self):
-        return self._camera.last_video
-
-    @property
-    def last_thumbnail_url(self):
-        video = self._camera.last_video
-        return video.thumbnail_url if video is not None else None
-
-    @property
-    def last_video_url(self):
-        video = self._camera.last_video
-        return video.video_url if video is not None else None
+        with self._lock:
+            if self._cached_videos:
+                return self._cached_videos[0]
+        return None
 
     def last_n_videos(self, count):
-        return self._camera.last_n_videos(count)
+        with self._lock:
+            if self._cached_videos:
+                return self._cached_videos[:count]
+        return []
+
+    @property
+    def last_capture(self):
+        return self._arlo.st.get([self._device_id, LAST_CAPTURE_KEY], None)
 
     @property
     def last_capture_date_format(self):
-        return self._camera.last_capture_date_format
+        return self._arlo.cfg.last_format
 
-    def set_base_station_mode(self, mode):
-        """Set the mode in the base station."""
-        self._camera.base_station.mode = mode
+    @property
+    def brightness(self):
+        return self._arlo.st.get([self._device_id, BRIGHTNESS_KEY], None)
 
-    def enable_motion_detection(self):
-        """Enable the Motion detection in base station (Arm)."""
-        self._motion_status = True
-        self.set_base_station_mode(ARLO_MODE_ARMED)
+    @property
+    def flip_state(self):
+        return self._arlo.st.get([self._device_id, FLIP_KEY], None)
 
-    def disable_motion_detection(self):
-        """Disable the motion detection in base station (Disarm)."""
-        self._motion_status = False
-        self.set_base_station_mode(ARLO_MODE_DISARMED)
+    @property
+    def mirror_state(self):
+        return self._arlo.st.get([self._device_id, MIRROR_KEY], None)
+
+    @property
+    def motion_detection_sensitivity(self):
+        return self._arlo.st.get([self._device_id, MOTION_SENS_KEY], None)
+
+    @property
+    def powersave_mode(self):
+        return self._arlo.st.get([self._device_id, POWER_SAVE_KEY], None)
+
+    @property
+    def unseen_videos(self):
+        return self._arlo.st.get([self._device_id, MEDIA_COUNT_KEY], 0)
+
+    @property
+    def captured_today(self):
+        return self._arlo.st.get([self._device_id, CAPTURED_TODAY_KEY], 0)
+
+    @property
+    def min_days_vdo_cache(self):
+        return self._min_days_vdo_cache
+
+    @property
+    def recent(self):
+        return self._recent
+
+    @min_days_vdo_cache.setter
+    def min_days_vdo_cache(self, value):
+        self._min_days_vdo_cache = value
+
+    def update_media(self):
+        """ Get latest list of recordings from the backend server. """
+        self._arlo.debug('queing media update')
+        self._arlo.bg.run_low(self._update_media)
+
+    def update_last_image(self):
+        """ Get last thumbnail from the backend server. """
+        self._arlo.debug('queing image update')
+        self._arlo.bg.run_low(self._update_last_image)
+
+    def update_ambient_sensors(self):
+        if self.model_id == 'ABC1000':
+            self._arlo.bg.run(self._arlo.be.notify,
+                              base=self.base_station,
+                              body={"action": "get",
+                                    "resource": 'cameras/{}/ambientSensors/history'.format(self.device_id),
+                                    "publishResponse": False})
+
+    def has_capability(self, cap):
+        if cap in 'motionDetected':
+            return True
+        if cap in ('last_capture', 'captured_today', 'recent_activity', 'battery_level', 'signal_strength'):
+            return True
+        if cap in ('temperature', 'humidity', 'air_quality', 'airQuality') and self.model_id == 'ABC1000':
+            return True
+        if cap in ('audio', 'audioDetected', 'sound'):
+            if self.model_id.startswith('VMC4030') or self.model_id.startswith('VMC5040') or self.model_id.startswith(
+                    'VMC4040') or self.model_id == 'ABC1000':
+                return True
+            if self.device_type.startswith('arloq'):
+                return True
+        if cap in 'siren':
+            if self.model_id.startswith('VMC5040') or self.model_id.startswith('VMC4040'):
+                return True
+        if cap in 'mediaPlayer' and self.model_id == 'ABC1000':
+            return True
+        if cap in 'nightLight' and self.model_id.startswith("ABC1000"):
+            return True
+        if cap in 'babyCryDetection' and self.model_id.startswith("ABC1000"):
+            return True
+        return super().has_capability(cap)
+
+    def take_streaming_snapshot(self):
+        body = {
+            'xcloudId': self.xcloud_id,
+            'parentId': self.parent_id,
+            'deviceId': self.device_id,
+            'olsonTimeZone': self.timezone,
+        }
+        self._save_and_do_callbacks(ACTIVITY_STATE_KEY, 'fullFrameSnapshot')
+        self._arlo.bg.run(self._arlo.be.post, path=STREAM_SNAPSHOT_PATH, params=body,
+                          headers={"xcloudId": self.xcloud_id})
+
+    def take_idle_snapshot(self):
+        body = {
+            'action': 'set',
+            'from': self.web_id,
+            'properties': {'activityState': 'fullFrameSnapshot'},
+            'publishResponse': True,
+            'resource': self.resource_id,
+            'to': self.parent_id,
+            'transId': self._arlo.be.gen_trans_id()
+        }
+        self._arlo.bg.run(self._arlo.be.post, path=IDLE_SNAPSHOT_PATH, params=body,
+                          headers={"xcloudId": self.xcloud_id})
+
+    def _request_snapshot(self):
+        if self._snapshot_state == 'idle':
+            if self.is_streaming or self.is_recording:
+                self._arlo.debug('streaming snapshot')
+                self.take_streaming_snapshot()
+                self._snapshot_state = 'streaming-snapshot'
+            elif not self.is_taking_snapshot:
+                self.take_idle_snapshot()
+                self._arlo.debug('idle snapshot')
+                self._snapshot_state = 'snapshot'
+            self._arlo.debug('handle dodgy cameras')
+            self._arlo.bg.run_in(self._clear_snapshot, 45)
 
     def request_snapshot(self):
-        self._camera.request_snapshot()
+        with self._lock:
+            self._request_snapshot()
 
-    def async_request_snapshot(self):
-        return self.hass.async_add_job(self.request_snapshot)
+    def get_snapshot(self, timeout=30):
+        with self._lock:
+            self._request_snapshot()
+            mnow = time.monotonic()
+            mend = mnow + timeout
+            while mnow < mend and self._snapshot_state != 'idle':
+                self._lock.wait(mend - mnow)
+                mnow = time.monotonic()
+        return self.last_image_from_cache
 
-    def get_snapshot(self):
-        return self._camera.get_snapshot()
+    @property
+    def is_taking_snapshot(self):
+        if self._snapshot_state != 'idle':
+            return True
+        return self._arlo.st.get([self._device_id, ACTIVITY_STATE_KEY], 'unknown') == 'fullFrameSnapshot'
 
-    def async_get_snapshot(self):
-        return self.hass.async_add_job(self.get_snapshot)
+    @property
+    def is_recording(self):
+        return self._arlo.st.get([self._device_id, ACTIVITY_STATE_KEY], 'unknown') == 'alertStreamActive'
+
+    @property
+    def is_streaming(self):
+        return self._arlo.st.get([self._device_id, ACTIVITY_STATE_KEY], 'unknown') == 'userStreamActive'
+
+    @property
+    def was_recently_active(self):
+        return self._recent
+
+    @property
+    def state(self):
+        if self.is_taking_snapshot:
+            return 'taking snapshot'
+        if self.is_recording:
+            return 'recording'
+        if self.is_streaming:
+            return 'streaming'
+        if self.was_recently_active:
+            return 'recently active'
+        return super().state
+
+    def get_stream(self):
+        body = {
+            'action': 'set',
+            'from': self.web_id,
+            'properties': {'activityState': 'startUserStream', 'cameraId': self.device_id},
+            'publishResponse': True,
+            'responseUrl': '',
+            'resource': self.resource_id,
+            'to': self.parent_id,
+            'transId': self._arlo.be.gen_trans_id()
+        }
+        reply = self._arlo.be.post(STREAM_START_PATH, body, headers={"xcloudId": self.xcloud_id})
+        if reply is None:
+            return None
+        url = reply['url'].replace("rtsp://", "rtsps://")
+        self._arlo.debug('url={}'.format(url))
+        return url
 
     def get_video(self):
-        return self._camera.get_video()
-
-    def async_get_video(self):
-        return self.hass.async_add_job(self.get_video)
+        video = self.last_video
+        if video is not None:
+            return http_get(video.video_url)
+        return None
 
     def stop_activity(self):
-        return self._camera.stop_activity()
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {'activityState': 'idle'},
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
 
-    def async_stop_activity(self):
-        return self.hass.async_add_job(self.stop_activity)
-
-    def siren_on(self, duration=30, volume=10):
-        if self._camera.has_capability('siren'):
-            _LOGGER.debug("{0} siren on {1}/{2}".format(self.unique_id, volume, duration))
-            self._camera.siren_on(duration=duration, volume=volume)
-            return True
-        return False
-
-    def siren_off(self):
-        if self._camera.has_capability('siren'):
-            _LOGGER.debug("{0} siren off".format(self.unique_id))
-            self._camera.siren_off()
-            return True
-        return False
-
-    def async_siren_on(self, duration, volume):
-        return self.hass.async_add_job(self.siren_on, duration=duration, volume=volume)
-
-    def async_siren_off(self):
-        return self.hass.async_add_job(self.siren_off)
-
-    def start_recording(self, duration):
-
-        def _stop_recording(_now):
-            self.stop_recording()
-
-        if self._camera.get_stream() is not None:
-            self._camera.start_recording()
-            async_track_point_in_time(self.hass, _stop_recording, dt_util.utcnow() + timedelta(seconds=duration))
+    def start_recording(self, duration=None):
+        body = {
+            'parentId': self.parent_id,
+            'deviceId': self.device_id,
+            'olsonTimeZone': self.timezone,
+        }
+        self._arlo.debug('starting recording')
+        self._save_and_do_callbacks(ACTIVITY_STATE_KEY, 'alertStreamActive')
+        self._arlo.bg.run(self._arlo.be.post, path=RECORD_START_PATH, params=body,
+                          headers={"xcloudId": self.xcloud_id})
+        if duration is not None:
+            self._arlo.debug('queueing stop')
+            self._arlo.bg.run_in(self.stop_recording)
 
     def stop_recording(self):
-        self._camera.stop_recording()
-        self._camera.stop_activity()
-
-    def async_start_recording(self, duration):
-        return self.hass.async_add_job(self.start_recording, duration=duration)
-
-    def async_stop_recording(self):
-        return self.hass.async_add_job(self.stop_recording)
-
-
-def _get_camera_from_entity_id(hass, entity_id):
-    component = hass.data.get(DOMAIN)
-    if component is None:
-        raise HomeAssistantError('Camera component not set up')
-
-    camera = component.get_entity(entity_id)
-    if camera is None:
-        raise HomeAssistantError('Camera not found')
-
-    return camera
-
-
-@websocket_api.async_response
-async def websocket_video_url(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    video = camera.last_video
-    url = video.video_url if video is not None else None
-    url_type = video.content_type if video is not None else None
-    thumbnail = video.thumbnail_url if video is not None else None
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'url': url,
-            'url_type': url_type,
-            'thumbnail': thumbnail,
-            'thumbnail_type': 'image/jpeg',
+        body = {
+            'parentId': self.parent_id,
+            'deviceId': self.device_id,
         }
-    ))
+        self._arlo.debug('stopping recording')
+        self._arlo.bg.run(self._arlo.be.post, path=RECORD_STOP_PATH, params=body,
+                          headers={"xcloudId": self.xcloud_id})
 
+    @property
+    def siren_resource_id(self):
+        return "siren/{}".format(self.device_id)
 
-@websocket_api.async_response
-async def websocket_library(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    videos = []
-    _LOGGER.debug('library+' + str(msg['at_most']))
-    for v in camera.last_n_videos(msg['at_most']):
-        videos.append({
-            'created_at': v.created_at,
-            'created_at_pretty': v.created_at_pretty(camera.last_capture_date_format),
-            'url': v.video_url,
-            'url_type': v.content_type,
-            'thumbnail': v.thumbnail_url,
-            'thumbnail_type': 'image/jpeg',
-            'object': v.object_type,
-            'object_region': v.object_region,
-            'trigger': v.object_type,
-            'trigger_region': v.object_region,
-        })
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'videos': videos,
+    @property
+    def siren_state(self):
+        return self._arlo.st.get([self._device_id, SIREN_STATE_KEY], "off")
+
+    def siren_on(self, duration=300, volume=8):
+        body = {
+            'action': 'set',
+            'resource': self.siren_resource_id,
+            'publishResponse': True,
+            'properties': {'sirenState': 'on', 'duration': int(duration), 'volume': int(volume), 'pattern': 'alarm'}
         }
-    ))
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
+    def siren_off(self):
+        body = {
+            'action': 'set',
+            'resource': self.siren_resource_id,
+            'publishResponse': True,
+            'properties': {'sirenState': 'off'}
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-@websocket_api.async_response
-async def websocket_stream_url(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('stream_url for ' + str(camera.unique_id))
-    try:
-        stream = await camera.async_stream_source()
-        connection.send_message(websocket_api.result_message(
-            msg['id'], {
-                'url': stream
+    @property
+    def is_on(self):
+        return not self._arlo.st.get([self._device_id, PRIVACY_KEY], False)
+
+    def turn_on(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=False)
+
+    def turn_off(self):
+        self._arlo.bg.run(self._arlo.be.async_on_off, base=self.base_station, device=self, privacy_on=True)
+
+    def get_audio_playback_status(self):
+        """Gets the current playback status and available track list"""
+        body = {
+            'action': 'get',
+            'publishResponse': True,
+            'resource': 'audioPlayback'
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
+
+    def play_track(self, track_id=DEFAULT_TRACK_ID, position=0):
+        body = {
+            'action': 'playTrack',
+            'publishResponse': True,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
+            'properties': {
+                AUDIO_TRACK_KEY: track_id,
+                AUDIO_POSITION_KEY: position
             }
-        ))
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    except HomeAssistantError:
-        connection.send_message(websocket_api.error_message(
-            msg['id'], 'image_fetch_failed', 'Unable to fetch stream'))
+    def pause_track(self):
+        body = {
+            'action': 'pause',
+            'publishResponse': True,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
+    def previous_track(self):
+        """Skips to the previous track in the playlist."""
+        body = {
+            'action': 'prevTrack',
+            'publishResponse': True,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-@websocket_api.async_response
-async def websocket_snapshot_image(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('snapshot_image for ' + str(camera.unique_id))
+    def next_track(self):
+        """Skips to the next track in the playlist."""
+        body = {
+            'action': 'nextTrack',
+            'publishResponse': True,
+            'resource': MEDIA_PLAYER_RESOURCE_ID,
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    try:
-        image = await camera.async_get_snapshot()
-        connection.send_message(websocket_api.result_message(
-            msg['id'], {
-                'content_type': camera.content_type,
-                'content': base64.b64encode(image).decode('utf-8')
+    def set_music_loop_mode_continuous(self):
+        """Sets the music loop mode to repeat the entire playlist."""
+        body = {
+            'action': 'set',
+            'publishResponse': True,
+            'resource': 'audioPlayback/config',
+            'properties': {
+                'config': {
+                    'loopbackMode': 'continuous'
+                }
             }
-        ))
+        }
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-    except HomeAssistantError:
-        connection.send_message(websocket_api.error_message(
-            msg['id'], 'image_fetch_failed', 'Unable to fetch image'))
-
-
-@websocket_api.async_response
-async def websocket_video_data(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('video_data for ' + str(camera.unique_id))
-
-    try:
-        video = await camera.async_get_video()
-        connection.send_message(websocket_api.result_message(
-            msg['id'], {
-                'content_type': 'video/mp4',
-                'content': base64.b64encode(video).decode('utf-8')
+    def set_music_loop_mode_single(self):
+        """Sets the music loop mode to repeat the current track."""
+        body = {
+            'action': 'set',
+            'publishResponse': True,
+            'resource': 'audioPlayback/config',
+            'properties': {
+                'config': {
+                    'loopbackMode': 'singleTrack'
+                }
             }
-        ))
-
-    except HomeAssistantError:
-        connection.send_message(websocket_api.error_message(
-            msg['id'], 'video_fetch_failed', 'Unable to fetch video'))
-
-
-@websocket_api.async_response
-async def websocket_stop_activity(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
-
-    stopped = await camera.async_stop_activity()
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'stopped': stopped
         }
-    ))
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-
-@websocket_api.async_response
-async def websocket_siren_on(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
-
-    await camera.async_siren_on(duration=msg['duration'], volume=msg['volume'])
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'siren': 'on'
+    def set_shuffle(self, shuffle=True):
+        """Sets playback to shuffle."""
+        body = {
+            'action': 'set',
+            'publishResponse': True,
+            'resource': 'audioPlayback/config',
+            'properties': {
+                'config': {
+                    'shuffleActive': shuffle
+                }
+            }
         }
-    ))
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
-
-@websocket_api.async_response
-async def websocket_siren_off(hass, connection, msg):
-    camera = _get_camera_from_entity_id(hass, msg['entity_id'])
-    _LOGGER.debug('stop_activity for ' + str(camera.unique_id))
-
-    await camera.async_siren_off()
-    connection.send_message(websocket_api.result_message(
-        msg['id'], {
-            'siren': 'off'
+    def set_volume(self, mute=False, volume=50):
+        """Sets the music volume (0-100)"""
+        body = {
+            'action': 'set',
+            'publishResponse': True,
+            'resource': self.resource_id,
+            'properties': {
+                'speaker': {
+                    'mute': mute,
+                    'volume': volume
+                }
+            }
         }
-    ))
+        self._arlo.bg.run(self._arlo.be.notify, base=self, body=body)
 
+    def _set_nightlight_properties(self, properties):
+        self._arlo.debug('{}: setting nightlight properties: {}'.format(self._name, properties))
+        self._arlo.bg.run(self._arlo.be.notify,
+                          base=self.base_station,
+                          body={
+                              'action': 'set',
+                              'properties': {
+                                  'nightLight': properties
+                              },
+                              'publishResponse': True,
+                              'resource': self.resource_id,
+                          })
+        return True
 
-async def aarlo_snapshot_service_handler(camera, _service):
-    _LOGGER.debug("{0} snapshot".format(camera.unique_id))
-    await camera.async_get_snapshot()
-    hass = camera.hass
-    _LOGGER.debug("{0} snapshot event".format(camera.unique_id))
-    hass.bus.fire('aarlo_snapshot_ready', {
-        'entity_id': 'aarlo.' + camera.unique_id,
-    })
-
-
-async def aarlo_snapshot_to_file_service_handler(camera, service):
-    _LOGGER.info("{0} snapshot to file".format(camera.unique_id))
-
-    hass = camera.hass
-    filename = service.data[ATTR_FILENAME]
-    filename.hass = hass
-
-    snapshot_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-
-    # check if we allow to access to that file
-    if not hass.config.is_allowed_path(snapshot_file):
-        _LOGGER.error("Can't write %s, no access to path!", snapshot_file)
-        return
-
-    image = await camera.async_get_snapshot()
-
-    def _write_image(to_file, image_data):
-        with open(to_file, 'wb') as img_file:
-            img_file.write(image_data)
-
-    try:
-        await hass.async_add_executor_job(_write_image, snapshot_file, image)
-        hass.bus.fire('aarlo_snapshot_ready', {
-            'entity_id': 'aarlo.' + camera.unique_id,
-            'file': snapshot_file
+    def nightlight_on(self):
+        """Turns the nightlight on."""
+        return self._set_nightlight_properties({
+            'enabled': True
         })
-    except OSError as err:
-        _LOGGER.error("Can't write image to file: %s", err)
 
-
-async def aarlo_video_to_file_service_handler(camera, service):
-    _LOGGER.info("{0} video to file".format(camera.unique_id))
-
-    hass = camera.hass
-    filename = service.data[ATTR_FILENAME]
-    filename.hass = hass
-
-    video_file = filename.async_render(variables={ATTR_ENTITY_ID: camera})
-
-    # check if we allow to access to that file
-    if not hass.config.is_allowed_path(video_file):
-        _LOGGER.error("Can't write %s, no access to path!", video_file)
-        return
-
-    image = await camera.async_get_video()
-
-    def _write_image(to_file, image_data):
-        with open(to_file, 'wb') as img_file:
-            img_file.write(image_data)
-
-    try:
-        await hass.async_add_executor_job(_write_image, video_file, image)
-        hass.bus.fire('aarlo_video_ready', {
-            'entity_id': 'aarlo.' + camera.unique_id,
-            'file': video_file
+    def nightlight_off(self):
+        """Turns the nightlight off."""
+        return self._set_nightlight_properties({
+            'enabled': False
         })
-    except OSError as err:
-        _LOGGER.error("Can't write image to file: %s", err)
 
-    _LOGGER.debug("{0} video to file finished".format(camera.unique_id))
+    def set_nightlight_brightness(self, brightness):
+        """Turns the nightlight brightness value (0-255)."""
+        return self._set_nightlight_properties({
+            'brightness': brightness
+        })
 
+    def set_nightlight_rgb(self, red=255, green=255, blue=255):
+        """Turns the nightlight color to the specified RGB value."""
+        return self._set_nightlight_properties({
+            'mode': 'rgb',
+            'rgb': {'red': red, 'green': green, 'blue': blue}
+        })
 
-async def aarlo_stop_activity_handler(camera, _service):
-    _LOGGER.info("{0} stop activity".format(camera.unique_id))
-    camera.stop_activity()
+    def set_nightlight_color_temperature(self, temperature):
+        """Turns the nightlight to the specified Kelvin color temperature."""
+        return self._set_nightlight_properties({
+            'mode': 'temperature',
+            'temperature': str(temperature)
+        })
 
-
-async def aarlo_siren_on_service_handler(camera, service):
-    volume = service.data[ATTR_VOLUME]
-    duration = service.data[ATTR_DURATION]
-    camera.siren_on(duration=duration, volume=volume)
-
-
-async def aarlo_siren_off_service_handler(camera, _service):
-    camera.siren_off()
-
-
-async def aarlo_start_recording_handler(camera, service):
-    duration = service.data[ATTR_DURATION]
-    camera.start_recording(duration=duration)
-
-
-async def aarlo_stop_recording_handler(camera, _service):
-    camera.stop_recording()
+    def set_nightlight_mode(self, mode):
+        """Turns the nightlight to a particular mode (rgb, temperature, rainbow)."""
+        return self._set_nightlight_properties({
+            'mode': mode
+        })
