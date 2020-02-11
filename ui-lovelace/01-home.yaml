@@ -60,8 +60,8 @@ cards:
           - sensor.dark_sky_precip_probability
           - sun.sun
           - sensor.moon
-          - sensor.netatmo_home_rain_sum_rain_1_in
-          - sensor.netatmo_home_rain_sum_rain_24_in
+          - sensor.netatmo_home_rain_sum_rain_last_hour_inches
+          - sensor.netatmo_home_rain_sum_rain_today_inches
       - type: custom:weather-card
         entity: weather.dark_sky
 

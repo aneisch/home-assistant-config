@@ -10,12 +10,6 @@
   - captured_today
   - signal_strength
 
-- platform: template
-  sensors:
-    kitchen_timer_countdown:
-      value_template: ""
-      icon_template: "mdi-timer"
-
 #Tell me when to change a thing
 - platform: date_reminder
   name: AC Filter Change
@@ -100,20 +94,6 @@
   state_topic: "tele/sonoff_pow_1/ENERGY"
   value_template: "{{ value_json.Power }}"
 
-- platform: template
-  sensors:
-    sonoff_pow_today_cost:
-      friendly_name: Sonoff Pow Today Cost
-      unit_of_measurement: "$"
-      value_template: >-
-        {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }}
-    sonoff_pow_yesterday_cost:
-      friendly_name: Sonoff Pow Yesterday Cost
-      unit_of_measurement: "$"
-      value_template: >-
-        {{ states.sensor.sonoff_pow_yesterday_energy.state  | multiply(0.1123) | round(2) }}
-
-
 
 ###################
 # MQTT THERMOSTAT #
@@ -190,76 +170,9 @@
   duration:
     hours: 24
 
-- platform: template
-  sensors:
-    ac_runtime_today:
-      friendly_name: "AC Runtime Today"
-      unit_of_measurement: 'h'
-      value_template: "{{ (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float) }}"
-      attribute_templates:
-        value: "{{ (60 * (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float)) | int }}m"
-    ac_runtime_yesterday:
-      friendly_name: "AC Runtime Today"
-      unit_of_measurement: 'h'
-      value_template: "{{ (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float) }}"
-      attribute_templates:
-        value: "{{ (60 * (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float)) | int }}m"
-
-- platform: template
-  sensors:
-    netatmo_home_rain_sum_rain_24_in:
-      friendly_name: Home Rain Last 24 Hours
-      unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) / 25.4) }}"
-      icon_template: >-
-        {% set amount = (states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) %}
-        {% if amount > 0.00 and amount < 0.50 %}
-          mdi:weather-pouring
-        {% elif amount > 0.00 %}
-          mdi:weather-rainy
-        {% else %}
-          mdi:cloud-outline
-        {% endif %}
-    netatmo_home_rain_sum_rain_1_in:
-      friendly_name: Home Rain Last 1 Hour
-      unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) / 25.4) }}"
-      icon_template: >-
-        {% set amount = (states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) %}
-        {% if amount > 0.00 and amount < 0.50 %}
-          mdi:weather-pouring
-        {% elif amount > 0.00 %}
-          mdi:weather-rainy
-        {% else %}
-          mdi:cloud-outline
-        {% endif %}
-      
-
-#############
-# TEMPLATES #
-#############
-
-  #########
-  # OTHER #
-  #########
-
-#- platform: rtorrent
-#  url: !secret rtorrent
-#  monitored_variables:
-#    - 'current_status'
-#    - 'download_speed'
-#    - 'upload_speed'
-
 - platform: seventeentrack
   username: !secret 17track_user
   password: !secret 17track_pass
-
-- platform: template
-  sensors:
-    solar_angle:
-      friendly_name: "Sun Angle"
-      unit_of_measurement: '°'
-      value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
 
 - platform: command_line
   name: CPU Temperature
@@ -267,8 +180,17 @@
   unit_of_measurement: "°F"
   value_template: "{{ ((value | int) * 9 / 5) + 32 | round(1) }}"
 
+
+#############
+# TEMPLATES #
+#############
+
 - platform: template
   sensors:
+    kitchen_timer_countdown:
+      value_template: ""
+      icon_template: "mdi-timer"
+
     kitchen_all_timers:
       friendly_name: "All Kitchen Timers"
       value_template: "{{ state_attr('sensor.kitchen_next_timer','sorted_active') | from_json | length }}"
@@ -283,3 +205,62 @@
           {% set ns.timers = ns.timers + [end_time] %}
           {% endfor %}
           {{ ns.timers }}
+
+    solar_angle:
+      friendly_name: "Sun Angle"
+      unit_of_measurement: '°'
+      value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
+
+    ac_runtime_today:
+      friendly_name: "AC Runtime Today"
+      unit_of_measurement: 'h'
+      value_template: "{{ (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float) }}"
+      attribute_templates:
+        value: "{{ (60 * (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float)) | int }}m"
+
+    ac_runtime_yesterday:
+      friendly_name: "AC Runtime Today"
+      unit_of_measurement: 'h'
+      value_template: "{{ (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float) }}"
+      attribute_templates:
+        value: "{{ (60 * (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float)) | int }}m"
+
+    netatmo_home_rain_sum_rain_today_inches:
+      friendly_name: Rainfall Today
+      unit_of_measurement: in
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) / 25.4) }}"
+      icon_template: >-
+        {% set amount = (states.sensor.netatmo_home_rain_sum_rain_today_inches.state | float) %}
+        {% if amount >= 0.50 %}
+          mdi:weather-pouring
+        {% elif amount > 0.00 and amount < 0.50 %}
+          mdi:weather-rainy
+        {% else %}
+          mdi:cloud-outline
+        {% endif %}
+
+    netatmo_home_rain_sum_rain_last_hour_inches:
+      friendly_name: Rainfall Last 1 Hour
+      unit_of_measurement: in
+      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) / 25.4) }}"
+      icon_template: >-
+        {% set amount = (states.sensor.netatmo_home_rain_sum_rain_last_hour_inches.state | float) %}
+        {% if amount >= 0.50 %}
+          mdi:weather-pouring
+        {% elif amount > 0.00 and amount < 0.50 %}
+          mdi:weather-rainy
+        {% else %}
+          mdi:cloud-outline
+        {% endif %}
+
+    sonoff_pow_today_cost:
+      friendly_name: Sonoff Pow Today Cost
+      unit_of_measurement: "$"
+      value_template: >-
+        {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }}
+
+    sonoff_pow_yesterday_cost:
+      friendly_name: Sonoff Pow Yesterday Cost
+      unit_of_measurement: "$"
+      value_template: >-
+        {{ states.sensor.sonoff_pow_yesterday_energy.state  | multiply(0.1123) | round(2) }}
