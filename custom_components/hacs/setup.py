@@ -66,22 +66,20 @@ def add_sensor(hacs):
 
 async def setup_frontend(hacs):
     """Configure the HACS frontend elements."""
-    from .http import HacsFrontend, HacsPluginViewLegacy
+    from .http import HacsPluginView, HacsFrontend
     from .ws_api_handlers import setup_ws_api
     from hacs_frontend.version import VERSION as FE_VERSION
 
-    hacs.hass.http.register_view(HacsFrontend())
+    hacs.hass.http.register_view(HacsPluginView())
     hacs.frontend.version_running = FE_VERSION
 
-    # Legacy views, remove with 2.0
-    hacs.hass.http.register_view(HacsPluginViewLegacy())
-
     # Add to sidepanel
+    hacs.hass.http.register_view(HacsFrontend())
     custom_panel_config = {
         "name": "hacs-frontend",
         "embed_iframe": False,
         "trust_external": False,
-        "js_url": f"/hacsfiles/frontend-{hacs.frontend.version_running}.js",
+        "js_url": f"/hacs_frontend/{hacs.frontend.version_running}.js",
     }
 
     config = {}
@@ -95,9 +93,4 @@ async def setup_frontend(hacs):
         config=config,
         require_admin=True,
     )
-
-    if "frontend_extra_module_url" not in hacs.hass.data:
-        hacs.hass.data["frontend_extra_module_url"] = set()
-    hacs.hass.data["frontend_extra_module_url"].add("/hacsfiles/iconset.js")
-
     await setup_ws_api(hacs.hass)

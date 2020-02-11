@@ -10,7 +10,6 @@ from aiogithubapi import AIOGitHubException, AIOGitHubRatelimit
 from integrationhelper import Logger
 
 from .task_factory import HacsTaskFactory
-from .exceptions import HacsException
 
 from ..const import ELEMENT_TYPES
 from ..setup import setup_extra_stores
@@ -147,9 +146,8 @@ class Hacs:
                 return
 
         if category not in RERPOSITORY_CLASSES:
-            msg = f"{category} is not a valid repository category."
-            self.logger.error(msg)
-            raise HacsException(msg)
+            self.logger.error(f"{category} is not a valid repository category.")
+            return False
 
         repository = RERPOSITORY_CLASSES[category](full_name)
         if check:

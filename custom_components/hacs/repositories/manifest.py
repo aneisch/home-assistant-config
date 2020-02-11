@@ -6,7 +6,7 @@ https://hacs.xyz/docs/publish/start#hacsjson
 from typing import List
 import attr
 
-from custom_components.hacs.hacsbase.exceptions import HacsException
+from custom_components.hacs.hacsbase.exceptions import HacsRepositoryInfo
 
 
 @attr.s(auto_attribs=True)
@@ -31,7 +31,7 @@ class HacsManifest:
     def from_dict(manifest: dict):
         """Set attributes from dicts."""
         if manifest is None:
-            raise HacsException("Missing manifest data")
+            raise HacsRepositoryInfo("Missing manifest data")
 
         manifest_data = HacsManifest()
 

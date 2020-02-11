@@ -70,14 +70,10 @@
         "step": {
             "user": {
                 "data": {
-                    "appdaemon": "Activer la découverte et le suivi des applications AppDaemon",
                     "country": "Filtrer par code pays.",
                     "debug": "Activez le débogage.",
                     "experimental": "Activer les fonctionnalités expérimentales",
-                    "not_in_use": "Non utilisé avec YAML",
-                    "release_limit": "Nombre de recensés à afficher.",
-                    "sidepanel_icon": "Icône de la barre latérale",
-                    "sidepanel_title": "Titre de la barre latérale"
+                    "release_limit": "Nombre de recensés à afficher."
                 }
             }
         }

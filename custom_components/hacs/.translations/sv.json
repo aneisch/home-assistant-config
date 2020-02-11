@@ -66,13 +66,10 @@
         "step": {
             "user": {
                 "data": {
-                    "appdaemon": "Upptäck och följ Appdaemon applikationer",
                     "country": "Filtrera på landskod.",
                     "debug": "Aktivera felsökning",
                     "experimental": "Använd experimentella funktioner",
-                    "release_limit": "Antalet releaser som visas.",
-                    "sidepanel_icon": "Ikon för sidpanel",
-                    "sidepanel_title": "Rubrik för sidpanel"
+                    "release_limit": "Antalet releaser som visas."
                 }
             }
         }
@@ -132,7 +129,6 @@
         "hidden_repositories": "dolda förråd",
         "missing_category": "Du behöver välja en kategori",
         "reload_data": "Ladda om data",
-        "reload_window": "Ladda om fönstret",
         "save": "Spara",
         "table": "Tabell",
         "table_view": "Tabellvy",
@@ -157,12 +153,10 @@
         "days": "dagar",
         "hour": "timme",
         "hours": "timmar",
-        "minute": "minut",
         "minutes": "minuter",
         "month": "månad",
         "months": "månader",
         "one": "Ett",
-        "one_day_ago": "för en dag sedan",
         "one_hour_ago": "för en timme sedan",
         "one_minute_ago": "en minut sedan",
         "one_month_ago": "en månad sedan",

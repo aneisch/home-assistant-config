@@ -70,14 +70,10 @@
         "step": {
             "user": {
                 "data": {
-                    "appdaemon": "Zet AppDaemon apps ontdekken & traceren aan",
                     "country": "Filter met land code.",
                     "debug": "Schakel debug in.",
                     "experimental": "Zet experimentele functies aan",
-                    "not_in_use": "Niet in gebruik met YAML",
-                    "release_limit": "Aantal releases om te laten zien.",
-                    "sidepanel_icon": "Zijpaneel icoon",
-                    "sidepanel_title": "Zijpaneel titel"
+                    "release_limit": "Aantal releases om te laten zien."
                 }
             }
         }

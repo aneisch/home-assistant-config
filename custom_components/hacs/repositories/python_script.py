@@ -1,7 +1,5 @@
 """Class for python_scripts in HACS."""
-from aiogithubapi import AIOGitHubException
 from .repository import HacsRepository, register_repository_class
-from ..hacsbase.exceptions import HacsException
 
 
 @register_repository_class
@@ -25,15 +23,9 @@ class HacsPythonScript(HacsRepository):
         await self.common_validate()
 
         # Custom step 1: Validate content.
-        try:
-            self.content.objects = await self.repository_object.get_contents(
-                self.content.path.remote, self.ref
-            )
-        except AIOGitHubException:
-            raise HacsException(
-                f"Repostitory structure for {self.ref.replace('tags/','')} is not compliant"
-            )
-
+        self.content.objects = await self.repository_object.get_contents(
+            self.content.path.remote, self.ref
+        )
         if not isinstance(self.content.objects, list):
             self.validate.errors.append("Repostitory structure not compliant")
 

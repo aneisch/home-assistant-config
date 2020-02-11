@@ -67,14 +67,10 @@
         "step": {
             "user": {
                 "data": {
-                    "appdaemon": "Aktiver opdagelse og sporing af AppDaemon-apps",
                     "country": "Filtrer med landekode.",
                     "debug": "Aktiver debug.",
                     "experimental": "Aktivér eksperimentelle funktioner",
-                    "not_in_use": "Ikke i brug med YAML",
-                    "release_limit": "Antal udgivelser, der skal vises.",
-                    "sidepanel_icon": "Sidepanelikon",
-                    "sidepanel_title": "Sidepanelets titel"
+                    "release_limit": "Antal udgivelser, der skal vises."
                 }
             }
         }

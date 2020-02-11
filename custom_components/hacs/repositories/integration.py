@@ -3,7 +3,7 @@ import json
 from aiogithubapi import AIOGitHubException
 from homeassistant.loader import async_get_custom_components
 from .repository import HacsRepository, register_repository_class
-from ..hacsbase.exceptions import HacsException
+from ..hacsbase.exceptions import HacsRequirement
 
 
 @register_repository_class
@@ -42,14 +42,11 @@ class HacsIntegration(HacsRepository):
                 self.content.path.remote = ""
 
         if self.content.path.remote == "custom_components":
-            try:
-                ccdir = await self.repository_object.get_contents(
-                    self.content.path.remote, self.ref
-                )
-            except AIOGitHubException:
-                raise HacsException(
-                    f"Repostitory structure for {self.ref.replace('tags/','')} is not compliant"
-                )
+            ccdir = await self.repository_object.get_contents(
+                self.content.path.remote, self.ref
+            )
+            if not isinstance(ccdir, list):
+                self.validate.errors.append("Repostitory structure not compliant")
 
             for item in ccdir or []:
                 if item.type == "dir":
@@ -159,7 +156,7 @@ class HacsIntegration(HacsRepository):
                 self.content.path.local = self.localpath
                 return True
             except KeyError as exception:
-                raise HacsException(
+                raise HacsRequirement(
                     f"Missing expected key {exception} in 'manifest.json'"
                 )
         return False
