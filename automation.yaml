@@ -203,15 +203,20 @@
       message: >
         Garden sensor reports a moisture level of {{ states.sensor.miflora_moisture.state }}%. Check hose timer. 
 
-# Handle all actions for html5 notifications
-- alias: HTML5 push notification action button clicked
+# Working as of 2/12/2020
+# Handle all actions for html5 and android push notifications
+- alias: HTML5 or Android push notification action button clicked
   trigger:
-    platform: event
-    event_type: html5_notification.clicked
+    - platform: event
+      event_type: html5_notification.clicked
+    - platform: event
+      event_type: mobile_app_notification_action
   action:
     service_template: >-
       {% if trigger.event.data.action == "turn_ac_off" %}
         script.turn_ac_off
+      {% elif trigger.event.data.action == "test" %}
+        script.test
       {% endif %}
 
 - alias: Ensure 100% brightness for Andrew monitor backlight
@@ -223,7 +228,7 @@
     service: scene.turn_on
     entity_id: scene.monitor_backlight_full
 
-- alias: Clear Alexa History
+- alias: Clear Alexa Recording History
   trigger:
     platform: time
     at: "22:00:00"
