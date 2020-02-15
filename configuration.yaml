@@ -89,6 +89,7 @@ http:
     - 127.0.0.1
     - ::1
   server_port: 8123
+  base_url: !secret hass_url
 
 ifttt:
   key: !secret ifttt_key
@@ -136,11 +137,6 @@ logger:
 
 lovelace:
   mode: yaml
-
-media_player:
-  - platform: spotify
-    client_id: !secret spotify_client_id
-    client_secret: !secret spotify_client_secret
 
 map:
 
@@ -292,6 +288,10 @@ sensor: !include sensors.yaml
 shell_command: !include shell_command.yaml
 
 shopping_list:
+
+spotify:
+  client_id: !secret spotify_client_id
+  client_secret: !secret spotify_client_secret
 
 sun:
 

@@ -7,6 +7,10 @@
   file_path: /tmp/radar.gif
   name: Weather Radar
 
+- platform: local_file
+  file_path: /config/www/mail_and_packages/mail_today.gif
+  name: mail_usps
+
 - platform: mjpeg
   mjpeg_url: http://10.0.0.26:8080/?action=stream
   name: Outdoor

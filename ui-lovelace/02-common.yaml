@@ -141,10 +141,5 @@ cards:
     top_date: false  
     image_click: play
 
-  - type: custom:mini-media-player
-    entity: media_player.spotify
-    icon: mdi:cast
-    artwork_border: true
-    power_color: true
-    show_source: true
+  - !include .cards/spotify.yaml
 

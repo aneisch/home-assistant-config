@@ -17,29 +17,32 @@ cards:
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
 
-  - type: entities
-    show_header_toggle: false
-    title: Security
-    entities:
-      - !secret alarm_panel_1
-      - !secret alarm_panel_2
-      - input_boolean.security_status
-      - binary_sensor.front_door
-      - binary_sensor.back_door
 
-  - type: markdown
-    content: |    
-      {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state)) | int %}
-      {%- set minutes = (seconds // 60) | int %}
-      {%- set hours = (minutes // 60) | int %}
-      {%- set days = (hours // 24) | int %}
-      {{ states.input_datetime.front_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        show_header_toggle: false
+        title: Security
+        entities:
+          - !secret alarm_panel_1
+          - !secret alarm_panel_2
+          - input_boolean.security_status
+          - binary_sensor.front_door
+          - binary_sensor.back_door
 
-      {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.back_door_last.state)) | int %}
-      {%- set minutes = (seconds // 60) | int %}
-      {%- set hours = (minutes // 60) | int %}
-      {%- set days = (hours // 24) | int %}
-      {{ states.input_datetime.back_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+      - type: markdown
+        content: |
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state)) | int %}
+          {%- set minutes = (seconds // 60) | int %}
+          {%- set hours = (minutes // 60) | int %}
+          {%- set days = (hours // 24) | int %}
+          {{ states.input_datetime.front_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.back_door_last.state)) | int %}
+          {%- set minutes = (seconds // 60) | int %}
+          {%- set hours = (minutes // 60) | int %}
+          {%- set days = (hours // 24) | int %}
+          {{ states.input_datetime.back_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - type: entities
     show_header_toggle: false
@@ -48,7 +51,38 @@ cards:
       - person.andrew
       - person.bethany
 
-  - type: vertical-stack
+  - type: custom:vertical-stack-in-card
+    title: Mail & Package Tracking
+    cards:
+      - type: picture-glance
+        camera_image: camera.mail_usps
+        entities: []
+      - type: entity-filter
+        state_filter:
+          - operator: ">"
+            value: '0'
+        entities:
+         - entity: sensor.mail_usps_mail
+           name: "Today's Mail"
+         - entity: sensor.mail_packages_in_transit
+           name: "Today's Package Delivery"
+         - entity: sensor.mail_usps_delivering
+           icon: 'mdi:package-variant-closed'
+           name: USPS
+         - entity: sensor.mail_fedex_delivering
+           icon: 'mdi:package-variant-closed'
+           name: FedEx
+         - entity: sensor.mail_ups_delivering
+           icon: 'mdi:package-variant-closed'
+           name: UPS
+         - entity: sensor.mail_updated
+           state_filter:
+             - operator: "regex"
+               value: 20
+
+  - !include .cards/spotify.yaml
+
+  - type: custom:vertical-stack-in-card
     cards:
       - type: entities
         show_header_toggle: false
@@ -72,6 +106,9 @@ cards:
   - type: picture-entity
     entity: camera.weather_radar
 
+  - type: shopping-list
+    title: Shopping List
+
   - type: picture-entity
     entity: camera.outdoor
 
@@ -81,19 +118,6 @@ cards:
   - type: picture-entity
     entity: camera.esp_camera
 
-  - type: custom:mini-media-player
-    entity: media_player.spotify
-    icon: mdi:spotify
-    hide:
-      power_state: true
-    tts:
-      platform: alexa
-      type: announce
-      entity_id: media_player.everywhere
-
   - type: plant-status
     name: Garden
     entity: plant.garden
- 
-  - type: shopping-list
-    title: Shopping List

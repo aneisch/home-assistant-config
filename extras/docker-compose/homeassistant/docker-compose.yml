@@ -52,7 +52,7 @@ services:
         container_name: appdaemon
         image: acockburn/appdaemon:latest
         volumes:
-          - /etc/localtime:/etc/localtime
+          - /etc/localtime:/etc/localtime:ro
           - /opt/appdaemon:/conf
           # Mount directory of appdaemon apps installed by HACS
           - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs

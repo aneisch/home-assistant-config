@@ -264,3 +264,38 @@
       unit_of_measurement: "$"
       value_template: >-
         {{ states.sensor.sonoff_pow_yesterday_energy.state  | multiply(0.1123) | round(2) }}
+
+    mail_deliveries_message:
+      friendly_name: "Deliveries Summary"
+      entity_id: 
+        - sensor.mail_usps_mail
+        - sensor.packages_in_transit
+      value_template: > 
+        {# Deliveries Sentence #}
+          {% macro deliveries_sentence() -%}
+                {%- if states("sensor.mail_usps_mail")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_usps_mail")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
+                  mail
+                {%- else -%}
+                  pieces of mail
+                {%- endif -%}
+              {{' '}}will be delivered.{{' '}} 
+                {%- if states("sensor.mail_packages_in_transit")|int == 0 -%}
+                  No
+                {%- else -%}
+                  {{states("sensor.mail_packages_in_transit")|int}}
+                {%- endif -%}
+              {{' '}} 
+                {%- if states("sensor.mail_packages_in_transit")|int == 1 -%}
+                  package is
+                {%- else -%}
+                  packages are
+                {%- endif -%}
+              {{' '}}in transit.{{' '}}
+          {%- endmacro %}
+        {{deliveries_sentence()}}

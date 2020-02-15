@@ -128,8 +128,8 @@ services:
         image: shivpatel/bitwarden_rs_dropbox_backup:latest
         restart: always
         volumes:
-          - /opt/bw-data/db.sqlite3:/db.sqlite3
-          - /etc/localtime:/etc/localtime:ro
+            - /opt/bw-data/db.sqlite3:/db.sqlite3
+            - /etc/localtime:/etc/localtime:ro
         environment:
-          - DROPBOX_ACCESS_TOKEN=REDACT
-          - BACKUP_ENCRYPTION_KEY=REDACT
+            - DROPBOX_ACCESS_TOKEN=REDACT
+            - BACKUP_ENCRYPTION_KEY=REDACT

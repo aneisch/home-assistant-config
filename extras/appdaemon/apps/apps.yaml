@@ -117,6 +117,13 @@ NAS:
   time_off: '05:00:00'
   constrain_days: wed
 
+Experimentali Section:
+  module: entity_timer
+  class: Timer
+  devices: switch.outdoor_zwave_2
+  time_on: '08:30:00'
+  time_off: '04:00:00'
+
 Brita Notification:
   module: countdown_notify
   class: Notify

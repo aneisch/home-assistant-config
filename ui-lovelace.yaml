@@ -29,6 +29,8 @@ resources:
 #    type: js
   - url: /community_plugin/favicon-counter/favicon-counter.js
     type: module
+  - url: /community_plugin/vertical-stack-in-card/vertical-stack-in-card.js
+    type: js
 
 custom_header:
   compact_mode: true

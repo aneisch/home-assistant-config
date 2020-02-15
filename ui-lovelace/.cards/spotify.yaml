@@ -1,0 +1,9 @@
+type: custom:mini-media-player
+entity: media_player.spotify_bethany_kate1
+icon: mdi:spotify
+hide:
+  power_state: true
+tts:
+  platform: alexa
+  type: announce
+  entity_id: media_player.everywhere
