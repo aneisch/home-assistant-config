@@ -21,7 +21,7 @@ for item in content["data"]:
             types[type].append(string)
 
 for type, entries in types.items():
-    print("**{}**:".format(type.title()))
+    print("**{}**:<br>".format(type.title()))
     for package in sorted(entries):
         print("[{}](https://github.com/{})<br>".format(package, package))
     print
