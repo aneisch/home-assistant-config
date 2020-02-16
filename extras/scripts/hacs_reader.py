@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Read hacs repo file Find what is installed 
+# Read hacs repo file find what is installed 
 # by HACS so it can be populated in README
 
 import json
@@ -25,4 +25,3 @@ for type, entries in types.items():
     for package in sorted(entries):
         print("[{}](https://github.com/{})<br>".format(package, package))
     print
-        
