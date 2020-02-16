@@ -72,8 +72,13 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
 Total state objects | 464
 ## The HACS integrations/plugins that I use:
+
+
+
+
 [aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
+### Appdaemon
 [bramkragten/swipe-card](https://github.com/bramkragten/swipe-card)<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
@@ -90,6 +95,7 @@ Total state objects | 464
 [home-assistant-community-themes/blue-night](https://github.com/home-assistant-community-themes/blue-night)<br>
 [home-assistant-community-themes/dark-mint](https://github.com/home-assistant-community-themes/dark-mint)<br>
 [home-assistant-community-themes/grey-night](https://github.com/home-assistant-community-themes/grey-night)<br>
+### Integration
 [JuanMTech/google_dark_theme](https://github.com/JuanMTech/google_dark_theme)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
@@ -97,7 +103,9 @@ Total state objects | 464
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [naofireblade/clear-theme-dark](https://github.com/naofireblade/clear-theme-dark)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
+### Plugin
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
+### Theme
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
 [thomasloven/lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
