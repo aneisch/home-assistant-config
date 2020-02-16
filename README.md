@@ -72,10 +72,10 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
 Total state objects | 464
 ## The HACS integrations/plugins that I use:
-### Appdaemon:
+**Appdaemon**:
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
 
-### Theme:
+**Theme**:
 [JuanMTech/google_dark_theme](https://github.com/JuanMTech/google_dark_theme)<br>
 [aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
 [home-assistant-community-themes/amoled](https://github.com/home-assistant-community-themes/amoled)<br>
@@ -86,7 +86,7 @@ Total state objects | 464
 [naofireblade/clear-theme-dark](https://github.com/naofireblade/clear-theme-dark)<br>
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
-### Integration:
+**Integration**:
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
 [custom-components/breaking_changes](https://github.com/custom-components/breaking_changes)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
@@ -94,7 +94,7 @@ Total state objects | 464
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
 
-### Plugin:
+**Plugin**:
 [bramkragten/swipe-card](https://github.com/bramkragten/swipe-card)<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
