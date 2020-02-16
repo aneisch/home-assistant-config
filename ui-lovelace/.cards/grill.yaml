@@ -3,7 +3,7 @@ conditions:
   - entity: switch.docker_thermopro_mqtt
     state: "on"
 card:
-  type: vertical-stack
+  type: custom:vertical-stack-in-card
   cards:
 
     - type: conditional

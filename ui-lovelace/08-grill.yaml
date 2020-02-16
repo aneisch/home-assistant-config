@@ -8,7 +8,6 @@ cards:
     cards:
       - type: entities
         show_header_toggle: false
-        title: Security
         entities:
           - input_number.thermopro_probe_1_set
           - input_number.thermopro_probe_2_set
