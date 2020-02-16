@@ -7,7 +7,7 @@ import json
 
 types = {}
 
-with open("/home/aneisch/homeassistant/.storage/hacs.repositories") as fp:
+with open("/opt/homeassistant/.storage/hacs.repositories") as fp:
     content = json.load(fp)
 
 for item in content["data"]:
