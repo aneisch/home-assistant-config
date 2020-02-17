@@ -162,7 +162,6 @@ sensor.ac_runtime_today:
 sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
-
 ### SCRIPTS ###
 script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
@@ -175,18 +174,6 @@ script.master_bedroom_light_dim:
 script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark
-
-script.security_arm:
-  friendly_name: Security Arm
-
-script.security_disarm:
-  friendly_name: Security Disarm
-
-script.too_cold:
-  friendly_name: Too Cold
-
-script.too_hot:
-  friendly_name: Too Hot
 
 script.copy:
   friendly_name: Plex Copy

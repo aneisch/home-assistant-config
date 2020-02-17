@@ -215,8 +215,6 @@
     service_template: >-
       {% if trigger.event.data.action == "turn_ac_off" %}
         script.turn_ac_off
-      {% elif trigger.event.data.action == "test" %}
-        script.test
       {% endif %}
 
 - alias: USPS Mail

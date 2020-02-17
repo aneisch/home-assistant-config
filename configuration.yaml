@@ -185,6 +185,10 @@ panel_iframe:
     title: 'Plane Tracking'
     icon: mdi:airplane
     url: !secret plane
+  plane_tracking_2:
+    title: 'Plane Tracking New'
+    icon: mdi:airplane
+    url: !secret plane2
   grafana:
     title: 'Grafana'
     icon: mdi:chart-areaspline
@@ -251,18 +255,19 @@ recorder:
   purge_keep_days: 7
   exclude:
     entities:
-      - sensor.last_boot
+      - binary_sensor.internet_reachability
+      - sensor.aarlo_signal_strength_office
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown
-      - sensor.moon
+      - sensor.last_boot
       - sensor.load_1m
       - sensor.load_5m
       - sensor.load_15m
+      - sensor.mail_updated
+      - sensor.moon
       - sensor.network_in_eno1
       - sensor.network_out_eno1
-      - binary_sensor.internet_reachability
-      - sensor.aarlo_signal_strength_office
     domains:
       - automation
       - alarm_panel

@@ -30,12 +30,6 @@ home_occupied:
       data:
         entity_id: group.office_lamps
 
-test:
-  sequence:
-    - service: notify.pushover
-      data:
-        message: ${test_string}
-
 ############
 # SECURITY #
 ############

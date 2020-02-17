@@ -57,6 +57,9 @@ cards:
       - type: picture-glance
         camera_image: camera.mail_usps
         entities: []
+      - type: markdown
+        content: |
+          {{ states.sensor.mail_deliveries_message.state }}
       - type: entity-filter
         state_filter:
           - operator: ">"
@@ -103,21 +106,30 @@ cards:
     aspect_ratio: 90%
     url: !secret windy_url
 
-  - type: picture-entity
-    entity: camera.weather_radar
+  - type: picture-glance
+    camera_image: camera.weather_radar
+    entities: []
 
   - type: shopping-list
     title: Shopping List
 
-  - type: picture-entity
-    entity: camera.outdoor
+  - type: picture-glance
+    camera_image: camera.outdoor
+    entities: []
 
-  - type: picture-entity
-    entity: camera.backyard_camera
+  - type: picture-glance
+    camera_image: camera.backyard_camera
+    entities: [sensor.miflora_temperature, sensor.miflora_moisture, sensor.miflora_illuminance]
+    show_state: true
+    style: |
+      div.box {
+       justify-content: center;
+      }
+      div.wrapper {
+       padding-left: 20px;
+       padding-right: 20px;
+      }
 
-  - type: picture-entity
-    entity: camera.esp_camera
-
-  - type: plant-status
-    name: Garden
-    entity: plant.garden
+  - type: picture-glance
+    camera_image: camera.esp_camera
+    entities: []
