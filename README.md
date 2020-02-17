@@ -44,7 +44,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 2819
+Lines of YAML configuration | 2818
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 28
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 13
@@ -64,13 +64,13 @@ Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 5
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 19
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 227
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 226
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 77
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 2
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-Total state objects | 465
+Total state objects | 464
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -88,7 +88,6 @@ Total state objects | 465
 
 **Integration**:<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
-[custom-components/breaking_changes](https://github.com/custom-components/breaking_changes)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>

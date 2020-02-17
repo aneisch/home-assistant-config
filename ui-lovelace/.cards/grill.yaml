@@ -5,7 +5,6 @@ conditions:
 card:
   type: custom:vertical-stack-in-card
   cards:
-
     - type: conditional
       conditions:
         - entity: sensor.grill_probe_1

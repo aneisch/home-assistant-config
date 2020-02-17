@@ -45,7 +45,7 @@ from .const import (
 from homeassistant.util import Throttle
 
 _LOGGER = logging.getLogger(__name__)
-MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=5)
+MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=10)
 
 
 @asyncio.coroutine

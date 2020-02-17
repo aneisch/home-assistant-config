@@ -40,8 +40,6 @@ automation: !include automation.yaml
 
 binary_sensor: !include binary_sensor.yaml
 
-breaking_changes:
-
 camera: !include camera.yaml
 
 climate:
