@@ -16,6 +16,8 @@ cards:
       - input_boolean.guest_mode
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
+      - sensor.train_detections_today
+      - binary_sensor.train
 
 
   - type: custom:vertical-stack-in-card

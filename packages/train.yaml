@@ -1,0 +1,34 @@
+binary_sensor:
+  - platform: mqtt
+    name: train
+    state_topic: sensor/train
+    payload_on: "1"
+    payload_off: "0"
+
+automation:
+  # Reset train binary_sensor after 5 minutes
+  - alias: Train Sensor Reset
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.train
+        from: 'off'
+        to: 'on'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: >
+            Train passing by!
+      - delay: '00:10:00'
+      - service: mqtt.publish
+        data:
+          topic: 'sensor/train'
+          payload: '0'
+
+sensor:
+  - platform: history_stats
+    name: Train detections today
+    entity_id: binary_sensor.train
+    state: 'on'
+    type: count
+    start: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
+    end: '{{ now() }}'

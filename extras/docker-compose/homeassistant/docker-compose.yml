@@ -90,9 +90,9 @@ services:
     hass-configurator:
         container_name: configurator
         image: causticlab/hass-configurator-docker:x86_64
-        restart: 'no'
         ports:
           - "3218:3218/tcp"
         volumes:
           - "/opt/hass-configurator:/config"
           - "/opt/homeassistant:/hass-config"
+        restart: 'no'

@@ -8,6 +8,7 @@ homeassistant:
   customize: !include customize.yaml
   packages:
     gate_testing: !include packages/mom_and_dad_gate.yaml
+    train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     #bus_time: !include packages/bus_time.yaml
     hass_update_check: !include packages/hass_update_check.yaml
