@@ -14,6 +14,11 @@ services:
             - /dev/zwave:/dev/zwave
         environment:
           - TZ=America/Chicago
+        healthcheck:
+          test: "curl -Lf http://localhost:8123"
+          timeout: 15s
+          interval: 30s
+          retries: 3
         network_mode: host
         restart: always
         logging:
@@ -32,6 +37,11 @@ services:
     influxdb:
         container_name: influxdb
         image: influxdb
+        healthcheck:
+          test: "curl -f http://localhost:8086/ping"
+          interval: 3s
+          timeout: 10s
+          retries: 5
         volumes:
             - '/opt/influxdb:/var/lib/influxdb'
         ports:

@@ -216,8 +216,8 @@ person:
   - name: Bethany
     id: bethany
     device_trackers:
-      - device_tracker.bethanys_iphone
       - device_tracker.bethanys_iphone_nmap
+      - device_tracker.bethany_s_iphone
       - device_tracker.owntracks_bethanyphone
 
 pi_hole:
@@ -311,46 +311,41 @@ weather:
     mode: daily
 
 zone:
-  name: Andrew Work
-  latitude: !secret andrew_work_lat
-  longitude: !secret andrew_work_long
-  radius: 500
-  icon: mdi:worker
+  - name: Andrew Work
+    latitude: !secret andrew_work_lat
+    longitude: !secret andrew_work_long
+    radius: 500
+    icon: mdi:worker
 
-zone 2:
-  name: Bethany Work
-  latitude: !secret bethany_work_lat
-  longitude: !secret bethany_work_long
-  radius: 200
-  icon: mdi:worker
+  - name: Bethany Work
+    latitude: !secret bethany_work_lat
+    longitude: !secret bethany_work_long
+    radius: 200
+    icon: mdi:worker
 
-zone 3:
-  name: Dan and Marilyn's
-  latitude: !secret dan_lat
-  longitude: !secret dan_long
-  radius: 500
-  icon: mdi:home-variant
+  - name: Dan and Marilyn's
+    latitude: !secret dan_lat
+    longitude: !secret dan_long
+    radius: 500
+    icon: mdi:home-variant
 
-zone 4:
-  name: Wayne and Lisa's
-  latitude: !secret wayne_lat
-  longitude: !secret wanye_long
-  radius: 500
-  icon: mdi:home-variant
+  - name: Wayne and Lisa's
+    latitude: !secret wayne_lat
+    longitude: !secret wanye_long
+    radius: 500
+    icon: mdi:home-variant
 
-zone 5:
-  name: Michael and Mandy's
-  latitude: !secret michael_lat
-  longitude: !secret michael_long
-  radius: 500
-  icon: mdi:home-variant
+  - name: Michael and Mandy's
+    latitude: !secret michael_lat
+    longitude: !secret michael_long
+    radius: 500
+    icon: mdi:home-variant
 
-zone 6:
-  name: Kimberly and Travis'
-  latitude: !secret travis_lat
-  longitude: !secret travis_long
-  radius: 500
-  icon: mdi:home-variant
+  - name: Kimberly and Travis'
+    latitude: !secret travis_lat
+    longitude: !secret travis_long
+    radius: 500
+    icon: mdi:home-variant
 
 zwave:
   usb_path: /dev/zwave

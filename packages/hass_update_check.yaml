@@ -44,7 +44,7 @@ automation:
         data_template:
           github_token: !secret github_token
           branch: rc
-          release_type: '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0] == ".0" %}major{% else %}minor{% endif %}'
+          release_type: '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
           version: '{{ states.sensor.ha_docker_version_beta.state }}'
 
   - alias: "Notify Docker Update and Trigger Github Action"
@@ -63,6 +63,7 @@ automation:
           # Options are: dev, rc, stable
           branch: stable
           # If release is "minor" we auto-apply the update
+          # Compare current running major version and latest docker major version
           release_type: '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
           version: '{{ states.sensor.ha_docker_version_stable.state }}'
       - delay:

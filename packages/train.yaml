@@ -14,11 +14,11 @@ automation:
         from: 'off'
         to: 'on'
     action:
-      - service: notify.pushover
-        data_template:
-          message: >
-            Train passing by!
-      - delay: '00:10:00'
+      #- service: notify.pushover
+      #  data_template:
+      #    message: >
+      #      Train passing by!
+      - delay: '00:12:00'
       - service: mqtt.publish
         data:
           topic: 'sensor/train'

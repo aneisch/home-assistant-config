@@ -137,14 +137,8 @@ services:
     planefinder-stats:
         container_name: planefinder-stats
         image: aneisch/planefinder-stats
-        restart: always
-    planefinder-stats2:
-        container_name: planefinder-stats2
-        image: aneisch/planefinder-stats
         environment:
-          - PLANEFINDER_HOST=10.0.1.12
-          - PLANEFINDER_PORT=30053
-          - INFLUX_DATABASE=planefinderold
+            - INTERVAL=10
         restart: always
     train-sensor:
         container_name: train-sensor
@@ -152,3 +146,5 @@ services:
         restart: 'on-failure'
         devices:
             - '/dev/rtl_sdr:/dev/bus/usb/001/005'
+        environment:
+            - SQUELCH=100

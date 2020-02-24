@@ -1,5 +1,5 @@
 DOMAIN = "mail_and_packages"
-VERSION = "0.0.7"
+VERSION = "0.0.6"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 
 CONF_FOLDER = "folder"
@@ -23,7 +23,7 @@ UPS_Delivering_Subject = 'UPS Update: Package Scheduled for Delivery Today'
 UPS_Delivered_Subject = 'Your UPS Package was delivered'
 
 FEDEX_Email = 'TrackingUpdates@fedex.com'
-FEDEX_Delivering_Subject = 'Your package is scheduled for delivery today'
+FEDEX_Delivering_Subject = 'Delivery scheduled for today'
 FEDEX_Delivered_Subject = 'Your package has been delivered'
 
 GIF_FILE_NAME = 'mail_today.gif'
