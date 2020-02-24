@@ -105,6 +105,7 @@ Total state objects | 473
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
+[ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
 [thomasloven/lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
