@@ -16,8 +16,8 @@ services:
           - TZ=America/Chicago
         healthcheck:
           test: "curl -Lf http://localhost:8123"
+          interval: 60s
           timeout: 15s
-          interval: 30s
           retries: 3
         network_mode: host
         restart: always
@@ -26,6 +26,11 @@ services:
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto
+        healthcheck:
+            test: "timeout -t 2 mosquitto_sub -t '#'"
+            interval: 60s
+            timeout: 10s
+            retries: 5
         volumes:
             - '/etc/ssl/certs:/mosquitto/certs:ro'
             - '/opt/mqtt/config:/mosquitto/config:ro'
@@ -39,7 +44,7 @@ services:
         image: influxdb
         healthcheck:
           test: "curl -f http://localhost:8086/ping"
-          interval: 3s
+          interval: 60s
           timeout: 10s
           retries: 5
         volumes:
@@ -61,6 +66,11 @@ services:
     appdaemon:
         container_name: appdaemon
         image: acockburn/appdaemon:latest
+        healthcheck:
+          test: "curl -f http://localhost:8888"
+          interval: 60s
+          timeout: 10s
+          retries: 5
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /opt/appdaemon:/conf
@@ -97,12 +107,3 @@ services:
         devices:
             - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         restart: always
-    hass-configurator:
-        container_name: configurator
-        image: causticlab/hass-configurator-docker:x86_64
-        ports:
-          - "3218:3218/tcp"
-        volumes:
-          - "/opt/hass-configurator:/config"
-          - "/opt/homeassistant:/hass-config"
-        restart: 'no'

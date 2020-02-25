@@ -139,12 +139,21 @@ services:
         image: aneisch/planefinder-stats
         environment:
             - INTERVAL=10
-        restart: always
+        restart: 'no'
     train-sensor:
         container_name: train-sensor
         image: aneisch/train-sensor
-        restart: 'on-failure'
         devices:
             - '/dev/rtl_sdr:/dev/bus/usb/001/005'
         environment:
-            - SQUELCH=100
+            - SQUELCH=120
+        restart: 'on-failure'
+    hass-configurator:
+        container_name: configurator
+        image: causticlab/hass-configurator-docker:x86_64
+        ports:
+          - "3218:3218/tcp"
+        volumes:
+          - "/opt/hass-configurator:/config"
+          - "/opt/homeassistant:/hass-config"
+        restart: 'no'
