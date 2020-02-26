@@ -147,6 +147,7 @@ services:
             - '/dev/rtl_sdr:/dev/bus/usb/001/005'
         environment:
             - SQUELCH=120
+            - HOLDOFF_TIME=600
         restart: 'on-failure'
     hass-configurator:
         container_name: configurator
