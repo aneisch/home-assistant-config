@@ -18,8 +18,6 @@ cards:
       - input_boolean.panic_mode
       - sensor.train_detections_today
       - binary_sensor.train
-      - sensor.train_rssi
-
 
   - type: custom:vertical-stack-in-card
     cards:

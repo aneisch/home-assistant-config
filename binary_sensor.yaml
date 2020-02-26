@@ -6,6 +6,6 @@
 
 - platform: ping
   name: internet_reachability
-  host: 8.8.4.4
-  count: 1
-  scan_interval: 10
+  host: 1.1.1.1
+  count: 3
+  scan_interval: 30

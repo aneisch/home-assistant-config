@@ -18,6 +18,7 @@ automation:
       #  data_template:
       #    message: >
       #      Train passing by!
+      - delay: '00:00:05'
       - service: mqtt.publish
         data:
           topic: 'sensor/train'
@@ -31,7 +32,3 @@ sensor:
     type: count
     start: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
     end: '{{ now() }}'
-  - platform: mqtt
-    name: Train RSSI
-    state_topic: 'sensor/rssi'
-    unit_of_measurement: 'dB'
