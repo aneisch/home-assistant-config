@@ -146,8 +146,14 @@ mqtt:
   broker: 127.0.0.1
   port: 1883
   keepalive: 60
-  username: !secret owntracks_user
-  password: !secret owntracks_password
+  discovery: true
+  birth_message:
+    topic: 'hass/status'
+    payload: 'online'
+  will_message:
+    topic: 'hass/status'
+    payload: 'offline'
+
 
 netatmo:
   client_id: !secret netatmo_key

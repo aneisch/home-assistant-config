@@ -107,19 +107,14 @@ services:
         devices:
             - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         restart: always
-    deconz:
-        container_name: deconz
-        image: marthoc/deconz
-        ports:
-            - 8081:8081
-            - 8082:8082
-        volumes:
-          - /opt/deconz:/root/.local/share/dresden-elektronik/deCONZ
-          - /etc/localtime:/etc/localtime:ro
-        devices:
-          - /dev/ttyACM0:/dev/ttyACM0
+    zigbee2mqtt:
+        container_name: zigbee2mqtt
+        image: koenkk/zigbee2mqtt
         environment:
-          - DECONZ_WEB_PORT=8081
-          - DECONZ_WS_PORT=8082
-          - DEBUG_INFO=1
-        restart: always
+            - TZ=America/Chicago
+        volumes:
+            - /opt/zigbee2mqtt:/app/data
+            - /etc/localtime:/etc/localtime:ro
+        devices:
+            - /dev/zigbee:/dev/ttyACM0
+        restart: 'no' # always

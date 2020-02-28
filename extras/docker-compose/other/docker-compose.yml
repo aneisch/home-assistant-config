@@ -158,3 +158,13 @@ services:
           - "/opt/hass-configurator:/config"
           - "/opt/homeassistant:/hass-config"
         restart: 'no'
+    zigbee2mqttassistant:
+        image: carldebilly/zigbee2mqttassistant
+        container_name: zigbee2mqttassistant
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+        environment:
+          - Z2MA_SETTINGS__MQTTSERVER=10.0.1.22
+        ports:
+          - 8081:80
+        restart: 'no'
