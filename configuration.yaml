@@ -26,8 +26,6 @@ aarlo:
 
 alarm_control_panel:
   - platform: aarlo
-    home_mode_name: Armed
-    away_mode_name: Disarmed
 
 alexa: !include alexa.yaml
 
