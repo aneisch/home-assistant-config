@@ -91,9 +91,10 @@ master_bedroom_bedtime:
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom
-    - service: homeassistant.turn_off
+    - service: light.turn_off
       data:
-        entity_id: group.master_bedroom_lamps
+        entity_id: light.master_bedroom_lamps
+        transition: 5
     - service: homeassistant.turn_off
       data:
         entity_id: switch.master_bathroom_light_switch
@@ -104,16 +105,17 @@ master_bedroom_wakeup:
     - service: fan.turn_off
       data:
         entity_id: fan.master_bedroom_ceiling_fan_level
+    - service: scene.turn_on
+      data_template:
+        entity_id: >
+          {% if (30 > ((as_timestamp(now()) - as_timestamp(states.fan.master_bedroom_ceiling_fan_level.last_changed))) | round(0)) %}
+            scene.master_lamps_slow_on
+          {% else %}
+            scene.master_lamps_fast_on
+          {% endif %}
     - service: light.turn_on
       data:
         entity_id: light.master_bedroom
-    - delay: '00:00:01'
-    - service: homeassistant.turn_on
-      data:
-        entity_id: group.master_bedroom_lamps
-    - service: homeassistant.turn_on
-      data:
-        entity_id: switch.master_bathroom_light_switch
 
 #########
 # OTHER #

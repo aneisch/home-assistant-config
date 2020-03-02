@@ -11,7 +11,8 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon0/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
         devices:
-            - /dev/zwave:/dev/zwave
+            - /dev/zwave
+            - /dev/zigbee
         environment:
           - TZ=America/Chicago
         healthcheck:
@@ -116,5 +117,5 @@ services:
             - /opt/zigbee2mqtt:/app/data
             - /etc/localtime:/etc/localtime:ro
         devices:
-            - /dev/zigbee:/dev/ttyACM0
-        restart: 'no' # always
+            - /dev/zigbee
+        restart: 'no'

@@ -1,35 +1,33 @@
 resources:
-  - url: /community_plugin/toggle-lock-entity-row/toggle-lock-entity-row.js
+  - url: /hacsfiles/toggle-lock-entity-row/toggle-lock-entity-row.js
     type: js
-  - url: /community_plugin/weather-card/weather-card.js
+  - url: /hacsfiles/weather-card/weather-card.js
     type: module
-  - url: /community_plugin/lovelace-slider-entity-row/slider-entity-row.js
+  - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
     type: js
-  - url: /community_plugin/swipe-card/swipe-card.js
+  - url: /hacsfiles/swipe-card/swipe-card.js
     type: module
-  - url: /community_plugin/lovelace-hass-aarlo/hass-aarlo.js
+  - url: /hacsfiles/lovelace-hass-aarlo/hass-aarlo.js
     type: module
-  - url: /community_plugin/mini-media-player/mini-media-player-bundle.js
+  - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
     type: module
-  - url: /community_plugin/button-card/button-card.js
+  - url: /hacsfiles/button-card/button-card.js
     type: module
-  - url: /community_plugin/lovelace-gui-sandbox/gui-sandbox.js
+  - url: /hacsfiles/lovelace-gui-sandbox/gui-sandbox.js
     type: module
-  - url: /community_plugin/bignumber-card/bignumber-card.js
+  - url: /hacsfiles/bignumber-card/bignumber-card.js
     type: js
-  - url: /community_plugin/lovelace-card-mod/card-mod.js
+  - url: /hacsfiles/lovelace-card-mod/card-mod.js
     type: module
-  - url: /community_plugin/simple-thermostat/simple-thermostat.js
+  - url: /hacsfiles/simple-thermostat/simple-thermostat.js
     type: module
-  - url: /community_plugin/bar-card/bar-card.js
+  - url: /hacsfiles/bar-card/bar-card.js
     type: js
-  - url: /community_plugin/custom-header/custom-header.js
+  - url: /hacsfiles/custom-header/custom-header.js
     type: module
-#  - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
-#    type: js
-  - url: /community_plugin/favicon-counter/favicon-counter.js
+  - url: /hacsfiles/favicon-counter/favicon-counter.js
     type: module
-  - url: /community_plugin/vertical-stack-in-card/vertical-stack-in-card.js
+  - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
     type: js
 
 custom_header:

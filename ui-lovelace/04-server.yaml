@@ -94,8 +94,6 @@ cards:
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
       - switch.docker_train_sensor
-      - switch.docker_zigbee2mqtt
-      - switch.docker_zigbee2mqttassistant
       - entity: switch.docker_apcupsd_950
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_650

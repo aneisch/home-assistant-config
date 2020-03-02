@@ -122,6 +122,11 @@ light:
           type: rgbw
           name: andrew_monitor_backlight
           fade: on
+  - platform: group
+    name: Master Bedroom Lamps
+    entities:
+      - light.andrew_nightstand_lamp
+      - light.bethany_nightstand_lamp
 
 logbook:
 
@@ -129,8 +134,6 @@ logger:
   default: info
   logs:
     homeassistant.core: debug
-    custom_components.hacs: debug
-    hacs: debug
 
 lovelace:
   mode: yaml
@@ -350,6 +353,11 @@ zone:
     longitude: !secret travis_long
     radius: 500
     icon: mdi:home-variant
+
+zha:
+  usb_path: /dev/zigbee
+  radio_type: ti_cc
+  database_path: /config/.storage/zigbee.db
 
 zwave:
   usb_path: /dev/zwave

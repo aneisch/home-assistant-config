@@ -34,3 +34,19 @@
       state: on
       brightness: 255
       rgb_color: [255, 255, 255]
+
+- name: Master Lamps Slow On
+  entities: 
+    light.master_bedroom_lamps:
+      state: on
+      brightness: 254
+      color_temp: 280
+      transition: 30
+
+- name: Master Lamps Fast On
+  entities: 
+    light.master_bedroom_lamps:
+      state: on
+      brightness: 254
+      color_temp: 280
+      transition: 2

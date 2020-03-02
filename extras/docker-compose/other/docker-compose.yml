@@ -97,7 +97,9 @@ services:
             - MQTT_PORT=1883
         restart: 'no'
         devices:
-            - '/dev/rtl_sdr:/dev/bus/usb/001/005'
+            # for some reason path on container must match host path
+            # use readlink /dev/rtl_sdr
+            - '/dev/rtl_sdr:/dev/bus/usb/001/004'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:latest
@@ -144,7 +146,9 @@ services:
         container_name: train-sensor
         image: aneisch/train-sensor
         devices:
-            - '/dev/rtl_sdr:/dev/bus/usb/001/005'
+            # for some reason path on container must match host path
+            # use readlink /dev/rtl_sdr
+            - '/dev/rtl_sdr:/dev/bus/usb/001/004'
         environment:
             - SQUELCH=80
             - HOLDOFF_TIME=800

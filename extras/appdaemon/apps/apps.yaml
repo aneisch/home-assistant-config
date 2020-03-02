@@ -212,6 +212,14 @@ Andrew Desk Keyboard Tray:
   # follower can be a comma separated list
   follower: group.andrew_desk
 
+Backlight Follow:
+  module: follow_me
+  class: Follow
+  # leader can be a comma separated list
+  leader: light.andrew_desk_lamp
+  # follower can be a comma separated list
+  follower: light.andrew_monitor_backlight
+
 # Algo Timer:
 #  module: algo_timer
 #  class: SmartTimer
