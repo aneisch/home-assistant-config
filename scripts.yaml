@@ -1,6 +1,6 @@
-##################
-# ANDREW CONTROL #
-##################
+############
+# Presence #
+############
 
 # Turn off master and common room things, arm security
 home_empty:
@@ -62,26 +62,6 @@ security_arm:
 # SCENES #
 ##########
 
-#Call scene to turn all lights in room on
-master_bedroom_light_full:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.master_bedroom_light_full
-
-#Call scene to dim lights
-master_bedroom_light_dim:
-  sequence:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.master_bedroom_light_dim
-    - service: homeassistant.turn_on
-      data:
-        entity_id: group.master_bedroom_lamps
-    - service: homeassistant.turn_off
-      data:
-        entity_id: light.master_bedroom
-
 master_bedroom_bedtime:
   sequence:
     - service: script.appdaemon_ac_night
@@ -104,11 +84,13 @@ master_bedroom_wakeup:
     - service: fan.turn_off
       data:
         entity_id: fan.master_bedroom_ceiling_fan_level
+    - delay: '00:00:01'
     - service: script.appdaemon_ac_morning
     - service: scene.turn_on
       data_template:
         entity_id: >
-          {% if 60 > ((as_timestamp(now()) - as_timestamp(states.fan.master_bedroom_ceiling_fan_level.last_changed))) | round(0) %}
+          # Slow on if fan turned off in last 30 seconds
+          {% if 30 > ((as_timestamp(now()) - as_timestamp(states.fan.master_bedroom_ceiling_fan_level.last_changed))) | round(0) %}
             scene.master_lamps_slow_on
           {% else %}
             scene.master_lamps_fast_on

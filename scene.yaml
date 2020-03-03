@@ -1,13 +1,5 @@
 # Let's only use these to control advanced lighting features.
 
-- name: Master Bedroom Light Dim
-  entities:
-    light.master_bedroom:
-      state: on
-      transition: 8
-      brightness: 1
-      rgb_color: [255, 255, 255]  
-
 - name: Master Bedroom Light Full
   entities:
     light.master_bedroom:
