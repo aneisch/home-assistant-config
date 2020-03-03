@@ -32,7 +32,7 @@
     light.master_bedroom_lamps:
       state: on
       brightness: 254
-      color_temp: 280
+      color_temp: 350
       transition: 60
 
 - name: Master Lamps Fast On
@@ -40,5 +40,5 @@
     light.master_bedroom_lamps:
       state: on
       brightness: 254
-      color_temp: 280
+      color_temp: 350
       transition: 2

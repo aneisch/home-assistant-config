@@ -45,6 +45,13 @@ cards:
           {%- set days = (hours // 24) | int %}
           {{ states.input_datetime.back_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
+
+  - type: entities
+    entities:
+      - sensor.us_confirmed
+      - sensor.us_current
+      - sensor.us_deaths
+
   - type: entities
     show_header_toggle: false
     title: Trackers
