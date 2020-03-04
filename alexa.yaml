@@ -24,7 +24,7 @@ smart_home:
       - fan.master_bedroom_ceiling_fan_level
       - fan.office_ceiling_fan_level
       - group.living_room_lamps
-      - group.master_bedroom_lamps
+      - light.master_bedroom_lamps
       - group.common_areas
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
@@ -67,10 +67,6 @@ smart_home:
       name: "Living Room Lamps"
       display_categories: LIGHT
 
-    group.master_bedroom_lamps:
-      name: "Master Bedroom Lamps"
-      display_categories: LIGHT
-
     group.master_common_areas:
       name: "Common Areas"
       display_categories: LIGHT
@@ -95,6 +91,10 @@ smart_home:
 
     light.guest_nightstand_lamp:
       name: "Guest Bedroom Lamp"
+      display_categories: LIGHT
+
+    light.master_bedroom_lamps:
+      name: "Master Bedroom Lamps"
       display_categories: LIGHT
 
     script.appdaemon_ac_night:

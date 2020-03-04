@@ -58,7 +58,7 @@ Minimote Non-Morning:
   scene_4_on: script.master_bedroom_light_dim
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
-  scene_7_toggle: group.master_bedroom_lamps
+  scene_7_toggle: light.master_bedroom_lamps
   scene_8_on: script.appdaemon_ac_night
 
 Occupancy Simulator:
@@ -79,8 +79,8 @@ Occupancy Simulator:
   random_master_maxduration: 02:00:00
   random_master_minduration: 00:30:00
   random_master_number: '2'
-  random_master_on_1: group.master_bedroom_lamps
-  random_master_off_1: group.master_bedroom_lamps
+  random_master_on_1: light.master_bedroom_lamps
+  random_master_off_1: light.master_bedroom_lamps
 
   random_kitchen_name: Kitchen
   random_kitchen_start: Evening
@@ -176,20 +176,20 @@ House Lamp Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:30:00
-  entity: group.office_lamps,group.living_room_lamps,group.master_bedroom_lamps
+  entity: group.office_lamps,group.living_room_lamps,light.master_bedroom_lamps
 
 Living Room Lamp Follow:
   module: follow_me
   class: Follow
   constrain_input_boolean: input_boolean.house_lamps_automation
-  leader: group.master_bedroom_lamps
+  leader: light.master_bedroom_lamps
   follower: group.living_room_lamps
 
 Guest Lamp Follow Master:
   module: follow_me
   class: Follow
   constrain_input_boolean: input_boolean.guest_mode,off
-  leader: group.master_bedroom_lamps
+  leader: light.master_bedroom_lamps
   follower: light.guest_nightstand_lamp
 
 Entertainment Center Follow Living Room:

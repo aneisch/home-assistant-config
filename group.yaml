@@ -60,12 +60,6 @@ living_room_lamps:
     - switch.living_room_lamp
     - switch.living_room_lamp_2
 
-master_bedroom_lamps:
-  name: Master Bedroom Lamps
-  entities:
-    - light.andrew_nightstand_lamp
-    - light.bethany_nightstand_lamp
-
 andrew_desk:
   entities:
       - light.andrew_desk_lamp

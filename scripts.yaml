@@ -25,7 +25,7 @@ home_occupied:
         entity_id: input_boolean.security_status
     - service: homeassistant.turn_on
       data:
-        entity_id: group.master_bedroom_lamps
+        entity_id: light.master_bedroom_lamps
     - service: homeassistant.turn_on
       data:
         entity_id: group.office_lamps
