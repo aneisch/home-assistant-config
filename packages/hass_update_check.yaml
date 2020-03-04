@@ -70,8 +70,10 @@ automation:
           minutes: 6
       - service: notify.pushover
         data_template:
-          message: >-
-            New Version Not Auto-Applied: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
+          message: |
+            New Version Not Auto-Applied: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} 
+            Changes: https://git.io/JvkT4 
+            Tested: https://git.io/JvkTY
 
   # Triggered from Github action. We only auto-apply minor releases.
   - alias: "Upgrade HASS From Webhook"
@@ -82,8 +84,10 @@ automation:
     action:
       - service: notify.pushover
         data_template:
-          message: >-
-            New Version Auto-Applied: {{ states.sensor.ha_docker_version_stable.state }} Changes: https://git.io/JvkT4 Tested: https://git.io/JvkTY
+          message: |
+            New Version Auto-Applied: {{ states.sensor.ha_docker_version_stable.state }} 
+            Changes: https://git.io/JvkT4 
+            Tested: https://git.io/JvkTY
       - service: shell_command.upgrade_hass
 
 shell_command:

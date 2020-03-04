@@ -46,11 +46,24 @@ cards:
           {{ states.input_datetime.back_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
 
-  - type: entities
+  - type: glance
+    show_icon: true
+    show_name: true
+    show_state: true
+    title: Worldwide
     entities:
-      - sensor.us_confirmed
-      - sensor.us_current
-      - sensor.us_deaths
+      - entity: sensor.us_confirmed
+        icon: 'mdi:emoticon-neutral-outline'
+        name: Confirmed
+      - entity: sensor.us_current
+        icon: 'mdi:emoticon-frown-outline'
+        name: Current
+      - entity: sensor.us_recovered
+        icon: 'mdi:emoticon-happy-outline'
+        name: Recovered
+      - entity: sensor.us_deaths
+        icon: 'mdi:emoticon-dead-outline'
+        name: Deaths
 
   - type: entities
     show_header_toggle: false

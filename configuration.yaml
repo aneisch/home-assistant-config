@@ -13,6 +13,7 @@ homeassistant:
     #bus_time: !include packages/bus_time.yaml
     hass_update_check: !include packages/hass_update_check.yaml
     grill: !include packages/grill.yaml
+    #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks

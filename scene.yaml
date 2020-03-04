@@ -33,7 +33,7 @@
       state: on
       brightness: 254
       color_temp: 350
-      transition: 60
+      transition: 90
 
 - name: Master Lamps Fast On
   entities: 

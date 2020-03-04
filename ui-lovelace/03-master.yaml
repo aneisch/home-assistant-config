@@ -17,12 +17,4 @@ cards:
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
 
-  - type: entities
-    show_header_toggle: false
-    title: Scenes
-    entities:
-      - script.master_bedroom_light_full
-      - script.master_bedroom_light_dim
-      - script.master_bedroom_bedtime
-
   - !include .cards/spotify.yaml

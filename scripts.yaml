@@ -89,7 +89,6 @@ master_bedroom_wakeup:
     - service: scene.turn_on
       data_template:
         entity_id: >
-          # Slow on if fan turned off in last 30 seconds
           {% if 30 > ((as_timestamp(now()) - as_timestamp(states.fan.master_bedroom_ceiling_fan_level.last_changed))) | round(0) %}
             scene.master_lamps_slow_on
           {% else %}
