@@ -23,9 +23,16 @@ home_occupied:
     - service: homeassistant.turn_off
       data:
         entity_id: input_boolean.security_status
-    - service: homeassistant.turn_on
-      data:
+    - service: light.turn_on
+      data_template:
         entity_id: light.master_bedroom_lamps
+        # Not so bright if it's late..
+        brightness: > 
+          {% if now().hour >= 20 %}
+          128
+          {% else %}
+          254
+          {% endif %}
     - service: homeassistant.turn_on
       data:
         entity_id: group.office_lamps
