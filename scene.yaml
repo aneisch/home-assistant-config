@@ -5,6 +5,7 @@
     light.master_bedroom:
       state: on
       brightness: 255
+      transition: 5
       rgb_color: [255, 255, 255]
 
 - name: Monitor Backlight Full

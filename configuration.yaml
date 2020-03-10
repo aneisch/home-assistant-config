@@ -241,12 +241,12 @@ plant:
     min_moisture: 20
     max_moisture: 100
 
-plex:
-  host: 10.0.1.22
-  token: !secret plex_token
-  media_player:
-    use_episode_art: false
-    show_all_controls: true
+#plex:
+#  host: 10.0.1.22
+#  token: !secret plex_token
+#  media_player:
+#    use_episode_art: false
+#    show_all_controls: true
 
 proximity:
   home:
@@ -256,6 +256,8 @@ proximity:
       - device_tracker.bethanys_iphone
     tolerance: 50
     unit_of_measurement: mi
+
+python_script:
 
 readme:
 
