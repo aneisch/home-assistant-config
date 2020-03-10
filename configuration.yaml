@@ -194,10 +194,6 @@ panel_iframe:
     title: 'Plane Tracking'
     icon: mdi:airplane
     url: !secret plane
-  plane_tracking_2:
-    title: 'Plane Tracking New'
-    icon: mdi:airplane
-    url: !secret plane2
   grafana:
     title: 'Grafana'
     icon: mdi:chart-areaspline
