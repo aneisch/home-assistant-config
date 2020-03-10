@@ -43,11 +43,7 @@ sensor:
       unit_of_measurement: "°F"
     humidity:
       name: "${friendly_name} Humidity"
-    update_interval: 30s
-
-  - platform: uptime
-    update_interval: 600s
-    name: "${friendly_name} Uptime"
+    update_interval: 60s
 
 binary_sensor:
   - platform: template

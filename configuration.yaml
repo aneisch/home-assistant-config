@@ -96,7 +96,27 @@ influxdb:
   host: 10.0.1.22
   exclude:
     entities:
+      - binary_sensor.internet_reachability
+      - sensor.aarlo_signal_strength_office
+      - sensor.dark_sky_icon
+      - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown
+      - sensor.last_boot
+      - sensor.mail_updated
+      - sensor.moon
+    domains:
+      - automation
+      - alarm_panel
+      - camera
+      - group
+      - media_player
+      - notify
+      - scene
+      - script
+      - shell_command
+      - sun
+      - zone
+      - zwave
 
 input_boolean: !include input_boolean.yaml
 
@@ -132,7 +152,7 @@ light:
 logbook:
 
 logger:
-  default: info
+  default: warn
   logs:
     homeassistant.core: debug
 

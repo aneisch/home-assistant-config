@@ -1,4 +1,7 @@
+# See ALEXA_API.md for skill setup instructions.
 # If these aren't working, check the cert uploaded for amazon skill at https://developer.amazon.com
+
+# ** This is currently unused in favor of Amazon Alexa Smart Home Skill. Leaving for posterity **
 
 
 ##############

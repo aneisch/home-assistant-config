@@ -11,7 +11,7 @@ appdaemon:
       ha_url: http://10.0.1.22:8123
   # If set to true, AppDaemon will only check for changes in 
   # Apps and apps.yaml files when AppDaemon is restarted
-  production_mode: False
+  production_mode: True
 
 http:
     url: http://10.0.1.22:8888

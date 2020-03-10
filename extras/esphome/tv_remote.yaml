@@ -96,13 +96,6 @@ switch:
       - remote_transmitter.transmit_samsung:
           data: 0xE0E0F00F
 
-
-
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"
-
-sensor:
-  - platform: uptime
-    update_interval: 600s
-    name: "${friendly_name} Uptime"

@@ -4,8 +4,8 @@
   droplets:
     - !secret DO_host
 
-- platform: ping
-  name: internet_reachability
-  host: 1.1.1.1
-  count: 3
-  scan_interval: 30
+#- platform: ping
+#  name: internet_reachability
+#  host: 1.1.1.1
+#  count: 3
+#  scan_interval: 30
