@@ -43,7 +43,7 @@ automation:
       - service: shell_command.github_action_trigger
         data_template:
           github_token: !secret github_token
-          branch: rc
+          branch: beta
           release_type: '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
           version: '{{ states.sensor.ha_docker_version_beta.state }}'
 
@@ -60,7 +60,7 @@ automation:
         data_template:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
-          # Options are: dev, rc, stable
+          # Options are: beta, stable
           branch: stable
           # If release is "minor" we auto-apply the update
           # Compare current running major version and latest docker major version

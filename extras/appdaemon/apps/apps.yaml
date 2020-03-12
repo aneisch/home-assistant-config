@@ -100,14 +100,14 @@ Occupancy Simulator:
   random_living_on_1: group.living_room_lamps
   random_living_off_1: group.living_room_lamps
 
-  random_office_name: Office
-  random_office_start: Evening
-  random_office_end: Night
-  random_office_maxduration: 02:00:00
-  random_office_minduration: 00:30:00
-  random_office_number: '2'
-  random_office_on_1: group.office_lamps
-  random_office_off_1: group.office_lamps
+  #random_office_name: Office
+  #random_office_start: Evening
+  #random_office_end: Night
+  #random_office_maxduration: 02:00:00
+  #random_office_minduration: 00:30:00
+  #random_office_number: '2'
+  #random_office_on_1: group.office_lamps
+  #random_office_off_1: group.office_lamps
 
 NAS:
   module: entity_timer
