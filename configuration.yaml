@@ -176,7 +176,6 @@ mqtt:
     topic: 'hass/status'
     payload: 'offline'
 
-
 netatmo:
   client_id: !secret netatmo_key
   client_secret: !secret netatmo_secret
@@ -264,14 +263,14 @@ plant:
 #    use_episode_art: false
 #    show_all_controls: true
 
-proximity:
-  home:
-    devices:
-      - device_tracker.owntracks_andrewworkphone
-      - device_tracker.owntracks_bethanyphone
-      - device_tracker.bethanys_iphone
-    tolerance: 50
-    unit_of_measurement: mi
+#proximity:
+#  home:
+#    devices:
+#      - device_tracker.owntracks_andrewworkphone
+#      - device_tracker.owntracks_bethanyphone
+#      - device_tracker.bethanys_iphone
+#    tolerance: 50
+#    unit_of_measurement: mi
 
 python_script:
 
