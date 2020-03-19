@@ -21,7 +21,7 @@ sensor:
 
   - platform: rest
     name: ha_github_version
-    resource: 'https://api.github.com/repos/home-assistant/home-assistant/releases/latest'
+    resource: 'https://api.github.com/repos/home-assistant/core/releases/latest'
     headers:
       accept: application/vnd.github.v3+json
       content-type: application/json

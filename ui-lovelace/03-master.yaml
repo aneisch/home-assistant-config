@@ -16,5 +16,6 @@ cards:
       - switch.master_bathroom_light_switch
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
+      - light.master_bedroom_lamps
 
   - !include .cards/spotify.yaml

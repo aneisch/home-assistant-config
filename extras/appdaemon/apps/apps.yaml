@@ -121,7 +121,7 @@ Experimentali Section:
   module: entity_timer
   class: Timer
   devices: switch.outdoor_zwave_2
-  time_on: '06:00:00'
+  time_on: '09:00:00'
   time_off: '19:00:00'
 
 Brita Notification:

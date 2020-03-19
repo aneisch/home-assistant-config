@@ -9,3 +9,6 @@
 #  host: 1.1.1.1
 #  count: 3
 #  scan_interval: 30
+
+- platform: iss
+  show_on_map: true

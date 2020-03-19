@@ -356,7 +356,8 @@ class AarloGlance extends LitElement {
     }
 
     changed() {
-        this._change++
+        this._change = new Date().getTime();
+        return this._change;
     }
 
     getState(_id, default_value = '') {
@@ -506,7 +507,7 @@ class AarloGlance extends LitElement {
         // has happened.
         if ( camera.state !== this._s.cameraState ) {
             if ( this._s.cameraState === 'taking snapshot' ) {
-                //console.log( 'updating1 ' + this._s.cameraName + ':' + this._s.cameraState + '-->' + camera.state );
+                //console.log( 'snapshot ' + this._s.cameraName + ':' + this._s.cameraState + '-->' + camera.state );
                 this.updateCameraImageSrc();
                 this.updateCameraImageSourceLater(5);
                 this.updateCameraImageSourceLater(10)
@@ -935,20 +936,19 @@ class AarloGlance extends LitElement {
 
     async wsUpdateSnapshot() {
         try {
-            const {content_type: contentType, content} = await this._hass.callWS({
-                type: "aarlo_snapshot_image",
-                entity_id: this._s.cameraId,
-            });
-            this._image = `data:${contentType};base64, ${content}`;
+            return await this._hass.callWS({
+                type: "aarlo_request_snapshot",
+                entity_id: this._s.cameraId
+            })
         } catch (err) {
-            this._image = null
+            return null
         }
     }
 
     async updateCameraImageSrc() {
         const camera = this.getState(this._s.cameraId,'unknown');
         if ( camera != 'unknown' ) {
-            this._image = camera.attributes.last_thumbnail;
+            this._image = camera.attributes.entity_picture + "&t=" + this.changed();
         } else {
             this._image = null;
         }
@@ -1178,3 +1178,4 @@ s.onload = function() {
 };
 document.head.appendChild(s);
 
+// vim: set expandtab:ts=4:sw=4
