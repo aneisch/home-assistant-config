@@ -190,7 +190,7 @@ lovelace:
       type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
       type: js
-    - url: /hacsfiles/lovelace-card-preloader/lovelace-card-preloader.js	
+    - url: /hacsfiles/lovelace-card-preloader/lovelace-card-preloader.js
       type: module
 
 map:
