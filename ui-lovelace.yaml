@@ -13,3 +13,7 @@ custom_header:
 #  swipe_animate: fade
 
 views: !include_dir_list ui-lovelace/
+
+preload:
+  - markdown
+  - entity-filter
