@@ -1,10 +1,8 @@
-language: python
 services:
   - docker
 before_install:
   - docker pull homeassistant/home-assistant:stable
   - mv travis_secrets.yaml secrets.yaml
-  - sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
   - sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
 script:
-  - docker run -it --rm -v ./:/config homeassistant/home-assistant:stable hass -c /config --script check_config
+  - docker run -it --rm -v $TRAVIS_BUILD_DIR:/config homeassistant/home-assistant:stable hass -c /config --script check_config
