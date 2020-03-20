@@ -5,4 +5,4 @@ before_install:
   - mv travis_secrets.yaml secrets.yaml
   - sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
 script:
-  - docker run -it --rm -v $TRAVIS_BUILD_DIR:/config homeassistant/home-assistant:stable python -m homeassistant --config /config --script check_config
+  - docker run -it --rm -v $TRAVIS_BUILD_DIR:/config homeassistant/home-assistant:stable bash -c "python -m homeassistant --config /config --script check_config"
