@@ -66,6 +66,7 @@ cards:
         name: NUC CPU Temperature
         detail: 2
       - type: entities
+        show_header_toggle: false
         entities:
           - fan.rack_fan
           - switch.rack_down_draft
