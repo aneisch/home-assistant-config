@@ -1,7 +1,7 @@
 python:
   - "3.7.6"
 install:
-  - pip3 install homeassistant
+  - pip3.7 install homeassistant
 before_install:
   - mv travis_secrets.yaml secrets.yaml
   - sudo apt-get update && sudo apt-get install -y libudev-dev python-dev pkg-config
