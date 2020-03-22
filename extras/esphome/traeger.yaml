@@ -2,6 +2,16 @@ substitutions:
   name: traeger
   friendly_name: "Traeger"
 
+globals:
+  - id: hopper_empty
+    type: int
+    restore_value: no
+    initial_value: '254'
+  - id: hopper_full
+    type: int
+    restore_value: no
+    initial_value: '12'
+
 esphome:
   name: ${name}
   platform: ESP8266
@@ -25,8 +35,30 @@ sensor:
     name: "${friendly_name} Temperature"
     cs_pin: D2
     update_interval: 10s
-    
+
+  # https://esphome.io/components/sensor/vl53l0x.html  
   - platform: vl53l0x
-    name: "${friendly_name} Pellet Hopper"
+    #name: "${friendly_name} Pellet Hopper"
+    id: hopper_distance
     address: 0x29
-    update_interval: 60s
+    update_interval: 1s
+
+  - platform: template
+    id: hopper_distance_cleaned
+    lambda: |-
+      if (id(hopper_distance).state > 12 && id(hopper_distance).state < 255) {
+        return id(hopper_distance).state; 
+      } else {
+        return {};
+      }
+    filters:
+      - sliding_window_moving_average:
+          window_size: 30
+          send_every: 1
+
+  - platform: template
+    name: "${friendly_name} Hopper Level"
+    update_interval: 30s
+    id: "hopper_percent"
+    unit_of_measurement: "%"
+    lambda: return (id(hopper_empty).state - id(hopper_distance_cleaned).state) / (id(hopper_empty).state * 100
