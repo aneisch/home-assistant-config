@@ -1,0 +1,32 @@
+substitutions:
+  name: traeger
+  friendly_name: "Traeger"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+  
+<<: !include common.yaml
+
+spi:
+  miso_pin: D0
+  clk_pin: D1
+  
+i2c:
+  - id: bus_a
+    sda: D5
+    scl: D6
+    scan: True
+
+sensor:
+  # https://esphome.io/components/sensor/max6675.html
+  - platform: max6675
+    name: "${friendly_name} Temperature"
+    cs_pin: D2
+    update_interval: 10s
+    
+  - platform: vl53l0x
+    name: "${friendly_name} Pellet Hopper"
+    address: 0x29
+    update_interval: 60s

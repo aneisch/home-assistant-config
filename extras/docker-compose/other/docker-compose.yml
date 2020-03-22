@@ -82,7 +82,8 @@ services:
     esphome:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
-        image: esphome-dev
+        #image: esphome-dev
+        image: esphome/esphome:dev
         volumes:
             - /opt/esphome/:/config:rw
             # Use local time for logging timestamps

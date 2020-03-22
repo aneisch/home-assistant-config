@@ -79,7 +79,7 @@ sensor:
     heading:
       id: heading
       #name: "reading"
-    data_rate: 10Hz
+    #data_rate: 10Hz
     range: 200uT
     oversampling: 512x
     update_interval: 1s
