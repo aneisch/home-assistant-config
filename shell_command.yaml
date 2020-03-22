@@ -12,5 +12,3 @@ mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backu
 umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'
 
 copy: ssh nuc '/usr/local/bin/nas-copy.sh'
-
-custom_deps: 'pip3 install zigpy-cc==0.2.3'
