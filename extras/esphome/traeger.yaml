@@ -61,4 +61,4 @@ sensor:
     update_interval: 30s
     id: "hopper_percent"
     unit_of_measurement: "%"
-    lambda: return (id(hopper_empty).state - id(hopper_distance_cleaned).state) / (id(hopper_empty).state * 100
+    lambda: return ((id(hopper_empty).state - id(hopper_distance_cleaned).state) / (id(hopper_empty).state) * 100
