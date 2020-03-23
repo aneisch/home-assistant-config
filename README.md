@@ -23,6 +23,7 @@ My Home Assistant installation contains many different components and runs on a 
 - Aeon Labs ZW090 Z Stick
 - Aeon Labs DSA03202 v1 - z-wave Minimote
 - GE Z-wave in-wall switch/fan controllers
+- ZHA using CC2531 with zigbee2mqtt firmware
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Various z-wave sensors
