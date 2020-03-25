@@ -104,7 +104,7 @@ services:
             - '/dev/rtl_sdr:/dev/bus/usb/001/004'
     bitwarden:
         container_name: bitwarden
-        image: bitwardenrs/server:latest
+        image: bitwardenrs/server:alpine
         volumes:
             - /opt/bw-data/:/data/
             - /etc/localtime:/etc/localtime:ro
@@ -117,7 +117,7 @@ services:
             - LOG_LEVEL=error
             - EXTENDED_LOGGING=true
             - DOMAIN=REDACT
-            - SMTP_HOST=REDACT
+            - SMTP_HOST=smtp.gmail.com
             - SMTP_FROM=REDACT
             - SMTP_FROM_NAME='Bitwarden Password Manager'
             - SMTP_SSL=true
@@ -159,3 +159,24 @@ services:
           - "/opt/hass-configurator:/config"
           - "/opt/homeassistant:/hass-config"
         restart: 'no'
+    watchtower:
+        container_name: watchtower
+        image: containrrr/watchtower:latest
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /etc/localtime:/etc/localtime:ro
+        restart: 'no'
+        environment:
+          - WATCHTOWER_NO_STARTUP_MESSAGE=true
+          - WATCHTOWER_MONITOR_ONLY=true
+          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+          - WATCHTOWER_INCLUDE_STOPPED=true
+          - WATCHTOWER_NOTIFICATIONS=email
+          - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+        command: --no-startup-message --schedule "0 12 * * * *"
