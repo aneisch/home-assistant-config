@@ -2,7 +2,7 @@ version: '3.2'
 services:
     plex:
         container_name: plex
-        image: plexinc/pms-docker
+        image: plexinc/pms-docker:latest
         volumes:
             - '/opt/plex/db/:/config'
             - '/opt/plex/transcode/:/transcode'
@@ -170,6 +170,7 @@ services:
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
           - WATCHTOWER_MONITOR_ONLY=true
           - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+          - WATCHTOWER_DEBUG=true
           - WATCHTOWER_INCLUDE_STOPPED=true
           - WATCHTOWER_NOTIFICATIONS=email
           - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
@@ -179,4 +180,4 @@ services:
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-        command: --no-startup-message --schedule "0 12 * * * *"
+        command: --schedule "00 00 * * * *"
