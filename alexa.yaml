@@ -4,6 +4,7 @@ smart_home:
   client_secret: !secret alexa_client_secret
   filter:
     exclude_domains:
+      - alarm_control_panel
       - alert
       - automation
       - cover
