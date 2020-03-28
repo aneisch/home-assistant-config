@@ -13,6 +13,19 @@ card:
         type: custom:bignumber-card
         entity: sensor.grill_probe_1
         title: Probe 1
+        style: |
+            @keyframes blink {
+              50% {
+                {% if states('binary_sensor.probe_1_in_range') == "off" %}
+                background: red;
+                {% endif %}
+              }
+            }
+            ha-card {
+              {% if states('binary_sensor.probe_1_in_range') == "off" %}
+              animation: blink 1s linear infinite;
+              {% endif %}
+            }
     - type: conditional
       conditions:
         - entity: sensor.grill_probe_2
@@ -21,3 +34,16 @@ card:
         type: custom:bignumber-card
         entity: sensor.grill_probe_2
         title: Probe 2
+        style: |
+            @keyframes blink {
+              50% {
+                {% if states('binary_sensor.probe_2_in_range') == "off" %}
+                background: red;
+                {% endif %}
+              }
+            }
+            ha-card {
+              {% if states('binary_sensor.probe_2_in_range') == "off" %}
+              animation: blink 1s linear infinite;
+              {% endif %}
+            }

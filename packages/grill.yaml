@@ -6,7 +6,7 @@ sensor:
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_1_C != 320.0 %}
-        {{ ((value_json.temperature_1_C | int) * 9 / 5) + 32 | round(1) }}
+        {{ '%0.2f'|format(((value_json.temperature_1_C | float) * 9 / 5) + 32) }}
       {% else %}
         unknown
       {% endif %}
@@ -17,23 +17,71 @@ sensor:
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_2_C != 320.0 %}
-        {{ ((value_json.temperature_2_C | int) * 9 / 5) + 32 | round(1) }}
+        {{ '%0.2f'|format(((value_json.temperature_2_C | float) * 9 / 5) + 32) }}
       {% else %}
         unknown
       {% endif %}
 
+
+binary_sensor:
+  - platform: template
+    sensors:
+      probe_1_in_range:
+        value_template: >-
+          {{ (states.sensor.grill_probe_1.state|float >= states.input_number.thermopro_probe_1_set_low.state|float) and (states.sensor.grill_probe_1.state|float <= states.input_number.thermopro_probe_1_set_high.state|float) }}
+      probe_2_in_range:
+        value_template: >-
+          {{ (states.sensor.grill_probe_2.state|float >= states.input_number.thermopro_probe_2_set_low.state|float) and (states.sensor.grill_probe_2.state|float <= states.input_number.thermopro_probe_2_set_high.state|float) }}
+
 input_number:
-  thermopro_probe_1_set:
+  thermopro_probe_1_set_low:
     min: -32
-    max: 600
-    name: Probe 1 Set
-    initial: 145
-    mode: slider
+    max: 300
+    name: Probe 1 Low
+    mode: box
     unit_of_measurement: '°F'
-  thermopro_probe_2_set:
+  thermopro_probe_2_set_low:
     min: -32
-    max: 600
-    name: Probe 2 Set
-    initial: 145
-    mode: slider
+    max: 300
+    name: Probe 2 Low
+    mode: box
     unit_of_measurement: '°F'
+  thermopro_probe_1_set_high:
+    min: -32
+    max: 300
+    name: Probe 1 High
+    mode: box
+    unit_of_measurement: '°F'
+  thermopro_probe_2_set_high:
+    min: -32
+    max: 300
+    name: Probe 2 High
+    mode: box
+    unit_of_measurement: '°F'
+
+automation:
+  - alias: Probe Temperature Alert
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.probe_1_in_range
+        to: 'off'
+      - platform: state
+        entity_id: binary_sensor.probe_2_in_range
+        to: 'off'
+    action:
+      - service: notify.pushover
+        data_template:
+          message: |
+            {% if trigger.entity_id == "binary_sensor.probe_1_in_range" %}
+            Probe 1 out of range: {{ states.sensor.grill_probe_1.state }}
+            Low Set: {{ states.input_number.thermopro_probe_1_set_low.state }}
+            High Set: {{ states.input_number.thermopro_probe_1_set_high.state }}
+            {% elif trigger.entity_id == "binary_sensor.probe_2_in_range" %}
+            Probe 2 out of range: {{ states.sensor.grill_probe_2.state }}
+            Low Set: {{ states.input_number.thermopro_probe_2_set_low.state }}
+            High Set: {{ states.input_number.thermopro_probe_2_set_high.state }}
+            {% endif %}
+          data:
+            priority: 2
+            expire: 3600
+            retry: 30

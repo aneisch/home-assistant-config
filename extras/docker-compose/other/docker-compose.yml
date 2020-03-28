@@ -101,7 +101,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr:/dev/bus/usb/001/004'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/010'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
@@ -145,7 +145,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr:/dev/bus/usb/001/004'
+            - '/dev/rtl_sdr_train:/dev/bus/usb/003/009'
         environment:
             - SQUELCH=80
             - HOLDOFF_TIME=800
