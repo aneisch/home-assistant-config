@@ -7,7 +7,7 @@ cards:
   - type: conditional
     conditions:
       - entity: sensor.traeger_ip_address
-        state_not: "unknown"
+        state_not: "unavailable"
     card:
       type: entities
       title: Traeger

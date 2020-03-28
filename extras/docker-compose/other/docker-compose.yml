@@ -104,7 +104,7 @@ services:
             - '/dev/rtl_sdr_grill:/dev/bus/usb/003/010'
     bitwarden:
         container_name: bitwarden
-        image: bitwardenrs/server:alpine
+        image: bitwardenrs/server:1.14.1-alpine
         volumes:
             - /opt/bw-data/:/data/
             - /etc/localtime:/etc/localtime:ro
