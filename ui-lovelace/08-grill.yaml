@@ -4,6 +4,17 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
+  - type: conditional
+    conditions:
+      - entity: sensor.traeger_ip_address
+        state_not: "unknown"
+    card:
+      type: entities
+      title: Traeger
+      entities:
+        - sensor.traeger_temperature
+        - sensor.traeger_hopper_level
+
   - type: horizontal-stack
     cards:
       - type: entities
