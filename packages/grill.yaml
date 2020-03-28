@@ -2,7 +2,7 @@ sensor:
   # sensor/thermopro {"time":"2019-12-31 07:48:22","model":"Thermopro TP12 Thermometer","id":77,"temperature_1_C":19.7,"temperature_2_C":320.0}
   - platform: mqtt
     state_topic: sensor/thermopro
-    name: "Grill Probe 1"
+    name: "Thermopro Probe 1"
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_1_C != 320.0 %}
@@ -13,7 +13,7 @@ sensor:
 
   - platform: mqtt
     state_topic: sensor/thermopro
-    name: "Grill Probe 2"
+    name: "Thermopro Probe 2"
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_2_C != 320.0 %}
@@ -22,16 +22,48 @@ sensor:
         unknown
       {% endif %}
 
+  - platform: derivative
+    source: sensor.thermopro_probe_1
+    unit_time: min
+    time_window: "00:15:00"
+
+  - platform: derivative
+    source: sensor.thermopro_probe_2
+    unit_time: min
+    time_window: "00:15:00"
+
+  - platform: template
+    sensors:
+      thermopro_probe_1_high_estimated_length:
+        entity_id:
+          - sensor.thermopro_probe_1
+          - input_number.thermopro_probe_1_set_high
+        unit_of_measurement: Minutes
+        value_template: "{{ '%.2f'%((states.input_number.thermopro_probe_1_set_high.state|int - states.sensor.thermopro_probe_1.state|int) / states.sensor.sensor_thermopro_probe_1_derivative.state|float) }}"
+        attribute_templates:
+          timestamp: >-
+            {% set time = '%.2f'%((states.input_number.thermopro_probe_1_set_high.state|int - states.sensor.thermopro_probe_1.state|int) / states.sensor.sensor_thermopro_probe_1_derivative.state|float) %}
+            {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
+      thermopro_probe_2_high_estimated_length:
+        entity_id:
+          - sensor.thermopro_probe_2
+          - input_number.thermopro_probe_2_set_high
+        unit_of_measurement: Minutes
+        value_template: "{{ '%.2f'%((states.input_number.thermopro_probe_2_set_high.state|int - states.sensor.thermopro_probe_2.state|int) / states.sensor.sensor_thermopro_probe_2_derivative.state|float) }}"
+        attribute_templates:
+          timestamp: >-
+            {% set time = '%.2f'%((states.input_number.thermopro_probe_2_set_high.state|int - states.sensor.thermopro_probe_2.state|int) / states.sensor.sensor_thermopro_probe_2_derivative.state|float) %}
+            {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
 
 binary_sensor:
   - platform: template
     sensors:
-      probe_1_in_range:
+      thermopro_probe_1_in_range:
         value_template: >-
-          {{ (states.sensor.grill_probe_1.state|float >= states.input_number.thermopro_probe_1_set_low.state|float) and (states.sensor.grill_probe_1.state|float <= states.input_number.thermopro_probe_1_set_high.state|float) }}
-      probe_2_in_range:
+          {{ (states.sensor.thermopro_probe_1.state|float >= states.input_number.thermopro_probe_1_set_low.state|float) and (states.sensor.thermopro_probe_1.state|float <= states.input_number.thermopro_probe_1_set_high.state|float) }}
+      thermopro_probe_2_in_range:
         value_template: >-
-          {{ (states.sensor.grill_probe_2.state|float >= states.input_number.thermopro_probe_2_set_low.state|float) and (states.sensor.grill_probe_2.state|float <= states.input_number.thermopro_probe_2_set_high.state|float) }}
+          {{ (states.sensor.thermopro_probe_2.state|float >= states.input_number.thermopro_probe_2_set_low.state|float) and (states.sensor.thermopro_probe_2.state|float <= states.input_number.thermopro_probe_2_set_high.state|float) }}
 
 input_number:
   thermopro_probe_1_set_low:
@@ -63,21 +95,21 @@ automation:
   - alias: Probe Temperature Alert
     trigger:
       - platform: state
-        entity_id: binary_sensor.probe_1_in_range
+        entity_id: binary_sensor.thermopro_probe_1_in_range
         to: 'off'
       - platform: state
-        entity_id: binary_sensor.probe_2_in_range
+        entity_id: binary_sensor.thermopro_probe_2_in_range
         to: 'off'
     action:
       - service: notify.pushover
         data_template:
           message: |
-            {% if trigger.entity_id == "binary_sensor.probe_1_in_range" %}
-            Probe 1 out of range: {{ states.sensor.grill_probe_1.state }}
+            {% if trigger.entity_id == "binary_sensor.thermopro_probe_1_in_range" %}
+            Probe 1 out of range: {{ states.sensor.thermopro_probe_1.state }}
             Low Set: {{ states.input_number.thermopro_probe_1_set_low.state }}
             High Set: {{ states.input_number.thermopro_probe_1_set_high.state }}
-            {% elif trigger.entity_id == "binary_sensor.probe_2_in_range" %}
-            Probe 2 out of range: {{ states.sensor.grill_probe_2.state }}
+            {% elif trigger.entity_id == "binary_sensor.thermopro_probe_2_in_range" %}
+            Probe 2 out of range: {{ states.sensor.thermopro_probe_2.state }}
             Low Set: {{ states.input_number.thermopro_probe_2_set_low.state }}
             High Set: {{ states.input_number.thermopro_probe_2_set_high.state }}
             {% endif %}

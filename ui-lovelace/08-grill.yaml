@@ -4,17 +4,6 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
-  - type: conditional
-    conditions:
-      - entity: sensor.traeger_ip_address
-        state_not: "unavailable"
-    card:
-      type: entities
-      title: Traeger
-      entities:
-        - sensor.traeger_temperature
-        - sensor.traeger_hopper_level
-
   - type: horizontal-stack
     cards:
       - type: entities
@@ -29,3 +18,31 @@ cards:
         entities:
           - input_number.thermopro_probe_1_set_high
           - input_number.thermopro_probe_2_set_high
+
+  - type: conditional
+    conditions:
+      - entity: sensor.traeger_ip_address
+        state_not: "unavailable"
+    card:
+      type: entities
+      title: Traeger
+      entities:
+        - sensor.traeger_temperature
+        - sensor.traeger_hopper_level
+
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.thermopro_probe_1_high_estimated_length
+            name: Probe 1 Time Remaining
+            icon: 'mdi:clock'
+          - entity: sensor.thermopro_probe_2_high_estimated_length
+            name: Probe 2 Time Remaining
+            icon: 'mdi:clock'
+          - sensor.sensor_thermopro_probe_1_derivative
+          - sensor.sensor_thermopro_probe_2_derivative
+      - type: markdown
+        content: |
+          Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') }}
+          Probe 2 @ {{ state_attr('sensor.thermopro_probe_2_high_estimated_length','timestamp') }}
