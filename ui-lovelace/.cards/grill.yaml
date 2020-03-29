@@ -16,13 +16,13 @@ card:
         style: |
             @keyframes blink {
               50% {
-                {% if states('binary_sensor.probe_1_in_range') == "off" %}
+                {% if states('binary_sensor.thermopro_probe_1_in_range') == "off" %}
                 background: red;
                 {% endif %}
               }
             }
             ha-card {
-              {% if states('binary_sensor.probe_1_in_range') == "off" %}
+              {% if states('binary_sensor.thermopro_probe_1_in_range') == "off" %}
               animation: blink 1s linear infinite;
               {% endif %}
             }
@@ -37,13 +37,13 @@ card:
         style: |
             @keyframes blink {
               50% {
-                {% if states('binary_sensor.probe_2_in_range') == "off" %}
+                {% if states('binary_sensor.thermopro_probe_2_in_range') == "off" %}
                 background: red;
                 {% endif %}
               }
             }
             ha-card {
-              {% if states('binary_sensor.probe_2_in_range') == "off" %}
+              {% if states('binary_sensor.thermopro_probe_2_in_range') == "off" %}
               animation: blink 1s linear infinite;
               {% endif %}
             }
