@@ -277,8 +277,8 @@ person:
       - device_tracker.bethany_s_iphone
       - device_tracker.owntracks_bethanyphone
 
-pi_hole:
-  host: '10.0.1.22:8000'
+#pi_hole:
+#  host: '10.0.1.22:8000'
 
 plant:
   garden:

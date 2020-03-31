@@ -95,6 +95,8 @@ cards:
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
       - switch.docker_train_sensor
+      - entity: switch.docker_adguard
+        type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_950
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_650
@@ -107,8 +109,8 @@ cards:
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_nodered
         type: custom:toggle-lock-entity-row
-      - entity: switch.docker_pihole
-        type: custom:toggle-lock-entity-row
+      #- entity: switch.docker_pihole
+      #  type: custom:toggle-lock-entity-row
       - entity: switch.docker_thermostat_mqtt
         type: custom:toggle-lock-entity-row
 
@@ -127,28 +129,28 @@ cards:
           - entity: sensor.hacs
             name: HACS Updates
 
-  - type: entities 
-    show_header_toggle: false
-    title: Pi-Hole      
-    entities:
-      - entity: switch.pihole_switch
-        icon: mdi:pi-hole 
-        name: Pi-Hole Ad Block State
-      - type: custom:bar-card
-        title: Ads Blocked Today
-        title_position: inside
-        entity: sensor.pi_hole_ads_blocked_today
-        decimal: 0
-        max: 10000
-      - type: custom:bar-card
-        title: DNS Queries
-        title_position: inside
-        entity: sensor.pi_hole_dns_queries_today
-        decimal: 0
-        max: 100000
-      - type: custom:bar-card
-        title: Pi-Hole DNS Unique Clients
-        title_position: inside
-        entity: sensor.pi_hole_dns_unique_clients
-        decimal: 0
-        # max: 25
+#  - type: entities 
+#    show_header_toggle: false
+#    title: Pi-Hole      
+#    entities:
+#      - entity: switch.pihole_switch
+#        icon: mdi:pi-hole 
+#        name: Pi-Hole Ad Block State
+#      - type: custom:bar-card
+#        title: Ads Blocked Today
+#        title_position: inside
+#        entity: sensor.pi_hole_ads_blocked_today
+#        decimal: 0
+#        max: 10000
+#      - type: custom:bar-card
+#        title: DNS Queries
+#        title_position: inside
+#        entity: sensor.pi_hole_dns_queries_today
+#        decimal: 0
+#        max: 100000
+#      - type: custom:bar-card
+#        title: Pi-Hole DNS Unique Clients
+#        title_position: inside
+#        entity: sensor.pi_hole_dns_unique_clients
+#        decimal: 0
+#        # max: 25

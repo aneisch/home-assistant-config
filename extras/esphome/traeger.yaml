@@ -3,15 +3,14 @@ substitutions:
   friendly_name: "Traeger"
 
 globals:
+  # Largest Distance
   - id: hopper_empty
     type: float
-    initial_value: '254.0'
+    initial_value: '0.28500'
+  # Smallest Distance
   - id: hopper_full
     type: float
-    initial_value: '12.0'
-  - id: hopper_distance
-    type: float
-    initial_value: '20.0'
+    initial_value: '0.05600'
 
 esphome:
   name: ${name}
@@ -24,11 +23,11 @@ spi:
   miso_pin: D0
   clk_pin: D1
   
-# i2c:
-#   - id: bus_a
-#     sda: D5
-#     scl: D6
-#     scan: True
+i2c:
+  - id: bus_a
+    sda: D5
+    scl: D6
+    scan: True
 
 sensor:
   # https://esphome.io/components/sensor/max6675.html
@@ -40,32 +39,32 @@ sensor:
     unit_of_measurement: "°F"
     update_interval: 10s
 
-  # # https://esphome.io/components/sensor/vl53l0x.html  
-  # - platform: vl53l0x
-  #   #name: "${friendly_name} Pellet Hopper"
-  #   id: hopper_distance
-  #   address: 0x29
-  #   update_interval: 1s
-
-  - platform: template
-    id: hopper_distance_cleaned
-    lambda: |-
-      // need to put .state back in: id(hopper_distance).state 
-      if (id(hopper_distance) > 12 && id(hopper_distance) < 255) {
-        return id(hopper_distance); 
-      } else {
-        return {};
-      }
-    filters:
+  # https://esphome.io/components/sensor/vl53l0x.html  
+  - platform: vl53l0x
+    #name: "${friendly_name} Pellet Hopper"
+    id: hopper_distance
+    address: 0x29
+    update_interval: 1s
+    filters: 
+      - lambda: |-
+          if (x <= id(hopper_full)) {
+            return id(hopper_full);
+          } else if (x > (id(hopper_empty) + .05)) {
+            return {};
+          } else if (x >= id(hopper_empty)) {
+            return id(hopper_empty);
+          } else {
+            return x;
+          };
       - sliding_window_moving_average:
-          window_size: 30
-          send_every: 1
+          window_size: 10
+          send_every: 5
 
   - platform: template
     name: "${friendly_name} Hopper Level"
-    update_interval: 30s
+    update_interval: 5s
     unit_of_measurement: "%"
     lambda: |-
-      //return int(((id(hopper_empty) - id(hopper_distance_cleaned)) / id(hopper_empty)) * 100);
-      return int(((id(hopper_empty) - id(hopper_distance_cleaned).state) / id(hopper_empty)) * 100);
+      return 100 - int(((id(hopper_distance).state - id(hopper_full)) / (id(hopper_empty)-id(hopper_full)))*100);
+      //return int((((id(hopper_empty) - id(hopper_full)) - id(hopper_distance)) / id(hopper_empty)) * 100);
 
