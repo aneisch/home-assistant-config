@@ -41,10 +41,11 @@ sensor:
 
   # https://esphome.io/components/sensor/vl53l0x.html  
   - platform: vl53l0x
-    #name: "${friendly_name} Pellet Hopper"
+    name: "${friendly_name} Hopper Level Raw"
     id: hopper_distance
     address: 0x29
     update_interval: 1s
+    accuracy_decimals: 3
     filters: 
       - lambda: |-
           if (x <= id(hopper_full)) {
@@ -61,10 +62,25 @@ sensor:
           send_every: 5
 
   - platform: template
-    name: "${friendly_name} Hopper Level"
+    name: "${friendly_name} Hopper Level Bad"
+    update_interval: 5s
+    unit_of_measurement: "%"
+    lambda: return 100 - int(((id(hopper_distance).state - id(hopper_full)) / (id(hopper_empty)-id(hopper_full)))*100);
+
+  - platform: template
+    name: "${friendly_name} Hopper Level Good"
     update_interval: 5s
     unit_of_measurement: "%"
     lambda: |-
-      return 100 - int(((id(hopper_distance).state - id(hopper_full)) / (id(hopper_empty)-id(hopper_full)))*100);
-      //return int((((id(hopper_empty) - id(hopper_full)) - id(hopper_distance)) / id(hopper_empty)) * 100);
-
+      float volume = 0.013361248;
+      if (id(hopper_distance).state <= 0.114) {
+        float rectangle1 = (0.114-id(hopper_distance).state)*0.254*0.248;
+        float trapezoid = 0.00618016;
+        return int(100*((rectangle1 + trapezoid) / volume));
+      } 
+      else {
+        float side = (0.254-id(hopper_distance).state)/(tan(radians(42.6467)));
+        float triangle = ((side*(0.254-id(hopper_distance).state))/2)*0.248;
+        float rectangle2 = (0.254-id(hopper_distance).state)*0.102*0.248;
+        return int(100*((triangle + rectangle2) / volume));
+      }

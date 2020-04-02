@@ -166,7 +166,7 @@ services:
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - /etc/localtime:/etc/localtime:ro
-        restart: 'no'
+        restart: always
         environment:
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
           - WATCHTOWER_MONITOR_ONLY=true
@@ -192,4 +192,13 @@ services:
           - 53:53/tcp
           - 53:53/udp
           - 8088:80/tcp
+        restart: 'no'
+    librespeed:
+        image: linuxserver/librespeed
+        container_name: librespeed
+        ports:
+          - 8880:80
+        environment:
+          - PASSWORD=password
+          - TZ=America/Chicago
         restart: 'no'

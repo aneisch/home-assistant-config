@@ -10,7 +10,7 @@ cards:
     entities:
       - switch.living_room_lamp_2
       - switch.living_room_lamp
-      - switch.entertainment_center_lights
+      #- switch.entertainment_center_lights
       #- switch.christmas_tree
       - entity: switch.outdoor_zwave_2
         name: Plant Light
