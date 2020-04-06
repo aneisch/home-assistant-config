@@ -41,7 +41,7 @@ sensor:
     id: hopper_distance
     address: 0x29
     update_interval: 1s
-    accuracy_decimals: 3
+    accuracy_decimals: 10
     filters: 
       - lambda: |-
           if (x >= id(hopper_empty)) {

@@ -1,4 +1,4 @@
-console.info(`%cBAR-CARD\n%cVersion: 3.0.0`, 'color: green; font-weight: bold;', '');
+console.info(`%cBAR-CARD\n%cVersion: 3.0.2`, 'color: #4788d4; font-weight: bold;', '');
 class BarCard extends HTMLElement {
     constructor() {
         super();
@@ -7,7 +7,6 @@ class BarCard extends HTMLElement {
     setConfig(config) {
         while (this.shadowRoot.lastChild)
             this.shadowRoot.removeChild(this.shadowRoot.lastChild);
-        const initialConfig = Object.assign({}, config);
         const defaultConfig = {
             animation: {
                 state: 'off',
@@ -108,20 +107,10 @@ class BarCard extends HTMLElement {
                 break;
         }
         this._configArray = [];
-        this._initialConfigArray = [];
         for (let i = 0; i <= config.entities.length - 1; i++) {
             const entityName = config.entities[i].entity.split('.');
-            this._configArray[i] = Object.assign({}, config);
-            this._initialConfigArray[i] = Object.assign({}, initialConfig);
-            Object.keys(config).forEach(section => {
-                const config = this._configArray[i];
-                const entities = config.entities[i];
-                const initialConfig = this._initialConfigArray[i];
-                if (entities[section]) {
-                    config[section] = entities[section];
-                    initialConfig[section] = entities[section];
-                }
-            });
+            const duplicatedConfig = Object.assign({}, config);
+            this._configArray[i] = Object.assign(duplicatedConfig, config.entities[i]);
             switch (config.entity_row) {
                 case false:
                     states.appendChild(this._cardElements(this._configArray[i], entityName[0] + '_' + entityName[1] + '_' + i, config.entities[i].entity));
@@ -280,7 +269,14 @@ class BarCard extends HTMLElement {
         }
         switch (config.stack) {
             case 'horizontal':
-                barCardMargin = 'margin-right: 8px;';
+                switch (config.entity_row) {
+                    case true:
+                        barCardMargin = 'margin: 0px 8px 0px 0px;';
+                        break;
+                    case false:
+                        barCardMargin = 'margin: 8px 8px 8px 0px;';
+                        break;
+                }
                 barCardMarginLast = 'margin-right: 0px;';
                 statesStyle = `
         #states > * {
@@ -332,7 +328,14 @@ class BarCard extends HTMLElement {
             case 'left':
             case 'right':
                 titleDisplay = 'display: flex;';
-                minValueMarginLeft = 'auto';
+                switch (config.positions.minmax) {
+                    case 'outside':
+                        minValueMarginLeft = '4px';
+                        break;
+                    case 'inside':
+                        minValueMarginLeft = 'auto';
+                        break;
+                }
                 iconMarginTop = '0px';
                 iconMarginRight = '12px';
                 barCardMarginLeft = 'auto';
@@ -455,6 +458,7 @@ class BarCard extends HTMLElement {
         position: absolute;
       }
       bar-card-iconbar {
+        color: var(--icon-color, var(--paper-item-icon-color));
         align-items: center;
         align-self: center;
         display: flex;
@@ -604,13 +608,11 @@ class BarCard extends HTMLElement {
         const entityAttributes = hass.states[entity].attributes;
         if (config.entity_config == true) {
             Object.keys(config).forEach(section => {
-                if (this._initialConfigArray[index][section] == undefined) {
-                    if (entityAttributes[section]) {
-                        if (section == 'severity' && typeof entityAttributes[section] == 'string')
-                            config[section] = JSON.parse(entityAttributes[section]);
-                        else
-                            config[section] = entityAttributes[section];
-                    }
+                if (entityAttributes[section]) {
+                    if (section == 'severity' && typeof entityAttributes[section] == 'string')
+                        config[section] = JSON.parse(entityAttributes[section]);
+                    else
+                        config[section] = entityAttributes[section];
                 }
             });
         }
@@ -768,12 +770,6 @@ class BarCard extends HTMLElement {
             entityState = Math.min(entityState, configMax);
             entityState = Math.max(entityState, configMin);
         }
-        if (config.decimal == 0) {
-            entityState = entityState.toFixed(0);
-        }
-        if (config.decimal) {
-            entityState = entityState.toFixed(config.decimal);
-        }
         if (config.positions.icon != 'off') {
             if (!config.icon) {
                 root.getElementById('icon_' + id).icon = entityObject.attributes.icon;
@@ -803,8 +799,25 @@ class BarCard extends HTMLElement {
             this._currentAnimation = {};
         if (!this._animationDirection)
             this._animationDirection = {};
+        let barColor = this._computeBarColor(config, entityState);
+        if (entityObject.state == 'unavailable') {
+            entityState = 'Unavailable';
+            measurement = '';
+            if (config.positions.icon !== 'off')
+                root.getElementById('iconBar_' + id).style.setProperty('--icon-color', 'var(--disabled-text-color)');
+            barColor = 'var(--bar-card-disabled-color, var(--switch-unchecked-button-color))';
+        }
+        else {
+            if (config.positions.icon !== 'off')
+                root.getElementById('iconBar_' + id).style.removeProperty('--icon-color');
+        }
+        if (!isNaN(entityState)) {
+            if (config.decimal == 0)
+                entityState = entityState.toFixed(0);
+            else if (config.decimal)
+                entityState = entityState.toFixed(config.decimal);
+        }
         if (entityState !== this._entityState[id]) {
-            const barColor = this._computeBarColor(config, entityState);
             this._updateBar(entityState, hass, id, entity, index);
             this._updateTargetBar(entityState, configTarget, barColor, id, entity, index);
             this._entityTarget[id] = configTarget;
@@ -833,7 +846,6 @@ class BarCard extends HTMLElement {
                 }
             }
             if (config.animation.state == 'on') {
-                const barColor = this._computeBarColor(config, entityState);
                 root.getElementById('animationBar_' + id).style.setProperty('--bar-color', barColor);
                 if (entityState > this._entityState[id]) {
                     this._animationDirection[id] = 'normal';
@@ -851,7 +863,6 @@ class BarCard extends HTMLElement {
         }
         if (config.target) {
             if (configTarget != this._entityTarget[id]) {
-                const barColor = this._computeBarColor(config, entityState);
                 this._updateTargetBar(entityState, configTarget, barColor, id, entity, index);
                 this._entityTarget[id] = configTarget;
                 if (this._currentAnimation[id] && config.animation.state !== 'off')
@@ -862,7 +873,6 @@ class BarCard extends HTMLElement {
             this._updateBar(entityState, hass, id, entity, index);
             this._currentMin[id] = configMin;
             if (config.target) {
-                const barColor = this._computeBarColor(config, entityState);
                 this._updateTargetBar(entityState, configTarget, barColor, id, entity, index);
                 this._currentMin[id] = configMin;
             }
@@ -873,7 +883,6 @@ class BarCard extends HTMLElement {
             this._updateBar(entityState, hass, id, entity, index);
             this._currentMax[id] = configMax;
             if (config.target) {
-                const barColor = this._computeBarColor(config, entityState);
                 this._updateTargetBar(entityState, configTarget, barColor, id, entity, index);
                 this._currentMax[id] = configMax;
             }
