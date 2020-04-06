@@ -117,3 +117,17 @@ automation:
             priority: 2
             expire: 3600
             retry: 30
+
+  - alias: Hopper Level Alert
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.traeger_hopper_level
+        below: 10
+    action: 
+      - service: notify.pushover
+        data_template:
+          message: "Traeger Hopper level too low!! ({{ states.sensor.traeger_hopper_level.state }}%)"
+          data:
+            priority: 2
+            expire: 3600
+            retry: 30

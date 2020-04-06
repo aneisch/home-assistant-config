@@ -90,11 +90,13 @@ cards:
       - switch.docker_configurator
       - switch.docker_esphome
       - switch.docker_grafana
+      - switch.docker_librespeed
       - switch.docker_ozwcp
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
-      - switch.docker_train_sensor
+      - entity: switch.docker_train_sensor
+        type: custom:toggle-lock-entity-row
       - entity: switch.docker_adguard
         type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_950

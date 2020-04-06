@@ -7,10 +7,6 @@ globals:
   - id: hopper_empty
     type: float
     initial_value: '0.28500'
-  # Smallest Distance
-  - id: hopper_full
-    type: float
-    initial_value: '0.05600'
 
 esphome:
   name: ${name}
@@ -48,11 +44,7 @@ sensor:
     accuracy_decimals: 3
     filters: 
       - lambda: |-
-          if (x <= id(hopper_full)) {
-            return id(hopper_full);
-          } else if (x > (id(hopper_empty) + .05)) {
-            return {};
-          } else if (x >= id(hopper_empty)) {
+          if (x >= id(hopper_empty)) {
             return id(hopper_empty);
           } else {
             return x;
@@ -62,25 +54,19 @@ sensor:
           send_every: 5
 
   - platform: template
-    name: "${friendly_name} Hopper Level Bad"
-    update_interval: 5s
-    unit_of_measurement: "%"
-    lambda: return 100 - int(((id(hopper_distance).state - id(hopper_full)) / (id(hopper_empty)-id(hopper_full)))*100);
-
-  - platform: template
-    name: "${friendly_name} Hopper Level Good"
+    name: "${friendly_name} Hopper Level"
     update_interval: 5s
     unit_of_measurement: "%"
     lambda: |-
-      float volume = 0.013361248;
-      if (id(hopper_distance).state <= 0.114) {
-        float rectangle1 = (0.114-id(hopper_distance).state)*0.254*0.248;
-        float trapezoid = 0.00618016;
+      float volume = 0.013440470;
+      if (id(hopper_distance).state <= 0.138) {
+        float rectangle1 = (0.138-id(hopper_distance).state)*0.252*0.243;
+        float trapezoid = 0.0049899024;
         return int(100*((rectangle1 + trapezoid) / volume));
       } 
       else {
-        float side = (0.254-id(hopper_distance).state)/(tan(radians(42.6467)));
-        float triangle = ((side*(0.254-id(hopper_distance).state))/2)*0.248;
-        float rectangle2 = (0.254-id(hopper_distance).state)*0.102*0.248;
+        float side = (0.254-id(hopper_distance).state)/(tan(radians(38.737)));
+        float triangle = ((side*(0.254-id(hopper_distance).state))/2)*0.252;
+        float rectangle2 = (0.254-id(hopper_distance).state)*0.0984*0.252;
         return int(100*((triangle + rectangle2) / volume));
       }

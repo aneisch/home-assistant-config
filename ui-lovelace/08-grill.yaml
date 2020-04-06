@@ -29,6 +29,7 @@ cards:
       entities:
         - sensor.traeger_temperature
         - sensor.traeger_hopper_level
+        - sensor.traeger_hopper_level_raw
 
   - type: custom:vertical-stack-in-card
     cards:
