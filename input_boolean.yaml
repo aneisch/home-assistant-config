@@ -32,3 +32,7 @@ panic_mode:
 
 gate_alert:
   name: Gate Alert Notify
+
+# Nodered
+rack_fan_auto_off:
+  name: Rack Fan Auto-Off (nodered)

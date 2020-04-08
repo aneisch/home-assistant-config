@@ -9,7 +9,7 @@ services:
           - /var/run/docker.sock:/var/run/docker.sock
           - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
           - /tmp/radar.gif:/tmp/radar.gif
-          - /sys/class/hwmon/hwmon0/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
+          - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
         devices:
             - /dev/zwave
             - /dev/zigbee
@@ -27,6 +27,7 @@ services:
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto
+        user: '99'
         healthcheck:
             test: "timeout -t 2 mosquitto_sub -t '#'"
             interval: 60s
@@ -34,15 +35,16 @@ services:
             retries: 5
         volumes:
             - '/etc/ssl/certs:/mosquitto/certs:ro'
-            - '/opt/mqtt/config:/mosquitto/config:ro'
-            - '/opt/mqtt/log:/mosquitto/log'
-            - '/opt/mqtt/data:/mosquitto/data'
+            - '/opt/mosquitto/config:/mosquitto/config:ro'
+            - '/opt/mosquitto/log:/mosquitto/log'
+            - '/opt/mosquitto/data:/mosquitto/data'
         ports:
             - '1883:1883'
         restart: always
     influxdb:
         container_name: influxdb
         image: influxdb
+        user: '99'
         healthcheck:
           test: "curl -sf http://localhost:8086/ping"
           interval: 60s
@@ -56,6 +58,7 @@ services:
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
+        user: '99'
         volumes:
           - /opt/nodered:/data
           - /etc/localtime:/etc/localtime:ro
@@ -67,6 +70,7 @@ services:
     appdaemon:
         container_name: appdaemon
         image: acockburn/appdaemon:latest
+        user: '99'
         healthcheck:
           test: "curl -sf http://localhost:8888"
           interval: 60s
@@ -83,6 +87,7 @@ services:
     thermostat_mqtt:
         container_name: thermostat_mqtt
         image: aneisch/thermostat_mqtt_docker:latest
+        user: '99'
         environment:
           - MQTT_SERVER=10.0.1.22
           - MQTT_PORT=1883

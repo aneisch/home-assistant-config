@@ -1,4 +1,4 @@
-console.info(`%cBAR-CARD\n%cVersion: 3.0.2`, 'color: #4788d4; font-weight: bold;', '');
+console.info(`%cBAR-CARD\n%cVersion: 3.0.5`, 'color: #4788d4; font-weight: bold;', '');
 class BarCard extends HTMLElement {
     constructor() {
         super();
@@ -8,12 +8,13 @@ class BarCard extends HTMLElement {
         while (this.shadowRoot.lastChild)
             this.shadowRoot.removeChild(this.shadowRoot.lastChild);
         const defaultConfig = {
+            attribute: false,
             animation: {
                 state: 'off',
                 delay: 5000,
                 speed: 1000
             },
-            color: 'var(--custom-bar-card-color, var(--primary-color))',
+            color: 'var(--bar-card-color, var(--primary-color))',
             decimal: false,
             direction: 'right',
             height: '40px',
@@ -165,8 +166,6 @@ class BarCard extends HTMLElement {
         iconBar.id = 'iconBar_' + id;
         const title = document.createElement('bar-card-title');
         title.id = 'title_' + id;
-        const titleBar = document.createElement('bar-card-titlebar');
-        titleBar.id = 'titleBar_' + id;
         const minValue = document.createElement('bar-card-minvalue');
         minValue.id = 'minValue_' + id;
         const divider = document.createElement('bar-card-divider');
@@ -176,9 +175,9 @@ class BarCard extends HTMLElement {
         maxValue.id = 'maxValue_' + id;
         const value = document.createElement('bar-card-value');
         value.id = 'value_' + id;
-        const animationBar = document.createElement('bar-card-animationBar');
+        const animationBar = document.createElement('bar-card-animationbar');
         animationBar.id = 'animationBar_' + id;
-        const targetBar = document.createElement('bar-card-targetBar');
+        const targetBar = document.createElement('bar-card-targetbar');
         targetBar.id = 'targetBar_' + id;
         const targetMarker = document.createElement('bar-card-targetmarker');
         targetMarker.id = 'targetMarker_' + id;
@@ -627,8 +626,8 @@ class BarCard extends HTMLElement {
             barElement.style.setProperty('--bar-charge-percent', `${this._computePercent(entityState, minValue, maxValue, index, entity)}%`);
         }
         else {
-            barElement.style.setProperty('--bar-percent', `100%`);
-            barElement.style.setProperty('--bar-charge-percent', `100%`);
+            barElement.style.setProperty('--bar-percent', `0%`);
+            barElement.style.setProperty('--bar-charge-percent', `0%`);
         }
     }
     _updateAnimation(entityState, configDuration, configStop, id, entity, index) {
@@ -762,7 +761,13 @@ class BarCard extends HTMLElement {
             configTarget = config.target;
         const configMin = this._minCheck(entity, hass, index);
         const configMax = this._maxCheck(entity, hass, index);
-        let entityState = entityObject.state;
+        let entityState;
+        if (config.attribute) {
+            entityState = entityObject.attributes[config.attribute];
+        }
+        else {
+            entityState = entityObject.state;
+        }
         if (!isNaN(entityState)) {
             entityState = Number(entityState);
         }
@@ -805,7 +810,7 @@ class BarCard extends HTMLElement {
             measurement = '';
             if (config.positions.icon !== 'off')
                 root.getElementById('iconBar_' + id).style.setProperty('--icon-color', 'var(--disabled-text-color)');
-            barColor = 'var(--bar-card-disabled-color, var(--switch-unchecked-button-color))';
+            barColor = `var(--bar-card-disabled-color, ${this._computeBarColor(config, entityState)})`;
         }
         else {
             if (config.positions.icon !== 'off')

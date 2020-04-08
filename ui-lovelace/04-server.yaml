@@ -68,6 +68,7 @@ cards:
       - type: entities
         show_header_toggle: false
         entities:
+          - input_boolean.rack_fan_auto_off
           - fan.rack_fan
           - switch.rack_down_draft
           - entity: switch.nas

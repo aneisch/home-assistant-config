@@ -7,11 +7,11 @@ esphome:
   platform: ESP32
   board: esp32dev
 
+
 <<: !include common.yaml
 <<: !include midnight_reboot.yaml
 
 esp32_ble_tracker:
-  scan_interval: 20s
 
 # ESP32-CAM
 esp32_camera:
