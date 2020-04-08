@@ -188,3 +188,11 @@ services:
           - PASSWORD=password
           - TZ=America/Chicago
         restart: 'no'
+    chowdown:
+        container_name: chowdown
+        image: gregyankovoy/chowdown:latest
+        ports:
+          - "4000:4000"
+        volumes:
+          - '/opt/chowdown:/config'
+        restart: always
