@@ -67,11 +67,11 @@ Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 16
 Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 222
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 82
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 75
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-Total state objects | 478
+Total state objects | 471
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
