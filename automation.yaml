@@ -284,3 +284,11 @@
     - delay: '00:00:01'
     - service: switch.toggle
       entity_id: switch.master_bathroom_light_switch
+
+- alias: "Pull Recipes Github Webhook"
+  initial_state: 'on'
+  trigger:
+    platform: webhook
+    webhook_id: !secret github_recipes_webhook
+  action:
+    - service: shell_command.pull_recipes
