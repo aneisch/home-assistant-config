@@ -195,4 +195,5 @@ services:
           - "4000:4000"
         volumes:
           - '/opt/recipes:/config'
+          - '/etc/localtime:/etc/localtime:ro'
         restart: always
