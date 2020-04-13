@@ -7,8 +7,6 @@ services:
             - '/opt/plex/db/:/config'
             - '/opt/plex/transcode/:/transcode'
             - '/plex/:/data'
-            - /config
-            - /transcode
         environment:
             - TZ=America/Chicago
             - PLEX_CLAIM=REDACT
@@ -63,7 +61,6 @@ services:
         #image: esphome-dev
         #image: esphome/esphome:dev
         image: esphome/esphome
-        user: '99'
         volumes:
             - /opt/esphome/:/config:rw
             # Use local time for logging timestamps
@@ -190,7 +187,8 @@ services:
         restart: 'no'
     recipes:
         container_name: recipes
-        image: gregyankovoy/chowdown:latest
+        image: aneisch/chowdown:latest
+        user: '99'
         ports:
           - "4000:4000"
         volumes:

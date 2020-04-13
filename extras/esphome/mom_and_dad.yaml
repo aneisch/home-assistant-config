@@ -153,9 +153,9 @@ binary_sensor:
     name: Gate Status
     id: gate_status
     device_class: door
-    # filters:
-    #   - delayed_on: 1s
-    #   - delayed_off: 1s
+    filters:
+      - delayed_on: 1s
+      - delayed_off: 1s
 
 switch:
   - platform: restart

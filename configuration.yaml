@@ -59,6 +59,8 @@ device_tracker:
 
 # https://github.com/aneisch/docker_monitor
 docker_monitor:
+#  containers:
+#    - grafana
   # Interval is hard coded in __init__.py
   # scan_interval:
   #   seconds: 10
@@ -156,6 +158,7 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
+    #custom_components.docker_monitor: debug
 
 lovelace:
   mode: yaml
