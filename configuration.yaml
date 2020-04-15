@@ -13,7 +13,7 @@ homeassistant:
     #bus_time: !include packages/bus_time.yaml
     hass_update_check: !include packages/hass_update_check.yaml
     grill: !include packages/grill.yaml
-    voting: 
+    #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks
@@ -32,9 +32,9 @@ alexa: !include alexa.yaml
 
 alexa_media:
   accounts:
-    email: !secret amazon_email
-    password: !secret amazon_pass
-    url: "amazon.com"
+    - email: !secret amazon_email
+      password: !secret amazon_pass
+      url: "amazon.com"
 
 automation: !include automation.yaml
 

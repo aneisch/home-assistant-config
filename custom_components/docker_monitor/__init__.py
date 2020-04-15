@@ -175,7 +175,7 @@ class DockerContainerAPI:
             self._stopper.set()
 
     # Hard coded interval
-    def status(self, callback, interval=30):
+    def status(self, callback, interval=120):
         if not self._subscribers:
             self._stopper = threading.Event()
             thread = threading.Thread(target=self._runnable, kwargs={

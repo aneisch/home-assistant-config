@@ -258,7 +258,7 @@
     data_template:
       name: '{{ trigger.event.data.name }}'
 
-- alias: 'Update door last oepened'
+- alias: 'Update door last opened'
   trigger:
     - platform: state
       entity_id: binary_sensor.front_door
