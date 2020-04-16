@@ -17,6 +17,15 @@ AC AutoAdjust:
   heat_night: '60'
   heat_unoccupied: '60'
 
+Zigbee Remote:
+  module: zigbee_remote
+  class: ZigbeeRemote
+  device_ieee: cc:cc:cc:ff:fe:d9:03:f7
+  button_1_toggle: light.master_bedroom_lamps
+  button_2_toggle: fan.master_bedroom_ceiling_fan_level
+  button_2_hold_toggle: fan.master_bedroom_ceiling_fan_level
+  button_3_toggle: fan.master_bedroom_ceiling_fan_level
+
 Minimote Morning:
   module: minimote
   class: MiniMote
