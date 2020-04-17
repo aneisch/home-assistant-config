@@ -126,7 +126,7 @@ NAS:
   time_off: '05:00:00'
   constrain_days: wed
 
-Experimentali Section:
+Experimental Section:
   module: entity_timer
   class: Timer
   devices: switch.outdoor_zwave_2
@@ -201,12 +201,6 @@ Guest Lamp Follow Master:
   leader: light.master_bedroom_lamps
   follower: light.guest_nightstand_lamp
 
-#Entertainment Center Follow Living Room:
-#  module: follow_me
-#  class: Follow
-#  leader: group.living_room_lamps
-#  follower: switch.entertainment_center_lights
-
 Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
@@ -237,19 +231,10 @@ Backlight Follow:
 #  debug: True
 
 Timer:
-  module: timer
-  class: Timer
-  timer_entity: sensor.kitchen_next_timer
-  # what entity will hold the countdown state? 
-  countdown_destination_entity: sensor.kitchen_timer_countdown
-  # Publish to MQTT (remove mqtt entry if you don't want..)
-  mqtt: True
-
-#Timer2:
-#  module: timer
-#  class: Timer2
-#  timer_entity: sensor.kitchen_all_timers
-#  # what entity will hold the countdown state? 
-#  countdown_destination_entity_prefix: sensor.kitchen_timer_countdown
-#  # Publish to MQTT (remove mqtt entry if you don't want..)
-#  mqtt: True
+ module: timer
+ class: Timer
+ timer_entity: sensor.kitchen_next_timer
+ # what entity will hold the countdown state?
+ countdown_destination_entity: sensor.kitchen_timer_countdown
+ # Publish to MQTT (remove mqtt entry if you don't want..)
+ mqtt: True
