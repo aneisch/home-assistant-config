@@ -1,12 +1,11 @@
 sensor:
-  # sensor/thermopro {"time":"2019-12-31 07:48:22","model":"Thermopro TP12 Thermometer","id":77,"temperature_1_C":19.7,"temperature_2_C":320.0}
   - platform: mqtt
     state_topic: sensor/thermopro
     name: "Thermopro Probe 1"
     unit_of_measurement: '°F'
     value_template: >-
-      {% if value_json.temperature_1_C != 320.0 %}
-        {{ '%0.2f'|format(((value_json.temperature_1_C | float) * 9 / 5) + 32) }}
+      {% if value_json.temperature_1_F != 608.0 %}
+        {{ value_json.temperature_1_F | float }}
       {% else %}
         unknown
       {% endif %}
@@ -16,8 +15,8 @@ sensor:
     name: "Thermopro Probe 2"
     unit_of_measurement: '°F'
     value_template: >-
-      {% if value_json.temperature_2_C != 320.0 %}
-        {{ '%0.2f'|format(((value_json.temperature_2_C | float) * 9 / 5) + 32) }}
+      {% if value_json.temperature_2_F != 608.0 %}
+        {{ value_json.temperature_2_F | float }}
       {% else %}
         unknown
       {% endif %}

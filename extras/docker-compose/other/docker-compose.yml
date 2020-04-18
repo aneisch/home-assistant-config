@@ -74,6 +74,7 @@ services:
         environment:
             - MQTT_SERVER=10.0.1.22
             - MQTT_PORT=1883
+            - UNITS=customary
         restart: 'no'
         devices:
             # for some reason path on container must match host path
