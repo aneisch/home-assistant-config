@@ -5,7 +5,7 @@ sensor:
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_1_F != 608.0 %}
-        {{ value_json.temperature_1_F | float }}
+        {{ value_json.temperature_1_F | float | round(2) }}
       {% else %}
         unknown
       {% endif %}
@@ -16,7 +16,7 @@ sensor:
     unit_of_measurement: '°F'
     value_template: >-
       {% if value_json.temperature_2_F != 608.0 %}
-        {{ value_json.temperature_2_F | float }}
+        {{ value_json.temperature_2_F | float | round(2) }}
       {% else %}
         unknown
       {% endif %}
@@ -121,7 +121,7 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.traeger_hopper_level
-        below: 10
+        below: 0
     action: 
       - service: notify.pushover
         data_template:

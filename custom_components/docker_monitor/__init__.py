@@ -25,7 +25,7 @@ from homeassistant.util import slugify as util_slugify
 
 VERSION = '0.0.3'
 
-REQUIREMENTS = ['docker']
+REQUIREMENTS = ['docker', 'python-dateutil==2.7.5']
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -39,8 +39,12 @@ DATA_CONFIG = 'config'
 
 EVENT_CONTAINER = 'container_event'
 
+PRECISION = 2
+
 DEFAULT_URL = 'unix://var/run/docker.sock'
 DEFAULT_NAME = 'Docker'
+
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=10)
 
 DOCKER_TYPE = [
     'switch'
@@ -54,6 +58,8 @@ CONFIG_SCHEMA = vol.Schema({
             cv.string,
         vol.Optional(CONF_URL, default=DEFAULT_URL):
             cv.string,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL):
+            cv.time_period,
         vol.Optional(CONF_CONTAINERS):
             cv.ensure_list,
     })
@@ -159,8 +165,11 @@ class DockerContainerAPI:
     def __init__(self, client, name):
         self._client = client
         self._name = name
+
         self._subscribers = []
+
         self._container = client.containers.get(self._name)
+
         self._thread = None
         self._stopper = None
 
@@ -175,7 +184,7 @@ class DockerContainerAPI:
             self._stopper.set()
 
     # Hard coded interval
-    def status(self, callback, interval=120):
+    def stats(self, callback, interval=120):
         if not self._subscribers:
             self._stopper = threading.Event()
             thread = threading.Thread(target=self._runnable, kwargs={
@@ -187,34 +196,49 @@ class DockerContainerAPI:
             self._subscribers.append(callback)
 
     def get_info(self):
+        from dateutil import parser
+
         self._container.reload()
-        _LOGGER.debug("{} get_info".format(self._name))
-        return(self._container.status)
+        info = {
+            'status': self._container.attrs['State']['Status']
+        }
+
+        return info
 
     def start(self):
-        _LOGGER.info("{} start".format(self._name))
+        _LOGGER.info("Start container {}".format(self._name))
         self._container.start()
-        _LOGGER.info("{} started".format(self._name))
 
-    def stop(self):
-        _LOGGER.info("{} stop".format(self._name))
-        self._container.stop(timeout=30)
-        _LOGGER.info("{} stopped".format(self._name))
+        # Update our stats after sending command so our switch immediately updates
+        stats = {}
+        stats['info'] = self.get_info()
+        self._notify(stats)
+
+    def stop(self, timeout=30):
+        _LOGGER.info("Stop container {}".format(self._name))
+        self._container.stop(timeout=timeout)
+
+        # Update our stats after sending command so our switch immediately updates
+        stats = {}
+        stats['info'] = self.get_info()
+        self._notify(stats)
 
     def _notify(self, message):
-        _LOGGER.debug("{} send notify".format(self._name))
+        _LOGGER.debug("Send notify for container {}".format(self._name))
         for callback in self._subscribers:
             callback(message)
 
     def _runnable(self, interval):
+        from dateutil import parser
+
+        stream = self._container.stats(stream=False)
+
         # Run a loop to periodically update container status
-        _LOGGER.debug("{} _runnable".format(self._name))
         while True:
             if self._stopper.isSet():
-                _LOGGER.debug("{} break".format(self._name))
                 break
 
-            _LOGGER.debug("{} notifying".format(self._name))
-            self._notify(self.get_info())
-            _LOGGER.debug("{} sleeping".format(self._name))
+            stats = {}
+            stats['info'] = self.get_info()
+            self._notify(stats)
             time.sleep(interval)

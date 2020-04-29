@@ -32,8 +32,11 @@ sensor:
     cs_pin: D2
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
+      - sliding_window_moving_average:
+          window_size: 30
+          send_every: 10
     unit_of_measurement: "°F"
-    update_interval: 10s
+    update_interval: 1s
 
   # https://esphome.io/components/sensor/vl53l0x.html  
   - platform: vl53l0x

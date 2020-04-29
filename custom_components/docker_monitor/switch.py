@@ -31,6 +31,7 @@ DEPENDENCIES = ['docker_monitor']
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def setup_platform(hass, config, add_devices_callback, discovery_info=None):
     """Set up the Docker Monitor Switch."""
 
@@ -57,23 +58,20 @@ class ContainerSwitch(SwitchDevice):
 
         self._container = api.get_container(container_name)
 
-        def update_callback(status):
-            _LOGGER.debug("{} received callback with message: {}".format(self._container_name,status))
-            _LOGGER.debug("{} self state: {}".format(self._container_name,self._state))
+        def update_callback(stats):
+            _LOGGER.debug("Received callback with message: {}".format(stats))
 
-            if status == 'running':
+            if stats['info']['status'] == 'running':
                 state = True
             else:
                 state = False
 
             if self._state is not state:
-                _LOGGER.debug("{} self state was: {}".format(self._container_name,self._state))
                 self._state = state
-                _LOGGER.debug("{} self state is: {}".format(self._container_name,self._state))
-                self.schedule_update_ha_state()
-                _LOGGER.debug("{} scheduled".format(self._container_name,self._state))
 
-        self._container.status(update_callback)
+                self.schedule_update_ha_state()
+
+        self._container.stats(update_callback)
 
     @property
     def name(self):
@@ -82,7 +80,7 @@ class ContainerSwitch(SwitchDevice):
 
     @property
     def should_poll(self):
-        return False
+        return True
 
     @property
     def icon(self):
@@ -96,7 +94,6 @@ class ContainerSwitch(SwitchDevice):
 
     @property
     def is_on(self):
-        _LOGGER.debug("{} is_on {}".format(self._container_name,self._state))
         return self._state
 
     def turn_on(self, **kwargs):

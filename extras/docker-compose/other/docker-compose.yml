@@ -104,6 +104,10 @@ services:
             - SMTP_USERNAME=REDACT
             - SMTP_PASSWORD=REDACT
             - ROCKET_PORT=1024
+            - WEBSOCKET_ENABLED=true
+            - DUO_IKEY=
+            - DUO_SKEY=
+            - DUO_HOST=
         ports:
             - '8777:1024'
         logging:
@@ -163,7 +167,7 @@ services:
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-        command: --schedule "00 00 * * * *"
+        command: --schedule "00 00 12 * * *"
     adguard:
         container_name: adguard
         image: adguard/adguardhome:latest
