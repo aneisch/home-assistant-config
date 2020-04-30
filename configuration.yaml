@@ -309,7 +309,6 @@ python_script:
 readme:
 
 recorder:
-  purge_interval: 1
   purge_keep_days: 7
   exclude:
     entities:
