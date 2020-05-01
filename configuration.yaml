@@ -71,10 +71,6 @@ frontend:
 
 group: !include group.yaml
 
-hacs:
-  token: !secret hacs_token
-  appdaemon: true
-
 history:
 
 homekit: !include homekit.yaml
@@ -87,8 +83,8 @@ http:
   server_port: 8123
   base_url: !secret hass_url
 
-ifttt:
-  key: !secret ifttt_key
+#ifttt:
+#  key: !secret ifttt_key
 
 influxdb:
   host: 10.0.1.22
@@ -195,18 +191,6 @@ lovelace:
 map:
 
 mobile_app:
-
-# Local Docker MQTT Only (local devices publish here, and I subscribe over ssl via bridged remote MQTT)
-mqtt:
-  broker: 127.0.0.1
-  port: 1883
-  keepalive: 60
-  birth_message:
-    topic: 'hass/status'
-    payload: 'online'
-  will_message:
-    topic: 'hass/status'
-    payload: 'offline'
 
 netatmo:
   client_id: !secret netatmo_key
@@ -350,7 +334,7 @@ sensor: !include sensors.yaml
 
 shell_command: !include shell_command.yaml
 
-shopping_list:
+#shopping_list:
 
 spotify:
   client_id: !secret spotify_client_id
@@ -404,10 +388,10 @@ zone:
     radius: 500
     icon: mdi:home-variant
 
-zha:
-  usb_path: /dev/zigbee
-  radio_type: ti_cc
-  database_path: /config/.storage/zigbee.db
+#zha:
+#  usb_path: /dev/zigbee
+#  radio_type: ti_cc
+#  database_path: /config/.storage/zigbee.db
 
-zwave:
-  usb_path: /dev/zwave
+#zwave:
+#  usb_path: /dev/zwave
