@@ -42,10 +42,10 @@ jobs:
         name: Upgrade HASS Minor Release
         # Call Home Assistant api and run shell_command to upgrade docker container
         # Webhook URL secret stored in github project /settings/secrets
-        run: curl -sX POST ${{ secrets.HASS_WEBHOOK_UPGRADE }} && echo "Home Assistant auto-updated successfully"
+        run: curl -sX POST -d '{"upgrade":True}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant auto-updated successfully"
 
       # Call Home Assistant api and notify of major update
       - if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
         name: Notify HASS Major Release
         # Webhook URL secret stored in github project /settings/secrets
-        run: curl -sX POST ${{ secrets.HASS_WEBHOOK_NOTIFY_ONLY }} && echo "Home Assistant notified successfully"
+        run: curl -sX POST -d '{"upgrade":False}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant notified successfully"
