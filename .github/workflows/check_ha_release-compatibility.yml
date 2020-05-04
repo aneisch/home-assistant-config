@@ -33,22 +33,24 @@ jobs:
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           hass -c . --script check_config
           
-  notify-or-upgrade-hass:
+  upgrade-hass:
+    if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
+    name: Upgrade HASS Minor Release
     runs-on: ubuntu-latest
     needs: check-ha-config
     env:
       # A stupid workaround to be able to set curl header. 
       HEADER: "Content-Type: application/json"
     steps:
-      # Only apply update if minor, stable release
-      - if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
-        name: Upgrade HASS Minor Release
-        # Call Home Assistant api and run shell_command to upgrade docker container
-        # Webhook URL secret stored in github project /settings/secrets
-        run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant auto-updated successfully"
+        - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant auto-update triggered"
 
-      # Call Home Assistant api and notify of major update
-      - if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
-        name: Notify HASS Major Release
-        # Webhook URL secret stored in github project /settings/secrets
-        run: curl -sX POST -H "$HEADER" -d '{"upgrade":false}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant notified successfully"
+  notify-hass-upgrade:
+    if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
+    name: Notify HASS Major Release
+    runs-on: ubuntu-latest
+    needs: check-ha-config
+    env:
+      # A stupid workaround to be able to set curl header. 
+      HEADER: "Content-Type: application/json"
+    steps:
+      - run: curl -sX POST -H "$HEADER" -d '{"upgrade":false}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant notify triggered"
