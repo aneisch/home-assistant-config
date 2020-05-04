@@ -45,7 +45,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of YAML configuration | 3109
+Lines of YAML configuration | 3113
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 30
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 16
