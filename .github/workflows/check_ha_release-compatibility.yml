@@ -1,4 +1,5 @@
 name: Check HA Release Compatibility
+# Only run when called from webhook https://github.com/marketplace/actions/repository-dispatch
 on: repository_dispatch
 jobs:
   check-ha-config:
