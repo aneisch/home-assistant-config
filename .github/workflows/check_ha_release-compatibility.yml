@@ -34,23 +34,27 @@ jobs:
           hass -c . --script check_config
           
   upgrade-hass:
+    runs-on: ubuntu-latest
+    # If minor release, upgrade to latest
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
     name: Upgrade HASS Minor Release
-    runs-on: ubuntu-latest
+    # Ensure config test was successful
     needs: check-ha-config
+    # A stupid workaround to be able to set curl header. 
     env:
-      # A stupid workaround to be able to set curl header. 
       HEADER: "Content-Type: application/json"
     steps:
         - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant auto-update triggered"
 
   notify-hass-upgrade:
+    runs-on: ubuntu-latest
+    # If major release, only send notification
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
     name: Notify HASS Major Release
-    runs-on: ubuntu-latest
+    # Ensure config test was successful
     needs: check-ha-config
+    # A stupid workaround to be able to set curl header. 
     env:
-      # A stupid workaround to be able to set curl header. 
       HEADER: "Content-Type: application/json"
     steps:
       - run: curl -sX POST -H "$HEADER" -d '{"upgrade":false}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant notify triggered"
