@@ -279,4 +279,3 @@
     webhook_id: !secret github_recipes_webhook
   action:
     - service: shell_command.pull_recipes
-

@@ -151,6 +151,7 @@ logger:
   logs:
     homeassistant.core: debug
     #custom_components.docker_monitor: debug
+    homeassistant.components.webhook: debug
 
 lovelace:
   mode: yaml
