@@ -44,8 +44,8 @@ jobs:
         # Webhook URL secret stored in github project /settings/secrets
         run: curl -sX POST ${{ secrets.HASS_WEBHOOK_UPGRADE }} && echo "Home Assistant auto-updated successfully"
 
+      # Call Home Assistant api and notify of major update
       - if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
         name: Notify HASS Major Release
-        # Call Home Assistant api and notify of major update
         # Webhook URL secret stored in github project /settings/secrets
         run: curl -sX POST ${{ secrets.HASS_WEBHOOK_NOTIFY_ONLY }} && echo "Home Assistant notified successfully"
