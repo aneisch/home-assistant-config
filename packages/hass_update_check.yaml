@@ -66,7 +66,7 @@ automation:
       - service: notify.pushover
         data_template:
           message: |
-            New Version Not Auto-Applied: {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} 
+            New Version Not Auto-Applied: {{ states.sensor.ha_version.state }} --> {{ states.sensor.ha_docker_version_stable.state }}
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
 
@@ -80,7 +80,7 @@ automation:
       - service: notify.pushover
         data_template:
           message: |
-            New Version Auto-Applied: {{ states.sensor.ha_docker_version_stable.state }} 
+            New Version Auto-Applied: {{ states.sensor.ha_version.state }} --> {{ states.sensor.ha_docker_version_stable.state }} 
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
       - service: shell_command.upgrade_hass
