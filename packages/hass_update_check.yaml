@@ -56,8 +56,8 @@ automation:
             {% endif %}
           version: '{{ trigger.to_state.state }}'
 
-  # Triggered from Github action. Auto-update, we only auto-apply minor releases.
-  - alias: "Upgrade HASS From Webhook"
+  # Triggered from Github action. Auto-update or notify, we only auto-apply minor releases.
+  - alias: "Github Action Callback"
     initial_state: 'on'
     trigger:
       platform: webhook
