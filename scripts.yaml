@@ -91,7 +91,7 @@ master_bedroom_wakeup:
     - service: fan.turn_off
       data:
         entity_id: fan.master_bedroom_ceiling_fan_level
-    - delay: '00:00:01'
+    - delay: '00:00:02'
     - service: script.appdaemon_ac_morning
     - service: scene.turn_on
       data_template:

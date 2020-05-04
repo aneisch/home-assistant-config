@@ -31,11 +31,13 @@ sensor:
     scan_interval: 1800
 
 automation:
-  - alias: "Github Action Docker Beta"
+  - alias: "Trigger Github Action"
     initial_state: 'on'
     trigger:
-      platform: state
-      entity_id: sensor.ha_docker_version_beta
+      - platform: state
+        entity_id: sensor.ha_docker_version_beta
+      - platform: state
+        entity_id: sensor.ha_docker_version_stable
     condition:
       - condition: template
         value_template: '{{ trigger.to_state.state != trigger.from_state.state }}'
@@ -43,31 +45,24 @@ automation:
       - service: shell_command.github_action_trigger
         data_template:
           github_token: !secret github_token
-          branch: beta
-          release_type: '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
-          version: '{{ states.sensor.ha_docker_version_beta.state }}'
-
-  - alias: "Notify Docker Update and Trigger Github Action"
-    initial_state: 'on'
-    trigger:
-      platform: state
-      entity_id: sensor.ha_docker_version_stable
-    condition:
-      - condition: template
-        value_template: '{{ trigger.to_state.state > trigger.from_state.state }}'
-    action:
-      - service: shell_command.github_action_trigger
-        data_template:
-          github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
           # Options are: beta, stable
-          branch: stable
-          # If release is "minor" we auto-apply the update
-          # Compare current running major version and latest docker major version
-          release_type: '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
-          version: '{{ states.sensor.ha_docker_version_stable.state }}'
-      - delay:
-          minutes: 6
+          branch: '{% if trigger.entity_id == sensor.ha_docker_version_beta %}beta{% elif trigger.entity_id == sensor.ha_docker_version_stable %}stable{% endif %}'
+          release_type: >
+            {% if trigger.entity_id == sensor.ha_docker_version_beta %}
+              '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
+            {% elif trigger.entity_id == sensor.ha_docker_version_stable %}
+              '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
+            {% endif %}
+          version: '{{ trigger.to_state.state }}'
+
+  # Triggered from Github action. Notify new release available
+  - alias: "Notify of HASS Upgrade From Webhook"
+    initial_state: 'on'
+    trigger:
+      platform: webhook
+      webhook_id: !secret hass_upgrade_webhook_notify_only
+    action:
       - service: notify.pushover
         data_template:
           message: |
@@ -75,7 +70,7 @@ automation:
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
 
-  # Triggered from Github action. We only auto-apply minor releases.
+  # Triggered from Github action. Auto-update, we only auto-apply minor releases.
   - alias: "Upgrade HASS From Webhook"
     initial_state: 'on'
     trigger:
