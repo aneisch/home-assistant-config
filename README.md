@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.109.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-0.109.3%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -47,6 +47,8 @@ Description | value
 -- | --
 Lines of ESPHome YAML | 990
 Lines of Home Assistant YAML | 3116
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
+[Integrations](https://www.home-assistant.io/integrations/) in use | 16
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 30
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 16
@@ -72,8 +74,6 @@ Entities in the [`weather`](https://www.home-assistant.io/components/weather) do
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
 **Total state objects** | **468**
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
-[Integrations](https://www.home-assistant.io/integrations/) in use | 16
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
