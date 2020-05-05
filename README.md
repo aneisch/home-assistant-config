@@ -47,8 +47,11 @@ Description | value
 -- | --
 Lines of ESPHome YAML | 990
 Lines of Home Assistant YAML | 3116
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
 [Integrations](https://www.home-assistant.io/integrations/) in use | 16
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
+ 
+Description | value
+-- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 30
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 16
