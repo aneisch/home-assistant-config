@@ -71,6 +71,7 @@ Entities in the [`switch`](https://www.home-assistant.io/components/switch) doma
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
+Entities in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
 Total state objects | 468
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
