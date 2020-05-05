@@ -40,7 +40,7 @@ sensor:
 
   # https://esphome.io/components/sensor/vl53l0x.html  
   - platform: vl53l0x
-    name: "${friendly_name} Hopper Level Raw"
+    #name: "${friendly_name} Hopper Level Raw"
     id: hopper_distance
     address: 0x29
     update_interval: 1s
