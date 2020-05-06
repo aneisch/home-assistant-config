@@ -196,7 +196,7 @@
   condition:
     condition: numeric_state
     entity_id: sensor.miflora_moisture
-    below: 40
+    below: 45
   action:
     service: notify.pushover
     data_template:

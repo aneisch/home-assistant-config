@@ -40,18 +40,18 @@ automation:
         entity_id: sensor.ha_docker_version_stable
     condition:
       - condition: template
-        value_template: '{{ trigger.to_state.state != trigger.from_state.state }}'
+        value_template: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) }}'
     action:
       - service: shell_command.github_action_trigger
         data_template:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
           # Options are: beta, stable
-          branch: '{% if trigger.entity_id == sensor.ha_docker_version_beta %}beta{% elif trigger.entity_id == sensor.ha_docker_version_stable %}stable{% endif %}'
+          branch: '{% if trigger.entity_id == "sensor.ha_docker_version_beta" %}beta{% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}stable{% endif %}'
           release_type: >
-            {% if trigger.entity_id == sensor.ha_docker_version_beta %}
+            {% if trigger.entity_id == "sensor.ha_docker_version_beta" %}
               '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
-            {% elif trigger.entity_id == sensor.ha_docker_version_stable %}
+            {% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}
               '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
             {% endif %}
           version: '{{ trigger.to_state.state }}'
