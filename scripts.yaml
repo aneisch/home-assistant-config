@@ -126,7 +126,7 @@ too_cold:
     - service: climate.set_temperature
       data_template:
         entity_id: climate.thermostat
-        temperature: '{{ float(states("sensor.thermostat_temperature")) + 1 }}'
+        temperature: '{{ float(states("sensor.thermostat_temperature")) + 2 }}'
 
 too_hot:
   sequence:

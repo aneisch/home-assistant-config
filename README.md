@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.109.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.109.6%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -54,7 +54,7 @@ Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 30
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 16
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 15
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 12
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 10
@@ -65,18 +65,18 @@ Entities in the [`input_datetime`](https://www.home-assistant.io/components/inpu
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 4
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 1
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 10
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 9
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 8
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 17
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 225
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 226
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 73
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 76
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-**Total state objects** | **469**
+**Total state objects** | **471**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
