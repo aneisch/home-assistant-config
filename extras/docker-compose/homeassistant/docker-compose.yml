@@ -2,7 +2,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        #image: homeassistant/home-assistant:0.108.1
+        #image: homeassistant/home-assistant:0.109.6
         image: homeassistant/home-assistant:stable
         volumes:
           - /opt/homeassistant:/config

@@ -7,10 +7,10 @@ custom_header:
   chevrons: false
   hide_tabs: '{% if is_state("switch.docker_thermopro_mqtt", "off") %}7{% endif %}'
   tab_indicator_color: 'rgb(214, 122, 127)'
-  footer_mode: '{% if "Pixel 2" in userAgent %}true{% else %}false{% endif %}'
+#  footer_mode: '{% if "Pixel 2" in userAgent %}true{% else %}false{% endif %}'
 
-#swipe_nav:
-#  swipe_animate: fade
+swipe_nav:
+  swipe_animate: fade
 
 views: !include_dir_list ui-lovelace/
 

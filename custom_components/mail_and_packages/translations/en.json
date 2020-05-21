@@ -1,0 +1,65 @@
+{
+    "config": {
+        "abort": {
+            "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed."
+        },
+        "error": {
+            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+            "invalid_path": "Please store the images in another directory."
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "port": "Port",
+                    "username": "Username"
+                },
+                "description": "Please enter the connection information of your mail server.",
+                "title": "Mail and Packages (Step 1 of 2)"
+            },
+            "config_2": {
+                "data": {
+                    "folder": "Folder",
+                    "image_path": "Path to store mail images",
+                    "gif_duration": "Time in seconds per image",
+                    "scan_interval": "Time in minutes to scan for new email notifications",
+                    "image_security": "Enable random image filename"
+                },
+                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
+                "title": "Mail and Packages (Step 2 of 2)"                 
+            }
+        },
+        "title": "Mail and Packages"
+    },
+    "options": {
+        "error": {
+            "communication": "Unable to connect or login to the mail server. Please check the log for details.",
+            "invalid_path": "Please store the images in another directory."
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "host": "Host",
+                    "password": "Password",
+                    "port": "Port",
+                    "username": "Username"
+                },
+                "description": "Please enter the connection information of your mail server.",
+                "title": "Mail and Packages (Step 1 of 2)"
+            },
+            "options_2": {
+                "data": {
+                    "folder": "Folder",
+                    "image_path": "Path to store mail images",
+                    "gif_duration": "Time in seconds per image",
+                    "scan_interval": "Time in minutes to scan for new email notifications",
+                    "image_security": "Enable random image filename"                    
+                },
+                "description": "Please select the mail folder your deliveries go into, if you are unsure keep the default: Inbox\n\nHassIO users should use /config/images/mail_and_packages as the image path.",
+                "title": "Mail and Packages (Step 2 of 2)"
+            }
+        },
+        "title": "Mail and Packages"
+    }
+}

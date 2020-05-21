@@ -5,7 +5,8 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import asyncio
+
+# import asyncio
 import logging
 import imageio as io
 # from skimage.transform import resize
@@ -37,6 +38,7 @@ from .const import (
     USPS_Mail_Subject,
     USPS_Delivering_Subject,
     USPS_Delivered_Subject,
+    USPS_Body_Text,
     UPS_Email,
     UPS_Delivering_Subject,
     UPS_Delivering_Subject_2,
@@ -45,9 +47,86 @@ from .const import (
     FEDEX_Delivering_Subject,
     FEDEX_Delivering_Subject_2,
     FEDEX_Delivered_Subject,
+    Amazon_Email,
+    Amazon_Email_2,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+# Sensor definitions
+# Name, unit of measure, icon
+SENSOR_TYPES = {
+    "mail_updated": [
+        "Mail Updated",
+        None,
+        "mdi:update",
+    ],
+    "usps_mail": [
+        "Mail USPS Mail",
+        "pieces",
+        "mdi:mailbox-up",
+    ],
+    "usps_delivered": [
+        "Mail USPS Delivered",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "usps_delivering": [
+        "Mail USPS Delivering",
+        "packages",
+        "mdi:truck-delivery",
+    ],
+    "usps_packages": [
+        "Mail USPS Packages",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "ups_delivered": [
+        "Mail UPS Delivered",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "ups_delivering": [
+        "Mail UPS Delivering",
+        "packages",
+        "mdi:truck-delivery",
+    ],
+    "ups_packages": [
+        "Mail UPS Packages",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "fedex_delivered": [
+        "Mail FedEx Delivered",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "fedex_delivering": [
+        "Mail FedEx Delivering",
+        "packages",
+        "mdi:truck-delivery",
+    ],
+    "fedex_packages": [
+        "Mail FedEx Packages",
+        "packages",
+        "mdi:package-variant-closed",
+    ],
+    "packages_delivered": [
+        "Mail Packages Delivered",
+        "packages",
+        "mdi:package-variant",
+    ],
+    "packages_transit": [
+        "Mail Packages In Transit",
+        "packages",
+        "mdi:truck-delivery",
+    ],
+    "amazon_packages": [
+        "Mail Amazon Packages",
+        "packages",
+        "mdi:amazon",
+    ],
+}
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -65,20 +144,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
     }
 
     data = EmailData(hass, config)
+    sensors = []
 
-    async_add_entities([MailCheck(data), USPS_Mail(hass, data),
-                       USPS_Packages(hass, data),
-                       USPS_Delivering(hass, data),
-                       USPS_Delivered(hass, data),
-                       UPS_Packages(hass, data),
-                       UPS_Delivering(hass, data),
-                       UPS_Delivered(hass, data),
-                       FEDEX_Packages(hass, data),
-                       FEDEX_Delivering(hass, data),
-                       FEDEX_Delivered(hass, data),
-                       Packages_Delivered(hass, data),
-                       Packages_Transit(hass, data),
-                       Amazon_Packages(hass, data)], True)
+    for variable in SENSOR_TYPES:
+        sensors.append(PackagesSensor(data, variable))
+
+    async_add_entities(sensors, True)
 
 
 class EmailData:
@@ -95,24 +166,20 @@ class EmailData:
         self._gif_duration = config.get(CONF_DURATION)
         self._image_security = config.get(CONF_IMAGE_SECURITY)
         self._scan_interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
-        self._fedex_delivered = None
-        self._fedex_delivering = None
-        self._fedex_packages = None
-        self._ups_packages = None
-        self._ups_delivering = None
-        self._ups_delivered = None
-        self._usps_packages = None
-        self._usps_delivering = None
-        self._usps_delivered = None
-        self._usps_mail = None
-        self._packages_delivered = None
-        self._packages_transit = None
-        self._amazon_packages = None
-        self._amazon_items = None
+        self._data = None
         self._image_name = None
+
         _LOGGER.debug("Config scan interval: %s", self._scan_interval)
 
         self.update = Throttle(self._scan_interval)(self.update)
+
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        attr = {}
+        if self._state:
+            attr["server"] = self.data._host
+        return attr
 
     def update(self):
         """Get the latest data"""
@@ -126,60 +193,79 @@ class EmailData:
             else:
                 self._image_name = GIF_FILE_NAME
 
-            # Tally emails and generate mail images
-            self._usps_mail = get_mails(account, self._img_out_path,
-                                        self._gif_duration, self._image_name)
-            self._usps_delivered = get_count(account, USPS_Packages_Email,
-                                             USPS_Delivered_Subject)
-            self._usps_delivering = (get_count(account, USPS_Packages_Email,
-                                               USPS_Delivering_Subject) -
-                                     self._usps_delivered)
-            self._usps_packages = self._usps_delivering + self._usps_delivered
-            self._ups_delivered = get_count(account, UPS_Email,
-                                            UPS_Delivered_Subject)
-            self._ups_delivering = ((get_count(account, UPS_Email,
-                                               UPS_Delivering_Subject) +
-                                    get_count(account, UPS_Email,
-                                              UPS_Delivering_Subject_2)) -
-                                    self._ups_delivered)
-            self._ups_packages = self._ups_delivered + self._ups_delivering
-            self._fedex_delivered = get_count(account, FEDEX_Email,
-                                              FEDEX_Delivered_Subject)
-            self._fedex_delivering = ((get_count(account, FEDEX_Email,
-                                                 FEDEX_Delivering_Subject) +
-                                      get_count(account, FEDEX_Email,
-                                                FEDEX_Delivering_Subject_2)) -
-                                      self._fedex_delivered)
-            self._fedex_packages = (self._fedex_delivered +
-                                    self._fedex_delivering)
-            self._packages_transit = (self._fedex_delivering +
-                                      self._ups_delivering +
-                                      self._usps_delivering)
-            self._packages_delivered = (self._fedex_delivered +
-                                        self._ups_delivered +
-                                        self._usps_delivered)
-            self._amazon_packages = get_items(account, "count")
-            self._amazon_items = get_items(account, "items")
-            self._amazon_order = get_items(account, "order")
+            data = {}
 
-            # Subtract the number of delivered packages from those in transit
-            if self._packages_transit < 0:
-                self._packages_transit = 0
+            for sensor in SENSOR_TYPES:
+                count = {}
+                if sensor == "usps_mail":
+                    count[sensor] = get_mails(account, self._img_out_path,
+                                              self._gif_duration,
+                                              self._image_name)
+                elif sensor == "amazon_packages":
+                    count[sensor] = get_items(account, "count")
+                    count['amazon_order'] = get_items(account, "order")
+                elif sensor == "usps_packages":
+                    total = data['usps_delivering'] + data['usps_delivered']
+                    count[sensor] = total
+                elif sensor == "ups_packages":
+                    total = data['ups_delivering'] + data['ups_delivered']
+                    count[sensor] = total
+                elif sensor == "fedex_packages":
+                    total = data['fedex_delivering'] + data['fedex_delivered']
+                    count[sensor] = total
+                elif sensor == "usps_delivering":
+                    total = (int(get_count(account, sensor))
+                             - data['usps_delivered'])
+                    if total < 0:
+                        total = 0
+                    count[sensor] = total
+                elif sensor == "fedex_delivering":
+                    total = (int(get_count(account, sensor))
+                             - data['fedex_delivered'])
+                    if total < 0:
+                        total = 0
+                    count[sensor] = total
+                elif sensor == "ups_delivering":
+                    total = (int(get_count(account, sensor))
+                             - data['ups_delivered'])
+                    if total < 0:
+                        total = 0
+                    count[sensor] = total
+                elif sensor == "packages_delivered":
+                    count[sensor] = (data['fedex_delivered']
+                                     + data['ups_delivered']
+                                     + data['usps_delivered'])
+                elif sensor == "packages_transit":
+                    total = (data['fedex_delivering']
+                             + data['ups_delivering']
+                             + data['usps_delivering'])
+                    if total < 0:
+                        total = 0
+                    count[sensor] = total
+                elif sensor == "mail_updated":
+                    count[sensor] = update_time()
+                else:
+                    count[sensor] = get_count(account, sensor)
 
+                data.update(count)
+            self._data = data
         else:
-            _LOGGER.debug("Host was left blank not attempting connection")
+            _LOGGER.error("Host was left blank not attempting connection")
 
         self._scan_time = update_time()
         _LOGGER.debug("Updated scan time: %s", self._scan_time)
 
 
-class MailCheck(Entity):
+class PackagesSensor(Entity):
 
-    """Representation of a Sensor."""
+    """ Represntation of a sensor """
 
-    def __init__(self, data):
-        """Initialize the sensor."""
-        self._name = 'Mail Updated'
+    def __init__(self, data, sensor_type):
+        """ Initialize the sensor """
+        self._name = SENSOR_TYPES[sensor_type][0]
+        self._icon = SENSOR_TYPES[sensor_type][2]
+        self._unit_of_measurement = SENSOR_TYPES[sensor_type][1]
+        self.type = sensor_type
         self.data = data
         self._state = None
         self.update()
@@ -204,136 +290,24 @@ class MailCheck(Entity):
         return self._state
 
     @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:update"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-
-        self.data.update()
-        self._state = self.data._scan_time
-
-
-class Amazon_Packages(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail Amazon Packages'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
     def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:amazon"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-            attr["items"] = self.data._amazon_items
-            attr["order"] = self.data._amazon_order
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._amazon_packages
-
-
-class USPS_Mail(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail USPS Mail'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Items'
+        """Return the unit of measurement of this entity, if any."""
+        return self._unit_of_measurement
 
     @property
     def icon(self):
         """Return the unit of measurement."""
 
-        return "mdi:mailbox-up"
+        return self._icon
 
     @property
     def device_state_attributes(self):
         """Return device specific state attributes."""
         attr = {}
-        if self._state:
-            attr["server"] = self.data._host
+        attr["server"] = self.data._host
+        if "amazon" in self._name:
+            attr["order"] = self.data._data['amazon_order']
+        elif "Mail USPS Mail" == self._name:
             attr["image"] = self.data._image_name
         return attr
 
@@ -341,644 +315,10 @@ class USPS_Mail(Entity):
         """Fetch new state data for the sensor.
         This is the only method that should fetch new data for Home Assistant.
         """
+
         self.data.update()
-        self._state = self.data._usps_mail
-
-
-class USPS_Packages(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail USPS Packages'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant-closed"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._usps_packages
-
-
-class USPS_Delivering(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail USPS Delivering'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:truck-delivery"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._usps_delivering
-
-
-class USPS_Delivered(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail USPS Delivered'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant-closed"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._usps_delivered
-
-
-class Packages_Delivered(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail Packages Delivered'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-        return "mdi:package-variant"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._packages_delivered
-
-
-class Packages_Transit(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail Packages In Transit'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-        return "mdi:truck-delivery"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._packages_transit
-
-
-class UPS_Packages(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail UPS Packages'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant-closed"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._ups_packages
-
-
-class UPS_Delivering(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail UPS Delivering'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:truck-delivery"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._ups_delivering
-
-
-class UPS_Delivered(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail UPS Delivered'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant-closed"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._ups_delivered
-
-
-class FEDEX_Packages(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail FEDEX Packages'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant-closed"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._fedex_packages
-
-
-class FEDEX_Delivering(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail FEDEX Delivering'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:truck-delivery"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._fedex_delivering
-
-
-class FEDEX_Delivered(Entity):
-
-    """Representation of a Sensor."""
-
-    def __init__(self, hass, data):
-        """Initialize the sensor."""
-        self._name = 'Mail FEDEX Delivered'
-        self.data = data
-        self._state = 0
-        self.update()
-
-    @property
-    def unique_id(self):
-        """
-        Return a unique, Home Assistant friendly identifier for this entity.
-        """
-        return f"{self.data._host}_{self._name}"
-
-    @property
-    def name(self):
-        """Return the name of the sensor."""
-
-        return self._name
-
-    @property
-    def state(self):
-        """Return the state of the sensor."""
-
-        return self._state
-
-    @property
-    def unit_of_measurement(self):
-        """Return the unit of measurement."""
-
-        return 'Packages'
-
-    @property
-    def icon(self):
-        """Return the unit of measurement."""
-
-        return "mdi:package-variant"
-
-    @property
-    def device_state_attributes(self):
-        """Return device specific state attributes."""
-        attr = {}
-        if self._state:
-            attr["server"] = self.data._host
-        return attr
-
-    def update(self):
-        """Fetch new state data for the sensor.
-        This is the only method that should fetch new data for Home Assistant.
-        """
-        self.data.update()
-        self._state = self.data._fedex_delivered
+        # Using a dict to send the data back
+        self._state = self.data._data[self.type]
 
 # Login Method
 ###############################################################################
@@ -1022,7 +362,7 @@ def get_formatted_date():
     today = datetime.datetime.today().strftime('%d-%b-%Y')
     """
     # for testing
-    # today = '18-Mar-2020'
+    # today = '06-May-2020'
     """
     return today
 
@@ -1102,7 +442,7 @@ def get_mails(account, image_output_path, gif_duration, image_name):
 
         # Look for mail pieces without images image
         html_text = str(msg)
-        link_pattern = re.compile('image-no-mailpieces700.jpg')
+        link_pattern = re.compile(r'\bimage-no-mailpieces?700\.jpg\b')
         search = link_pattern.search(html_text)
         if search is not None:
             images.append(os.path.dirname(__file__) +
@@ -1192,16 +532,46 @@ def cleanup_images(path):
         if file.endswith(".gif"):
             os.remove(path + file)
 
-
 # Get Package Count
+# add IF clauses to filter by sensor_type for email and subjects
+# todo: convert subjects to list and use a for loop
 ###############################################################################
 
 
-def get_count(account, email, subject):
+def get_count(account, sensor_type):
     count = 0
     today = get_formatted_date()
+    email = None
+    subject = None
+    subject_2 = None
+    filter_text = None
 
-    _LOGGER.debug("Attempting to find mail from %s with subject %s", email,
+    if sensor_type == "usps_delivered":
+        email = USPS_Packages_Email
+        subject = USPS_Delivered_Subject
+    elif sensor_type == "usps_delivering":
+        email = USPS_Packages_Email
+        subject = USPS_Delivering_Subject
+        filter_text = USPS_Body_Text
+    elif sensor_type == "ups_delivered":
+        email = UPS_Email
+        subject = UPS_Delivered_Subject
+    elif sensor_type == "ups_delivering":
+        email = UPS_Email
+        subject = UPS_Delivering_Subject
+        subject_2 = UPS_Delivering_Subject_2
+    elif sensor_type == "fedex_delivering":
+        email = FEDEX_Email
+        subject = FEDEX_Delivering_Subject
+        subject_2 = FEDEX_Delivering_Subject_2
+    elif sensor_type == "fedex_delivered":
+        email = FEDEX_Email
+        subject = FEDEX_Delivered_Subject
+    else:
+        _LOGGER.error("Unknown sensor type: %s", str(sensor_type))
+        return False
+
+    _LOGGER.debug("Attempting to find mail from %s with subject 1 %s", email,
                   subject)
     try:
         (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
@@ -1211,7 +581,52 @@ def get_count(account, email, subject):
         return False
 
     if rv == 'OK':
-        count = len(data[0].split())
+        if filter_text is not None:
+            count += find_text(data[0], account, filter_text)
+        else:
+            count += len(data[0].split())
+        _LOGGER.debug("Found from %s with subject 1 %s, %s", email, subject,
+                      data[0])
+
+    if subject_2 is not None:
+        _LOGGER.debug("Attempting to find mail from %s with subject 2 %s",
+                      email, subject_2)
+        try:
+            (rv, data) = account.search(None, '(FROM "' + email + '" SUBJECT "'
+                                        + subject_2 + '" SENTON "' + today
+                                        + '")')
+        except imaplib.IMAP4.error as err:
+            _LOGGER.error("Error searching emails: %s", str(err))
+            return False
+
+        if rv == 'OK':
+            if filter_text is not None:
+                count += find_text(data[0], account, filter_text)
+            else:
+                count += len(data[0].split())
+            _LOGGER.debug("Found from %s with subject 2 %s, %s", email,
+                          subject_2, data[0])
+
+    return count
+
+
+# Filter for specific words in email
+###############################################################################
+
+def find_text(sdata, account, search):
+    _LOGGER.debug("Searching for %s in emails", search)
+    mail_list = sdata.split()
+    count = 0
+
+    for i in mail_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
+            if isinstance(response_part, tuple):
+                msg = email.message_from_bytes(response_part[1])
+                email_msg = str(msg.get_payload(0))
+                if email_msg.find(search):
+                    _LOGGER.debug("Found %s in email", search)
+                    count += 1
 
     return count
 
@@ -1227,56 +642,85 @@ def get_items(account, param):
     tfmt = past_date.strftime('%d-%b-%Y')
     deliveriesToday = []
     orderNum = []
+    email_addr = Amazon_Email
+    email_addr_2 = Amazon_Email_2
 
     try:
-        (rv, sdata) = account.search(None, '(FROM "amazon.com" SINCE ' + tfmt +
-                                     ')')
+        (rv, sdata) = account.search(None, '(FROM "' + email_addr +
+                                     '" SINCE ' + tfmt + ')')
     except imaplib.IMAP4.error as err:
         _LOGGER.error("Error searching emails: %s", str(err))
 
-    else:
+    try:
+        (rv, sdata2) = account.search(None, '(FROM "' + email_addr_2 +
+                                      '" SINCE ' + tfmt + ')')
+    except imaplib.IMAP4.error as err:
+        _LOGGER.error("Error searching emails: %s", str(err))
+
+    if sdata is not None:
         mail_ids = sdata[0]
-        id_list = mail_ids.split()
-        _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
-        for i in id_list:
-            typ, data = account.fetch(i, '(RFC822)')
-            for response_part in data:
-                if isinstance(response_part, tuple):
-                    msg = email.message_from_bytes(response_part[1])
-                    email_subject = msg['subject']
-                    # email_from = msg['from']
-                    email_msg = str(msg.get_payload(0))
-                    # today_month = datetime.date.today().month
-                    # today_day = datetime.date.today().day
-                    if "will arrive:" in email_msg:
-                        start = (email_msg.find("will arrive:") +
-                                 len("will arrive:"))
-                        end = email_msg.find("Track your package:")
-                        arrive_date = email_msg[start:end].strip()
-                        arrive_date = arrive_date.split(" ")
-                        arrive_date = arrive_date[0:3]
-                        arrive_date[2] = arrive_date[2][:2]
-                        arrive_date = " ".join(arrive_date).strip()
-                        dateobj = datetime.datetime.strptime(arrive_date,
-                                                             '%A, %B %d')
-                        if (dateobj.day == datetime.date.today().day and
-                           dateobj.month == datetime.date.today().month):
-                            subj_parts = email_subject.split('"')
-                            if len(subj_parts) > 1:
-                                deliveriesToday.append(subj_parts[1])
-                            else:
-                                deliveriesToday.append("Amazon Order")
+    elif sdata2 is not None:
+        mail_ids = sdata2[0]
 
-                            subj_order = email_subject.split(' ')
-                            if len(subj_order) == 6:
-                                orderNum.append(str(subj_order[3]).strip('#'))
+    id_list = mail_ids.split()
+    _LOGGER.debug("Amazon emails found: %s", str(len(id_list)))
+    for i in id_list:
+        typ, data = account.fetch(i, '(RFC822)')
+        for response_part in data:
 
-        if (param == "count"):
-            _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
-            return len(deliveriesToday)
-        elif (param == "order"):
-            _LOGGER.debug("Amazon order: %s", str(orderNum))
-            return orderNum
-        else:
-            _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
-            return deliveriesToday
+            if isinstance(response_part, tuple):
+                msg = email.message_from_string(data[0][1].decode('utf-8'))
+                email_subject = msg['subject']
+                # email_from = msg['from']
+
+                if msg.is_multipart():
+                    try:
+                        email_msg = msg.get_payload()[0].get_payload()
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))
+                        continue
+                else:
+                    try:
+                        email_msg = str(msg.get_payload(0))
+                    except Exception as err:
+                        _LOGGER.debug("Amazon skipped due to payload " +
+                                      "issues: %s", email_subject)
+                        _LOGGER.debug("Error message: %s", str(err))
+                        continue
+
+                # today_month = datetime.date.today().month
+                # today_day = datetime.date.today().day
+                if "will arrive:" in email_msg:
+                    start = (email_msg.find("will arrive:") +
+                             len("will arrive:"))
+                    end = email_msg.find("Track your package:")
+                    arrive_date = email_msg[start:end].strip()
+                    arrive_date = arrive_date.split(" ")
+                    arrive_date = arrive_date[0:3]
+                    arrive_date[2] = arrive_date[2][:2]
+                    arrive_date = " ".join(arrive_date).strip()
+                    dateobj = datetime.datetime.strptime(arrive_date,
+                                                         '%A, %B %d')
+                    if (dateobj.day == datetime.date.today().day and
+                       dateobj.month == datetime.date.today().month):
+                        subj_parts = email_subject.split('"')
+                        if len(subj_parts) > 1:
+                            deliveriesToday.append(subj_parts[1])
+                        else:
+                            deliveriesToday.append("Amazon Order")
+
+                        subj_order = email_subject.split(' ')
+                        if len(subj_order) == 6:
+                            orderNum.append(str(subj_order[3]).strip('#'))
+
+    if (param == "count"):
+        _LOGGER.debug("Amazon Count: %s", str(len(deliveriesToday)))
+        return len(deliveriesToday)
+    elif (param == "order"):
+        _LOGGER.debug("Amazon order: %s", str(orderNum))
+        return orderNum
+    else:
+        _LOGGER.debug("Amazon json: %s", str(deliveriesToday))
+        return deliveriesToday

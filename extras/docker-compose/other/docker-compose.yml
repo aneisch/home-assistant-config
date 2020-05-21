@@ -116,7 +116,8 @@ services:
     bitwarden_backup:
         container_name: bitwarden_backup
         image: shivpatel/bitwarden_rs_dropbox_backup:latest
-        user: '99'
+        # Has to run as root or something. Whatever.
+        #user: '99'
         volumes:
             - /opt/bw-data/db.sqlite3:/db.sqlite3
             - /etc/localtime:/etc/localtime:ro
