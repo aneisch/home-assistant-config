@@ -1,0 +1,342 @@
+version: '3.2'
+services:
+    homeassistant:
+        container_name: hass
+        #image: homeassistant/home-assistant:0.109.6
+        image: homeassistant/home-assistant:stable
+        volumes:
+          - /opt/homeassistant:/config
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
+          - /tmp/radar.gif:/tmp/radar.gif
+          - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
+        devices:
+            - /dev/zwave
+            - /dev/zigbee
+        environment:
+          - TZ=America/Chicago
+        healthcheck:
+          test: "curl -sLf http://localhost:8123"
+          interval: 60s
+          timeout: 15s
+          retries: 3
+        network_mode: host
+        restart: always
+        logging:
+          driver: none
+    mosquitto:
+        container_name: mosquitto
+        image: eclipse-mosquitto
+        user: '99'
+        healthcheck:
+            test: "timeout -t 2 mosquitto_sub -t '#'"
+            interval: 60s
+            timeout: 10s
+            retries: 5
+        volumes:
+            - '/etc/ssl/certs:/mosquitto/certs:ro'
+            - '/opt/mosquitto/config:/mosquitto/config:ro'
+            - '/opt/mosquitto/log:/mosquitto/log'
+            - '/opt/mosquitto/data:/mosquitto/data'
+        ports:
+            - '1883:1883'
+        restart: always
+    influxdb:
+        container_name: influxdb
+        image: influxdb
+        user: '99'
+        healthcheck:
+          test: "curl -sf http://localhost:8086/ping"
+          interval: 60s
+          timeout: 10s
+          retries: 5
+        volumes:
+            - '/opt/influxdb:/var/lib/influxdb'
+        ports:
+            - '8086:8086'
+        restart: always
+    nodered:
+        container_name: nodered
+        image: nodered/node-red:latest
+        user: '99'
+        volumes:
+          - /opt/nodered:/data
+          - /etc/localtime:/etc/localtime:ro
+        ports:
+          - "1880:1880"
+        environment:
+          - TZ=America/Chicago
+        restart: always
+    appdaemon:
+        container_name: appdaemon
+        image: acockburn/appdaemon:latest
+        user: '99'
+        healthcheck:
+          test: "curl -sf http://localhost:8888"
+          interval: 60s
+          timeout: 10s
+          retries: 5
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /opt/appdaemon:/conf
+          # Mount directory of appdaemon apps installed by HACS
+          - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
+        ports:
+            - '8888:8888'
+        restart: always
+    thermostat_mqtt:
+        container_name: thermostat_mqtt
+        image: aneisch/thermostat_mqtt_docker:latest
+        user: '99'
+        environment:
+          - MQTT_SERVER=10.0.1.22
+          - MQTT_PORT=1883
+          - THERMOSTAT_IP=10.0.0.29
+        restart: always
+    apcupsd_950:
+        container_name: apcupsd_950
+        image: gersilex/apcupsd
+        ports:
+            - '3551:3551'
+        volumes:
+            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+        devices:
+            - '/dev/ups_monitor_950:/dev/usb/hiddev0'
+        restart: always
+    apcupsd_650:
+        container_name: apcupsd_650
+        image: gersilex/apcupsd
+        ports:
+            - '3552:3551'
+        volumes:
+            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+        devices:
+            - '/dev/ups_monitor_650:/dev/usb/hiddev0'
+        restart: always
+#    qt-openzwave:
+#        image: openzwave/ozwdaemon:latest
+#        container_name: "qt-openzwave"
+#        devices:
+#            - "/dev/zwave:/dev/ttyUSB0"
+#        volumes:
+#            - /tmp/ozw:/opt/ozw/config
+#        environment:
+#            MQTT_SERVER: "10.0.1.22"
+#            USB_PATH: "/dev/ttyUSB0"
+#        restart: unless-stopped 
+    plex:
+        container_name: plex
+        image: plexinc/pms-docker:latest
+        volumes:
+            - '/opt/plex/db/:/config'
+            - '/opt/plex/transcode/:/transcode'
+            - '/plex/:/data'
+        environment:
+            - TZ=America/Chicago
+            - PLEX_CLAIM=REDACT
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            - TERM=xterm
+            - LANG=C.UTF-8
+            - LC_ALL=C.UTF-8
+            - CHANGE_CONFIG_DIR_OWNERSHIP=true
+            - HOME=/config
+        network_mode: host
+        restart: "no"
+    portainer:
+        container_name: portainer
+        image: portainer/portainer
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/opt/portainer:/data'
+        ports:
+            - '9000:9000'
+        environment:
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        restart: "no"
+    ozwcp:
+        container_name: ozwcp
+        image: openzwave/openzwave-control-panel
+        volumes:
+            - '/opt/homeassistant/options.xml:/etc/openzwave/options.xml'
+            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/etc/openzwave/zwcfg_0xc564203a.xml'
+            - '/opt/homeassistant/manufacturer_specific.xml:/etc/openzwave/manufacturer_specific.xml'
+        ports:
+            - '8008:8008'
+        devices:
+            - '/dev/zwave:/dev/zwave'
+        restart: 'no'
+    grafana:
+        container_name: grafana
+        image: grafana/grafana:6.4.5
+        #image: grafana/grafana
+        user: '99'
+        volumes:
+            - /opt/grafana:/var/lib/grafana
+        ports:
+            - '3000:3000'
+        environment:
+            - GF_SECURITY_ALLOW_EMBEDDING=true
+            - GF_SECURITY_COOKIE_SAMESITE=none
+            - GF_INSTALL_PLUGINS=neocat-cal-heatmap-panel
+        restart: "no"
+    esphome:
+        container_name: esphome
+        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
+        #image: esphome-dev
+        #image: esphome/esphome:dev
+        image: esphome/esphome
+        volumes:
+            - /opt/esphome/:/config:rw
+            # Use local time for logging timestamps
+            - /etc/localtime:/etc/localtime:ro
+        network_mode: host
+        restart: "no"
+    thermopro_mqtt:
+        container_name: thermopro_mqtt
+        image: aneisch/rtl_433_mqtt:latest
+        user: '99'
+        environment:
+            - MQTT_SERVER=10.0.1.22
+            - MQTT_PORT=1883
+            - UNITS=customary
+        restart: 'no'
+        devices:
+            # for some reason path on container must match host path
+            # use readlink /dev/rtl_sdr
+            # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/004'
+    bitwarden:
+        container_name: bitwarden
+        image: bitwardenrs/server:1.14.1-alpine
+        user: '99'
+        volumes:
+            - /opt/bw-data/:/data/
+            - /etc/localtime:/etc/localtime:ro
+        environment:
+            - DISABLE_ADMIN_TOKEN=true
+            - SIGNUPS_VERIFY=true
+            - SIGNUPS_ALLOWED=false
+            - INVITATIONS_ALLOWED=true
+            - LOG_FILE=/data/bitwarden.log
+            - LOG_LEVEL=error
+            - EXTENDED_LOGGING=true
+            - DOMAIN=REDACT
+            - SMTP_HOST=smtp.gmail.com
+            - SMTP_FROM=REDACT
+            - SMTP_FROM_NAME='Bitwarden Password Manager'
+            - SMTP_SSL=true
+            - SMTP_USERNAME=REDACT
+            - SMTP_PASSWORD=REDACT
+            - ROCKET_PORT=1024
+            - WEBSOCKET_ENABLED=true
+            - DUO_IKEY=
+            - DUO_SKEY=
+            - DUO_HOST=
+        ports:
+            - '8777:1024'
+        logging:
+            driver: none
+        restart: always
+    bitwarden_backup:
+        container_name: bitwarden_backup
+        image: shivpatel/bitwarden_rs_dropbox_backup:latest
+        # Has to run as root or something. Whatever.
+        #user: '99'
+        volumes:
+            - /opt/bw-data/db.sqlite3:/db.sqlite3
+            - /etc/localtime:/etc/localtime:ro
+        environment:
+            - DROPBOX_ACCESS_TOKEN=REDACT
+            - BACKUP_ENCRYPTION_KEY=REDACT
+        restart: always
+    train-sensor:
+        container_name: train-sensor
+        image: aneisch/train-sensor
+        user: '99'
+        devices:
+            # for some reason path on container must match host path
+            # use readlink /dev/rtl_sdr
+            # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
+            #- '/dev/rtl_sdr_train:/dev/bus/usb/003/003'
+            - '/dev/rtl_sdr_train:/dev/bus/usb/003/003'
+        environment:
+            - DEVICE_INDEX=1
+            - SQUELCH=80
+            - HOLDOFF_TIME=800
+        restart: 'on-failure'
+    hass-configurator:
+        container_name: configurator
+        image: causticlab/hass-configurator-docker:x86_64
+        ports:
+          - "3218:3218/tcp"
+        volumes:
+          - "/opt/hass-configurator:/config"
+          - "/opt/homeassistant:/hass-config"
+        restart: 'no'
+    watchtower:
+        container_name: watchtower
+        image: containrrr/watchtower:latest
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /etc/localtime:/etc/localtime:ro
+        restart: always
+        environment:
+          - WATCHTOWER_NO_STARTUP_MESSAGE=true
+          - WATCHTOWER_MONITOR_ONLY=true
+          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+          - WATCHTOWER_INCLUDE_STOPPED=true
+          - WATCHTOWER_NOTIFICATIONS=email
+          - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
+          - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+        command: --schedule "00 00 12 * * *"
+    adguard:
+        container_name: adguard
+        image: adguard/adguardhome:latest
+        user: '99'
+        volumes:
+          - /etc/localtime:/etc/localtime:ro
+          - /opt/adguard:/opt/adguardhome/conf
+          - /opt/adguard/work:/opt/adguardhome/work
+        ports:
+          - 53:5353/tcp
+          - 53:5353/udp
+          - 8088:8080/tcp
+        restart: 'always'
+    librespeed:
+        image: linuxserver/librespeed
+        container_name: librespeed
+        ports:
+          - 8880:80
+        environment:
+          - PASSWORD=password
+          - TZ=America/Chicago
+        restart: 'no'
+    recipes:
+        container_name: recipes
+        image: aneisch/chowdown:latest
+        user: '99'
+        ports:
+          - "4000:4000"
+        volumes:
+          - '/opt/recipes:/config'
+          - '/etc/localtime:/etc/localtime:ro'
+        restart: always
+    watchtower-test:
+        container_name: watchtower-test
+        image: aneisch/watchtower:latest
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /etc/localtime:/etc/localtime:ro
+        restart: always
+        environment:
+          - WATCHTOWER_MONITOR_ONLY=true
+          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+          - WATCHTOWER_INCLUDE_STOPPED=true
+          - WATCHTOWER_NOTIFICATIONS=pushover
+          - WATCHTOWER_NOTIFICATION_PUSHOVER_APP=axcjnxkscktobs5hp6e5iwwoswabcc
+        #command: --schedule "00 00 12 * * *"

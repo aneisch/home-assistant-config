@@ -38,6 +38,9 @@ binary_sensor: !include binary_sensor.yaml
 
 camera: !include camera.yaml
 
+# 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
+conversation:
+
 climate:
   platform: radiotherm
   host:
