@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.110.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.110.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -46,7 +46,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 990
-Lines of Home Assistant YAML | 3118
+Lines of Home Assistant YAML | 3121
 [Integrations](https://www.home-assistant.io/integrations/) in use | 17
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
  
@@ -70,13 +70,13 @@ Entities in the [`person`](https://www.home-assistant.io/components/person) doma
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 17
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 227
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 211
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 76
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 74
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-**Total state objects** | **473**
+**Total state objects** | **455**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -100,20 +100,19 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
 
 **Plugin**:<br>
-[bramkragten/swipe-card](https://github.com/bramkragten/swipe-card)<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/button-card](https://github.com/custom-cards/button-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [gadgetchnnel/lovelace-card-preloader](https://github.com/gadgetchnnel/lovelace-card-preloader)<br>
+[iantrich/config-template-card](https://github.com/iantrich/config-template-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
 [ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
-[thomasloven/lovelace-gui-sandbox](https://github.com/thomasloven/lovelace-gui-sandbox)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
 [thomasloven/lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)<br>
 [twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>

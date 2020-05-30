@@ -113,17 +113,6 @@ services:
         devices:
             - '/dev/ups_monitor_650:/dev/usb/hiddev0'
         restart: always
-#    qt-openzwave:
-#        image: openzwave/ozwdaemon:latest
-#        container_name: "qt-openzwave"
-#        devices:
-#            - "/dev/zwave:/dev/ttyUSB0"
-#        volumes:
-#            - /tmp/ozw:/opt/ozw/config
-#        environment:
-#            MQTT_SERVER: "10.0.1.22"
-#            USB_PATH: "/dev/ttyUSB0"
-#        restart: unless-stopped 
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -326,17 +315,3 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
-    watchtower-test:
-        container_name: watchtower-test
-        image: aneisch/watchtower:latest
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-          - /etc/localtime:/etc/localtime:ro
-        restart: always
-        environment:
-          - WATCHTOWER_MONITOR_ONLY=true
-          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
-          - WATCHTOWER_INCLUDE_STOPPED=true
-          - WATCHTOWER_NOTIFICATIONS=pushover
-          - WATCHTOWER_NOTIFICATION_PUSHOVER_APP=axcjnxkscktobs5hp6e5iwwoswabcc
-        #command: --schedule "00 00 12 * * *"

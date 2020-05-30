@@ -84,7 +84,7 @@ http:
     - 127.0.0.1
     - ::1
   server_port: 8123
-  base_url: !secret hass_url
+  #base_url: !secret hass_url
 
 #ifttt:
 #  key: !secret ifttt_key
@@ -165,15 +165,11 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
       type: js
-    - url: /hacsfiles/swipe-card/swipe-card.js
-      type: module
     - url: /hacsfiles/lovelace-hass-aarlo/hass-aarlo.js
       type: module
     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
       type: module
     - url: /hacsfiles/button-card/button-card.js
-      type: module
-    - url: /hacsfiles/lovelace-gui-sandbox/gui-sandbox.js
       type: module
     - url: /hacsfiles/bignumber-card/bignumber-card.js
       type: js
@@ -189,7 +185,7 @@ lovelace:
       type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
       type: js
-    - url: /hacsfiles/lovelace-card-preloader/lovelace-card-preloader.js
+    - url: /hacsfiles/config-template-card/config-template-card.js
       type: module
 
 map:
