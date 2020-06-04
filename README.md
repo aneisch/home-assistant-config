@@ -45,7 +45,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 990
+Lines of ESPHome YAML | 994
 Lines of Home Assistant YAML | 3115
 [Integrations](https://www.home-assistant.io/integrations/) in use | 17
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
@@ -72,11 +72,11 @@ Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 17
 Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 211
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 74
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 73
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-**Total state objects** | **455**
+**Total state objects** | **454**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

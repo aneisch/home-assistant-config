@@ -19,6 +19,10 @@ spi:
   miso_pin: D0
   clk_pin: D1
   
+# blue ground
+# white 3v
+# red D5
+# orange D6
 i2c:
   - id: bus_a
     sda: D5
@@ -33,8 +37,8 @@ sensor:
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
       - sliding_window_moving_average:
-          window_size: 30
-          send_every: 10
+          window_size: 10
+          send_every: 30
     unit_of_measurement: "°F"
     update_interval: 1s
 

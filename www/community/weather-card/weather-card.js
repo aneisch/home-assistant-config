@@ -241,13 +241,14 @@ class WeatherCard extends LitElement {
     this.numberElements++;
     return html`
       <div class="forecast clear ${this.numberElements > 1 ? "spacer" : ""}">
-        ${forecast.slice(0, 5).map(
-          daily => html`
+      ${forecast.slice(0, this._config.number_of_forecasts ? this._config.number_of_forecasts : 5 ).map(
+        daily => html`
             <div class="day">
               <div class="dayname">
-                ${new Date(daily.datetime).toLocaleDateString(lang, {
-                  weekday: "short"
-                })}
+              ${this._config.hourly_forecast 
+                ? new Date(daily.datetime).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit' })
+                : new Date(daily.datetime).toLocaleDateString(lang, {weekday: "short" })
+              }
               </div>
               <i
                 class="icon"
@@ -338,18 +339,17 @@ class WeatherCard extends LitElement {
       .title {
         position: absolute;
         left: 3em;
-        top: 0.6em;
         font-weight: 300;
         font-size: 3em;
         color: var(--primary-text-color);
       }
+
       .temp {
         font-weight: 300;
         font-size: 4em;
         color: var(--primary-text-color);
         position: absolute;
         right: 1em;
-        top: 0.3em;
       }
 
       .tempc {
@@ -363,8 +363,21 @@ class WeatherCard extends LitElement {
         margin-right: 7px;
       }
 
+      @media (max-width: 460px){
+        .title {
+          font-size: 2.2em;
+          left: 4em;
+        }
+        .temp {
+          font-size: 3em;
+        }
+        .tempc {
+          font-size: 1em;
+        }
+      }
+
       .current {
-        padding-top: 1.2em;
+        padding: 1.2em 0;
         margin-bottom: 3.5em;
       }
 

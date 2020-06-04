@@ -315,3 +315,15 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
+    haproxy:
+        container_name: haproxy
+        image: haproxy
+        ports:
+          - "80:80"
+          - "443:443"
+        volumes:
+          - "/etc/cloudflare/cloudflare_origin_combined.pem:/etc/ca/keys/haproxy.pem:ro"
+          - "/opt/haproxy:/usr/local/etc/haproxy:ro"
+          - "/opt/haproxy:/var/run/haproxy/"
+          - "/opt/haproxy:/var/log/"
+        restart: 'no'

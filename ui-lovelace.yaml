@@ -5,7 +5,7 @@ custom_header:
   background: var(--app-header-background-color)
   elements_color: var(--app-header-text-color)
   chevrons: false
-  hide_tabs: '{% if is_state("switch.docker_thermopro_mqtt", "off") %}7{% endif %}'
+  hide_tabs: '{% if not ( (is_state("switch.docker_thermopro_mqtt", "on") or (not is_state("sensor.traeger_temperature", "unavailable"))) ) %}7{% endif %}'
   tab_indicator_color: 'rgb(214, 122, 127)'
   footer_mode: '{% if "Pixel 2" in userAgent %}true{% else %}false{% endif %}'
 
@@ -14,7 +14,7 @@ swipe_nav:
 
 views: !include_dir_list ui-lovelace/
 
-preload:
-  - markdown
-  - entity-filter
-  - config-template-card
+#preload:
+#  - markdown
+#  - entity-filter
+#  - config-template-card
