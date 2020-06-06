@@ -19,7 +19,7 @@ http:
 api:
 
 # Expose admin interface on http://10.0.1.22:8888
-#admin:
+admin:
 
 logs:
   error_log:
