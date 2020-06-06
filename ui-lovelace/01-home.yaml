@@ -112,16 +112,16 @@ cards:
         show_header_toggle: false
         title: Weather
         entities:
-          - sensor.dark_sky_summary
-          - sensor.dark_sky_temperature
-          - sensor.dark_sky_humidity
-          - sensor.dark_sky_precip_probability
+          - weather.kcll_daynight
+          - sensor.nws_temperature
+          - sensor.nws_humidity
+          - sensor.nws_precip_probability
           - sun.sun
           - sensor.moon
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
       - type: custom:weather-card
-        entity: weather.dark_sky
+        entity: weather.kcll_daynight
 
   - type: iframe
     aspect_ratio: 90%

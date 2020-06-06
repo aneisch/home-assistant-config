@@ -346,10 +346,10 @@ switch: !include switches.yaml
 
 system_health:
 
-weather:
-  - platform: darksky
-    api_key: !secret darksky_api_key
-    mode: daily
+#weather:
+#  - platform: darksky
+#    api_key: !secret darksky_api_key
+#    mode: daily
 
 zone:
   - name: Andrew Work
