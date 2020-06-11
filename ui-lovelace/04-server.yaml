@@ -17,6 +17,7 @@ cards:
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot
+          - sensor.last_backup_completed
 
       - type: horizontal-stack
         cards:
