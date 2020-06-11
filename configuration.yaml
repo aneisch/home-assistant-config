@@ -159,8 +159,8 @@ logger:
 lovelace:
   mode: yaml
   resources:
-    - url: /hacsfiles/toggle-lock-entity-row/toggle-lock-entity-row.js
-      type: js
+    - url: /hacsfiles/restriction-card/restriction-card.js
+      type: module
     - url: /hacsfiles/weather-card/weather-card.js
       type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
@@ -299,8 +299,6 @@ recorder:
       - binary_sensor.internet_reachability
       - binary_sensor.iss
       - sensor.aarlo_signal_strength_office
-      - sensor.dark_sky_icon
-      - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown
       - sensor.last_boot
       - sensor.load_1m

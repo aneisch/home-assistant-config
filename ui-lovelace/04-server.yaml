@@ -73,7 +73,6 @@ cards:
           - switch.rack_down_draft
           - entity: switch.nas
             name: "NAS / Plex"
-            type: custom:toggle-lock-entity-row
       - type: conditional
         title: Misc
         conditions:
@@ -97,25 +96,15 @@ cards:
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
       - entity: switch.docker_train_sensor
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_adguard
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_950
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_apcupsd_650
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_appdaemon
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_influxdb
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_mosquitto
-        type: custom:toggle-lock-entity-row
       - entity: switch.docker_nodered
-        type: custom:toggle-lock-entity-row
-      #- entity: switch.docker_pihole
-      #  type: custom:toggle-lock-entity-row
+      - entity: switch.docker_adguard
       - entity: switch.docker_thermostat_mqtt
-        type: custom:toggle-lock-entity-row
 
   #- type: custom:gui-sandbox
 

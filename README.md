@@ -46,8 +46,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 994
-Lines of Home Assistant YAML | 3149
-[Integrations](https://www.home-assistant.io/integrations/) in use | 18
+Lines of Home Assistant YAML | 3137
+[Integrations](https://www.home-assistant.io/integrations/) in use | 19
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 5
  
 Description | value
@@ -66,17 +66,18 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 1
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 10
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 8
+Entities in the [`persistent_notification`](https://www.home-assistant.io/components/persistent_notification) domain | 1
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 17
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 216
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 217
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 74
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 73
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-**Total state objects** | **461**
+**Total state objects** | **462**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -107,6 +108,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [gadgetchnnel/lovelace-card-preloader](https://github.com/gadgetchnnel/lovelace-card-preloader)<br>
 [iantrich/config-template-card](https://github.com/iantrich/config-template-card)<br>
+[iantrich/restriction-card](https://github.com/iantrich/restriction-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>
@@ -114,7 +116,6 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
-[thomasloven/lovelace-toggle-lock-entity-row](https://github.com/thomasloven/lovelace-toggle-lock-entity-row)<br>
 [twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>
 
 
