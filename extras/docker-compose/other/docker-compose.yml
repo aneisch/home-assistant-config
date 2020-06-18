@@ -157,8 +157,9 @@ services:
           - /etc/localtime:/etc/localtime:ro
         restart: always
         environment:
+          - WATCHTOWER_CLEANUP=true
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
-          - WATCHTOWER_MONITOR_ONLY=true
+          #- WATCHTOWER_MONITOR_ONLY=true
           - WATCHTOWER_NOTIFICATIONS_LEVEL=info
           - WATCHTOWER_INCLUDE_STOPPED=true
           - WATCHTOWER_NOTIFICATIONS=email
@@ -214,3 +215,21 @@ services:
           - "/opt/haproxy:/var/run/haproxy/"
           - "/opt/haproxy:/var/log/"
         restart: 'no'
+
+    tuya-convert:
+        # https://github.com/ct-Open-Source/tuya-convert
+        # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
+        # this is needed to accept EULA
+        # then can use docker-compose exec tuya-convert start
+        container_name: 'tuya-convert'
+        image: tuya-convert:latest
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
+        privileged: true
+        network_mode: "host"
+        environment:
+          - WLAN=wlp58s0
+          - AP=vtrust-flash
+          - GATEWAY=10.42.42.1
+        volumes:
+          - /tmp/tuya:/usr/bin/tuya-convert/backups

@@ -17,7 +17,9 @@ cards:
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot
-          - sensor.last_backup_completed
+      - type: markdown
+        content: |
+          Last Backup: {{ relative_time(strptime(states.sensor.last_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
 
       - type: horizontal-stack
         cards:
@@ -104,7 +106,6 @@ cards:
       - entity: switch.docker_influxdb
       - entity: switch.docker_mosquitto
       - entity: switch.docker_nodered
-      - entity: switch.docker_adguard
       - entity: switch.docker_thermostat_mqtt
 
   #- type: custom:gui-sandbox
