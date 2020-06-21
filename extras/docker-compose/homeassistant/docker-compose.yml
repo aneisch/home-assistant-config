@@ -29,7 +29,7 @@ services:
         image: eclipse-mosquitto
         user: '99'
         healthcheck:
-            test: "timeout -t 2 mosquitto_sub -t '#'"
+            test: "mosquitto_sub -E -t '#'"
             interval: 60s
             timeout: 10s
             retries: 5
