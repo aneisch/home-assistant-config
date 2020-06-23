@@ -19,6 +19,8 @@ binary_sensor:
       number: D1
     name: "Back Door"
     device_class: door
+    filters:
+      - delayed_on_off: 0.5s
 
   - platform: gpio
     pin:
@@ -26,6 +28,8 @@ binary_sensor:
       number: D2
     name: "Front Door"
     device_class: door
+    filters:
+      - delayed_on_off: 0.5s
 
 switch:
   - platform: restart
