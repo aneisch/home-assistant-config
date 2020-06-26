@@ -28,8 +28,8 @@ esp32_camera:
   power_down_pin: GPIO32
   name: "${friendly_name}"
   resolution: 1024x768
-  max_framerate: 5 fps
-  idle_framerate: 0.01 fps
+  max_framerate: 1 fps
+  idle_framerate: 1 fps
 
 # Flashlight
 output:

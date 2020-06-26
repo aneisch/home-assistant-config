@@ -2,9 +2,9 @@
 # Base component constants
 DOMAIN = "readme"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.1.1"
+VERSION = "0.2.1"
 REQUIRED_FILES = [
-    ".translations/en.json",
+    "translations/en.json",
     "const.py",
     "config_flow.py",
     "default.j2",
