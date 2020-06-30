@@ -1,0 +1,83 @@
+script:
+  fingerprint_learn:
+    alias: Fingerprint Learn
+    sequence:
+      - service: mqtt.publish
+        data:
+          payload_template: '{{states(''input_number.fingerprint_learning_id'') | int}}'
+          topic: sensor/fingerprint/mode/learning
+
+  fingerprint_delete:
+    alias: Fingerprint Delete
+    sequence:
+      - service: mqtt.publish
+        data:
+          payload_template: '{{states(''input_number.fingerprint_learning_id'') | int}}'
+          topic: sensor/fingerprint/mode/delete
+
+sensor:
+  - platform: mqtt
+    name: "Fingerprint"
+    state_topic: "sensor/fingerprint/mode/status"
+    value_template: "{{value_json.state}}"
+    json_attributes_topic: "sensor/fingerprint/mode/status"
+    json_attributes_template: "{{value_json | tojson}}"
+
+  - platform: template
+    sensors:
+      fingerprint_mode:
+        friendly_name: "Fingerprint Sensor Mode"
+        value_template: >-
+          {{state_attr('sensor.fingerprint', 'mode')}}
+        icon_template: >-
+          {% if is_state('sensor.fingerprint_mode', 'reading') %}
+            mdi:book-open-outline
+          {% elif is_state('sensor.fingerprint_mode', 'learning') %}
+            mdi:book-open-page-variant
+          {% endif %}
+      fingerprint_state:
+        friendly_name: "Fingerprint State"
+        value_template: >-
+          {{states('sensor.fingerprint')}}
+        icon_template: >-
+          {% if is_state('sensor.fingerprint', 'Waiting') %}
+            mdi:fingerprint
+          {% elif is_state('sensor.fingerprint', 'Matched') %}
+            mdi:fingerprint
+          {% elif is_state('sensor.fingerprint', 'Not matched') %}
+            mdi:fingerprint-off
+          {% endif %}
+      fingerprint_id:
+        friendly_name: "Fingerprint ID"
+        value_template: >-
+          {{state_attr('sensor.fingerprint', 'id')}}
+      fingerprint_person:
+        friendly_name: "Fingerprint Person"
+        value_template: >-
+          {% if (states('sensor.fingerprint_id') | int > 0) and (states('sensor.fingerprint_id') | int <= 10) %}
+            Andrew
+          {% elif (states('sensor.fingerprint_id') | int > 10) and (states('sensor.fingerprint_id') | int <= 20) %}
+            Bethany
+          {% elif states.sensor.fingerprint_id.state | int > 20 %}
+            {{states.sensor.fingerprint_id.state}}
+          {% elif is_state('sensor.fingerprint', 'Waiting') %}
+            Waiting
+          {% elif is_state('sensor.fingerprint', 'Not matched') %}
+            Not matched
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sensor.fingerprint', 'Waiting') %}
+            mdi:human-male
+          {% elif is_state('sensor.fingerprint', 'Matched') %}
+            mdi:human-greeting
+          {% elif is_state('sensor.fingerprint', 'Not matched') %}
+            mdi:police-badge
+          {% endif %}
+
+input_number:
+  fingerprint_learning_id:
+    name: Fingerprint Learning ID
+    min: 1
+    max: 127
+    step: 1
+    mode: box

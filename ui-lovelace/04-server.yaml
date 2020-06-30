@@ -123,6 +123,31 @@ cards:
           - entity: sensor.hacs
             name: HACS Updates
 
+  - type: glance
+    entities:
+      - sensor.fingerprint_mode
+      - sensor.fingerprint_state
+      - sensor.fingerprint_person
+  - type: horizontal-stack
+    cards:
+      - type: entities
+        entities:
+          - input_number.fingerprint_learning_id
+      - type: vertical-stack
+        cards:
+          - type: button
+            entity: script.fingerprint_learn
+            show_icon: false
+            tap_action: 
+              action: call-service
+              service: script.fingerprint_learn
+          - type: button
+            entity: script.fingerprint_delete
+            show_icon: false
+            tap_action: 
+              action: call-service
+              service: script.fingerprint_delete
+
 #  - type: entities 
 #    show_header_toggle: false
 #    title: Pi-Hole      

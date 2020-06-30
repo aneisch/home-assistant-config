@@ -1,0 +1,47 @@
+{
+    "config": {
+        "error": {
+            "connection_error": "连接错误；检查网络并重试",
+            "identifier_exists": "Alexa URL的电子邮件已注册"
+        },
+        "step": {
+            "authselect": {
+                "data": {
+                    "authselectoption": "OTP方式"
+                },
+                "description": "**{email} - alexa.{url}**\\n{message}",
+                "title": "Alexa Media Player - 一次性密码"
+            },
+            "captcha": {
+                "data": {
+                    "captcha": "验证码",
+                    "password": "密码"
+                },
+                "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
+                "title": "Alexa Media Player-验证码"
+            },
+            "claimspicker": {
+                "data": {
+                    "authselectoption": "验证方式"
+                },
+                "title": "Alexa Media Player - 验证方法"
+            },
+            "twofactor": {
+                "data": {
+                    "securitycode": "2FA代码"
+                },
+                "description": "**{email} - Alexa.{url} ** \\n输入一次性密码（OTP）。 \\n {message}"
+            },
+            "user": {
+                "data": {
+                    "debug": "高级调试",
+                    "email": "电子邮件地址",
+                    "password": "密码"
+                },
+                "description": "请输入您的信息。",
+                "title": "Alexa Media Player-配置"
+            }
+        },
+        "title": "Alexa Media Player"
+    }
+}

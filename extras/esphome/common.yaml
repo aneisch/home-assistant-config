@@ -6,6 +6,7 @@ wifi:
 logger:
 
 api:
+  reboot_timeout: 0s
 
 ota:
   safe_mode: True
