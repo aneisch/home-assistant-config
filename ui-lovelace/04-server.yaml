@@ -19,7 +19,8 @@ cards:
           - sensor.last_boot
       - type: markdown
         content: |
-          Last Backup: {{ relative_time(strptime(states.sensor.last_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
+          Last NUC Backup: {{ relative_time(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
+          Last VPS Backup: {{ relative_time(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
 
       - type: horizontal-stack
         cards:

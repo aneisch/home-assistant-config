@@ -57,8 +57,13 @@ device_tracker:
       - 10.0.1.13/32
       - 10.0.1.59/32
 
+monitor_docker:
+  scan_interval: 60
+  monitored_conditions:
+    - containers_running
+
 # https://github.com/aneisch/docker_monitor
-docker_monitor:
+#docker_monitor:
 #  containers:
 #    - grafana
   # Interval is hard coded in __init__.py

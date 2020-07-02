@@ -46,7 +46,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 999
-Lines of Home Assistant YAML | 3279
+Lines of Home Assistant YAML | 3289
 [Integrations](https://www.home-assistant.io/integrations/) in use | 18
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 4
  
@@ -71,13 +71,13 @@ Entities in the [`person`](https://www.home-assistant.io/components/person) doma
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 19
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 224
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 213
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 79
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain | 11
-**Total state objects** | **479**
+**Total state objects** | **468**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -99,6 +99,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [hacs/integration](https://github.com/hacs/integration)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
+[ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
 
 **Plugin**:<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
@@ -106,12 +107,10 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/button-card](https://github.com/custom-cards/button-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
-[gadgetchnnel/lovelace-card-preloader](https://github.com/gadgetchnnel/lovelace-card-preloader)<br>
 [iantrich/config-template-card](https://github.com/iantrich/config-template-card)<br>
 [iantrich/restriction-card](https://github.com/iantrich/restriction-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
-[maykar/lovelace-swipe-navigation](https://github.com/maykar/lovelace-swipe-navigation)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
 [ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>

@@ -68,8 +68,13 @@
   value_template: "{{ value_json.batt }}"
 
 - platform: mqtt
-  state_topic: "sensor/rsync"
-  name: "Last Backup Completed"
+  state_topic: "sensor/rsync_nuc"
+  name: "Last NUC Backup Completed"
+  value_template: "{{ strptime(value_json.timestamp, '%Y-%m-%d %H:%M:%S') }}"
+
+- platform: mqtt
+  state_topic: "sensor/rsync_vps"
+  name: "Last VPS Backup Completed"
   value_template: "{{ strptime(value_json.timestamp, '%Y-%m-%d %H:%M:%S') }}"
 
 ####################

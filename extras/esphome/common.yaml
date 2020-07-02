@@ -12,7 +12,7 @@ ota:
   safe_mode: True
   password: esphome_recovery
 
-text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: "${friendly_name} IP Address"
+# text_sensor:
+#   - platform: wifi_info
+#     ip_address:
+#       name: "${friendly_name} IP Address"
