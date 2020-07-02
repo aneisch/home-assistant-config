@@ -81,3 +81,30 @@ input_number:
     max: 127
     step: 1
     mode: box
+
+switch:
+  - platform: mqtt
+    name: Fingerprint Enabled
+    unique_id: fingerprint_enabled
+    icon: "mdi:lightbulb-on-outline"
+    command_topic: "sensor/fingerprint/enabled"
+    state_topic: "sensor/fingerprint/enabled"
+    availability_topic: "sensor/fingerprint/available"
+    payload_on: "on"
+    payload_off: "off"
+    state_on: "on"
+    state_off: "off"
+
+automation:
+  - alias: Disable Fingerprint After Success
+    initial_state: on
+    trigger: 
+      - platform: state
+        entity_id: sensor.fingerprint
+        to: Matched
+    action:
+      - service: switch.turn_off
+        entity_id: switch.fingerprint_enabled
+      - delay: '00:00:05'
+      - service: switch.turn_on
+        entity_id: switch.fingerprint_enabled

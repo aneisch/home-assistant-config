@@ -175,6 +175,8 @@ services:
         container_name: adguard
         image: adguard/adguardhome:latest
         user: '99'
+        logging:
+            driver: none
         volumes:
           - /etc/localtime:/etc/localtime:ro
           - /opt/adguard:/opt/adguardhome/conf
