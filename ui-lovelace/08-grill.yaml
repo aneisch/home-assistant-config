@@ -21,7 +21,7 @@ cards:
 
   - type: conditional
     conditions:
-      - entity: sensor.traeger_ip_address
+      - entity: sensor.traeger_temperature
         state_not: "unavailable"
     card:
       type: entities

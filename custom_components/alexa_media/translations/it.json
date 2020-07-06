@@ -1,10 +1,16 @@
 {
     "config": {
         "error": {
+            "connection_error": "Errore durante la connessione; controlla la rete e riprova",
             "identifier_exists": "L'Email per l'URL di Alexa è già stata registrata",
-            "invalid_credentials": "Credenziali non valide"
+            "invalid_credentials": "Credenziali non valide",
+            "unknown_error": "Errore sconosciuto, si prega di riportrtare i log di informazione"
         },
         "step": {
+            "action_required": {
+                "description": "** {email} - alexa. {url} ** \\n Amazon invierà una notifica push per il seguente messaggio. Si prega di rispondere completamente prima di continuare. \\n {message}",
+                "title": "Alexa Media Player - Azione Richiesta"
+            },
             "authselect": {
                 "data": {
                     "authselectoption": "Metodo password usa e getta (OTP)"
@@ -49,5 +55,14 @@
             }
         },
         "title": "Alexa Media Player"
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "queue_delay": "Secondi di attesa per accodare i comandi insieme"
+                }
+            }
+        }
     }
 }

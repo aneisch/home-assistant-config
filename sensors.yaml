@@ -10,22 +10,6 @@
   - captured_today
   - signal_strength
 
-#Tell me when to change a thing
-- platform: date_reminder
-  name: AC Filter Change
-  start_date_input: input_datetime.ac_filter_change
-  days_in_future: 100
-
-- platform: date_reminder
-  name: Brita Filter Change
-  start_date_input: input_datetime.brita_change
-  days_in_future: 90
-
-- platform: date_reminder
-  name: Andrew Vehicle Registration
-  start_date_input: input_datetime.andrew_vehicle_registration
-  days_in_future: 360
-
 - platform: darksky
   scan_interval:
     minutes: 30

@@ -95,16 +95,16 @@ switch:
     state_on: "on"
     state_off: "off"
 
-automation:
-  - alias: Disable Fingerprint After Success
-    initial_state: on
-    trigger: 
-      - platform: state
-        entity_id: sensor.fingerprint
-        to: Matched
-    action:
-      - service: switch.turn_off
-        entity_id: switch.fingerprint_enabled
-      - delay: '00:00:05'
-      - service: switch.turn_on
-        entity_id: switch.fingerprint_enabled
+#automation:
+#  - alias: Disable Fingerprint After Success
+#    initial_state: on
+#    trigger: 
+#      - platform: state
+#        entity_id: sensor.fingerprint
+#        to: Matched
+#    action:
+#      - service: switch.turn_off
+#        entity_id: switch.fingerprint_enabled
+#      - delay: '00:00:05'
+#      - service: switch.turn_on
+#        entity_id: switch.fingerprint_enabled

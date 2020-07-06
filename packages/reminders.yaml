@@ -1,0 +1,45 @@
+sensor:
+  - platform: date_reminder
+    name: AC Filter Change
+    start_date_input: input_datetime.ac_filter_change
+    days_in_future: 100
+
+  - platform: date_reminder
+    name: Brita Filter Change
+    start_date_input: input_datetime.brita_change
+    days_in_future: 90
+
+  - platform: date_reminder
+    name: Andrew Vehicle Registration
+    start_date_input: input_datetime.andrew_vehicle_registration
+    days_in_future: 0
+
+  - platform: date_reminder
+    name: Bethany Vehicle Registration
+    start_date_input: input_datetime.bethany_vehicle_registration
+    days_in_future: 0
+
+input_datetime:
+  # Set date according when changed
+  ac_filter_change:
+    name: Last AC Filter Change Date
+    has_date: true
+    has_time: false
+
+  # Set date according when changed
+  brita_change:
+    name: Last Brita Change Date
+    has_date: true
+    has_time: false
+
+  # Set date according to sticker
+  andrew_vehicle_registration:
+    name: Andrew Vehicle Registration
+    has_date: true
+    has_time: false
+
+  # Set date according to sticker
+  bethany_vehicle_registration:
+    name: Bethany Vehicle Registration
+    has_date: true
+    has_time: false

@@ -7,6 +7,10 @@
             "unknown_error": "Erreur inconnue, veuillez signaler les informations du journal"
         },
         "step": {
+            "action_required": {
+                "description": "** {email} - alexa. {url} ** \\n Amazon enverra une notification push conformément au message ci-dessous. Veuillez répondre complètement avant de continuer. \\n {message}",
+                "title": "Alexa Media Player - Action requise"
+            },
             "authselect": {
                 "data": {
                     "authselectoption": "OTP méthode"

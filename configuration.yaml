@@ -14,6 +14,7 @@ homeassistant:
     hass_update_check: !include packages/hass_update_check.yaml
     grill: !include packages/grill.yaml
     fingerprint: !include packages/fingerprint.yaml
+    reminders: !include packages/reminders.yaml
     #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
@@ -57,13 +58,13 @@ device_tracker:
       - 10.0.1.13/32
       - 10.0.1.59/32
 
-monitor_docker:
-  scan_interval: 60
-  monitored_conditions:
-    - containers_running
+#monitor_docker:
+#  scan_interval: 60
+#  monitored_conditions:
+#    - containers_running
 
 # https://github.com/aneisch/docker_monitor
-#docker_monitor:
+docker_monitor:
 #  containers:
 #    - grafana
   # Interval is hard coded in __init__.py

@@ -218,10 +218,7 @@ def get_repository_name(repository) -> str:
     """Return the name of the repository for use in the frontend."""
     name = None
     if repository["repository_manifest"]:
-        if "name" in repository["repository_manifest"]:
-            name = repository["repository_manifest"]["name"]
-        else:
-            name = repository["full_name"].split("/")[-1]
+        name = repository["repository_manifest"]["name"]
     else:
         name = repository["full_name"].split("/")[-1]
 
