@@ -279,3 +279,19 @@
     webhook_id: !secret github_recipes_webhook
   action:
     - service: shell_command.pull_recipes
+
+- alias: "Power off NAS after backup"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.backups_complete
+    to: 'on'
+  condition:
+    condition: time
+    after: '03:00:00'
+    before: '05:00:00'
+    weekday:
+      - wed
+  action:
+    - service: homeassistant.turn_off
+      entity_id: switch.nas
