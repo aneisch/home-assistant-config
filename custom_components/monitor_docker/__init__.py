@@ -24,9 +24,10 @@ from .const import (
     CONF_CONTAINERS,
     CONF_RENAME,
     CONF_SENSORNAME,
-    CONF_SWITCH,
+    CONF_SWITCHENABLED,
     CONF_SWITCHNAME,
     CONFIG,
+    CONTAINER_INFO_ALLINONE,
     DOMAIN,
     DEFAULT_NAME,
     DEFAULT_SENSORNAME,
@@ -45,11 +46,14 @@ DOCKER_SCHEMA = vol.Schema(
         vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period,
         vol.Optional(
             CONF_MONITORED_CONDITIONS, default=MONITORED_CONDITIONS_LIST
-        ): vol.All(cv.ensure_list, [vol.In(MONITORED_CONDITIONS_LIST)]),
+        ): vol.All(
+            cv.ensure_list,
+            [vol.In(MONITORED_CONDITIONS_LIST + list([CONTAINER_INFO_ALLINONE]))],
+        ),
         vol.Optional(CONF_CONTAINERS, default=[]): cv.ensure_list,
         vol.Optional(CONF_RENAME, default={}): dict,
         vol.Optional(CONF_SENSORNAME, default=DEFAULT_SENSORNAME): cv.string,
-        vol.Optional(CONF_SWITCH, default=True): cv.boolean,
+        vol.Optional(CONF_SWITCHENABLED, default=True): cv.boolean,
         vol.Optional(CONF_SWITCHNAME, default=DEFAULT_SWITCHNAME): cv.string,
         vol.Optional(CONF_CERTPATH, default=""): cv.string,
     }
@@ -85,6 +89,15 @@ async def async_setup(hass, config):
 
     # Now go through all possible entries, we support 1 or more docker hosts (untested)
     for entry in config[DOMAIN]:
+        # Check if CONF_MONITORED_CONDITIONS has only ALLINONE, then expand to all
+        if (
+            len(entry[CONF_MONITORED_CONDITIONS]) == 1
+            and CONTAINER_INFO_ALLINONE in entry[CONF_MONITORED_CONDITIONS]
+        ):
+            entry[CONF_MONITORED_CONDITIONS] = list(MONITORED_CONDITIONS_LIST) + list(
+                [CONTAINER_INFO_ALLINONE]
+            )
+
         if entry[CONF_NAME] in hass.data[DOMAIN]:
             _LOGGER.error(
                 "Instance %s is duplicate, please assign an unique name",

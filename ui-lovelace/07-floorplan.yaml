@@ -40,26 +40,6 @@ cards:
           left: 50%
           width: 100%
 
-      - type: image
-        entity: switch.master_bathroom_light_switch
-        tap_action: none
-        hold_action: none
-        state_image:
-          "on": /local/floorplan/master/master_bathroom_on.png
-          "off": /local/floorplan/master/transparent_square.png
-        style:
-          top: 50%
-          left: 50%
-          width: 100%
-
-      - type: image
-        entity: switch.master_bathroom_light_switch
-        tap_action: none
-        hold_action: none
-        state_image:
-          "on": /local/floorplan/master/transparent_square.png
-          "off": /local/floorplan/master/transparent_square.png
-
       # Conditional to make fan spin when on
       - type: conditional
         conditions:
@@ -123,17 +103,6 @@ cards:
           top: 19%
           left: 77%
           width: 6%
-
-      # Bathroom Toggle
-      - type: image
-        entity: switch.master_bathroom_light_switch
-        tap_action:
-          action: toggle
-        image: /local/floorplan/master/transparent_square.png
-        style:
-          top: 48%
-          left: 22%
-          width: 14%
 
       # Fan Toggle
       - type: image

@@ -17,7 +17,7 @@ cards:
 
   - type: vertical-stack
     cards:
-      - type: "entity-button"
+      - type: "button"
         entity: switch.tv
         hold_action:
           action: call-service
@@ -26,29 +26,29 @@ cards:
             entity_id: switch.tv_remote_power
       - type: horizontal-stack
         cards:
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_hdmi_1
             name: Xbox
             icon: mdi:xbox
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_hdmi_2
             name: Chromecast
             icon: mdi:google-chrome
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_hdmi_3
             name: HDMI 3
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_hdmi_4
             name: HDMI 4
       - type: horizontal-stack
         cards:
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_volume_down
             show_name: false
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_mute
             show_name: false
-          - type: "entity-button"
+          - type: "button"
             entity: switch.tv_remote_volume_up
             show_name: false
 

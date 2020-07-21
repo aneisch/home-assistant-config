@@ -11,9 +11,7 @@ cards:
       - sensor.master_bedroom_temperature
       - binary_sensor.master_bedroom_bed
       - light.master_bedroom
-      #- switch.master_bedroom_sound_machine
       - fan.master_bedroom_ceiling_fan_level
-      - switch.master_bathroom_light_switch
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
       - type: custom:slider-entity-row
