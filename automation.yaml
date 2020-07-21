@@ -293,5 +293,8 @@
     weekday:
       - wed
   action:
-    - service: homeassistant.turn_off
-      entity_id: switch.nas
+    service: homeassistant.turn_off
+    entity_id: 
+      - switch.nas
+      - binary_sensor.backups_complete
+    

@@ -15,6 +15,7 @@
 
 - platform: template
   sensors:
+    # On if both backups < 10 minutes ago
     backups_complete:
       value_template: >-
-        {{ (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 200 and ((as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 200) }}
+        {{ (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) < 600 and (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) < 600 }}

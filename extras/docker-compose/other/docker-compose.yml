@@ -83,7 +83,7 @@ services:
             - '/dev/rtl_sdr_grill:/dev/bus/usb/003/038'
     bitwarden:
         container_name: bitwarden
-        image: bitwardenrs/server:1.14.1-alpine
+        image: bitwardenrs/server:alpine
         user: '99'
         volumes:
             - /opt/bw-data/:/data/
@@ -110,6 +110,7 @@ services:
             - DUO_HOST=
         ports:
             - '8777:1024'
+            - '3012:3012'
         logging:
             driver: none
         restart: always
