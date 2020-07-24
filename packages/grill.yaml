@@ -116,6 +116,8 @@ automation:
             priority: 2
             expire: 3600
             retry: 30
+      # Only fire 1 time per minute
+      - delay: 60
 
   - alias: Hopper Level Alert
     trigger:
@@ -133,3 +135,5 @@ automation:
             priority: 2
             expire: 3600
             retry: 30
+      # Only fire 1 time per 10 minutes
+      - delay: 600 
