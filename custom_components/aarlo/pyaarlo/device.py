@@ -86,6 +86,13 @@ class ArloDevice(object):
         return self._arlo.st.get_matching(self._to_storage_key(attr), default)
 
     @property
+    def entity_id(self):
+        if self._arlo.cfg.serial_ids:
+            return self.device_id
+        else:
+            return self.name.lower().replace(' ', '_')
+
+    @property
     def name(self):
         """Returns the device name.
         """
@@ -268,6 +275,16 @@ class ArloChildDevice(ArloDevice):
         self._arlo.debug('parent is {}'.format(self._parent_id))
         self._arlo.vdebug('resource is {}'.format(self.resource_id))
 
+    def _event_handler(self, resource, event):
+        self._arlo.vdebug("{}: child got {} event **".format(self.name, resource))
+
+        if resource.endswith('/states'):
+            self._arlo.bg.run(self.base_station.update_mode)
+            return
+
+        # Pass event to lower level.
+        super()._event_handler(resource, event)
+
     @property
     def resource_type(self):
         """Return the resource type this child device describes.
@@ -371,7 +388,7 @@ class ArloChildDevice(ArloDevice):
         if self.is_unavailable:
             return 'unavailable'
         if not self.is_on:
-            return 'turned off'
+            return 'off'
         if self.too_cold:
             return 'offline, too cold'
         return 'idle'

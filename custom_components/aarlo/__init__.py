@@ -23,7 +23,7 @@ from homeassistant.components.camera import DOMAIN as CAMERA_DOMAIN
 from homeassistant.components.alarm_control_panel import DOMAIN as ALARM_DOMAIN
 from .pyaarlo.constant import SIREN_STATE_KEY, DEFAULT_HOST, DEFAULT_AUTH_HOST
 
-__version__ = '0.7.0.alpha.6'
+__version__ = '0.7.0.beta.1'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -65,6 +65,8 @@ CONF_TFA_USERNAME = 'tfa_username'
 CONF_TFA_PASSWORD = 'tfa_password'
 CONF_LIBRARY_DAYS = 'library_days'
 CONF_AUTH_HOST = 'auth_host'
+CONF_SERIAL_IDS = 'serial_ids'
+CONF_STREAM_SNAPSHOT = 'stream_snapshot'
 
 SCAN_INTERVAL = timedelta(seconds=60)
 PACKET_DUMP = False
@@ -94,6 +96,8 @@ DEFAULT_TFA_HOST = 'unknown.imap.com'
 DEFAULT_TFA_USERNAME = 'unknown@unknown.com'
 DEFAULT_TFA_PASSWORD = 'unknown'
 DEFAULT_LIBRARY_DAYS = 30
+SERIAL_IDS = False
+STREAM_SNAPSHOT = False
 
 CONFIG_SCHEMA = vol.Schema({
     COMPONENT_DOMAIN: vol.Schema({
@@ -129,6 +133,8 @@ CONFIG_SCHEMA = vol.Schema({
         vol.Optional(CONF_TFA_USERNAME, default=DEFAULT_TFA_USERNAME): cv.string,
         vol.Optional(CONF_TFA_PASSWORD, default=DEFAULT_TFA_PASSWORD): cv.string,
         vol.Optional(CONF_LIBRARY_DAYS, default=DEFAULT_LIBRARY_DAYS): cv.positive_int,
+        vol.Optional(CONF_SERIAL_IDS, default=SERIAL_IDS): cv.boolean,
+        vol.Optional(CONF_STREAM_SNAPSHOT, default=STREAM_SNAPSHOT): cv.boolean,
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -195,6 +201,8 @@ def setup(hass, config):
     tfa_username = conf.get(CONF_TFA_USERNAME)
     tfa_password = conf.get(CONF_TFA_PASSWORD)
     library_days = conf.get(CONF_LIBRARY_DAYS)
+    serial_ids = conf.get(CONF_SERIAL_IDS)
+    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
 
     _LOGGER.info("retry={}".format(pprint.pformat(media_retry)))
 
@@ -232,6 +240,8 @@ def setup(hass, config):
                       tfa_source=tfa_source, tfa_type=tfa_type,
                       tfa_host=tfa_host, tfa_username=tfa_username, tfa_password=tfa_password,
                       library_days=library_days,
+                      serial_ids=serial_ids,
+                      stream_snapshot=stream_snapshot,
                       wait_for_initial_setup=False,
                       verbose_debug=verbose_debug)
         if not arlo.is_connected:

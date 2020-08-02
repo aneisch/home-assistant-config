@@ -1,0 +1,96 @@
+# D1 = relay
+# D2 = XSHUT 1
+# D3 = XSHUT 2
+# D7 = Magnet
+
+substitutions:
+  name: garage
+  friendly_name: "Garage"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini_pro
+  includes:
+    - change_VL53L0X_address.h
+  libraries:
+    - VL53L0X
+
+web_server:
+  port: 80
+
+<<: !include common.yaml
+  
+custom_component:
+- lambda: |-
+    auto change_address = new ChangeAddress();
+    return {change_address};
+
+i2c:
+  - id: bus_a
+    sda: D5
+    scl: D6
+    scan: True
+
+sensor:
+  # - platform: vl53l0x
+  #   id: car_sensor_1
+  #   address: 0x23
+  #   update_interval: 1s
+  #   accuracy_decimals: 5
+  #   # Delay setup to after address change
+  #   setup_priority: 250
+
+  # - platform: vl53l0x
+  #   id: car_sensor_2
+  #   address: 0x19
+  #   update_interval: 5s
+  #   accuracy_decimals: 5
+      # Delay setup to after address change
+  #   setup_priority: 250
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+    name: Gate Status
+    id: garage_status
+    device_class: door
+    filters:
+      - delayed_on: 1s
+      - delayed_off: 1s
+
+cover:
+  - platform: template
+    name: "Template Cover"
+    lambda: |-
+      if (id(garage_status).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: garage
+    close_action:
+      - switch.turn_on: garage
+    stop_action:
+      - switch.turn_on: garage
+    optimistic: true
+    
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    pin:
+      number: D1
+      inverted: False
+
+  - platform: template
+    id: garage
+    name: "Garage Remote"
+    icon: "mdi:garage"
+    turn_on_action:
+    - switch.turn_on: relay
+    - delay: 500ms
+    - switch.turn_off: relay
