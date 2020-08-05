@@ -1,5 +1,4 @@
 appdaemon:
-  threads: 10
   time_zone: !secret timezone
   latitude: !secret latitude
   longitude: !secret longitude

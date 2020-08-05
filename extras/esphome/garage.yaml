@@ -1,7 +1,7 @@
 # D1 = relay
 # D2 = XSHUT 1
 # D3 = XSHUT 2
-# D7 = Magnet
+# D7 = Magnet 
 
 substitutions:
   name: garage
@@ -15,9 +15,6 @@ esphome:
     - change_VL53L0X_address.h
   libraries:
     - VL53L0X
-
-web_server:
-  port: 80
 
 <<: !include common.yaml
   
@@ -38,16 +35,14 @@ sensor:
   #   address: 0x23
   #   update_interval: 1s
   #   accuracy_decimals: 5
-  #   # Delay setup to after address change
-  #   setup_priority: 250
+  #   setup_priority: 250 # Delay setup to after address change
 
   # - platform: vl53l0x
   #   id: car_sensor_2
   #   address: 0x19
   #   update_interval: 5s
   #   accuracy_decimals: 5
-      # Delay setup to after address change
-  #   setup_priority: 250
+  #   setup_priority: 250 # Delay setup to after address change
 
 binary_sensor:
   - platform: gpio

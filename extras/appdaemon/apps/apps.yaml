@@ -118,6 +118,12 @@ Occupancy Simulator:
   #random_office_on_1: group.office_lamps
   #random_office_off_1: group.office_lamps
 
+  step_all_off_name: All Off
+  step_all_off_start: '01:00:00'
+  step_all_off_off_1: light.master_bedroom_lamps
+  step_all_off_off_2: group.living_room_lamps
+  step_all_off_off_3: switch.kitchen_table_light_switch
+
 NAS:
   module: entity_timer
   class: Timer
@@ -192,7 +198,7 @@ House Lamp Automation Sunset:
   module: light_automation
   class: DeviceOn
   constrain_input_boolean: input_boolean.house_lamps_automation
-  constrain_presence: anyone
+  constrain_person: anyone
   time_on: sunset - 00:30:00
   entity: group.office_lamps,group.living_room_lamps,light.master_bedroom_lamps
 

@@ -17,10 +17,41 @@ cards:
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot
-      - type: markdown
-        content: |
-          Last NUC Backup: {{ relative_time(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
-          Last VPS Backup: {{ relative_time(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
+      - type: custom:vertical-stack-in-card
+        cards:
+          - type: markdown
+            content: |
+              Last NUC Backup: {{ relative_time(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
+            style: |
+                @keyframes blink {
+                  50% {
+                    {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 604800 %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 604800 %}
+                  animation: blink 3s linear infinite;
+                  {% endif %}
+                }
+          - type: markdown
+            content: |
+              Last VPS Backup: {{ relative_time(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S%z') | timestamp_local) }} ago
+            style: |
+                @keyframes blink {
+                  50% {
+                    {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 604800 %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 604800 %}
+                  animation: blink 3s linear infinite;
+                  {% endif %}
+                }
+
 
       - type: horizontal-stack
         cards:
