@@ -159,8 +159,8 @@ logbook:
 logger:
   #default: debug
   default: warn
-  logs:
-    homeassistant.core: debug
+  #logs:
+  #  homeassistant.core: debug
   #  custom_components.docker_monitor: debug
   #  homeassistant.components.webhook: debug
 

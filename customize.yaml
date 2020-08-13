@@ -83,6 +83,14 @@ fan.master_bedroom_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan
 
+light.master_bedroom_ceiling_fan_level:
+  icon: mdi:fan
+  friendly_name: Ceiling Fan
+
+light.office_ceiling_fan_level:
+  icon: mdi:fan
+  friendly_name: Ceiling Fan
+
 fan.office_ceiling_fan_level:
   icon: mdi:fan
   friendly_name: Ceiling Fan

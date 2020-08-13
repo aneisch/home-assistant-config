@@ -6,3 +6,7 @@ back_door_last:
   name: Back Door Last Opened
   has_date: true
   has_time: true
+andrew_next_alarm:
+  name: "Andrew's Next Alarm"
+  has_date: true
+  has_time: true
