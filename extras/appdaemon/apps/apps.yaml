@@ -198,7 +198,7 @@ House Lamp Automation Sunset:
   module: light_automation
   class: DeviceOn
   constrain_input_boolean: input_boolean.house_lamps_automation
-  constrain_person: anyone
+  constrain_presence: anyone
   time_on: sunset - 00:30:00
   entity: group.office_lamps,group.living_room_lamps,light.master_bedroom_lamps
 
