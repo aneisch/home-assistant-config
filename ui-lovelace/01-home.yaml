@@ -52,6 +52,13 @@ cards:
       - person.andrew
       - person.bethany
 
+  #- type: entities
+  #  title: Garage
+  #  entities:
+  #    - binary_sensor.cx5
+  #    - binary_sensor.cruze
+  #    - cover.garage_door
+
   - type: custom:vertical-stack-in-card
     title: Mail & Package Tracking
     cards:
