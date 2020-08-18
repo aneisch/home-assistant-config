@@ -298,3 +298,34 @@
       - switch.nas
       - binary_sensor.backups_complete
     
+
+- alias: "Backlight off when MacBook Inactive"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.andrew_macbook_active
+  condition:
+    condition: and
+    conditions:
+      - condition: state
+        entity_id: binary_sensor.andrew_desk_keyboard_tray
+        state: 'on'
+      - condition: state
+        entity_id: person.andrew
+        state: 'home'
+  action:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.andrew_macbook_active
+          state: "on"
+        sequence:
+          - service: light.turn_on
+            entity_id: light.andrew_monitor_backlight
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.andrew_macbook_active
+          state: "off"
+        sequence:
+          - service: light.turn_off
+            entity_id: light.andrew_monitor_backlight

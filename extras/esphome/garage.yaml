@@ -84,6 +84,7 @@ binary_sensor:
 cover:
   - platform: template
     name: "Garage Door"
+    device_class: garage
     lambda: |-
       if (id(garage_status).state) {
         return COVER_OPEN;
