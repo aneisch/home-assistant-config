@@ -154,6 +154,8 @@ light:
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
 
+lock:
+
 logbook:
 
 logger:
