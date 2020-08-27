@@ -57,8 +57,8 @@ living_room:
 living_room_lamps:
   name: Living Room Lamps
   entities:
-    - switch.living_room_lamp
-    - switch.living_room_lamp_2
+    - light.living_room_lamp
+    - light.living_room_lamp_2
 
 andrew_desk:
   entities:
