@@ -14,7 +14,6 @@ smart_home:
       - input_boolean
       - binary_sensor
       - light
-      - lock
       - media_player
       - scene
       - script

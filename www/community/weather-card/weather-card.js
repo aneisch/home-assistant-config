@@ -293,7 +293,16 @@ class WeatherCard extends LitElement {
                 daily.precipitation !== null
                   ? html`
                       <div class="precipitation">
-                        ${daily.precipitation} ${this.getUnit("precipitation")}
+                        ${Math.round(daily.precipitation*10)/10} ${this.getUnit("precipitation")}
+                      </div>
+                    `
+                  : ""}
+                ${!this._config.hide_precipitation &&
+                daily.precipitation_probability !== undefined &&
+                daily.precipitation_probability !== null
+                  ? html`
+                      <div class="precipitation_probability">
+                        ${Math.round(daily.precipitation_probability)} ${this.getUnit("precipitation_probability")}
                       </div>
                     `
                   : ""}
@@ -325,6 +334,8 @@ class WeatherCard extends LitElement {
         return lengthUnit;
       case "precipitation":
         return lengthUnit === "km" ? "mm" : "in";
+      case "precipitation_probability":
+        return "%";
       default:
         return this.hass.config.unit_system[measure] || "";
     }

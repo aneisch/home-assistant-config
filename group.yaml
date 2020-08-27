@@ -49,8 +49,8 @@ kitchen:
 living_room:
   name: Living Room
   entities:
-    - switch.living_room_lamp_2
-    - switch.living_room_lamp
+    - light.living_room_lamp_2
+    - light.living_room_lamp
     - switch.entertainment_center_lights
     - switch.christmas_tree
 

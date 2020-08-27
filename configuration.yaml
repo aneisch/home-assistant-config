@@ -91,10 +91,6 @@ http:
     - 127.0.0.1
     - ::1
   server_port: 8123
-  #base_url: !secret hass_url
-
-#ifttt:
-#  key: !secret ifttt_key
 
 influxdb:
   host: 10.0.1.22
@@ -153,6 +149,11 @@ light:
     entities:
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
+  - platform: group
+    name: Living Room Lamps
+    entities:
+      - light.living_room_lamp
+      - light.living_room_lamp_2
 
 lock:
 
@@ -192,6 +193,10 @@ lovelace:
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
       type: js
     - url: /hacsfiles/config-template-card/config-template-card.js
+      type: module
+    - url: /hacsfiles/zha-network-card/zha-network-card.js
+      type: js
+    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
       type: module
 
 map:
@@ -338,8 +343,6 @@ sensor: !include sensors.yaml
 
 shell_command: !include shell_command.yaml
 
-#shopping_list:
-
 spotify:
   client_id: !secret spotify_client_id
   client_secret: !secret spotify_client_secret
@@ -350,10 +353,7 @@ switch: !include switches.yaml
 
 system_health:
 
-#weather:
-#  - platform: darksky
-#    api_key: !secret darksky_api_key
-#    mode: daily
+zha_map:
 
 zone:
   - name: Andrew Work
@@ -391,11 +391,3 @@ zone:
     longitude: !secret travis_long
     radius: 500
     icon: mdi:home-variant
-
-#zha:
-#  usb_path: /dev/zigbee
-#  radio_type: ti_cc
-#  database_path: /config/.storage/zigbee.db
-
-#zwave:
-#  usb_path: /dev/zwave

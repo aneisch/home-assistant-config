@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.114.2%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-0.114.3%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -46,9 +46,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1102
-Lines of Home Assistant YAML | 3351
+Lines of Home Assistant YAML | 3354
 [Integrations](https://www.home-assistant.io/integrations/) in use | 18
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 4
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 8
  
 Description | value
 -- | --
@@ -100,12 +100,15 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
 [ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
+[zha-ng/zha-map](https://github.com/zha-ng/zha-map)<br>
 
 **Plugin**:<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
+[dmulcahey/zha-network-card](https://github.com/dmulcahey/zha-network-card)<br>
+[dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [iantrich/config-template-card](https://github.com/iantrich/config-template-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>

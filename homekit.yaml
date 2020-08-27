@@ -15,6 +15,7 @@
       - switch
       - climate
       - fan
+      - lock
     include_entities:
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp

@@ -211,3 +211,4 @@ cards:
 #        entity: sensor.pi_hole_dns_unique_clients
 #        decimal: 0
 #        # max: 25
+

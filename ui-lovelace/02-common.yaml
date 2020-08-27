@@ -8,12 +8,13 @@ cards:
     show_header_toggle: false
     title: Living Room
     entities:
-      - switch.living_room_lamp_2
-      - switch.living_room_lamp
+      - light.living_room_lamp_2
+      - light.living_room_lamp
+      - light.living_room_lamps
       #- switch.entertainment_center_lights
       #- switch.christmas_tree
-      - entity: switch.outdoor_zwave_2
-        name: Plant Light
+      #- entity: switch.outdoor_zwave_2
+      #  name: Plant Light
 
   - type: vertical-stack
     cards:

@@ -1,5 +1,9 @@
 {
     "config": {
+        "abort": {
+            "forgot_password": "The Forgot Password page was detected. Amazon may require action before a relogin can be attempted.",
+            "login_failed": "Alexa Media Player failed to login."
+        },
         "error": {
             "connection_error": "Error connecting; check network and retry",
             "identifier_exists": "Email for Alexa URL already registered",
