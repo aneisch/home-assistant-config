@@ -35,7 +35,7 @@ home_occupied:
           {% endif %}
     - service: homeassistant.turn_on
       data:
-        entity_id: group.office_lamps
+        entity_id: light.office_lamps
 
 ############
 # SECURITY #

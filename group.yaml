@@ -12,13 +12,7 @@ office:
   entities:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
-    - light.andrew_desk_lamp
-    - light.bethany_desk_lamp
-
-office_lamps:
-  entities:
-    - light.andrew_desk_lamp
-    - light.bethany_desk_lamp
+    - light.office_lamps
 
 master_bedroom:
   name: Master Bedroom
@@ -26,7 +20,6 @@ master_bedroom:
     - light.master_bedroom
     - switch.master_bedroom_sound_machine
     - fan.master_bedroom_ceiling_fan_level
-    - switch.master_bathroom_light_switch
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
 
@@ -49,16 +42,9 @@ kitchen:
 living_room:
   name: Living Room
   entities:
-    - light.living_room_lamp_2
-    - light.living_room_lamp
+    - light.living_room_lamps
     - switch.entertainment_center_lights
     - switch.christmas_tree
-
-living_room_lamps:
-  name: Living Room Lamps
-  entities:
-    - light.living_room_lamp
-    - light.living_room_lamp_2
 
 andrew_desk:
   entities:

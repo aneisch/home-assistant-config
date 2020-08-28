@@ -106,8 +106,8 @@ Occupancy Simulator:
   random_living_maxduration: 02:00:00
   random_living_minduration: 00:30:00
   random_living_number: '5'
-  random_living_on_1: group.living_room_lamps
-  random_living_off_1: group.living_room_lamps
+  random_living_on_1: light.living_room_lamps
+  random_living_off_1: light.living_room_lamps
 
   #random_office_name: Office
   #random_office_start: Evening
@@ -115,13 +115,13 @@ Occupancy Simulator:
   #random_office_maxduration: 02:00:00
   #random_office_minduration: 00:30:00
   #random_office_number: '2'
-  #random_office_on_1: group.office_lamps
-  #random_office_off_1: group.office_lamps
+  #random_office_on_1: light.office_lamps
+  #random_office_off_1: light.office_lamps
 
   step_all_off_name: All Off
   step_all_off_start: '01:00:00'
   step_all_off_off_1: light.master_bedroom_lamps
-  step_all_off_off_2: group.living_room_lamps
+  step_all_off_off_2: lightliving_room_lamps
   step_all_off_off_3: switch.kitchen_table_light_switch
 
 NAS:
@@ -182,7 +182,7 @@ Living Room Light at Night With Door:
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
-  lights: group.living_room_lamps
+  lights: light.living_room_lamps
   # Seconds to turn entity on when triggered
   time_on: '30'
 
@@ -200,14 +200,14 @@ House Lamp Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:30:00
-  entity: group.office_lamps,group.living_room_lamps,light.master_bedroom_lamps
+  entity: light.office_lamps,light.living_room_lamps,light.master_bedroom_lamps
 
 Living Room Lamp Follow:
   module: follow_me
   class: Follow
   constrain_input_boolean: input_boolean.house_lamps_automation
   leader: light.master_bedroom_lamps
-  follower: group.living_room_lamps
+  follower: light.living_room_lamps
 
 Guest Lamp Follow Master:
   module: follow_me

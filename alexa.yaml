@@ -24,7 +24,7 @@ smart_home:
       - climate.thermostat
       - fan.master_bedroom_ceiling_fan_level
       - fan.office_ceiling_fan_level
-      - group.living_room_lamps
+      - light.living_room_lamps
       - light.master_bedroom_lamps
       - group.common_areas
       - light.bethany_nightstand_lamp
@@ -46,7 +46,6 @@ smart_home:
       - switch.christmas_tree
       - switch.tv
       - switch.kitchen_table_light_switch
-      - switch.master_bathroom_light_switch
       - switch.nas
       - switch.outdoor_zwave_switch
       - switch.tv_remote_hdmi_1
@@ -64,12 +63,12 @@ smart_home:
       name: "Office Ceiling Fan"
       display_categories: FAN
 
-    group.living_room_lamps:
-      name: "Living Room Lamps"
-      display_categories: LIGHT
-
     group.master_common_areas:
       name: "Common Areas"
+      display_categories: LIGHT
+
+    light.living_room_lamps:
+      name: "Living Room Lamps"
       display_categories: LIGHT
 
     light.andrew_nightstand_lamp:

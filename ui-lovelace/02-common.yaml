@@ -30,7 +30,7 @@ cards:
           - type: "button"
             entity: switch.tv_remote_hdmi_1
             name: Xbox
-            icon: mdi:xbox
+            icon: mdi:microsoft-xbox
           - type: "button"
             entity: switch.tv_remote_hdmi_2
             name: Chromecast

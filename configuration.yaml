@@ -164,6 +164,11 @@ light:
     entities:
       - light.living_room_lamp
       - light.living_room_lamp_2
+  - platform: group
+    name: Office Lamps
+    entities: 
+      - light.andrew_desk_lamp
+      - light.bethany_desk_lamp
 
 lock:
 
