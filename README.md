@@ -45,10 +45,10 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 1102
-Lines of Home Assistant YAML | 3414
-[Integrations](https://www.home-assistant.io/integrations/) in use | 18
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 10
+Lines of ESPHome YAML | 1142
+Lines of Home Assistant YAML | 3819
+[Integrations](https://www.home-assistant.io/integrations/) in use | 19
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 11
  
 Description | value
 -- | --
@@ -104,11 +104,11 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 
 **Plugin**:<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
-[custom-cards/bar-card](https://github.com/custom-cards/bar-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [dmulcahey/zha-network-card](https://github.com/dmulcahey/zha-network-card)<br>
 [dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
+[gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
 [iantrich/config-template-card](https://github.com/iantrich/config-template-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
@@ -127,5 +127,6 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 ![UI](images/screenshot5.png)
 ![UI](images/screenshot6.png)
 ![Grafana](images/grafana.png)
-![Node-Red](images/nodered.png)
+![Node-Red](images/nodered_1.png)
+![Node-Red](images/nodered_2.png)
 Auto generated using: `docker run --rm -it --cap-add=SYS_ADMIN -v /tmp:/output tonious/chromeshot --delay=1000 --url=http://10.0.1.22:1880 --viewportWidth=2000 --viewportHeight=1800 --output=/output/nodered.png; sudo convert /tmp/nodered.png -crop 1350x1400+180+10 /tmp/ss.png`

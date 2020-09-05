@@ -1,5 +1,10 @@
 {
     "config": {
+        "abort": {
+            "forgot_password": "Die \"Passwort vergessen Funktion\" wurde erkannt. Amazon verlangt möglicherweise Maßnahmen bevor ein erneuter Anmeldeversuch unternommen werden kann.",
+            "login_failed": "Alexa Media Player konnte nicht angemeldet werden",
+            "reauth_successful": "Alexa Media Player erfolgreich authentifiziert"
+        },
         "error": {
             "connection_error": "Verbindungsfehler; Netzwerk prüfen und erneut versuchen",
             "identifier_exists": "E-Mail für die Alexa URL ist bereits registriert",
@@ -21,7 +26,8 @@
             "captcha": {
                 "data": {
                     "captcha": "Captcha",
-                    "password": "Passwort"
+                    "password": "Passwort",
+                    "securitycode": "2FA Code (empfohlen, um Anmeldeprobleme zu vermeiden)"
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player - Captcha"
@@ -48,6 +54,7 @@
                     "include_devices": "Eingebundene Geräte (komma getrennnt)",
                     "password": "Passwort",
                     "scan_interval": "Sekunden zwischen den Scans",
+                    "securitycode": "2FA Code (empfohlen, um Anmeldeprobleme zu vermeiden)",
                     "url": "Amazon Region (z.B., amazon.de)"
                 },
                 "description": "Bitte gebe Deine Informationen ein.",

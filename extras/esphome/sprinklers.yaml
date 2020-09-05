@@ -1,0 +1,44 @@
+substitutions:
+  name: sprinklers
+  friendly_name: "Sprinkers"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+  includes:
+    - shift_register_switch.h
+  libraries:
+    - ShiftRegister74HC595@1.2
+    
+web_server:
+
+<<: !include common.yaml
+  
+switch:
+  - platform: custom
+    lambda: |-
+      std::vector<switch_::Switch *> switches;
+      for(int i = 0; i < 8; i++) {
+          auto zone_switch = new ShiftRegisterSwitch(i);
+          App.register_component(zone_switch);
+          switches.push_back(zone_switch);
+      }
+      return switches;
+    switches:
+      -  name: "Sprinkler Zone 1"
+         inverted: yes
+      -  name: "Sprinkler Zone 2"
+         inverted: yes
+      -  name: "Sprinkler Zone 3"
+         inverted: yes
+      -  name: "Sprinkler Zone 4"
+         inverted: yes
+      -  name: "Sprinkler Zone 5"
+         inverted: yes
+      -  name: "Sprinkler Zone 6"
+         inverted: yes
+      -  name: "Sprinkler Zone 7"
+         inverted: yes
+      -  name: "Sprinkler Zone 8"
+         inverted: yes

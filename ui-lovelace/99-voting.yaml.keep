@@ -1,0 +1,29 @@
+title: Voting
+icon: mdi:check
+cards:
+  - type: sensor
+    name: Leader
+    entity: sensor.judge_leader
+  - type: gauge
+    name: Vote Total Reporting
+    entity: sensor.reporting
+
+  - type: vertical-stack
+    cards:
+      - type: gauge
+        name: John Brick Vote Percent
+        entity: sensor.john_brick
+      - type: gauge
+        name: George Wise Vote Percent
+        entity: sensor.george_wise
+
+  - type: vertical-stack
+    cards:
+      - type: custom:bar-card
+        name: John Brick Total Votes
+        entity: sensor.john_brick_votes
+        max: 15000
+      - type: custom:bar-card
+        name: George Wise Total Votes
+        entity: sensor.george_wise_votes
+        max: 15000

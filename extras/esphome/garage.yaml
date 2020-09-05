@@ -18,33 +18,34 @@ esphome:
 
 <<: !include common.yaml
   
-custom_component:
-- lambda: |-
-    auto change_address = new ChangeAddress();
-    return {change_address};
+# custom_component:
+# - lambda: |-
+#     auto change_address = new ChangeAddress();
+#     return {change_address};
 
 i2c:
   - id: bus_a
     sda: D5
     scl: D6
     scan: True
+    frequency: 100kHz
 
-sensor:
-  # Cruze
-  - platform: vl53l0x
-    id: car_sensor_1
-    address: 0x23
-    update_interval: 1s
-    accuracy_decimals: 3
-    setup_priority: 250 # Delay setup to after address change
+# sensor:
+  # # Cruze
+  # - platform: vl53l0x
+  #   id: car_sensor_1
+  #   address: 0x23
+  #   update_interval: 1s
+  #   accuracy_decimals: 3
+  #   setup_priority: 200 # Delay setup to after address change
 
-  # CX5
-  - platform: vl53l0x
-    id: car_sensor_2
-    address: 0x19
-    update_interval: 1s
-    accuracy_decimals: 3
-    setup_priority: 250 # Delay setup to after address change
+  # # CX5
+  # - platform: vl53l0x
+  #   id: car_sensor_2
+  #   address: 0x19
+  #   update_interval: 5s
+  #   accuracy_decimals: 3
+  #   setup_priority: 200 # Delay setup to after address change
 
 binary_sensor:
   - platform: gpio
@@ -57,29 +58,29 @@ binary_sensor:
       - delayed_on: 1s
       - delayed_off: 1s
 
-  - platform: template
-    name: "Cruze"
-    device_class: presence
-    lambda: |-
-      if (id(car_sensor_1).state < 0.80 ) {
-        // Car Present
-        return true;
-      } else {
-        // Car Not Present
-        return false;
-      }
+  # - platform: template
+  #   name: "Cruze"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_1).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
 
-  - platform: template
-    name: "CX5"
-    device_class: presence
-    lambda: |-
-      if (id(car_sensor_2).state < 0.80 ) {
-        // Car Present
-        return true;
-      } else {
-        // Car Not Present
-        return false;
-      }
+  # - platform: template
+  #   name: "CX5"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_2).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
 
 cover:
   - platform: template

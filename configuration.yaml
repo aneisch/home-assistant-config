@@ -7,16 +7,17 @@ homeassistant:
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
+    door_unlock: !include packages/door_unlock.yaml
+    fingerprint: !include packages/fingerprint.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
+    grill: !include packages/grill.yaml
+    hass_update_check: !include packages/hass_update_check.yaml
+    reminders: !include packages/reminders.yaml
     train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
+    vacuum: !include packages/vacuum.yaml
     #bus_time: !include packages/bus_time.yaml
-    hass_update_check: !include packages/hass_update_check.yaml
-    grill: !include packages/grill.yaml
-    fingerprint: !include packages/fingerprint.yaml
-    reminders: !include packages/reminders.yaml
     #voting: !include packages/voting.yaml
-    door_unlock: !include packages/door_unlock.yaml
   auth_providers:
     - type: homeassistant
 
@@ -199,8 +200,6 @@ lovelace:
       type: module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
       type: module
-    - url: /hacsfiles/bar-card/bar-card.js
-      type: js
     - url: /hacsfiles/custom-header/custom-header.js
       type: module
     - url: /hacsfiles/favicon-counter/favicon-counter.js
@@ -212,6 +211,8 @@ lovelace:
     - url: /hacsfiles/zha-network-card/zha-network-card.js
       type: js
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+      type: module
+    - url: /hacsfiles/lovelace-card-templater/lovelace-card-templater.js
       type: module
 
 map:
@@ -368,7 +369,7 @@ switch: !include switches.yaml
 
 system_health:
 
-zha_map:
+#zha_map:
 
 zone:
   - name: Andrew Work

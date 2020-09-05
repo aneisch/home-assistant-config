@@ -9,12 +9,4 @@ custom_header:
   tab_indicator_color: 'rgb(214, 122, 127)'
   footer_mode: '{% if "Pixel 2" in userAgent %}true{% else %}false{% endif %}'
 
-swipe_nav:
-  swipe_animate: fade
-
 views: !include_dir_list ui-lovelace/
-
-#preload:
-#  - markdown
-#  - entity-filter
-#  - config-template-card

@@ -36,3 +36,6 @@ gate_alert:
 # Nodered
 rack_fan_auto_off:
   name: Rack Fan Auto-Off (nodered)
+
+vacation_mode:
+  name: Vacation Mode

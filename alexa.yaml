@@ -22,17 +22,17 @@ smart_home:
       - input_number
     include_entities:
       - climate.thermostat
+      - group.common_areas
       - fan.master_bedroom_ceiling_fan_level
       - fan.office_ceiling_fan_level
       - light.living_room_lamps
       - light.master_bedroom_lamps
-      - group.common_areas
+      - light.office_lamps
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
       - light.guest_nightstand_lamp
-      - media_player.plex_chromecast
       - script.appdaemon_ac_night
       - script.appdaemon_ac_morning
       - script.too_cold
@@ -69,6 +69,10 @@ smart_home:
 
     light.living_room_lamps:
       name: "Living Room Lamps"
+      display_categories: LIGHT
+
+    light.office_lamps:
+      name: "Office Lamps"
       display_categories: LIGHT
 
     light.andrew_nightstand_lamp:
