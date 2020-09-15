@@ -21,7 +21,8 @@
             "captcha": {
                 "data": {
                     "captcha": "Captcha",
-                    "password": "Contraseña"
+                    "password": "Contraseña",
+                    "securitycode": "config::step::captcha::data::securitycode"
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player - Captcha"
@@ -50,7 +51,7 @@
                     "scan_interval": "Segundos entre escaneos",
                     "url": "Region del dominio de Amazon (e.g., amazon.co.uk)"
                 },
-                "description": "Por favor, introduzca su información.",
+                "description": "Por favor, introduzca su información.\\n**ADVERTENCIA: Amazon indica de forma incorrecta 'Introduzca un email o número de teléfono válido' cuando se requiere el código 2FA (autenticación en dos pasos)",
                 "title": "Alexa Media Player - Configuracion"
             }
         },

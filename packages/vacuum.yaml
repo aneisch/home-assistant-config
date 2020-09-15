@@ -1,11 +1,6 @@
 sensor:
   - platform: template
     sensors:
-      # Displayed on the vacuum card
-      roborock_s4_last_cleaned:
-        friendly_name: Relative time since last cleaning ended
-        value_template: "{{relative_time(strptime(as_timestamp(state_attr('vacuum.roborock_s4', 'clean_stop'))|timestamp_custom('%Y-%m-%d %H:%M:%S%z'), '%Y-%m-%d %H:%M:%S%z'))}}"
-
       roborock_s4_battery:
         friendly_name: 'Roborock S4 Battery'
         value_template: "{{state_attr('vacuum.roborock_s4', 'battery_level')}}"
@@ -99,8 +94,38 @@ input_select:
     initial: 1
     icon: mdi:numeric
 
-#vacuum:
-#  - platform: xiaomi_miio
-#    host: 10.0.1.11
-#    token: !secret roborock_token
-#    name: Roborock S4
+script:
+  vacuum_park_trashcan:
+    sequence:
+      - service: xiaomi_miio.vacuum_goto
+        data:
+          entity_id: vacuum.roborock_s4
+          x_coord: 13950
+          y_coord: 23250
+          
+switch:
+  platform: template
+  switches:
+    # Expose vacuum switch to allow manual turn off via Alexa
+    vacuum: 
+      friendly_name: "Vacuum"
+      value_template: '{{ is_state("vacuum.roborock_s4", "on") }}'
+      turn_on:
+        # Dummy, do nothing
+        - delay:
+            seconds: 1
+      turn_off:
+        - service: vacuum.stop
+          data:
+            entity_id: vacuum.roborock_s4
+        - delay:
+            seconds: 1
+        - service: vacuum.return_to_base
+          data:
+            entity_id: vacuum.roborock_s4
+
+vacuum:
+  - platform: xiaomi_miio
+    host: 10.0.1.11
+    token: !secret roborock_token
+    name: Roborock S4

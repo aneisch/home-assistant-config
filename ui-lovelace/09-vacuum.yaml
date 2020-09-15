@@ -45,6 +45,11 @@ cards:
         - type: icon
           title: Locate Vacuum
           icon: 'mdi:map-marker'
+          tap_action:
+            action: call-service
+            service: vacuum.locate
+            service_data:
+              entity_id: vacuum.roborock_s4
           style:
             right: 90px
             bottom: 0
@@ -163,6 +168,10 @@ cards:
     entities:
       - input_select.vacuum_room_select
       - input_select.vacuum_room_repeat
+      
+  - type: entities
+    entities:
+      - script.vacuum_park_trashcan
 
   - type: horizontal-stack
     cards:

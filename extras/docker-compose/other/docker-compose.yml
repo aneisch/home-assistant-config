@@ -149,7 +149,7 @@ services:
         volumes:
           - "/opt/hass-configurator:/config"
           - "/opt/homeassistant:/hass-config"
-        restart: 'no'
+        restart: 'always'
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower:latest

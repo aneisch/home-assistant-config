@@ -2,12 +2,12 @@
     "config": {
         "abort": {
             "forgot_password": "Die \"Passwort vergessen Funktion\" wurde erkannt. Amazon verlangt möglicherweise Maßnahmen bevor ein erneuter Anmeldeversuch unternommen werden kann.",
-            "login_failed": "Alexa Media Player konnte nicht angemeldet werden",
+            "login_failed": "Alexa Media Player konnte nicht angemeldet werden.",
             "reauth_successful": "Alexa Media Player erfolgreich authentifiziert"
         },
         "error": {
             "connection_error": "Verbindungsfehler; Netzwerk prüfen und erneut versuchen",
-            "identifier_exists": "E-Mail für die Alexa URL ist bereits registriert",
+            "identifier_exists": "Diese Email ist bereits registriert",
             "invalid_credentials": "Falsche Zugangsdaten",
             "unknown_error": "Unbekannter Fehler, bitte Log-Info melden"
         },
@@ -21,7 +21,7 @@
                     "authselectoption": "Einmal Pin Methode"
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}",
-                "title": "Alexa Media Player - Einmalpasswort"
+                "title": "Alexa Media Player - Einmal Pin Passwort"
             },
             "captcha": {
                 "data": {
@@ -34,22 +34,22 @@
             },
             "claimspicker": {
                 "data": {
-                    "authselectoption": "Verifizierungsmethode"
+                    "authselectoption": "Verifizierungs Methode"
                 },
-                "description": "**{email} - alexa.{url}**\\nBitte Verifizierungsmethode auswählen. (z.B., `0` oder `1`)\\n{message}",
-                "title": "Alexa Media Player - Verifizierungsmethode"
+                "description": "**{email} - alexa.{url}**\\nBitte Verifizierungs Methode auswählen. (z.B., `0` oder `1`)\\n{message}",
+                "title": "Alexa Media Player - Verifizierungs Methode"
             },
             "twofactor": {
                 "data": {
                     "securitycode": "2FA Code"
                 },
-                "description": "**{email} - alexa.{url}**\\nDas Einmalpasswort eingeben.\\n{message}",
+                "description": "**{email} - alexa.{url}**\\nDen Zwei Faktor Pin eingeben.\\n{message}",
                 "title": "Alexa Media Player - Zwei Faktor Authentifizierung"
             },
             "user": {
                 "data": {
                     "debug": "Erweitertes debugging",
-                    "email": "E-Mail Adresse",
+                    "email": "Email Adresse",
                     "exclude_devices": "Ausgeschlossene Geräte (komma getrennnt)",
                     "include_devices": "Eingebundene Geräte (komma getrennnt)",
                     "password": "Passwort",
@@ -57,7 +57,7 @@
                     "securitycode": "2FA Code (empfohlen, um Anmeldeprobleme zu vermeiden)",
                     "url": "Amazon Region (z.B., amazon.de)"
                 },
-                "description": "Bitte gebe Deine Informationen ein.",
+                "description": "Bitte geben Sie ihre Informationen ein.",
                 "title": "Alexa Media Player - Konfiguration"
             }
         },

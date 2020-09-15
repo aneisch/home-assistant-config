@@ -7,7 +7,7 @@ hide:
   state: True
 sensors:
   - entity: sensor.thermostat_state
-  - entity: sensor.thermostat_temperature
+  - entity: sensor.netatmo_home_indoor_temperature
     name: Kitchen
   - entity: sensor.master_bedroom_temperature
     name: Master

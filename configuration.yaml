@@ -21,12 +21,12 @@ homeassistant:
   auth_providers:
     - type: homeassistant
 
-aarlo:
-  username: !secret arlo_username
-  password: !secret arlo_password
+#aarlo:
+#  username: !secret arlo_username
+#  password: !secret arlo_password
 
-alarm_control_panel:
-  - platform: aarlo
+#alarm_control_panel:
+#  - platform: aarlo
 
 alexa: !include alexa.yaml
 
@@ -40,16 +40,57 @@ automation: !include automation.yaml
 
 binary_sensor: !include binary_sensor.yaml
 
-camera: !include camera.yaml
+#camera: !include camera.yaml
 
 # 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
 conversation:
 
 climate:
-  platform: radiotherm
-  host:
-    - 10.0.0.29
-  hold_temp: True
+  # https://www.home-assistant.io/integrations/climate.mqtt/
+  - platform: mqtt
+    name: "Thermostat"
+    retain: true
+    max_temp: 85
+    min_temp: 60
+    action_topic: "sensor/thermostat"
+    action_template: >
+      {% if value_json.coolicon == 'on' %}
+        cooling
+      {% elif value_json.heaticon == 'on' %}
+        heating
+      {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' %}
+        idle
+      {% endif %}
+    current_temperature_topic: "sensor/thermostat"
+    current_temperature_template: "{{ value_json.rt }}"
+    fan_mode_state_topic: "sensor/thermostat"
+    fan_mode_state_template: "{{ value_json.fan }}"
+    hold_command_topic: "sensor/thermostat"
+    hold_state_template: "{{ value_json.hold }}"
+    mode_state_topic: "sensor/thermostat"
+    mode_state_template: "{{ value_json.mode }}"
+    modes:
+      - off
+      - auto
+      - cool
+      - heat
+    temperature_state_topic: "sensor/thermostat"
+    temperature_state_template: >
+      {% if value_json.mode == 'cool' %}
+        {{ value_json.clsp }}
+      {% elif value_json.mode == 'heat' %}
+        {{ value_json.htsp }}
+      {% endif %}
+    temperature_unit: "F"
+    mode_command_topic: "cmnd/thermostat/operating_mode"
+    fan_mode_command_topic: "cmnd/thermostat/fan_mode"
+    hold_command_topic: "cmnd/thermostat/hold"
+    temperature_command_topic: "cmnd/thermostat/temperature"
+
+#  platform: radiotherm
+#  host:
+#    - 10.0.0.29
+#  hold_temp: True
 
 config:
 
@@ -156,6 +197,12 @@ light:
           name: andrew_monitor_backlight
           fade: on
   - platform: group
+    name: Kitchen Lights
+    entities:
+      - light.kitchen_can_lights
+      - light.kitchen_table_light
+      - light.living_room_lamps
+  - platform: group
     name: Master Bedroom Lamps
     entities:
       - light.andrew_nightstand_lamp
@@ -170,8 +217,11 @@ light:
     entities: 
       - light.andrew_desk_lamp
       - light.bethany_desk_lamp
-
-lock:
+  - platform: group
+    name: Front Porch Lights
+    entities:
+       - light.front_porch_1
+       - light.front_porch_2
 
 logbook:
 
@@ -369,7 +419,7 @@ switch: !include switches.yaml
 
 system_health:
 
-#zha_map:
+zha_map:
 
 zone:
   - name: Andrew Work

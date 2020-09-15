@@ -21,7 +21,8 @@
             "captcha": {
                 "data": {
                     "captcha": "Капча",
-                    "password": "Пароль"
+                    "password": "Пароль",
+                    "securitycode": ""
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player - Капча"

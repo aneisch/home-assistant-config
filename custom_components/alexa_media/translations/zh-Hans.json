@@ -15,7 +15,8 @@
             "captcha": {
                 "data": {
                     "captcha": "验证码",
-                    "password": "密码"
+                    "password": "密码",
+                    "securitycode": ""
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player-验证码"

@@ -11,6 +11,9 @@ cards:
       - light.living_room_lamp_2
       - light.living_room_lamp
       - light.living_room_lamps
+      - light.living_room_can_lights
+      - switch.living_room_ceiling_fan_light
+      - fan.living_room_ceiling_fan
       #- switch.entertainment_center_lights
       #- switch.christmas_tree
       #- entity: switch.outdoor_zwave_2
@@ -61,22 +64,29 @@ cards:
 
   - type: entities
     show_header_toggle: false
-    title: Back Porch
+    title: Outside
     entities:
       - switch.outdoor_zwave_switch
+      - light.back_porch_light
+      - light.garage_light
+      - light.front_porch_lights
 
   - type: entities
     show_header_toggle: false
     title: Kitchen
     entities:
-      - switch.kitchen_table_light_switch
+      - light.kitchen_can_lights
+      - light.kitchen_sink_light
+      - switch.under_cabinet_lights
+      - light.kitchen_table_light
 
   - type: entities
     show_header_toggle: false
     title: Office
     entities:
       - sensor.office_temperature
-      - fan.office_ceiling_fan_level
+      - switch.office_ceiling_fan
+      - light.office_ceiling_fan_light
       - light.andrew_desk_lamp
       - entity: light.andrew_monitor_backlight
         name: Monitor Backlight

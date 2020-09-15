@@ -124,6 +124,13 @@ Occupancy Simulator:
   step_all_off_off_2: lightliving_room_lamps
   step_all_off_off_3: switch.kitchen_table_light_switch
 
+Front Porch Lights:
+  module: entity_timer
+  class: Timer
+  devices: light.front_porch_lights
+  time_on: sunset
+  time_off: "00:00:00"
+
 NAS:
   module: entity_timer
   class: Timer

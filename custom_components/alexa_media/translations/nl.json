@@ -17,7 +17,8 @@
             "captcha": {
                 "data": {
                     "captcha": "Captcha",
-                    "password": "Paswoord"
+                    "password": "Paswoord",
+                    "securitycode": "config::step::captcha::data::securitycode"
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player - Captcha"

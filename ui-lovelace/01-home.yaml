@@ -30,7 +30,6 @@ cards:
           - input_boolean.security_status
           - binary_sensor.front_door
           - binary_sensor.back_door
-          - lock.front_door
 
       - type: markdown
         content: |

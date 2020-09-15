@@ -21,10 +21,7 @@ smart_home:
       - switch
       - input_number
     include_entities:
-      - climate.thermostat
       - group.common_areas
-      - fan.master_bedroom_ceiling_fan_level
-      - fan.office_ceiling_fan_level
       - light.living_room_lamps
       - light.master_bedroom_lamps
       - light.office_lamps
@@ -33,10 +30,6 @@ smart_home:
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
       - light.guest_nightstand_lamp
-      - script.appdaemon_ac_night
-      - script.appdaemon_ac_morning
-      - script.too_cold
-      - script.too_hot
       - script.master_bedroom_bedtime
       - script.master_bedroom_wakeup
       - sensor.grill_probe_1
@@ -51,18 +44,6 @@ smart_home:
       - switch.tv_remote_hdmi_1
       - switch.tv_remote_hdmi_2
   entity_config:
-    climate.thermostat:
-      name: "Thermostat"
-      display_categories: THERMOSTAT
-
-    fan.master_bedroom_ceiling_fan_level:
-      name: "Master Bedroom Ceiling Fan"
-      display_categories: FAN
-
-    fan.office_ceiling_fan_level:
-      name: "Office Ceiling Fan"
-      display_categories: FAN
-
     group.master_common_areas:
       name: "Common Areas"
       display_categories: LIGHT
@@ -100,26 +81,6 @@ smart_home:
     light.master_bedroom_lamps:
       name: "Master Bedroom Lamps"
       display_categories: LIGHT
-
-    script.appdaemon_ac_night:
-      name: "AC Night Mode"  
-      description: "Change AC to nighttime temperature"
-      display_categories: SCENE_TRIGGER
-
-    script.appdaemon_ac_morning:
-      name: "AC Day Mode"     
-      description: "Change AC to daytime temperature"
-      display_categories: SCENE_TRIGGER
-
-    script.too_cold:
-      name: "Too Cold"     
-      description: "Raise temperature by a few degrees"
-      display_categories: SCENE_TRIGGER
-
-    script.too_hot:
-      name: "Too Hot"
-      description: "Lower temperature by a few degrees"
-      display_categories: SCENE_TRIGGER
 
     script.master_bedroom_bedtime:
       name: "Master Bedroom Bedtime"

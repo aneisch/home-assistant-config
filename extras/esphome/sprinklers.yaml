@@ -28,17 +28,25 @@ switch:
     switches:
       -  name: "Sprinkler Zone 1"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 2"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 3"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 4"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 5"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 6"
          inverted: yes
+         icon: mdi:sprinkler
       -  name: "Sprinkler Zone 7"
          inverted: yes
-      -  name: "Sprinkler Zone 8"
+         icon: mdi:sprinkler
+      -  name: "Sprinkler Master Valve"
          inverted: yes
+         icon: mdi:valve

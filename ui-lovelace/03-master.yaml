@@ -10,8 +10,8 @@ cards:
     entities:
       - sensor.master_bedroom_temperature
       - binary_sensor.master_bedroom_bed
-      - light.master_bedroom
-      - fan.master_bedroom_ceiling_fan_level
+      - light.master_bedroom_ceiling_fan_light
+      - switch.master_bedroom_ceiling_fan
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
       - type: custom:slider-entity-row

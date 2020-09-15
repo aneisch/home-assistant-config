@@ -19,8 +19,8 @@
   #ffmpeg_binary: '/usr/bin/ffmpeg'
   #ffmpeg_arguments: '-q:v 5'
 
-- platform: aarlo
-  ffmpeg_arguments: '-pred 1 -q:v 2'
+#- platform: aarlo
+#  ffmpeg_arguments: '-pred 1 -q:v 2'
 
 - platform: ffmpeg
   input: /opt/nodered/garden_timelapse/garden_timelapse.mp4

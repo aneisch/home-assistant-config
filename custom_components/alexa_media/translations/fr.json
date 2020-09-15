@@ -1,5 +1,10 @@
 {
     "config": {
+        "abort": {
+            "forgot_password": "La page Mot de passe oublié a été détectée. Amazon peut nécessiter une action avant qu'une reconnexion puisse être tentée.",
+            "login_failed": "Alexa Media Player n'a pas réussi à se connecter.",
+            "reauth_successful": "Alexa Media Player s'est authentifié avec succès."
+        },
         "error": {
             "connection_error": "Erreur de connexion; vérifier le réseau et réessayer",
             "identifier_exists": "Email pour l'URL Alexa déjà enregistré",
@@ -21,7 +26,8 @@
             "captcha": {
                 "data": {
                     "captcha": "Captcha",
-                    "password": "Mot de passe"
+                    "password": "Mot de passe",
+                    "securitycode": "Code 2FA (recommandé pour éviter les problèmes de connexion)"
                 },
                 "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
                 "title": "Alexa Media Player - Captcha"
@@ -48,6 +54,7 @@
                     "include_devices": "Appareil inclus (séparé par des virgules)",
                     "password": "Mot de passe",
                     "scan_interval": "Secondes entre les analyses",
+                    "securitycode": "Code 2FA (recommandé pour éviter les problèmes de connexion)",
                     "url": "Domaine de la région Amazon (exemple, amazon.fr)"
                 },
                 "description": "Veuillez saisir vos informations.",
