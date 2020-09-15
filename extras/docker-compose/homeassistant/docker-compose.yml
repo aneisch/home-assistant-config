@@ -87,15 +87,6 @@ services:
         ports:
             - '8888:8888'
         restart: always
-    thermostat_mqtt:
-        container_name: thermostat_mqtt
-        image: aneisch/thermostat_mqtt_docker:latest
-        user: '99'
-        environment:
-          - MQTT_SERVER=10.0.1.22
-          - MQTT_PORT=1883
-          - THERMOSTAT_IP=10.0.0.29
-        restart: always
     apcupsd_950:
         container_name: apcupsd_950
         image: gersilex/apcupsd
@@ -115,6 +106,15 @@ services:
             - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
         devices:
             - '/dev/ups_monitor_650:/dev/usb/hiddev0'
+        restart: always
+    thermostat_api_server:
+        container_name: thermostat_api_server
+        image: aneisch/thermostat_api_server
+        ports:
+            - '8080:8080'
+        environment:
+            - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
+            - MQTT_SERVER=10.0.1.22
         restart: always
     # Not ready for primetime
     #openzwave:

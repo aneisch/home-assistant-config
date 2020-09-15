@@ -70,14 +70,14 @@ cards:
         name: CPU History
         detail: 2
           
-  - type: entities
-    show_header_toggle: false
-    title: 950 UPS
-    entities:
-      - sensor.ups_status
-      - sensor.ups_battery
-      - sensor.ups_time_left
-      - sensor.ups_load
+  #- type: entities
+  #  show_header_toggle: false
+  #  title: 950 UPS
+  #  entities:
+  #    - sensor.ups_status
+  #    - sensor.ups_battery
+  #    - sensor.ups_time_left
+  #    - sensor.ups_load
 
   - type: entities
     show_header_toggle: false
@@ -130,7 +130,6 @@ cards:
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
-      - entity: switch.docker_train_sensor
       - entity: switch.docker_adguard
       - entity: switch.docker_apcupsd_950
       - entity: switch.docker_apcupsd_650
@@ -138,7 +137,6 @@ cards:
       - entity: switch.docker_influxdb
       - entity: switch.docker_mosquitto
       - entity: switch.docker_nodered
-      - entity: switch.docker_thermostat_mqtt
 
   #- type: custom:gui-sandbox
 

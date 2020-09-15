@@ -121,23 +121,23 @@ cards:
   - type: shopping-list
     title: Shopping List
 
-  - type: picture-glance
-    camera_image: camera.outdoor
-    entities: []
+  #- type: picture-glance
+  #  camera_image: camera.outdoor
+  #  entities: []
 
-  - type: picture-glance
-    camera_image: camera.backyard_camera
-    entities: [sensor.miflora_temperature, sensor.miflora_moisture, sensor.miflora_illuminance]
-    show_state: true
-    style: |
-      div.box {
-       justify-content: center;
-      }
-      div.wrapper {
-       padding-left: 20px;
-       padding-right: 20px;
-      }
-
-  - type: picture-glance
-    camera_image: camera.esp_camera
-    entities: []
+  #- type: picture-glance
+  #  camera_image: camera.backyard_camera
+  #  entities: [sensor.miflora_temperature, sensor.miflora_moisture, sensor.miflora_illuminance]
+  #  show_state: true
+  #  style: |
+  #    div.box {
+  #     justify-content: center;
+  #    }
+  #    div.wrapper {
+  #     padding-left: 20px;
+  #     padding-right: 20px;
+  #    }
+#
+#  - type: picture-glance
+#    camera_image: camera.esp_camera
+#    entities: []
