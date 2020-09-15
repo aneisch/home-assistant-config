@@ -65,7 +65,7 @@ climate:
     current_temperature_template: "{{ value_json.rt }}"
     fan_mode_state_topic: "sensor/thermostat"
     fan_mode_state_template: "{{ value_json.fan }}"
-    hold_command_topic: "sensor/thermostat"
+    hold_state_topic: "sensor/thermostat"
     hold_state_template: "{{ value_json.hold }}"
     mode_state_topic: "sensor/thermostat"
     mode_state_template: "{{ value_json.mode }}"
@@ -201,7 +201,7 @@ light:
     entities:
       - light.kitchen_can_lights
       - light.kitchen_table_light
-      - light.living_room_lamps
+      - light.kitchen_sink_light
   - platform: group
     name: Master Bedroom Lamps
     entities:
@@ -212,11 +212,6 @@ light:
     entities:
       - light.living_room_lamp
       - light.living_room_lamp_2
-  - platform: group
-    name: Office Lamps
-    entities: 
-      - light.andrew_desk_lamp
-      - light.bethany_desk_lamp
   - platform: group
     name: Front Porch Lights
     entities:

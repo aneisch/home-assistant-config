@@ -74,6 +74,10 @@ sensor:
         unit_of_measurement: 'hrs'
         value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
+input_boolean:
+  roborock_daily_run:
+    name: Roborock Daily Run
+
 input_select:
   vacuum_room_select:
     name: Choose a room to clean
