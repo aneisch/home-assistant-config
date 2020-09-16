@@ -97,8 +97,8 @@ Occupancy Simulator:
   random_kitchen_maxduration: 02:00:00
   random_kitchen_minduration: 00:30:00
   random_kitchen_number: '5'
-  random_kitchen_on_1: switch.kitchen_table_light_switch
-  random_kitchen_off_1: switch.kitchen_table_light_switch
+  random_kitchen_on_1: light.kitchen_can_lights
+  random_kitchen_off_1: light.kitchen_can_lights
 
   random_living_name: Living Room
   random_living_start: Evening
@@ -115,14 +115,14 @@ Occupancy Simulator:
   #random_office_maxduration: 02:00:00
   #random_office_minduration: 00:30:00
   #random_office_number: '2'
-  #random_office_on_1: light.office_lamps
-  #random_office_off_1: light.office_lamps
+  #random_office_on_1: light.andrew_desk_lamp
+  #random_office_off_1: light.andrew_desk_lamp
 
   step_all_off_name: All Off
   step_all_off_start: '01:00:00'
   step_all_off_off_1: light.master_bedroom_lamps
-  step_all_off_off_2: lightliving_room_lamps
-  step_all_off_off_3: switch.kitchen_table_light_switch
+  step_all_off_off_2: light.living_room_lamps
+  step_all_off_off_3: light.kitchen_can_lights
 
 Front Porch Lights:
   module: entity_timer
@@ -189,7 +189,7 @@ House Lamp Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:30:00
-  entity: light.office_lamps,light.living_room_lamps,light.master_bedroom_lamps
+  entity: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps
 
 Living Room Lamp Follow:
   module: follow_me
@@ -219,13 +219,13 @@ Andrew Desk Keyboard Tray:
   # follower can be a comma separated list
   follower: group.andrew_desk
 
-Backlight Follow:
-  module: follow_me
-  class: Follow
-  # leader can be a comma separated list
-  leader: light.andrew_desk_lamp
-  # follower can be a comma separated list
-  follower: light.andrew_monitor_backlight
+#Backlight Follow:
+#  module: follow_me
+#  class: Follow
+#  # leader can be a comma separated list
+#  leader: light.andrew_desk_lamp
+#  # follower can be a comma separated list
+#  follower: light.andrew_monitor_backlight
 
 # Algo Timer:
 #  module: algo_timer
