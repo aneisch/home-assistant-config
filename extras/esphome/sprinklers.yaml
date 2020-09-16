@@ -10,8 +10,6 @@ esphome:
     - shift_register_switch.h
   libraries:
     - ShiftRegister74HC595@1.2
-    
-web_server:
 
 <<: !include common.yaml
   

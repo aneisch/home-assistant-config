@@ -20,9 +20,9 @@ smart_home:
       - sensor
       - switch
       - input_number
-      - vacuum
     include_entities:
       - climate.thermostat
+      - cover.garage_door
       - group.common_areas
       - fan.living_room_ceiling_fan
       - light.living_room_lamps
@@ -60,7 +60,6 @@ smart_home:
   entity_config:
     climate.thermostat:
       name: "Thermostat"
-      display_categories: THERMOSTAT
 
     group.common_areas:
       name: "Common Areas"
@@ -68,61 +67,47 @@ smart_home:
 
     fan.living_room_ceiling_fan:
       name: "Living Room Ceiling Can"
-      display_categories: FAN
 
     light.living_room_lamps:
       name: "Living Room Lamps"
-      display_categories: LIGHT
 
     light.andrew_nightstand_lamp:
       name: "Andrew's Lamp"
       description: "Andrew's nightstand lamp"
-      display_categories: LIGHT  
 
     light.bethany_nightand_lamp:
       name: "Bethany's Lamp"
       description: "Bethany's nightstand lamp"
-      display_categories: LIGHT
 
     light.andrew_desk_lamp:
       name: "Andrew's Desk Lamp"
-      display_categories: LIGHT
 
     light.bethany_desk_lamp:
       name: "Bethany's Desk Lamp"
-      display_categories: LIGHT
 
     light.guest_nightstand_lamp:
       name: "Guest Bedroom Lamp"
-      display_categories: LIGHT
-    
+
     light.kitchen_lights:
       name: "Kitchen All Lights"
-      display_categories: LIGHT
 
     light.kitchen_can_lights:
       name: "Kitchen Can Lights"
-      display_categories: LIGHT
 
     light.kitchen_sink_light:
       name: "Kitchen Sink Light"
-      display_categories: LIGHT
 
     light.kitchen_table_light:
       name: "Kitchen Table Light"
-      display_categories: LIGHT
 
     light.front_porch_lights:
       name: "Porch Lights"
-      display_categories: LIGHT
 
     light.master_bedroom_lamps:
       name: "Master Bedroom Lamps"
-      display_categories: LIGHT
 
     light.master_bedroom_ceiling_fan_light:
       name: "Master Bedroom Ceiling Fan Light"
-      display_categories: LIGHT
 
     script.appdaemon_ac_night:
       name: "AC Night Mode"  

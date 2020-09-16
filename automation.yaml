@@ -262,7 +262,6 @@
     entity_id: 
       - switch.nas
       - binary_sensor.backups_complete
-    
 
 #- alias: "Backlight off when MacBook Inactive"
 #  initial_state: 'on'

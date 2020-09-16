@@ -1,0 +1,65 @@
+automation:
+  - alias: "Garage still open reminder night"
+    trigger:
+      - platform: event
+        event_type: script_started
+        event_data:
+          entity_id: script.master_bedroom_bedtime
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: cover.garage_door
+          state: 'open'
+        - condition: state
+          entity_id: person.andrew
+          state: 'home'    
+    action:
+      - service: notify.alexa_media_master
+        data:
+          data:
+            type: tts
+          message: "The garage door is still open. You can say 'Alexa, close the garage door.'"
+  
+  - alias: "Garage door still opened when no one home"
+    trigger:
+      - platform: state
+        entity_id: group.trackers
+        to: not_home
+    action:
+      - service: notify.mobile_app_andrew_phone
+        data:
+          message: "No one home, close garage door?"
+          data:
+            persistent: true # Set to true to create a persistent notification
+            tag: persistent # Tag is required for the persistent notification
+            actions:
+              - action: "confirm_close_garage"
+                title: "Confirm"
+              - action: "ignore_close_garage"
+                title: "Ignore"
+
+  - alias: "Close garage after confirmation"
+      # Android
+    trigger:
+      - platform: event
+        event_type: mobile_app_notification_action 
+        event_data:
+          action: confirm_close_garage
+    action:
+      service: cover.close_cover
+      entity_id: cover.garage_door
+
+  - alias: "Garage changed to open when no one home"
+    trigger:
+      - platform: state
+        entity_id: cover.garage_door
+        to: "open"
+    condition:
+      condition: state
+      entity_id: group.trackers
+      state: 'not_home'
+    action:
+      - service: notify.pushover
+        data:
+          message: "Garage door opened and no one home.."

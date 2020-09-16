@@ -9,6 +9,7 @@ homeassistant:
   packages:
     #door_unlock: !include packages/door_unlock.yaml
     fingerprint: !include packages/fingerprint.yaml
+    garage_door: !include packages/garage_door.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
@@ -251,10 +252,10 @@ lovelace:
       type: js
     - url: /hacsfiles/config-template-card/config-template-card.js
       type: module
-    - url: /hacsfiles/zha-network-card/zha-network-card.js
-      type: js
-    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
-      type: module
+    #- url: /hacsfiles/zha-network-card/zha-network-card.js
+    #  type: js
+    #- url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+    #  type: module
     - url: /hacsfiles/lovelace-card-templater/lovelace-card-templater.js
       type: module
 
@@ -408,7 +409,7 @@ switch: !include switches.yaml
 
 system_health:
 
-zha_map:
+#zha_map:
 
 zone:
   - name: Andrew Work

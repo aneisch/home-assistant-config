@@ -26,6 +26,7 @@ cards:
           #- !secret alarm_panel_1
           #- !secret alarm_panel_2
           - input_boolean.security_status
+          - cover.garage_door
           - binary_sensor.front_door
           - binary_sensor.back_door
 

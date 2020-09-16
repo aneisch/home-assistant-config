@@ -151,12 +151,16 @@ switch:
         - delay:
             seconds: 1
       turn_off:
+        - service: vacuum.stop
+          data:
+            entity_id: vacuum.roborock_s4
+        - delay: '00:00:01'
         - service: vacuum.return_to_base
           data:
             entity_id: vacuum.roborock_s4
 
 vacuum:
   - platform: xiaomi_miio
-    host: 10.0.1.11
+    host: 10.0.0.10
     token: !secret roborock_token
     name: Roborock S4
