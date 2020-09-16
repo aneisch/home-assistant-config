@@ -85,11 +85,11 @@ smart_home:
       display_categories: LIGHT
 
     light.andrew_desk_lamp:
-      name: "Andrew's Office Lamp"
+      name: "Andrew's Desk Lamp"
       display_categories: LIGHT
 
     light.bethany_desk_lamp:
-      name: "Bethany's Office Lamp"
+      name: "Bethany's Desk Lamp"
       display_categories: LIGHT
 
     light.guest_nightstand_lamp:

@@ -22,9 +22,9 @@ Zigbee Remote:
   class: ZigbeeRemote
   device_ieee: cc:cc:cc:ff:fe:d9:03:f7
   button_1_toggle: light.master_bedroom_lamps
-  button_2_toggle: fan.master_bedroom_ceiling_fan_level
-  button_2_hold_toggle: fan.master_bedroom_ceiling_fan_level
-  button_3_toggle: fan.master_bedroom_ceiling_fan_level
+  button_2_toggle: switch.master_bedroom_ceiling_fan
+  button_2_hold_toggle: switch.master_bedroom_ceiling_fan
+  button_3_toggle: switch.master_bedroom_ceiling_fan
 
 Minimote Morning:
   module: minimote
@@ -39,14 +39,14 @@ Minimote Morning:
   panic_entity: script.panic
   # Toggle = short press
   # On = long press
-  scene_1_toggle: fan.master_bedroom_ceiling_fan_level
-  scene_2_on: fan.master_bedroom_ceiling_fan_level
-  scene_3_toggle: fan.master_bedroom_ceiling_fan_level
-  scene_4_on: fan.master_bedroom_ceiling_fan_level
-  scene_5_toggle: fan.master_bedroom_ceiling_fan_level
-  scene_6_on: fan.master_bedroom_ceiling_fan_level
-  scene_7_toggle: fan.master_bedroom_ceiling_fan_level
-  scene_8_on: fan.master_bedroom_ceiling_fan_level
+  scene_1_toggle: switch.master_bedroom_ceiling_fan
+  scene_2_on: switch.master_bedroom_ceiling_fan
+  scene_3_toggle: switch.master_bedroom_ceiling_fan
+  scene_4_on: switch.master_bedroom_ceiling_fan
+  scene_5_toggle: switch.master_bedroom_ceiling_fan
+  scene_6_on: switch.master_bedroom_ceiling_fan
+  scene_7_toggle: switch.master_bedroom_ceiling_fan
+  scene_8_on: switch.master_bedroom_ceiling_fan
 
 Minimote Non-Morning:
   module: minimote
@@ -63,7 +63,7 @@ Minimote Non-Morning:
   # On = long press
   scene_1_toggle: switch.master_bathroom_light_switch
   scene_2_on: script.master_bedroom_light_full
-  scene_3_toggle: fan.master_bedroom_ceiling_fan_level
+  scene_3_toggle: switch.master_bedroom_ceiling_fan
   scene_4_on: script.master_bedroom_light_dim
   scene_5_toggle: switch.master_bedroom_sound_machine
   scene_6_on: script.master_bedroom_bedtime
@@ -136,15 +136,9 @@ NAS:
   class: Timer
   devices: switch.nas
   time_on: '03:00:00'
+  # There is an automation to turn this off automatically after rsync
   time_off: '05:00:00'
   constrain_days: wed
-
-Experimental Section:
-  module: entity_timer
-  class: Timer
-  devices: switch.outdoor_zwave_2
-  time_on: '09:00:00'
-  time_off: '19:00:00'
 
 Andrew Vehicle:
   module: countdown_notify
@@ -171,7 +165,18 @@ Living Room Light at Night With Door:
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
-  lights: light.living_room_lamps
+  lights: light.andrew_desk_lamp,switch.under_cabinet_lights
+  # Seconds to turn entity on when triggered
+  time_on: '30'
+
+Living Room Light at Night With Door:
+  module: door_open
+  class: DoorLight
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  constrain_end_time: sunrise
+  constrain_start_time: sunset
+  door_sensor: binary_sensor.kitchen_garage_door
+  lights: switch.under_cabinet_lights
   # Seconds to turn entity on when triggered
   time_on: '30'
 
@@ -179,7 +184,7 @@ Nap Time Lamp Automation Override:
   # Stop master bedroom lamps from automatic when napping
   module: follow_me
   class: Follow
-  leader: fan.master_bedroom_ceiling_fan
+  leader: switch.master_bedroom_ceiling_fan
   follower: input_boolean.house_lamps_automation
   invert: True
 
@@ -210,22 +215,6 @@ Door Notification and Occusim Security Follow:
   class: Follow
   leader: input_boolean.security_status
   follower: input_boolean.door_notify,input_boolean.occusim
-
-Andrew Desk Keyboard Tray:
-  module: follow_me
-  class: Follow
-  # leader can be a comma separated list
-  leader: binary_sensor.andrew_desk_keyboard_tray
-  # follower can be a comma separated list
-  follower: group.andrew_desk
-
-#Backlight Follow:
-#  module: follow_me
-#  class: Follow
-#  # leader can be a comma separated list
-#  leader: light.andrew_desk_lamp
-#  # follower can be a comma separated list
-#  follower: light.andrew_monitor_backlight
 
 # Algo Timer:
 #  module: algo_timer

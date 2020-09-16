@@ -8,6 +8,7 @@
     - platform: homeassistant
       event: start
   action:
+    - delay: '00:05:00'
     - service: readme.generate
 
 - alias: "Set dark theme for night"
@@ -102,7 +103,7 @@
     to: 'on'
   action:
     service: homeassistant.toggle
-    entity_id: light.bethany_desk_lamp
+    entity_id: switch.office_ceiling_fan
 
 - alias: "Desk Button Double Press"
   initial_state: 'on'
@@ -112,7 +113,7 @@
     to: 'on'
   action:
     service: homeassistant.toggle
-    entity_id: group.andrew_desk
+    entity_id: light.andrew_desk_lamp
 
 - alias: "Mount/Umount /Plex"
   initial_state: on
@@ -146,9 +147,9 @@
     condition: or
     conditions:
       - condition: template
-        value_template: '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "Heat") }}'
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
       - condition: template
-        value_template: '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "Cool") }}'
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
   action:
     - service: notify.pushover
       data_template:
@@ -188,21 +189,6 @@
         message: >
           {% if trigger.entity_id == "sensor.thermostat_setpoint" %}Setpoint{% elif trigger.entity_id == "sensor.thermostat_mode" %}Mode{% endif %}: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
 
-- alias: "Garden Timer Problem"
-  initial_state: 'on'
-  trigger:
-    - platform: time
-      at: '05:30:00'
-  condition:
-    condition: numeric_state
-    entity_id: sensor.miflora_moisture
-    below: 45
-  action:
-    service: notify.pushover
-    data_template:
-      message: >
-        Garden sensor reports a moisture level of {{ states.sensor.miflora_moisture.state }}%. Check hose timer. 
-
 # Working as of 2/12/2020
 # Handle all actions for html5 and android push notifications
 - alias: HTML5 or Android push notification action button clicked
@@ -217,33 +203,12 @@
         script.turn_ac_off
       {% endif %}
 
-- alias: Ensure 100% brightness for Andrew monitor backlight
-  trigger:
-    platform: state
-    to: 'on'
-    entity_id: light.andrew_monitor_backlight
-  action:
-    service: scene.turn_on
-    entity_id: scene.monitor_backlight_full
-
 - alias: Clear Alexa Recording History
   trigger:
     platform: time
     at: "22:00:00"
   action:
     - service: alexa_media.clear_history
-
-# Sync Alexa Shopping list --> Home Assistant
-- alias: 'Add shopping list'
-  trigger:
-    platform: event
-    event_type: ifttt_webhook_received
-    event_data:
-      action: call_service
-  action:
-    service_template: '{{ trigger.event.data.service }}'
-    data_template:
-      name: '{{ trigger.event.data.name }}'
 
 - alias: 'Update door last opened'
   trigger:
@@ -299,33 +264,33 @@
       - binary_sensor.backups_complete
     
 
-- alias: "Backlight off when MacBook Inactive"
-  initial_state: 'on'
-  trigger:
-    platform: state
-    entity_id: binary_sensor.andrew_macbook_active
-  condition:
-    condition: and
-    conditions:
-      - condition: state
-        entity_id: binary_sensor.andrew_desk_keyboard_tray
-        state: 'on'
-      - condition: state
-        entity_id: person.andrew
-        state: 'home'
-  action:
-    - choose:
-      - conditions:
-        - condition: state
-          entity_id: binary_sensor.andrew_macbook_active
-          state: "on"
-        sequence:
-          - service: light.turn_on
-            entity_id: light.andrew_monitor_backlight
-      - conditions:
-        - condition: state
-          entity_id: binary_sensor.andrew_macbook_active
-          state: "off"
-        sequence:
-          - service: light.turn_off
-            entity_id: light.andrew_monitor_backlight
+#- alias: "Backlight off when MacBook Inactive"
+#  initial_state: 'on'
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.andrew_macbook_active
+#  condition:
+#    condition: and
+#    conditions:
+#      - condition: state
+#        entity_id: binary_sensor.andrew_desk_keyboard_tray
+#        state: 'on'
+#      - condition: state
+#        entity_id: person.andrew
+#        state: 'home'
+#  action:
+#    - choose:
+#      - conditions:
+#        - condition: state
+#          entity_id: binary_sensor.andrew_macbook_active
+#          state: "on"
+#        sequence:
+#          - service: light.turn_on
+#            entity_id: light.andrew_monitor_backlight
+#      - conditions:
+#        - condition: state
+#          entity_id: binary_sensor.andrew_macbook_active
+#          state: "off"
+#        sequence:
+#          - service: light.turn_off
+#            entity_id: light.andrew_monitor_backlight

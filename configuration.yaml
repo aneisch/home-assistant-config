@@ -117,8 +117,6 @@ docker_monitor:
 digital_ocean:
   access_token: !secret DO_token
 
-fan: !include fans.yaml
-
 frontend:
   themes: !include_dir_merge_named themes
 

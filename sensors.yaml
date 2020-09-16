@@ -10,22 +10,6 @@
 #  - captured_today
 #  - signal_strength
 
-- platform: darksky
-  scan_interval:
-    minutes: 30
-  api_key: !secret darksky_api_key
-  monitored_conditions:
-    - summary
-    - temperature
-    - apparent_temperature
-    - humidity
-    - pressure
-    - precip_probability
-    - precip_intensity
-    - wind_speed
-    - wind_bearing
-    - icon
-
 - platform: systemmonitor
   scan_interval:
     seconds: 60
@@ -189,10 +173,6 @@
   end: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
   duration:
     hours: 24
-
-- platform: seventeentrack
-  username: !secret 17track_user
-  password: !secret 17track_pass
 
 - platform: command_line
   name: CPU Temperature
