@@ -24,7 +24,7 @@ cards:
           title: Battery
           icon_template: '{{ state_attr("vacuum.roborock_s4", "battery_icon") }}'
           style:
-            right: 210px
+            right: 171px
             bottom: 0
             padding: 10px
             font-size: 16px
@@ -35,8 +35,8 @@ cards:
           title: Battery Level
           entity: sensor.roborock_s4_battery
           style:
-            right: 150px
-            bottom: -5px
+            right: 120px
+            bottom: 0px
             padding: 10px
             font-size: 16px
             line-height: 16px
@@ -51,7 +51,7 @@ cards:
             service_data:
               entity_id: vacuum.roborock_s4
           style:
-            right: 120px
+            right: 90px
             bottom: 0
             padding: 10px
             font-size: 16px
@@ -68,7 +68,7 @@ cards:
               payload: 1
               topic: /nodered/vacuum_whole_house
           style:
-            right: 80px
+            right: 0
             bottom: 0
             padding: 10px
             font-size: 16px
@@ -84,7 +84,7 @@ cards:
             service_data:
               entity_id: vacuum.roborock_s4
           style:
-            right: 40px
+            right: 45px
             bottom: 0
             padding: 10px
             font-size: 16px
@@ -98,7 +98,7 @@ cards:
             action: call-service
             service: script.vacuum_park_trashcan
           style:
-            right: 0px
+            right: 45px
             bottom: 0
             padding: 10px
             font-size: 16px

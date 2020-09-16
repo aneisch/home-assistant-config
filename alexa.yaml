@@ -20,6 +20,7 @@ smart_home:
       - sensor
       - switch
       - input_number
+      - vacuum
     include_entities:
       - climate.thermostat
       - group.common_areas
@@ -51,6 +52,7 @@ smart_home:
       - switch.tv
       - switch.nas
       - switch.master_bedroom_ceiling_fan
+      - switch.vacuum
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
       - switch.tv_remote_hdmi_1
@@ -189,8 +191,12 @@ smart_home:
     switch.master_bedroom_ceiling_fan:
       name: "Master Bedroom Ceiling Fan"
       display_categories: FAN
+    
+    switch.vacuum:
+      name: Roxie
+      display_categories: SWITCH
 
-    switch.master_office_ceiling_fan:
+    switch.office_ceiling_fan:
       name: "Office Ceiling Fan"
       display_categories: FAN
 

@@ -12,7 +12,8 @@ office:
   entities:
     - light.andrew_monitor_backlight
     - fan.office_ceiling_fan_level
-    - light.office_lamps
+    - light.andrew_desk_lamp
+    - light.bethany_desk_lamp
 
 master_bedroom:
   name: Master Bedroom
@@ -37,7 +38,8 @@ trackers:
 kitchen:
   name: Kitchen
   entities:
-    - switch.kitchen_table_light_switch
+    - light.kitchen_lights
+    - switch.under_cabinet_lghts
 
 living_room:
   name: Living Room
@@ -45,6 +47,9 @@ living_room:
     - light.living_room_lamps
     - switch.entertainment_center_lights
     - switch.christmas_tree
+    - light.living_room_can_lights
+    - switch.living_room_ceiling_fan_light
+    - fan.living_room_ceiling_fan
 
 andrew_desk:
   entities:

@@ -7,13 +7,13 @@ homeassistant:
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
-    door_unlock: !include packages/door_unlock.yaml
+    #door_unlock: !include packages/door_unlock.yaml
     fingerprint: !include packages/fingerprint.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
     reminders: !include packages/reminders.yaml
-    train: !include packages/train.yaml
+    #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
     #bus_time: !include packages/bus_time.yaml
@@ -331,9 +331,6 @@ person:
       - device_tracker.bethany_s_iphone
       - device_tracker.owntracks_bethanyphone
 
-#pi_hole:
-#  host: '10.0.1.22:8000'
-
 plant:
   garden:
     sensors:
@@ -351,14 +348,13 @@ plant:
 #    use_episode_art: false
 #    show_all_controls: true
 
-#proximity:
-#  home:
-#    devices:
-#      - device_tracker.owntracks_andrewworkphone
-#      - device_tracker.owntracks_bethanyphone
-#      - device_tracker.bethanys_iphone
-#    tolerance: 50
-#    unit_of_measurement: mi
+proximity:
+  home:
+    devices:
+      - device_tracker.owntracks_andrewworkphone
+      - device_tracker.bethany_s_iphone
+    tolerance: 50
+    unit_of_measurement: mi
 
 python_script:
 

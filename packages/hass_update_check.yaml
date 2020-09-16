@@ -97,7 +97,7 @@ homeassistant:
       icon: mdi:docker
       friendly_name: Beta Docker
     sensor.ha_github_version:
-      icon: mdi:github-circle
+      icon: mdi:github
       friendly_name: Latest Github
     sensor.ha_version:
       icon: mdi:home-assistant

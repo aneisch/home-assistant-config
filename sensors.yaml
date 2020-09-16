@@ -150,6 +150,12 @@
   name: "Thermostat Hold"
   value_template: "{{ value_json.hold }}"
 
+- platform: mqtt
+  state_topic: "sensor/thermostat"
+  name: "Thermostat Filter Hours Remain"
+  value_template: "{{ value_json.filtrlvl }}"
+  unit_of_measurement: "h"
+
 - platform: history_stats
   name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state

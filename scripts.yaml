@@ -10,7 +10,7 @@ home_empty:
         entity_id: group.master_bedroom
     - service: homeassistant.turn_off
       data:
-        entity_id: group.office
+        entity_id: group.common_areas
     - delay:
         seconds: 5
     - service: homeassistant.turn_on
@@ -36,6 +36,9 @@ home_occupied:
     - service: homeassistant.turn_on
       data:
         entity_id: light.office_lamps
+    - service: homeassistant.turn_on
+      data:
+        entity_id: switch.under_cabinet_lights
 
 ############
 # SECURITY #
@@ -72,38 +75,34 @@ security_arm:
 master_bedroom_bedtime:
   sequence:
     - service: script.appdaemon_ac_night
-    - service: fan.turn_on
+    - service: switch.turn_on
       data:
-        entity_id: fan.master_bedroom_ceiling_fan_level
+        entity_id: switch.master_bedroom_ceiling_fan
     - service: light.turn_off
       data:
-        entity_id: light.master_bedroom
+        entity_id: light.master_bedroom_ceiling_fan_light
+        transition: 5
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom_lamps
         transition: 5
-    - service: homeassistant.turn_off
-      data:
-        entity_id: switch.master_bathroom_light_switch
 
 master_bedroom_wakeup:
   sequence:
-    - service: fan.turn_off
+    - service: switch.turn_off
       data:
-        entity_id: fan.master_bedroom_ceiling_fan_level
+        entity_id: switch.master_bedroom_ceiling_fan
     - delay: '00:00:02'
     - service: script.appdaemon_ac_morning
     - service: scene.turn_on
       data_template:
         entity_id: >
-          {% if 30 > ((as_timestamp(now()) - as_timestamp(states.fan.master_bedroom_ceiling_fan_level.last_changed))) | round(0) %}
+          {% if 30 > ((as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed))) | round(0) %}
             scene.master_lamps_slow_on
           {% else %}
             scene.master_lamps_fast_on
           {% endif %}
-    - service: light.turn_on
-      data:
-        entity_id: light.master_bedroom
+
 
 #########
 # OTHER #

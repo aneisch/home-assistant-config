@@ -23,6 +23,6 @@
       - light.master_bedroom_lamps
       - light.living_room_lamps
       - climate.thermostat
-      - fan.master_bedroom_ceiling_fan
+      - switch.master_bedroom_ceiling_fan
       - script.too_cold
       - script.too_hot

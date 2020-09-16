@@ -130,13 +130,14 @@ cards:
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
-      - entity: switch.docker_adguard
-      - entity: switch.docker_apcupsd_950
-      - entity: switch.docker_apcupsd_650
-      - entity: switch.docker_appdaemon
-      - entity: switch.docker_influxdb
-      - entity: switch.docker_mosquitto
-      - entity: switch.docker_nodered
+      - switch.docker_adguard
+      - switch.docker_apcupsd_950
+      - switch.docker_apcupsd_650
+      - switch.docker_appdaemon
+      - switch.docker_influxdb
+      - switch.docker_mosquitto
+      - switch.docker_nodered
+      - switch.docker_thermostat_api_server
 
   #- type: custom:gui-sandbox
 
