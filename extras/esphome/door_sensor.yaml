@@ -17,7 +17,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D1
-    name: "Back Door"
+    name: "D1"
     device_class: door
     filters:
       - delayed_on_off: 0.5s
@@ -26,7 +26,34 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D2
-    name: "Front Door"
+    name: "D2"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D5
+    name: "D5"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+      
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D6
+    name: "D6"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D7
+    name: "D7"
     device_class: door
     filters:
       - delayed_on_off: 0.5s

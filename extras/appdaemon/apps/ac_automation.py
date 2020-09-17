@@ -62,11 +62,13 @@ class AutoAdjust(hass.Hass):
 
         # If someone was home but the house is now unoccupied
         elif old == "home" and new == "not_home":
+            self.log("ahhh")
+            self.log(self.get_state("sensor.thermostat_operating_mode").lower())
             if self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
 
-            elif self.get_state("sensor.thermostat_operating_mode").lower() == "Cool":
+            elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
 
@@ -81,7 +83,7 @@ class AutoAdjust(hass.Hass):
                 self.log("Mode: Heat Day -- %s" % self.args["heat_day"])
                 self.run_in(self.adjust_temp, 5, temp = self.args["heat_day"])
 
-            elif self.get_state("sensor.thermostat_operating_mode").lower() == "Cool":
+            elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Day -- %s" % self.args["cool_day"])
                 for tstat in self.split_device_list(self.args["thermostats"]):
                     self.run_in(self.adjust_temp, 5, temp = self.args["cool_day"])
