@@ -146,8 +146,10 @@
   condition:
     condition: or
     conditions:
-      - '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
-      - '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
+      - condition: template
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
+      - condition: template
+        value_template: '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
   action:
     - service: notify.pushover
       data_template:
@@ -179,7 +181,8 @@
       - condition: state
         entity_id: input_boolean.ac_change_notification
         state: 'on'
-      - '{{ trigger.from_state.state != trigger.to_state.state }}'
+      - condition: template
+        value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
     - service: notify.pushover
       data_template:
