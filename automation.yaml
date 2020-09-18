@@ -146,10 +146,8 @@
   condition:
     condition: or
     conditions:
-      - condition: template
-        value_template: '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
-      - condition: template
-        value_template: '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
+      - '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
+      - '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
   action:
     - service: notify.pushover
       data_template:
@@ -181,8 +179,7 @@
       - condition: state
         entity_id: input_boolean.ac_change_notification
         state: 'on'
-      - condition: template
-        value_template: '{{ trigger.from_state.state != trigger.to_state.state }}'
+      - '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
     - service: notify.pushover
       data_template:
@@ -213,15 +210,17 @@
 - alias: 'Update door last opened'
   trigger:
     - platform: state
-      entity_id: binary_sensor.front_door
-      to: 'on'
-    - platform: state
-      entity_id: binary_sensor.back_door
+      entity_id: 
+        - binary_sensor.front_door
+        - binary_sensor.back_porch_door
+        - binary_sensor.garage_exterior_door
+        - binary_sensor.garage_interior_door
+        - binary_sensor.master_bedroom_exterior_door
       to: 'on'
   action:
     service: input_datetime.set_datetime
     data_template:
-      entity_id: '{% if trigger.entity_id == "binary_sensor.front_door" %}input_datetime.front_door_last{% else %}input_datetime.back_door_last{% endif %}'
+      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
 # Blink a light when the panic pushover alert is acknowledged

@@ -18,17 +18,17 @@ esphome:
 
 <<: !include common.yaml
   
-# custom_component:
-# - lambda: |-
-#     auto change_address = new ChangeAddress();
-#     return {change_address};
+custom_component:
+- lambda: |-
+    auto change_address = new ChangeAddress();
+    return {change_address};
 
 i2c:
   - id: bus_a
     sda: D5
     scl: D6
     scan: True
-    frequency: 100kHz
+    frequency: 50kHz
 
 # sensor:
   # # Cruze

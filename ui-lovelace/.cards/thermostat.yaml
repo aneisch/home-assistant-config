@@ -7,6 +7,8 @@ hide:
   state: True
 sensors:
   - entity: sensor.thermostat_state
+  - entity: sensor.thermostat_humidity
+    name: Humidity
   - entity: sensor.thermostat_temperature
     name: Thermostat
   - entity: sensor.netatmo_home_indoor_temperature

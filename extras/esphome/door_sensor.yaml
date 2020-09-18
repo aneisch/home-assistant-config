@@ -17,7 +17,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D1
-    name: "D1"
+    name: "Front Door"
     device_class: door
     filters:
       - delayed_on_off: 0.5s
@@ -26,7 +26,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D2
-    name: "D2"
+    name: "Master Bedroom Exterior Door"
     device_class: door
     filters:
       - delayed_on_off: 0.5s
@@ -35,7 +35,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D5
-    name: "D5"
+    name: "Back Porch Door"
     device_class: door
     filters:
       - delayed_on_off: 0.5s
@@ -44,7 +44,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D6
-    name: "D6"
+    name: "Garage Interior Door"
     device_class: door
     filters:
       - delayed_on_off: 0.5s
@@ -53,7 +53,7 @@ binary_sensor:
     pin:
       mode: INPUT_PULLUP
       number: D7
-    name: "D7"
+    name: "Garage Exterior Door"
     device_class: door
     filters:
       - delayed_on_off: 0.5s

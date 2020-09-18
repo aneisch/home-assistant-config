@@ -2,7 +2,19 @@ front_door_last:
   name: Front Door Last Opened
   has_date: true
   has_time: true
-back_door_last:
-  name: Back Door Last Opened
+back_porch_door_last:
+  name: Back Porch Door Last Opened
+  has_date: true
+  has_time: true
+garage_exterior_door_last:
+  name: Garage Exterior Door Last Opened
+  has_date: true
+  has_time: true
+garage_interior_door_last:
+  name: Garage Interior Door Last Opened
+  has_date: true
+  has_time: true
+master_bedroom_exterior_door_last:
+  name: Master Bedroom Exterior Door Last Opened
   has_date: true
   has_time: true

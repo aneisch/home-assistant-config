@@ -85,7 +85,7 @@
 
 - platform: mqtt
   state_topic: "sensor/thermostat"
-  name: "Thermostat Humididy"
+  name: "Thermostat Humidity"
   unit_of_measurement: "%"
   value_template: "{{ value_json.rh }}"
 
