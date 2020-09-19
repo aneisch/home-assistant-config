@@ -224,6 +224,18 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
+    homeassistant.components.zha: debug
+    bellows.zigbee.application: debug
+    bellows.ezsp: debug
+    zigpy: debug
+    zigpy_cc: debug
+    zigpy_deconz.zigbee.application: debug
+    zigpy_deconz.api: debug
+    zigpy_xbee.zigbee.application: debug
+    zigpy_xbee.api: debug
+    zigpy_zigate: debug
+    zigpy_znp: debug
+    zhaquirks: debug
   #  custom_components.docker_monitor: debug
   #  homeassistant.components.webhook: debug
 

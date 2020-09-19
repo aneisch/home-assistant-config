@@ -159,18 +159,24 @@ cards:
             transform: translate(0%,0%)
             width: 25%
 
-
-  - type: 'custom:card-templater'
-    card:
-      type: entities
-      title: Vacuum a Room
-      show_header_toggle: false
-      entities:
-        - input_select.vacuum_room_select
-        - type: call-service
-          service: script.vacuum_clean_room
-          name: " "
-          icon: " "
+  - type: entities
+    title: Custom Clean
+    show_header_toggle: false
+    entities:
+      - input_select.vacuum_custom_clean_1
+      - input_select.vacuum_custom_clean_2
+      - input_select.vacuum_custom_clean_3
+      - input_select.vacuum_custom_clean_4
+      - input_select.vacuum_custom_clean_5
+      - input_select.vacuum_custom_clean_6
+      - input_select.vacuum_custom_clean_7
+      - input_select.vacuum_custom_clean_8
+      - input_select.vacuum_custom_clean_9
+      - input_select.vacuum_custom_clean_10
+      - type: call-service
+        service: python_script.vacuum_custom_clean
+        name: " "
+        icon: " "
 
   - type: horizontal-stack
     cards:

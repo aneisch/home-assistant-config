@@ -1,3 +1,5 @@
+# See also: ../python_scripts/vacuum_custom_clean.py that allows custom room clean
+
 sensor:
   - platform: template
     sensors:
@@ -75,6 +77,7 @@ sensor:
         value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
 input_boolean:
+  # Nodered
   roborock_daily_run:
     name: Roborock Daily Run
 
@@ -83,6 +86,7 @@ input_select:
     name: Choose a room to clean
     # Define these zones in NodeRed
     options:
+      - None
       - Dining Room
       - Kitchen
       - Living Room
@@ -94,14 +98,166 @@ input_select:
       - Master Bedroom
       - Master Bathroom
 
-  vacuum_room_repeat:
-    name: Number of times to clean the room
+  vacuum_custom_clean_1:
+    name: Custom Clean Room 1
+    initial: None
     options:
-      - 1
-      - 2
-      - 3
-    initial: 1
-    icon: mdi:numeric
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+
+  vacuum_custom_clean_2:
+    name: Custom Clean Room 2
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_3:
+    name: Custom Clean Room 3
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+
+  vacuum_custom_clean_4:
+    name: Custom Clean Room 4
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_5:
+    name: Custom Clean Room 5
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_6:
+    name: Custom Clean Room 6
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_7:
+    name: Custom Clean Room 7
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+
+  vacuum_custom_clean_8:
+    name: Custom Clean Room 8
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_9:
+    name: Custom Clean Room 9
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
+  vacuum_custom_clean_10:
+    name: Custom Clean Room 10
+    initial: None
+    options:
+      - None
+      - Dining Room
+      - Kitchen
+      - Living Room
+      - Office
+      - Guest Bedroom
+      - Guest Bathroom
+      - Hallway
+      - "Bethany's Office"
+      - Master Bedroom
+      - Master Bathroom
+      
 
 script:
   vacuum_park_trashcan:
@@ -111,33 +267,6 @@ script:
           entity_id: vacuum.roborock_s4
           x_coord: 13950
           y_coord: 23250
-  vacuum_clean_room:
-    sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
-        data_template:
-          entity_id: vacuum.roborock_s4
-          segments: >
-            {% if states.input_select.vacuum_room_select.state == "Hallway" %}
-              16
-            {% elif states.input_select.vacuum_room_select.state == "Master Bedroom" %}
-              18
-            {% elif states.input_select.vacuum_room_select.state == "Guest Bathoom" %}
-              19
-            {% elif states.input_select.vacuum_room_select.state == "Bethany's Office" %}
-              20
-            {% elif states.input_select.vacuum_room_select.state == "Office" %}
-              21
-            {% elif states.input_select.vacuum_room_select.state == "Living Room" %}
-              23
-            {% elif states.input_select.vacuum_room_select.state == "Dining Room" %}
-              24
-            {% elif states.input_select.vacuum_room_select.state == "Kitchen" %}
-              25
-            {% elif states.input_select.vacuum_room_select.state == "Guest Bedroom" %}
-              26
-            {% elif states.input_select.vacuum_room_select.state == "Master Bathroom" %}
-              27
-            {% endif %}
 
 switch:
   platform: template
