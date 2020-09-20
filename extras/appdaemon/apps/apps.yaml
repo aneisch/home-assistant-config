@@ -158,14 +158,25 @@ Bethany Vehicle:
   notify: pushover # The name of the notify service
   message: "It's time to renew Bethany's vehicle registration!"
 
-Living Room Light at Night With Door:
+Office Light at Night With Door:
   module: door_open
   class: DoorLight
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
-  lights: light.andrew_desk_lamp,switch.under_cabinet_lights
+  lights: light.andrew_desk_lamp
+  # Seconds to turn entity on when triggered
+  time_on: '30'
+
+Kitchen Light at Night With Door:
+  module: door_open
+  class: DoorLight
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  constrain_end_time: sunrise
+  constrain_start_time: sunset
+  door_sensor: binary_sensor.front_door
+  lights: switch.under_cabinet_lights
   # Seconds to turn entity on when triggered
   time_on: '30'
 
@@ -175,7 +186,7 @@ Living Room Light at Night With Door:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
-  door_sensor: binary_sensor.kitchen_garage_door
+  door_sensor: binary_sensor.garage_interior_door
   lights: switch.under_cabinet_lights
   # Seconds to turn entity on when triggered
   time_on: '30'

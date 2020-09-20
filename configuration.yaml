@@ -41,7 +41,7 @@ automation: !include automation.yaml
 
 binary_sensor: !include binary_sensor.yaml
 
-#camera: !include camera.yaml
+camera: !include camera.yaml
 
 # 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
 conversation:
@@ -225,17 +225,17 @@ logger:
   logs:
     homeassistant.core: debug
     homeassistant.components.zha: debug
-    bellows.zigbee.application: debug
-    bellows.ezsp: debug
-    zigpy: debug
-    zigpy_cc: debug
-    zigpy_deconz.zigbee.application: debug
-    zigpy_deconz.api: debug
-    zigpy_xbee.zigbee.application: debug
-    zigpy_xbee.api: debug
-    zigpy_zigate: debug
-    zigpy_znp: debug
-    zhaquirks: debug
+    #bellows.zigbee.application: debug
+    #bellows.ezsp: debug
+    #zigpy: debug
+    #zigpy_cc: debug
+    #zigpy_deconz.zigbee.application: debug
+    #zigpy_deconz.api: debug
+    #zigpy_xbee.zigbee.application: debug
+    #zigpy_xbee.api: debug
+    #zigpy_zigate: debug
+    #zigpy_znp: debug
+    #zhaquirks: debug
   #  custom_components.docker_monitor: debug
   #  homeassistant.components.webhook: debug
 
@@ -264,10 +264,10 @@ lovelace:
       type: js
     - url: /hacsfiles/config-template-card/config-template-card.js
       type: module
-    #- url: /hacsfiles/zha-network-card/zha-network-card.js
-    #  type: js
-    #- url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
-    #  type: module
+    - url: /hacsfiles/zha-network-card/zha-network-card.js
+      type: js
+    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+      type: module
     - url: /hacsfiles/lovelace-card-templater/lovelace-card-templater.js
       type: module
 
@@ -293,8 +293,6 @@ notify:
     vapid_prv_key: !secret vapid_prv_key
     vapid_email: !secret vapid_email
 #  - platform: alexa_media
-
-owntracks:
 
 panel_custom:
   # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
@@ -334,13 +332,12 @@ person:
     id: andrew
     device_trackers:
       - device_tracker.andrews_phone_nmap
-      - device_tracker.owntracks_andrewworkphone
+      - device_tracker.andrew_s_phone_andrewworkphone
   - name: Bethany
     id: bethany
     device_trackers:
       - device_tracker.bethanys_iphone_nmap
       - device_tracker.bethany_s_iphone
-      - device_tracker.owntracks_bethanyphone
 
 plant:
   garden:
@@ -421,7 +418,15 @@ switch: !include switches.yaml
 
 system_health:
 
-#zha_map:
+zha:
+  zigpy_config:
+    network:
+      channel: 11
+      channels: [11]
+      pan_id: 0x1A62
+      extended_pan_id: "DD:DD:DD:DD:DD:DD:DD:DD"
+
+zha_map:
 
 zone:
   - name: Andrew Work

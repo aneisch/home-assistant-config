@@ -14,6 +14,7 @@ cards:
       - light.living_room_can_lights
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
+      - switch.leviton_switch
       #- switch.entertainment_center_lights
       #- switch.christmas_tree
       #- entity: switch.outdoor_zwave_2

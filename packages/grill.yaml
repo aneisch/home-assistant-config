@@ -124,9 +124,7 @@ automation:
       - platform: numeric_state
         entity_id: sensor.traeger_hopper_level
         below: 2
-    condition:
-      condition: template
-      value_template: '{{ as_timestamp(now()) - as_timestamp(states.automation.hopper_level_alert.attributes.last_triggered) | int > 600 }}'
+    condition: '{{ as_timestamp(now()) - as_timestamp(states.automation.hopper_level_alert.attributes.last_triggered) | int > 600 }}'
     action: 
       - service: notify.pushover
         data_template:

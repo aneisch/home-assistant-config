@@ -11,9 +11,9 @@
   file_path: /config/images/mail_today.gif
   name: mail_usps
 
-- platform: mjpeg
-  mjpeg_url: http://10.0.0.26:8080/?action=stream
-  name: Outdoor
+#- platform: mjpeg
+#  mjpeg_url: http://10.0.0.26:8080/?action=stream
+#  name: Outdoor
 
 #- platform: arlo
   #ffmpeg_binary: '/usr/bin/ffmpeg'
@@ -22,17 +22,17 @@
 #- platform: aarlo
 #  ffmpeg_arguments: '-pred 1 -q:v 2'
 
-- platform: ffmpeg
-  input: /opt/nodered/garden_timelapse/garden_timelapse.mp4
-  name: Garden Timelapse
-  extra_arguments: '-q:v 2 -r 3'
+#- platform: ffmpeg
+#  input: /opt/nodered/garden_timelapse/garden_timelapse.mp4
+#  name: Garden Timelapse
+#  extra_arguments: '-q:v 2 -r 3'
 
-- platform: ffmpeg
-  input: /opt/nodered/front_timelapse/front_timelapse.mp4
-  name: Front Timelapse
-  extra_arguments: '-q:v 2 -r 3'
+#- platform: ffmpeg
+#  input: /opt/nodered/front_timelapse/front_timelapse.mp4
+#  name: Front Timelapse
+#  extra_arguments: '-q:v 2 -r 3'
 
-- platform: ffmpeg
-  input: /opt/nodered/side_timelapse/side_timelapse.mp4
-  name: Side Timelapse
-  extra_arguments: '-q:v 2 -r 3'
+#- platform: ffmpeg
+#  input: /opt/nodered/side_timelapse/side_timelapse.mp4
+#  name: Side Timelapse
+#  extra_arguments: '-q:v 2 -r 3'
