@@ -61,14 +61,16 @@
     platform: state
     entity_id: input_boolean.security_status
   action:
-    service: script.turn_on
-    data_template:
-      entity_id: >-
-        {% if trigger.to_state.state == "on" %}
-          script.security_arm
-        {% elif trigger.to_state.state == "off" %}
-          script.security_disarm
-        {% endif %}
+    - service: script.turn_on
+      data_template:
+        entity_id: >-
+          {% if trigger.to_state.state == "on" %}
+            script.security_arm
+          {% elif trigger.to_state.state == "off" %}
+            script.security_disarm
+          {% endif %}
+    # Prevent trigger for 5 minutes
+    - delay: '00:05:00'
 
 - alias: "House Occupied/Empty"
   initial_state: 'on'
@@ -86,14 +88,16 @@
     entity_id: input_boolean.guest_mode
     state: 'off'
   action:
-    service: script.turn_on
-    data_template: 
-      entity_id: >-
-        {% if trigger.to_state.state == "home" %}
-          script.home_occupied
-        {% elif trigger.to_state.state == "not_home" %}
-          script.home_empty
-        {% endif %}
+    - service: script.turn_on
+      data_template: 
+        entity_id: >-
+          {% if trigger.to_state.state == "home" %}
+            script.home_occupied
+          {% elif trigger.to_state.state == "not_home" %}
+            script.home_empty
+          {% endif %}
+    # Prevent trigger for 5 minutes
+    - delay: '00:05:00'
 
 - alias: "Desk Button Single Press"
   initial_state: 'on'

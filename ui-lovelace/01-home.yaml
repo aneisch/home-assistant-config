@@ -4,6 +4,11 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
   - !include .cards/thermostat.yaml
+  
+  - type: entities
+    entities:
+      - sensor.trash
+      - sensor.recycles
 
   - type: entities
     show_header_toggle: false
@@ -29,41 +34,21 @@ cards:
           - cover.garage_door
           - binary_sensor.front_door
           - binary_sensor.back_porch_door
-          - binary_sensor.master_bedroom_exterior_door
           - binary_sensor.garage_exterior_door
           - binary_sensor.garage_interior_door
+          - binary_sensor.master_bedroom_exterior_door
 
       - type: markdown
         content: |
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.front_door_last.state)) | int %}
-          {%- set minutes = (seconds // 60) | int %}
-          {%- set hours = (minutes // 60) | int %}
-          {%- set days = (hours // 24) | int %}
-          {{ states.input_datetime.front_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+          {% set door_sensors = ['front_door_last', 'back_porch_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last'] %}
+          {% for door in door_sensors -%}
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.' + door))) | int -%}
+          {%- set minutes = (seconds // 60) | int -%}
+          {%- set hours = (minutes // 60) | int -%}
+          {%- set days = (hours // 24) | int -%}
+          {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+          {% endfor %}
 
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.back_porch_door_last.state)) | int %}
-          {%- set minutes = (seconds // 60) | int %}
-          {%- set hours = (minutes // 60) | int %}
-          {%- set days = (hours // 24) | int %}
-          {{ states.input_datetime.back_porch_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
-
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.garage_exterior_door_last.state)) | int %}
-          {%- set minutes = (seconds // 60) | int %}
-          {%- set hours = (minutes // 60) | int %}
-          {%- set days = (hours // 24) | int %}
-          {{ states.input_datetime.garage_exterior_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
-
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.garage_interior_door_last.state)) | int %}
-          {%- set minutes = (seconds // 60) | int %}
-          {%- set hours = (minutes // 60) | int %}
-          {%- set days = (hours // 24) | int %}
-          {{ states.input_datetime.garage_interior_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
-
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states.input_datetime.master_bedroom_exterior_door_last.state)) | int %}
-          {%- set minutes = (seconds // 60) | int %}
-          {%- set hours = (minutes // 60) | int %}
-          {%- set days = (hours // 24) | int %}
-          {{ states.input_datetime.master_bedroom_exterior_door_last.name | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
   - type: entities
     show_header_toggle: false
     title: Trackers
