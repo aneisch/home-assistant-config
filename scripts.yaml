@@ -77,7 +77,7 @@ master_bedroom_bedtime:
         entity_id: switch.master_bedroom_ceiling_fan
     - service: light.turn_off
       data:
-        entity_id: light.master_bedroom_ceiling_fan_light
+        entity_id: light.master_bedroom_ceiling_fan
         transition: 5
     - service: light.turn_off
       data:

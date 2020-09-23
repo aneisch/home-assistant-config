@@ -19,9 +19,10 @@
     include_entities:
       - light.andrew_nightstand_lamp
       - light.bethany_nightstand_lamp
+      - light.bethany_desk_lamp
       - light.guest_nightstand_lamp
       - light.master_bedroom_lamps
-      - light.master_bedroom_ceiling_fan_light
+      - light.master_bedroom_ceiling_fan
       - light.living_room_lamps
       - climate.thermostat
       - switch.master_bedroom_ceiling_fan

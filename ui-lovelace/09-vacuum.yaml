@@ -10,6 +10,7 @@ cards:
       elements:
         - type: state-label
           entity: vacuum.roborock_s4
+          prefix: "Roxie is "
           style:
             left: 0
             right: 0
@@ -173,6 +174,8 @@ cards:
       - input_select.vacuum_custom_clean_8
       - input_select.vacuum_custom_clean_9
       - input_select.vacuum_custom_clean_10
+      - entity: input_boolean.return_to_trashcan
+        name: Go to Trashcan When Done
       - type: call-service
         service: python_script.vacuum_custom_clean
         name: " "

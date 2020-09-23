@@ -25,9 +25,13 @@ smart_home:
       - cover.garage_door
       - group.common_areas
       - fan.living_room_ceiling_fan
+      - light.dining_room_light
+      - light.living_room_ceiling_fan
+      - light.living_room_can_lights
       - light.living_room_lamps
       - light.master_bedroom_lamps
-      - light.master_bedroom_ceiling_fan_light
+      - light.master_bedroom_ceiling_fan
+      - light.office_ceiling_fan
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.andrew_nightstand_lamp
@@ -55,6 +59,7 @@ smart_home:
       - switch.vacuum
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
+      - switch.under_cabinet_lights
       - switch.tv_remote_hdmi_1
       - switch.tv_remote_hdmi_2
   entity_config:
@@ -65,8 +70,8 @@ smart_home:
       name: "Common Areas"
       display_categories: LIGHT
 
-    fan.living_room_ceiling_fan:
-      name: "Living Room Ceiling Can"
+    light.living_room_ceiling_fan:
+      name: "Living Room Ceiling Fan Lights"
 
     light.living_room_lamps:
       name: "Living Room Lamps"
@@ -106,7 +111,7 @@ smart_home:
     light.master_bedroom_lamps:
       name: "Master Bedroom Lamps"
 
-    light.master_bedroom_ceiling_fan_light:
+    light.master_bedroom_ceiling_fan:
       name: "Master Bedroom Ceiling Fan Light"
 
     script.appdaemon_ac_night:

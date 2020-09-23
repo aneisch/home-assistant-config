@@ -10,17 +10,17 @@ common_areas:
 office:
   name: Office
   entities:
-    - light.andrew_monitor_backlight
-    - fan.office_ceiling_fan_level
+    - switch.office_ceiling_fan
+    - light.office_ceiling_fan
     - light.andrew_desk_lamp
     - light.bethany_desk_lamp
 
 master_bedroom:
   name: Master Bedroom
   entities:
-    - light.master_bedroom
+    - light.master_bedroom_ceiling_fan
+    - switch.master_bedroom_ceiling_fan
     - switch.master_bedroom_sound_machine
-    - fan.master_bedroom_ceiling_fan_level
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
 
@@ -39,14 +39,12 @@ kitchen:
   name: Kitchen
   entities:
     - light.kitchen_lights
-    - switch.under_cabinet_lghts
+    - switch.under_cabinet_lights
 
 living_room:
   name: Living Room
   entities:
     - light.living_room_lamps
-    - switch.entertainment_center_lights
-    - switch.christmas_tree
     - light.living_room_can_lights
     - switch.living_room_ceiling_fan_light
     - fan.living_room_ceiling_fan

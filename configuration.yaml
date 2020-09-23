@@ -418,6 +418,12 @@ switch: !include switches.yaml
 
 system_health:
 
+tplink:
+  discovery: false
+  light:
+    - host: 10.0.1.53
+    - host: 10.0.1.54
+
 zha:
   zigpy_config:
     network:

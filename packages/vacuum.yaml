@@ -1,5 +1,23 @@
 # See also: ../python_scripts/vacuum_custom_clean.py that allows custom room clean
 
+automation:
+  alias: "Roborock Go to Trashcan After Cleaning"
+  trigger:
+    - platform: state
+      entity_id: vacuum.roborock_s4
+      to: 'returning'
+  condition:
+    condition: state
+    entity_id: input_boolean.return_to_trashcan
+    state: 'on'
+  action:
+    - service: vacuum.pause
+      entity_id: vacuum.roborock_s4
+    - delay: '00:00:01'
+    - service: script.vacuum_park_trashcan
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.return_to_trashcan
+
 sensor:
   - platform: template
     sensors:
@@ -80,6 +98,9 @@ input_boolean:
   # Nodered
   roborock_daily_run:
     name: Roborock Daily Run
+  return_to_trashcan:
+    name: Roborock Return to Trashcan After Cleaning
+    initial: 'off'
 
 input_select:
   vacuum_room_select:

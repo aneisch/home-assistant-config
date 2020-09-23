@@ -26,8 +26,8 @@ sensor:
       id: current
       filters:
         - sliding_window_moving_average:
-            window_size: 10
-            send_every: 2
+            window_size: 5
+            send_every: 1
     power:
       name: "${friendly_name} Power"
       id: power
@@ -35,15 +35,15 @@ sensor:
         # Some calibration
         - multiply: 0.4545
         - sliding_window_moving_average:
-            window_size: 10
-            send_every: 2
+            window_size: 5
+            send_every: 1
     voltage:
       #name: "${friendly_name} Voltage"
       id: voltage
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8
-    update_interval: 5s      # default 60s
+    update_interval: 1s      # default 60s
 
   # Sum power readings over the day
   - platform: total_daily_energy

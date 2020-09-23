@@ -8,17 +8,14 @@ cards:
     show_header_toggle: false
     title: Living Room
     entities:
-      - light.living_room_lamp_2
       - light.living_room_lamp
-      - light.living_room_lamps
+      - light.living_room_lamp_2
+      - type: custom:slider-entity-row
+        entity: light.living_room_lamps
       - light.living_room_can_lights
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
-      - switch.leviton_switch
-      #- switch.entertainment_center_lights
-      #- switch.christmas_tree
-      #- entity: switch.outdoor_zwave_2
-      #  name: Plant Light
+      - switch.living_room_speakers
 
   - type: vertical-stack
     cards:
@@ -67,7 +64,6 @@ cards:
     show_header_toggle: false
     title: Outside
     entities:
-      - switch.outdoor_zwave_switch
       - light.back_porch_light
       - light.garage_light
       - light.front_porch_lights
@@ -87,7 +83,7 @@ cards:
     entities:
       - sensor.office_temperature
       - switch.office_ceiling_fan
-      - light.office_ceiling_fan_light
+      - light.office_ceiling_fan
       - light.andrew_desk_lamp
       - entity: light.andrew_monitor_backlight
         name: Monitor Backlight

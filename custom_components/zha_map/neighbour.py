@@ -1,12 +1,8 @@
-import asyncio
 import enum
 import logging
-import random
 
 import attr
 import zigpy.zdo.types as zdo_t
-from zigpy.exceptions import DeliveryError
-from zigpy.util import retryable
 
 from .helpers import LogMixin
 
@@ -18,26 +14,6 @@ class NeighbourType(enum.IntEnum):
     Router = 0x1
     End_Device = 0x2
     Unknown = 0x3
-
-
-class RxOnIdle(enum.IntEnum):
-    Off = 0x0
-    On = 0x1
-    Unknown = 0x2
-
-
-class Relation(enum.IntEnum):
-    Parent = 0x0
-    Child = 0x1
-    Sibling = 0x2
-    None_of_the_above = 0x3
-    Previous_Child = 0x4
-
-
-class PermitJoins(enum.IntEnum):
-    Not_Accepting = 0x0
-    Accepting = 0x1
-    Unknown = 0x2
 
 
 @attr.s
@@ -64,35 +40,18 @@ class Neighbour(LogMixin):
 
         r = cls()
         r.offline = False
-        r.pan_id = str(record.PanId)
-        r.ieee = record.IEEEAddr
+        r.pan_id = str(record.extended_pan_id)
+        r.ieee = record.ieee
 
-        raw = record.NeighborType & 0x03
-        try:
-            r.device_type = NeighbourType(raw).name
-        except ValueError:
-            r.device_type = "undefined_0x{:02x}".format(raw)
-
-        raw = (record.NeighborType >> 2) & 0x03
-        try:
-            r.rx_on_when_idle = RxOnIdle(raw).name
-        except ValueError:
-            r.rx_on_when_idle = "undefined_0x{:02x}".format(raw)
-
-        raw = (record.NeighborType >> 4) & 0x07
-        try:
-            r.relation = Relation(raw).name
-        except ValueError:
-            r.relation = "undefined_0x{:02x}".format(raw)
-
-        raw = record.PermitJoining & 0x02
-        try:
-            r.new_joins_accepted = PermitJoins(raw).name
-        except ValueError:
-            r.new_joins_accepted = "undefined_0x{:02x}".format(raw)
-
-        r.depth = record.Depth
-        r.lqi = record.LQI
+        r.device_type = record.struct.device_type.name
+        r.rx_on_when_idle = record.struct.rx_on_when_idle.name
+        if record.struct.relationship == zdo_t.Neighbor.RelationShip.NoneOfTheAbove:
+            r.relation = "None_of_the_above"
+        else:
+            r.relation = record.struct.relationship.name
+        r.new_joins_accepted = record.permit_joining.name
+        r.depth = record.depth
+        r.lqi = record.lqi
         return r
 
     def _update_info(self):
@@ -117,45 +76,15 @@ class Neighbour(LogMixin):
 
     async def scan(self):
         """Scan for neighbours."""
-        idx = 0
-        while True:
-            status, val = await self.device.zdo.request(
-                zdo_t.ZDOCmd.Mgmt_Lqi_req, idx, tries=3, delay=1
-            )
-            self.debug("neighbor request Status: %s. Response: %r", status, val)
-            if zdo_t.Status.SUCCESS != status:
-                self.supported = False
-                self.debug("device does not support 'Mgmt_Lqi_req'")
-                return
+        for neighbor in self.device.neighbors:
+            new = self.new_from_record(neighbor.neighbor)
+            try:
+                new.device = self.device.application.get_device(new.ieee)
+                new._update_info()
+            except KeyError:
+                self.warning("neighbour %s is not in 'zigbee.db'", new.ieee)
 
-            neighbors = val.NeighborTableList
-            for neighbor in neighbors:
-                new = self.new_from_record(neighbor)
-
-                if repr(new.ieee) in (
-                    "00:00:00:00:00:00:00:00",
-                    "ff:ff:ff:ff:ff:ff:ff:ff",
-                ):
-                    self.debug("Ignoring invalid neighbour: %s", new.ieee)
-                    idx += 1
-                    continue
-
-                try:
-                    new.device = self.device.application.get_device(new.ieee)
-                    new._update_info()
-                except KeyError:
-                    self.warning("neighbour %s is not in 'zigbee.db'", new.ieee)
-                self.neighbours.append(new)
-                idx += 1
-            if idx >= val.Entries:
-                break
-            if len(neighbors) <= 0:
-                idx += 1
-                self.debug("Neighbor count is 0 (idx : %d)", idx)
-                
-            await asyncio.sleep(random.uniform(1.0, 1.5))
-            self.debug("Querying next starting at %s", idx)
-
+            self.neighbours.append(new)
         self.debug("Done scanning. Total %s neighbours", len(self.neighbours))
 
     def log(self, level, msg, *args):
