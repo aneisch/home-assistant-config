@@ -46,8 +46,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1174
-Lines of Home Assistant YAML | 4142
-[Integrations](https://www.home-assistant.io/integrations/) in use | 22
+Lines of Home Assistant YAML | 4176
+[Integrations](https://www.home-assistant.io/integrations/) in use | 21
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 15
  
 Description | value
@@ -98,6 +98,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
+[jaruba/ha-samsungtv-tizen](https://github.com/jaruba/ha-samsungtv-tizen)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
 [ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>

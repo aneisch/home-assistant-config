@@ -143,34 +143,34 @@
 - platform: history_stats
   name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state
-  state: 'Cooling'
+  state: "Cooling"
   type: time
-  start: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
-  end: '{{ now() }}'
+  start: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
+  end: "{{ now() }}"
 
 - platform: history_stats
   name: ac_runtime_today_heat
   entity_id: sensor.thermostat_state
-  state: 'Heating'
+  state: "Heating"
   type: time
-  start: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
-  end: '{{ now() }}'
+  start: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
+  end: "{{ now() }}"
 
 - platform: history_stats
   name: ac_runtime_yesterday_cool
   entity_id: sensor.thermostat_state
-  state: 'Cooling'
+  state: "Cooling"
   type: time
-  end: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
+  end: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
   duration:
     hours: 24
 
 - platform: history_stats
   name: ac_runtime_yesterday_heat
   entity_id: sensor.thermostat_state
-  state: 'Heating'
+  state: "Heating"
   type: time
-  end: '{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}'
+  end: "{{ now().replace(hour=0).replace(minute=0).replace(second=0) }}"
   duration:
     hours: 24
 
@@ -189,16 +189,16 @@
   sensors:
     kitchen_timer_countdown:
       value_template: ""
-      icon_template: "mdi-timer"
+      icon_template: "mdi:timer"
 
     kitchen_all_timers:
       friendly_name: "All Kitchen Timers"
       value_template: "{{ state_attr('sensor.kitchen_next_timer','sorted_active') | from_json | length }}"
       attribute_templates:
-        timers_ending: >-
+        timers_ending: >
           {% set ns = namespace(timers=[]) %}
           {% for i in (state_attr('sensor.kitchen_next_timer','sorted_active') | from_json) -%}
-          {% set last_update = as_timestamp(states.sensor.kitchen_next_timer.last_updated) -%}
+          {% set last_update = as_timestamp(state_attr('sensor.kitchen_next_timer','last_updated')) -%}
           {% set remain = i[1]['remainingTime']/1000 -%}
           {% set end_epoch = remain + last_update -%}
           {% set end_time = end_epoch | timestamp_custom('%Y-%m-%dT%H:%M:%S', True) -%}
@@ -208,29 +208,29 @@
 
     solar_angle:
       friendly_name: "Sun Angle"
-      unit_of_measurement: '°'
+      unit_of_measurement: "°"
       value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
 
     ac_runtime_today:
       friendly_name: "AC Runtime Today"
-      unit_of_measurement: 'h'
-      value_template: "{{ (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float) }}"
+      unit_of_measurement: "h"
+      value_template: "{{ (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float) }}"
       attribute_templates:
-        value: "{{ (60 * (states.sensor.ac_runtime_today_cool.state | float + states.sensor.ac_runtime_today_heat.state | float)) | int }}m"
+        value: "{{ (60 * (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float)) | int }}m"
 
     ac_runtime_yesterday:
       friendly_name: "AC Runtime Today"
-      unit_of_measurement: 'h'
-      value_template: "{{ (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float) }}"
+      unit_of_measurement: "h"
+      value_template: "{{ (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float) }}"
       attribute_templates:
-        value: "{{ (60 * (states.sensor.ac_runtime_yesterday_cool.state | float + states.sensor.ac_runtime_yesterday_heat.state | float)) | int }}m"
+        value: "{{ (60 * (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float)) | int }}m"
 
     netatmo_home_rain_sum_rain_today_inches:
       friendly_name: Rainfall Today
       unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_24.state | float) / 25.4) }}"
-      icon_template: >-
-        {% set amount = (states.sensor.netatmo_home_rain_sum_rain_today_inches.state | float) %}
+      value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_24') | float) / 25.4) }}"
+      icon_template: >
+        {% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches') | float) %}
         {% if amount >= 0.50 %}
           mdi:weather-pouring
         {% elif amount > 0.00 and amount < 0.50 %}
@@ -242,9 +242,9 @@
     netatmo_home_rain_sum_rain_last_hour_inches:
       friendly_name: Rainfall Last 1 Hour
       unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states.sensor.netatmo_home_home_rain_sum_rain_1.state | float) / 25.4) }}"
-      icon_template: >-
-        {% set amount = (states.sensor.netatmo_home_rain_sum_rain_last_hour_inches.state | float) %}
+      value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_1') | float) / 25.4) }}"
+      icon_template: >
+        {% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches') | float) %}
         {% if amount >= 0.50 %}
           mdi:weather-pouring
         {% elif amount > 0.00 and amount < 0.50 %}
@@ -256,42 +256,37 @@
     sonoff_pow_today_cost:
       friendly_name: Sonoff Pow Today Cost
       unit_of_measurement: "$"
-      value_template: >-
-        {{ states.sensor.sonoff_pow_today_energy.state  | multiply(0.1123) | round(2) }}
+      value_template: "{{ states('sensor.sonoff_pow_today_energy')  | multiply(0.1123) | round(2) }}"
 
     sonoff_pow_yesterday_cost:
       friendly_name: Sonoff Pow Yesterday Cost
       unit_of_measurement: "$"
-      value_template: >-
-        {{ states.sensor.sonoff_pow_yesterday_energy.state  | multiply(0.1123) | round(2) }}
+      value_template: "{{ states('sensor.sonoff_pow_yesterday_energy')  | multiply(0.1123) | round(2) }}"
 
     mail_deliveries_message:
       friendly_name: "Deliveries Summary"
-      entity_id: 
-        - sensor.mail_usps_mail
-        - sensor.packages_in_transit
       value_template: > 
         {# Deliveries Sentence #}
           {% macro deliveries_sentence() -%}
-                {%- if states("sensor.mail_usps_mail")|int == 0 -%}
+                {%- if states('sensor.mail_usps_mail')|int == 0 -%}
                   No
                 {%- else -%}
-                  {{states("sensor.mail_usps_mail")|int}}
+                  {{states('sensor.mail_usps_mail')|int}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states("sensor.mail_usps_mail")|int <= 1 -%}
+                {%- if states('sensor.mail_usps_mail')|int <= 1 -%}
                   mail
                 {%- else -%}
                   pieces of mail
                 {%- endif -%}
               {{' '}}will be delivered.{{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int == 0 -%}
+                {%- if states('sensor.mail_packages_in_transit')|int == 0 -%}
                   No
                 {%- else -%}
-                  {{states("sensor.mail_packages_in_transit")|int}}
+                  {{states('sensor.mail_packages_in_transit')|int}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int == 1 -%}
+                {%- if states('sensor.mail_packages_in_transit')|int == 1 -%}
                   package is
                 {%- else -%}
                   packages are
@@ -301,29 +296,29 @@
         {{deliveries_sentence()}}
     nws_temperature:
       friendly_name: "Temperature"
-      unit_of_measurement: '°F'
-      value_template: '{{ state_attr("weather.kcll_daynight", "temperature") }}'
+      unit_of_measurement: "°F"
+      value_template: "{{ state_attr('weather.kcll_daynight', 'temperature') }}"
     nws_humidity:
       friendly_name: "Humidity"
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       icon_template: mdi:water-percent
-      value_template: '{{ state_attr("weather.kcll_daynight", "humidity") }}'
+      value_template: "{{ state_attr('weather.kcll_daynight', 'humidity') }}"
     nws_pressure:
       friendly_name: "Pressure"
-      unit_of_measurement: mbar
-      value_template: '{{ state_attr("weather.kcll_daynight", "pressure") }}'
+      unit_of_measurement: "mbar"
+      value_template: "{{ state_attr('weather.kcll_daynight', 'pressure') }}"
     nws_wind_speed:
       friendly_name: "Wind Speed"
-      unit_of_measurement: mbar
+      unit_of_measurement: "mbar"
       icon_template: mdi:weather-windy
-      value_template: '{{ state_attr("weather.kcll_daynight", "wind_speed") }}'
+      value_template: "{{ state_attr('weather.kcll_daynight', 'wind_speed') }}"
     nws_precip_probability:
       friendly_name: "Percent Chance of Rain"
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       icon_template: mdi:water-percent
       value_template: >
-        {% if state_attr("weather.kcll_daynight", "forecast")[0]['daytime'] == True %}
-          {{ state_attr("weather.kcll_daynight", "forecast")[0]["precipitation_probability"] }}
+        {% if state_attr('weather.kcll_daynight', 'forecast')[0]['daytime'] == True %}
+          {{ state_attr('weather.kcll_daynight', 'forecast')[0]['precipitation_probability'] }}
         {% else %}
-          {{ state_attr("weather.kcll_daynight", "forecast")[1]["precipitation_probability"] }}
+          {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability'] }}
         {% endif %}

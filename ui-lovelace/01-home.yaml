@@ -5,10 +5,6 @@ cards:
   - !include .cards/grill.yaml
   - !include .cards/thermostat.yaml
   
-  - type: entities
-    entities:
-      - sensor.trash
-      - sensor.recycles
 
   - type: entities
     show_header_toggle: false
@@ -31,7 +27,16 @@ cards:
           #- !secret alarm_panel_1
           #- !secret alarm_panel_2
           - input_boolean.security_status
-          - cover.garage_door
+          - entity: cover.garage_door
+            style: |
+                :host {
+                  {% if states('cover.garage_door') == 'open' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+
+          - binary_sensor.cx5
+          - binary_sensor.cruze
           - binary_sensor.front_door
           - binary_sensor.back_porch_door
           - binary_sensor.garage_exterior_door
@@ -122,8 +127,9 @@ cards:
     camera_image: camera.weather_radar
     entities: []
 
-  - type: shopping-list
-    title: Shopping List
+  - type: calendar
+    entities:
+      - calendar.garbage_collection
 
   #- type: picture-glance
   #  camera_image: camera.outdoor

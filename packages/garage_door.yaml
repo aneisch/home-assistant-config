@@ -1,4 +1,22 @@
 automation:
+  - alias: 'Change office switch LEDs based on garage door'
+    trigger:
+      - platform: state
+        entity_id: cover.garage_door
+        from: 'closed'
+        to: 'open'
+        for: '00:00:05'
+      - platform: state
+        entity_id: cover.garage_door
+        from: 'open'
+        to: 'closed'
+        for: '00:00:05'
+    action:
+      - service: script.office_switch_leds
+        data:
+          # Red if opened, white if closed
+          color: '{% if trigger.to_state.state == "open" %}red{% elif trigger.to_state.state == "closed" %}white{% endif %}'
+
   - alias: "Garage still open reminder night"
     trigger:
       - platform: event
@@ -67,3 +85,21 @@ automation:
       - service: notify.pushover
         data:
           message: "Garage door opened and no one home.."
+
+script:
+  office_switch_leds:
+    sequence:
+      - service: zwave.set_config_parameter
+        data:
+          # Set Dimmer LED
+          node_id: 2
+          parameter: 3
+          value: '{{ color }}'
+          size: 1
+      - service: zwave.set_config_parameter
+        data:
+          # Set Relay LED
+          node_id: 2
+          parameter: 4
+          value: '{{ color }}'
+          size: 1

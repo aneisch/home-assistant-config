@@ -15,33 +15,27 @@ cards:
       - light.living_room_can_lights
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
-      - switch.living_room_speakers
 
   - type: vertical-stack
     cards:
       - type: "button"
         entity: switch.tv
-        hold_action:
-          action: call-service
-          service: switch.turn_on
-          service_data:
-            entity_id: switch.tv_remote_power
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            entity: switch.tv_remote_hdmi_1
-            name: Xbox
-            icon: mdi:microsoft-xbox
-          - type: "button"
-            entity: switch.tv_remote_hdmi_2
-            name: Chromecast
-            icon: mdi:google-chrome
-          - type: "button"
-            entity: switch.tv_remote_hdmi_3
-            name: HDMI 3
-          - type: "button"
-            entity: switch.tv_remote_hdmi_4
-            name: HDMI 4
+      #- type: horizontal-stack
+      #  cards:
+      #    - type: "button"
+      #      entity: switch.tv_remote_hdmi_1
+      #      name: Xbox
+      #      icon: mdi:microsoft-xbox
+      #    - type: "button"
+      #      entity: switch.tv_remote_hdmi_2
+      #      name: Chromecast
+      #      icon: mdi:google-chrome
+      #    - type: "button"
+      #      entity: switch.tv_remote_hdmi_3
+      #      name: HDMI 3
+      #    - type: "button"
+      #      entity: switch.tv_remote_hdmi_4
+      #      name: HDMI 4
       - type: horizontal-stack
         cards:
           - type: "button"
@@ -53,6 +47,9 @@ cards:
           - type: "button"
             entity: switch.tv_remote_volume_up
             show_name: false
+      - type: entities
+        entities:
+          - switch.living_room_speakers
 
   - type: entities
     show_header_toggle: false

@@ -59,7 +59,7 @@ services:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
         #image: esphome-dev
-        #image: esphome/esphome:dev
+        #image: esphome/esphome:1.14.4
         image: esphome/esphome
         volumes:
             - /opt/esphome/:/config:rw

@@ -14,7 +14,7 @@ ThermostatIntent:
   action:
     service: climate.set_temperature
     entity_id: climate.thermostat
-    data_template:
+    data:
       temperature: '{{ Temperature }}'
 
 ################
@@ -23,8 +23,8 @@ ThermostatIntent:
 ActivateIntent:
   action:
     service: homeassistant.turn_on
-    data_template:
-      entity_id: group.{{ Group | replace(" ", "_") }}
+    data:
+      entity_id: 'group.{{ Group | replace(" ", "_") }}'
   speech:
     type: plain
     text: Turned on {{ Group }}
@@ -32,8 +32,8 @@ ActivateIntent:
 DeactivateIntent:
   action:
     service: homeassistant.turn_off
-    data_template:
-      entity_id: group.{{ Group | replace(" ", "_") }}
+    data:
+      entity_id: 'group.{{ Group | replace(" ", "_") }}'
   speech:
     type: plain
     text: Turned off {{ Group }}

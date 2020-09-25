@@ -24,7 +24,7 @@ home_occupied:
       data:
         entity_id: input_boolean.security_status
     - service: light.turn_on
-      data_template:
+      data:
         entity_id: light.master_bedroom_lamps
         # Not so bright if it's late..
         brightness: > 
@@ -89,12 +89,12 @@ master_bedroom_wakeup:
     - service: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan
-    - delay: '00:00:02'
+    - delay: "00:00:02"
     - service: script.appdaemon_ac_morning
     - service: scene.turn_on
-      data_template:
+      data:
         entity_id: >
-          {% if 30 > ((as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed))) | round(0) %}
+          {% if 30 > (as_timestamp(now()) - as_timestamp(state_attr('switch.master_bedroom_ceiling_fan','last_changed')) | round(0)) %}
             scene.master_lamps_slow_on
           {% else %}
             scene.master_lamps_fast_on
@@ -120,16 +120,16 @@ appdaemon_ac_morning:
 too_cold:
   sequence:
     - service: climate.set_temperature
-      data_template:
+      data:
         entity_id: climate.thermostat
-        temperature: '{{ float(states("sensor.thermostat_temperature")) + 2 }}'
+        temperature: "{{ float(states('sensor.thermostat_temperature')) + 2 }}"
 
 too_hot:
   sequence:
     - service: climate.set_temperature
-      data_template:
+      data:
         entity_id: climate.thermostat
-        temperature: '{{ float(states("sensor.thermostat_temperature")) - 1 }}'
+        temperature: "{{ float(states('sensor.thermostat_temperature')) - 1 }}"
 
 # Triggered by appdaemon app
 # See associated automation
@@ -150,7 +150,7 @@ spotify_occusim:
     - service: media_player.select_source
       data:
         entity_id: media_player.spotify
-        source: 'Everywhere'
+        source: "Everywhere"
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify

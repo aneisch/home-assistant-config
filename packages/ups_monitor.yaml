@@ -37,7 +37,7 @@ automation:
         from: 'ONLINE'
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
   - alias: "UPS Recovery"
@@ -50,7 +50,7 @@ automation:
         to: 'ONLINE'
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: > 
              {% if trigger.from_state.state == "ONBATT" %}
                {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
@@ -71,7 +71,7 @@ automation:
       state: 'on'
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
       - service: switch.turn_off
         entity_id: switch.nas
@@ -87,7 +87,7 @@ automation:
         state: "ONBATT"
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.650_ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - service: shell_command.nuc_poweroff
 

@@ -33,18 +33,13 @@
   turn_off:
       service: shell_command.nas_poweroff
 
-- platform: template
-  switches:
-    tv:
-      value_template: "{{ states.binary_sensor.power_plug_2_power.state }}"
-      turn_on:
-        service: switch.turn_on
-        data:
-          entity_id: switch.tv_remote_power
-      turn_off:
-        service: switch.turn_off
-        data:
-          entity_id: switch.tv_remote_power
+- platform: wake_on_lan
+  name: TV
+  mac: "44:5c:e9:2e:51:0a"
+  host: "10.0.1.51"
+  turn_off: 
+    service: media_player.turn_off
+    entity_id: media_player.samsung_tv_remote
 
 #- platform: command_line
 #  scan_interval: 60

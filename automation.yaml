@@ -2,26 +2,26 @@
   initial_state: on
   trigger:
     - platform: time
-      at: '11:00:00'
+      at: "11:00:00"
     - platform: time
-      at: '21:00:00'
+      at: "21:00:00"
     - platform: homeassistant
       event: start
   action:
-    - delay: '00:05:00'
+    - delay: "00:05:00"
     - service: readme.generate
 
 - alias: "Set dark theme for night"
   initial_state: on
   trigger:
     - platform: time
-      at: '21:00:00'
+      at: "21:00:00"
     - platform: homeassistant
       event: start
   condition:
     condition: time
-    after: '20:59:00'
-    before: '08:59:00'
+    after: "20:59:00"
+    before: "08:59:00"
   action:
     - service: frontend.set_theme
       data:
@@ -31,19 +31,19 @@
   initial_state: on
   trigger:
     - platform: time
-      at: '08:00'
+      at: "08:00"
     - platform: homeassistant
       event: start
   condition:
     condition: time
-    after: '07:59:00'
-    before: '20:59:00'
+    after: "07:59:00"
+    before: "20:59:00"
   action:
     service: frontend.set_theme
     data:
         name: default
 
-- alias: 'Remove new devices notification'
+- alias: "Remove new devices notification"
   trigger:
     - platform: state
       entity_id: persistent_notification.config_entry_discovery
@@ -56,24 +56,24 @@
         notification_id: config_entry_discovery
 
 - alias: "Security Arm/Disarm"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: state
     entity_id: input_boolean.security_status
   action:
     - service: script.turn_on
-      data_template:
-        entity_id: >-
-          {% if trigger.to_state.state == "on" %}
+      data:
+        entity_id: >
+          {% if trigger.to_state.state == 'on' %}
             script.security_arm
-          {% elif trigger.to_state.state == "off" %}
+          {% elif trigger.to_state.state == 'off' %}
             script.security_disarm
           {% endif %}
     # Prevent trigger for 5 minutes
-    - delay: '00:05:00'
+    - delay: "00:05:00"
 
 - alias: "House Occupied/Empty"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     - platform: state
       entity_id: group.trackers
@@ -86,35 +86,35 @@
   condition:
     condition: state
     entity_id: input_boolean.guest_mode
-    state: 'off'
+    state: "off"
   action:
     - service: script.turn_on
-      data_template: 
-        entity_id: >-
-          {% if trigger.to_state.state == "home" %}
+      data: 
+        entity_id: >
+          {% if trigger.to_state.state == 'home' %}
             script.home_occupied
-          {% elif trigger.to_state.state == "not_home" %}
+          {% elif trigger.to_state.state == 'not_home' %}
             script.home_empty
           {% endif %}
     # Prevent trigger for 5 minutes
-    - delay: '00:05:00'
+    - delay: "00:05:00"
 
 - alias: "Desk Button Single Press"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: state
     entity_id: binary_sensor.andrew_desk_button_single
-    to: 'on'
+    to: "on"
   action:
     service: homeassistant.toggle
     entity_id: switch.office_ceiling_fan
 
 - alias: "Desk Button Double Press"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: state
     entity_id: binary_sensor.andrew_desk_button_double
-    to: 'on'
+    to: "on"
   action:
     service: homeassistant.toggle
     entity_id: light.andrew_desk_lamp
@@ -124,54 +124,54 @@
   trigger:
     - platform: state
       entity_id: switch.nas
-      from: 'off'
-      to: 'on'
+      from: "off"
+      to: "on"
       for:
         seconds: 30
     - platform: state
       entity_id: switch.nas
-      from: 'on'
-      to: 'off'
+      from: "on"
+      to: "off"
       for:
         seconds: 30
   action:
-    service_template: >-
-      {% if trigger.to_state.state == "on" %}
-      shell_command.mount_plex
-      {% elif trigger.to_state.state == "off" %}
-      shell_command.umount_plex
+    service: >
+      {% if trigger.to_state.state == 'on' %}
+        shell_command.mount_plex
+      {% elif trigger.to_state.state == 'off' %}
+        shell_command.umount_plex
       {% endif %}
 
 - alias: "Notify when AC BREAKS"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
   condition:
     condition: or
     conditions:
-      - '{{ (states.sensor.thermostat_setpoint.state | int > 70) and (states.sensor.thermostat_operating_mode.state == "heat") }}'
-      - '{{ (states.sensor.thermostat_setpoint.state | int < 68) and (states.sensor.thermostat_operating_mode.state == "cool") }}'
+      - "{{ (states('sensor.thermostat_setpoint') | int > 70) and (states('sensor.thermostat_operating_mode') == 'heat') }}"
+      - "{{ (states('sensor.thermostat_setpoint') | int < 68) and (states('sensor.thermostat_operating_mode') == 'cool') }}"
   action:
     - service: notify.pushover
-      data_template:
-        message: >-
-          {% if states.sensor.thermostat_operating_mode.state == "Heat" %}
-            AC Broke.. Turning Off.. Mode: Heat Setpoint: {{ states.sensor.thermostat_setpoint.state }}
-          {% elif states.sensor.thermostat_operating_mode.state == "Cool" %}
-            AC Broke.. Turning Off.. Mode: Cool Setpoint: {{ states.sensor.thermostat_setpoint.state }}
+      data:
+        message: >
+          {% if states('sensor.thermostat_operating_mode') == 'Heat' %}
+            AC Broke.. Turning Off.. Mode: Heat Setpoint: {{ states('sensor.thermostat_setpoint') }}
+          {% elif states('sensor.thermostat_operating_mode') == "Cool" %}
+            AC Broke.. Turning Off.. Mode: Cool Setpoint: {{ states('sensor.thermostat_setpoint') }}
           {% endif %}
     # Push actionable HTML5 notification to allow timely shutoff
     - service: notify.html5
-      data_template:
-        message: "AC Exception. Mode: {{ states.sensor.thermostat_operating_mode.state }} Setpoint: {{ states.sensor.thermostat_setpoint.state }}"
+      data:
+        message: "AC Exception. Mode: {{ states('sensor.thermostat_operating_mode') }} Setpoint: {{ states('sensor.thermostat_setpoint') }}"
         data:
           actions:
             - action: turn_ac_off
               title: Set AC mode to off
 
 - alias: "Notify when AC setting changes"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     - platform: state
       entity_id: sensor.thermostat_setpoint
@@ -182,13 +182,12 @@
     conditions:
       - condition: state
         entity_id: input_boolean.ac_change_notification
-        state: 'on'
-      - '{{ trigger.from_state.state != trigger.to_state.state }}'
+        state: "on"
+      - "{{ trigger.from_state.state != trigger.to_state.state }}"
   action:
     - service: notify.pushover
-      data_template:
-        message: >
-          {% if trigger.entity_id == "sensor.thermostat_setpoint" %}Setpoint{% elif trigger.entity_id == "sensor.thermostat_mode" %}Mode{% endif %}: {{ states.sensor.thermostat_setpoint.state }}. Mode: {{ states.sensor.thermostat_operating_mode.state }}
+      data:
+        message: "{% if trigger.entity_id == 'sensor.thermostat_setpoint' %}Setpoint{% elif trigger.entity_id == 'sensor.thermostat_mode' %}Mode{% endif %}: {{ states('sensor.thermostat_setpoint') }}. Mode: {{ states('sensor.thermostat_operating_mode') }}"
 
 # Working as of 2/12/2020
 # Handle all actions for html5 and android push notifications
@@ -199,8 +198,8 @@
     - platform: event
       event_type: mobile_app_notification_action
   action:
-    service_template: >-
-      {% if trigger.event.data.action == "turn_ac_off" %}
+    service: >
+      {% if trigger.event.data.action == 'turn_ac_off' %}
         script.turn_ac_off
       {% endif %}
 
@@ -211,7 +210,7 @@
   action:
     - service: alexa_media.clear_history
 
-- alias: 'Update door last opened'
+- alias: "Update door last opened"
   trigger:
     - platform: state
       entity_id: 
@@ -220,28 +219,28 @@
         - binary_sensor.garage_exterior_door
         - binary_sensor.garage_interior_door
         - binary_sensor.master_bedroom_exterior_door
-      to: 'on'
+      to: "on"
   action:
     service: input_datetime.set_datetime
-    data_template:
+    data:
       entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: webhook
     webhook_id: !secret panic_script_webhook
   action:
     - service: homeassistant.toggle
       entity_id: switch.master_bathroom_light_switch
-    - delay: '00:00:01'
+    - delay: "00:00:01"
     - service: switch.toggle
       entity_id: switch.master_bathroom_light_switch
 
 - alias: "Pull Recipes Github Webhook"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: webhook
     webhook_id: !secret github_recipes_webhook
@@ -249,15 +248,15 @@
     - service: shell_command.pull_recipes
 
 - alias: "Power off NAS after backup"
-  initial_state: 'on'
+  initial_state: "on"
   trigger:
     platform: state
     entity_id: binary_sensor.backups_complete
-    to: 'on'
+    to: "on"
   condition:
     condition: time
-    after: '03:00:00'
-    before: '05:00:00'
+    after: "03:00:00"
+    before: "05:00:00"
     weekday:
       - wed
   action:
@@ -265,6 +264,27 @@
     entity_id: 
       - switch.nas
       - binary_sensor.backups_complete
+
+- alias: "Turn on speakers and tv when XBOX powers on"
+  trigger:
+    platform: state
+    entity_id: binary_sensor.xbox_power
+    to: "on"
+  action:
+    service: homeassistant.turn_on
+    entity_id: 
+      - switch.living_room_speakers
+      - switch.tv
+      
+- alias: "Turn off speakers when tv powers off"
+  trigger:
+    platform: state
+    entity_id: switch.tv
+    to: "off"
+  action:
+    service: homeassistant.turn_off
+    entity_id: 
+      - switch.living_room_speakers
 
 #- alias: "Backlight off when MacBook Inactive"
 #  initial_state: 'on'

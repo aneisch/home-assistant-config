@@ -1,6 +1,6 @@
 substitutions:
   name: power_plug_2
-  friendly_name: "Power Plug 2"
+  friendly_name: "Xbox"
   # Higher value gives lower watt readout
   current_res: "0.00221"
   # Lower value gives lower voltage readout
@@ -42,12 +42,12 @@ status_led:
     inverted: True
 
 binary_sensor:
-  - platform: gpio
-    pin: GPIO13
-    id: button
-    on_press:
-      - switch.toggle: relay
-    internal: True
+  # - platform: gpio
+  #   pin: GPIO13
+  #   id: button
+  #   on_press:
+  #     - switch.toggle: relay
+  #   internal: True
 
   - platform: template
     name: "${friendly_name} Power"
@@ -65,7 +65,7 @@ switch:
     pin: GPIO4
     id: relay
     restore_mode: ALWAYS_ON
-    name: "${friendly_name}"
+    #name: "${friendly_name}"
     # Tie Blue LED to relay
     on_turn_on:
     - switch.turn_on: blue_led

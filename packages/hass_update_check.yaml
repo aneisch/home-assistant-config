@@ -44,16 +44,16 @@ automation:
         value_template: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) }}'
     action:
       - service: shell_command.github_action_trigger
-        data_template:
+        data:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
           # Options are: beta, stable
           branch: '{% if trigger.entity_id == "sensor.ha_docker_version_beta" %}beta{% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}stable{% endif %}'
           release_type: >
             {% if trigger.entity_id == "sensor.ha_docker_version_beta" %}
-              '{% if states.sensor.ha_docker_version_beta.state.split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
+              '{% if states('sensor.ha_docker_version_beta').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
             {% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}
-              '{% if states.sensor.ha_version.state[:-2] == states.sensor.ha_docker_version_stable.state[:-2] %}minor{% else %}major{% endif %}'
+              '{% if states('sensor.ha_version')[:-2] == states('sensor.ha_docker_version_stable')[:-2] %}minor{% else %}major{% endif %}'
             {% endif %}
           version: '{{ trigger.to_state.state }}'
 
@@ -65,19 +65,18 @@ automation:
       webhook_id: !secret hass_github_action_webhook
     action:
       - service: notify.pushover
-        data_template:
-          message: |
+        data:
+          message: >
             {% if trigger.json.upgrade == True %}
-            New Version Auto-Applied: {{ states.sensor.ha_version.state }} --> {{ states.sensor.ha_docker_version_stable.state }} 
-            Changes: https://git.io/JvkT4 
-            Tested: https://git.io/JvkTY
+              New Version Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
+              Changes: https://git.io/JvkT4 
+              Tested: https://git.io/JvkTY
             {% elif trigger.json.upgrade == False %}
-            New Version Not Auto-Applied: {{ states.sensor.ha_version.state }} --> {{ states.sensor.ha_docker_version_stable.state }}
-            Changes: https://git.io/JvkT4
-            Tested: https://git.io/JvkTY
+              New Version Not Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
+              Changes: https://git.io/JvkT4
+              Tested: https://git.io/JvkTY
             {% endif %}
-      - service_template: >
-          {% if trigger.json.upgrade == True %}shell_command.upgrade_hass{% else %}script.noop{% endif %}
+      - service: '{% if trigger.json.upgrade == True %}shell_command.upgrade_hass{% else %}script.noop{% endif %}'
 
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"

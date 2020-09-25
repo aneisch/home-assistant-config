@@ -110,6 +110,8 @@ services:
     thermostat_api_server:
         container_name: thermostat_api_server
         image: aneisch/thermostat_api_server
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
         ports:
             - '8080:8080'
         environment:

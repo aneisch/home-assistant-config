@@ -173,12 +173,12 @@ ios:
   push:
     categories:
       - name: Confirm
-        identifier: 'confirm'
+        identifier: "confirm"
         actions:
-          - identifier: 'confirm_unlock'
-            title: 'Confirm'
-          - identifier: 'ignore_unlock'
-            title: 'Ignore'
+          - identifier: "confirm_unlock"
+            title: "Confirm"
+          - identifier: "ignore_unlock"
+            title: "Ignore"
 
 light:
   - platform: limitlessled
@@ -273,6 +273,12 @@ lovelace:
 
 map:
 
+media_player:
+  - platform: samsungtv_tizen
+    host: 10.0.1.51
+    port: 8002
+    mac: 44:5c:e9:2e:51:0a
+
 mobile_app:
 
 netatmo:
@@ -307,23 +313,23 @@ panel_iframe:
     icon: mdi:wrench
     url: !secret configurator_url 
   plane_tracking:
-    title: 'Plane Tracking'
+    title: "Plane Tracking"
     icon: mdi:airplane
     url: !secret plane
   grafana:
-    title: 'Grafana'
+    title: "Grafana"
     icon: mdi:chart-areaspline
     url: !secret grafana
   esphome:
-    title: 'ESPHome'
+    title: "ESPHome"
     icon: mdi:memory
     url: !secret esphome
   portainer:
-    title: 'Portainer'
+    title: "Portainer"
     icon: mdi:ferry
     url: !secret portainer
   nodered:
-    title: 'Node-Red'
+    title: "Node-Red"
     icon: mdi:sitemap
     url: !secret nodered
 

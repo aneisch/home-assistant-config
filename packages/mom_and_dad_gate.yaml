@@ -41,7 +41,7 @@ automation:
         to: 'on'
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: >
             Vehicle Sensor Automation Fired!
 

@@ -4,6 +4,7 @@ wifi:
   password: "WPA_KEY"
 
 logger:
+  level: DEBUG
 
 api:
   reboot_timeout: 0s

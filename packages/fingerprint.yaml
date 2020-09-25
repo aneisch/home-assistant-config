@@ -4,7 +4,7 @@ script:
     sequence:
       - service: mqtt.publish
         data:
-          payload_template: '{{states(''input_number.fingerprint_learning_id'') | int}}'
+          payload_template: "{{states('input_number.fingerprint_learning_id') | int}}"
           topic: sensor/fingerprint/mode/learning
 
   fingerprint_delete:
@@ -12,7 +12,7 @@ script:
     sequence:
       - service: mqtt.publish
         data:
-          payload_template: '{{states(''input_number.fingerprint_learning_id'') | int}}'
+          payload_template: "{{states('input_number.fingerprint_learning_id') | int}}"
           topic: sensor/fingerprint/mode/delete
 
 sensor:
@@ -58,8 +58,8 @@ sensor:
             Andrew
           {% elif (states('sensor.fingerprint_id') | int > 10) and (states('sensor.fingerprint_id') | int <= 20) %}
             Bethany
-          {% elif states.sensor.fingerprint_id.state | int > 20 %}
-            {{states.sensor.fingerprint_id.state}}
+          {% elif states('sensor.fingerprint_id') | int > 20 %}
+            {{ states('sensor.fingerprint_id') }}
           {% elif is_state('sensor.fingerprint', 'Waiting') %}
             Waiting
           {% elif is_state('sensor.fingerprint', 'Not matched') %}

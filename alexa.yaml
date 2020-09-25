@@ -60,8 +60,6 @@ smart_home:
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
       - switch.under_cabinet_lights
-      - switch.tv_remote_hdmi_1
-      - switch.tv_remote_hdmi_2
   entity_config:
     climate.thermostat:
       name: "Thermostat"
@@ -192,12 +190,4 @@ smart_home:
 
     switch.outdoor_zwave_switch:
       name: "Globe Lights"
-      display_categories: SWITCH
-
-    switch.tv_remote_hdmi_1:
-      name: "XBOX"
-      display_categories: SWITCH
-
-    switch.tv_remote_hdmi_2:
-      name: "Chromecast"
       display_categories: SWITCH

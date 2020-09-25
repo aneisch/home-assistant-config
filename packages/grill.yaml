@@ -2,8 +2,8 @@ sensor:
   - platform: mqtt
     state_topic: sensor/thermopro
     name: "Thermopro Probe 1"
-    unit_of_measurement: '°F'
-    value_template: >-
+    unit_of_measurement: "°F"
+    value_template: >
       {% if value_json.temperature_1_F != 608.0 %}
         {{ value_json.temperature_1_F | float | round(2) }}
       {% else %}
@@ -14,7 +14,7 @@ sensor:
     state_topic: sensor/thermopro
     name: "Thermopro Probe 2"
     unit_of_measurement: '°F'
-    value_template: >-
+    value_template: >
       {% if value_json.temperature_2_F != 608.0 %}
         {{ value_json.temperature_2_F | float | round(2) }}
       {% else %}
@@ -34,24 +34,18 @@ sensor:
   - platform: template
     sensors:
       thermopro_probe_1_high_estimated_length:
-        entity_id:
-          - sensor.thermopro_probe_1
-          - input_number.thermopro_probe_1_set_high
         unit_of_measurement: Minutes
-        value_template: "{{ '%.2f'%((states.input_number.thermopro_probe_1_set_high.state|int - states.sensor.thermopro_probe_1.state|int) / states.sensor.sensor_thermopro_probe_1_derivative.state|float) }}"
+        value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) }}"
         attribute_templates:
-          timestamp: >-
-            {% set time = '%.2f'%((states.input_number.thermopro_probe_1_set_high.state|int - states.sensor.thermopro_probe_1.state|int) / states.sensor.sensor_thermopro_probe_1_derivative.state|float) %}
+          timestamp: >
+            {% set time = '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) %}
             {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
       thermopro_probe_2_high_estimated_length:
-        entity_id:
-          - sensor.thermopro_probe_2
-          - input_number.thermopro_probe_2_set_high
         unit_of_measurement: Minutes
-        value_template: "{{ '%.2f'%((states.input_number.thermopro_probe_2_set_high.state|int - states.sensor.thermopro_probe_2.state|int) / states.sensor.sensor_thermopro_probe_2_derivative.state|float) }}"
+        value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) }}"
         attribute_templates:
-          timestamp: >-
-            {% set time = '%.2f'%((states.input_number.thermopro_probe_2_set_high.state|int - states.sensor.thermopro_probe_2.state|int) / states.sensor.sensor_thermopro_probe_2_derivative.state|float) %}
+          timestamp: >
+            {% set time = '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) %}
             {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
 
 binary_sensor:
@@ -59,10 +53,10 @@ binary_sensor:
     sensors:
       thermopro_probe_1_in_range:
         value_template: >-
-          {{ (states.sensor.thermopro_probe_1.state|float >= states.input_number.thermopro_probe_1_set_low.state|float) and (states.sensor.thermopro_probe_1.state|float <= states.input_number.thermopro_probe_1_set_high.state|float) }}
+          {{ (states('sensor.thermopro_probe_1')|float >= states('input_number.thermopro_probe_1_set_low')|float) and (states('sensor.thermopro_probe_1')|float <= states('input_number.thermopro_probe_1_set_high')|float) }}
       thermopro_probe_2_in_range:
         value_template: >-
-          {{ (states.sensor.thermopro_probe_2.state|float >= states.input_number.thermopro_probe_2_set_low.state|float) and (states.sensor.thermopro_probe_2.state|float <= states.input_number.thermopro_probe_2_set_high.state|float) }}
+          {{ (states('sensor.thermopro_probe_2')|float >= states('input_number.thermopro_probe_2_set_low')|float) and (states('sensor.thermopro_probe_2')|float <= states('input_number.thermopro_probe_2_set_high')|float) }}
 
 input_number:
   thermopro_probe_1_set_low:
@@ -101,16 +95,16 @@ automation:
         to: 'off'
     action:
       - service: notify.pushover
-        data_template:
+        data:
           message: |
-            {% if trigger.entity_id == "binary_sensor.thermopro_probe_1_in_range" %}
-            Probe 1 out of range: {{ states.sensor.thermopro_probe_1.state }}
-            Low Set: {{ states.input_number.thermopro_probe_1_set_low.state }}
-            High Set: {{ states.input_number.thermopro_probe_1_set_high.state }}
-            {% elif trigger.entity_id == "binary_sensor.thermopro_probe_2_in_range" %}
-            Probe 2 out of range: {{ states.sensor.thermopro_probe_2.state }}
-            Low Set: {{ states.input_number.thermopro_probe_2_set_low.state }}
-            High Set: {{ states.input_number.thermopro_probe_2_set_high.state }}
+            {% if trigger.entity_id == 'binary_sensor.thermopro_probe_1_in_range' %}
+            Probe 1 out of range: {{ states('sensor.thermopro_probe_1') }}
+            Low Set: {{ states('input_number.thermopro_probe_1_set_low') }}
+            High Set: {{ states('input_number.thermopro_probe_1_set_high') }}
+            {% elif trigger.entity_id == 'binary_sensor.thermopro_probe_2_in_range' %}
+            Probe 2 out of range: {{ states('sensor.thermopro_probe_2') }}
+            Low Set: {{ states('input_number.thermopro_probe_2_set_low') }}
+            High Set: {{ states('input_number.thermopro_probe_2_set_high') }}
             {% endif %}
           data:
             priority: 2
@@ -124,11 +118,11 @@ automation:
       - platform: numeric_state
         entity_id: sensor.traeger_hopper_level
         below: 2
-    condition: '{{ as_timestamp(now()) - as_timestamp(states.automation.hopper_level_alert.attributes.last_triggered) | int > 600 }}'
+    condition: "{{ as_timestamp(now()) - as_timestamp(state_attr('automation.hopper_level_alert.attributes','last_triggered')) | int > 600 }}"
     action: 
       - service: notify.pushover
-        data_template:
-          message: "Traeger Hopper level too low!! ({{ states.sensor.traeger_hopper_level.state }}%)"
+        data:
+          message: "Traeger Hopper level too low!! ({{ states('sensor.traeger_hopper_level') }}%)"
           data:
             priority: 2
             expire: 3600

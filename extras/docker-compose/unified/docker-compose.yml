@@ -111,6 +111,8 @@ services:
     thermostat_api_server:
         container_name: thermostat_api_server
         image: aneisch/thermostat_api_server
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
         ports:
             - '8080:8080'
         environment:
@@ -196,7 +198,7 @@ services:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
         #image: esphome-dev
-        #image: esphome/esphome:dev
+        #image: esphome/esphome:1.14.4
         image: esphome/esphome
         volumes:
             - /opt/esphome/:/config:rw
