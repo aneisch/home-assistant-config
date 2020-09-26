@@ -276,15 +276,19 @@
       - switch.living_room_speakers
       - switch.tv
       
-- alias: "Turn off speakers when tv powers off"
+- alias: "Turn off speakers when tv OR xbox powers off"
   trigger:
-    platform: state
-    entity_id: switch.tv
-    to: "off"
+    - platform: state
+      entity_id: switch.tv
+      to: "off"
+    - platform: state
+      entity_id: binary_sensor.xbox_power
+      to: "off"
   action:
     service: homeassistant.turn_off
     entity_id: 
       - switch.living_room_speakers
+      - switch.tv
 
 #- alias: "Backlight off when MacBook Inactive"
 #  initial_state: 'on'

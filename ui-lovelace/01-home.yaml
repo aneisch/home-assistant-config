@@ -34,9 +34,6 @@ cards:
                   --paper-item-icon-color: red
                   {% endif %}
                 }
-
-          - binary_sensor.cx5
-          - binary_sensor.cruze
           - binary_sensor.front_door
           - binary_sensor.back_porch_door
           - binary_sensor.garage_exterior_door

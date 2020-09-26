@@ -94,7 +94,7 @@ master_bedroom_wakeup:
     - service: scene.turn_on
       data:
         entity_id: >
-          {% if 30 > (as_timestamp(now()) - as_timestamp(state_attr('switch.master_bedroom_ceiling_fan','last_changed')) | round(0)) %}
+          {% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}
             scene.master_lamps_slow_on
           {% else %}
             scene.master_lamps_fast_on

@@ -39,14 +39,20 @@ cards:
       - type: horizontal-stack
         cards:
           - type: "button"
-            entity: switch.tv_remote_volume_down
-            show_name: false
+            icon: "mdi:volume-minus"
+            tap_action:
+              action: call-service
+              service: rest_command.surround_vol_down
           - type: "button"
-            entity: switch.tv_remote_mute
-            show_name: false
+            icon: "mdi:volume-mute"
+            tap_action:
+              action: call-service
+              service: rest_command.surround_vol_mute
           - type: "button"
-            entity: switch.tv_remote_volume_up
-            show_name: false
+            icon: "mdi:volume-plus"
+            tap_action:
+              action: call-service
+              service: rest_command.surround_vol_up
       - type: entities
         entities:
           - switch.living_room_speakers

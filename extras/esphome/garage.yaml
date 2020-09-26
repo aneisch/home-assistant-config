@@ -11,40 +11,43 @@ esphome:
   name: ${name}
   platform: ESP8266
   board: d1_mini_pro
-  includes:
-    - change_VL53L0X_address.h
-  libraries:
-    - VL53L0X
+  # includes:
+  #   - change_VL53L0X_address.h
+  # libraries:
+  #   - VL53L0X
 
 <<: !include common.yaml
   
-custom_component:
-- lambda: |-
-    auto change_address = new ChangeAddress();
-    return {change_address};
+# custom_component:
+# - lambda: |-
+#     auto change_address = new ChangeAddress();
+#     return {change_address};
 
-i2c:
-  sda: D5
-  scl: D6
-  scan: True
-  frequency: 800kHz
+# Vehicle sensor shelved now due to inability to track down source of interference on i2c bus
+# Simply flipping the light on the garage on/off multiple times causes NACK and no reading on sensor until reboot
+# maybe some shielding would help... maybe I'll take a look again at a later date. 
+# i2c:
+#   sda: D5
+#   scl: D6
+#   scan: True
+#   #frequency: 200kHz
 
-sensor:
-  # Cruze
-  - platform: vl53l0x
-    id: car_sensor_1
-    address: 0x23
-    update_interval: 5s
-    accuracy_decimals: 3
-    setup_priority: 200 # Delay setup to after address change
+# sensor:
+#   # Cruze
+#   - platform: vl53l0x
+#     id: car_sensor_1
+#     address: 0x23
+#     update_interval: 10s
+#     accuracy_decimals: 3
+#     setup_priority: 200 # Delay setup to after address change
 
-  # CX5
-  - platform: vl53l0x
-    id: car_sensor_2
-    address: 0x19
-    update_interval: 5s
-    accuracy_decimals: 3
-    setup_priority: 200 # Delay setup to after address change
+#   # CX5
+#   - platform: vl53l0x
+#     id: car_sensor_2
+#     address: 0x19
+#     update_interval: 10s
+#     accuracy_decimals: 3
+#     setup_priority: 200 # Delay setup to after address change
 
 binary_sensor:
   - platform: gpio
@@ -57,29 +60,29 @@ binary_sensor:
       - delayed_on: 1s
       - delayed_off: 1s
 
-  - platform: template
-    name: "Cruze"
-    device_class: presence
-    lambda: |-
-      if (id(car_sensor_1).state < 0.80 ) {
-        // Car Present
-        return true;
-      } else {
-        // Car Not Present
-        return false;
-      }
+  # - platform: template
+  #   name: "Cruze"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_1).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
 
-  - platform: template
-    name: "CX5"
-    device_class: presence
-    lambda: |-
-      if (id(car_sensor_2).state < 0.80 ) {
-        // Car Present
-        return true;
-      } else {
-        // Car Not Present
-        return false;
-      }
+  # - platform: template
+  #   name: "CX5"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_2).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
 
 cover:
   - platform: template

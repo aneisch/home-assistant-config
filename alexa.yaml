@@ -60,6 +60,7 @@ smart_home:
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
       - switch.under_cabinet_lights
+      - switch.living_room_speakers
   entity_config:
     climate.thermostat:
       name: "Thermostat"
