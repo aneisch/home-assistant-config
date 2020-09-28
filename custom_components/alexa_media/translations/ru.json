@@ -13,14 +13,14 @@
     },
     "step": {
       "action_required": {
-        "description": "**{email} - alexa. {url}**\\nAmazon отправит push-уведомление в соответствии с нижеприведенным сообщением. Пожалуйста, полностью ответьте, прежде чем продолжить.\\n{message}",
+        "description": "**{email} - alexa. {url}**\nAmazon отправит push-уведомление в соответствии с нижеприведенным сообщением. Пожалуйста, полностью ответьте, прежде чем продолжить.\n{message}",
         "title": "Alexa Media Player - Требуемое действие"
       },
       "authselect": {
         "data": {
           "authselectoption": "Одноразовый пароль"
         },
-        "description": "**{email} - alexa.{url}**\\n{message}",
+        "description": "**{email} - alexa.{url}**  \n{message}",
         "title": "Alexa Media Player - Одноразовый Пароль"
       },
       "captcha": {
@@ -29,21 +29,21 @@
           "password": "Пароль",
           "securitycode": "2FA Code (recommended to avoid login issues)"
         },
-        "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
+        "description": "**{email} - alexa.{url}**  \n>{message}  \n{captcha_image}",
         "title": "Alexa Media Player - Капча"
       },
       "claimspicker": {
         "data": {
           "authselectoption": "Метод проверки"
         },
-        "description": "**{email} - alexa.{url}**\\nПожалуйста, выберите способ проверки по номеру. (например, \" 0 \" или \" 1`)\\n{message}",
+        "description": "**{email} - alexa.{url}**\nПожалуйста, выберите способ проверки по номеру. (например, \" 0 \" или \" 1`)\n{message}",
         "title": "Alexa Media Player - Метод проверки"
       },
       "twofactor": {
         "data": {
           "securitycode": "2-факторная авторизация"
         },
-        "description": "**{email} - alexa.{url}**\\nВведите одноразовый пароль.\\n{message}",
+        "description": "**{email} - alexa.{url}**\nВведите одноразовый пароль.\n{message}",
         "title": "Alexa Media Player - Двух факторная идентификация"
       },
       "user": {

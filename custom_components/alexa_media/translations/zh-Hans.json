@@ -13,14 +13,14 @@
     },
     "step": {
       "action_required": {
-        "description": "**{email} - alexa.{url}**  \\nAmazon will send a push notification per the below message. Please completely respond before continuing.  \\n{message}",
+        "description": "**{email} - alexa.{url}**  \nAmazon will send a push notification per the below message. Please completely respond before continuing.  \n{message}",
         "title": "Alexa Media Player - Action Required"
       },
       "authselect": {
         "data": {
           "authselectoption": "OTP方式"
         },
-        "description": "**{email} - alexa.{url}**\\n{message}",
+        "description": "**{email} - alexa.{url}**\n{message}",
         "title": "Alexa Media Player - 一次性密码"
       },
       "captcha": {
@@ -29,21 +29,21 @@
           "password": "密码",
           "securitycode": "2FA Code (recommended to avoid login issues)"
         },
-        "description": "**{email} - alexa.{url}**\\n{message}\\n {captcha_image}",
+        "description": "**{email} - alexa.{url}**  \n>{message}  \n{captcha_image}",
         "title": "Alexa Media Player-验证码"
       },
       "claimspicker": {
         "data": {
           "authselectoption": "验证方式"
         },
-        "description": "**{email} - alexa.{url}**  \\nPlease select verification method by number. (e.g., `0` or `1`)  \\n{message}",
+        "description": "**{email} - alexa.{url}**  \nPlease select verification method by number. (e.g., `0` or `1`)  \n{message}",
         "title": "Alexa Media Player - 验证方法"
       },
       "twofactor": {
         "data": {
           "securitycode": "2FA代码"
         },
-        "description": "**{email} - Alexa.{url} ** \\n输入一次性密码（OTP）。 \\n {message}",
+        "description": "**{email} - Alexa.{url} ** \n输入一次性密码（OTP）。 \n {message}",
         "title": "Alexa Media Player - Two Factor Authentication"
       },
       "user": {
