@@ -1,0 +1,10 @@
+title: Sprinklers
+icon: mdi:sprinkler
+cards:
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "switch.sprinklers_*"
+    card:
+      type: entities
+      show_header_toggle: false

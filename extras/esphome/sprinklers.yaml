@@ -1,19 +1,208 @@
 substitutions:
   name: sprinklers
-  friendly_name: "Sprinkers"
+  friendly_name: "Sprinklers"
 
 esphome:
   name: ${name}
   platform: ESP8266
-  board: d1_mini
+  board: d1_mini_pro
   includes:
     - shift_register_switch.h
   libraries:
     - ShiftRegister74HC595@1.2
+  on_boot:
+    priority: -100
+    then:
+      # Enable 24v supply after successful boot
+      - switch.turn_on: relay_24v_power
 
 <<: !include common.yaml
   
+globals:
+  - id: current_zone
+    type: int
+    restore_value: no
+    initial_value: '0'
+
+script:
+  - id: turn_off_other_zones
+    then:
+      - lambda: |-
+          // Don't let valves turn on if 24v or master is off
+          if (!id(master_valve).state || !id(relay_24v_power).state) {
+            id(zone1).turn_off();
+            id(zone2).turn_off();
+            id(zone3).turn_off();
+            id(zone4).turn_off();
+            id(zone5).turn_off();
+            id(zone6).turn_off();
+            id(zone7).turn_off();
+          }
+          // Implement interlock so only one zone can be active
+          else {
+            if (id(current_zone) != 1 && id(zone1).state) {
+              id(zone1).turn_off();
+            }
+            else if (id(current_zone) != 2 && id(zone2).state) {
+              id(zone2).turn_off();
+            }
+            else if (id(current_zone) != 3 && id(zone3).state) {
+              id(zone3).turn_off();
+            }
+            else if (id(current_zone) != 4 && id(zone4).state) {
+              id(zone4).turn_off();
+            }
+            else if (id(current_zone) != 5 && id(zone5).state) {
+              id(zone5).turn_off();
+            }
+            else if (id(current_zone) != 6 && id(zone6).state) {
+              id(zone6).turn_off();
+            }
+            else if (id(current_zone) != 7 && id(zone7).state) {
+              id(zone7).turn_off();
+            }
+          }
+
 switch:
+  # 24v supply on separate relay to prevent issues with boot spike
+  - platform: gpio
+    id: relay_24v_power
+    name: "${friendly_name} 24v Power"
+    restore_mode: ALWAYS_OFF
+    icon: mdi:flash
+    pin:
+      number: D8
+    on_turn_off:
+      then:
+        - script.execute: turn_off_other_zones
+        - switch.turn_off: master_valve
+  
+  - platform: template
+    name: "${friendly_name} Front Beds"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone1).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '1'
+      - switch.turn_on: zone1
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone1
+      
+  - platform: template
+    name: "${friendly_name} Front Lawn"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone2).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '2'
+      - switch.turn_on: zone2
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone2
+  
+  - platform: template
+    name: "${friendly_name} Left and Main Rear Lawn"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone3).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '3'
+      - switch.turn_on: zone3
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone3
+
+  - platform: template
+    name: "${friendly_name} Front and Right Rear Lawn"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone4).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '4'
+      - switch.turn_on: zone4
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone4
+
+  - platform: template
+    name: "${friendly_name} Side Lawn"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone5).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '5'
+      - switch.turn_on: zone5
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone5
+
+  - platform: template
+    name: "${friendly_name} Zone 6"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone6).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '6'
+      - switch.turn_on: zone6
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone6
+  
+  - platform: template
+    name: "${friendly_name} Zone 7"
+    icon: mdi:sprinkler
+    lambda: |-
+      if (id(zone7).state) {
+        return true;
+      } else {
+        return false;
+      }
+    turn_on_action:
+      - globals.set: 
+          id: current_zone
+          value: '7'
+      - switch.turn_on: zone7
+      - script.execute: turn_off_other_zones
+    turn_off_action:
+      - switch.turn_off: zone7
+  
   - platform: custom
     lambda: |-
       std::vector<switch_::Switch *> switches;
@@ -24,35 +213,16 @@ switch:
       }
       return switches;
     switches:
-      -  name: "Sprinkler Zone 1"
-         inverted: yes
-         id: one
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 2"
-         inverted: yes
-         id: two
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 3"
-         inverted: yes
-         id: three
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 4"
-         inverted: yes
-         id: four
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 5"
-         inverted: yes
-         id: five
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 6"
-         inverted: yes
-         id: six
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Zone 7"
-         inverted: yes
-         id: seven
-         icon: mdi:sprinkler
-      -  name: "Sprinkler Master Valve"
-         inverted: yes
-         id: master
-         icon: mdi:valve
+      - id: zone1
+      - id: zone2
+      - id: zone3
+      - id: zone4
+      - id: zone5
+      - id: zone6
+      - id: zone7
+      - name: "${friendly_name} Master Valve"
+        id: master_valve
+        icon: mdi:valve
+        on_turn_off:
+          then:
+            - script.execute: turn_off_other_zones
