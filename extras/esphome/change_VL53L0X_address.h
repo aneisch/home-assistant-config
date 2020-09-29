@@ -3,15 +3,14 @@
 
 // Change i2c address of the attached VL53L0X sensors
 
+VL53L0X sensor1;
+VL53L0X sensor2;
+
 class ChangeAddress : public Component {
  public:
   void setup() override {
 
     ESP_LOGD("custom", "Beginning address change");
-
-    VL53L0X sensor1;
-    VL53L0X sensor2;
-
     ESP_LOGD("custom", "Turning off all sensors");
     pinMode(D2, OUTPUT);
     pinMode(D3, OUTPUT);
