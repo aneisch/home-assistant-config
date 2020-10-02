@@ -48,11 +48,19 @@ smart_home:
       - script.appdaemon_ac_morning
       - script.too_cold
       - script.too_hot
+      - script.vacuum_clean_kitchen
+      - script.vacuum_clean_living_room
+      - script.vacuum_clean_dining_room
+      - script.vacuum_clean_office
+      - script.vacuum_clean_bethany_office
+      - script.vacuum_clean_master_bedroom
+      - script.vacuum_clean_guest_bedroom
       - sensor.grill_probe_1
       - sensor.grill_probe_2
       - sensor.master_bedroom_temperature
       - sensor.office_temperature
       - switch.christmas_tree
+      - switch.globe_lights
       - switch.tv
       - switch.nas
       - switch.master_bedroom_ceiling_fan
@@ -141,6 +149,41 @@ smart_home:
     script.master_bedroom_wakeup:
       name: "Master Bedroom Wakeup"
       description: "Get Master Bedroom Ready for Day"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_kitchen:
+      name: "Roxie Clean Kitchen"
+      description: "Vacuum the Kitchen"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_living_room:
+      name: "Roxie Clean Living Room"
+      description: "Vacuum the Living Room"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_dining_room:
+      name: "Roxie Clean Dining Room"
+      description: "Vacuum the Dining Room"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_office:
+      name: "Roxie Clean Office"
+      description: "Vacuum the Office"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_bethany_office:
+      name: "Roxie Clean Bethany's Office"
+      description: "Vacuum Bethany's Office"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_master_bedroom:
+      name: "Roxie Clean Master Bedroom"
+      description: "Vacuum the Master Bedroom"
+      display_categories: SCENE_TRIGGER
+
+    script.vacuum_clean_guest_bedroom:
+      name: "Roxie Clean Guest Bedroom"
+      description: "Vacuum the Guest Bedroom"
       display_categories: SCENE_TRIGGER
 
     sensor.master_bedroom_temperature:

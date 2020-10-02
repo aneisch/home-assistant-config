@@ -70,6 +70,7 @@ cards:
       - light.back_porch_light
       - light.garage_light
       - light.front_porch_lights
+      - switch.globe_lights
 
   - type: entities
     show_header_toggle: false
@@ -88,11 +89,8 @@ cards:
       - switch.office_ceiling_fan
       - light.office_ceiling_fan
       - light.andrew_desk_lamp
-      - entity: light.andrew_monitor_backlight
-        name: Monitor Backlight
-        hide_when_off: true
-        type: custom:slider-entity-row
-        break_slider: true
+      - entity: switch.andrew_office_speakers
+        icon: mdi:speaker
       - light.bethany_desk_lamp
 
   #- type: 'custom:aarlo-glance'

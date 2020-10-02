@@ -13,7 +13,7 @@ automation:
   action:
     - service: vacuum.pause
       entity_id: vacuum.roborock_s4
-    - delay: '00:00:01'
+    - delay: '00:00:02'
     - service: script.vacuum_park_trashcan
     - service: homeassistant.turn_off
       entity_id: input_boolean.return_to_trashcan
@@ -288,6 +288,56 @@ script:
           entity_id: vacuum.roborock_s4
           x_coord: 13950
           y_coord: 23250
+  # {'Dining Room':24,'Kitchen':25,'Living Room':23,'Office':21,'Guest Bedroom':26,'Guest Bathroom':19,'Hallway':16,"Bethany's Office":20,'Master Bedroom':18,'Master Bathroom':19}
+  # For Alexa routines
+  vacuum_clean_kitchen:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 25
+
+  vacuum_clean_living_room:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 23
+
+  vacuum_clean_dining_room:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 24
+
+  vacuum_clean_office:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 21
+
+  vacuum_clean_bethany_office:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 20
+
+  vacuum_clean_master_bedroom:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 18
+
+  vacuum_clean_guest_bedroom:
+    sequence:
+      - service: xiaomi_miio.vacuum_clean_segment
+        data:
+          entity_id: vacuum.roborock_s4
+          segments: 26
 
 switch:
   platform: template

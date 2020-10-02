@@ -11,9 +11,9 @@
   file_path: /config/images/mail_today.gif
   name: mail_usps
 
-#- platform: mjpeg
-#  mjpeg_url: http://10.0.0.26:8080/?action=stream
-#  name: Outdoor
+- platform: mjpeg
+  mjpeg_url: http://10.0.0.26:8080/?action=stream
+  name: Outdoor
 
 #- platform: arlo
   #ffmpeg_binary: '/usr/bin/ffmpeg'

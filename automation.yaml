@@ -70,7 +70,6 @@
             script.security_disarm
           {% endif %}
     # Prevent trigger for 5 minutes
-    - delay: "00:05:00"
 
 - alias: "House Occupied/Empty"
   initial_state: "on"
@@ -320,3 +319,42 @@
 #        sequence:
 #          - service: light.turn_off
 #            entity_id: light.andrew_monitor_backlight
+
+- alias: "Water sensor alerts"
+  trigger:
+    - platform: state
+      entity_id: 
+        - binary_sensor.washing_machine_water_detector  
+        - binary_sensor.water_heater_water_detector  
+      to: "on"
+      for: "00:00:10"
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+          {% if trigger.entity_id == 'binary_sensor.washing_machine_water_detector' %}
+            Water detected under washing machine!
+          {% elif trigger.entity_id == 'binary_sensor.water_heater_water_detector' %}
+            Water detected under water heater!
+          {% endif %}
+        data:
+          priority: 2
+          expire: 3600
+          retry: 30
+
+- alias: "Water sensor battery alerts"
+  trigger:
+    - platform: numeric_state
+      entity_id: 
+        - sensor.washing_machine_water_detector_battery_level
+        - sensor.water_heater_water_detector_battery_level
+      below: 10
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+          {% if trigger.entity_id == 'sensor.washing_machine_water_detector_battery_level' %}
+            Washing machine water detector battery level at {{ trigger.to_state.state }}
+          {% elif trigger.entity_id == 'sensor.water_heater_water_detector_battery_level' %}
+            Water heater water detector battery level at {{ trigger.to_state.state }}
+          {% endif %}

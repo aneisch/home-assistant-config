@@ -39,6 +39,7 @@ cards:
           - binary_sensor.garage_exterior_door
           - binary_sensor.garage_interior_door
           - binary_sensor.master_bedroom_exterior_door
+          - binary_sensor.master_closet_motion_detection
 
       - type: markdown
         content: |
@@ -128,9 +129,9 @@ cards:
     entities:
       - calendar.garbage_collection
 
-  #- type: picture-glance
-  #  camera_image: camera.outdoor
-  #  entities: []
+  - type: picture-glance
+    camera_image: camera.outdoor
+    entities: []
 
   #- type: picture-glance
   #  camera_image: camera.backyard_camera

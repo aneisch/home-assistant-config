@@ -1,6 +1,6 @@
 substitutions:
-  name: sprinklers
-  friendly_name: "Sprinklers"
+  name: irrigation
+  friendly_name: "Irrigation"
 
 esphome:
   name: ${name}

@@ -1,0 +1,40 @@
+title: Sprinklers
+icon: mdi:sprinkler
+cards:
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "switch.irrigation_*"
+      exclude:
+        - entity_id: "switch.irrigation_zone_*"
+    card:
+      type: entities
+      show_header_toggle: false
+      
+  - type: markdown
+    content: |
+      {% set irrigation = ["switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
+      {% for sprinkler_zone in irrigation -%}
+      {%- set entity_name = "input_datetime" + sprinkler_zone | regex_replace(find='switch', replace='', ignorecase=False) -%}
+      {% if states(sprinkler_zone) == "on" %}
+      <font color = blue>**{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False) }}**: Running for {{ relative_time(strptime(as_timestamp(states(entity_name+"_last_start")) | timestamp_custom('%Y-%m-%d %H:%M:%S%z'), '%Y-%m-%d %H:%M:%S%z')) }}</font>
+      {% else -%}
+      {# Calculate relative last run time #}
+      {%- set time = (as_timestamp(now()) - as_timestamp(states(entity_name+"_last_start"))) | int -%}
+      {%- set minutes = ((time % 3600) // 60) %}
+      {%- set minutes = '{} minutes'.format(minutes) if minutes > 0 else '' %}
+      {%- set hours = ((time % 86400) // 3600) %}
+      {%- set hours = '{} hours '.format(hours) if hours > 0 else '' %}
+      {%- set days = (time // 86400) %}
+      {%- set days = '{} days '.format(days) if days > 0 else '' %}
+      {# Calculate run time #}
+      {%- set time_run = (as_timestamp(states(entity_name+"_last_stop")) - as_timestamp(states(entity_name+"_last_start"))) | int -%}
+      {%- set minutes_run = ((time_run % 3600) // 60) %}
+      {%- set minutes_run = '{} minutes'.format(minutes_run) if minutes_run > 0 else '' %}
+      {%- set hours_run = ((time_run % 86400) // 3600) %}
+      {%- set hours_run = '{} hours '.format(hours_run) if hours_run > 0 else '' %}
+      {%- set days_run = (time_run // 86400) %}
+      {%- set days_run = '{} days '.format(days_run) if days_run > 0 else '' -%}
+      **{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False)  }}**: Last started _{{ 'less than 1 minute' if time < 60 else days + hours + minutes }}_ ago and ran for _{{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}_.
+      {% endif %}
+      {%- endfor %}

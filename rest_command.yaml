@@ -14,13 +14,13 @@ adjust_morning:
   content_type: 'application/json'
 
 surround_vol_up:
-  url: "http://10.0.0.25/?btnAction=VOLUP"
+  url: "http://10.0.0.18/?btnAction=VOLUP"
   method: get
 
 surround_vol_down:
-  url: "http://10.0.0.25/?btnAction=VOLDOWN"
+  url: "http://10.0.0.18/?btnAction=VOLDOWN"
   method: get
 
 surround_vol_mute:
-  url: "http://10.0.0.25/?btnAction=MUTE"
+  url: "http://10.0.0.18/?btnAction=MUTE"
   method: get

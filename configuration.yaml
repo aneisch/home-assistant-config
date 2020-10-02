@@ -8,11 +8,12 @@ homeassistant:
   customize: !include customize.yaml
   packages:
     #door_unlock: !include packages/door_unlock.yaml
-    fingerprint: !include packages/fingerprint.yaml
+    #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
+    irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
     #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
@@ -277,7 +278,7 @@ map:
 
 media_player:
   - platform: samsungtv_tizen
-    host: 10.0.1.51
+    host: 10.0.0.51
     port: 8002
     mac: 44:5c:e9:2e:51:0a
 
