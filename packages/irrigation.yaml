@@ -64,7 +64,7 @@ input_datetime:
     has_time: true
 
 automation:
-  - alias: Store Sprinkler Times
+  - alias: Store Sprinkler Start Times
     trigger:
       platform: state
       entity_id:
@@ -74,15 +74,32 @@ automation:
         - switch.irrigation_front_and_right_rear_lawn
         - switch.irrigation_side_lawn
         - switch.irrigation_master_valve
+      from: "off"
+      to: "on"
       for: "00:00:05"
     action:
       - service: input_datetime.set_datetime
         data:
-          entity_id: >
-            {% if trigger.to_state.state == "on" %}
-              input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_start
-            {% elif trigger.to_state.state == "off" %}
-              input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop
-            {% endif %}
-          time: '{{ (as_timestamp(now()) | timestamp_custom("%H:%M:%S", true)) }}'
-          date: '{{ (as_timestamp(now()) | timestamp_custom("%Y-%m-%d", true)) }}'
+          entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_start"
+          time: "{{ (as_timestamp(now()) | timestamp_custom("%H:%M:%S", true)) }}"
+          date: "{{ (as_timestamp(now()) | timestamp_custom("%Y-%m-%d", true)) }}"
+
+  - alias: Store Sprinkler Stop Times
+    trigger:
+      platform: state
+      entity_id:
+        - switch.irrigation_front_beds
+        - switch.irrigation_front_lawn 
+        - switch.irrigation_left_and_main_rear_lawn
+        - switch.irrigation_front_and_right_rear_lawn
+        - switch.irrigation_side_lawn
+        - switch.irrigation_master_valve
+      from: "on"
+      to: "off"
+      for: "00:00:05"
+    action:
+      - service: input_datetime.set_datetime
+        data:
+          entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop"
+          time: "{{ (as_timestamp(now()) | timestamp_custom("%H:%M:%S", true)) }}"
+          date: "{{ (as_timestamp(now()) | timestamp_custom("%Y-%m-%d", true)) }}"
