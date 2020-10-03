@@ -103,6 +103,14 @@ input_boolean:
     initial: 'off'
 
 input_select:
+  vacuum_mode:
+    name: Vacuum Clean Mode
+    options:
+      - Gentle
+      - Silent
+      - Standard
+      - Medium
+      - Turbo
   vacuum_room_select:
     name: Choose a room to clean
     # Define these zones in NodeRed

@@ -180,6 +180,22 @@ cards:
         service: python_script.vacuum_custom_clean
         name: " "
         icon: " "
+        
+        
+  - type: 'custom:card-templater'
+    entities:
+      - input_select.vacuum_mode
+    card: 
+      type: entities
+      entities:
+        - input_select.vacuum_mode
+        - type: call-service
+          service: vacuum.set_fan_speed
+          service_data:
+            entity_id: vacuum.roborock_s4
+            fan_speed_template: "{{states('input_select.vacuum_mode')}}"
+          name: " "
+          icon: " "
 
   - type: horizontal-stack
     cards:

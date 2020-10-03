@@ -251,8 +251,6 @@ lovelace:
       type: module
     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
       type: module
-    - url: /hacsfiles/bignumber-card/bignumber-card.js
-      type: js
     - url: /hacsfiles/lovelace-card-mod/card-mod.js
       type: module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
@@ -262,10 +260,6 @@ lovelace:
     - url: /hacsfiles/favicon-counter/favicon-counter.js
       type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
-      type: js
-    - url: /hacsfiles/config-template-card/config-template-card.js
-      type: module
-    - url: /hacsfiles/zha-network-card/zha-network-card.js
       type: js
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
       type: module
@@ -278,7 +272,7 @@ map:
 
 media_player:
   - platform: samsungtv_tizen
-    host: 10.0.0.51
+    host: 10.0.1.51
     port: 8002
     mac: 44:5c:e9:2e:51:0a
 
