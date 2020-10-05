@@ -16,5 +16,7 @@ cards:
       - light.bethany_nightstand_lamp
       - type: custom:slider-entity-row
         entity: light.master_bedroom_lamps
+      - entity: switch.master_closet_light
+        name: Closet Light
 
   - !include .cards/spotify.yaml
