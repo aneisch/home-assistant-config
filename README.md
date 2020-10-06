@@ -46,7 +46,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1345
-Lines of Home Assistant YAML | 4488
+Lines of Home Assistant YAML | 4490
 [Integrations](https://www.home-assistant.io/integrations/) in use | 21
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 15
  
@@ -106,6 +106,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 
 **Plugin**:<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
+[custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>

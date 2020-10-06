@@ -267,6 +267,8 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
       type: module
+    - url: /hacsfiles/bignumber-card/bignumber-card.js
+      type: module
 
 map:
 
@@ -372,6 +374,7 @@ python_script:
 readme:
 
 recorder:
+  db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
   purge_keep_days: 7
   exclude:
     entities:

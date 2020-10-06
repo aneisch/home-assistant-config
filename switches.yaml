@@ -3,12 +3,6 @@
   -  host: 10.0.0.21
      name: "Andrew Office Speakers"
 
-#- platform: broadlink
-#  host: 10.0.0.11
-#  mac: b4:43:0d:ae:61:36
-#  type:  sp2
-#  friendly_name: 'Entertainment Center Lights'
-
 #- platform : mqtt
 #  name: "Stupid Red Light"
 #  state_topic: "light/red_light"

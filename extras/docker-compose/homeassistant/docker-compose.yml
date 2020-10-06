@@ -26,6 +26,21 @@ services:
         restart: always
         logging:
           driver: none
+    mariadb:
+        container_name: mariadb
+        image: 'mariadb:latest'
+        user: '99'
+        environment:
+          - TZ=America/Chicago
+        ports:
+          - '3306:3306'
+        volumes:
+          - /opt/mariadb:/var/lib/mysql
+        environment:
+          - MYSQL_ROOT_PASSWORD=PASSWORD
+          - MYSQL_USER=homeassistant
+          - MYSQL_PASSWORD=homeassistant
+          - MYSQL_DATABASE=homeassistant
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto
