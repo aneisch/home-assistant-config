@@ -375,7 +375,7 @@ readme:
 
 recorder:
   db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
-  purge_keep_days: 7
+  purge_keep_days: 30
   exclude:
     entities:
       - binary_sensor.internet_reachability

@@ -38,3 +38,14 @@ cards:
       **{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False)  }}**: Last started _{{ 'less than 1 minute' if time < 60 else days + hours + minutes }}_ ago and ran for _{{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}_.
       {% endif %}
       {%- endfor %}
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "input_select.irrigation_custom_water_*"
+        - type: call-service
+          service: python_script.irrigation_custom_water
+          name: " "
+          icon: " "
+    card:
+      type: entities
+      show_header_toggle: false

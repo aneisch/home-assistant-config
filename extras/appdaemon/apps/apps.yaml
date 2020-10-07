@@ -131,6 +131,13 @@ Front Porch Lights:
   time_on: sunset
   time_off: "00:00:00"
 
+Aquarium Lights:
+  module: entity_timer
+  class: Timer
+  devices: switch.aquarium_light
+  time_on: sunrise + 00:30:00
+  time_off: sunset
+
 NAS:
   module: entity_timer
   class: Timer
