@@ -134,7 +134,7 @@ Front Porch Lights:
 Aquarium Lights:
   module: entity_timer
   class: Timer
-  devices: switch.aquarium_light
+  devices: light.aquarium_white_light
   time_on: sunrise + 00:30:00
   time_off: sunset
 

@@ -14,6 +14,7 @@ office:
     - light.office_ceiling_fan
     - light.andrew_desk_lamp
     - light.bethany_desk_lamp
+    - switch.andrew_office_speakers
 
 master_bedroom:
   name: Master Bedroom
@@ -48,6 +49,8 @@ living_room:
     - light.living_room_can_lights
     - switch.living_room_ceiling_fan_light
     - fan.living_room_ceiling_fan
+    - switch.living_room_speakers
+    - switch.tv
 
 andrew_desk:
   entities:

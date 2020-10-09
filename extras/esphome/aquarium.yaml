@@ -1,0 +1,35 @@
+substitutions:
+  name: aquarium
+  friendly_name: "Aquarium"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+output:
+  - platform: gpio
+    id: relay
+    pin: D1
+
+dallas:
+  - pin: D4
+    update_interval: 30s
+
+
+light:
+  - platform: binary
+    name: "${friendly_name} White Light"
+    output: relay
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+sensor:
+  - platform: dallas
+    address: 0x38000006C7F38D28
+    name: "${friendly_name} Temperature"

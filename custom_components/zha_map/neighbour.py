@@ -43,12 +43,12 @@ class Neighbour(LogMixin):
         r.pan_id = str(record.extended_pan_id)
         r.ieee = record.ieee
 
-        r.device_type = record.struct.device_type.name
-        r.rx_on_when_idle = record.struct.rx_on_when_idle.name
-        if record.struct.relationship == zdo_t.Neighbor.RelationShip.NoneOfTheAbove:
+        r.device_type = record.device_type.name
+        r.rx_on_when_idle = record.rx_on_when_idle.name
+        if record.relationship == zdo_t.Neighbor.RelationShip.NoneOfTheAbove:
             r.relation = "None_of_the_above"
         else:
-            r.relation = record.struct.relationship.name
+            r.relation = record.relationship.name
         r.new_joins_accepted = record.permit_joining.name
         r.depth = record.depth
         r.lqi = record.lqi
