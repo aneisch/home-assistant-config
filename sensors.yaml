@@ -150,7 +150,7 @@
 
 - platform: mqtt
   state_topic: "sensor/thermostat"
-  name: "Thermostat Unknown"
+  name: "Thermostat Outdoor Ambient Temperature"
   value_template: "{{ value_json.oat }}"
   unit_of_measurement: "°F"
   
@@ -159,11 +159,6 @@
   name: "Thermostat Indoor CFM"
   value_template: "{{ value_json.iducfm }}"
   unit_of_measurement: "cfm"
-
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Operational State"
-  value_template: "{{ value_json.opstat }}"
 
 - platform: history_stats
   name: ac_runtime_today_cool
