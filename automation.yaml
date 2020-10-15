@@ -152,14 +152,6 @@
       - "{{ (states('sensor.thermostat_setpoint') | int > 70) and (states('sensor.thermostat_operating_mode') == 'heat') }}"
       - "{{ (states('sensor.thermostat_setpoint') | int < 68) and (states('sensor.thermostat_operating_mode') == 'cool') }}"
   action:
-    - service: notify.pushover
-      data:
-        message: >
-          {% if states('sensor.thermostat_operating_mode') == 'Heat' %}
-            AC Broke.. Turning Off.. Mode: Heat Setpoint: {{ states('sensor.thermostat_setpoint') }}
-          {% elif states('sensor.thermostat_operating_mode') == "Cool" %}
-            AC Broke.. Turning Off.. Mode: Cool Setpoint: {{ states('sensor.thermostat_setpoint') }}
-          {% endif %}
     # Push actionable HTML5 notification to allow timely shutoff
     - service: notify.html5
       data:

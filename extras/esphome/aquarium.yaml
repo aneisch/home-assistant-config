@@ -6,6 +6,7 @@ esphome:
   name: ${name}
   platform: ESP8266
   board: d1_mini
+  esp8266_restore_from_flash: yes
 
 <<: !include common.yaml
 
@@ -18,12 +19,12 @@ dallas:
   - pin: D4
     update_interval: 30s
 
-
 light:
   - platform: binary
     name: "${friendly_name} White Light"
     output: relay
-    
+    restore_mode: RESTORE_DEFAULT_ON
+
 switch:
   - platform: restart
     id: restart_device

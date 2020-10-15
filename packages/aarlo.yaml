@@ -1,0 +1,74 @@
+aarlo:
+  username: !secret arlo_username
+  password: !secret arlo_password
+  user_agent: linux
+
+alarm_control_panel:
+  - platform: aarlo
+
+camera:
+  - platform: aarlo
+    #ffmpeg_arguments: '-pred 1 -q:v 2'
+
+binary_sensor:
+  - platform: aarlo
+    monitored_conditions:
+    - motion
+
+automation:
+  - alias: "Update Garage Image"
+    trigger:
+      platform: time_pattern
+      minutes: "/30"
+    action:
+      - service: camera.aarlo_request_snapshot
+        data:
+          entity_id: camera.aarlo_garage
+          
+          
+  # - alias: "test"
+  #   trigger:
+  #     - platform: event
+  #       event_type: aarlo_snapshot_ready
+  #   action:
+  #     - service: notify.mobile_app_andrew_phone
+  #       data:
+  #         message: "Motion!"
+  #         data:
+  #           image: !secret garage_image_url
+
+  - alias: "Snapshot garage and send photo when motion detected"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.garage_exterior_door
+        from: 'off'
+        to: 'on'
+    action:
+      - event: take_garage_snapshot
+        event_data:
+          entity_id: camera.aarlo_garage
+          filename: '/config/www/cameras/garage_latest.jpg'
+      - wait_for_trigger:
+        - platform: event
+          event_type: aarlo_image_updated
+        timeout: "00:01:00"
+      - service: notify.mobile_app_andrew_phone
+        data:
+          message: "Motion in garage!"
+          data:
+            image: !secret garage_image_url
+      # - service: aarlo.camera_request_snapshot_to_file
+      #   data:
+      #     entity_id: camera.aarlo_garage
+      #     filename: '/config/www/cameras/garage_{{ now().strftime("%Y-%m-%dT%H:%M:%S") }}.jpg'
+
+  # Helper
+  - alias: "Snapshot garage"
+    trigger:
+      - platform: event
+        event_type: take_garage_snapshot
+    action:
+    - service: aarlo.camera_request_snapshot_to_file
+      data:
+        entity_id: "{{ trigger.event.data.entity_id }}"
+        filename: "{{ trigger.event.data.filename }}"

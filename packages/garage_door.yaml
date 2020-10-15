@@ -5,12 +5,11 @@ automation:
         entity_id: cover.garage_door
         from: 'closed'
         to: 'open'
-        for: '00:00:05'
       - platform: state
         entity_id: cover.garage_door
         from: 'open'
         to: 'closed'
-        for: '00:00:05'
+        for: '00:00:02'
     action:
       - service: script.office_switch_leds
         data:

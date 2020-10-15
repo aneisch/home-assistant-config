@@ -71,6 +71,7 @@ cards:
       - light.garage_light
       - light.front_porch_lights
       - switch.globe_lights
+      - light.garage
 
   - type: entities
     show_header_toggle: false
@@ -95,65 +96,6 @@ cards:
       - entity: switch.andrew_office_speakers
         icon: mdi:speaker
       - light.bethany_desk_lamp
-
-  #- type: 'custom:aarlo-glance'
-  #  entity: camera.aarlo_office
-  #  name: Office
-  #  show:
-  #    - motion
-  #    - sound
-  #    - snapshot
-  #    - captured_today
-  #    - image_date
-  #  top_title: false
-  #  top_status: false
-  #  top_date: false
-  #  image_click: play
-
-  #- type: 'custom:aarlo-glance'
-  #  entity: camera.aarlo_1
-  #  name: Front Door
-  #  show:
-  #    - motion
-  #    - sound  
-  #    - battery
-  #    - snapshot  
-  #    - captured_today
-  #    - image_date
-  #  top_title: false
-  #  top_status: false
-  #  top_date: false 
-  #  image_click: play
-
-  #- type: 'custom:aarlo-glance'
-  #  entity: camera.aarlo_2
-  #  name: Back Door
-  #  show:
-  #    - motion
-  #    - sound
-  #    - battery
-  #    - snapshot
-  #    - captured_today
-  #    - image_date   
-  #  top_title: false
-  #  top_status: false
-  #  top_date: false  
-  #  image_click: play
-
-  #- type: 'custom:aarlo-glance'
-  #  entity: camera.aarlo_3
-  #  name: Kitchen
-  #  show:
-  #    - motion
-  #    - sound
-  #    - battery
-  #    - snapshot
-  #    - captured_today
-  #    - image_date   
-  #  top_title: false
-  #  top_status: false
-  #  top_date: false  
-  #  image_click: play
 
   - !include .cards/spotify.yaml
 

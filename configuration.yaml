@@ -7,6 +7,7 @@ homeassistant:
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
+    aarlo: !include packages/aarlo.yaml
     #door_unlock: !include packages/door_unlock.yaml
     #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
@@ -17,18 +18,12 @@ homeassistant:
     reminders: !include packages/reminders.yaml
     #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
+    uw: !include packages/uw.yaml
     vacuum: !include packages/vacuum.yaml
     #bus_time: !include packages/bus_time.yaml
     #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
-
-#aarlo:
-#  username: !secret arlo_username
-#  password: !secret arlo_password
-
-#alarm_control_panel:
-#  - platform: aarlo
 
 alexa: !include alexa.yaml
 
@@ -73,7 +68,6 @@ climate:
     mode_state_template: "{{ value_json.mode }}"
     modes:
       - off
-      - auto
       - cool
       - heat
     temperature_state_topic: "sensor/thermostat"
@@ -190,12 +184,12 @@ light:
         groups:
         - number: 1
           type: rgbw
-          name: master_bedroom
+          name: Garage
           fade: on
-        - number: 2
-          type: rgbw
-          name: andrew_monitor_backlight
-          fade: on
+        # - number: 2
+        #   type: rgbw
+        #   name: andrew_monitor_backlight
+        #   fade: on
   - platform: group
     name: Kitchen Lights
     entities:

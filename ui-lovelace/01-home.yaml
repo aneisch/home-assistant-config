@@ -5,19 +5,6 @@ cards:
   - !include .cards/grill.yaml
   - !include .cards/thermostat.yaml
   
-
-  - type: entities
-    show_header_toggle: false
-    title: Automation Control
-    entities:
-      - input_boolean.door_notify
-      - input_boolean.ac_automation
-      - input_boolean.ac_change_notification
-      - input_boolean.occusim
-      - input_boolean.guest_mode
-      - input_boolean.house_lamps_automation
-      - input_boolean.panic_mode
-
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
@@ -40,7 +27,6 @@ cards:
           - binary_sensor.garage_interior_door
           - binary_sensor.master_bedroom_exterior_door
           - binary_sensor.master_closet_motion_detection
-
       - type: markdown
         content: |
           {% set door_sensors = ['front_door_last', 'back_porch_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last'] %}
@@ -51,6 +37,32 @@ cards:
           {%- set days = (hours // 24) | int -%}
           {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
           {% endfor %}
+      - type: 'custom:aarlo-glance'
+        entity: camera.aarlo_garage
+        name: Garage
+        show:
+          - motion
+          - sound
+          - snapshot
+          - captured_today
+          - image_date
+        top_title: false
+        top_status: false
+        top_date: false
+        image_click: play
+        play_direct: true
+
+  - type: entities
+    show_header_toggle: false
+    title: Automation Control
+    entities:
+      - input_boolean.door_notify
+      - input_boolean.ac_automation
+      - input_boolean.ac_change_notification
+      - input_boolean.occusim
+      - input_boolean.guest_mode
+      - input_boolean.house_lamps_automation
+      - input_boolean.panic_mode
 
   - type: entities
     show_header_toggle: false

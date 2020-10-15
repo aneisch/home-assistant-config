@@ -107,7 +107,9 @@
       Cooling
     {% elif value_json.heaticon == 'on' %}
       Heating
-    {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' %}
+    {% elif value_json.fanicon == 'on' %}
+      Idle Fan
+    {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' and value_json.fanicon == 'off' %}
       Idle
     {% else %}
       Unknown
@@ -139,6 +141,29 @@
   name: "Thermostat Filter Hours Remain"
   value_template: "{{ value_json.filtrlvl }}"
   unit_of_measurement: "h"
+
+- platform: mqtt
+  state_topic: "sensor/thermostat"
+  name: "Thermostat Outdoor Coil Temperature"
+  value_template: "{{ value_json.oducoiltmp }}"
+  unit_of_measurement: "°F"
+
+- platform: mqtt
+  state_topic: "sensor/thermostat"
+  name: "Thermostat Unknown"
+  value_template: "{{ value_json.oat }}"
+  unit_of_measurement: "°F"
+  
+- platform: mqtt
+  state_topic: "sensor/thermostat"
+  name: "Thermostat Indoor CFM"
+  value_template: "{{ value_json.iducfm }}"
+  unit_of_measurement: "cfm"
+
+- platform: mqtt
+  state_topic: "sensor/thermostat"
+  name: "Thermostat Operational State"
+  value_template: "{{ value_json.opstat }}"
 
 - platform: history_stats
   name: ac_runtime_today_cool
