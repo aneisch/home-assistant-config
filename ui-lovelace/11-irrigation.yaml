@@ -35,7 +35,9 @@ cards:
       {%- set hours_run = '{} hours '.format(hours_run) if hours_run > 0 else '' %}
       {%- set days_run = (time_run // 86400) %}
       {%- set days_run = '{} days '.format(days_run) if days_run > 0 else '' -%}
-      **{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False)  }}**: Last started _{{ 'less than 1 minute' if time < 60 else days + hours + minutes }}_ ago and ran for _{{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}_.
+      **{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False)  }}**: 
+        Last started: {{ 'less than 1 minute' if time < 60 else days + hours + minutes }} ago.
+        Ran for {{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}.
       {% endif %}
       {%- endfor %}
   - type: 'custom:auto-entities'

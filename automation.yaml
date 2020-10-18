@@ -69,7 +69,6 @@
           {% elif trigger.to_state.state == 'off' %}
             script.security_disarm
           {% endif %}
-    # Prevent trigger for 5 minutes
 
 - alias: "House Occupied/Empty"
   initial_state: "on"
@@ -98,25 +97,26 @@
     # Prevent trigger for 5 minutes
     - delay: "00:05:00"
 
-- alias: "Desk Button Single Press"
+- alias: "Andrew Desk Button"
   initial_state: "on"
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_desk_button_single
     to: "on"
+    entity_id: 
+      - binary_sensor.andrew_desk_button_single
+      - binary_sensor.andrew_desk_button_double
+      - binary_sensor.andrew_desk_button_triple
   action:
     service: homeassistant.toggle
-    entity_id: switch.office_ceiling_fan
-
-- alias: "Desk Button Double Press"
-  initial_state: "on"
-  trigger:
-    platform: state
-    entity_id: binary_sensor.andrew_desk_button_double
-    to: "on"
-  action:
-    service: homeassistant.toggle
-    entity_id: light.andrew_desk_lamp
+    data: 
+      entity_id: >
+        {% if 'single' in trigger.entity_id %}
+          switch.office_ceiling_fan
+        {% elif 'double' in trigger.entity_id %}
+          light.andrew_desk_lamp
+        {% elif 'triple' in trigger.entity_id %}
+          light.aquarium_white_light
+        {% endif %}
 
 - alias: "Mount/Umount /Plex"
   initial_state: on
@@ -346,6 +346,31 @@
     - wait_template: "{{ is_state('binary_sensor.master_closet_motion_detection', 'off') }}"
     - service: homeassistant.turn_off
       entity_id: switch.master_closet_light
+
+- alias: "Aquarium Light"
+  trigger:
+    # Double Off
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.office_ceiling_fan
+        scene_id: 2
+        scene_data: 7860
+    # Double On
+    - platform: event
+      event_type: zwave.scene_activated
+      event_data:
+        entity_id: zwave.office_ceiling_fan
+        scene_id: 1
+        scene_data: 7860
+  action:
+    - service: >
+        {% if trigger.event.data.scene_id == 1 %}
+          homeassistant.turn_on
+        {% elif trigger.event.data.scene_id == 2 %}
+          homeassistant.turn_off
+        {% endif %}
+      entity_id: light.aquarium_white_light
 
 - alias: "Water sensor battery alerts"
   trigger:

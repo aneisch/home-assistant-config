@@ -1,0 +1,20 @@
+substitutions:
+  name: attic
+  friendly_name: "Attic"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: oak
+  esp8266_restore_from_flash: yes
+
+<<: !include common.yaml
+
+dallas:
+  - pin: P2
+    update_interval: 60s
+
+sensor:
+  - platform: dallas
+    address: 0x06000005EB270328
+    name: "${friendly_name} Temperature"
