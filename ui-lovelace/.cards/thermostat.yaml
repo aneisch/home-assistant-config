@@ -7,6 +7,7 @@ hide:
   state: True
 sensors:
   - entity: sensor.thermostat_state
+  - entity: sensor.thermostat_setpoint
   - entity: sensor.thermostat_humidity
     name: Humidity
   - entity: sensor.thermostat_temperature
