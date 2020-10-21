@@ -11,10 +11,10 @@ AC AutoAdjust:
   night_adjust_weekend: '01:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: '76'
-  cool_night: '74'
+  cool_night: '72'
   cool_unoccupied: '82'
   heat_day: '65'
-  heat_night: '60'
+  heat_night: '62'
   heat_unoccupied: '60'
 
 Zigbee Remote:
@@ -131,12 +131,30 @@ Front Porch Lights:
   time_on: sunset - 00:30:00
   time_off: "00:00:00"
 
-Aquarium Lights:
+Aquarium All Light On Morning:
+  module: entity_timer
+  class: Timer
+  devices: switch.aquarium_light,light.aquarium_white_light
+  time_on: "09:00:00"
+
+Aquarium White Light Afternoon:
   module: entity_timer
   class: Timer
   devices: light.aquarium_white_light
-  time_on: sunrise + 00:30:00
-  time_off: sunset + 00:30:00
+  time_off: "13:00:00"
+  time_on: "14:30:00"
+
+Aquarium White Light Off Evening:
+  module: entity_timer
+  class: Timer
+  devices: light.aquarium_white_light
+  time_off: "18:30:00"
+
+Aquarium All Light Off Night:
+  module: entity_timer
+  class: Timer
+  devices: switch.aquarium_light
+  time_off: "22:00:00"
 
 NAS:
   module: entity_timer

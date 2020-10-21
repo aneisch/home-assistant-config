@@ -137,6 +137,7 @@ cards:
       - switch.docker_mosquitto
       - switch.docker_nodered
       - switch.docker_thermostat_api_server
+      - sensor.thermostat_api_server_health
 
   #- type: custom:gui-sandbox
 

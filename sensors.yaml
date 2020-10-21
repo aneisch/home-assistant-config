@@ -160,6 +160,11 @@
   value_template: "{{ value_json.iducfm }}"
   unit_of_measurement: "cfm"
 
+- platform: mqtt
+  state_topic: "sensor/docker/thermostat_api_server"
+  name: "Thermostat API Server Health"
+  value_template: "{{ value_json.Status }}"
+
 - platform: history_stats
   name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state

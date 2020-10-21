@@ -46,7 +46,6 @@ climate:
   # https://www.home-assistant.io/integrations/climate.mqtt/
   - platform: mqtt
     name: "Thermostat"
-    retain: true
     max_temp: 85
     min_temp: 60
     action_topic: "sensor/thermostat"

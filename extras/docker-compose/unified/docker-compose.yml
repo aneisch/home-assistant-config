@@ -134,6 +134,11 @@ services:
         environment:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
+        healthcheck:
+          test: "curl -sLf http://localhost:8080/time"
+          interval: 60s
+          timeout: 5s
+          retries: 3
         restart: always
     # Not ready for primetime
     #openzwave:
