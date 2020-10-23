@@ -3,7 +3,6 @@ import datetime
 
 class AutoAdjust(hass.Hass):
     def initialize(self):
-
         # Add api endpoints for REST https://appdaemon.readthedocs.io/en/latest/APPGUIDE.html?#restful-api-support
         self.register_endpoint(self.adjust_night, "adjust_night")
         self.register_endpoint(self.adjust_morning, "adjust_morning")

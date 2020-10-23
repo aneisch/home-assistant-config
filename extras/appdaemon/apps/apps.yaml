@@ -10,7 +10,7 @@ AC AutoAdjust:
   night_adjust_weekday: '01:00:00'
   night_adjust_weekend: '01:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: '76'
+  cool_day: '80'
   cool_night: '72'
   cool_unoccupied: '82'
   heat_day: '65'
