@@ -257,6 +257,25 @@
       - switch.nas
       - binary_sensor.backups_complete
 
+- alias: "Turn on office speakers when spotify begins playing including this source"
+  initial_state: "on"
+  trigger:
+    - platform: state
+      entity_id: media_player.spotify_bethany_kate1
+      attribute: source
+      to: "Office"
+    - platform: state
+      entity_id: media_player.spotify_bethany_kate1
+      attribute: source
+      to: "Everywhere"
+    - platform: state
+      entity_id: media_player.spotify_bethany_kate1
+      to: "playing"
+  condition: "{{ states('switch.andrew_office_speakers') == 'off' and state_attr('media_player.spotify_bethany_kate1', 'source') in ['Everywhere', 'Office'] }}"
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.andrew_office_speakers
+
 - alias: "Turn on speakers and tv when XBOX powers on"
   trigger:
     platform: state
