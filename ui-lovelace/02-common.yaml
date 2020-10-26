@@ -86,16 +86,16 @@ cards:
     show_header_toggle: false
     title: Office
     entities:
+      - light.bethany_desk_lamp
+      - light.andrew_desk_lamp
       - sensor.office_temperature
       - switch.office_ceiling_fan
       - light.office_ceiling_fan
-      - light.andrew_desk_lamp
       - switch.aquarium_light
       - light.aquarium_white_light
       - sensor.aquarium_temperature
       - entity: switch.andrew_office_speakers
         icon: mdi:speaker
-      - light.bethany_desk_lamp
 
   - !include .cards/spotify.yaml
 

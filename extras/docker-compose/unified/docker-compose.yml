@@ -299,7 +299,7 @@ services:
     #    environment:
     #        - DEVICE_INDEX=1
     #        - SQUELCH=80
-    #        - HOLDOFF_TIME=800
+    #        - HOLDOFF_TIME=10
     #    restart: 'on-failure'
     hass-configurator:
         container_name: configurator
