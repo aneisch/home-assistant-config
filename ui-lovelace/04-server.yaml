@@ -17,6 +17,16 @@ cards:
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot
+          - type: attribute
+            name: Wifi Download
+            icon: "mdi:arrow-down-bold"
+            entity: sensor.home_wifi_speedtest
+            attribute: "download"
+          - type: attribute
+            name: Wifi Upload
+            icon: "mdi:arrow-up-bold"
+            entity: sensor.home_wifi_speedtest
+            attribute: "upload"
       - type: custom:vertical-stack-in-card
         cards:
           - type: markdown
@@ -130,7 +140,7 @@ cards:
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
       - switch.docker_adguard
-      - switch.docker_apcupsd_950
+      #- switch.docker_apcupsd_950
       - switch.docker_apcupsd_650
       - switch.docker_appdaemon
       - switch.docker_influxdb

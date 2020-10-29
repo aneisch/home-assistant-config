@@ -8,5 +8,5 @@ class DeviceOn(hass.Hass):
 
     def on(self, kwargs):
         for entity in self.split_device_list(self.args["entity"]):
-            self.log("Turning on" + entity)
+            self.log("Turning on " + entity)
             self.turn_on(entity)

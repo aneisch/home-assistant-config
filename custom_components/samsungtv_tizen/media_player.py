@@ -10,6 +10,7 @@ import wakeonlan
 import websocket
 import requests
 import time
+import numpy as np
 
 from .websockets import SamsungTVWS
 from . import exceptions
@@ -61,7 +62,7 @@ _LOGGER = logging.getLogger(__name__)
 CONF_SHOW_CHANNEL_NR = "show_channel_number"
 
 DEFAULT_NAME = "Samsung TV Remote"
-DEFAULT_PORT = 8001
+DEFAULT_PORT = 8002
 DEFAULT_TIMEOUT = 3
 DEFAULT_KEY_CHAIN_DELAY = 1.25
 DEFAULT_UPDATE_METHOD = "ping"
@@ -73,6 +74,7 @@ CONF_APP_LIST = "app_list"
 CONF_CHANNEL_LIST = "channel_list"
 CONF_SCAN_APP_HTTP = "scan_app_http"
 CONF_IS_FRAME_TV = "is_frame_tv"
+CONF_SHOW_LOGOS = "show_logos"
 
 KNOWN_DEVICES_KEY = "samsungtv_known_devices"
 MEDIA_TYPE_KEY = "send_key"
@@ -122,8 +124,14 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_BROADCAST_ADDRESS): cv.string,
         vol.Optional(CONF_SCAN_APP_HTTP, default=True): cv.boolean,
         vol.Optional(CONF_IS_FRAME_TV, default=False): cv.boolean,
+        vol.Optional(CONF_SHOW_LOGOS, default="white-color"): cv.string
     }
 )
+
+MEDIA_IMAGE_OPTIONS = {'none': 'none', 'blue-color': '05a9f4-color', 'blue-white': '05a9f4-white', 'dark-white': '282c34-white', 'darkblue-white': '212c39-white', 'white-color': 'fff-color', 'transparent-color': 'transparent-color', 'transparent-white': 'transparent-white'}
+MEDIA_FILE_IMAGE_TO_PATH = os.path.dirname(os.path.realpath(__file__)) + '/logo_paths.json'
+MEDIA_IMAGE_MIN_SCORE_REQUIRED = 80
+MEDIA_TITLE_KEYWORD_REMOVAL = ['HD']
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Samsung TV platform."""
@@ -152,6 +160,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
         show_channel_number = config.get(CONF_SHOW_CHANNEL_NR)
         scan_app_http = config.get(CONF_SCAN_APP_HTTP)
         is_frame_tv = config.get(CONF_IS_FRAME_TV)
+        show_logos = config.get(CONF_SHOW_LOGOS)
     elif discovery_info is not None:
         tv_name = discovery_info.get("name")
         model = discovery_info.get("model_name")
@@ -176,7 +185,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
     ip_addr = socket.gethostbyname(host)
     if ip_addr not in known_devices:
         known_devices.add(ip_addr)
-        add_entities([SamsungTVDevice(host, port, name, timeout, mac, uuid, update_method, update_custom_ping_url, source_list, app_list, channel_list, api_key, device_id, show_channel_number, broadcast, scan_app_http, is_frame_tv)])
+        add_entities([SamsungTVDevice(host, port, name, timeout, mac, uuid, update_method, update_custom_ping_url, source_list, app_list, channel_list, api_key, device_id, show_channel_number, broadcast, scan_app_http, is_frame_tv, show_logos)])
         _LOGGER.info("Samsung TV %s:%d added as '%s'", host, port, name)
     else:
         _LOGGER.info("Ignoring duplicate Samsung TV %s:%d", host, port)
@@ -185,7 +194,7 @@ def setup_platform(hass, config, add_entities, discovery_info=None):
 class SamsungTVDevice(MediaPlayerEntity):
     """Representation of a Samsung TV."""
 
-    def __init__(self, host, port, name, timeout, mac, uuid, update_method, update_custom_ping_url, source_list, app_list, channel_list, api_key, device_id, show_channel_number, broadcast, scan_app_http, is_frame_tv):
+    def __init__(self, host, port, name, timeout, mac, uuid, update_method, update_custom_ping_url, source_list, app_list, channel_list, api_key, device_id, show_channel_number, broadcast, scan_app_http, is_frame_tv, show_logos):
         """Initialize the Samsung device."""
 
         # Save a reference to the imported classes
@@ -255,6 +264,19 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._upnp = upnp(
             host=host
         )
+
+        self._media_title = None
+        self._media_image_url = None
+        self._media_image_base_url = None
+
+        if show_logos in MEDIA_IMAGE_OPTIONS:
+            if MEDIA_IMAGE_OPTIONS[show_logos] == "none":
+                self._media_image_base_url = None
+            else:
+                self._media_image_base_url = "https://jaruba.github.io/channel-logos/export/{}".format(MEDIA_IMAGE_OPTIONS[show_logos])
+        else:
+            _LOGGER.warning("Unrecognized value '%s' for 'show_logos' option (%s). Using default value.",show_logos,self._name)
+            self._media_image_base_url = "https://jaruba.github.io/channel-logos/export/fff-color"
 
     def _split_app_list(self, app_list, sep = "/"):
         retval = {"app": {}, "appST": {}}
@@ -401,6 +423,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         if self._state == STATE_OFF:
             self._end_of_power_off = None 
 
+        self.hass.async_add_job(self._update_media_data)
 
     def _get_source(self):
         """Return the current input source."""
@@ -539,29 +562,79 @@ class SamsungTVDevice(MediaPlayerEntity):
     @property
     def media_title(self):
         """Title of current playing media."""
+        return self._media_title
+
+    @property
+    def media_image_url(self):
+        """Return the media image URL."""
+        return self._media_image_url
+
+    async def _update_media_data(self):
         if self._state == STATE_OFF and self._update_method != "smartthings":
-            return None
+            self._media_title = None
         if self._api_key and self._device_id and hasattr(self, '_cloud_state'):
             if self._cloud_state == STATE_OFF:
                 self._state = STATE_OFF
-                return None
-            elif self._running_app == "TV/HDMI":
-                if self._cloud_source in ["DigitalTv", "digitalTv", "TV"]:
-                    if self._cloud_channel_name != "" and self._cloud_channel != "":
-                        if self._show_channel_number:
-                            return self._cloud_channel_name + " (" + self._cloud_channel + ")"
-                        else:
-                            return self._cloud_channel_name
-                    elif self._cloud_channel_name != "":
-                        return self._cloud_channel_name
-                    elif self._cloud_channel != "":
-                        return self._cloud_channel
-                elif self._cloud_channel_name != "":
-                    # the channel name holds the running app ID
-                    # regardless of the self._cloud_source value
-                    return self._cloud_channel_name
-        return self._get_source()
+                self._media_title = None
+            elif self._running_app == "TV/HDMI" and self._cloud_source in ["DigitalTv", "digitalTv", "TV"] and self._cloud_channel_name == "" and self._cloud_channel != "":
+                self._media_title = self._cloud_channel
+                self._media_image_url = None
+            else:
+                if self._running_app == "TV/HDMI" and self._cloud_source in ["DigitalTv", "digitalTv", "TV"] and self._cloud_channel_name != "":
+                    new_media_title = search_media_title = self._cloud_channel_name 
+                    if self._show_channel_number and  self._cloud_channel != "":
+                        new_media_title = new_media_title + " (" + self._cloud_channel + ")"
+                else:
+                    new_media_title = search_media_title = self._get_source()
+                #only match new image if title actually changed and logos are enabled
+                if self._media_title != new_media_title and self._media_image_base_url is not None:
+                    if new_media_title not in ["TV","HDMI","TV/HDMI"]:
+                        _LOGGER.debug("Matching title to image %s",search_media_title)
+                        await self._match_title_to_image(search_media_title)
+                    else:
+                        self._media_image_url = None
+                self._media_title = new_media_title
+        else:
+            new_media_title = self._get_source()
+            #only match new image if title actually changed and logos are enabled
+            if self._media_title != new_media_title and self._media_image_base_url is not None:
+                if new_media_title not in ["TV","HDMI","TV/HDMI"] and new_media_title is not None:
+                    _LOGGER.debug("Matching title to image %s",new_media_title)
+                    await self._match_title_to_image(new_media_title)
+                else:
+                    self._media_image_url = None
+            self._media_title = new_media_title
 
+    async def _match_title_to_image(self, media_title):
+        if media_title is not None:
+            for word in MEDIA_TITLE_KEYWORD_REMOVAL:
+                media_title = media_title.lower().replace(word.lower(),'')
+            media_title = media_title.lower().strip()
+            try:
+                with open(MEDIA_FILE_IMAGE_TO_PATH, 'r') as f:
+                    image_paths = iter(json.load(f).items())
+            except:
+                self._media_image_url = None
+            
+            best_match = {"ratio": None, "title": None, "path": None}
+            while True:
+                try:
+                    image_path = next(image_paths)
+                    ratio = levenshtein_ratio_and_distance(media_title,image_path[0].lower(),ratio_calc = True)
+                    if best_match["ratio"] is None or ratio > best_match["ratio"]:
+                        best_match = {"ratio":ratio,"title":image_path[0],"path":image_path[1]}
+                except StopIteration:
+                    break
+
+            if best_match["ratio"] > MEDIA_IMAGE_MIN_SCORE_REQUIRED/100:
+                _LOGGER.debug("Match found for %s: %s (%f) %s", media_title, best_match["title"],  best_match["ratio"], self._media_image_base_url+best_match["path"])
+                self._media_image_url = self._media_image_base_url+best_match["path"]
+            else:
+                _LOGGER.debug("No match found for %s: best candidate was %s (%f) %s", media_title, best_match["title"], best_match["ratio"], self._media_image_base_url+best_match["path"])
+                self._media_image_url = None
+        else:
+            _LOGGER.debug("No media title right now!")
+            self._media_image_url = None
 
     @property
     def state(self):
@@ -863,3 +936,48 @@ class SamsungTVDevice(MediaPlayerEntity):
             return
         self._last_source_time = datetime.now()
         self._source = source
+
+def levenshtein_ratio_and_distance(s, t, ratio_calc = False):
+    """ levenshtein_ratio_and_distance:
+        Calculates levenshtein distance between two strings.
+        If ratio_calc = True, the function computes the
+        levenshtein distance ratio of similarity between two strings
+        For all i and j, distance[i,j] will contain the Levenshtein
+        distance between the first i characters of s and the
+        first j characters of t
+    """
+    # Initialize matrix of zeros
+    rows = len(s)+1
+    cols = len(t)+1
+    distance = np.zeros((rows,cols),dtype = int)
+
+    # Populate matrix of zeros with the indeces of each character of both strings
+    for i in range(1, rows):
+        for k in range(1,cols):
+            distance[i][0] = i
+            distance[0][k] = k
+
+    # Iterate over the matrix to compute the cost of deletions,insertions and/or substitutions    
+    for col in range(1, cols):
+        for row in range(1, rows):
+            if s[row-1] == t[col-1]:
+                cost = 0 # If the characters are the same in the two strings in a given position [i,j] then the cost is 0
+            else:
+                # In order to align the results with those of the Python Levenshtein package, if we choose to calculate the ratio
+                # the cost of a substitution is 2. If we calculate just distance, then the cost of a substitution is 1.
+                if ratio_calc == True:
+                    cost = 2
+                else:
+                    cost = 1
+            distance[row][col] = min(distance[row-1][col] + 1,      # Cost of deletions
+                                 distance[row][col-1] + 1,          # Cost of insertions
+                                 distance[row-1][col-1] + cost)     # Cost of substitutions
+    if ratio_calc == True:
+        # Computation of the Levenshtein Distance Ratio
+        Ratio = ((len(s)+len(t)) - distance[row][col]) / (len(s)+len(t))
+        return Ratio
+    else:
+        # print(distance) # Uncomment if you want to see the matrix showing how the algorithm computes the cost of deletions,
+        # insertions and/or substitutions
+        # This is the minimum number of edits needed to convert string a to string b
+        return "The strings are {} edits away".format(distance[row][col])

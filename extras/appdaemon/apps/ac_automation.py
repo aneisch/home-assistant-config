@@ -61,7 +61,6 @@ class AutoAdjust(hass.Hass):
 
         # If someone was home but the house is now unoccupied
         elif old == "home" and new == "not_home":
-            self.log("ahhh")
             self.log(self.get_state("sensor.thermostat_operating_mode").lower())
             if self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])

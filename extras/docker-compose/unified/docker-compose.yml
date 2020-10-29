@@ -19,10 +19,10 @@ services:
         environment:
           - TZ=America/Chicago
         healthcheck:
-          test: "curl -sLf http://localhost:8123"
+          test: "curl -m 10 -sLf http://localhost:8123 || pkill -9 python3"
           interval: 60s
           timeout: 15s
-          retries: 3
+          retries: 2
         network_mode: host
         restart: always
         logging:

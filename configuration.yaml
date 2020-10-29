@@ -1,9 +1,11 @@
 homeassistant:
   name: Home
+  external_url: !secret external_url
   elevation: !secret elevation
   unit_system: imperial
   latitude: !secret home_lat
   longitude: !secret home_long
+  legacy_templates: false
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
@@ -99,7 +101,27 @@ device_tracker:
 #monitor_docker:
 #  scan_interval: 60
 #  monitored_conditions:
-#    - containers_running
+#    - allinone
+#    - cpu_percentage
+#    - memory
+#    - network_total_up
+#    - network_total_down
+#  rename:
+#    configurator: "HASS Configurator"
+#    esphome: "ESPHome"
+#    grafana: "Grafana"
+#    librespeed: "Speedtest"
+#    ozwcp: "OpenZwave Control Panel"
+#    plex: "Plex"
+#    portainer: "Portainer"
+#    thermopro_mqtt: "Grill Monitor"
+#    adguard: "AdGuard"
+#    apcupsd_650: "APCUPSD 650"
+#    appdaemon: "Appdaemon"
+#    influxdb: "InfluxDB"
+#    mosquitto: "Mosquitto"
+#    nodered: "Node-RED"
+#    thermostat_api_server: "Thermostat API Server"
 
 # https://github.com/aneisch/docker_monitor
 docker_monitor:
@@ -422,6 +444,10 @@ tplink:
   light:
     - host: 10.0.1.53
     - host: 10.0.1.54
+
+xbox:
+  client_id: !secret xbox_id
+  client_secret: !secret xbox_secret
 
 zha:
   zigpy_config:
