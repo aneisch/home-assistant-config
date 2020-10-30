@@ -405,6 +405,7 @@ recorder:
       - sensor.moon
       - sensor.network_in_eno1
       - sensor.network_out_eno1
+      - sensor.roborock_s4_last_cleaned
     domains:
       - automation
       - alarm_panel
