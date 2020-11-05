@@ -131,6 +131,13 @@ Front Porch Lights:
   time_on: sunset - 00:30:00
   time_off: "00:00:00"
 
+Aquarium CO2:
+  # Stop master bedroom lamps from automatic when napping
+  module: follow_me
+  class: Follow
+  leader: light.aquarium_white_light
+  follower: switch.aquarium_co2
+
 Aquarium All Light On Morning:
   module: entity_timer
   class: Timer

@@ -339,7 +339,7 @@
         - binary_sensor.washing_machine_water_detector  
         - binary_sensor.water_heater_water_detector  
       to: "on"
-      for: "00:00:10"
+      for: "00:00:05"
   action:
     - service: notify.pushover
       data:

@@ -63,6 +63,11 @@ climate:
     current_temperature_template: "{{ value_json.rt }}"
     fan_mode_state_topic: "sensor/thermostat"
     fan_mode_state_template: "{{ value_json.fan }}"
+    fan_modes:
+      - auto
+      - low
+      - med
+      - high
     hold_state_topic: "sensor/thermostat"
     hold_state_template: "{{ value_json.hold }}"
     mode_state_topic: "sensor/thermostat"
@@ -445,6 +450,11 @@ tplink:
   light:
     - host: 10.0.1.53
     - host: 10.0.1.54
+
+wemo:
+  discovery: false
+  static:
+    - 10.0.1.48
 
 xbox:
   client_id: !secret xbox_id

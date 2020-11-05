@@ -114,10 +114,18 @@ copy:
 
 appdaemon_ac_night:
   sequence:
+    # Also constrained by boolean in appdaemon
+    - condition: state
+      entity_id: input_boolean.ac_automation
+      state: 'on'
     - service: rest_command.adjust_night
 
 appdaemon_ac_morning:
   sequence:
+    # Also constrained by boolean in appdaemon
+    - condition: state
+      entity_id: input_boolean.ac_automation
+      state: 'on'
     - service: rest_command.adjust_morning
 
 too_cold:

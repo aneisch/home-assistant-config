@@ -79,12 +79,12 @@ class AutoAdjust(hass.Hass):
 
             elif self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Day -- %s" % self.args["heat_day"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["heat_day"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["heat_day"])
 
             elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Day -- %s" % self.args["cool_day"])
                 for tstat in self.split_device_list(self.args["thermostats"]):
-                    self.run_in(self.adjust_temp, 5, temp = self.args["cool_day"])
+                    self.run_in(self.adjust_temp, 1, temp = self.args["cool_day"])
 
         # No one is home and we've gotten called to adjust for day based on time
         else:
@@ -94,11 +94,11 @@ class AutoAdjust(hass.Hass):
 
             if self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["heat_unoccupied"])
 
             elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["cool_unoccupied"])
 
         # For appdaemon api: curl -i -X POST -H "Content-Type: application/json" http://10.0.1.22:8888/api/appdaemon/adjust_morning
         response = ""
@@ -113,11 +113,11 @@ class AutoAdjust(hass.Hass):
 
             if self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Night -- %s" % self.args["heat_night"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["heat_night"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["heat_night"])
 
             elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Night -- %s" % self.args["cool_night"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["cool_night"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["cool_night"])
 
         # No one is home and we've gotten called back to adjust for night based on time
         else:
@@ -127,11 +127,11 @@ class AutoAdjust(hass.Hass):
 
             if self.get_state("sensor.thermostat_operating_mode").lower() == "heat":
                 self.log("Mode: Heat Unoccupied -- %s" % self.args["heat_unoccupied"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["heat_unoccupied"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["heat_unoccupied"])
 
             elif self.get_state("sensor.thermostat_operating_mode").lower() == "cool":
                 self.log("Mode: Cool Unoccupied -- %s" % self.args["cool_unoccupied"])
-                self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
+                self.run_in(self.adjust_temp, 1, temp = self.args["cool_unoccupied"])
 
         # For appdaemon api: curl -i -X POST -H "Content-Type: application/json" http://10.0.1.22:8888/api/appdaemon/adjust_night
         response = ""
