@@ -129,7 +129,7 @@ Front Porch Lights:
   class: Timer
   devices: light.front_porch_lights
   time_on: sunset - 00:30:00
-  time_off: "00:00:00"
+  time_off: "23:00:00"
 
 CO2 On Morning:
   module: entity_timer

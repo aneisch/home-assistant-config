@@ -67,7 +67,7 @@ input_datetime:
 input_select:
   irrigation_custom_water_1:
     name: Custom Water 1
-    initial: None
+    # initial: None
     options:
       - Front Beds
       - Front Lawn
@@ -78,7 +78,7 @@ input_select:
 
   irrigation_custom_water_2:
     name: Custom Water 2
-    initial: None
+    # initial: None
     options:
       - Front Beds
       - Front Lawn
@@ -89,7 +89,7 @@ input_select:
 
   irrigation_custom_water_3:
     name: Custom Water 3
-    initial: None
+    # initial: None
     options:
       - Front Beds
       - Front Lawn
@@ -100,7 +100,7 @@ input_select:
 
   irrigation_custom_water_4:
     name: Custom Water 4
-    initial: None
+    # initial: None
     options:
       - Front Beds
       - Front Lawn
@@ -111,7 +111,7 @@ input_select:
 
   irrigation_custom_water_5:
     name: Custom Water 5
-    initial: None
+    # initial: None
     options:
       - Front Beds
       - Front Lawn

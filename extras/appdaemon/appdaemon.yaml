@@ -13,12 +13,13 @@ appdaemon:
   production_mode: False
 
 http:
-    url: http://10.0.1.22:8888
+  url: http://10.0.1.22:8888
 
 api:
 
 # Expose admin interface on http://10.0.1.22:8888
 admin:
+  stats_update: none
 
 logs:
   error_log:

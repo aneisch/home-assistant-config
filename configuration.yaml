@@ -358,6 +358,7 @@ person:
     device_trackers:
       - device_tracker.andrews_phone_nmap
       - device_tracker.andrew_s_phone_andrewworkphone
+      - device_tracker.andrew_phone
   - name: Bethany
     id: bethany
     device_trackers:
