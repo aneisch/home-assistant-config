@@ -47,7 +47,7 @@ Description | value
 -- | --
 Lines of ESPHome YAML | 1406
 Lines of Home Assistant YAML | 4620
-[Integrations](https://www.home-assistant.io/integrations/) in use | 24
+[Integrations](https://www.home-assistant.io/integrations/) in use | 23
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
 Description | value

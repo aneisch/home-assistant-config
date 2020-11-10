@@ -131,6 +131,9 @@ Front Porch Lights:
   time_on: sunset - 00:30:00
   time_off: "23:00:00"
 
+############
+# Aquarium #
+############
 CO2 On Morning:
   module: entity_timer
   class: Timer
@@ -143,10 +146,10 @@ Aquarium All Light On Morning:
   devices: switch.aquarium_light,light.aquarium_white_light
   time_on: "09:00:00"
 
-Aquarium All Light Afternoon:
+Aquarium White Light Afternoon:
   module: entity_timer
   class: Timer
-  devices: switch.aquarium_light
+  devices: light.aquarium_white_light
   time_off: "13:00:00"
   time_on: "14:30:00"
 
@@ -166,7 +169,7 @@ Aquarium All Light Off Night:
   module: entity_timer
   class: Timer
   devices: switch.aquarium_light
-  time_off: "22:00:00"
+  time_off: "20:00:00"
 
 NAS:
   module: entity_timer
