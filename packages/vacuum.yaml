@@ -372,3 +372,19 @@ vacuum:
     host: 10.0.0.10
     token: !secret roborock_token
     name: Roborock S4
+
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: 10.0.0.10
+    token: !secret roborock_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+    draw: ['all']
+    colors:
+      color_path: [255, 255, 255]
+    map_transformation:
+      trim:
+        top: 16
+        bottom: 15
+        left: 10
+        right: 15

@@ -8,6 +8,11 @@
 # switch.irrigation_zone_7                     Sprinklers Zone 7                     off      2020-09-29T12:32:44.986757+00:00
 # switch.irrigation_master_valve               Sprinklers Master Valve               off      2020-09-29T12:32:45.118323+00:00
 
+input_boolean:
+  enable_irrigation_scheduling:
+    name: Irrigation Auto Run
+    icon: mdi:clock-time-two-outline
+
 input_datetime:
   irrigation_front_beds_last_start: 
     name: Sprinkler Front Beds Last Start Time 
@@ -120,8 +125,14 @@ input_select:
       - Side Lawn
       - None
 
+sensor:
+  - platform: mqtt
+    state_topic: "sensor/irrigation_time_remaining"
+    name: "Irrigation Time Remaining"
+
 automation:
   - alias: Store Sprinkler Start Times
+    mode: parallel
     trigger:
       platform: state
       entity_id:
@@ -133,7 +144,7 @@ automation:
         - switch.irrigation_master_valve
       from: "off"
       to: "on"
-      for: "00:00:05"
+      for: "00:00:02"
     action:
       - service: input_datetime.set_datetime
         data:
@@ -142,6 +153,7 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
 
   - alias: Store Sprinkler Stop Times
+    mode: parallel
     trigger:
       platform: state
       entity_id:
@@ -153,7 +165,7 @@ automation:
         - switch.irrigation_master_valve
       from: "on"
       to: "off"
-      for: "00:00:05"
+      for: "00:00:02"
     action:
       - service: input_datetime.set_datetime
         data:
