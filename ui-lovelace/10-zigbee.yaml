@@ -1,6 +1,0 @@
-title: Zigbee Map
-icon: mdi:map
-panel: true
-cards:
-  - type: 'custom:zha-network-visualization-card'
-
