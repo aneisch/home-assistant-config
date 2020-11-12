@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.117.5%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.117.6%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -46,7 +46,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1406
-Lines of Home Assistant YAML | 4620
+Lines of Home Assistant YAML | 4657
 [Integrations](https://www.home-assistant.io/integrations/) in use | 23
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
@@ -94,6 +94,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
 **Integration**:<br>
+[PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
@@ -130,4 +131,5 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 ![Grafana](images/grafana.png)
 ![Node-Red](images/nodered_1.png)
 ![Node-Red](images/nodered_2.png)
+![Node-Red](images/nodered_3.png)
 Auto generated using: `docker run --rm -it --cap-add=SYS_ADMIN -v /tmp:/output tonious/chromeshot --delay=1000 --url=http://10.0.1.22:1880 --viewportWidth=2000 --viewportHeight=1800 --output=/output/nodered.png; sudo convert /tmp/nodered.png -crop 1350x1400+180+10 /tmp/ss.png`

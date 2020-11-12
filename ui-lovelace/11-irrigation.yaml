@@ -1,6 +1,10 @@
 title: Sprinklers
 icon: mdi:sprinkler
 cards:
+  - type: 'entities'
+    entities:
+      - input_boolean.enable_irrigation_scheduling
+
   - type: 'custom:auto-entities'
     filter:
       include:
@@ -10,7 +14,18 @@ cards:
     card:
       type: entities
       show_header_toggle: false
-      
+
+  - type: conditional
+    conditions:
+      - entity: sensor.irrigation_time_remaining
+        state_not: "00:00:00"
+      - entity: sensor.irrigation_time_remaining
+        state_not: "unknown"
+    card:
+      type: custom:bignumber-card
+      entity: sensor.irrigation_time_remaining
+      title: Zone Time Remaining
+
   - type: markdown
     content: |
       {% set irrigation = ["switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
@@ -40,6 +55,7 @@ cards:
         Ran for {{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}.
       {% endif %}
       {%- endfor %}
+
   - type: 'custom:auto-entities'
     filter:
       include:

@@ -165,6 +165,7 @@ influxdb:
       - sensor.dark_sky_icon
       - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown
+      - sensor.irrigation_time_remaining
       - sensor.last_boot
       - sensor.mail_updated
       - sensor.moon
@@ -403,6 +404,7 @@ recorder:
       - binary_sensor.iss
       - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
+      - sensor.irrigation_time_remaining
       - sensor.last_boot
       - sensor.load_1m
       - sensor.load_5m

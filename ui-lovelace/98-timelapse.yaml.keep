@@ -1,0 +1,13 @@
+title: Timelapse
+visible: false
+cards:
+  - !include .cards/kitchen_timer.yaml
+
+  - type: picture-entity
+    entity: camera.garden_timelapse
+
+  - type: picture-entity
+    entity: camera.front_timelapse
+
+  - type: picture-entity
+    entity: camera.side_timelapse
