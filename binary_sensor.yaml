@@ -4,6 +4,11 @@
   droplets:
     - !secret DO_host
 
+- platform: ping
+  name: Thermostat Online
+  host: 10.0.0.29
+  count: 2
+
 #- platform: ping
 #  name: internet_reachability
 #  host: 1.1.1.1

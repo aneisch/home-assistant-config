@@ -133,6 +133,8 @@ services:
         environment:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
+        depends_on:
+          - mosquitto
         healthcheck:
           test: "curl -sLf http://localhost:8080/time"
           interval: 60s

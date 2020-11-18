@@ -141,6 +141,17 @@
         shell_command.umount_plex
       {% endif %}
 
+- alias: "Notify when AC Offline"
+  initial_state: "on"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.thermostat_online
+      to: "off"
+  action:
+    - service: notify.pushover
+      data:
+        message: "The thermostat appears to be offline.."
+
 - alias: "Notify when AC BREAKS"
   initial_state: "on"
   trigger:

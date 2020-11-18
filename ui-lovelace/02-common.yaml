@@ -70,6 +70,7 @@ cards:
       - light.back_porch_light
       - light.garage_light
       - light.front_porch_lights
+      - switch.christmas_lights
       - switch.globe_lights
       - light.garage
 
