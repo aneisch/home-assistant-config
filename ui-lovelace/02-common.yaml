@@ -82,6 +82,7 @@ cards:
       - light.kitchen_sink_light
       - switch.under_cabinet_lights
       - light.kitchen_table_light
+      - light.kitchen_table_leds
 
   - type: entities
     show_header_toggle: false

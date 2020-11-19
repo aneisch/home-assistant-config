@@ -41,6 +41,7 @@ kitchen:
   entities:
     - light.kitchen_lights
     - switch.under_cabinet_lights
+    - light.kitchen_table_leds
 
 living_room:
   name: Living Room

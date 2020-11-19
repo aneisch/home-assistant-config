@@ -209,18 +209,18 @@ Office Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-Living Room Light at Night With Door:
+Kitchen Light at Night With Door:
   module: door_open
   class: DoorLight
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.garage_interior_door
-  lights: switch.under_cabinet_lights
+  lights: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-Nap Time Lamp Automation Override:
+Sleepy Time Lamp Automation Override:
   # Stop master bedroom lamps from automatic when napping
   module: follow_me
   class: Follow

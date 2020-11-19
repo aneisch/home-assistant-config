@@ -247,6 +247,8 @@ cards:
                   right: 0px
                   padding: 7px
                   transform: translate(0%,0%)
+                  color: white
+
           - type: picture-elements
             image: /local/images/roborock/sensors.png
             elements:
@@ -290,6 +292,7 @@ cards:
                   right: 0px
                   padding: 7px
                   transform: translate(0%,0%)
+                  color: white
   
       - type: horizontal-stack
         cards:
@@ -336,6 +339,8 @@ cards:
                   right: 0px
                   padding: 7px
                   transform: translate(0%,0%)
+                  color: white
+
           - type: picture-elements
             image: /local/images/roborock/main_brush.png
             elements:
@@ -379,3 +384,4 @@ cards:
                   right: 0px
                   padding: 7px
                   transform: translate(0%,0%)
+                  color: white
