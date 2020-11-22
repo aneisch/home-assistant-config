@@ -1,6 +1,6 @@
 substitutions:
   name: power_plug_1
-  friendly_name: "Washing Machine"
+  friendly_name: "Christmas Tree"
   # Higher value gives lower watt readout
   current_res: "0.00221"
   # Lower value gives lower voltage readout
@@ -82,8 +82,8 @@ switch:
     pin: GPIO4
     id: relay
     name: "${friendly_name}"
-    icon: "mdi:fan"
-    restore_mode: ALWAYS_ON
+    icon: "mdi:pine-tree"
+    restore_mode: ALWAYS_OFF
     # Tie Blue LED to relay
     on_turn_on:
       - switch.turn_on: blue_led

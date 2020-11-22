@@ -15,6 +15,7 @@ cards:
       - light.living_room_can_lights
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
+      - switch.christmas_tree
 
   - type: vertical-stack
     cards:
@@ -83,6 +84,7 @@ cards:
       - switch.under_cabinet_lights
       - light.kitchen_table_light
       - light.kitchen_table_leds
+      - light.dining_room_light
 
   - type: entities
     show_header_toggle: false

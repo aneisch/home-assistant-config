@@ -6,6 +6,8 @@ hide:
   temperature: True
   state: True
 sensors:
+  - entity: binary_sensor.thermostat_online
+    name: Connected
   - entity: sensor.thermostat_state
   - entity: sensor.thermostat_setpoint
   - entity: sensor.thermostat_humidity

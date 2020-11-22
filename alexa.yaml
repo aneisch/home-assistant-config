@@ -41,6 +41,7 @@ smart_home:
       - light.kitchen_sink_light
       - light.kitchen_can_lights
       - light.kitchen_table_light
+      - light.kitchen_table_leds
       - light.front_porch_lights
       - script.master_bedroom_bedtime
       - script.master_bedroom_wakeup
@@ -60,6 +61,7 @@ smart_home:
       - sensor.master_bedroom_temperature
       - sensor.office_temperature
       - switch.christmas_tree
+      - switch.christmas_lights
       - switch.globe_lights
       - switch.tv
       - switch.nas
@@ -108,6 +110,9 @@ smart_home:
 
     light.kitchen_sink_light:
       name: "Kitchen Sink Light"
+
+    light.kitchen_table_leds:
+      name: "Kitchen Table Leds"
 
     light.kitchen_table_light:
       name: "Kitchen Table Light"
@@ -201,6 +206,16 @@ smart_home:
     sensor.grill_probe_2:
       name: "Probe 2"
       display_categories: TEMPERATURE_SENSOR
+
+    switch.christmas_tree:
+      name: "Christmas Tree"
+      description: "Christmas Tree"
+      display_categories: LIGHT
+
+    switch.christmas_lights:
+      name: "Christmas Lights"
+      description: "Christmas Lights"
+      display_categories: LIGHT
 
     switch.tv:
       name: "TV"

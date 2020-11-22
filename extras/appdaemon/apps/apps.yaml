@@ -131,6 +131,13 @@ Front Porch Lights:
   time_on: sunset - 00:30:00
   time_off: "23:00:00"
 
+Christmas Lights:
+  module: entity_timer
+  class: Timer
+  devices: switch.christmas_lights
+  time_on: sunset - 00:30:00
+  time_off: "23:00:00"
+
 ############
 # Aquarium #
 ############
@@ -138,7 +145,7 @@ CO2 On Morning:
   module: entity_timer
   class: Timer
   devices: switch.aquarium_co2
-  time_on: "08:00:00"
+  time_on: "07:00:00"
 
 Aquarium All Light On Morning:
   module: entity_timer
