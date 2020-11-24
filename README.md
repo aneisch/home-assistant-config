@@ -21,7 +21,18 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Aeon Labs ZW090 Z Stick with various devices
-_ZWAVEDEVICES_
+  - 1 12719 Plug-in Smart Switch
+  - 1 12722 On/Off Relay Switch
+  - 1 12730 Fan Control Switch
+  - 1 DSA03202 Minimote
+  - 1 Leviton DZPA1 Plug-In Outlet
+  - 1 WADWAZ-1 Door/Window Sensor
+  - 1 WAPIRZ-1 Motion Sensor
+  - 1 ZW090 Z-Stick Gen5 US
+  - 2 12720 Outdoor Smart Switch
+  - 2 ZEN21 Switch V3
+  - 3 ZEN30 Double Switch
+  - 4 ZEN27 S2 Dimmer Wall Switch
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
