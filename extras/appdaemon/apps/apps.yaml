@@ -1,4 +1,4 @@
-AC AutoAdjust:
+AutoAdjust:
   module: ac_automation
   class: AutoAdjust
   constrain_input_boolean: input_boolean.ac_automation
@@ -31,7 +31,7 @@ Minimote Morning:
   class: MiniMote
   constrain_start_time: "05:00:00"
   constrain_end_time: "08:00:00"
-  device: zwave.bedside_remote
+  node_id: 11
   # Panic is is an optional mode controlled by input boolean
   # when panic mode is on, all buttons will trigger the panic_entity
   # this should probably be a script
@@ -53,7 +53,7 @@ Minimote Non-Morning:
   class: MiniMote
   constrain_start_time: "08:00:00"
   constrain_end_time: "05:00:00"
-  device: zwave.bedside_remote
+  node_id: 11
   # Panic is is an optional mode controlled by input boolean
   # when panic mode is on, all buttons will trigger the panic_entity
   # this should probably be a script
@@ -128,14 +128,14 @@ Front Porch Lights:
   module: entity_timer
   class: Timer
   devices: light.front_porch_lights
-  time_on: sunset - 00:30:00
+  time_on: sunset
   time_off: "23:00:00"
 
 Christmas Lights:
   module: entity_timer
   class: Timer
   devices: switch.christmas_lights
-  time_on: sunset - 00:30:00
+  time_on: sunset
   time_off: "23:00:00"
 
 ############

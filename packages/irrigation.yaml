@@ -132,6 +132,7 @@ sensor:
 
 automation:
   - alias: Store Sprinkler Start Times
+    initial_state: on
     mode: parallel
     trigger:
       platform: state
@@ -153,6 +154,7 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
 
   - alias: Store Sprinkler Stop Times
+    initial_state: on
     mode: parallel
     trigger:
       platform: state

@@ -29,18 +29,6 @@ services:
         environment:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
-    ozwcp:
-        container_name: ozwcp
-        image: openzwave/openzwave-control-panel
-        volumes:
-            - '/opt/homeassistant/options.xml:/etc/openzwave/options.xml'
-            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/etc/openzwave/zwcfg_0xc564203a.xml'
-            - '/opt/homeassistant/manufacturer_specific.xml:/etc/openzwave/manufacturer_specific.xml'
-        ports:
-            - '8008:8008'
-        devices:
-            - '/dev/zwave:/dev/zwave'
-        restart: 'no'
     grafana:
         container_name: grafana
         image: grafana/grafana:6.4.5
@@ -206,20 +194,20 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
-    tuya-convert:
-        # https://github.com/ct-Open-Source/tuya-convert
-        # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
-        # this is needed to accept EULA
-        # then can use docker-compose exec tuya-convert start
-        container_name: 'tuya-convert'
-        image: tuya-convert:latest
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        privileged: true
-        network_mode: "host"
-        environment:
-          - WLAN=wlp58s0
-          - AP=vtrust-flash
-          - GATEWAY=10.42.42.1
-        volumes:
-          - /tmp/tuya:/usr/bin/tuya-convert/backups
+    #tuya-convert:
+    #    # https://github.com/ct-Open-Source/tuya-convert
+    #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
+    #    # this is needed to accept EULA
+    #    # then can use docker-compose exec tuya-convert start
+    #    container_name: 'tuya-convert'
+    #    image: tuya-convert:latest
+    #    labels:
+    #      com.centurylinklabs.watchtower.enable: "false"
+    #    privileged: true
+    #    network_mode: "host"
+    #    environment:
+    #      - WLAN=wlp58s0
+    #      - AP=vtrust-flash
+    #      - GATEWAY=10.42.42.1
+    #    volumes:
+    #      - /tmp/tuya:/usr/bin/tuya-convert/backups

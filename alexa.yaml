@@ -117,6 +117,9 @@ smart_home:
     light.kitchen_table_light:
       name: "Kitchen Table Light"
 
+    light.living_room_ceiling_fan:
+      name: "Living Room Ceiling Fan Light"
+
     light.front_porch_lights:
       name: "Porch Lights"
 

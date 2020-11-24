@@ -24,16 +24,16 @@ import appdaemon.plugins.hass.hassapi as hass
 class MiniMote(hass.Hass):
 
   def initialize(self):
-    
-    self.listen_event(self.zwave_event, "zwave.scene_activated", entity_id = self.args["device"])
+    self.listen_event(self.zwave_event, "ozw.scene_activated", node_id = self.args["node_id"])
     
   def zwave_event(self, event_name, data, kwargs):
-    self.log("Event: {}, data = {}, args = {}".format(event_name, data, kwargs))
-    scene = data["scene_id"]
+    #self.log("Event: {}, data = {}, args = {}".format(event_name, data, kwargs))
+    scene = data["scene_value_id"]
     on = "scene_{}_on".format(scene)
     off = "scene_{}_off".format(scene)
     toggle = "scene_{}_toggle".format(scene)
     panic_mode = "off"
+
     if "panic_mode_boolean" in self.args:
       panic_mode = self.get_state(self.args["panic_mode_boolean"])
       panic_entity = self.args["panic_entity"]

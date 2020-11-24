@@ -14,7 +14,7 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
         devices:
-            - /dev/zwave
+            #- /dev/zwave
             - /dev/zigbee
         environment:
           - TZ=America/Chicago
@@ -104,16 +104,16 @@ services:
         ports:
             - '8888:8888'
         restart: always
-    apcupsd_950:
-        container_name: apcupsd_950
-        image: gersilex/apcupsd
-        ports:
-            - '3551:3551'
-        volumes:
-            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-        devices:
-            - '/dev/ups_monitor_950:/dev/usb/hiddev0'
-        restart: always
+    #apcupsd_950:
+    #    container_name: apcupsd_950
+    #    image: gersilex/apcupsd
+    #    ports:
+    #        - '3551:3551'
+    #    volumes:
+    #        - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+    #    devices:
+    #        - '/dev/ups_monitor_950:/dev/usb/hiddev0'
+    #    restart: always
     apcupsd_650:
         container_name: apcupsd_650
         image: gersilex/apcupsd
@@ -142,26 +142,24 @@ services:
           timeout: 5s
           retries: 3
         restart: always
-    # Not ready for primetime
-    #openzwave:
-    #    image: openzwave/ozwdaemon:allinone-latest
-    #    container_name: openzwave
-    #    devices:
-    #        - "/dev/zwave:/dev/zwave"
-    #    volumes:
-    #        - /opt/ozw:/opt/ozw/config
-    #    security_opt:
-    #        - seccomp:unconfined
-    #    ports:
-    #        #- "1983:1983"
-    #        #- "5901:5901"
-    #        - "7800:7800"
-    #    environment:
-    #        TZ: "America/Chicago"
-    #        MQTT_SERVER: "10.0.1.22"
-    #        USB_PATH: "/dev/zwave"
-    #        OZW_NETWORK_KEY: "0xE0, 0x96, 0x44, 0x30, 0xE6, 0xB5, 0x1C, 0x00, 0x57, 0x7F, 0x50, 0x35, 0xA6, 0x80, 0x15, 0x74"
-    #    restart: unless-stopped
+    openzwave:
+        image: openzwave/ozwdaemon:allinone-latest
+        container_name: openzwave
+        devices:
+            - "/dev/zwave:/dev/zwave"
+        volumes:
+            - /opt/ozw:/opt/ozw/config
+        #security_opt:
+        #    - seccomp:unconfined
+        ports:
+            # Web VNC
+            - "7800:7800"
+        environment:
+            TZ: "America/Chicago"
+            MQTT_SERVER: "10.0.1.22"
+            USB_PATH: "/dev/zwave"
+            OZW_NETWORK_KEY: "0x48, 0xA8, 0x80, 0x12, 0x30, 0xB0, 0x44, 0xDD, 0x60, 0xD3, 0xA1, 0x46, 0x59, 0xE3, 0x75, 0x7F"
+        restart: unless-stopped
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -191,18 +189,6 @@ services:
         environment:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
-    ozwcp:
-        container_name: ozwcp
-        image: openzwave/openzwave-control-panel
-        volumes:
-            - '/opt/homeassistant/options.xml:/etc/openzwave/options.xml'
-            - '/opt/homeassistant/zwcfg_0xc564203a.xml:/etc/openzwave/zwcfg_0xc564203a.xml'
-            - '/opt/homeassistant/manufacturer_specific.xml:/etc/openzwave/manufacturer_specific.xml'
-        ports:
-            - '8008:8008'
-        devices:
-            - '/dev/zwave:/dev/zwave'
-        restart: 'no'
     grafana:
         container_name: grafana
         image: grafana/grafana:6.4.5
@@ -368,20 +354,20 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
-    tuya-convert:
-        # https://github.com/ct-Open-Source/tuya-convert
-        # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
-        # this is needed to accept EULA
-        # then can use docker-compose exec tuya-convert start
-        container_name: 'tuya-convert'
-        image: tuya-convert:latest
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        privileged: true
-        network_mode: "host"
-        environment:
-          - WLAN=wlp58s0
-          - AP=vtrust-flash
-          - GATEWAY=10.42.42.1
-        volumes:
-          - /tmp/tuya:/usr/bin/tuya-convert/backups
+    #tuya-convert:
+    #    # https://github.com/ct-Open-Source/tuya-convert
+    #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
+    #    # this is needed to accept EULA
+    #    # then can use docker-compose exec tuya-convert start
+    #    container_name: 'tuya-convert'
+    #    image: tuya-convert:latest
+    #    labels:
+    #      com.centurylinklabs.watchtower.enable: "false"
+    #    privileged: true
+    #    network_mode: "host"
+    #    environment:
+    #      - WLAN=wlp58s0
+    #      - AP=vtrust-flash
+    #      - GATEWAY=10.42.42.1
+    #    volumes:
+    #      - /tmp/tuya:/usr/bin/tuya-convert/backups

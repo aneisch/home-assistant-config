@@ -135,7 +135,6 @@ cards:
       - switch.docker_esphome
       - switch.docker_grafana
       - switch.docker_librespeed
-      - switch.docker_ozwcp
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_thermopro_mqtt
@@ -144,8 +143,10 @@ cards:
       - switch.docker_apcupsd_650
       - switch.docker_appdaemon
       - switch.docker_influxdb
+      - switch.docker_mariadb
       - switch.docker_mosquitto
       - switch.docker_nodered
+      - switch.docker_openzwave
       - switch.docker_thermostat_api_server
       - sensor.thermostat_api_server_health
 

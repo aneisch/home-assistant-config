@@ -88,17 +88,19 @@ automation:
 script:
   office_switch_leds:
     sequence:
-      - service: zwave.set_config_parameter
+      # change to zwave. from ozw. for non-beta zwave
+      - service: ozw.set_config_parameter
         data:
           # Set Dimmer LED
           node_id: 2
           parameter: 3
           value: '{{ color }}'
-          size: 1
-      - service: zwave.set_config_parameter
+          #size: 1 # uncomment for non-beta zwave 
+      # change to zwave. from ozw. for non-beta zwave
+      - service: ozw.set_config_parameter
         data:
           # Set Relay LED
           node_id: 2
           parameter: 4
           value: '{{ color }}'
-          size: 1
+          #size: 1 # uncomment for non-beta zwave 
