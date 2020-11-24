@@ -18,23 +18,23 @@ My Home Assistant installation contains many different components and runs on a 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
 - ZHA using CC2531 running zigbee2mqtt firmware with various devices
-  - 1 LDS ZBT-CCTSwitch-D0001
-  - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
+  - 1x LDS ZBT-CCTSwitch-D000x 
+  - 11x The Home Depot Ecosmart-ZBT-A19x CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Open-Zwave beta using Aeon Labs ZW090 Z Stick with various devices
-  - 1 12719 Plug-in Smart Switch
-  - 1 12722 On/Off Relay Switch
-  - 1 12730 Fan Control Switch
-  - 1 DSA03202 Minimote
-  - 1 Leviton DZPA1 Plug-In Outlet
-  - 1 WADWAZ-1 Door/Window Sensor
-  - 1 WAPIRZ-1 Motion Sensor
-  - 1 ZW090 Z-Stick Gen5 US
-  - 2 12720 Outdoor Smart Switch
-  - 2 ZEN21 Switch V3
-  - 3 ZEN30 Double Switch
-  - 4 ZEN27 S2 Dimmer Wall Switch
+  - 1x 12719x Plug-in Smart Switch
+  - 1x 12722x On/Off Relay Switch
+  - 1x 12730x Fan Control Switch
+  - 1x DSA03202x Minimote
+  - 1x Leviton DZPA1x Plug-In Outlet
+  - 1x WADWAZ-1x Door/Window Sensor
+  - 1x WAPIRZ-1x Motion Sensor
+  - 1x ZW090x Z-Stick Gen5x US
+  - 2x 12720x Outdoor Smart Switch
+  - 2x ZEN21x Switch V3
+  - 3x ZEN30x Double Switch
+  - 4x ZEN27x S2x Dimmer Wall Switch
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
