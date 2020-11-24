@@ -17,10 +17,12 @@ My Home Assistant installation contains many different components and runs on a 
 - Numerous Wemos [D1 Mini](https://wiki.wemos.cc/products:d1:d1_mini) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
-- ZHA using CC2531 with zigbee2mqtt firmware
+- ZHA using CC2531 running zigbee2mqtt firmware with various devices
+  - 1 LDS ZBT-CCTSwitch-D0001
+  - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
-- Aeon Labs ZW090 Z Stick with various devices
+- Open-Zwave beta using Aeon Labs ZW090 Z Stick with various devices
   - 1 12719 Plug-in Smart Switch
   - 1 12722 On/Off Relay Switch
   - 1 12730 Fan Control Switch
