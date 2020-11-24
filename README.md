@@ -10,23 +10,18 @@ I do my best to keep [Home Assistant](https://github.com/home-assistant/home-ass
 
 My Home Assistant installation contains many different components and runs on a Gen7 i3 NUC running Centos 7:
 
-- Owntracks for iOS and Android
+- Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
-- [Sonoff Switches](https://www.itead.cc/sonoff-wifi-wireless-switch.html) running [ESPHome](https://esphome.io/index.html)
-- Orvibo Switches
-- Radio Thermostat CT-50 (additional monitoring done through [docker container](https://hub.docker.com/r/aneisch/thermostat_mqtt_docker))
 - Raspberry Pi hosted USB Camera (M-JPEG streamer)
 - ESP32 Cameras running [ESPHome](https://esphome.io/)
 - Numerous Wemos [D1 Mini](https://wiki.wemos.cc/products:d1:d1_mini) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
-- Aeon Labs ZW090 Z Stick
-- Aeon Labs DSA03202 v1 - z-wave Minimote
-- GE Z-wave in-wall switch/fan controllers
 - ZHA using CC2531 with zigbee2mqtt firmware
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
-- Various z-wave sensors
+- Aeon Labs ZW090 Z Stick with various devices
+_ZWAVEDEVICES_
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
@@ -46,7 +41,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1430
-Lines of Home Assistant YAML | 4732
+Lines of Home Assistant YAML | 4733
 [Integrations](https://www.home-assistant.io/integrations/) in use | 24
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  

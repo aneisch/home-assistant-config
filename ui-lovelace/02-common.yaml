@@ -68,9 +68,10 @@ cards:
     show_header_toggle: false
     title: Outside
     entities:
+      - light.front_porch_lights
+      - switch.front_sconces
       - light.back_porch_light
       - light.garage_light
-      - light.front_porch_lights
       - switch.christmas_lights
       - switch.globe_lights
       - light.garage
