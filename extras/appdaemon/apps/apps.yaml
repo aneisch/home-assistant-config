@@ -82,32 +82,41 @@ Occupancy Simulator:
   step_night_name: Night
   step_night_start: '23:59:59'
 
-  random_master_name: Master
-  random_master_start: Evening
-  random_master_end: Night
-  random_master_maxduration: 02:00:00
-  random_master_minduration: 00:30:00
-  random_master_number: '2'
-  random_master_on_1: light.master_bedroom_lamps
-  random_master_off_1: light.master_bedroom_lamps
+  # Turn on some devices in the evening
+  step_evening_on_1: light.master_bedroom_lamps
+  step_evening_on_2: light.kitchen_table_light
+  step_evening_on_3: light.andrew_desk_lamp
+  step_evening_on_4: light.office_ceiling_fan
 
-  random_kitchen_name: Kitchen
-  random_kitchen_start: Evening
-  random_kitchen_end: Night
-  random_kitchen_maxduration: 02:00:00
-  random_kitchen_minduration: 00:30:00
-  random_kitchen_number: '5'
-  random_kitchen_on_1: light.kitchen_can_lights
-  random_kitchen_off_1: light.kitchen_can_lights
+  #random_master_name: Master
+  #random_master_start: Evening
+  #random_master_end: Night
+  #random_master_maxduration: 02:00:00
+  #random_master_minduration: 00:30:00
+  #random_master_number: '2'
+  #random_master_on_1: light.master_bedroom_lamps
+  #random_master_off_1: light.master_bedroom_lamps
 
-  random_living_name: Living Room
-  random_living_start: Evening
-  random_living_end: Night
-  random_living_maxduration: 02:00:00
-  random_living_minduration: 00:30:00
-  random_living_number: '5'
-  random_living_on_1: light.living_room_lamps
-  random_living_off_1: light.living_room_lamps
+  # Randomly turn dining room light on and off a few times
+  random_dining_name: Dining Room
+  random_dining_start: Evening
+  random_dining_end: Night
+  random_dining_maxduration: 01:00:00
+  random_dining_minduration: 00:10:00
+  random_dining_number: '3'
+  random_dining_on_1: light.dining_room_light
+  random_dining_off_1: light.dining_room_light
+
+  #random_living_name: Living Room
+  #random_living_start: Evening
+  #random_living_end: Night
+  #random_living_maxduration: 02:00:00
+  #random_living_minduration: 00:30:00
+  #random_living_number: '5'
+  #random_living_on_1: light.living_room_lamps
+  #random_living_off_1: light.living_room_lamps
+  #random_living_on_2: light.living_room_can_lights
+  #random_living_off_2: light.living_room_can_lights
 
   #random_office_name: Office
   #random_office_start: Evening
@@ -118,11 +127,14 @@ Occupancy Simulator:
   #random_office_on_1: light.andrew_desk_lamp
   #random_office_off_1: light.andrew_desk_lamp
 
+  # Ensure all off late
   step_all_off_name: All Off
-  step_all_off_start: '01:00:00'
+  step_all_off_start: '00:30:00'
   step_all_off_off_1: light.master_bedroom_lamps
-  step_all_off_off_2: light.living_room_lamps
-  step_all_off_off_3: light.kitchen_can_lights
+  step_all_off_off_2: light.dining_room_light
+  step_all_off_off_3: light.kitchen_table_light
+  step_all_off_off_5: light.andrew_desk_lamp
+  step_all_off_off_6: light.office_ceiling_fan
 
 Front Porch Lights:
   module: entity_timer
@@ -130,6 +142,13 @@ Front Porch Lights:
   devices: light.front_porch_lights,switch.front_sconces
   time_on: sunset
   time_off: "23:00:00"
+
+Front House Lights:
+  module: entity_timer
+  class: Timer
+  devices: switch.front_sconces
+  time_on: sunset
+  time_off: "22:00:00"
 
 Christmas Lights:
   module: entity_timer

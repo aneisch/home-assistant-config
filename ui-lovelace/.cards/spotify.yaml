@@ -1,5 +1,5 @@
 type: custom:mini-media-player
-entity: media_player.spotify_bethany_kate1
+entity: media_player.spotify
 icon: mdi:spotify
 hide:
   power_state: true

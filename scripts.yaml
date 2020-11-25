@@ -162,7 +162,7 @@ panic:
           retry: 30
           callback: !secret panic_script_webhook_full
 
-spotify_occusim:
+spotify_occusim_start:
   sequence:
     - service: media_player.select_source
       data:
@@ -173,6 +173,12 @@ spotify_occusim:
         entity_id: media_player.spotify
         volume_level: 0.6
     - service: media_player.media_play
+      data:
+        entity_id: media_player.spotify
+
+spotify_occusim_stop:
+  sequence:
+    - service: media_player.media_pause
       data:
         entity_id: media_player.spotify
 
