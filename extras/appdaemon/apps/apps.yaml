@@ -128,13 +128,13 @@ Occupancy Simulator:
   #random_office_off_1: light.andrew_desk_lamp
 
   # Ensure all off late
-  step_all_off_name: All Off
-  step_all_off_start: '00:30:00'
-  step_all_off_off_1: light.master_bedroom_lamps
-  step_all_off_off_2: light.dining_room_light
-  step_all_off_off_3: light.kitchen_table_light
-  step_all_off_off_5: light.andrew_desk_lamp
-  step_all_off_off_6: light.office_ceiling_fan
+  step_off_name: Off
+  step_off_start: '00:30:00'
+  step_off_off_1: light.master_bedroom_lamps
+  step_off_off_2: light.dining_room_light
+  step_off_off_3: light.kitchen_table_light
+  step_off_off_5: light.andrew_desk_lamp
+  step_off_off_6: light.office_ceiling_fan
 
 Front Porch Lights:
   module: entity_timer
