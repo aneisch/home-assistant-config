@@ -76,7 +76,7 @@ Occupancy Simulator:
   constrain_input_boolean: input_boolean.occusim
   dump_times: '1'
   log_msg: '1'
-  reset_time: 02:00:00
+  reset_time: 00:00:00
   step_evening_name: Evening
   step_evening_start: sunset - 00:45:00
   step_night_name: Night
@@ -129,7 +129,8 @@ Occupancy Simulator:
 
   # Ensure all off late
   step_off_name: Off
-  step_off_start: '00:30:00'
+  step_off_start: '00:15:00'
+  step_off_stop: '00:30:00'
   step_off_off_1: light.master_bedroom_lamps
   step_off_off_2: light.dining_room_light
   step_off_off_3: light.kitchen_table_light
