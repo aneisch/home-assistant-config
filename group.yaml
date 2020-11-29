@@ -40,8 +40,15 @@ kitchen:
   name: Kitchen
   entities:
     - light.kitchen_lights
-    - switch.under_cabinet_lights
+    - group.under_cabinet_lights
     - light.kitchen_table_leds
+
+under_cabinet_lights:
+  name: Under Cabinet Lights
+  entities:
+    - switch.under_cabinet_lights_stove
+    - switch.under_cabinet_lights_coffee
+    - switch.under_cabinet_lights_sink
 
 living_room:
   name: Living Room
@@ -49,6 +56,7 @@ living_room:
     - light.living_room_lamps
     - light.living_room_can_lights
     - light.entryway_light
+    - light.living_room_sconces
     - switch.living_room_ceiling_fan_light
     - fan.living_room_ceiling_fan
     - switch.living_room_speakers

@@ -13,6 +13,7 @@ cards:
       - type: custom:slider-entity-row
         entity: light.living_room_lamps
       - light.living_room_can_lights
+      - light.living_room_sconces
       - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
@@ -83,7 +84,8 @@ cards:
     entities:
       - light.kitchen_can_lights
       - light.kitchen_sink_light
-      - switch.under_cabinet_lights
+      - entity: group.under_cabinet_lights
+        icon: mdi:lightbulb
       - light.kitchen_table_light
       - light.kitchen_table_leds
       - light.dining_room_light

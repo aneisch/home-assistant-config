@@ -140,8 +140,16 @@ Occupancy Simulator:
 Front Porch Lights:
   module: entity_timer
   class: Timer
-  devices: light.front_porch_lights,switch.front_sconces,light.entryway_light
-  time_on: sunset + 00:30:00
+  devices: light.front_porch_lights,switch.front_sconces
+  time_on: sunset
+  time_off: "23:00:00"
+
+Inside Lights:
+  module: entity_timer
+  class: Timer
+  constrain_input_boolean: input_boolean.house_lamps_automation
+  devices: light.entryway_light,light.living_room_sconces
+  time_on: sunset
   time_off: "23:00:00"
 
 Front House Lights:
@@ -163,18 +171,21 @@ Christmas Lights:
 CO2 On Morning:
   module: entity_timer
   class: Timer
+  constrain_input_boolean: input_boolean.aquarium_automation
   devices: switch.aquarium_co2
   time_on: "08:00:00"
 
 Aquarium All Light On Morning:
   module: entity_timer
   class: Timer
+  constrain_input_boolean: input_boolean.aquarium_automation
   devices: switch.aquarium_light,light.aquarium_white_light
   time_on: "10:00:00"
 
 Aquarium White Light Afternoon:
   module: entity_timer
   class: Timer
+  constrain_input_boolean: input_boolean.aquarium_automation
   devices: light.aquarium_white_light
   time_off: "13:00:00"
   time_on: "14:30:00"
@@ -182,12 +193,14 @@ Aquarium White Light Afternoon:
 CO2 Off Evening:
   module: entity_timer
   class: Timer
+  constrain_input_boolean: input_boolean.aquarium_automation
   devices: switch.aquarium_co2
   time_off: "16:30:00"
 
 Aquarium All Light Off Evening:
   module: entity_timer
   class: Timer
+  constrain_input_boolean: input_boolean.aquarium_automation
   devices: light.aquarium_white_light,switch.aquarium_light
   time_off: "17:30:00"
 

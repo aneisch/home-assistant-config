@@ -24,6 +24,7 @@ smart_home:
       - climate.thermostat
       - cover.garage_door
       - group.common_areas
+      - group.under_cabinet_lights
       - fan.living_room_ceiling_fan
       - light.dining_room_light
       - light.living_room_ceiling_fan
@@ -69,7 +70,6 @@ smart_home:
       - switch.vacuum
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
-      - switch.under_cabinet_lights
       - switch.living_room_speakers
   entity_config:
     climate.thermostat:
@@ -77,6 +77,10 @@ smart_home:
 
     group.common_areas:
       name: "Common Areas"
+      display_categories: LIGHT
+
+    group.under_cabinet_lights:
+      name: "Under Cabinet Lights"
       display_categories: LIGHT
 
     light.living_room_ceiling_fan:
