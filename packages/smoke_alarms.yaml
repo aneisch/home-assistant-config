@@ -1,0 +1,119 @@
+automation:
+  # Triggered from Github action. Auto-update or notify, we only auto-apply minor releases.
+  - alias: "Smoke Alarm Detection"
+    initial_state: 'on'
+    trigger:
+      platform: state
+      entity_id:
+        - sensor.smoke_detector_living_room_status
+        - sensor.smoke_detector_hallway_status
+    action:
+      - service: notify.pushover
+        data:
+          message: >
+              {{ trigger.from_state.attributes.friendly_name }} {{ trigger.to_state.state }}
+          data:
+            priority: 2
+            expire: 3600
+            retry: 30
+
+sensor:
+  - platform: template
+    sensors:
+      # Living Room
+      smoke_detector_living_room_status:
+        friendly_name: Smoke Detector Living Room Status
+        value_template: >-
+          {% if is_state('sensor.smoke_detector_living_room_smoke', '3') %}
+            Test
+          {% elif is_state('sensor.smoke_detector_living_room_smoke', '2') %}
+            Smoke
+          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '2') %}
+            CO
+          {% elif is_state('sensor.smoke_detector_living_room_smoke', '6') or is_state('sensor.smoke_detector_living_room_carbon_monoxide', '6') %}
+            Silenced
+          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '5') %}
+            CO_EOL
+          {% else %}
+            Idle
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sensor.smoke_detector_living_room_smoke', '3') %}
+            mdi:cloud-alert
+          {% elif is_state('sensor.smoke_detector_living_room_smoke', '2') %}
+            mdi:fire
+          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '2') %}
+            mdi:cloud-alert
+          {% elif is_state('sensor.smoke_detector_living_room_smoke', '6') or is_state('sensor.smoke_detector_living_room_carbon_monoxide', '6') %}
+            mdi:smoke-detector
+          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '5') %}
+            mdi:cloud-alert
+          {% else %}
+            mdi:smoke-detector
+          {% endif %}
+      smoke_detector_living_room_health:
+        friendly_name: Smoke Detector Living Room Health
+        value_template: >-
+          {% if is_state('sensor.smoke_detector_living_room_system', '5') %}
+            Healthy
+          {% elif is_state('sensor.smoke_detector_living_room_system', '1') %}
+            Malfunction Detected
+          {% elif is_state('sensor.smoke_detector_living_room_system', '0')  %}
+            Malfunction Clear
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sensor.smoke_detector_living_room_system', '5') %}
+          {% elif is_state('sensor.smoke_detector_living_room_system', '1') %}
+            mdi:alert
+          {% elif is_state('sensor.smoke_detector_living_room_system', '0')  %}
+          {% endif %}
+
+      # Hallway
+      smoke_detector_hallway_status:
+        friendly_name: Smoke Detector Hallway Status
+        value_template: >-
+          {% if is_state('sensor.smoke_detector_hallway_smoke', '3') %}
+            Test
+          {% elif is_state('sensor.smoke_detector_hallway_smoke', '2') %}
+            Smoke
+          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '2') %}
+            CO
+          {% elif is_state('sensor.smoke_detector_hallway_smoke', '6') or is_state('sensor.smoke_detector_hallway_carbon_monoxide', '6') %}
+            Silenced
+          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '5') %}
+            CO_EOL
+          {% else %}
+            Idle
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sensor.smoke_detector_hallway_smoke', '3') %}
+            mdi:cloud-alert
+          {% elif is_state('sensor.smoke_detector_hallway_smoke', '2') %}
+            mdi:fire
+          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '2') %}
+            mdi:cloud-alert
+          {% elif is_state('sensor.smoke_detector_hallway_smoke', '6') or is_state('sensor.smoke_detector_hallway_carbon_monoxide', '6') %}
+            mdi:smoke-detector
+          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '5') %}
+            mdi:cloud-alert
+          {% else %}
+            mdi:smoke-detector
+          {% endif %}
+      smoke_detector_hallway_health:
+        friendly_name: Smoke Detector Hallway Health
+        value_template: >-
+          {% if is_state('sensor.smoke_detector_hallway_system', '5') %}
+            Healthy
+          {% elif is_state('sensor.smoke_detector_hallway_system', '1') %}
+            Malfunction Detected
+          {% elif is_state('sensor.smoke_detector_hallway_system', '0')  %}
+            Malfunction Clear
+          {% endif %}
+        icon_template: >-
+          {% if is_state('sensor.smoke_detector_hallway_system', '5') %}
+          {% elif is_state('sensor.smoke_detector_hallway_system', '1') %}
+            mdi:alert
+          {% elif is_state('sensor.smoke_detector_hallway_system', '0')  %}
+          {% endif %}
+
+

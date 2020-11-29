@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.0.beta.7"
+__version__ = "0.7.0"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -417,7 +417,7 @@ def login(hass, conf):
 
             if attempt == 1:
                 hass.components.persistent_notification.create(
-                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                    "Error: {}<br />If error persists you might need to change config and restart.".format(
                         arlo.last_error
                     ),
                     title=NOTIFICATION_TITLE,
@@ -430,7 +430,7 @@ def login(hass, conf):
         except (ConnectTimeout, HTTPError) as ex:
             if attempt == 1:
                 hass.components.persistent_notification.create(
-                    "Error: {}<br />You will need to restart hass after fixing.".format(
+                    "Error: {}<br />If error persists you might need to change config and restart.".format(
                         ex
                     ),
                     title=NOTIFICATION_TITLE,
@@ -517,7 +517,9 @@ def aarlo_sirens_off(hass, _call):
 def aarlo_restart_device(hass, call):
     for entity_id in call.data["entity_id"]:
         try:
-            device = get_entity_from_domain(hass, [ALARM_DOMAIN], entity_id)
+            device = get_entity_from_domain(
+                hass, [ALARM_DOMAIN, CAMERA_DOMAIN], entity_id
+            )
             device.restart()
             _LOGGER.info("{} restarted".format(entity_id))
         except HomeAssistantError:

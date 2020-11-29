@@ -18,6 +18,7 @@ homeassistant:
     hass_update_check: !include packages/hass_update_check.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
+    smoke_alarms: !include packages/smoke_alarms.yaml
     #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     uw: !include packages/uw.yaml
@@ -42,7 +43,7 @@ binary_sensor: !include binary_sensor.yaml
 camera: !include camera.yaml
 
 # 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
-conversation:
+#conversation:
 
 climate:
   # https://www.home-assistant.io/integrations/climate.mqtt/

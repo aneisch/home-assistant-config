@@ -13,6 +13,7 @@ cards:
       - type: custom:slider-entity-row
         entity: light.living_room_lamps
       - light.living_room_can_lights
+      - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
       - switch.christmas_tree

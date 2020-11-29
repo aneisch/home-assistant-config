@@ -39,6 +39,13 @@
         "description": "**{email} - alexa.{url}**  \nWybierz metodę weryfikacji. (np., `0` lub `1`)  \n{message}",
         "title": "Alexa Media Player — metoda weryfikacji"
       },
+      "totp_register": {
+        "data": {
+          "registered": "OTP from the Built-in 2FA App Key confirmed successfully."
+        },
+        "description": "**{email} - alexa.{url}**  \nHave you successfully confirmed an OTP from the Built-in 2FA App Key with Amazon?  \n >OTP Code {message}",
+        "title": "Alexa Media Player - OTP Confirmation"
+      },
       "twofactor": {
         "data": {
           "securitycode": "Kod uwierzytelniania dwuskładnikowego"
@@ -53,6 +60,7 @@
           "email": "Adres email",
           "exclude_devices": "Wykluczone urządzenia (oddzielone przecinkami)",
           "include_devices": "Dodawane urządzenia (oddzielone przecinkami)",
+          "otp_secret": "Built-in 2FA App Key (automatically generate 2FA Codes)",
           "password": "Hasło",
           "scan_interval": "Interwał skanowania (sekundy)",
           "securitycode": "Kod uwierzytelniania dwuskładnikowego (zalecany w celu uniknięcia problemów z logowaniem)",

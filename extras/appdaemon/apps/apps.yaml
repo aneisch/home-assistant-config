@@ -140,15 +140,14 @@ Occupancy Simulator:
 Front Porch Lights:
   module: entity_timer
   class: Timer
-  devices: light.front_porch_lights,switch.front_sconces
-  time_on: sunset
+  devices: light.front_porch_lights,switch.front_sconces,light.entryway_light
+  time_on: sunset + 00:30:00
   time_off: "23:00:00"
 
 Front House Lights:
   module: entity_timer
   class: Timer
   devices: switch.front_sconces
-  time_on: sunset
   time_off: "22:00:00"
 
 Christmas Lights:

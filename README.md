@@ -34,7 +34,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 2 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
   - 2 [ZEN21 Switch V3](https://amzn.to/33hhTBT)
   - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
-  - 4 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
+  - 5 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
@@ -54,7 +54,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1430
-Lines of Home Assistant YAML | 4738
+Lines of Home Assistant YAML | 4861
 [Integrations](https://www.home-assistant.io/integrations/) in use | 24
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  

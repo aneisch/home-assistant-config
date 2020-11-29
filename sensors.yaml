@@ -80,6 +80,11 @@
   state_topic: "tele/sonoff_pow_1/ENERGY"
   value_template: "{{ value_json.Power }}"
 
+- platform: mqtt
+  name: Rain Total
+  unit_of_measurement: "in"
+  state_topic: "sensor/rain"
+  value_template: "{{ value_json.rain_in }}"
 
 ###################
 # MQTT THERMOSTAT #

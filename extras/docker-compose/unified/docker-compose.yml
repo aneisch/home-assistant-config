@@ -229,6 +229,22 @@ services:
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
             - '/dev/rtl_sdr_grill:/dev/bus/usb/003/038'
+    rain_mqtt:
+        container_name: rain_mqtt
+        image: aneisch/rtl_433_mqtt:latest
+        user: '99'
+        environment:
+            - MQTT_SERVER=10.0.1.22
+            - MQTT_PORT=1883
+            - TOPIC=sensor/rain
+            - UNITS=customary
+            - RTL_433_DEVICE=12
+        restart: 'no'
+        devices:
+            # for some reason path on container must match host path
+            # use readlink /dev/rtl_sdr
+            # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
