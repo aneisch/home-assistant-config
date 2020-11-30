@@ -267,7 +267,7 @@ House Lamp Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:45:00
-  entity: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,switch.under_cabinet_lights
+  entity: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights
 
 Living Room Lamp Follow:
   module: follow_me

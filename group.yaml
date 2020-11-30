@@ -61,6 +61,7 @@ living_room:
     - fan.living_room_ceiling_fan
     - switch.living_room_speakers
     - switch.tv
+    - switch.christmas_tree
 
 andrew_desk:
   entities:
