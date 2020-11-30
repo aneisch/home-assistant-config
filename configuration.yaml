@@ -27,6 +27,9 @@ homeassistant:
     #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
+    - type: trusted_networks
+      trusted_networks:
+        - 10.0.1.0/24
 
 alexa: !include alexa.yaml
 
