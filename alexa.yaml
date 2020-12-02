@@ -83,9 +83,6 @@ smart_home:
       name: "Under Cabinet Lights"
       display_categories: LIGHT
 
-    light.living_room_ceiling_fan:
-      name: "Living Room Ceiling Fan Lights"
-
     light.living_room_lamps:
       name: "Living Room Lamps"
 

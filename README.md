@@ -28,10 +28,10 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 12730 Fan Control Switch
   - 1 DSA03202 Minimote
   - 1 Leviton DZPA1 Plug-In Outlet
-  - 1 WADWAZ-1 Door/Window Sensor
   - 1 WAPIRZ-1 Motion Sensor
   - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
   - 2 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
+  - 2 WADWAZ-1 Door/Window Sensor
   - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
   - 4 [ZEN21 Switch V3](https://amzn.to/33hhTBT)
   - 6 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
@@ -54,7 +54,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1430
-Lines of Home Assistant YAML | 4885
+Lines of Home Assistant YAML | 4880
 [Integrations](https://www.home-assistant.io/integrations/) in use | 24
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  

@@ -29,10 +29,7 @@
       value_template: "{{ (as_timestamp(now()) - as_timestamp(states('sensor.last_vps_backup_completed'))) < 600 and (as_timestamp(now()) - as_timestamp(states('sensor.last_nuc_backup_completed'))) < 600 }}"
     washing_machine_water_detector:
       device_class: moisture
-      value_template: "{{ states('sensor.washing_machine_water_detector_alarm_level') == '0' }}"
+      value_template: "{{ states('sensor.washing_machine_water_detector_alarm_level') == '254' }}"
     water_heater_water_detector:
       device_class: moisture
-      value_template: "{{ states('sensor.water_heater_water_detector_alarm_level') == '0' }}"
-    master_closet_motion_detection:
-      device_class: motion
-      value_template: "{{ states('sensor.master_closet_motion_alarm_level') == '255' }}"
+      value_template: "{{ states('sensor.water_heater_water_detector_alarm_level') == '254' }}"
