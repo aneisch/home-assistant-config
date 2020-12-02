@@ -140,28 +140,28 @@ Occupancy Simulator:
 Front Porch Lights:
   module: entity_timer
   class: Timer
-  devices: light.front_porch_lights,switch.front_sconces
+  entities: light.front_porch_lights,switch.front_sconces
   time_on: sunset
   time_off: "23:00:00"
 
-Inside Lights:
+Inside Scenic Lights:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.house_lamps_automation
-  devices: light.entryway_light,light.living_room_sconces
+  entities: light.entryway_light,light.living_room_sconces
   time_on: sunset
   time_off: "23:00:00"
+  brightness: 255
 
 Front House Lights:
   module: entity_timer
   class: Timer
-  devices: switch.front_sconces
+  entities: switch.front_sconces
   time_off: "22:00:00"
 
 Christmas Lights:
   module: entity_timer
   class: Timer
-  devices: switch.christmas_lights
+  entities: switch.christmas_lights
   time_on: sunset
   time_off: "23:00:00"
 
@@ -172,21 +172,21 @@ CO2 On Morning:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  devices: switch.aquarium_co2
+  entities: switch.aquarium_co2
   time_on: "08:00:00"
 
 Aquarium All Light On Morning:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  devices: switch.aquarium_light,light.aquarium_white_light
+  entities: switch.aquarium_light,light.aquarium_white_light
   time_on: "10:00:00"
 
 Aquarium White Light Afternoon:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  devices: light.aquarium_white_light
+  entities: light.aquarium_white_light
   time_off: "13:00:00"
   time_on: "14:30:00"
 
@@ -194,20 +194,20 @@ CO2 Off Evening:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  devices: switch.aquarium_co2
+  entities: switch.aquarium_co2
   time_off: "16:30:00"
 
 Aquarium All Light Off Evening:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  devices: light.aquarium_white_light,switch.aquarium_light
+  entities: light.aquarium_white_light,switch.aquarium_light
   time_off: "17:30:00"
 
 NAS:
   module: entity_timer
   class: Timer
-  devices: switch.nas
+  entities: switch.nas
   time_on: '03:00:00'
   # There is an automation to turn this off automatically after rsync
   time_off: '05:00:00'
@@ -262,12 +262,13 @@ Sleepy Time Lamp Automation Override:
   invert: True
 
 House Lamp Automation Sunset:
-  module: light_automation
+  module: entity_timer
   class: DeviceOn
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:45:00
-  entity: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights
+  brightness: 255
 
 Living Room Lamp Follow:
   module: follow_me

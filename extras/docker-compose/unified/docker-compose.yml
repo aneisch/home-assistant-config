@@ -313,6 +313,7 @@ services:
         volumes:
           - "/opt/hass-configurator:/config"
           - "/opt/homeassistant:/hass-config"
+          - "/opt/appdaemon:/appdaemon"
         restart: 'always'
     watchtower:
         container_name: watchtower

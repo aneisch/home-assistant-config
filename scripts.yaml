@@ -11,8 +11,9 @@ home_empty:
     - service: homeassistant.turn_off
       data:
         entity_id: group.common_areas
-    - delay:
-        seconds: 5
+    - service: homeassistant.turn_off
+      data:
+        entity_id: group.off_at_bedtime
     - service: homeassistant.turn_on
       data:
         entity_id: input_boolean.security_status
@@ -35,7 +36,7 @@ home_occupied:
           {% endif %}
     - service: homeassistant.turn_on
       data:
-        entity_id: switch.under_cabinet_lights
+        entity_id: group.under_cabinet_lights
 
 ############
 # SECURITY #

@@ -1,6 +1,5 @@
 import appdaemon.plugins.hass.hassapi as hass
 
-
 class Timer(hass.Hass):
   def initialize(self):
     if "time_on" in self.args:
@@ -12,11 +11,14 @@ class Timer(hass.Hass):
       self.run_daily(self.off, time_off)
 
   def on(self, kwargs):
-    for device in self.split_device_list(self.args["devices"]):
+    for device in self.split_device_list(self.args["entities"]):
         self.log("Turning on " + device)
-        self.turn_on(device)
+        if "brightness" in self.args and "light." in device: # API failure if we pass brightness when non-light
+          self.turn_on(device, brightness = self.args["brightness"])
+        else:
+          self.turn_on(device)
 
   def off(self, kwargs):
-    for device in self.split_device_list(self.args["devices"]):
+    for device in self.split_device_list(self.args["entities"]):
         self.log("Turning off " + device)
         self.turn_off(device)

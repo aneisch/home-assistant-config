@@ -16,7 +16,7 @@ ac_change_notification:
   icon: mdi:alert-circle
 
 aquarium_automation:
-  name: Aquarium Automatiom
+  name: Aquarium Automation
   icon: mdi:fish
 
 occusim:

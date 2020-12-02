@@ -55,13 +55,17 @@ living_room:
   entities:
     - light.living_room_lamps
     - light.living_room_can_lights
-    - light.entryway_light
-    - light.living_room_sconces
     - switch.living_room_ceiling_fan_light
     - fan.living_room_ceiling_fan
     - switch.living_room_speakers
     - switch.tv
     - switch.christmas_tree
+
+off_at_bedtime:
+  name: Off at Bedtime
+  entities:
+    - light.entryway_light
+    - light.living_room_sconces
 
 andrew_desk:
   entities:
