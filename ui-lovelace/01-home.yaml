@@ -124,6 +124,8 @@ cards:
           - sensor.nws_precip_probability
           - sun.sun
           - sensor.moon
+          - sensor.rain_total
+          - sensor.rain_rate
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
       - type: custom:weather-card
