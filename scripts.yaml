@@ -11,9 +11,6 @@ home_empty:
     - service: homeassistant.turn_off
       data:
         entity_id: group.common_areas
-    - service: homeassistant.turn_off
-      data:
-        entity_id: group.off_at_bedtime
     - service: homeassistant.turn_on
       data:
         entity_id: input_boolean.security_status
@@ -84,6 +81,9 @@ master_bedroom_bedtime:
       data:
         entity_id: light.master_bedroom_lamps
         transition: 5
+    - service: homeassistant.turn_off
+      data:
+        entity_id: group.off_at_bedtime
     - service: alarm_control_panel.alarm_arm
       entity_id: !secret alarm_panel_2
 

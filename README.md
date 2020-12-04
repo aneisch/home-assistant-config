@@ -32,6 +32,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
   - 2 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
   - 2 WADWAZ-1 Door/Window Sensor
+  - 2 ZCombo-G Smoke/CO Alarm
   - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
   - 4 [ZEN21 Switch V3](https://amzn.to/33hhTBT)
   - 6 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
@@ -54,7 +55,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on Int
 Description | value
 -- | --
 Lines of ESPHome YAML | 1430
-Lines of Home Assistant YAML | 4887
+Lines of Home Assistant YAML | 4802
 [Integrations](https://www.home-assistant.io/integrations/) in use | 24
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
@@ -114,6 +115,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [zha-ng/zha-map](https://github.com/zha-ng/zha-map)<br>
 
 **Plugin**:<br>
+[abmantis/ozw-network-visualization-card](https://github.com/abmantis/ozw-network-visualization-card)<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>

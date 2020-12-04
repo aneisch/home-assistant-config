@@ -153,6 +153,8 @@ services:
         ports:
             # Web VNC
             - "7800:7800"
+            # API
+            - "1983:1983"
         environment:
             TZ: "America/Chicago"
             MQTT_SERVER: "10.0.1.22"

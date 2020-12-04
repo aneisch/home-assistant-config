@@ -263,7 +263,7 @@ Sleepy Time Lamp Automation Override:
 
 House Lamp Automation Sunset:
   module: entity_timer
-  class: DeviceOn
+  class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:45:00

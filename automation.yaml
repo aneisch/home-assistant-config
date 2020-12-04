@@ -343,7 +343,7 @@
 #          - service: light.turn_off
 #            entity_id: light.andrew_monitor_backlight
 
-- alias: "Water sensor alerts"
+- alias: "Water Sensor Alerts"
   trigger:
     - platform: state
       entity_id: 
@@ -365,7 +365,7 @@
           expire: 3600
           retry: 30
 
-- alias: "Master Closet Light with motion"
+- alias: "Master Closet Light with Motion"
   trigger:
     - platform: state
       entity_id: "binary_sensor.master_closet_motion_sensor"
@@ -403,12 +403,14 @@
         {% endif %}
       entity_id: light.aquarium_white_light
 
-- alias: "Water sensor battery alerts"
+- alias: "Sensor Battery Alerts"
   trigger:
     - platform: numeric_state
       entity_id: 
         - sensor.washing_machine_water_detector_battery_level
         - sensor.water_heater_water_detector_battery_level
+        - sensor.smoke_detector_hallway_battery_level
+        - sensor.smoke_detector_kitchen_battery_level
       below: 10
   action:
     - service: notify.pushover
@@ -431,3 +433,26 @@
       data:
         message: >
             Wifi speed measured at {{ trigger.to_state.attributes.download }}
+
+- alias: "Smoke Alarm Detection"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id:
+      - binary_sensor.smoke_detector_hallway_carbon_monoxide_detected
+      - binary_sensor.smoke_detector_hallway_smoke_detected
+      - binary_sensor.smoke_detector_hallway_test
+      - binary_sensor.smoke_detector_kitchen_carbon_monoxide_detected
+      - binary_sensor.smoke_detector_kitchen_smoke_detected
+      - binary_sensor.smoke_detector_kitchen_test
+    from: "off"
+    to: "on"
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+            {{ trigger.from_state.attributes.friendly_name }} {{ trigger.to_state.state }}
+        data:
+          priority: 2
+          expire: 3600
+          retry: 30

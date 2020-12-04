@@ -1,0 +1,6 @@
+title: Zwave Map
+icon: mdi:map
+panel: true
+cards:
+  - type: 'custom:ozw-network-visualization-card'
+

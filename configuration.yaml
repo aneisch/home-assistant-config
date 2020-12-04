@@ -18,7 +18,6 @@ homeassistant:
     hass_update_check: !include packages/hass_update_check.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
-    smoke_alarms: !include packages/smoke_alarms.yaml
     #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     uw: !include packages/uw.yaml
@@ -296,6 +295,9 @@ lovelace:
       type: module
     - url: /hacsfiles/bignumber-card/bignumber-card.js
       type: module
+    - url: /hacsfiles/ozw-network-visualization-card/ozw-network-visualization-card.js
+      type: module
+
 
 map:
 
