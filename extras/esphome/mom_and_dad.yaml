@@ -1,7 +1,7 @@
 esphome:
   name: mom_and_dad
   platform: ESP8266
-  board: d1_mini_pro
+  board: d1_mini
   on_boot:
     then:
       # Set/get initial states
@@ -55,7 +55,11 @@ script:
           - text_sensor.template.publish:
               id: gate_movement_cause
               state: 'magnetometer'
-          - delay: 120s
+          - delay: 5s
+          - text_sensor.template.publish:
+              id: gate_movement_cause
+              state: ''
+          - delay: 115s
           - binary_sensor.template.publish:
               id: automation_safety
               state: OFF
@@ -72,6 +76,10 @@ mqtt:
         - text_sensor.template.publish:
             id: gate_movement_cause
             state: 'mqtt'
+        - delay: 5s
+        - text_sensor.template.publish:
+            id: gate_movement_cause
+            state: ''
   
 sensor:
   - platform: qmc5883l
