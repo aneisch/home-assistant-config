@@ -2,53 +2,53 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.118.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-0.118.5%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
 I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. Most of my home automation software pieces run as Docker containers (see [docker-compose for container list](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). 
 
-My Home Assistant installation contains many different components and runs on a Gen7 i3 NUC running Centos 7:
+My Home Assistant installation contains many different components and runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) running Centos 7:
 
 - Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
-- Raspberry Pi hosted USB Camera (M-JPEG streamer)
-- ESP32 Cameras running [ESPHome](https://esphome.io/)
-- Numerous Wemos [D1 Mini](https://wiki.wemos.cc/products:d1:d1_mini) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
+- (Raspberry Pi)[https://amzn.to/3oAyKrp] hosted USB Camera (M-JPEG streamer)
+- [ESP32](https://amzn.to/3m1ntix) Cameras running [ESPHome](https://esphome.io/)
+- Numerous Wemos [D1 Mini](https://amzn.to/39XyIps) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
-- ZHA using CC2531 running zigbee2mqtt firmware with various devices
+- ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware with various devices
   - 1 LDS ZBT-CCTSwitch-D0001
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
-- OpenZWave (beta) using [Aeon Labs ZW090 Z-Stick](https://amzn.to/39cmb1b) with various devices
+- OpenZWave (beta) using [[Aeon Labs ZW090 Z-Stick](https://amzn.to/39cmb1b)](https://amzn.to/39cmb1b) with various devices
   - 1 12719 Plug-in Smart Switch
   - 1 12722 On/Off Relay Switch
   - 1 12730 Fan Control Switch
   - 1 DSA03202 Minimote
   - 1 Leviton DZPA1 Plug-In Outlet
-  - 1 WAPIRZ-1 Motion Sensor
+  - 1 [WAPIRZ-1 Motion Sensor](https://amzn.to/2LhyH5F)
   - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
   - 2 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
   - 2 WADWAZ-1 Door/Window Sensor
-  - 2 ZCombo-G Smoke/CO Alarm
+  - 2 [ZCombo-G Smoke/CO Alarm](https://amzn.to/2VOXBLY)
   - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
   - 4 [ZEN21 Switch V3](https://amzn.to/33hhTBT)
   - 6 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
-- Arlo Cameras (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
+- [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a handful of automations and intelligent AC control. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for a few others (see screenshot below)
-- Amazon Echos
+- [Amazon Echos](https://amzn.to/2VLPPm0)
   - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda 
   - Custom routines configured in the Alexa App.
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - UPS monitoring using [apcupsd](https://github.com/gersilex/apcupsd-docker)
 - Github actions to test beta and stable builds against config.
 
-Also using Grafana/Influx for graphing, both running in Docker containers on Intel NUC, see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list. Home Assistant, along with a few other web apps, are proxied through my firewall and fronted and secured by Cloudflare.
+Also using Grafana/Influx for graphing, both running in Docker containers on NUC, see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list. Home Assistant, along with a few other web apps, are proxied through my firewall and fronted and secured by Cloudflare.
  
 
 ## Some statistics about my installation:
