@@ -12,7 +12,7 @@ My Home Assistant installation contains many different components and runs on a 
 
 - Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
-- (Raspberry Pi)[https://amzn.to/3oAyKrp] hosted USB Camera (M-JPEG streamer)
+- [Raspberry Pi](https://amzn.to/3oAyKrp) hosted USB Camera with M-JPEG streamer
 - [ESP32](https://amzn.to/3m1ntix) Cameras running [ESPHome](https://esphome.io/)
 - Numerous Wemos [D1 Mini](https://amzn.to/39XyIps) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
