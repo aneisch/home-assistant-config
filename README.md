@@ -13,7 +13,7 @@ My Home Assistant installation contains many different components and runs on a 
 - Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
 - [Raspberry Pi](https://amzn.to/3oAyKrp) hosted USB Camera with M-JPEG streamer
-- [ESP32](https://amzn.to/3m1ntix) Cameras running [ESPHome](https://esphome.io/)
+- [ESP32](https://amzn.to/3gocrT9) with camera running [ESPHome](https://esphome.io/)
 - Numerous Wemos [D1 Mini](https://amzn.to/39XyIps) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
@@ -54,8 +54,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 1438
-Lines of Home Assistant YAML | 4803
+Lines of ESPHome YAML | 1474
+Lines of Home Assistant YAML | 4817
 [Integrations](https://www.home-assistant.io/integrations/) in use | 24
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
@@ -138,6 +138,8 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 ![UI](images/screenshot4.png)
 ![UI](images/screenshot5.png)
 ![UI](images/screenshot6.png)
+![UI](images/screenshot7.png)
+![UI](images/screenshot8.png)
 ![Grafana](images/grafana.png)
 ![Node-Red](images/nodered_1.png)
 ![Node-Red](images/nodered_2.png)

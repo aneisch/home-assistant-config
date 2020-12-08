@@ -1,0 +1,15 @@
+sensor:
+  - platform: mqtt
+    state_topic: "compost/status"
+    name: compost_online_offline
+
+  - platform: mqtt
+    state_topic: "compost/sensor/uptime/state"
+    name: compost
+    unit_of_measurement: 's'
+
+switch:
+  - platform: mqtt
+    name: "Compost Disable Deep Sleep"
+    command_topic: "compost/cmnd/ota_mode"
+    retain: true

@@ -179,14 +179,14 @@ Aquarium All Light On Morning:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  entities: switch.aquarium_light,light.aquarium_white_light
+  entities: switch.aquarium_light
   time_on: "10:00:00"
 
-Aquarium White Light Afternoon:
+Aquarium All Light Afternoon:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_white_light
+  entities: switch.aquarium_light
   time_off: "13:00:00"
   time_on: "14:30:00"
 
@@ -201,7 +201,7 @@ Aquarium All Light Off Evening:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_white_light,switch.aquarium_light
+  entities: switch.aquarium_light
   time_off: "17:30:00"
 
 NAS:

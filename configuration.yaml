@@ -10,6 +10,7 @@ homeassistant:
   customize: !include customize.yaml
   packages:
     aarlo: !include packages/aarlo.yaml
+    compost: !include packages/compost.yaml
     #door_unlock: !include packages/door_unlock.yaml
     #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
