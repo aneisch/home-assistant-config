@@ -10,6 +10,7 @@ esphome:
 wifi:
   ssid: "SSID"
   password: "WPA_KEY"
+  fast_connect: true
   manual_ip:
     static_ip: 10.0.0.55
     gateway: 10.0.1.1
@@ -36,7 +37,7 @@ mqtt:
 deep_sleep:
   id: deep_sleep_1
   run_duration: 5s
-  sleep_duration: 60min
+  sleep_duration: 360min
 
 sensor:
   - platform: uptime
