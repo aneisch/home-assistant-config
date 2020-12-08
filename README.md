@@ -22,7 +22,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
-- OpenZWave (beta) using [[Aeon Labs ZW090 Z-Stick](https://amzn.to/39cmb1b)](https://amzn.to/39cmb1b) with various devices
+- OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
   - 1 12719 Plug-in Smart Switch
   - 1 12722 On/Off Relay Switch
   - 1 12730 Fan Control Switch
