@@ -4,7 +4,15 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
   - !include .cards/thermostat.yaml
-  
+
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "*compost*"
+    card:
+      type: entities
+      show_header_toggle: false
+
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities

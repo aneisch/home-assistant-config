@@ -7,9 +7,6 @@ automation:
         to: 'open'
       - platform: state
         entity_id: cover.garage_door
-        from: 'open'
-        to: 'closed'
-        for: '00:00:02'
     action:
       - service: script.office_switch_leds
         data:

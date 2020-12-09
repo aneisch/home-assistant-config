@@ -100,7 +100,6 @@ cover:
       - switch.turn_on: garage
     stop_action:
       - switch.turn_on: garage
-    optimistic: true
     
 switch:
   # GPIO output for relay
