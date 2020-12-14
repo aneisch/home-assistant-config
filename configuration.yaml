@@ -17,6 +17,7 @@ homeassistant:
     gate_testing: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
+    music: !include packages/music.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
     #train: !include packages/train.yaml

@@ -1,4 +1,5 @@
 sensor:
+  # Gate
   - platform: mqtt
     state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
     name: gate_battery_voltage
@@ -17,6 +18,25 @@ sensor:
     state_topic: "mom_and_dad/status"
     name: gate_online_offline
 
+  # Garage
+  - platform: mqtt
+    state_topic: "mom_and_dad_garage/sensor/ip_address/state"
+    name: mom_and_dad_garage_ip_address
+  - platform: mqtt
+    state_topic: "mom_and_dad_garage/sensor/uptime/state"
+    name: mom_and_dad_garage_uptime
+    unit_of_measurement: 's'
+
+cover:
+  - platform: mqtt
+    name: "Mom and Dad Garage"
+    availability:
+      - topic: "mom_and_dad_garage/status"
+    command_topic: "cmd/mom_and_dad_garage"
+    state_topic: "mom_and_dad_garage/cover/garage_door/state"
+    qos: 0
+    retain: false
+    optimistic: false
 
 binary_sensor:
   - platform: mqtt
@@ -45,7 +65,7 @@ automation:
           message: >
             Vehicle Sensor Automation Fired!
 
-  - alias: "Webhook Trigger"
+  - alias: "Webhook Trigger Gate"
     initial_state: 'on'
     trigger:
       platform: webhook
@@ -54,6 +74,16 @@ automation:
       service: script.turn_on
       entity_id: script.mom_and_dad_gate_toggle
 
+  - alias: "Webhook Trigger Garage"
+    initial_state: 'on'
+    trigger:
+      platform: webhook
+      webhook_id: !secret mom_and_dad_garage_webhook_id
+    action:
+      service: cover.toggle
+      entity_id: cover.mom_and_dad_garage
+
+
 
 script:
   mom_and_dad_gate_toggle:
@@ -61,4 +91,10 @@ script:
       - service: mqtt.publish
         data:
           topic: "cmd/mom_and_dad_gate"
+          payload: 'toggle'
+  mom_and_dad_garage_toggle:
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: "cmd/mom_and_dad_garage"
           payload: 'toggle'

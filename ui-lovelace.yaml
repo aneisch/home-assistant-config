@@ -6,7 +6,7 @@ custom_header:
   elements_color: var(--app-header-text-color)
   chevrons: false
   # Hide grill tab if grill inactive
-  hide_tabs: "{% if not ( (is_state('switch.docker_thermopro_mqtt', 'on') or (not is_state('sensor.traeger_temperature', 'unavailable'))) ) %}4{% endif %}"
+  hide_tabs: "{% if not ( (is_state('switch.docker_thermopro_mqtt', 'on') or (not is_state('sensor.traeger_temperature', 'unavailable'))) ) %}5{% endif %}"
   tab_indicator_color: "rgb(214, 122, 127)"
   # Only footer mode on Andrew phone
   footer_mode: "{% if 'Pixel 2' in userAgent %}true{% else %}false{% endif %}"

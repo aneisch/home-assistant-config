@@ -1,0 +1,26 @@
+title: Heads Up
+icon: mdi:head-cog-outline
+cards:
+  - !include .cards/kitchen_timer.yaml
+  - !include .cards/grill.yaml
+  
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "light.*"
+          state: "on"
+        - entity_id: "switch.*"
+          state: "on"
+        - entity_id: "group.under_cabinet_lights"
+          state: "on"
+      exclude:
+        - entity_id: "switch.docker*"
+        - entity_id: "switch.under*"
+    card:
+      type: entities
+      show_header_toggle: false
+    sort:
+      method: name
+
+  - !include .cards/spotify.yaml
+

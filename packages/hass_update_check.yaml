@@ -31,7 +31,7 @@ sensor:
     scan_interval: 1800
 
 automation:
-  - alias: "Trigger Github Action"
+  - alias: "Auto-Upgrade: Trigger Github Action"
     mode: queued
     initial_state: 'on'
     trigger:
@@ -53,12 +53,12 @@ automation:
             {% if trigger.entity_id == "sensor.ha_docker_version_beta" %}
               '{% if states('sensor.ha_docker_version_beta').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
             {% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}
-              '{% if states('sensor.ha_version')[:-2] == states('sensor.ha_docker_version_stable')[:-2] %}minor{% else %}major{% endif %}'
+              '{% if states('sensor.ha_docker_version_stable').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
             {% endif %}
           version: '{{ trigger.to_state.state }}'
 
   # Triggered from Github action. Auto-update or notify, we only auto-apply minor releases.
-  - alias: "Github Action Callback"
+  - alias: "Auto-Upgrade: Github Action Callback"
     initial_state: 'on'
     trigger:
       platform: webhook

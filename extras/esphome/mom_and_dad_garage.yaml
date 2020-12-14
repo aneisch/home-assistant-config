@@ -1,0 +1,90 @@
+esphome:
+  name: mom_and_dad_garage
+  platform: ESP8266
+  board: d1_mini
+
+web_server:
+  port: 80
+
+logger:
+  level: NONE
+  
+wifi:
+  networks:
+  - ssid: SSID
+    password: WPA_KEY
+  - ssid: SSID
+    password: WPA_KEY
+  - ssid: SSID
+    password: WPA_KEY
+
+ota:
+  safe_mode: True
+  password: esphome_recovery
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+    id: garage_status
+    device_class: door
+    filters:
+      - delayed_on: 1s
+      - delayed_off: 1s
+
+cover:
+  - platform: template
+    name: "Garage Door"
+    device_class: garage
+    lambda: |-
+      if (id(garage_status).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: garage
+    close_action:
+      - switch.turn_on: garage
+    stop_action:
+      - switch.turn_on: garage
+    
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    pin:
+      number: D1
+      inverted: False
+  - platform: restart
+    name: "Reboot"
+
+  - platform: template
+    id: garage
+    #name: "Garage Remote"
+    icon: "mdi:garage"
+    turn_on_action:
+    - switch.turn_on: relay
+    - delay: 500ms
+    - switch.turn_off: relay
+
+mqtt:
+  broker: MQTT_BROKER
+  username: gate
+  password: MQTT_PASS
+  log_topic: 
+  on_message:
+    - topic: cmd/mom_and_dad_garage
+      then:
+        - switch.toggle: garage
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "IP Address"
+
+sensor:
+  - platform: uptime
+    name: "Uptime"
+    update_interval: 600s

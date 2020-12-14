@@ -147,7 +147,7 @@ Front Porch Lights:
 Inside Scenic Lights:
   module: entity_timer
   class: Timer
-  entities: light.entryway_light,light.living_room_sconces
+  entities: light.entryway_light
   time_on: sunset
   time_off: "23:00:00"
   brightness: 255
@@ -261,13 +261,13 @@ Sleepy Time Lamp Automation Override:
   follower: input_boolean.house_lamps_automation
   invert: True
 
-House Lamp Automation Sunset:
+Indoor Light Automation Sunset:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:45:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces
   brightness: 255
 
 Living Room Lamp Follow:
