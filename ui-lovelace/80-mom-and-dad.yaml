@@ -11,9 +11,11 @@ cards:
       - sensor.gate_movement_cause
       - binary_sensor.gate_automation_safety
       - binary_sensor.gate_heading_comparison
-      - sensor.gate_ip_address
       - sensor.gate_battery_voltage
-      - sensor.gate_uptime
+      - entity: sensor.gate_ip_address
+        name: Microcontroller IP Address
+      - entity: sensor.gate_uptime
+        name: Microcontroller Uptime
       - entity: sensor.gate_online_offline
         style: |
           :host {
@@ -23,8 +25,9 @@ cards:
               ;
           }
       - automation.gate_heading_comparison_action_notify
-      - script.mom_and_dad_gate_toggle
       - input_boolean.gate_alert
+      - entity: script.mom_and_dad_gate_toggle
+        name: Gate Toggle
 
 
   - type: entities
@@ -32,7 +35,10 @@ cards:
     title: Garage
     entities:
       - cover.mom_and_dad_garage
-      - sensor.mom_and_dad_garage_ip_address
-      - sensor.mom_and_dad_garage_uptime
-      - script.mom_and_dad_garage_toggle
+      - entity: sensor.mom_and_dad_garage_ip_address
+        name: Microcontroller IP Address
+      - entity: sensor.mom_and_dad_garage_uptime
+        name: Microcontroller Uptime
+      - entity: script.mom_and_dad_garage_toggle
+        name: Garage Toggle
 

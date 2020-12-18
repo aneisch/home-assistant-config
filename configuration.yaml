@@ -34,12 +34,6 @@ homeassistant:
 
 alexa: !include alexa.yaml
 
-alexa_media:
-  accounts:
-    - email: !secret amazon_email
-      password: !secret amazon_pass
-      url: "amazon.com"
-
 automation: !include automation.yaml
 
 binary_sensor: !include binary_sensor.yaml

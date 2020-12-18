@@ -13,9 +13,9 @@ AutoAdjust:
   cool_day: '80'
   cool_night: '72'
   cool_unoccupied: '82'
-  heat_day: '65'
-  heat_night: '62'
-  heat_unoccupied: '60'
+  heat_day: '67'
+  heat_night: '65'
+  heat_unoccupied: '62'
 
 Zigbee Remote:
   module: zigbee_remote
