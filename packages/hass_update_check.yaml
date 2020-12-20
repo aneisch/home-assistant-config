@@ -88,7 +88,7 @@ automation:
         from: "not_home"
         to: "home"
     # Only upgrade if we're home
-    condition: '{{ states("group.trackers") == "home" and states("input_boolean.upgrade_hass_now") == "on" }}'
+    condition: '{{ states("person.andrew") == "home" and states("input_boolean.upgrade_hass_now") == "on" }}'
     action:
       - service: notify.pushover
         data:
