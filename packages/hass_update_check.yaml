@@ -5,6 +5,11 @@
 # compatibility and notify of available 
 # upgrade. 
 
+input_boolean:
+  # Automation when off --> on to call upgrade
+  upgrade_hass_now:
+    name: Upgrade HASS Now
+
 sensor:
   - platform: version
     source: docker
@@ -39,9 +44,7 @@ automation:
         entity_id: sensor.ha_docker_version_beta
       - platform: state
         entity_id: sensor.ha_docker_version_stable
-    condition:
-      - condition: template
-        value_template: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) }}'
+    condition: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) }}'
     action:
       - service: shell_command.github_action_trigger
         data:
@@ -57,35 +60,65 @@ automation:
             {% endif %}
           version: '{{ trigger.to_state.state }}'
 
-  # Triggered from Github action. Auto-update or notify, we only auto-apply minor releases.
-  - alias: "Auto-Upgrade: Github Action Callback"
+  # Begin auto-upgrade flow
+  - alias: "Auto-Upgrade: Github Action Callback Turn on Boolean"
     initial_state: 'on'
     trigger:
       platform: webhook
       webhook_id: !secret hass_github_action_webhook
     action:
+      service: >
+        {% if trigger.json.upgrade == True %}
+          script.hass_minor_update
+        {% elif trigger.json.upgrade == False %}
+          script.hass_major_update
+        {% endif %}
+
+  # Actually try to upgrade if conditions are met
+  - alias: "Auto-Upgrade: Do Upgrade"
+    mode: single
+    initial_state: 'on'
+    trigger:
+      - platform: state
+        entity_id: input_boolean.upgrade_hass_now
+        from: "off"
+        to: "on"
+      - platform: state
+        entity_id: person.andrew
+        from: "not_home"
+        to: "home"
+    # Only upgrade if we're home
+    condition: '{{ states("group.trackers") == "home" and states("input_boolean.upgrade_hass_now") == "on" }}'
+    action:
       - service: notify.pushover
         data:
           message: >
-            {% if trigger.json.upgrade == True %}
-              New Version Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
-              Changes: https://git.io/JvkT4 
-              Tested: https://git.io/JvkTY
-            {% elif trigger.json.upgrade == False %}
-              New Version Not Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
-              Changes: https://git.io/JvkT4
-              Tested: https://git.io/JvkTY
-            {% endif %}
-      - service: '{% if trigger.json.upgrade == True %}shell_command.upgrade_hass{% else %}script.noop{% endif %}'
+            New Version Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
+            Changes: https://git.io/JvkT4 
+            Tested: https://git.io/JvkTY
+      - service: homeassistant.turn_off
+        entity_id: input_boolean.upgrade_hass_now
+      - service: shell_command.upgrade_hass
 
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
   upgrade_hass: ssh nuc 'docker-compose -f /opt/docker-compose/unified/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/unified/docker-compose.yml up -d homeassistant'
 
 script:
-  noop:
+  hass_minor_update:
+    # Turn on boolean which triggers automation
     sequence:
-      delay: 00:00:00
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.upgrade_hass_now
+  hass_major_update:
+    # Only notify
+    sequence:
+      - service: notify.pushover
+        data:
+          message: >
+            New Version Not Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
+            Changes: https://git.io/JvkT4
+            Tested: https://git.io/JvkTY
 
 homeassistant:
   customize:
