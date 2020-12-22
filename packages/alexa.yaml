@@ -1,0 +1,56 @@
+input_select:
+  target_echo:
+    name: Echo
+    icon: mdi:microphone
+    options:
+      - "Master"
+      - "Office"
+      - "Bethany Office"
+      - "Kitchen"
+      - "Living Room"
+
+input_text:
+  alexa_cmd_text:
+    initial: ' '
+    max: 255
+  alexa_announcement_text:
+    initial: ' '
+    max: 255
+
+group:
+  echos:
+    name: Echos
+    entities:
+      - media_player.master
+      - media_player.office
+      - media_player.bethany_office
+      - media_player.kitchen
+      - media_player.living_room
+
+script:
+  send_alexa_command:
+    sequence:
+      - service: media_player.play_media
+        data:
+          entity_id: '{{ "media_player." + states("input_select.target_echo") }}'
+          media_content_id: '{{ states("input_text.alexa_cmd_text") }}'
+          media_content_type: custom
+
+sensor:
+  - platform: template
+    sensors:
+      last_echo:
+        value_template: >
+          {{ expand(states.group.echos) | selectattr('attributes.last_called','eq',True) | map(attribute='entity_id') | first }}
+
+automation:
+  - alias: "Change Alexa Input Select"
+    initial_state: on
+    trigger:
+      - platform: state
+        entity_id: sensor.last_echo
+    action:
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.target_echo
+          option: '{{ states("sensor.last_echo") }}'

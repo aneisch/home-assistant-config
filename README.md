@@ -55,7 +55,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1552
-Lines of Home Assistant YAML | 4977
+Lines of Home Assistant YAML | 5060
 [Integrations](https://www.home-assistant.io/integrations/) in use | 25
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
@@ -121,6 +121,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
+[gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>

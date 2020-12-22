@@ -158,6 +158,7 @@ cards:
         title: Home Assistant
         show_header_toggle: false
         entities:
+          - sensor.uptime
           - sensor.ha_version
           - sensor.ha_github_version
           - sensor.ha_docker_version_stable

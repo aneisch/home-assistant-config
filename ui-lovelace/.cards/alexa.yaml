@@ -1,0 +1,25 @@
+type: entities
+entities:
+  - entity: input_select.target_echo
+    name: Select Alexa device
+  - entity: input_text.alexa_cmd_text
+    name: 'Type question/command here:'
+    type: 'custom:text-input-row'
+  - action_name: Run Command/Ask Question...
+    icon: 'mdi:voice'
+    name: ' '
+    service: script.send_alexa_command
+    type: call-service
+  - action_name: Stop Alexa
+    icon: 'mdi:voice'
+    name: ' '
+    service: script.stop_alexa_command
+    type: call-service
+  - entity: input_text.alexa_announcement_text
+    name: 'Type announcement text here:'
+    type: 'custom:text-input-row'
+  - type: call-service
+    name: ' '
+    icon: 'mdi:voice'
+    action_name: Announce It...
+    service: script.send_alexa_annoucement

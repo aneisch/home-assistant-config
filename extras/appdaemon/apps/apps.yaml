@@ -129,8 +129,8 @@ Occupancy Simulator:
 
   # Ensure all off late
   step_off_name: Off
-  step_off_start: '00:15:00'
-  step_off_stop: '00:30:00'
+  step_off_start: '11:30:00'
+  step_off_stop: '11:59:00'
   step_off_off_1: light.master_bedroom_lamps
   step_off_off_2: light.dining_room_light
   step_off_off_3: light.kitchen_table_light

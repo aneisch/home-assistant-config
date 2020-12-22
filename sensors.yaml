@@ -1,5 +1,7 @@
 - platform: moon
 
+- platform: uptime
+
 #- platform: arlo
 
 #- platform: aarlo

@@ -9,6 +9,7 @@ homeassistant:
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
+    alexa: !include packages/alexa.yaml
     aarlo: !include packages/aarlo.yaml
     compost: !include packages/compost.yaml
     #door_unlock: !include packages/door_unlock.yaml
@@ -192,6 +193,8 @@ input_select: !include input_select.yaml
 
 intent_script: !include intent_script.yaml
 
+input_text: !include input_text.yaml
+
 ios:
   push:
     categories:
@@ -292,6 +295,8 @@ lovelace:
     - url: /hacsfiles/bignumber-card/bignumber-card.js
       type: module
     - url: /hacsfiles/ozw-network-visualization-card/ozw-network-visualization-card.js
+      type: module
+    - url: /hacsfiles/lovelace-text-input-row/lovelace-text-input-row.js
       type: module
 
 

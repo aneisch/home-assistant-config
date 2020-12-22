@@ -119,6 +119,7 @@ cards:
                value: 20
 
   - !include .cards/spotify.yaml
+  - !include .cards/alexa.yaml
 
   - type: custom:vertical-stack-in-card
     cards:
