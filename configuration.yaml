@@ -11,22 +11,17 @@ homeassistant:
   packages:
     alexa: !include packages/alexa.yaml
     aarlo: !include packages/aarlo.yaml
-    compost: !include packages/compost.yaml
-    #door_unlock: !include packages/door_unlock.yaml
     #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
-    music: !include packages/music.yaml
+    magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
-    #train: !include packages/train.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     uw: !include packages/uw.yaml
     vacuum: !include packages/vacuum.yaml
-    #bus_time: !include packages/bus_time.yaml
-    #voting: !include packages/voting.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks

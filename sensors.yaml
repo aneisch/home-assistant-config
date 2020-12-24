@@ -85,14 +85,27 @@
 - platform: mqtt
   name: Rain Total
   unit_of_measurement: "in"
-  state_topic: "sensor/rain"
-  value_template: "{{ value_json.rain_in }}"
+  state_topic: "sensor/rtl_433/rain_in"
 
 - platform: mqtt
   name: Rain Rate
   unit_of_measurement: "in/h"
-  state_topic: "sensor/rain"
-  value_template: "{{ value_json.rain_rate_in_h }}"
+  state_topic: "sensor/rtl_433/rain_rate_in_h"
+
+- platform: mqtt
+  name: Compost External Temperature
+  unit_of_measurement: "°F"
+  state_topic: "sensor/rtl_433/temperature_F"
+
+- platform: mqtt
+  name: Compost External Humidity
+  unit_of_measurement: "%"
+  state_topic: "sensor/rtl_433/humidity"
+
+- platform: mqtt
+  name: Compost Internal Temperature
+  unit_of_measurement: "°F"
+  state_topic: "sensor/rtl_433/temperature_1_F"
 
 ###################
 # MQTT THERMOSTAT #
