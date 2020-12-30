@@ -312,36 +312,28 @@
       - switch.living_room_speakers
       - switch.tv
 
-#- alias: "Backlight off when MacBook Inactive"
-#  initial_state: 'on'
-#  trigger:
-#    platform: state
-#    entity_id: binary_sensor.andrew_macbook_active
-#  condition:
-#    condition: and
-#    conditions:
-#      - condition: state
-#        entity_id: binary_sensor.andrew_desk_keyboard_tray
-#        state: 'on'
-#      - condition: state
-#        entity_id: person.andrew
-#        state: 'home'
-#  action:
-#    - choose:
-#      - conditions:
-#        - condition: state
-#          entity_id: binary_sensor.andrew_macbook_active
-#          state: "on"
-#        sequence:
-#          - service: light.turn_on
-#            entity_id: light.andrew_monitor_backlight
-#      - conditions:
-#        - condition: state
-#          entity_id: binary_sensor.andrew_macbook_active
-#          state: "off"
-#        sequence:
-#          - service: light.turn_off
-#            entity_id: light.andrew_monitor_backlight
+- alias: "Desk Lamp off when MacBook Inactive"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.andrew_macbook_active
+    to: "off"
+    for: "00:10:00"
+  condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
+  action:
+    - service: homeassistant.turn_off
+      entity_id: light.andrew_desk_lamp
+
+- alias: "Desk Lamp on when MacBook Active"
+  initial_state: 'on'
+  trigger:
+    platform: state
+    entity_id: binary_sensor.andrew_macbook_active
+    to: "on"
+  condition: "{{ states('light.andrew_desk_lamp') == 'off' and (now().hour >= 5 and now().hour <= 22) }}"
+  action:
+    - service: homeassistant.turn_on
+      entity_id: light.andrew_desk_lamp
 
 - alias: "Water Sensor Alerts"
   trigger:

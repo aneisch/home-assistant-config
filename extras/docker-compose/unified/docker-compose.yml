@@ -235,6 +235,8 @@ services:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
         user: '99'
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
         environment:
             - MQTT_SERVER=10.0.1.22
             - MQTT_PORT=1883

@@ -13,9 +13,6 @@ input_text:
   alexa_cmd_text:
     initial: ' '
     max: 255
-  alexa_announcement_text:
-    initial: ' '
-    max: 255
 
 group:
   echos:
@@ -32,9 +29,18 @@ script:
     sequence:
       - service: media_player.play_media
         data:
-          entity_id: '{{ "media_player." + states("input_select.target_echo") }}'
+          entity_id: '{{ "media_player." + (states("input_select.target_echo")|regex_replace(find=" ", replace="_", ignorecase=False)) }}'
           media_content_id: '{{ states("input_text.alexa_cmd_text") }}'
           media_content_type: custom
+
+  stop_alexa_command:
+    alias: STOP Alexa command
+    sequence:
+    - service: media_player.play_media
+      data_template:
+        entity_id: '{{ states("sensor.last_echo") }}'
+        media_content_id: "stop"
+        media_content_type: custom
 
 sensor:
   - platform: template

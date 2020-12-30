@@ -137,6 +137,7 @@ cards:
           - sensor.rain_rate
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
+          - sensor.compost_internal_temperature
       - type: custom:weather-card
         entity: weather.kcll_daynight
 

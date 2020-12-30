@@ -2,7 +2,7 @@
 Take input from a number of input_select and then tell Roborock to clean those rooms
 """
 
-rooms = {'Dining Room':24,'Kitchen':25,'Living Room':23,'Office':21,'Guest Bedroom':26,'Guest Bathroom':19,'Hallway':16,"Bethany's Office":20,'Master Bedroom':18,'Master Bathroom':27}
+rooms = {'Dining Room':22,'Kitchen':24,'Living Room':23,'Office':21,'Guest Bedroom':26,'Guest Bathroom':19,'Hallway':16,"Bethany's Office":20,'Master Bedroom':18,'Master Bathroom':27}
 
 segments = []
 

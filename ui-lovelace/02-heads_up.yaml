@@ -16,6 +16,7 @@ cards:
       exclude:
         - entity_id: "switch.docker*"
         - entity_id: "switch.under*"
+        - entity_id: "switch.aquarium_filter"
     card:
       type: entities
       show_header_toggle: false

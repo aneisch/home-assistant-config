@@ -15,11 +15,3 @@ entities:
     name: ' '
     service: script.stop_alexa_command
     type: call-service
-  - entity: input_text.alexa_announcement_text
-    name: 'Type announcement text here:'
-    type: 'custom:text-input-row'
-  - type: call-service
-    name: ' '
-    icon: 'mdi:voice'
-    action_name: Announce It...
-    service: script.send_alexa_annoucement

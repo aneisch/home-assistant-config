@@ -44,7 +44,7 @@ climate:
   - platform: mqtt
     name: "Thermostat"
     max_temp: 85
-    min_temp: 60
+    min_temp: 50
     action_topic: "sensor/thermostat"
     action_template: >
       {% if value_json.coolicon == 'on' %}
