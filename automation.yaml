@@ -318,7 +318,7 @@
     platform: state
     entity_id: binary_sensor.andrew_macbook_active
     to: "off"
-    for: "00:10:00"
+    for: "00:15:00"
   condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
   action:
     - service: homeassistant.turn_off
@@ -330,7 +330,7 @@
     platform: state
     entity_id: binary_sensor.andrew_macbook_active
     to: "on"
-  condition: "{{ states('light.andrew_desk_lamp') == 'off' and (now().hour >= 5 and now().hour <= 22) }}"
+  condition: "{{ states('light.andrew_desk_lamp') == 'off' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
