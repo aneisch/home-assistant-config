@@ -5,22 +5,12 @@ cards:
   - !include .cards/grill.yaml
   - !include .cards/thermostat.yaml
 
-#  - type: 'custom:auto-entities'
-#    filter:
-#      include:
-#        - entity_id: "*compost*"
-#    card:
-#      type: entities
-#      show_header_toggle: false
-
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
         show_header_toggle: false
         title: Security
         entities:
-          #- !secret alarm_panel_1
-          #- !secret alarm_panel_2
           - input_boolean.security_status
           - entity: cover.garage_door
             style: |
@@ -79,13 +69,6 @@ cards:
       - person.andrew
       - person.bethany
 
-  #- type: entities
-  #  title: Garage
-  #  entities:
-  #    - binary_sensor.cx5
-  #    - binary_sensor.cruze
-  #    - cover.garage_door
-
   - type: custom:vertical-stack-in-card
     title: Mail & Package Tracking
     cards:
@@ -141,9 +124,9 @@ cards:
       - type: custom:weather-card
         entity: weather.kcll_daynight
 
-  - type: iframe
-    aspect_ratio: 90%
-    url: !secret windy_url
+  #- type: iframe
+  #  aspect_ratio: 90%
+  #  url: !secret windy_url
 
   - type: picture-glance
     camera_image: camera.weather_radar
@@ -156,20 +139,3 @@ cards:
   - type: picture-glance
     camera_image: camera.outdoor
     entities: []
-
-  #- type: picture-glance
-  #  camera_image: camera.backyard_camera
-  #  entities: [sensor.miflora_temperature, sensor.miflora_moisture, sensor.miflora_illuminance]
-  #  show_state: true
-  #  style: |
-  #    div.box {
-  #     justify-content: center;
-  #    }
-  #    div.wrapper {
-  #     padding-left: 20px;
-  #     padding-right: 20px;
-  #    }
-#
-#  - type: picture-glance
-#    camera_image: camera.esp_camera
-#    entities: []

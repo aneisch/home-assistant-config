@@ -105,6 +105,12 @@ cards:
       - switch.aquarium_co2
       - entity: switch.andrew_office_speakers
         icon: mdi:speaker
+      - name: Office Heater On
+        icon: mdi:radiator
+        entity: script.office_heater_on
+      - name: Office Heater Off
+        icon: mdi:radiator-off
+        entity: script.office_heater_off
 
   - !include .cards/spotify.yaml
 

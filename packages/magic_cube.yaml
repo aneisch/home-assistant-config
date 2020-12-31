@@ -32,11 +32,11 @@ automation:
             {% elif trigger.event.data.args["activated_face"] == 2 and trigger.event.data.command == "knock" %}
               switch.aquarium_filter
             {% elif trigger.event.data.args["activated_face"] == 3 %}
-              script.noop
+              script.office_heater_off
             {% elif trigger.event.data.args["activated_face"] == 4 %}
               light.office_ceiling_fan
             {% elif trigger.event.data.args["activated_face"] == 5 %}
-              script.noop
+              script.office_heater_on
             {% elif trigger.event.data.args["activated_face"] == 6 %}
               light.andrew_desk_lamp
             {% endif %}

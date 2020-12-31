@@ -188,3 +188,31 @@ tv_change_input:
     - service: homeassistant.turn_on
       data:
         entity_id: switch.tv_remote_input
+
+flash_andrew_desk_lamp:
+  sequence:
+    - condition: state
+      entity_id: light.andrew_desk_lamp
+      state: 'on'
+    - service: light.turn_on
+      entity_id: light.andrew_desk_lamp
+      data:
+        flash: short
+
+office_heater_on:
+  sequence:
+    - service: script.flash_andrew_desk_lamp
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.office
+        media_content_id: 'turn on the office heater'
+        media_content_type: custom
+
+office_heater_off:
+  sequence:
+    - service: script.flash_andrew_desk_lamp
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.office
+        media_content_id: 'turn off the office heater'
+        media_content_type: custom
