@@ -1,10 +1,10 @@
 services:
   - docker
 before_install:
-  - docker pull homeassistant/home-assistant:stable
   - mv travis_secrets.yaml secrets.yaml
   - sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
   - echo 'DOCKER_OPTS="$DOCKER_OPTS --registry-mirror=https://mirror.gcr.io"'
   - sudo service docker restart
+  - docker pull homeassistant/home-assistant:stable
 script:
   - docker run -it --rm -v $TRAVIS_BUILD_DIR:/config homeassistant/home-assistant:stable python -m homeassistant --config /config --script check_config
