@@ -262,6 +262,8 @@ light:
             brightness: "{{ brightness }}"
             entity_id: light.aquarium_light_intensity
         icon_template: mdi:fish
+        level_template: "{{ state_attr('light.aquarium_light_intensity', 'brightness')|int }}"
+        value_template: "{{ is_state('switch.aquarium_light_power', 'on') }}"
 
 logbook:
 
