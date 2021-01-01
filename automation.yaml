@@ -370,31 +370,6 @@
     - service: homeassistant.turn_off
       entity_id: switch.master_closet_light
 
-- alias: "Aquarium Light"
-  trigger:
-    # Double Off
-    - platform: event
-      event_type: zwave.scene_activated
-      event_data:
-        entity_id: zwave.office_ceiling_fan
-        scene_id: 2
-        scene_data: 7860
-    # Double On
-    - platform: event
-      event_type: zwave.scene_activated
-      event_data:
-        entity_id: zwave.office_ceiling_fan
-        scene_id: 1
-        scene_data: 7860
-  action:
-    - service: >
-        {% if trigger.event.data.scene_id == 1 %}
-          homeassistant.turn_on
-        {% elif trigger.event.data.scene_id == 2 %}
-          homeassistant.turn_off
-        {% endif %}
-      entity_id: light.aquarium_white_light
-
 - alias: "Sensor Battery Alerts"
   trigger:
     - platform: numeric_state

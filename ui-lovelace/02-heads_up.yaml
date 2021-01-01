@@ -17,6 +17,9 @@ cards:
         - entity_id: "switch.docker*"
         - entity_id: "switch.under*"
         - entity_id: "switch.aquarium_filter"
+        - entity_id: "switch.aquarium_light_power"
+        - entity_id: "light.aquarium_light_intensity"
+        - entity_id: "switch.circadian_lighting_circadian_lighting"
     card:
       type: entities
       show_header_toggle: false

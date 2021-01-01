@@ -39,6 +39,12 @@ camera: !include camera.yaml
 # 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
 #conversation:
 
+circadian_lighting:
+  # Set manual sunrise/sunset for aquarium brightness
+  sunrise_time: "09:00:00"
+  sunset_time: "18:00:00"
+  transition: 10
+
 climate:
   # https://www.home-assistant.io/integrations/climate.mqtt/
   - platform: mqtt
@@ -212,10 +218,10 @@ light:
           type: rgbw
           name: Garage
           fade: on
-        # - number: 2
-        #   type: rgbw
-        #   name: andrew_monitor_backlight
-        #   fade: on
+        - number: 2
+          type: rgbw
+          name: aquarium_light_intensity
+          fade: on
   - platform: group
     name: Kitchen Lights
     entities:
@@ -237,6 +243,25 @@ light:
     entities:
        - light.front_porch_1
        - light.front_porch_2
+
+  - platform: template
+    lights:
+      aquarium_light:
+        friendly_name: Aquarium Light
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: switch.aquarium_light_power
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: switch.aquarium_light_power
+        set_level:
+          service: light.turn_on
+          data:
+            brightness: "{{ brightness }}"
+            entity_id: light.aquarium_light_intensity
+        icon_template: mdi:fish
 
 logbook:
 

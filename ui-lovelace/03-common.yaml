@@ -99,8 +99,7 @@ cards:
       - sensor.office_temperature
       - switch.office_ceiling_fan
       - light.office_ceiling_fan
-      - switch.aquarium_light
-      - light.aquarium_white_light
+      - light.aquarium_light
       - sensor.aquarium_temperature
       - switch.aquarium_co2
       - entity: switch.andrew_office_speakers

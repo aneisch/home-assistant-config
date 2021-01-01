@@ -8,6 +8,7 @@ smart_home:
       - alert
       - automation
       - camera
+      - climate
       - cover
       - fan
       - group
