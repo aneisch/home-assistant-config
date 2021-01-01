@@ -297,13 +297,13 @@ script:
           x_coord: 13950
           y_coord: 23250
 
-  # For Alexa routines
+  # For Alexa routines, see python_scripts/vacuum for segment #s
   vacuum_clean_kitchen:
     sequence:
       - service: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
-          segments: 25
+          segments: 24
 
   vacuum_clean_living_room:
     sequence:
@@ -317,7 +317,7 @@ script:
       - service: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
-          segments: 24
+          segments: 22
 
   vacuum_clean_office:
     sequence:
