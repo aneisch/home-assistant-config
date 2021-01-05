@@ -32,6 +32,9 @@ switch.tv_remote_power:
   friendly_name: TV Power
   icon: mdi:television-classic
 
+switch.andrew_office_speakers:
+  icon: "mdi:speaker"
+
 switch.tv:
   friendly_name: TV
   icon: mdi:television-classic

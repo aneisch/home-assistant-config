@@ -73,8 +73,9 @@ cards:
       - light.front_porch_lights
       - switch.front_sconces
       - light.back_porch_light
-      - light.garage_light
-      - switch.christmas_lights
+      - light.garage_exterior_light
+      - switch.garage_lights
+      #- switch.christmas_lights
       - switch.globe_lights
       - light.garage
 

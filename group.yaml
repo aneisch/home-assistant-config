@@ -45,6 +45,7 @@ kitchen:
 
 under_cabinet_lights:
   name: Under Cabinet Lights
+  icon: "mdi:wall-sconce-flat"
   entities:
     - switch.under_cabinet_lights_stove
     - switch.under_cabinet_lights_coffee

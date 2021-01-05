@@ -9,7 +9,7 @@ cards:
     title: Master Bedroom
     entities:
       - sensor.master_bedroom_temperature
-      - binary_sensor.master_bedroom_bed
+      #- binary_sensor.master_bedroom_bed
       - light.master_bedroom_ceiling_fan
       - switch.master_bedroom_ceiling_fan
       - light.andrew_nightstand_lamp

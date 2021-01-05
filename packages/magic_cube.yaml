@@ -28,7 +28,7 @@ automation:
         data:
           entity_id: >
             {% if trigger.event.data.args["activated_face"] == 1  %}
-              switch.aquarium_light
+              light.aquarium_light
             {% elif trigger.event.data.args["activated_face"] == 2 and trigger.event.data.command == "knock" %}
               switch.aquarium_filter
             {% elif trigger.event.data.args["activated_face"] == 3 %}

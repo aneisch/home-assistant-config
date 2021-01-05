@@ -170,7 +170,7 @@ Circadian Follow:
   module: follow_me
   class: Follow
   leader: light.aquarium_light
-  follower: switch.circadian_lighting_circadian_lighting
+  follower: switch.circadian_lighting_aquarium_circadian
 
 CO2 On Morning:
   module: entity_timer
@@ -256,6 +256,13 @@ Kitchen Light at Night With Door:
   lights: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
   time_on: '30'
+
+Garage Lights with Cover:
+  module: door_open
+  class: DoorLight
+  door_sensor: cover.garage_door
+  lights: switch.garage_lights
+  time_on: '60'
 
 Sleepy Time Lamp Automation Override:
   # Stop master bedroom lamps from automatic when napping

@@ -19,7 +19,8 @@ cards:
         - entity_id: "switch.aquarium_filter"
         - entity_id: "switch.aquarium_light_power"
         - entity_id: "light.aquarium_light_intensity"
-        - entity_id: "switch.circadian_lighting_circadian_lighting"
+        - entity_id: "light.garage"
+        - entity_id: "switch.circadian_lighting_aquarium_circadian"
     card:
       type: entities
       show_header_toggle: false

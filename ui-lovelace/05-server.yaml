@@ -148,7 +148,6 @@ cards:
       - switch.docker_nodered
       - switch.docker_openzwave
       - switch.docker_thermostat_api_server
-      - sensor.thermostat_api_server_health
 
   #- type: custom:gui-sandbox
 
