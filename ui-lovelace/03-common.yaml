@@ -111,6 +111,7 @@ cards:
       - name: Office Heater Off
         icon: mdi:radiator-off
         entity: script.office_heater_off
+      - switch.plant_light
 
   - !include .cards/spotify.yaml
 

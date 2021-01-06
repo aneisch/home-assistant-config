@@ -55,11 +55,10 @@ automation:
     action:
       - service: >
           {% if trigger.event.data['command'] == "rotate_right" %}
-            homeassistant.turn_on
+            script.office_heater_on
           {% else %}
-            homeassistant.turn_off
+            script.office_heater_off
           {% endif %}
-        entity_id: switch.office_ceiling_fan
       - delay: 2
 
   # - alias: "Magic Cube Music Play"
