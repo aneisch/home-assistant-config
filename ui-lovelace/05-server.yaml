@@ -132,6 +132,7 @@ cards:
     title: Docker
     entities:
       - switch.docker_configurator
+      - switch.docker_vscode
       - switch.docker_esphome
       - switch.docker_grafana
       - switch.docker_librespeed

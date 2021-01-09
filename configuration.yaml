@@ -5,7 +5,6 @@ homeassistant:
   unit_system: imperial
   latitude: !secret home_lat
   longitude: !secret home_long
-  legacy_templates: false
   time_zone: America/Chicago
   customize: !include customize.yaml
   packages:
@@ -42,7 +41,7 @@ camera: !include camera.yaml
 circadian_lighting:
   # Set manual sunrise/sunset for aquarium brightness
   sunrise_time: "09:00:00"
-  sunset_time: "14:00:00"
+  sunset_time: "16:00:00"
   interval: 60
   transition: 10
 
@@ -286,6 +285,7 @@ logger:
     #zigpy_znp: debug
     #zhaquirks: debug
   #  custom_components.docker_monitor: debug
+    custom_components.alexa_media: debug
   #  homeassistant.components.webhook: debug
 
 lovelace:
@@ -364,6 +364,10 @@ panel_iframe:
     title: Configurator
     icon: mdi:wrench
     url: !secret configurator_url 
+  vscode:
+    title: VS Code
+    icon: mdi:wrench
+    url: !secret vscode_url 
   plane_tracking:
     title: "Plane Tracking"
     icon: mdi:airplane
@@ -446,6 +450,10 @@ recorder:
       - sensor.network_in_eno1
       - sensor.network_out_eno1
       - sensor.roborock_s4_last_cleaned
+      - sensor.thermopro_probe_1_high_estimated_length
+      - sensor.thermopro_probe_2_high_estimated_length
+      - sensor.circadian_values
+      - binary_sensor.gate_heading_comparison
     domains:
       - automation
       - alarm_panel

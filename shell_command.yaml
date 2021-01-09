@@ -5,8 +5,6 @@ nas_poweroff: ssh nuc '/usr/local/bin/nas-poweroff.sh'
 
 nuc_poweroff: ssh nuc 'sudo shutdown -h 2'
 
-owntracks_update: ssh nuc '/usr/local/bin/force_location_update.sh'
-
 mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
 
 umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'

@@ -12,11 +12,9 @@ class DoorLight(hass.Hass):
     def state_change(self, entity, attribute, old, new, kwargs):
         # Turn on immediately
         if (old in ["off", "closed"]) and (new in ["on", "open"]):
-
             for device in self.split_device_list(self.args["lights"]):
-                if self.get_state(device) == "off":
-                    self.log("Turning " + device + " on")
-                    self.turn_on(device)
+                self.log("Turning " + device + " on")
+                self.turn_on(device)
 
             if self.timer != None:
                 self.cancel_timer(self.timer)
@@ -25,9 +23,10 @@ class DoorLight(hass.Hass):
         # Schedule time off for after door/cover closes
         elif (old in ["on", "open"]) and (new in ["off", "closed"]):
             for device in self.split_device_list(self.args["lights"]):
-                # Schedule turn_off
-                self.timer = self.run_in(self.light_off, self.args["time_on"], device=device)
-                self.log("Scheduled turn_off {}".format(self.timer))
+                if self.get_state(device) == "off":
+                    # Schedule turn_off
+                    self.timer = self.run_in(self.light_off, self.args["time_on"], device=device)
+                    self.log("Scheduled turn_off {}".format(self.timer))
 
     def light_off(self, args):
         self.log("Turning " + args["device"] + " off")
