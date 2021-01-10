@@ -156,16 +156,23 @@ Front House Lights:
   entities: switch.front_sconces
   time_off: "22:00:00"
 
-Christmas Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.christmas_lights
-  time_on: sunset
-  time_off: "23:00:00"
+#Christmas Lights:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.christmas_lights
+#  time_on: sunset
+#  time_off: "23:00:00"
 
 ############
 # Aquarium #
 ############
+HC Light:
+  module: entity_timer
+  class: Timer
+  entities: switch.hc_light
+  time_on: sunrise
+  time_off: sunset
+
 Circadian Follow:
   module: follow_me
   class: Follow

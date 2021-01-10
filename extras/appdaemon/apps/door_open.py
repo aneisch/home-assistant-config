@@ -1,6 +1,5 @@
 import appdaemon.plugins.hass.hassapi as hass
 
-
 class DoorLight(hass.Hass):
     def initialize(self):
         self.timer = None
@@ -23,10 +22,9 @@ class DoorLight(hass.Hass):
         # Schedule time off for after door/cover closes
         elif (old in ["on", "open"]) and (new in ["off", "closed"]):
             for device in self.split_device_list(self.args["lights"]):
-                if self.get_state(device) == "off":
-                    # Schedule turn_off
-                    self.timer = self.run_in(self.light_off, self.args["time_on"], device=device)
-                    self.log("Scheduled turn_off {}".format(self.timer))
+                # Schedule turn_off
+                self.timer = self.run_in(self.light_off, self.args["time_on"], device=device)
+                self.log("Scheduled turn_off {}".format(self.timer))
 
     def light_off(self, args):
         self.log("Turning " + args["device"] + " off")
