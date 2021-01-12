@@ -96,7 +96,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     drawables = config[CONF_DRAW]
     sizes = config[CONF_SIZES]
     texts = config[CONF_TEXTS]
-    if "all" in drawables:
+    if DRAWABLE_ALL in drawables:
         drawables = CONF_AVAILABLE_DRAWABLES[1:]
     attributes = config[CONF_ATTRIBUTES]
     entity_id = generate_entity_id(ENTITY_ID_FORMAT, name, hass=hass)
@@ -175,6 +175,8 @@ class VacuumCamera(Camera):
         counter = 10
         if not self._logged:
             self._logged = self._connector.login()
+            if not self._logged:
+                _LOGGER.error("Unable log in")
         if self._country is None:
             self._country = self._connector.get_country_for_device(self._vacuum.ip, self._vacuum.token)
         map_name = "retry"
@@ -202,4 +204,6 @@ class VacuumCamera(Camera):
                     _LOGGER.warning("Unable to retrieve map data")
                 finally:
                     return
+            else:
+                self._logged = False
         _LOGGER.warning("Unable to retrieve map data")

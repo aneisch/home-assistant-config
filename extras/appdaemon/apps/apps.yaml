@@ -170,8 +170,8 @@ HC Light:
   module: entity_timer
   class: Timer
   entities: switch.hc_light
-  time_on: sunrise
-  time_off: sunset
+  time_on: sunset
+  time_off: sunrise
 
 Circadian Follow:
   module: follow_me

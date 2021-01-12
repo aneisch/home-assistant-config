@@ -230,7 +230,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/039'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -249,7 +249,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/040'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
@@ -289,11 +289,12 @@ services:
         # Has to run as root or something. Whatever.
         #user: '99'
         volumes:
-            - /opt/bw-data/db.sqlite3:/db.sqlite3
+            - /opt/bw-data:/data
             - /etc/localtime:/etc/localtime:ro
+            - /opt/bw-backup/:/config
         environment:
-            - DROPBOX_ACCESS_TOKEN=REDACT
             - BACKUP_ENCRYPTION_KEY=REDACT
+            - DELETE_AFTER=15
         restart: always
     #train-sensor:
     #    container_name: train-sensor

@@ -9,6 +9,8 @@ mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backu
 
 umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'
 
-copy: ssh nuc 'nohup /usr/local/bin/nas-copy.sh &; exit'
+#copy: ssh nuc 'nohup /usr/local/bin/nas-copy.sh &; exit'
+
+copy: ssh -n -f nuc "nohup /usr/local/bin/nas-copy.sh > /dev/null 2>&1 &"
 
 pull_recipes: ssh nuc 'cd /opt/recipes; git pull'

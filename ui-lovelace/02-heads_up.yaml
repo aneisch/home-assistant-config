@@ -11,6 +11,8 @@ cards:
           state: "on"
         - entity_id: "switch.*"
           state: "on"
+        - entity_id: "fan.*"
+          state: "on"
         - entity_id: "group.under_cabinet_lights"
           state: "on"
       exclude:
@@ -20,7 +22,11 @@ cards:
         - entity_id: "switch.aquarium_light_power"
         - entity_id: "light.aquarium_light_intensity"
         - entity_id: "light.garage"
+        - entity_id: "light.front_porch_*"
         - entity_id: "switch.circadian_lighting_aquarium_circadian"
+        - entity_id: "light.office_ceiling_fan_fan"
+        - entity_id: "light.living_room_ceiling_fan_fan"
+
     card:
       type: entities
       show_header_toggle: false

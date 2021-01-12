@@ -24,14 +24,14 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
+  - 1 
   - 1 12719 Plug-in Smart Switch
+  - 1 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
   - 1 12722 On/Off Relay Switch
-  - 1 12730 Fan Control Switch
-  - 1 DSA03202 Minimote
   - 1 Leviton DZPA1 Plug-In Outlet
   - 1 [WAPIRZ-1 Motion Sensor](https://amzn.to/2LhyH5F)
   - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
-  - 2 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
+  - 2 12730 Fan Control Switch
   - 2 WADWAZ-1 Door/Window Sensor
   - 2 [ZCombo-G Smoke/CO Alarm](https://amzn.to/2VOXBLY)
   - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
@@ -56,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1563
-Lines of Home Assistant YAML | 4924
+Lines of Home Assistant YAML | 4956
 [Integrations](https://www.home-assistant.io/integrations/) in use | 26
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 14
  
@@ -104,7 +104,6 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
 **Integration**:<br>
-[PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
@@ -121,11 +120,9 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
-[dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
 [gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
-[maykar/custom-header](https://github.com/maykar/custom-header)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
 [ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [thomasloven/lovelace-auto-entities](https://github.com/thomasloven/lovelace-auto-entities)<br>

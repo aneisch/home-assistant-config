@@ -43,18 +43,6 @@
     data:
         name: default
 
-- alias: "Remove new devices notification"
-  trigger:
-    - platform: state
-      entity_id: persistent_notification.config_entry_discovery
-      to: notifying
-    - platform: homeassistant
-      event: start
-  action:
-    - service: persistent_notification.dismiss
-      data:
-        notification_id: config_entry_discovery
-
 - alias: "Security Arm/Disarm"
   initial_state: on
   trigger:
@@ -312,17 +300,17 @@
       - switch.living_room_speakers
       - switch.tv
 
-- alias: "Desk Lamp off when MacBook Inactive"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: binary_sensor.andrew_macbook_active
-    to: "off"
-    for: "00:15:00"
-  condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
-  action:
-    - service: homeassistant.turn_off
-      entity_id: light.andrew_desk_lamp
+#- alias: "Desk Lamp off when MacBook Inactive"
+#  initial_state: on
+#  trigger:
+#    platform: state
+#    entity_id: binary_sensor.andrew_macbook_active
+#    to: "off"
+#    for: "00:15:00"
+#  condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
+#  action:
+#    - service: homeassistant.turn_off
+#      entity_id: light.andrew_desk_lamp
 
 - alias: "Desk Lamp on when MacBook Active"
   initial_state: on

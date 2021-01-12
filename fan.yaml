@@ -37,3 +37,40 @@
         - 'Low'
         - 'Medium'
         - 'High'
+    office_ceiling_fan:
+      friendly_name: "Office Ceiling Fan"
+      value_template: "{{ states('light.office_ceiling_fan_fan') }}"
+      speed_template: >
+        {% if (state_attr('light.office_ceiling_fan_fan', 'brightness') // 85) == 1 %}
+          {{'Low'}}
+        {% endif %}
+        {% if (state_attr('light.office_ceiling_fan_fan', 'brightness') // 85) == 2 %}
+          {{'Medium'}}
+        {% endif %}
+        {% if (state_attr('light.office_ceiling_fan_fan', 'brightness') // 85) == 3 %}
+          {{'High'}}
+        {% endif %}
+      turn_on:
+        service: homeassistant.turn_on
+        entity_id: light.office_ceiling_fan_fan
+      turn_off:
+        service: homeassistant.turn_off
+        entity_id: light.office_ceiling_fan_fan
+      set_speed:
+        service: light.turn_on
+        entity_id: light.office_ceiling_fan_fan
+        data_template:
+          brightness: >
+            {% if speed == 'Low' %}
+              {{'85'}}
+            {% endif %}
+            {% if speed == 'Medium' %}
+              {{'170'}}
+            {% endif %}
+            {% if speed == 'High' %}
+              {{'255'}}
+            {% endif %}
+      speeds:
+        - 'Low'
+        - 'Medium'
+        - 'High'

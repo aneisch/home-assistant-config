@@ -98,7 +98,7 @@ cards:
       - light.bethany_desk_lamp
       - light.andrew_desk_lamp
       - sensor.office_temperature
-      - switch.office_ceiling_fan
+      - fan.office_ceiling_fan
       - light.office_ceiling_fan
       - light.aquarium_light
       - sensor.aquarium_temperature

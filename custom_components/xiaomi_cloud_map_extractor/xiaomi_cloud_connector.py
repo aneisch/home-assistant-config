@@ -3,9 +3,9 @@ import gzip
 import hashlib
 import hmac
 import json
+import os
 import random
 import requests
-import secrets
 import time
 from Crypto.Hash import MD5, SHA256
 
@@ -39,10 +39,11 @@ class XiaomiCloudConnector:
         cookies = {
             "userId": self._username
         }
-        response = self._session.get(url, headers=headers, cookies=cookies)
-        if response.status_code == 200:
+        response = self._session.get(url, headers=headers, cookies=cookies, timeout=10)
+        successful = response.status_code == 200 and "_sign" in self.to_json(response.text)
+        if successful:
             self._sign = self.to_json(response.text)["_sign"]
-        return response.status_code == 200
+        return successful
 
     def login_step_2(self):
         url = "https://account.xiaomi.com/pass/serviceLoginAuth2"
@@ -59,8 +60,9 @@ class XiaomiCloudConnector:
             "_sign": self._sign,
             "_json": "true"
         }
-        response = self._session.post(url, headers=headers, params=fields)
-        if response.status_code == 200:
+        response = self._session.post(url, headers=headers, params=fields, timeout=10)
+        successful = response.status_code == 200 and "ssecurity" in self.to_json(response.text)
+        if successful:
             json_resp = self.to_json(response.text)
             self._ssecurity = json_resp["ssecurity"]
             self._userId = json_resp["userId"]
@@ -68,14 +70,14 @@ class XiaomiCloudConnector:
             self._passToken = json_resp["passToken"]
             self._location = json_resp["location"]
             self._code = json_resp["code"]
-        return response.status_code == 200
+        return successful
 
     def login_step_3(self):
         headers = {
             "User-Agent": self._agent,
             "Content-Type": "application/x-www-form-urlencoded"
         }
-        response = self._session.get(self._location, headers=headers)
+        response = self._session.get(self._location, headers=headers, timeout=10)
         if response.status_code == 200:
             self._serviceToken = response.cookies.get("serviceToken")
         return response.status_code == 200
@@ -105,7 +107,7 @@ class XiaomiCloudConnector:
             "data": '{"obj_name":"' + map_name + '"}'
         }
         api_response = self.execute_api_call(url, params)
-        if api_response is None:
+        if api_response is None or "result" not in api_response or "url" not in api_response["result"]:
             return None
         return api_response["result"]["url"]
 
@@ -123,7 +125,7 @@ class XiaomiCloudConnector:
             return None
         map_url = self.get_map_url(country, map_name)
         if map_url is not None:
-            response = self._session.get(map_url)
+            response = self._session.get(map_url, timeout=10)
             if response.status_code == 200:
                 return response.content
         return None
@@ -161,7 +163,7 @@ class XiaomiCloudConnector:
             "_nonce": nonce,
             "data": params["data"]
         }
-        response = self._session.post(url, headers=headers, cookies=cookies, params=fields)
+        response = self._session.post(url, headers=headers, cookies=cookies, params=fields, timeout=10)
         if response.status_code == 200:
             return response.json()
         return None
@@ -176,7 +178,7 @@ class XiaomiCloudConnector:
 
     @staticmethod
     def generate_nonce(millis):
-        nonce_bytes = secrets.token_bytes(8) + (int(millis / 60000)).to_bytes(4, byteorder='big')
+        nonce_bytes = os.urandom(8) + (int(millis / 60000)).to_bytes(4, byteorder='big')
         return base64.b64encode(nonce_bytes).decode()
 
     @staticmethod
