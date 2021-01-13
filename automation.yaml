@@ -99,11 +99,11 @@
     data: 
       entity_id: >
         {% if 'single' in trigger.entity_id %}
-          switch.office_ceiling_fan
+          switch.office_heater
         {% elif 'double' in trigger.entity_id %}
           light.andrew_desk_lamp
         {% elif 'triple' in trigger.entity_id %}
-          light.aquarium_white_light
+          fan.office_ceiling_fan
         {% endif %}
 
 - alias: "Mount/Umount /Plex"

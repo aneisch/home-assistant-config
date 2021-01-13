@@ -20,7 +20,7 @@ My Home Assistant installation contains many different components and runs on a 
 - ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware with various devices
   - 1 LDS ZBT-CCTSwitch-D0001
   - 1 LUMI lumi.sensor_cube
-  - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
+  - 8 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
@@ -56,9 +56,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1563
-Lines of Home Assistant YAML | 4956
+Lines of Home Assistant YAML | 4937
 [Integrations](https://www.home-assistant.io/integrations/) in use | 26
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 14
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 11
  
 Description | value
 -- | --
@@ -104,6 +104,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
 **Integration**:<br>
+[PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
@@ -111,6 +112,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [hacs/integration](https://github.com/hacs/integration)<br>
 [jaruba/ha-samsungtv-tizen](https://github.com/jaruba/ha-samsungtv-tizen)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
+[rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
 [ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
 [zha-ng/zha-map](https://github.com/zha-ng/zha-map)<br>
@@ -120,6 +122,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
+[dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
 [gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
