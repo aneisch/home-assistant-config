@@ -10,20 +10,9 @@ esphome:
 
 <<: !include common.yaml
 
-output:
-  - platform: gpio
-    id: relay
-    pin: D1
-
 dallas:
   - pin: D4
     update_interval: 30s
-
-# light:
-#   - platform: binary
-#     name: "${friendly_name} White Light"
-#     output: relay
-#     restore_mode: RESTORE_DEFAULT_ON
 
 switch:
   - platform: restart

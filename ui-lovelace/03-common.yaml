@@ -106,6 +106,7 @@ cards:
       - entity: switch.andrew_office_speakers
         icon: mdi:speaker
       - switch.office_heater
+      - switch.office_heater_oscillate
       - switch.plant_light
       - switch.hc_light
 

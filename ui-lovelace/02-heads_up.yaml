@@ -27,6 +27,7 @@ cards:
         - entity_id: "switch.circadian_lighting_aquarium_circadian"
         - entity_id: "light.office_ceiling_fan_fan"
         - entity_id: "light.living_room_ceiling_fan_fan"
+        - entity_id: "switch.office_heater_oscillate"
 
     card:
       type: entities
