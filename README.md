@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2021.1.1%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2021.1.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -24,11 +24,11 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
-  - 1 
   - 1 12719 Plug-in Smart Switch
   - 1 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
   - 1 12722 On/Off Relay Switch
   - 1 Leviton DZPA1 Plug-In Outlet
+  - 1 Unknown: type=0000, id=0000
   - 1 [WAPIRZ-1 Motion Sensor](https://amzn.to/2LhyH5F)
   - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
   - 2 12730 Fan Control Switch
@@ -56,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1554
-Lines of Home Assistant YAML | 4939
+Lines of Home Assistant YAML | 4954
 [Integrations](https://www.home-assistant.io/integrations/) in use | 26
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 11
  

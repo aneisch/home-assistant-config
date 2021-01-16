@@ -230,7 +230,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/039'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -249,7 +249,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/040'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine

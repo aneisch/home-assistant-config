@@ -1,4 +1,17 @@
 automation:
+  - alias: Front door switch toggle garage
+    trigger:
+      # Double tap bottom button (relay)
+      platform: event
+      event_type: ozw.scene_activated
+      event_data:
+        node_id: 2
+        scene_id: 3
+        scene_value_id: 4
+    action:
+      - service: cover.toggle
+        entity_id: cover.garage_door
+
   - alias: 'Change office switch LEDs based on garage door'
     trigger:
       - platform: state
@@ -8,10 +21,10 @@ automation:
       - platform: state
         entity_id: cover.garage_door
     action:
-      - service: script.office_switch_leds
+      - service: script.entryway_switch_leds
         data:
           # Red if opened, white if closed
-          color: '{% if trigger.to_state.state == "open" %}red{% elif trigger.to_state.state == "closed" %}white{% endif %}'
+          color: '{% if trigger.to_state.state == "open" %}red{% elif trigger.to_state.state == "closed" %}green{% endif %}'
 
   - alias: "Garage still open reminder night"
     trigger:
@@ -83,7 +96,7 @@ automation:
           message: "Garage door opened and no one home.."
 
 script:
-  office_switch_leds:
+  entryway_switch_leds:
     sequence:
       # change to zwave. from ozw. for non-beta zwave
       - service: ozw.set_config_parameter

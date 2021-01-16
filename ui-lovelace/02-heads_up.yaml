@@ -28,6 +28,8 @@ cards:
         - entity_id: "light.office_ceiling_fan_fan"
         - entity_id: "light.living_room_ceiling_fan_fan"
         - entity_id: "switch.office_heater_oscillate"
+        - entity_id: "switch.aquarium_heater"
+        - entity_id: "switch.aquarium_power_strip_usb"
 
     card:
       type: entities

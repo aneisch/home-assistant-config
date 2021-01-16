@@ -193,13 +193,13 @@ Aquarium Light On Morning:
   entities: light.aquarium_light
   time_on: "09:00:00"
 
-Aquarium Light Afternoon:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_light
-  time_off: "13:00:00"
-  time_on: "14:30:00"
+#Aquarium Light Afternoon:
+#  module: entity_timer
+#  class: Timer
+#  constrain_input_boolean: input_boolean.aquarium_automation
+#  entities: light.aquarium_light
+#  time_off: "13:00:00"
+#  time_on: "14:30:00"
 
 CO2 Off Evening:
   module: entity_timer
