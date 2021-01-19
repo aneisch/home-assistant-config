@@ -12,19 +12,37 @@ automation:
       - service: cover.toggle
         entity_id: cover.garage_door
 
-  - alias: 'Change office switch LEDs based on garage door'
+  - alias: 'Change entry switch LEDs based on garage door open'
     trigger:
       - platform: state
         entity_id: cover.garage_door
         from: 'closed'
         to: 'open'
+    action:
+      repeat:
+        sequence:
+          # Run command that for some reason doesn't always work
+          - service: script.entryway_switch_leds
+            data:
+              color: red
+          # Give it time to complete
+          - delay:
+              seconds: 3
+        until:
+          - condition: state
+            entity_id: cover.garage_door
+            state: 'closed'
+
+  - alias: 'Change entry switch LEDs based on garage door closed'
+    trigger:
       - platform: state
         entity_id: cover.garage_door
+        from: 'open'
+        to: 'closed'
     action:
       - service: script.entryway_switch_leds
         data:
-          # Red if opened, white if closed
-          color: '{% if trigger.to_state.state == "open" %}red{% elif trigger.to_state.state == "closed" %}green{% endif %}'
+          color: 'green'
 
   - alias: "Garage still open reminder night"
     trigger:

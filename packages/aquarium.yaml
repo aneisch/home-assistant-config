@@ -1,0 +1,99 @@
+automation:
+  - alias: "Aquarium Switches Workaround"
+    trigger:
+      - platform: state
+        entity_id:
+          - switch.aquarium_co2
+          - switch.aquarium_light_power
+        to: "on"
+        for: "00:00:05"
+      - platform: state
+        entity_id:
+          - switch.aquarium_co2
+          - switch.aquarium_light_power
+        to: "off"
+        for: "00:00:05"
+    condition: "{{ states(trigger.entity_id | regex_replace(find='switch.', replace='input_boolean.')) != trigger.to_state.state }}"
+    action:
+      service: "{% if trigger.to_state.state == 'on' %}homeassistant.turn_on{% else %}homeassistant.turn_off{% endif %}"
+      data:
+        entity_id: "{{ trigger.entity_id | regex_replace(find='switch.', replace='input_boolean.') }}"
+
+  - alias: "Aquarium Switches Workaround 2"
+    trigger:
+      - platform: state
+        entity_id:
+          - input_boolean.aquarium_co2
+          - input_boolean.aquarium_light_power
+        to: "on"
+      - platform: state
+        entity_id:
+          - switch.aquarium_co2
+          - switch.aquarium_light_power
+        to: "off"
+    condition: "{{ states(trigger.entity_id | regex_replace(find='input_boolean.', replace='switch.')) != trigger.to_state.state }}"
+    action:
+      service: "{% if trigger.to_state.state == 'on' %}homeassistant.turn_on{% else %}homeassistant.turn_off{% endif %}"
+      data:
+        entity_id: "{{ trigger.entity_id | regex_replace(find='input_boolean.', replace='switch.') }}"
+
+input_boolean:
+  aquarium_automation:
+    name: Aquarium Automation
+    icon: mdi:fish
+  
+  aquarium_light_power:
+    name: Aquarium Light
+    icon: mdi:fish
+  
+  aquarium_co2:
+    name: Aquarium CO2
+    icon: mdi:molecule-co2
+
+script:
+  aquarium_light_increase:
+    sequence:
+      - service: light.turn_on
+        data:
+          entity_id: light.aquarium_light
+          brightness: "{{ [255, state_attr('light.aquarium_light', 'brightness') | int + 50] | min }}"
+  aquarium_light_decrease:
+    sequence:
+      - service: light.turn_on
+        data:
+          entity_id: light.aquarium_light
+          brightness: "{{ [1, state_attr('light.aquarium_light', 'brightness') | int - 50] | max }}"
+
+light:
+  - platform: template
+    lights:
+      aquarium_light:
+        friendly_name: Aquarium Light
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: switch.aquarium_light_power
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: switch.aquarium_light_power
+        set_level:
+          service: light.turn_on
+          data:
+            brightness: "{{ brightness }}"
+            entity_id: light.aquarium_light_intensity
+        icon_template: mdi:fish
+        level_template: "{{ state_attr('light.aquarium_light_intensity', 'brightness')|int }}"
+        value_template: "{{ is_state('switch.aquarium_light_power', 'on') }}"
+
+switch:
+  - platform: circadian_lighting
+    name: Aquarium Circadian
+    lights_brightness:
+      - light.aquarium_light
+    #max_brightness: 85
+    # Set light to 1% if comes on after real sunset
+    sleep_entity: "sun.sun"
+    sleep_state: "below_horizon"
+    sleep_brightness: 1
+    sleep_colortemp: 10000

@@ -46,7 +46,7 @@ sensor:
         friendly_name: 'Lifetime Cleaning Count'
         value_template: "{{state_attr('vacuum.roborock_s4', 'cleaning_count')}}"
 
-     # Used for the Filter maintenance card
+      # Used for the Filter maintenance card
       roborock_s4_filter_remaining:
         friendly_name: '% Filter Remaining'
         unit_of_measurement: '%'
@@ -126,6 +126,8 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
+      - Back Bedroom
+      - Back Bathroom
 
   vacuum_custom_clean_1:
     name: Custom Clean Room 1
@@ -142,6 +144,8 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
+      - Back Bedroom
+      - Back Bathroom
 
   vacuum_custom_clean_2:
     name: Custom Clean Room 2
@@ -158,7 +162,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_3:
     name: Custom Clean Room 3
     initial: None
@@ -174,6 +180,8 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
+      - Back Bedroom
+      - Back Bathroom
 
   vacuum_custom_clean_4:
     name: Custom Clean Room 4
@@ -190,7 +198,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_5:
     name: Custom Clean Room 5
     initial: None
@@ -206,7 +216,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_6:
     name: Custom Clean Room 6
     initial: None
@@ -222,7 +234,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_7:
     name: Custom Clean Room 7
     initial: None
@@ -238,6 +252,8 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
+      - Back Bedroom
+      - Back Bathroom
 
   vacuum_custom_clean_8:
     name: Custom Clean Room 8
@@ -254,7 +270,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_9:
     name: Custom Clean Room 9
     initial: None
@@ -270,7 +288,9 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
+
   vacuum_custom_clean_10:
     name: Custom Clean Room 10
     initial: None
@@ -286,7 +306,8 @@ input_select:
       - "Bethany's Office"
       - Master Bedroom
       - Master Bathroom
-      
+      - Back Bedroom
+      - Back Bathroom
 
 script:
   vacuum_park_trashcan:

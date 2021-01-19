@@ -26,17 +26,6 @@
     service: media_player.turn_off
     entity_id: media_player.samsung_tv_remote
 
-- platform: circadian_lighting
-  name: Aquarium Circadian
-  lights_brightness:
-    - light.aquarium_light
-  #max_brightness: 85
-  # Set light to 1% if comes on after real sunset
-  sleep_entity: "sun.sun"
-  sleep_state: "below_horizon"
-  sleep_brightness: 1
-  sleep_colortemp: 10000
-
 #- platform: command_line
 #  scan_interval: 60
 #  switches:

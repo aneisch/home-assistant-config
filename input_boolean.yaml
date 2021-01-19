@@ -15,10 +15,6 @@ ac_change_notification:
   name: AC Change Notification
   icon: mdi:alert-circle
 
-aquarium_automation:
-  name: Aquarium Automation
-  icon: mdi:fish
-
 occusim:
   name: Occupancy Simulator
 

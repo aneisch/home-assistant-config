@@ -10,6 +10,7 @@ homeassistant:
   packages:
     alexa: !include packages/alexa.yaml
     aarlo: !include packages/aarlo.yaml
+    aquarium: !include packages/aquarium.yaml
     #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
     gate_testing: !include packages/mom_and_dad_gate.yaml
@@ -172,6 +173,7 @@ influxdb:
       - sensor.last_boot
       - sensor.mail_updated
       - sensor.moon
+
     domains:
       - automation
       - alarm_panel
@@ -241,29 +243,8 @@ light:
   - platform: group
     name: Front Porch Lights
     entities:
-       - light.front_porch_1
-       - light.front_porch_2
-
-  - platform: template
-    lights:
-      aquarium_light:
-        friendly_name: Aquarium Light
-        turn_on:
-          service: homeassistant.turn_on
-          data:
-            entity_id: switch.aquarium_light_power
-        turn_off:
-          service: homeassistant.turn_off
-          data:
-            entity_id: switch.aquarium_light_power
-        set_level:
-          service: light.turn_on
-          data:
-            brightness: "{{ brightness }}"
-            entity_id: light.aquarium_light_intensity
-        icon_template: mdi:fish
-        level_template: "{{ state_attr('light.aquarium_light_intensity', 'brightness')|int }}"
-        value_template: "{{ is_state('switch.aquarium_light_power', 'on') }}"
+      - light.front_porch_1
+      - light.front_porch_2
 
 logbook:
 
@@ -455,6 +436,12 @@ recorder:
       - sensor.thermopro_probe_2_high_estimated_length
       - sensor.circadian_values
       - binary_sensor.gate_heading_comparison
+      - light.aquarium_light
+      - switch.aquarium_co2
+      - switch.aquarium_light_power
+      - switch.aquarium_power_strip_usb
+      - switch.aquarium_heater
+      - switch.aquarium_filter
     domains:
       - automation
       - alarm_panel

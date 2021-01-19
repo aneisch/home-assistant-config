@@ -176,7 +176,8 @@ HC Light:
 Circadian Follow:
   module: follow_me
   class: Follow
-  leader: light.aquarium_light
+  constrain_input_boolean: input_boolean.aquarium_automation
+  leader: input_boolean.aquarium_light_power
   follower: switch.circadian_lighting_aquarium_circadian
 
 CO2 On Morning:
