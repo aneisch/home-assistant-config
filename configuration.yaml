@@ -42,7 +42,7 @@ camera: !include camera.yaml
 circadian_lighting:
   # Set manual sunrise/sunset for aquarium brightness
   sunrise_time: "09:00:00"
-  sunset_time: "16:00:00"
+  sunset_time: "15:45:00"
   interval: 300
   transition: 10
 
@@ -166,8 +166,6 @@ influxdb:
       - binary_sensor.internet_reachability
       - binary_sensor.iss
       - sensor.aarlo_signal_strength_office
-      - sensor.dark_sky_icon
-      - sensor.dark_sky_summary
       - sensor.kitchen_timer_countdown
       - sensor.irrigation_time_remaining
       - sensor.last_boot

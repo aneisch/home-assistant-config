@@ -92,18 +92,6 @@ fan.office_ceiling_fan_level:
 
 
 ### SENSORS ###
-sensor.dark_sky_summary:
-  friendly_name: Conditions
-
-sensor.dark_sky_temperature:
-  friendly_name: Temperature
-
-sensor.dark_sky_humidity:
-  friendly_name: Humidity
-
-sensor.dark_sky_precip_probability:
-  friendly_name: Percent Chance of Rain
-
 sensor.master_bedroom_temperature:
   friendly_name: Room Temperature
   icon: mdi:thermometer

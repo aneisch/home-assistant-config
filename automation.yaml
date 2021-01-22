@@ -93,7 +93,6 @@
     entity_id: 
       - binary_sensor.andrew_desk_button_single
       - binary_sensor.andrew_desk_button_double
-      - binary_sensor.andrew_desk_button_triple
   action:
     service: homeassistant.toggle
     data: 
@@ -101,8 +100,6 @@
         {% if 'single' in trigger.entity_id %}
           switch.office_heater
         {% elif 'double' in trigger.entity_id %}
-          light.andrew_desk_lamp
-        {% elif 'triple' in trigger.entity_id %}
           fan.office_ceiling_fan
         {% endif %}
 
