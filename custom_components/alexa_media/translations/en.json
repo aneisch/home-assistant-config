@@ -81,7 +81,7 @@
       },
       "user": {
         "data": {
-          "cookies_txt": "",
+          "cookies_txt": "config::step::user::data::cookies_txt",
           "debug": "Advanced debugging",
           "email": "Email Address",
           "exclude_devices": "Excluded device (comma separated)",
@@ -92,7 +92,7 @@
           "password": "Password",
           "proxy": "Use Login Proxy method (2FA not required)",
           "scan_interval": "Seconds between scans",
-          "securitycode": "",
+          "securitycode": "config::step::user::data::securitycode",
           "url": "Amazon region domain (e.g., amazon.co.uk)"
         },
         "description": "Please confirm the information below. For legacy configuration, disable `Use Login Proxy method` option.",

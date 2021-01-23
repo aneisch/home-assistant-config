@@ -22,7 +22,7 @@ automation:
       repeat:
         sequence:
           # Run command that for some reason doesn't always work
-          - service: script.entryway_switch_leds
+          - service: script.garage_door_switch_leds
             data:
               color: red
           # Give it time to complete
@@ -40,7 +40,7 @@ automation:
         from: 'open'
         to: 'closed'
     action:
-      - service: script.entryway_switch_leds
+      - service: script.garage_door_switch_leds
         data:
           color: 'green'
 
@@ -114,7 +114,7 @@ automation:
           message: "Garage door opened and no one home.."
 
 script:
-  entryway_switch_leds:
+  garage_door_switch_leds:
     sequence:
       # change to zwave. from ozw. for non-beta zwave
       - service: ozw.set_config_parameter
@@ -129,6 +129,22 @@ script:
         data:
           # Set Relay LED
           node_id: 2
+          parameter: 4
+          value: '{{ color }}'
+          #size: 1 # uncomment for non-beta zwave 
+      # change to zwave. from ozw. for non-beta zwave
+      - service: ozw.set_config_parameter
+        data:
+          # Set Dimmer LED
+          node_id: 3
+          parameter: 3
+          value: '{{ color }}'
+          #size: 1 # uncomment for non-beta zwave 
+      # change to zwave. from ozw. for non-beta zwave
+      - service: ozw.set_config_parameter
+        data:
+          # Set Relay LED
+          node_id: 3
           parameter: 4
           value: '{{ color }}'
           #size: 1 # uncomment for non-beta zwave 
