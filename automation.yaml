@@ -401,21 +401,29 @@
   trigger:
     platform: state
     entity_id:
-      - binary_sensor.hallway_alarm_co_alarm_carbon_monoxide_detected
-      - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
-      - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
+      - binary_sensor.kitchen_alarm_co_alarm_alarm_silenced
       - binary_sensor.kitchen_alarm_co_alarm_carbon_monoxide_detected
-      - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+      - binary_sensor.kitchen_alarm_co_alarm_replacement_required_end_of_life
+      - binary_sensor.kitchen_alarm_smoke_alarm_alarm_silenced
       - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
+      - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+      - binary_sensor.kitchen_alarm_system_system_hardware_failure
+      - binary_sensor.hallway_alarm_co_alarm_alarm_silenced
+      - binary_sensor.hallway_alarm_co_alarm_carbon_monoxide_detected
+      - binary_sensor.hallway_alarm_co_alarm_replacement_required_end_of_life
+      - binary_sensor.hallway_alarm_smoke_alarm_alarm_silenced
+      - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
+      - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+      - binary_sensor.hallway_alarm_system_system_hardware_failure
     from: "off"
     to: "on"
   action:
     - service: notify.pushover
       data:
         message: >
-            {{ trigger.from_state.attributes.friendly_name }} {{ trigger.to_state.state }}
+            {{ trigger.from_state.attributes.friendly_name }}
         data:
-          priority: 2
+          priority: '{% if "_detected" in trigger.entity_id or "_test" in trigger.entity_id %}2{% else %}-1{% endif %}'
           expire: 3600
           retry: 30
 
