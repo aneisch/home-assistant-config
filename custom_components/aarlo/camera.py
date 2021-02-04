@@ -57,7 +57,7 @@ from .pyaarlo.constant import (
     LAST_IMAGE_DATA_KEY,
     LAST_IMAGE_KEY,
     LAST_IMAGE_SRC_KEY,
-    MEDIA_UPLOAD_KEYS,
+    MEDIA_UPLOAD_KEY,
     PRIVACY_KEY,
     RECENT_ACTIVITY_KEY,
     SIREN_STATE_KEY,
@@ -418,7 +418,7 @@ class ArloCam(Camera):
         self._camera.add_attr_callback(LAST_IMAGE_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_SRC_KEY, update_state)
         self._camera.add_attr_callback(LAST_IMAGE_DATA_KEY, update_state)
-        self._camera.add_attr_callback(MEDIA_UPLOAD_KEYS, update_state)
+        self._camera.add_attr_callback(MEDIA_UPLOAD_KEY, update_state)
         self._camera.add_attr_callback(PRIVACY_KEY, update_state)
         self._camera.add_attr_callback(RECENT_ACTIVITY_KEY, update_state)
 
@@ -498,10 +498,10 @@ class ArloCam(Camera):
                 (ATTR_UNSEEN_VIDEOS, self._camera.unseen_videos),
                 (ATTR_RECENT_ACTIVITY, self._camera.was_recently_active),
                 (ATTR_IMAGE_SRC, self._camera.last_image_source),
-                (ATTR_CHARGING, self._camera.charging),
+                (ATTR_CHARGING, self._camera.is_charging),
                 (ATTR_CHARGER_TYPE, self._camera.charger_type),
-                (ATTR_WIRED, self._camera.wired),
-                (ATTR_WIRED_ONLY, self._camera.wired_only),
+                (ATTR_WIRED, self._camera.has_charger),
+                (ATTR_WIRED_ONLY, self._camera.is_charger_only),
                 (ATTR_LAST_THUMBNAIL, self.last_thumbnail_url),
                 (ATTR_LAST_VIDEO, self.last_video_url),
                 (ATTR_TIME_ZONE, self._camera.timezone),

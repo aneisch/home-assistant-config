@@ -165,5 +165,16 @@ cards:
           - sensor.ha_docker_version_beta
           - entity: sensor.hacs
             name: HACS Updates
+      - type: conditional
+        title: Upgrade HASS
+        conditions:
+          - entity: input_boolean.hass_update_available
+            state: "on"
+        card:
+          type: entities
+          entities:
+            - entity: script.hass_update_apply
+              name: Upgrade Now
+              icon: "mdi:arrow-up-thick"
 
   #- !include .cards/fingerprint.yaml

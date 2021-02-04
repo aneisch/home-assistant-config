@@ -161,7 +161,19 @@ services:
             MQTT_SERVER: "10.0.1.22"
             USB_PATH: "/dev/zwave"
             OZW_NETWORK_KEY: "0x48, 0xA8, 0x80, 0x12, 0x30, 0xB0, 0x44, 0xDD, 0x60, 0xD3, 0xA1, 0x46, 0x59, 0xE3, 0x75, 0x7F"
-        restart: unless-stopped
+        restart: 'no'
+    zwavejs:
+        container_name: zwavejs
+        image: zwavejs/zwavejs2mqtt:latest
+        restart: always
+        stop_signal: SIGINT
+        devices:
+            - '/dev/zwave:/dev/zwave'
+        volumes:
+            - /opt/zwavejs:/usr/src/app/store
+        ports:
+            - '8091:8091' # port for web interface
+            - '3001:3000' # port for zwave-js websocket server
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -230,7 +242,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/013'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -249,7 +261,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/011'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine

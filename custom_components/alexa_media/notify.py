@@ -65,7 +65,7 @@ async def async_unload_entry(hass, entry) -> bool:
                 continue
             for device in account_dict["entities"]["media_player"].values():
                 entity_id = device.entity_id.split(".")
-                hass.services.async_remove(SERVICE_NOTIFY, f"{DOMAIN}.{entity_id[1]}")
+                hass.services.async_remove(SERVICE_NOTIFY, f"{DOMAIN}_{entity_id[1]}")
         else:
             other_accounts = True
     if not other_accounts:
@@ -81,6 +81,7 @@ class AlexaNotificationService(BaseNotificationService):
     def __init__(self, hass):
         """Initialize the service."""
         self.hass = hass
+        self.last_called = True
 
     def convert(self, names, type_="entities", filter_matches=False):
         """Return a list of converted Alexa devices based on names.
@@ -149,6 +150,19 @@ class AlexaNotificationService(BaseNotificationService):
             for _, entity in account_dict["entities"]["media_player"].items():
                 entity_name = (entity.entity_id).split(".")[1]
                 devices[entity_name] = entity.unique_id
+                if self.last_called and entity.device_state_attributes.get(
+                    "last_called"
+                ):
+                    entity_name_last_called = (
+                        f"last_called{'_'+ email if entity_name[-1:].isdigit() else ''}"
+                    )
+                    _LOGGER.debug(
+                        "%s: Creating last_called target %s using %s",
+                        hide_email(email),
+                        entity_name_last_called,
+                        entity,
+                    )
+                    devices[entity_name_last_called] = entity.unique_id
         return devices
 
     @property
@@ -224,7 +238,7 @@ class AlexaNotificationService(BaseNotificationService):
                     #     list(map(hide_serial, targets)),
                     #     entities,
                     # )
-                    if alexa.unique_id in targets and alexa.available:
+                    if alexa.device_serial_number in targets and alexa.available:
                         _LOGGER.debug(
                             ("%s: Announce by %s to " "targets: %s: %s"),
                             hide_email(account),

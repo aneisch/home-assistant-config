@@ -265,8 +265,8 @@ logger:
     #zhaquirks: debug
     #custom_components.docker_monitor: debug
     #custom_components.alexa_media: debug
-    custom_components.localtuya: debug
-    #homeassistant.components.webhook: debug
+    #custom_components.localtuya: debug
+    homeassistant.components.webhook: debug
 
 lovelace:
   mode: yaml
@@ -413,7 +413,7 @@ readme:
 
 recorder:
   db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
-  purge_keep_days: 30
+  purge_keep_days: 180
   exclude:
     entities:
       - binary_sensor.internet_reachability
@@ -459,6 +459,8 @@ rest_command: !include rest_command.yaml
 scene: !include scene.yaml
 
 script: !include scripts.yaml
+
+setter:
 
 sensor: !include sensors.yaml
 

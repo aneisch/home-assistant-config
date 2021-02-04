@@ -1,0 +1,14 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "The Setter is already configured."
+    },
+    "step": {
+      "user": {
+        "description": "Do you want to configure the Setter?",
+        "title": "Setter"
+      }
+    },
+    "title": "Setter"
+  }
+}

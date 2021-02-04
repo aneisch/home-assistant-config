@@ -68,7 +68,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/013'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -87,7 +87,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/011'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
@@ -149,16 +149,16 @@ services:
     #        - SQUELCH=80
     #        - HOLDOFF_TIME=10
     #    restart: 'on-failure'
-    hass-configurator:
-        container_name: configurator
-        image: causticlab/hass-configurator-docker:x86_64
-        ports:
-          - "3218:3218/tcp"
-        volumes:
-          - "/opt/hass-configurator:/config"
-          - "/opt/homeassistant:/hass-config"
-          - "/opt/appdaemon:/appdaemon"
-        restart: 'always'
+    #hass-configurator:
+    #    container_name: configurator
+    #    image: causticlab/hass-configurator-docker:x86_64
+    #    ports:
+    #      - "3218:3218/tcp"
+    #    volumes:
+    #      - "/opt/hass-configurator:/config"
+    #      - "/opt/homeassistant:/hass-config"
+    #      - "/opt/appdaemon:/appdaemon"
+    #    restart: 'always'
     vscode:
         container_name: vscode
         image: linuxserver/code-server
@@ -229,20 +229,20 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
-    tuya-convert:
-        # https://github.com/ct-Open-Source/tuya-convert
-        # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
-        # this is needed to accept EULA
-        # then can use docker-compose exec tuya-convert start
-        container_name: 'tuya-convert'
-        image: tuya-convert:latest
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        privileged: true
-        network_mode: "host"
-        environment:
-          - WLAN=wlp58s0
-          - AP=vtrust-flash
-          - GATEWAY=10.42.42.1
-        volumes:
-          - /tmp/tuya:/usr/bin/tuya-convert/backups
+    #tuya-convert:
+    #    # https://github.com/ct-Open-Source/tuya-convert
+    #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
+    #    # this is needed to accept EULA
+    #    # then can use docker-compose exec tuya-convert start
+    #    container_name: 'tuya-convert'
+    #    image: tuya-convert:latest
+    #    labels:
+    #      com.centurylinklabs.watchtower.enable: "false"
+    #    privileged: true
+    #    network_mode: "host"
+    #    environment:
+    #      - WLAN=wlp58s0
+    #      - AP=vtrust-flash
+    #      - GATEWAY=10.42.42.1
+    #    volumes:
+    #      - /tmp/tuya:/usr/bin/tuya-convert/backups

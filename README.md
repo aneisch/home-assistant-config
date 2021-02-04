@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2021.1.4%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2021.2.0%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -55,9 +55,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 1554
-Lines of Home Assistant YAML | 5045
-[Integrations](https://www.home-assistant.io/integrations/) in use | 26
+Lines of ESPHome YAML | 1556
+Lines of Home Assistant YAML | 5122
+[Integrations](https://www.home-assistant.io/integrations/) in use | 27
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 11
  
 Description | value
@@ -109,6 +109,7 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
 [custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
+[dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
 [jaruba/ha-samsungtv-tizen](https://github.com/jaruba/ha-samsungtv-tizen)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>

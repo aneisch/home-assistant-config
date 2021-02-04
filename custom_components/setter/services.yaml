@@ -1,0 +1,24 @@
+delete:
+  description: >
+    Deletes the state of the entity and removes it from the archive.
+  fields:
+    entity_id:
+      description: ID of entity to delete from saver.
+      example: binary_sensor.test
+
+set:
+  description: >
+    Sets the state of the entity and prepares it for restoring.
+  fields:
+    entity_id:
+      description: ID of the entity that should be saved.
+      example: binary_sensor.test
+    state:
+      description: the state
+      example: "on"
+    attributes:
+      description: a dict of attributes
+      example:
+        this: that
+        one: two
+

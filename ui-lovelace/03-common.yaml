@@ -17,7 +17,7 @@ cards:
       - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
-      - switch.christmas_tree
+      # - switch.christmas_tree
 
   - type: vertical-stack
     cards:

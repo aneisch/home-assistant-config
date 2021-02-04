@@ -361,8 +361,8 @@
       entity_id: 
         - sensor.washing_machine_water_detector_battery_level
         - sensor.water_heater_water_detector_battery_level
-        - sensor.smoke_detector_hallway_battery_level
-        - sensor.smoke_detector_kitchen_battery_level
+        - sensor.hallway_alarm_battery_level
+        - sensor.kitchen_alarm_battery_level
       below: 10
   action:
     - service: notify.pushover
@@ -401,12 +401,12 @@
   trigger:
     platform: state
     entity_id:
-      - binary_sensor.smoke_detector_hallway_carbon_monoxide_detected
-      - binary_sensor.smoke_detector_hallway_smoke_detected
-      - binary_sensor.smoke_detector_hallway_test
-      - binary_sensor.smoke_detector_kitchen_carbon_monoxide_detected
-      - binary_sensor.smoke_detector_kitchen_smoke_detected
-      - binary_sensor.smoke_detector_kitchen_test
+      - binary_sensor.hallway_alarm_co_alarm_carbon_monoxide_detected
+      - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+      - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
+      - binary_sensor.kitchen_alarm_co_alarm_carbon_monoxide_detected
+      - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+      - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
     from: "off"
     to: "on"
   action:
@@ -418,3 +418,36 @@
           priority: 2
           expire: 3600
           retry: 30
+
+# - id: webhook_debugger
+#   alias: "Webhook Debugger"
+#   trigger:
+#     - platform: webhook
+#       webhook_id: !secret zoom_webhook
+#   action:
+#     - service: persistent_notification.create
+#       data:
+#         message: >-
+#           {% if 'data' in trigger %}
+#             Data: {{ dict(trigger.data)|tojson }}
+#           {% elif 'json' in trigger %}
+#             JSON: {{ dict(trigger.json)|tojson }}
+#             {{ dict(trigger.json)['payload']['object']['presence_status'] }}
+#           {% endif %}
+#           {% if 'query' in trigger and trigger.query|length > 0 %}
+#             Query: {{ dict(trigger.query)|tojson }}
+#           {% endif %}
+
+- alias: "Zoom State Sensor Update"
+  mode: queued
+  trigger:
+    - platform: webhook
+      webhook_id: !secret zoom_webhook
+  action:
+    - service: setter.set
+      data:
+        entity_id: "sensor.andrew_zoom_status"
+        state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
+        attributes:
+          friendly_name: "Andrew Zoom Status"
+          icon: "mdi:cctv"

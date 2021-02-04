@@ -9,6 +9,8 @@ input_boolean:
   # Automation when off --> on to call upgrade
   upgrade_hass_now:
     name: Upgrade HASS Now
+  hass_update_available:
+    name: HASS Update Available
 
 sensor:
   - platform: version
@@ -36,6 +38,7 @@ sensor:
     scan_interval: 1800
 
 automation:
+  # Trigger GitHub action(s) when upgrade is available
   - alias: "Auto-Upgrade: Trigger Github Action"
     mode: queued
     initial_state: 'on'
@@ -60,7 +63,7 @@ automation:
             {% endif %}
           version: '{{ trigger.to_state.state }}'
 
-  # Begin auto-upgrade flow
+  # Respond to GitHub action to begin auto-upgrade flow
   - alias: "Auto-Upgrade: Github Action Callback Turn on Boolean"
     initial_state: 'on'
     trigger:
@@ -69,12 +72,12 @@ automation:
     action:
       service: >
         {% if trigger.json.upgrade == True %}
-          script.hass_minor_update
+          script.hass_update_apply
         {% elif trigger.json.upgrade == False %}
-          script.hass_major_update
+          script.hass_update_notify
         {% endif %}
 
-  # Actually try to upgrade if conditions are met
+  # Actually try to upgrade if conditions are met (home and boolean on)
   - alias: "Auto-Upgrade: Do Upgrade"
     mode: single
     initial_state: 'on'
@@ -93,32 +96,36 @@ automation:
       - service: notify.pushover
         data:
           message: >
-            New Version Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
+            Installing: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
       - service: homeassistant.turn_off
         entity_id: input_boolean.upgrade_hass_now
+      - service: homeassistant.turn_off
+        entity_id: input_boolean.hass_update_available
       - service: shell_command.upgrade_hass
 
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
-  upgrade_hass: ssh nuc 'docker-compose -f /opt/docker-compose/unified/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/unified/docker-compose.yml up -d homeassistant'
+  upgrade_hass: ssh nuc 'nohup sh -c "docker-compose -f /opt/docker-compose/unified/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/unified/docker-compose.yml up -d homeassistant" > /dev/null 2>&1 &'
 
 script:
-  hass_minor_update:
-    # Turn on boolean which triggers automation
+  hass_update_apply:
+    # Turn on boolean which triggers upgrade automation
     sequence:
       - service: homeassistant.turn_on
         entity_id: input_boolean.upgrade_hass_now
-  hass_major_update:
-    # Only notify
+  hass_update_notify:
+    # Notify and enable upgrade button on frontend
     sequence:
       - service: notify.pushover
         data:
           message: >
-            New Version Not Auto-Applied: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
+            Not Installing: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
             Changes: https://git.io/JvkT4
-            Tested: https://git.io/JvkTY
+            Tested: https://git.io/
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.hass_update_available
 
 homeassistant:
   customize:

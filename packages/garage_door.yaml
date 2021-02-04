@@ -11,6 +11,12 @@ automation:
     action:
       - service: cover.toggle
         entity_id: cover.garage_door
+      - service: notify.alexa_media
+        data:
+          message: "{% if states('cover.garage_door') == 'open' %}Closing garage door{% else %}Opening garage door{% endif %}"
+          target: "Kitchen"
+          data:
+            type: "announce"
 
   - alias: 'Change entry switch LEDs based on garage door open'
     trigger:
@@ -117,6 +123,7 @@ script:
   garage_door_switch_leds:
     sequence:
       # change to zwave. from ozw. for non-beta zwave
+      # Entryway
       - service: ozw.set_config_parameter
         data:
           # Set Dimmer LED
@@ -133,6 +140,7 @@ script:
           value: '{{ color }}'
           #size: 1 # uncomment for non-beta zwave 
       # change to zwave. from ozw. for non-beta zwave
+      # Kitchen Sink
       - service: ozw.set_config_parameter
         data:
           # Set Dimmer LED
@@ -148,3 +156,20 @@ script:
           parameter: 4
           value: '{{ color }}'
           #size: 1 # uncomment for non-beta zwave 
+      # Master
+      - service: ozw.set_config_parameter
+        data:
+          # Set Dimmer LED
+          node_id: 9
+          parameter: 3
+          value: '{{ color }}'
+          #size: 1 # uncomment for non-beta zwave 
+      # change to zwave. from ozw. for non-beta zwave
+      - service: ozw.set_config_parameter
+        data:
+          # Set Relay LED
+          node_id: 9
+          parameter: 4
+          value: '{{ color }}'
+          #size: 1 # uncomment for non-beta zwave 
+  
