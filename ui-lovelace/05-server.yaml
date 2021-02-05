@@ -131,7 +131,6 @@ cards:
     show_header_toggle: false
     title: Docker
     entities:
-      - switch.docker_configurator
       - switch.docker_vscode
       - switch.docker_esphome
       - switch.docker_grafana
@@ -147,7 +146,7 @@ cards:
       - switch.docker_mariadb
       - switch.docker_mosquitto
       - switch.docker_nodered
-      - switch.docker_openzwave
+      - switch.docker_zwavejs
       - switch.docker_thermostat_api_server
 
   #- type: custom:gui-sandbox

@@ -423,6 +423,7 @@
         message: >
             {{ trigger.from_state.attributes.friendly_name }}
         data:
+          # Make phone ding if alarm or test, otherwise silent notification
           priority: '{% if "_detected" in trigger.entity_id or "_test" in trigger.entity_id %}2{% else %}-1{% endif %}'
           expire: 3600
           retry: 30
@@ -459,3 +460,28 @@
         attributes:
           friendly_name: "Andrew Zoom Status"
           icon: "mdi:cctv"
+
+- alias: "Andrew Z-Wave Remote"
+  mode: single
+  trigger:
+    - platform: event
+      event_type: zwave_js_event
+      event_data:
+        node_id: 11
+  action:
+    - service: homeassistant.toggle
+      data:
+        entity_id: >
+          {% if trigger.event.data['value'] in [1,3] %}
+            switch.master_bedroom_ceiling_fan
+          {% elif trigger.event.data['value'] in [2] %}
+            script.master_bedroom_light_full
+          {% elif trigger.event.data['value'] in [4] %}
+            script.master_bedroom_light_dim
+          {% elif trigger.event.data['value'] in [6] %}
+            script.master_bedroom_bedtime
+          {% elif trigger.event.data['value'] in [7] %}
+            light.master_bedroom_lamps
+          {% elif trigger.event.data['value'] in [8] %}
+            script.appdaemon_ac_night
+          {% endif %}

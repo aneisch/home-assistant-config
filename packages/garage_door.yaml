@@ -3,11 +3,10 @@ automation:
     trigger:
       # Double tap bottom button (relay)
       platform: event
-      event_type: ozw.scene_activated
+      event_type: zwave_js_event
       event_data:
         node_id: 2
-        scene_id: 3
-        scene_value_id: 4
+        value: KeyPressed2x
     action:
       - service: cover.toggle
         entity_id: cover.garage_door
