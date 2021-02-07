@@ -44,7 +44,8 @@ services:
         restart: always
     mosquitto:
         container_name: mosquitto
-        image: eclipse-mosquitto
+        #image: eclipse-mosquitto:1.6
+        image: eclipse-mosquitto:latest
         user: '99'
         healthcheck:
             test: "mosquitto_sub -E -t '#'"
