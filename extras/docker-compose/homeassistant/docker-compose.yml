@@ -13,7 +13,6 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
         devices:
-            #- /dev/zwave
             - /dev/zigbee
         environment:
           - TZ=America/Chicago
@@ -164,7 +163,8 @@ services:
     #    restart: 'no'
     zwavejs:
         container_name: zwavejs
-        image: zwavejs/zwavejs2mqtt:latest
+        #image: zwavejs/zwavejs2mqtt:latest
+        image: zwavejs/zwavejs2mqtt:sha-b9d066b
         restart: always
         stop_signal: SIGINT
         devices:

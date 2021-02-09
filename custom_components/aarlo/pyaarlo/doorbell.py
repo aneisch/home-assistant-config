@@ -33,17 +33,8 @@ class ArloDoorBell(ArloChildDevice):
 
         # create fake motion/button press event...
         if resource == self.resource_id:
-            cons = event.get("properties", {}).get(CONNECTION_KEY, False)
-            butp = event.get("properties", {}).get(BUTTON_PRESSED_KEY, False)
 
-            # acts = event.get('properties',{}).get('activityState',False)
-            if cons and cons == "available":
-                self._save_and_do_callbacks(MOTION_DETECTED_KEY, True)
-                with self._lock:
-                    self._arlo.bg.cancel(self._motion_time_job)
-                    self._motion_time_job = self._arlo.bg.run_in(
-                        self._motion_stopped, self._arlo.cfg.db_motion_time
-                    )
+            butp = event.get("properties", {}).get(BUTTON_PRESSED_KEY, False)
             if butp:
                 self._save_and_do_callbacks(BUTTON_PRESSED_KEY, True)
                 with self._lock:
@@ -80,20 +71,27 @@ class ArloDoorBell(ArloChildDevice):
         return super().has_capability(cap)
 
     def silent_mode(self, active, block_call):
-        self._arlo.be.notify(
+        properties = {
+            SILENT_MODE_KEY: {
+                SILENT_MODE_ACTIVE_KEY: active,
+                SILENT_MODE_CALL_KEY: block_call,
+            }
+        }
+        response = self._arlo.be.notify(
             base=self.base_station,
             body={
                 "action": "set",
-                "properties": {
-                    SILENT_MODE_KEY: {
-                        SILENT_MODE_ACTIVE_KEY: active,
-                        SILENT_MODE_CALL_KEY: block_call,
-                    },
-                },
+                "properties": properties,
                 "publishResponse": True,
                 "resource": self.resource_id,
             },
+            wait_for="response"
         )
+        # Not none means a 200 so we assume it works until told otherwise.
+        if response is not None:
+            self._arlo.bg.run(
+                self._save_and_do_callbacks, attr=SILENT_MODE_KEY, value=properties
+            )
 
     def update_silent_mode(self):
         """Requests the latest silent mode settings.
@@ -108,3 +106,11 @@ class ArloDoorBell(ArloChildDevice):
                 "publishResponse": False,
             },
         )
+
+    @property
+    def chimes_are_silenced(self):
+        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_ACTIVE_KEY, False)
+
+    @property
+    def calls_are_silenced(self):
+        return self._load(SILENT_MODE_KEY).get(SILENT_MODE_CALL_KEY, False)
