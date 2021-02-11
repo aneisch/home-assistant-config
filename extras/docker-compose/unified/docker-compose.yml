@@ -164,8 +164,8 @@ services:
     #    restart: 'no'
     zwavejs:
         container_name: zwavejs
-        #image: zwavejs/zwavejs2mqtt:latest
-        image: zwavejs/zwavejs2mqtt:sha-b9d066b
+        image: zwavejs/zwavejs2mqtt:latest
+        #image: zwavejs/zwavejs2mqtt:sha-b9d066b
         restart: always
         stop_signal: SIGINT
         devices:

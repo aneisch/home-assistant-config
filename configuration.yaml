@@ -220,7 +220,7 @@ light:
           fade: on
         - number: 2
           type: rgbw
-          name: aquarium_light_intensity
+          name: aquarium_light
           fade: on
   - platform: group
     name: Kitchen Lights

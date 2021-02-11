@@ -3,6 +3,10 @@
 # have been renamed in the entity_registry instead of here
 
 ### LIGHTS ###
+light.aquarium_light:
+  icon: mdi:fish
+  friendly_name: Aquarium Light
+
 light.andrew_desk_lamp:
   icon: mdi:lamp
   friendly_name: Andrew's Desk Lamp

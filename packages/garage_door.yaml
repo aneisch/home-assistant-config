@@ -27,12 +27,12 @@ automation:
       repeat:
         sequence:
           # Run command that for some reason doesn't always work
-          - service: script.garage_door_switch_leds
+          - service: script.zen30_led_color_change
             data:
               color: red
           # Give it time to complete
           - delay:
-              seconds: 3
+              seconds: 2
         until:
           - condition: state
             entity_id: cover.garage_door
@@ -45,7 +45,7 @@ automation:
         from: 'open'
         to: 'closed'
     action:
-      - service: script.garage_door_switch_leds
+      - service: script.zen30_led_color_change
         data:
           color: 'green'
 
@@ -119,56 +119,43 @@ automation:
           message: "Garage door opened and no one home.."
 
 script:
-  garage_door_switch_leds:
+  zen30_led_color_change:
+    variables:
+      color_int: '{% if color == "red" %}3{% elif color == "green" %}2{% elif color == "blue" %}1{% elif color == "white" %}0{% else %}0{% endif %}'
     sequence:
-      # change to zwave. from ozw. for non-beta zwave
       # Entryway
-      - service: ozw.set_config_parameter
+      - service: mqtt.publish
         data:
           # Set Dimmer LED
-          node_id: 2
-          parameter: 3
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
-      # change to zwave. from ozw. for non-beta zwave
-      - service: ozw.set_config_parameter
+          topic: zwave/entryway_light/112/0/3/set
+          payload: '{{ color_int }}'
+      - service: mqtt.publish
         data:
           # Set Relay LED
-          node_id: 2
-          parameter: 4
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
-      # change to zwave. from ozw. for non-beta zwave
+          topic: zwave/entryway_light/112/0/4/set
+          payload: '{{ color_int }}'
+
       # Kitchen Sink
-      - service: ozw.set_config_parameter
+      - service: mqtt.publish
         data:
           # Set Dimmer LED
-          node_id: 3
-          parameter: 3
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
-      # change to zwave. from ozw. for non-beta zwave
-      - service: ozw.set_config_parameter
+          topic: zwave/kitchen_sink/112/0/3/set
+          payload: '{{ color_int }}'
+      - service: mqtt.publish
         data:
           # Set Relay LED
-          node_id: 3
-          parameter: 4
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
+          topic: zwave/kitchen_sink/112/0/4/set
+          payload: '{{ color_int }}'
+
       # Master
-      - service: ozw.set_config_parameter
+      - service: mqtt.publish
         data:
           # Set Dimmer LED
-          node_id: 9
-          parameter: 3
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
-      # change to zwave. from ozw. for non-beta zwave
-      - service: ozw.set_config_parameter
+          topic: zwave/master_bedroom/112/0/3/set
+          payload: '{{ color_int }}'
+      - service: mqtt.publish
         data:
           # Set Relay LED
-          node_id: 9
-          parameter: 4
-          value: '{{ color }}'
-          #size: 1 # uncomment for non-beta zwave 
+          topic: zwave/master_bedroom/112/0/4/set
+          payload: '{{ color_int }}'
   

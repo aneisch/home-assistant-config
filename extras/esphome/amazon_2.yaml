@@ -1,0 +1,78 @@
+substitutions:
+  name: amazon_2
+  friendly_name: "Amazon 2"
+  
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: esp01_1m
+  esp8266_restore_from_flash: true
+
+<<: !include common.yaml
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    # Turn Off CO2 as safety in case appdaemon didn't do it
+    on_time:
+      - cron: '18 00 * * * *'
+        then:
+          - switch.turn_off: relay3
+
+sensor:
+  - platform: hlw8012
+    sel_pin: GPIO12
+    cf_pin: GPIO4
+    cf1_pin: GPIO5
+    current:
+      name: "${friendly_name} Current"
+    voltage:
+      name: "${friendly_name} Voltage"
+    power:
+      name: "${friendly_name} Power"
+    update_interval: 60s
+
+# 1: Heater
+# 2: Filter
+# 3: CO2
+switch:
+  - platform: gpio
+    name: "${friendly_name} relay 1"
+    pin: GPIO15
+    # inverted: yes
+    id: relay1
+  - platform: gpio
+    name: "${friendly_name} relay 2"
+    pin: GPIO13
+    # inverted: yes
+    id: relay2
+  - platform: gpio
+    name: "${friendly_name} relay 3"
+    pin: GPIO14
+    # inverted: yes
+    id: relay3
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO16
+      mode: INPUT_PULLUP
+      inverted: False
+    name: "${friendly_name} button"
+    on_press:
+      - switch.toggle: relay2
+    # on_double_click:
+    #   min_length: 50ms
+    #   max_length: 350ms
+    #   then:
+    #   - switch.turn_off: relay1
+    #   - switch.turn_off: relay2
+    #   - switch.turn_off: relay3
+
+status_led:
+  pin:
+    number: GPIO1
+    inverted: yes
