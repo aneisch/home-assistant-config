@@ -18,6 +18,18 @@ esphome:
 
 <<: !include common.yaml
   
+  
+dallas:
+  - pin:
+      number: D4
+      #mode: INPUT_PULLUP
+    update_interval: 300s
+
+sensor:
+  - platform: dallas
+    address: 0x4C01204F1CFB3628
+    name: "${friendly_name} Temperature"
+
 # custom_component:
 # - lambda: |-
 #     auto change_address = new ChangeAddress();

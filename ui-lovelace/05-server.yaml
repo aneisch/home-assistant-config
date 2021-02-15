@@ -80,14 +80,14 @@ cards:
         name: CPU History
         detail: 2
           
-  #- type: entities
-  #  show_header_toggle: false
-  #  title: 950 UPS
-  #  entities:
-  #    - sensor.ups_status
-  #    - sensor.ups_battery
-  #    - sensor.ups_time_left
-  #    - sensor.ups_load
+  - type: entities
+    show_header_toggle: false
+    title: 950 UPS
+    entities:
+      - sensor.ups_status
+      - sensor.ups_battery
+      - sensor.ups_time_left
+      - sensor.ups_load
 
   - type: entities
     show_header_toggle: false

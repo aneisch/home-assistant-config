@@ -114,7 +114,7 @@ device_tracker:
 #    - network_total_up
 #    - network_total_down
 #  rename:
-#    configurator: "HASS Configurator"
+#    configurator: "VSCode"
 #    esphome: "ESPHome"
 #    grafana: "Grafana"
 #    librespeed: "Speedtest"
@@ -340,10 +340,6 @@ panel_custom:
     url_path: zwave
 
 panel_iframe:
-  configurator:
-    title: Configurator
-    icon: mdi:wrench
-    url: !secret configurator_url 
   vscode:
     title: VS Code
     icon: mdi:wrench

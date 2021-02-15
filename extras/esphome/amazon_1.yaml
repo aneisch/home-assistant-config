@@ -32,7 +32,7 @@ sensor:
       name: "${friendly_name} Voltage"
     power:
       name: "${friendly_name} Power"
-    update_interval: 60s
+    update_interval: 5s
 
 # 1: Heater
 # 2: Filter

@@ -83,23 +83,23 @@ cards:
           - operator: ">"
             value: '0'
         entities:
-         - entity: sensor.mail_usps_mail
-           name: "Today's Mail"
-         - entity: sensor.mail_packages_in_transit
-           name: "Today's Package Delivery"
-         - entity: sensor.mail_usps_delivering
-           icon: 'mdi:package-variant-closed'
-           name: USPS
-         - entity: sensor.mail_fedex_delivering
-           icon: 'mdi:package-variant-closed'
-           name: FedEx
-         - entity: sensor.mail_ups_delivering
-           icon: 'mdi:package-variant-closed'
-           name: UPS
-         - entity: sensor.mail_updated
-           state_filter:
-             - operator: "regex"
-               value: 20
+          - entity: sensor.mail_usps_mail
+            name: "Today's Mail"
+          - entity: sensor.mail_packages_in_transit
+            name: "Today's Package Delivery"
+          - entity: sensor.mail_usps_delivering
+            icon: 'mdi:package-variant-closed'
+            name: USPS
+          - entity: sensor.mail_fedex_delivering
+            icon: 'mdi:package-variant-closed'
+            name: FedEx
+          - entity: sensor.mail_ups_delivering
+            icon: 'mdi:package-variant-closed'
+            name: UPS
+          - entity: sensor.mail_updated
+            state_filter:
+              - operator: "regex"
+                value: 20
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml
@@ -120,7 +120,9 @@ cards:
           - sensor.rain_rate
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
+          - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
+          - sensor.garage_temperature
       - type: custom:weather-card
         entity: weather.kcll_daynight
 
@@ -136,6 +138,6 @@ cards:
     entities:
       - calendar.garbage_collection
 
-  - type: picture-glance
-    camera_image: camera.outdoor
-    entities: []
+  # - type: picture-glance
+  #   camera_image: camera.outdoor
+  #   entities: []

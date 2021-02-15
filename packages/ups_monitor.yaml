@@ -4,20 +4,20 @@
 # 950: NAS, Firewall
 
 #apcusd_950
-#apcupsd:
-#  port: 3551
+apcupsd:
+ port: 3551
 
 #apcusd_650
 apcupsd2:
   port: 3552
 
 sensor:
-#  - platform: apcupsd
-#    resources:
-#      - loadpct
-#      - bcharge
-#      - timeleft
-#      - status
+  - platform: apcupsd
+    resources:
+      - loadpct
+      - bcharge
+      - timeleft
+      - status
 
   - platform: apcupsd2
     resources:
@@ -52,11 +52,11 @@ automation:
       - service: notify.pushover
         data:
           message: > 
-             {% if trigger.from_state.state == "ONBATT" %}
-               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
-             {% else %}
-               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
-             {% endif %}
+            {% if trigger.from_state.state == "ONBATT" %}
+              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
+            {% else %}
+              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
+            {% endif %}
 
   - alias: "Turn Off NAS After 10 Minute Outage"
     trigger:
