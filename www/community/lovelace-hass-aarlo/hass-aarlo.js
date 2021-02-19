@@ -40,21 +40,33 @@ const LitElement = Object.getPrototypeOf(
     );
 const html = LitElement.prototype.html;
 
+function _array( config, value = [] ) {
+    if( !config ) {
+        return value
+    }
+    if( typeof config === "string" ) {
+        return config.split(',')
+    }
+    return config
+}
 function _value( config, value = null ) {
     return config ? config : value
 }
-function _value_int( config, value = null ) {
+function _value_int( config, value = 0 ) {
     return parseInt( _value( config, value ) )
+}
+function _value_float( config, value = 0 ) {
+    return parseFloat( _value( config, value ) )
 }
 function _includes( config, item, value = false ) {
     return config ? config.includes(item) : value
 }
-function _either_or( config, item, true_value = true, false_value = false ) {
-    if (config && item in config) {
-        return config[item] ? true_value : false_value
-    }
-    return false_value
-}
+// function _either_or( config, item, true_value = true, false_value = false ) {
+//     if (config && item in config) {
+//         return config[item] ? true_value : false_value
+//     }
+//     return false_value
+// }
 
 // noinspection JSUnresolvedVariable,CssUnknownTarget,CssUnresolvedCustomProperty,HtmlRequiredAltAttribute,RequiredAttributes,JSFileReferences
 class AarloGlance extends LitElement {
@@ -1069,11 +1081,28 @@ class AarloGlance extends LitElement {
             lang: config.lang,
 
             // aspect ratio
-            aspectRatio: config.aspect_ratio === 'square' ? '1x1' : '16x9',
-            aspectRatioMultiplier: config.aspect_ratio === 'square' ? 1 : 0.5625,
+            aspectRatio: _includes( config.image_view, 'square' ) ? '1x1' : '16x9',
+            aspectRatioMultiplier: _includes( config.image_view, 'square' ) ? 1 : 0.5625,
+            // active camera mode
+            activeView: _includes( config.image_view, "active" ),
+            // auto play
+            autoPlay: _includes( config.image_view, "autoplay" ) ||
+                        _includes( config.image_view, "start-stream" ),
+            // auto play recording
+            autoPlayRecording: _includes( config.image_view, "start-recording" ),
+            // stream directly from Arlo
+            playDirect: _includes( config.image_view, "direct" ),
 
-            // logging?
-            log: _value( config.logging, false ),
+            // blended library
+            blendedMode: _includes( config.library_view, "blended" ),
+            // auto play recording when finished
+            libraryAutoPlay: _includes( config.library_view, "autoplay" ) ||
+                        _includes( config.image_view, "start-recording" ),
+            // download videos?
+            libraryDownload: _includes( config.library_view, "download" ),
+
+            // modal window multiplier
+            modalMultiplier: _value_float( config.modal_multiplier, 0.8 ),
 
             // lovelace card size
             cardSize: _value_int( config.card_size, 3 ),
@@ -1082,19 +1111,14 @@ class AarloGlance extends LitElement {
             // swipeThreshold: config.swipe_threshold ? parseInt(config.swipe_threshold) : 150,
             swipeThreshold: _value_int( config.swipe_threshold, 150 ),
 
-            // active camera mode
-            activeView: _includes( config.image_view, "active" ),
-
-            // blended library
-            blendedMode: _includes( config.library_view, "blended" ),
+            // logging?
+            log: _value( config.logging, false ),
         }
     }
 
-    getGlobalLibraryConfig( config ) {
-    }
-
-    getGlobalState( _config ) {
+    getGlobalState( config ) {
         return {
+            autoplay: _value( config.autoPlay, false ),
             dash: null,
             hls: null,
             libraryCamera: -1,
@@ -1106,9 +1130,9 @@ class AarloGlance extends LitElement {
         }
     }
 
-    getCameraConfig( global, local ) {
+    getCameraConfigOld( global, local ) {
         const config = this._merge_config( global, local )
- 
+
         // find camera
         let camera = ""
         if( config.entity ) {
@@ -1232,6 +1256,101 @@ class AarloGlance extends LitElement {
         return cc
     }
 
+    getCameraConfigNew( global, local ) {
+        const config = this._merge_config( global, local )
+
+        // Find entity and determine camera name.
+        const entity = config.entity
+        if ( !entity.startsWith( 'camera.aarlo_' ) ) {
+            this.throwError( "new config only works with aarlo entity names" )
+            return
+        }
+        const camera = entity.replace( 'camera.aarlo_','' )
+        const prefix = "aarlo_"
+
+        let cc = {}
+
+        // Grab name if there
+        cc.name = _value( config.name, null )
+
+        // What appears at the top?
+        cc.showTopTitle     = _includes(config.image_top,"name" )
+        cc.showTopDate      = _includes(config.image_top,"date" )
+        cc.showTopStatus    = _includes(config.image_top,"status" )
+
+        // What appears at the bottom.
+        cc.showBottomTitle  = _includes(config.image_bottom,"name" )
+        cc.showBottomDate   = _includes(config.image_bottom,"date" )
+        cc.showBottomStatus = _includes(config.image_bottom,"status" )
+        cc.showPlay         = _includes(config.image_bottom,"play" )
+        cc.showSnapshot     = _includes(config.image_bottom,"snapshot" )
+        cc.showCameraOnOff  = _includes(config.image_bottom,"on_off" )
+        cc.showBattery      = _includes(config.image_bottom,"battery" )
+        cc.showSignal       = _includes(config.image_bottom,"signal" )
+        cc.showMotion       = _includes(config.image_bottom,"motion" )
+        cc.showSound        = _includes(config.image_bottom,"audio" )
+        cc.showCaptured     = _includes(config.image_bottom,"library" )
+        cc.showImageDate    = true
+
+        // What does clicking the image do?
+        const image_click = _array( config.image_click )
+        cc.imageClickStream = image_click.includes("stream")
+        cc.imageClickModal  = image_click.includes("modal")
+        cc.imageClickSmart  = image_click.includes("smart")
+
+        // snapshot updates
+        cc.snapshotTimeouts = _array( config.snapshot_retry, [ 2, 5 ] )
+
+        // camera and sensors
+        cc.id              = config.camera_id ? config.camera_id : 'camera.' + prefix + camera;
+        cc.motionId        = config.motion_id ? config.motion_id : 'binary_sensor.' + prefix + 'motion_' + camera;
+        cc.soundId         = config.sound_id ? config.sound_id : 'binary_sensor.' + prefix + 'sound_' + camera;
+        cc.batteryId       = config.battery_id ? config.battery_id : 'sensor.' + prefix + 'battery_level_' + camera;
+        cc.signalId        = config.signal_id ? config.signal_id : 'sensor.' + prefix + 'signal_strength_' + camera;
+        cc.capturedTodayId = config.capture_id ? config.capture_id : 'sensor.' + prefix + 'captured_today_' + camera;
+        cc.lastCaptureId   = config.last_id ? config.last_id : 'sensor.' + prefix + 'last_' + camera;
+
+        // door definition
+        cc.doorId         = config.door ? config.door: null;
+        cc.doorBellId     = config.door_bell ? config.door_bell : null;
+        cc.doorBellMuteId = config.door_bell_mute ? config.door_bell_mute : null;
+        cc.doorLockId     = config.door_lock ? config.door_lock : null;
+
+        // door2 definition
+        cc.door2Id         = config.door2 ? config.door2: null;
+        cc.door2BellId     = config.door2_bell ? config.door2_bell : null;
+        cc.door2BellMuteId = config.door2_bell_mute ? config.door2_bell_mute : null;
+        cc.door2LockId     = config.door2_lock ? config.door2_lock : null;
+
+        // light definition
+        cc.lightId     = config.light ? config.light: null;
+
+        cc.showDoor      = !!cc.doorId
+        cc.showDoorLock  = !!cc.doorLockId
+        cc.showDoorBell  = !!cc.doorBellId
+        cc.showDoor2     = !!cc.door2Id
+        cc.showDoor2Lock = !!cc.door2LockId
+        cc.showDoor2Bell = !!cc.door2BellId
+
+        cc.showLight      = !!cc.lightId
+        cc.showLightLeft  =   config.light_left ? !!config.light_left : false;
+        cc.showLightRight =  !cc.showLightLeft
+
+        cc.showOthers = ( cc.showDoor || cc.showDoorLock || cc.showDoorBell ||
+                                cc.showDoor2 || cc.showDoor2Lock || cc.showDoor2Bell ||
+                                    cc.showLight )
+
+        return cc
+    }
+
+    getCameraConfig( global, local ) {
+        if( "show" in global ) {
+            return this.getCameraConfigOld( global, local )
+        } else {
+            return this.getCameraConfigNew( global, local )
+        }
+    }
+
     getCameraState( config ) {
         return {
             autoPlay:      config.autoPlay,
@@ -1245,25 +1364,23 @@ class AarloGlance extends LitElement {
     getLibraryConfig( global, local ) {
 
         const config = this._merge_config( global, local )
-        const library_click = config.image_click ? config.image_click : ""
-        const sizes = config.library_sizes ? config.library_sizes : [ 3 ]
+        const sizes = _array( config.library_sizes, [ 3 ] )
 
         return {
             // What to when video clicked
-            imageClickModal: library_click.includes("modal"),
-            imageClickSmart: library_click.includes("smart"),
-            imageAutoPlay:   library_click.includes("autoplay"),
+            imageClickModal: _includes( config.library_click, "modal"),
+            imageClickSmart: _includes( config.library_click, "smart" ),
 
             // How many recordings to show
             sizes:      sizes,
-            recordings: config.max_recordings ? parseInt(config.max_recordings) : 99,
+            recordings: _value_int( config.max_recordings, 99 ),
 
             // Highlight motion triggers?
-            regions: config.library_regions ? config.library_regions : sizes,
+            regions: _array( config.library_regions, sizes ),
             colors:  {
-                "Animal":  config.library_animal ? config.library_animal : 'orangered',
-                "Vehicle": config.library_vehicle ? config.library_vehicle : 'yellow',
-                "Person":  config.library_person ? config.library_person : 'lime',
+                "Animal":  _value( config.library_animal, 'orangered' ),
+                "Vehicle": _value( config.library_vehicle, 'yellow' ),
+                "Person":  _value( config.library_person, 'lime' ),
             },
         }
     }
@@ -1329,8 +1446,8 @@ class AarloGlance extends LitElement {
     }
 
     getModalDimensions() {
-        let width  = window.innerWidth * this.cc.modalMultiplier
-        let height = window.innerHeight * this.cc.modalMultiplier
+        let width  = window.innerWidth * this.gc.modalMultiplier
+        let height = window.innerHeight * this.gc.modalMultiplier
         const ratio = this.gc.aspectRatioMultiplier
         if( height / width > ratio ) {
             height = width * ratio
@@ -1561,7 +1678,7 @@ class AarloGlance extends LitElement {
     }
 
     setupLibraryHandlers() {
-        // rudementary swipe support
+        // rudimentary swipe support
         const viewer = this._element("library-viewer")
 
         if( this.gc.isMobile ) {
@@ -1602,20 +1719,35 @@ class AarloGlance extends LitElement {
 
         for( let i = 0; i < this.gs.librarySize * this.gs.librarySize; ++i ) {
 
+            // The thumbnail element.
             let img = document.createElement("img")
             img.id = this._id(`library-${i}`)
             img.style.width = "100%"
             img.style.height = "100%"
             img.style.objectFit = "cover"
             img.addEventListener("click", () => { this.playLibraryVideo(i) } )
+            img.addEventListener("mouseover", () => { this.showDownloadIcon(i) } )
+            img.addEventListener("mouseout", () => { this.hideDownloadIcon(i) } )
 
+            // The region highlight element
             let box = document.createElement("div")
             box.id = this._id(`library-box-${i}`)
             box.style.width = "100%"
             box.style.height = "100%"
             box.style.position = "absolute"
             box.style.top = "0"
-            img.addEventListener("click", () => { this.playLibraryVideo(i) } )
+            box.addEventListener("click", () => { this.playLibraryVideo(i) } )
+            box.addEventListener("mouseover", () => { this.showDownloadIcon(i) } )
+            box.addEventListener("mouseout", () => { this.hideDownloadIcon(i) } )
+
+            // The download icon
+            let a = document.createElement("a")
+            a.id = this._id(`library-a-${i}`)
+            a.style.position = "absolute"
+            a.style.left = `2%`
+            a.style.top  = `5%`
+            a.setAttribute("download","")
+            a.innerHTML = `<ha-icon icon="mdi:download"></ha-icon>`
 
             const column = Math.floor((i % this.gs.librarySize) + 1)
             const row = Math.floor((i / this.gs.librarySize) + 1)
@@ -1625,6 +1757,7 @@ class AarloGlance extends LitElement {
             div.style.gridRow    = `${row}`
             div.appendChild(img)
             div.appendChild(box)
+            div.appendChild(a)
             grid.appendChild(div)
         }
 
@@ -1677,9 +1810,16 @@ class AarloGlance extends LitElement {
                 this._hide( bid )
             }
 
+            // download icon
+            const aid = `library-a-${i}`
+            this._element( aid ).href = video.url
+            this._hide( aid )
+
         }
         for( ; i < this.ls.gridCount; i++ ) {
             this._hide(`library-${i}`)
+            this._hide(`library-box-${i}`)
+            this._hide(`library-a-${i}`)
         }
 
         // save state
@@ -1882,7 +2022,7 @@ class AarloGlance extends LitElement {
         }
 
         if ( state === 'starting' ) {
-            if ( this.cc.playDirectFromArlo ) {
+            if ( this.gc.playDirect ) {
                 this.setMPEGStreamElementData()
             } else {
                 this.setHLSStreamElementData()
@@ -1963,7 +2103,7 @@ class AarloGlance extends LitElement {
 
         // Now wait for the elements to be added to the shadow DOM.
         if( this._element('image-viewer') === null ) {
-            console.log( 'waiting for an element ' )
+            this_.log( 'waiting for an element ' )
             setTimeout( () => {
                 this.initialSetup( lang, index )
             }, 100);
@@ -2019,7 +2159,7 @@ class AarloGlance extends LitElement {
     async wsStartStream() {
         try {
             return await this._hass.callWS({
-                type: this.cc.playDirectFromArlo ? "aarlo_stream_url" : "camera/stream",
+                type: this.gc.playDirect ? "aarlo_stream_url" : "camera/stream",
                 entity_id: this.cc.id,
             })
         } catch (err) {
@@ -2088,8 +2228,8 @@ class AarloGlance extends LitElement {
     playStream( ) {
         this.cs.autoPlayTimer = null
         if ( this.gs.stream === null ) {
-            if( this.cc.autoPlay ) {
-                this.cs.autoPlay = this.cc.autoPlay
+            if( this.gs.autoPlay ) {
+                this.cs.autoPlay = this.gs.autoPlay
             }
             this.asyncPlayStream().then( () => {
                 this.showStream()
@@ -2133,18 +2273,18 @@ class AarloGlance extends LitElement {
 
     async asyncLoadLanguage() {
         let lang = this.gc.lang ? this.gc.lang : this._hass.language
-        console.log( 'setting default language' )
 
         // Load language pack. Try less specific before reverting to en.
         // testing: import(`https://twrecked.github.io/lang/${lang}.js?t=${lang_date}`)
         // final: import(`https://cdn.jsdelivr.net/gh/twrecked/lovelace-hass-aarlo@master/lang/${lang}.js`)
         let module = null
         while( !module ) {
-            console.log( `importing ${lang} language` )
-            module = await import(`https://twrecked.github.io/lang/${lang.toLowerCase()}.js?t=${new Date().getTime()}`)
-            if( module ) {
+            this._log( `importing ${lang} language` )
+            try {
+                module = await import(`https://twrecked.github.io/lang/${lang.toLowerCase()}.js?t=${new Date().getTime()}`)
                 this._i = module.messages
-            } else {
+            } catch( error ) {
+                this._log( `failed to load language pack: ${lang}` )
                 const lang_pieces = lang.split('-')
                 lang = lang_pieces.length > 1 ? lang_pieces[0] : "en"
             }
@@ -2405,6 +2545,15 @@ class AarloGlance extends LitElement {
         }
     }
 
+    showDownloadIcon(index) {
+        if( this.gc.libraryDownload ) {
+            this._show(`library-a-${index}`)
+        }
+    }
+
+    hideDownloadIcon(index) {
+        this._hide(`library-a-${index}`)
+    }
 }
 
 // Bring in our custom scripts

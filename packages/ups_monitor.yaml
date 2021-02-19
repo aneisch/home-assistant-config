@@ -76,19 +76,44 @@ automation:
       - service: switch.turn_off
         entity_id: switch.nas
 
+  - alias: "Containers With Outage"
+    trigger:
+      - platform: state
+        entity_id: sensor.ups_status
+        from: "ONLINE"
+        to: "ONBATT"
+        for:
+          seconds: 30
+      - platform: state
+        entity_id: sensor.ups_status
+        from: "ONBATT"
+        to: "ONLINE"
+        for:
+          seconds: 30
+    action:
+      - service: "{% if trigger.to_state.state == 'ONBATT' %}homeassistant.turn_off{% else %}homeassistant.turn_on{% endif %}"
+        entity_id: 
+          - switch.docker_zwavejs
+          - switch.docker_vscode
+          - switch.docker_thermostat_api_server
+          - switch.docker_nodered
+          - switch.docker_appdaemon
+          - switch.docker_esphome
+          - switch.docker_grafana
+
   - alias: "Turn Off NUC When <10 Minutes Remain"
     trigger:
       platform: numeric_state
-      entity_id: sensor.650_ups_time_left
+      entity_id: sensor.ups_time_left
       below: 10
     condition:
       - condition: state
-        entity_id: sensor.650_ups_status
+        entity_id: sensor.ups_status
         state: "ONBATT"
     action:
       - service: notify.pushover
         data:
-          message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.650_ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
+          message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - service: shell_command.nuc_poweroff
 
 homeassistant:

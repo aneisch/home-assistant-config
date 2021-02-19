@@ -18,7 +18,7 @@ services:
         environment:
           - TZ=America/Chicago
         healthcheck:
-          test: "curl -m 30 -sLf http://localhost:8123 || pkill -9 python3"
+          test: 'curl -m 30 -sLf http://localhost:8123 || date >> /config/healthcheck | pkill -9 python3'
           interval: 60s
           timeout: 15s
           retries: 2
@@ -89,7 +89,7 @@ services:
         restart: always
     appdaemon:
         container_name: appdaemon
-        image: acockburn/appdaemon:dev
+        image: acockburn/appdaemon:4.0.5
         #user: '99'
         healthcheck:
           test: "curl -sf http://localhost:8888"
@@ -243,7 +243,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/006'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -262,7 +262,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/007'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
