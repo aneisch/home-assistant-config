@@ -70,9 +70,9 @@ security_arm:
 master_bedroom_bedtime:
   sequence:
     - service: script.appdaemon_ac_night
-    - service: switch.turn_on
-      data:
-        entity_id: switch.master_bedroom_ceiling_fan
+    # - service: switch.turn_on
+    #   data:
+    #     entity_id: switch.master_bedroom_ceiling_fan
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom_ceiling_fan

@@ -332,12 +332,12 @@ notify:
     vapid_email: !secret vapid_email
 #  - platform: alexa_media
 
-panel_custom:
-  # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
-  - name: zwavegraph2
-    sidebar_title: Z-Wave Graph
-    sidebar_icon: mdi:access-point-network
-    url_path: zwave
+#panel_custom:
+#  # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
+#  - name: zwavegraph2
+#    sidebar_title: Z-Wave Graph
+#    sidebar_icon: mdi:access-point-network
+#    url_path: zwave
 
 panel_iframe:
   vscode:

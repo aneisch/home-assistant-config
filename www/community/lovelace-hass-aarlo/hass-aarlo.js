@@ -1087,11 +1087,13 @@ class AarloGlance extends LitElement {
             activeView: _includes( config.image_view, "active" ),
             // auto play
             autoPlay: _includes( config.image_view, "autoplay" ) ||
-                        _includes( config.image_view, "start-stream" ),
+                        _includes( config.image_view, "start-stream" ) ||
+                        _value( config.auto_play, false ),
             // auto play recording
             autoPlayRecording: _includes( config.image_view, "start-recording" ),
             // stream directly from Arlo
-            playDirect: _includes( config.image_view, "direct" ),
+            playDirect: _includes( config.image_view, "direct" ) ||
+                        _value( config.play_direct, false ),
 
             // blended library
             blendedMode: _includes( config.library_view, "blended" ),
@@ -1282,21 +1284,21 @@ class AarloGlance extends LitElement {
         cc.showBottomTitle  = _includes(config.image_bottom,"name" )
         cc.showBottomDate   = _includes(config.image_bottom,"date" )
         cc.showBottomStatus = _includes(config.image_bottom,"status" )
-        cc.showPlay         = _includes(config.image_bottom,"play" )
-        cc.showSnapshot     = _includes(config.image_bottom,"snapshot" )
-        cc.showCameraOnOff  = _includes(config.image_bottom,"on_off" )
+        cc.showMotion       = _includes(config.image_bottom,"motion" )
+        cc.showSound        = _includes(config.image_bottom,"sound" )
         cc.showBattery      = _includes(config.image_bottom,"battery" )
         cc.showSignal       = _includes(config.image_bottom,"signal" )
-        cc.showMotion       = _includes(config.image_bottom,"motion" )
-        cc.showSound        = _includes(config.image_bottom,"audio" )
         cc.showCaptured     = _includes(config.image_bottom,"library" )
+        cc.showPlay         = _includes(config.image_bottom,"stream" )
+        cc.showCameraOnOff  = _includes(config.image_bottom,"on_off" )
+        cc.showSnapshot     = _includes(config.image_bottom,"snapshot" )
         cc.showImageDate    = true
 
         // What does clicking the image do?
         const image_click = _array( config.image_click )
-        cc.imageClickStream = image_click.includes("stream")
         cc.imageClickModal  = image_click.includes("modal")
         cc.imageClickSmart  = image_click.includes("smart")
+        cc.imageClickStream = image_click.includes("stream")
 
         // snapshot updates
         cc.snapshotTimeouts = _array( config.snapshot_retry, [ 2, 5 ] )
