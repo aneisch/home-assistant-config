@@ -61,8 +61,8 @@ services:
         restart: always
     influxdb:
         container_name: influxdb
-        image: influxdb
-        #user: '99'
+        image: influxdb:1.8.4-alpine
+        user: '99'
         healthcheck:
           test: "curl -sf http://localhost:8086/ping"
           interval: 60s
