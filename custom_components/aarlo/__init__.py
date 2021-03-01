@@ -28,7 +28,7 @@ from requests.exceptions import ConnectTimeout, HTTPError
 
 from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 
-__version__ = "0.7.1.beta.1"
+__version__ = "0.7.1b3"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ STR_TIMEOUT = timedelta(seconds=0)
 NO_MEDIA_UP = False
 MEDIA_RETRY = None
 SNAPSHOT_CHECKS = None
-USER_AGENT = "apple"
+USER_AGENT = "arlo"
 MODE_API = "auto"
 DEVICE_REFRESH = 0
 MODE_REFRESH = 0

@@ -430,12 +430,6 @@ recorder:
       - sensor.thermopro_probe_2_high_estimated_length
       - sensor.circadian_values
       - binary_sensor.gate_heading_comparison
-      - light.aquarium_light
-      - switch.aquarium_co2
-      - switch.aquarium_light_power
-      - switch.aquarium_power_strip_usb
-      - switch.aquarium_heater
-      - switch.aquarium_filter
     domains:
       - automation
       - alarm_panel

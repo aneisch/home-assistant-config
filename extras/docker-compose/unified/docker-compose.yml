@@ -20,7 +20,7 @@ services:
         healthcheck:
           test: 'curl -m 30 -sLf http://localhost:8123 || date >> /config/healthcheck | pkill -9 python3'
           interval: 60s
-          timeout: 15s
+          timeout: 25s
           retries: 2
         network_mode: host
         restart: always
@@ -53,7 +53,6 @@ services:
             timeout: 10s
             retries: 5
         volumes:
-            - '/etc/ssl/certs:/mosquitto/certs:ro'
             - '/opt/mosquitto/config:/mosquitto/config:ro'
             - '/opt/mosquitto/log:/mosquitto/log'
             - '/opt/mosquitto/data:/mosquitto/data'
@@ -63,7 +62,7 @@ services:
     influxdb:
         container_name: influxdb
         image: influxdb
-        user: '99'
+        #user: '99'
         healthcheck:
           test: "curl -sf http://localhost:8086/ping"
           interval: 60s
@@ -164,9 +163,11 @@ services:
     #    restart: 'no'
     zwavejs:
         container_name: zwavejs
-        image: zwavejs/zwavejs2mqtt:latest
-        #image: zwavejs/zwavejs2mqtt:sha-b9d066b
+        #image: zwavejs/zwavejs2mqtt:latest
+        image: zwavejs/zwavejs2mqtt:sha-fec72b7
         restart: always
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
         stop_signal: SIGINT
         devices:
             - '/dev/zwave:/dev/zwave'
@@ -243,7 +244,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/056'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -262,7 +263,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/055'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
@@ -354,7 +355,8 @@ services:
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - /etc/localtime:/etc/localtime:ro
-        restart: always
+        #restart: always
+        restart: 'no'
         environment:
           - WATCHTOWER_CLEANUP=true
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
@@ -369,7 +371,8 @@ services:
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-        command: --schedule "00 00 12 * * *"
+        #command: --schedule "00 00 12 * * *"
+        command: --run-once
     adguard:
         container_name: adguard
         image: adguard/adguardhome:latest

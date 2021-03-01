@@ -15,20 +15,16 @@ from homeassistant.components.camera import (
     ATTR_FILENAME,
     CAMERA_SERVICE_SCHEMA,
     CAMERA_SERVICE_SNAPSHOT,
+    CONF_DURATION,
+    CONF_LOOKBACK,
     DOMAIN,
+    SERVICE_RECORD,
     STATE_IDLE,
     STATE_RECORDING,
     STATE_STREAMING,
     Camera,
 )
 from homeassistant.components.ffmpeg import DATA_FFMPEG
-from homeassistant.components.stream.const import (
-    CONF_DURATION,
-    CONF_LOOKBACK,
-    CONF_STREAM_SOURCE,
-)
-from homeassistant.components.stream.const import DOMAIN as DOMAIN_STREAM
-from homeassistant.components.stream.const import SERVICE_RECORD
 from homeassistant.const import (
     ATTR_ATTRIBUTION,
     ATTR_BATTERY_LEVEL,
@@ -364,14 +360,18 @@ class ArloCam(Camera):
             if attr == ACTIVITY_STATE_KEY or attr == CONNECTION_KEY:
                 if value == "thermalShutdownCold":
                     self._state = "Offline, Too Cold"
+                    self.clear_stream()
                 elif value == "userStreamActive":
                     self._state = STATE_STREAMING
                 elif value == "alertStreamActive":
                     self._state = STATE_RECORDING
                 elif value == "unavailable":
                     self._state = "Unavailable"
+                    self.clear_stream()
                 else:
                     self._state = STATE_IDLE
+                    self.clear_stream()
+
             if attr == RECENT_ACTIVITY_KEY:
                 self._recent = value
 
@@ -453,6 +453,17 @@ class ArloCam(Camera):
             except:
                 _LOGGER.debug(f"problem with stream close for {self._name}")
 
+    def clear_stream(self):
+        """Clear out inactive stream.
+
+        Arlo stream changes frequently so we trap that and clear down the stream device.
+        """
+        if hasattr(self, "stream"):
+            if self.stream:
+                _LOGGER.debug("clearing out stream variable")
+                self.stream.stop()
+                self.stream = None
+
     @property
     def unique_id(self):
         """Return a unique ID."""
@@ -530,14 +541,23 @@ class ArloCam(Camera):
         return COMPONENT_BRAND
 
     async def stream_source(self):
-        """Return the source of the stream."""
-        if is_homekit():
-            return self._camera.get_stream()
-        else:
-            return await self.hass.async_add_executor_job(self._camera.get_stream)
+        """Return the source of the stream.
 
-    async def async_stream_source(self):
-        return await self.hass.async_add_executor_job(self._camera.get_stream)
+        Note, this is only used by `camera/stream` websocket so we force the `User-Agent`
+        to the original Arlo one. This means we get a `rtsps` stream back which the stream
+        component can handle.
+        """
+        if is_homekit():
+            return self._camera.get_stream("arlo")
+        else:
+            return await self.hass.async_add_executor_job(
+                self._camera.get_stream, "arlo"
+            )
+
+    async def async_stream_source(self, user_agent=None):
+        return await self.hass.async_add_executor_job(
+            self._camera.get_stream, user_agent
+        )
 
     def camera_image(self):
         """Return a still image response from the camera."""
@@ -589,7 +609,7 @@ class ArloCam(Camera):
         self._motion_status = False
         self.set_base_station_mode(ARLO_MODE_DISARMED)
 
-    def _attach_hidden_stream(self, source, duration):
+    def _attach_hidden_stream(self, duration):
         _LOGGER.info(
             "{} attaching hidden stream for duration {}".format(
                 self._unique_id, duration
@@ -599,12 +619,12 @@ class ArloCam(Camera):
         video_path = "/tmp/aarlo-hidden-{}.mp4".format(self._unique_id)
 
         data = {
-            CONF_STREAM_SOURCE: source,
+            "entity_id": "camera.aarlo_" + self._unique_id,
             CONF_FILENAME: video_path,
             CONF_DURATION: duration,
             CONF_LOOKBACK: 0,
         }
-        self.hass.services.call(DOMAIN_STREAM, SERVICE_RECORD, data, blocking=True)
+        self.hass.services.call(DOMAIN, SERVICE_RECORD, data, blocking=True)
 
         _LOGGER.debug("waiting on stream connect")
         return self._camera.wait_for_user_stream()
@@ -666,11 +686,13 @@ class ArloCam(Camera):
         return await self.hass.async_add_executor_job(self.siren_off)
 
     def start_recording(self, duration=30):
-        source = self._camera.start_recording_stream()
-        if source is not None:
-            self._attach_hidden_stream(source, duration + 10)
-            self._camera.start_recording(duration=duration)
-            return source
+        source = self._camera.start_recording_stream(user_agent="arlo")
+        if source:
+            active = self._attach_hidden_stream(duration + 10)
+            if active:
+                # source = self._camera.start_recording_stream()
+                self._camera.start_recording(duration=duration)
+                return source
         _LOGGER.warning("failed to start recording for {}".format(self._camera.name))
         return None
 
@@ -725,6 +747,7 @@ async def websocket_library(hass, connection, msg):
                     "created_at_pretty": v.created_at_pretty(
                         camera.last_capture_date_format
                     ),
+                    "duration": v.media_duration_seconds,
                     "url": v.video_url,
                     "url_type": v.content_type,
                     "thumbnail": v.thumbnail_url,
@@ -760,7 +783,9 @@ async def websocket_stream_url(hass, connection, msg):
         camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
         _LOGGER.debug("stream_url for " + str(camera.unique_id))
 
-        stream = await camera.async_stream_source()
+        # start stream and force user agent to linux, this will return a `mpeg dash`
+        # stream we can use directly from the Lovelace card
+        stream = await camera.async_stream_source(user_agent="linux")
         connection.send_message(
             websocket_api.result_message(msg["id"], {"url": stream})
         )

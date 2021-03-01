@@ -485,3 +485,21 @@
           {% elif trigger.event.data['value'] in [8] %}
             script.appdaemon_ac_night
           {% endif %}
+
+- alias: "Watchtower Updates"
+  trigger:
+    - platform: time
+      at: "15:00:00"
+  condition:
+    condition: and
+    conditions:
+      - condition: time
+        weekday:
+          - sun
+      - "{{ states('person.andrew') == 'home'}}"
+  action:
+      # Watchtower runs once at container start then turns back off
+    - service: homeassistant.turn_on
+      entity_id: switch.docker_watchtower
+    - delay: '00:02:00'
+    - service: homeassistant.restart

@@ -68,7 +68,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/003'
+            - '/dev/rtl_sdr_grill:/dev/bus/usb/003/056'
     433_mqtt:
         container_name: 433_mqtt
         image: aneisch/rtl_433_mqtt_multi:latest
@@ -87,7 +87,7 @@ services:
             # for some reason path on container must match host path
             # use readlink /dev/rtl_sdr
             # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/004'
+            - '/dev/rtl_sdr_rain:/dev/bus/usb/003/055'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine
@@ -179,7 +179,8 @@ services:
         volumes:
           - /var/run/docker.sock:/var/run/docker.sock
           - /etc/localtime:/etc/localtime:ro
-        restart: always
+        #restart: always
+        restart: 'no'
         environment:
           - WATCHTOWER_CLEANUP=true
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
@@ -194,7 +195,8 @@ services:
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-        command: --schedule "00 00 12 * * *"
+        #command: --schedule "00 00 12 * * *"
+        command: --run-once
     adguard:
         container_name: adguard
         image: adguard/adguardhome:latest

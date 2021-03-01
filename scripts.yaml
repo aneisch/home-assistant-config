@@ -23,7 +23,9 @@ home_occupied:
         entity_id: input_boolean.security_status
     - service: light.turn_on
       data:
-        entity_id: light.master_bedroom_lamps
+        entity_id: 
+          - light.master_bedroom_lamps
+          - light.living_room_sconces
         # Not so bright if it's late..
         brightness: > 
           {% if now().hour >= 20 %}

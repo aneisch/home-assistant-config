@@ -225,6 +225,14 @@ NAS:
   time_off: '05:00:00'
   constrain_days: wed
 
+Dyson Charger:
+  module: entity_timer
+  class: Timer
+  entities: switch.garage_dyson
+  time_on: '09:00:00'
+  time_off: '14:00:00'
+  constrain_presence: anyone
+
 Andrew Vehicle:
   module: countdown_notify
   class: Notify
