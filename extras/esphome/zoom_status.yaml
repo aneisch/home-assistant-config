@@ -18,6 +18,14 @@ light:
     name: "${friendly_name} LED"
     effects:
       - addressable_scan:
+      - addressable_scan:
+          name: Scan 6
+          move_interval: 100ms
+          scan_width: 6
+      - addressable_scan:
+          name: Scan 5
+          move_interval: 100ms
+          scan_width: 5
       - addressable_twinkle:
       - addressable_fireworks:
       - strobe:

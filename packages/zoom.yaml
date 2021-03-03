@@ -26,19 +26,7 @@ automation:
       - service: homeassistant.turn_on
         entity_id: light.zoom_led
         data:
-          rgb_color: [255,255,0]
-          brightness: 255
-
-  - alias: "Zoom LED Mute"
-    trigger:
-      - platform: state
-        entity_id: sensor.zoom_mute_state
-    condition: '{{ states("sensor.andrew_zoom_status") in ["presenting","in_meeting","in_calendar_event"] }}'
-    action:
-      - service: homeassistant.turn_on
-        entity_id: light.zoom_led
-        data:
-          rgb_color: '{% if trigger.to_state.state == "muted" %}[255,255,0]{% elif trigger.to_state.state == "unmuted" %}[255,0,0]{% endif %}'
+          rgb_color: [255,0,0]
           brightness: 255
 
   - alias: "Zoom LED Off"
@@ -54,8 +42,26 @@ automation:
       - service: homeassistant.turn_off
         entity_id: light.zoom_led
 
-  
-
+  - alias: "Zoom LED Color"
+    trigger:
+      - platform: state
+        entity_id: sensor.zoom_mute_state
+      - platform: state
+        entity_id: sensor.zoom_video_state
+    condition: '{{ states("sensor.andrew_zoom_status") in ["presenting","in_meeting","in_calendar_event"] }}'
+    action:
+      - service: homeassistant.turn_on
+        entity_id: light.zoom_led
+        data:
+          rgb_color: >
+            {% if states("sensor.zoom_mute_state") == "muted" and states("sensor.zoom_video_state") == "active" %}
+            [255,255,0]
+            {% elif states("sensor.zoom_mute_state") == "muted" and states("sensor.zoom_video_state") == "inactive" %}
+            [0,255,0]
+            {% elif states("sensor.zoom_mute_state") == "unmuted" %}
+            [255,0,0]
+            {% endif %}
+          brightness: 255
 
 sensor:
   - platform: mqtt
@@ -66,3 +72,4 @@ sensor:
   - platform: mqtt
     state_topic: "sensor/zoom_comms"
     name: "Zoom Video State"
+    value_template: "{{ value_json.video }}"
