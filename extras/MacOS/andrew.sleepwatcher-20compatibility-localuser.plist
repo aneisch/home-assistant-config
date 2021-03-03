@@ -1,0 +1,24 @@
+<!--
+~/Library/LaunchAgents/andrew.sleepwatcher-20compatibility-localuser.plist
+-->
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+        <key>Label</key>
+        <string>andrew.sleepwatcher</string>
+        <key>ProgramArguments</key>
+        <array>
+                <string>/usr/local/sbin/sleepwatcher</string>
+                <string>-t3000</string>
+                <string>-i '/usr/local/bin/macbook_inactive.sh'</string>
+                <string>-R '/usr/local/bin/macbook_active.sh'</string>
+        </array>
+        <key>RunAtLoad</key>
+        <true/>
+        <key>KeepAlive</key>
+        <true/>
+        <key>StandardErrorPath</key><string>/tmp/sleepwatcher.err</string>
+        <key>StandardOutPath</key><string>/tmp/sleepwatcher.out</string>
+</dict>
+</plist>

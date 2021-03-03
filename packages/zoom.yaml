@@ -1,0 +1,68 @@
+automation:
+  - alias: "Zoom State Sensor Update"
+    mode: queued
+    trigger:
+      - platform: webhook
+        webhook_id: !secret zoom_webhook
+    action:
+      - service: setter.set
+        data:
+          entity_id: "sensor.andrew_zoom_status"
+          state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
+          attributes:
+            friendly_name: "Andrew Zoom Status"
+            icon: "mdi:cctv"
+
+  - alias: "Zoom LED On"
+    trigger:
+      - platform: state
+        entity_id: sensor.andrew_zoom_status
+        to:
+          - in_calendar_event
+          - presenting
+          - in_meeting
+    condition: '{{ trigger.to_state.state in ["presenting","in_meeting","in_calendar_event"] }}'
+    action:
+      - service: homeassistant.turn_on
+        entity_id: light.zoom_led
+        data:
+          rgb_color: [255,255,0]
+          brightness: 255
+
+  - alias: "Zoom LED Mute"
+    trigger:
+      - platform: state
+        entity_id: sensor.zoom_mute_state
+    condition: '{{ states("sensor.andrew_zoom_status") in ["presenting","in_meeting","in_calendar_event"] }}'
+    action:
+      - service: homeassistant.turn_on
+        entity_id: light.zoom_led
+        data:
+          rgb_color: '{% if trigger.to_state.state == "muted" %}[255,255,0]{% elif trigger.to_state.state == "unmuted" %}[255,0,0]{% endif %}'
+          brightness: 255
+
+  - alias: "Zoom LED Off"
+    trigger:
+      - platform: state
+        entity_id: sensor.andrew_zoom_status
+        from:
+          - in_calendar_event
+          - presenting
+          - in_meeting
+    condition: '{{ trigger.to_state.state not in ["presenting","in_meeting","in_calendar_event"] }}'
+    action:
+      - service: homeassistant.turn_off
+        entity_id: light.zoom_led
+
+  
+
+
+sensor:
+  - platform: mqtt
+    state_topic: "sensor/zoom_comms"
+    name: "Zoom Mute State"
+    value_template: "{{ value_json.mute }}"
+
+  - platform: mqtt
+    state_topic: "sensor/zoom_comms"
+    name: "Zoom Video State"

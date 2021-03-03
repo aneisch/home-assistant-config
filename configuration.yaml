@@ -22,6 +22,7 @@ homeassistant:
     ups_monitoring: !include packages/ups_monitor.yaml
     uw: !include packages/uw.yaml
     vacuum: !include packages/vacuum.yaml
+    zoom: !include packages/zoom.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks
@@ -171,7 +172,6 @@ influxdb:
       - sensor.last_boot
       - sensor.mail_updated
       - sensor.moon
-
     domains:
       - automation
       - alarm_panel

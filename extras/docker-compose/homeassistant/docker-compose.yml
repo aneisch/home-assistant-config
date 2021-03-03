@@ -60,6 +60,7 @@ services:
         restart: always
     influxdb:
         container_name: influxdb
+        #image: influxdb
         image: influxdb:1.8.4-alpine
         user: '99'
         healthcheck:

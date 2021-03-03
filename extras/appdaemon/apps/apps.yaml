@@ -139,14 +139,14 @@ Front Porch Lights:
   module: entity_timer
   class: Timer
   entities: light.front_porch_lights,switch.front_sconces
-  time_on: sunset
+  time_on: sunset - 00:45:00
   time_off: "23:00:00"
 
 Inside Scenic Lights:
   module: entity_timer
   class: Timer
   entities: light.entryway_light
-  time_on: sunset
+  time_on: sunset - 00:45:00
   time_off: "23:00:00"
   brightness: 255
 
@@ -229,7 +229,7 @@ Dyson Charger:
   module: entity_timer
   class: Timer
   entities: switch.garage_dyson
-  time_on: '09:00:00'
+  time_on: '12:00:00'
   time_off: '14:00:00'
   constrain_presence: anyone
 

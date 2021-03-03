@@ -447,20 +447,6 @@
 #             Query: {{ dict(trigger.query)|tojson }}
 #           {% endif %}
 
-- alias: "Zoom State Sensor Update"
-  mode: queued
-  trigger:
-    - platform: webhook
-      webhook_id: !secret zoom_webhook
-  action:
-    - service: setter.set
-      data:
-        entity_id: "sensor.andrew_zoom_status"
-        state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
-        attributes:
-          friendly_name: "Andrew Zoom Status"
-          icon: "mdi:cctv"
-
 - alias: "Andrew Z-Wave Remote"
   mode: single
   trigger:
@@ -503,3 +489,13 @@
       entity_id: switch.docker_watchtower
     - delay: '00:02:00'
     - service: homeassistant.restart
+
+- alias: "Dyson Charger"
+  trigger:
+    - platform: state
+      entity_id: switch.garage_dyson
+      to: 'on'
+  action:
+    - delay: '02:00:00'
+    - service: homeassistant.turn_off
+      entity_id: switch.garage_dyson
