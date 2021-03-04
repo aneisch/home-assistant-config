@@ -14,17 +14,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v1   
         with:
-          python-version: '3.7.x'
+          python-version: '3.9.x'
 
       - name: Install Deps
         run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
       - if: github.event.client_payload.branch == 'stable'
-        run: pip3 install homeassistant==${{ github.event.client_payload.version }}
+        run: pip install homeassistant==${{ github.event.client_payload.version }}
         name: Install Home Assistant Stable
         
       - if: github.event.client_payload.branch == 'beta'
-        run: pip3 install homeassistant==${{ github.event.client_payload.version }}
+        run: pip install homeassistant==${{ github.event.client_payload.version }}
         name: Install Home Assistant Beta
       
       - name: Check Config
