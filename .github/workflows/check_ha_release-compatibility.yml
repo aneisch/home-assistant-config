@@ -20,11 +20,11 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
       - if: github.event.client_payload.branch == 'stable'
-        run: pip3 install homeassistant
+        run: pip3 install homeassistant==${{ github.event.client_payload.version }}
         name: Install Home Assistant Stable
         
       - if: github.event.client_payload.branch == 'beta'
-        run: pip3 install --pre homeassistant
+        run: pip3 install homeassistant==${{ github.event.client_payload.version }}
         name: Install Home Assistant Beta
       
       - name: Check Config
