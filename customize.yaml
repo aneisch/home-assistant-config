@@ -32,19 +32,11 @@ light.guest_nightstand_lamp:
   icon: mdi:lamp
 
 ### SWITCHES ###
-switch.tv_remote_power:
-  friendly_name: TV Power
-  icon: mdi:television-classic
-
 switch.andrew_office_speakers:
   icon: "mdi:speaker"
 
 switch.tv:
   friendly_name: TV
-  icon: mdi:television-classic
-
-script.tv_change_input:
-  friendly_name: TV Input
   icon: mdi:television-classic
 
 switch.master_bedroom_sound_machine:

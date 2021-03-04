@@ -164,8 +164,8 @@ services:
     #    restart: 'no'
     zwavejs:
         container_name: zwavejs
-        #image: zwavejs/zwavejs2mqtt:latest
-        image: zwavejs/zwavejs2mqtt:sha-fec72b7
+        image: zwavejs/zwavejs2mqtt:latest
+        #image: zwavejs/zwavejs2mqtt:sha-fec72b7
         restart: always
         labels:
           com.centurylinklabs.watchtower.enable: "false"

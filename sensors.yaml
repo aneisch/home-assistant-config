@@ -32,12 +32,6 @@
     - type: load_15m
 
 - platform: mqtt
-  state_topic: "owntracks/owntracks/andrewworkphone"
-  name: "Andrew Phone Battery"
-  unit_of_measurement: "%"
-  value_template: "{{ value_json.batt }}"
-
-- platform: mqtt
   state_topic: "sensor/rsync_nuc"
   name: "Last NUC Backup Completed"
   value_template: "{{ strptime(value_json.timestamp, '%Y-%m-%d %H:%M:%S') }}"
@@ -259,11 +253,6 @@
           {% set ns.timers = ns.timers + [end_time] %}
           {% endfor %}
           {{ ns.timers }}
-
-    solar_angle:
-      friendly_name: "Sun Angle"
-      unit_of_measurement: "°"
-      value_template: "{{ '%+.1f'|format(state_attr('sun.sun', 'elevation')) }}"
 
     ac_runtime_today:
       friendly_name: "AC Runtime Today"

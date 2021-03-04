@@ -72,9 +72,9 @@ security_arm:
 master_bedroom_bedtime:
   sequence:
     - service: script.appdaemon_ac_night
-    # - service: switch.turn_on
-    #   data:
-    #     entity_id: switch.master_bedroom_ceiling_fan
+    - service: switch.turn_on
+      data:
+        entity_id: switch.master_bedroom_ceiling_fan
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom_ceiling_fan
@@ -184,19 +184,3 @@ spotify_occusim_stop:
     - service: media_player.media_pause
       data:
         entity_id: media_player.spotify
-
-tv_change_input:
-  sequence:
-    - service: homeassistant.turn_on
-      data:
-        entity_id: switch.tv_remote_input
-
-flash_andrew_desk_lamp:
-  sequence:
-    - condition: state
-      entity_id: light.andrew_desk_lamp
-      state: 'on'
-    - service: light.turn_on
-      entity_id: light.andrew_desk_lamp
-      data:
-        flash: short

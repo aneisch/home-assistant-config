@@ -388,12 +388,6 @@ switch:
           data:
             entity_id: vacuum.roborock_s4
 
-vacuum:
-  - platform: xiaomi_miio
-    host: 10.0.0.10
-    token: !secret roborock_token
-    name: Roborock S4
-
 camera:
   - platform: xiaomi_cloud_map_extractor
     host: 10.0.0.10

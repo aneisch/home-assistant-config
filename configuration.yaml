@@ -142,8 +142,6 @@ docker_monitor:
 digital_ocean:
   access_token: !secret DO_token
 
-fan: !include fan.yaml
-
 frontend:
   themes: !include_dir_merge_named themes
 
@@ -251,6 +249,7 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
+    custom_components.apcupsd3: debug
     #homeassistant.components.zha: debug
     #bellows.zigbee.application: debug
     #bellows.ezsp: debug

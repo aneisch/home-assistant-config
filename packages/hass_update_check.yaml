@@ -38,6 +38,19 @@ sensor:
     scan_interval: 1800
 
 automation:
+  - alias: "Set state of input_boolean.hass_update_available"
+    trigger:
+      - platform: homeassistant
+        event: start
+    condition: '{{ states("input_boolean.hass_update_available") == "on" }}'
+    action:
+      - delay: '00:00:30'
+      - service: >
+          {% if states("sensor.ha_version") == states("sensor.ha_docker_version_stable") %}
+            homeassistant.turn_off
+          {% endif %}
+        entity_id: input_boolean.hass_update_available
+
   # Trigger GitHub action(s) when upgrade is available
   - alias: "Auto-Upgrade: Trigger Github Action"
     mode: queued

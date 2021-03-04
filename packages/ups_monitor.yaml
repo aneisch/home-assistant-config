@@ -8,7 +8,7 @@ apcupsd:
  port: 3551
 
 #apcusd_650
-apcupsd2:
+apcupsd3:
   port: 3552
 
 sensor:
@@ -19,7 +19,7 @@ sensor:
       - timeleft
       - status
 
-  - platform: apcupsd2
+  - platform: apcupsd3
     resources:
       - loadpct
       - bcharge
