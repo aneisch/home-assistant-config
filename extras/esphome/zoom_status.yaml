@@ -18,18 +18,31 @@ light:
     name: "${friendly_name} LED"
     effects:
       - addressable_scan:
-      - addressable_scan:
-          name: Scan 6
-          move_interval: 100ms
-          scan_width: 6
-      - addressable_scan:
-          name: Scan 5
-          move_interval: 100ms
-          scan_width: 5
-      - addressable_twinkle:
-      - addressable_fireworks:
-      - strobe:
-      - addressable_flicker:
+      - addressable_lambda:
+          name: Custom Scan
+          update_interval: 75ms
+          lambda:
+            static int step = 1;
+            if(initial_run){
+              step = 1;
+              it[0] = ESPColor::BLACK;
+            }
+
+            it[step] = current_color;
+
+            if(step == 1){
+              it[it.size()-1] = ESPColor::BLACK;
+            }
+
+            else if(step > 1){
+              it[step -1] = ESPColor::BLACK;
+            }
+
+            step = step + 1;
+
+            if(step >= it.size()){
+              step = 1;
+            }
 
 switch:
   - platform: restart

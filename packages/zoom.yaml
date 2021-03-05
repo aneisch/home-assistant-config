@@ -28,7 +28,7 @@ automation:
         data:
           rgb_color: [255,0,0]
           brightness: 255
-          effect: "scan"
+          effect: "custom scan"
 
   - alias: "Zoom LED Off"
     trigger:
@@ -63,7 +63,7 @@ automation:
             [255,0,0]
             {% endif %}
           brightness: 255
-          effect: "scan"
+          effect: "custom scan"
 
 sensor:
   - platform: mqtt

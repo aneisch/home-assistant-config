@@ -29,7 +29,7 @@ automation:
           # Run command that for some reason doesn't always work
           - service: script.zen30_led_color_change
             data:
-              color: red
+              color: 'Red'
           # Give it time to complete
           - delay:
               seconds: 2
@@ -47,7 +47,7 @@ automation:
     action:
       - service: script.zen30_led_color_change
         data:
-          color: 'green'
+          color: 'Green'
 
   - alias: "Garage still open reminder night"
     trigger:
@@ -120,42 +120,45 @@ automation:
 
 script:
   zen30_led_color_change:
-    variables:
-      color_int: '{% if color == "red" %}3{% elif color == "green" %}2{% elif color == "blue" %}1{% elif color == "white" %}0{% else %}0{% endif %}'
     sequence:
       # Entryway
-      - service: mqtt.publish
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.entryway_light
         data:
-          # Set Dimmer LED
-          topic: zwave/entryway_light/112/0/3/set
-          payload: '{{ color_int }}'
-      - service: mqtt.publish
+          parameter: LED Indicator Color for Dimmer
+          value: '{{ color }}'
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.entryway_light
         data:
-          # Set Relay LED
-          topic: zwave/entryway_light/112/0/4/set
-          payload: '{{ color_int }}'
+          parameter: LED Indicator Color for Relay
+          value: '{{ color }}'
 
       # Kitchen Sink
-      - service: mqtt.publish
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.kitchen_sink_light
         data:
-          # Set Dimmer LED
-          topic: zwave/kitchen_sink/112/0/3/set
-          payload: '{{ color_int }}'
-      - service: mqtt.publish
+          parameter: LED Indicator Color for Dimmer
+          value: '{{ color }}'
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.kitchen_sink_light
         data:
-          # Set Relay LED
-          topic: zwave/kitchen_sink/112/0/4/set
-          payload: '{{ color_int }}'
+          parameter: LED Indicator Color for Relay
+          value: '{{ color }}'
 
-      # Master
-      - service: mqtt.publish
+      # Entryway
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.master_bedroom_ceiling_fan
         data:
-          # Set Dimmer LED
-          topic: zwave/master_bedroom/112/0/3/set
-          payload: '{{ color_int }}'
-      - service: mqtt.publish
+          parameter: LED Indicator Color for Dimmer
+          value: '{{ color }}'
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.master_bedroom_ceiling_fan
         data:
-          # Set Relay LED
-          topic: zwave/master_bedroom/112/0/4/set
-          payload: '{{ color_int }}'
-  
+          parameter: LED Indicator Color for Relay
+          value: '{{ color }}'

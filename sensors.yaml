@@ -46,7 +46,7 @@
 - platform: mqtt
   state_topic: "sensor/home_wifi"
   name: "Home Wifi Speedtest"
-  value_template: "{{ value_json.timestamp }}"
+  value_template: "{{ value_json.download }}"
   json_attributes_topic: "sensor/home_wifi"
 
 ####################

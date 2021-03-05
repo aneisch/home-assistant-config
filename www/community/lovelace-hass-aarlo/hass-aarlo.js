@@ -143,14 +143,14 @@ class AarloGlance extends LitElement {
                     overflow: hidden;
                 }
                 .box {
-                    white-space: var(--paper-font-common-nowrap_-_white-space); overflow: var(--paper-font-common-nowrap_-_overflow); text-overflow: var(--paper-font-common-nowrap_-_text-overflow);
+                    white-space: var(--paper-font-common-nowrap_-_white-space);
+                    overflow: var(--paper-font-common-nowrap_-_overflow);
+                    text-overflow: var(--paper-font-common-nowrap_-_text-overflow);
                     position: absolute;
                     left: 0;
                     right: 0;
                     background-color: rgba(0, 0, 0, 0.4);
                     padding: 4px 8px;
-                    font-size: 16px;
-                    line-height: 36px;
                     color: white;
                     display: flex;
                     justify-content: space-between;
@@ -160,14 +160,6 @@ class AarloGlance extends LitElement {
                 }
                 .box-bottom {
                     bottom: 0;
-                }
-                .box-bottom-small {
-                    bottom: 0;
-                    line-height: 30px;
-                }
-                .box-title {
-                    font-weight: 500;
-                    margin-left: 4px;
                 }
                 .box-align-left {
                     margin-left: 4px;
@@ -184,11 +176,6 @@ class AarloGlance extends LitElement {
                 }
                 .camera-date {
                     font-weight: 500;
-                    text-transform: capitalize;
-                }
-                .box-status {
-                    font-weight: 500;
-                    margin-right: 4px;
                     text-transform: capitalize;
                 }
                 ha-icon {
@@ -228,10 +215,6 @@ class AarloGlance extends LitElement {
                     height: auto;
                     transform: translate(-50%, -50%);
                 }
-                .aarlo-library {
-                    width: 100%;
-                    cursor: pointer;
-                }
                 .aarlo-modal-video-wrapper {
                     overflow: hidden;
                     position: absolute;
@@ -249,6 +232,10 @@ class AarloGlance extends LitElement {
                     left: 0;
                     background-color: darkgrey;
                 }
+                .aarlo-library {
+                    width: 100%;
+                    cursor: pointer;
+                }
                 .aarlo-library-row {
                     display: flex;
                     margin: 6px 2px 6px 2px;
@@ -257,8 +244,29 @@ class AarloGlance extends LitElement {
                     flex: 32%;
                     padding: 2px;
                 }
-                .hidden {
-                    display: none;
+                .aarlo-text-medium {
+                    font-size: 16px;
+                    line-height: 26px;
+                }
+                .aarlo-text-small {
+                    font-size: 14px;
+                    line-height: 24px;
+                }
+                .aarlo-text-tiny {
+                    font-size: 12px;
+                    line-height: 22px;
+                }
+                .aarlo-icon-medium {
+                }
+                .aarlo-icon-small {
+                    --mdc-icon-size: 18px;
+                    height: 18px;
+                    width: 18px;
+                }
+                .aarlo-icon-tiny {
+                    --mdc-icon-size: 14px;
+                    height: 14px;
+                    width: 14px;
                 }
                 .aarlo-broken-image {
                     background: grey url("/static/images/image-broken.svg") center/36px
@@ -368,7 +376,6 @@ class AarloGlance extends LitElement {
                     <img class="aarlo-image"
                          id="${this._id('camera-viewer')}"
                          style="display:none"
-                         @error="${() => { this.imageFailed(); }}"
                          @click="${() => { this.imageClicked(); }}">
                     <div class="aarlo-image"
                          id="${this._id('library-viewer')}"
@@ -387,30 +394,36 @@ class AarloGlance extends LitElement {
                      id="${this._id('bottom-bar')}"
                      style="display:none">
                 </div>
-                <div class="box box-bottom-small"
+                <div class="box box-bottom"
                      id="${this._id('library-controls')}"
                      style="display:none">
                     <div>
                         <ha-icon id="${this._id('library-control-first')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.firstLibraryPage(); }}">
                         </ha-icon>
                         <ha-icon id="${this._id('library-control-previous')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.previousLibraryPage(); }}">
                         </ha-icon>
                     </div>
                     <div style="margin-left: auto; margin-right: auto">
                         <ha-icon id="${this._id('library-control-resize')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.resizeLibrary() }}">
                         </ha-icon>
                         <ha-icon id="${this._id('library-control-close')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.closeLibrary() }}">
                         </ha-icon>
                     </div>
                     <div>
                         <ha-icon id="${this._id('library-control-next')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.nextLibraryPage() }}">
                         </ha-icon>
                         <ha-icon id="${this._id('library-control-last')}"
+                                 class="aarlo-icon-${this._sizeSuffix()}"
                                  @click="${() => { this.lastLibraryPage(); }}">
                         </ha-icon>
                     </div>
@@ -643,6 +656,16 @@ class AarloGlance extends LitElement {
                 element.style.height = `${height}px`
             }
         }
+    }
+
+    _sizeSuffix() {
+        if( this.gc.small ) {
+            return "small"
+        }
+        else if( this.gc.tiny ) {
+            return "tiny"
+        }
+        return "medium"
     }
 
     _paddingTop( id, top ) {
@@ -1063,6 +1086,8 @@ class AarloGlance extends LitElement {
             // GLOBAL config
             // Mobile? see here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Browser_detection_using_the_user_agent
             isMobile: navigator.userAgent.includes("Mobi"),
+            // HA App
+            isHAApp: navigator.userAgent.includes("HomeAssistant"),
 
             // Language override?
             lang: config.lang,
@@ -1079,6 +1104,10 @@ class AarloGlance extends LitElement {
                         _includes(config.image_view, 'square')) ? '1x1' : '16x9',
             aspectRatioMultiplier: (_includes(config.global, 'square') ||
                         _includes(config.image_view, 'square')) ? 1 : 0.5625,
+
+            // size
+            small: _includes(config.global,'small'),
+            tiny: _includes(config.global,'tiny'),
 
             // blended library
             blendedMode: _includes(config.global, 'blended') ||
@@ -1098,13 +1127,12 @@ class AarloGlance extends LitElement {
         }
     }
 
-    getGlobalState( config ) {
+    getGlobalState( _config ) {
         return {
-            autoplay: _value( config.autoPlay, false ),
             dash: null,
             hls: null,
             libraryCamera: -1,
-            isMuted: _value(config.isMuted, false),
+            isMuted: this.gc.isMuted,
             poster: '',
             recording: null,
             stream: null,
@@ -1534,10 +1562,10 @@ class AarloGlance extends LitElement {
                 } else if(text_items.includes(item)) {
                     elem = document.createElement("span")
                     elem.classList.add(`camera-${item}`)
-                    elem.classList.add(`camera-text`)
+                    elem.classList.add(`aarlo-text-${this._sizeSuffix()}`)
                 } else {
                     elem = document.createElement("ha-icon")
-                    elem.classList.add(`camera-icon`)
+                    elem.classList.add(`aarlo-icon-${this._sizeSuffix()}`)
                     elem.addEventListener('click', (evt) => {
                         this.imageIconClicked(evt)
                     })
@@ -1568,13 +1596,22 @@ class AarloGlance extends LitElement {
     setupImageView() {
         this.buildImageLayout(this.cc)
         this._set("camera-name", {text: this.cc.name})
-        this._set("camera-previous", {title: this._i.status.previous_camera, icon: "mdi:chevron-left", state: "on"})
-        this._set("camera-next", {title: this._i.status.next_camera, icon: "mdi:chevron-right", state: "on"})
+        if( this.gc.isMobile ) {
+            this._hide("camera-previous")
+            this._hide("camera-next")
+        } else {
+            this._set("camera-previous", {title: this._i.status.previous_camera, icon: "mdi:chevron-left", state: "on"})
+            this._set("camera-next", {title: this._i.status.next_camera, icon: "mdi:chevron-right", state: "on"})
+        }
     }
 
     setupImageHandlers() {
 
         const viewer = this._element("camera-viewer")
+
+        viewer.addEventListener('error', () => {
+            this.imageFailed();
+        })
 
         if( this.gc.isMobile ) {
             viewer.addEventListener('touchstart', (e) => {
@@ -1734,7 +1771,7 @@ class AarloGlance extends LitElement {
             a.style.left = `2%`
             a.style.top  = `5%`
             a.setAttribute("download","")
-            a.innerHTML = `<ha-icon icon="mdi:download" style="color: white;"></ha-icon>`
+            a.innerHTML = `<ha-icon class="aarlo-icon-small" icon="mdi:download" style="color: white;"></ha-icon>`
 
             const column = Math.floor((i % this.gs.librarySize) + 1)
             const row = Math.floor((i / this.gs.librarySize) + 1)
