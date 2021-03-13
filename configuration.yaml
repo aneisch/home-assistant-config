@@ -264,7 +264,7 @@ logger:
     #zhaquirks: debug
     #custom_components.docker_monitor: debug
     #custom_components.alexa_media: debug
-    custom_components.localtuya: debug
+    #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
 
 lovelace:

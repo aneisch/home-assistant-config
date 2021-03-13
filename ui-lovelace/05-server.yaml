@@ -172,7 +172,7 @@ cards:
         card:
           type: entities
           entities:
-            - entity: script.hass_update_apply
+            - entity: script.hass_upgrade
               name: Upgrade Now
               icon: "mdi:arrow-up-thick"
 

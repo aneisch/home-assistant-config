@@ -7,30 +7,6 @@ light.aquarium_light:
   icon: mdi:fish
   friendly_name: Aquarium Light
 
-light.andrew_desk_lamp:
-  icon: mdi:lamp
-  friendly_name: Andrew's Desk Lamp
-
-light.bethany_desk_lamp:
-  icon: mdi:lamp
-  friendly_name: Bethany's Desk Lamp
-
-light.master_bedroom:
-  friendly_name: Bedroom Light
-
-light.andrew_monitor_backlight:
-  friendly_name: Monitor Backlight
-  icon: mdi:monitor
-
-light.andrew_nightstand_lamp:
-  icon: mdi:lamp
-
-light.bethany_nightstand_lamp:
-  icon: mdi:lamp
-
-light.guest_nightstand_lamp:
-  icon: mdi:lamp
-
 ### SWITCHES ###
 switch.andrew_office_speakers:
   icon: "mdi:speaker"
@@ -39,62 +15,11 @@ switch.tv:
   friendly_name: TV
   icon: mdi:television-classic
 
-switch.master_bedroom_sound_machine:
-  friendly_name: Sound Machine
-  icon: mdi:surround-sound
-
-switch.security_status:
-  icon: mdi:camera
-
-switch.outdoor_zwave_switch:
-  friendly_name: Globe Lights
-  icon: mdi:lightbulb
-
-switch.master_bathroom_light_switch:
-  friendly_name: Bathroom Light
-  icon: mdi:lightbulb
-
-switch.living_room_lamp:
-  friendly_name: Living Room Lamp
-  icon: mdi:lamp
-
-switch.wemo_switch:
-  friendly_name: Wemo Switch
-  icon: mdi:lamp
-
-switch.living_room_lamp_2:
-  friendly_name: Living Room Lamp 2
-  icon: mdi:lamp
-
-switch.entertainment_center_lights:
-  icon: mdi:lightbulb
-
-switch.kitchen_table_light_switch:
-  friendly_name: Kitchen Table Light
-  icon: mdi:lightbulb
-
 switch.nas:
   friendly_name: "Plex"
   icon: mdi:server
 
-### FANS ##
-fan.master_bedroom_ceiling_fan_level:
-  icon: mdi:fan
-  friendly_name: Ceiling Fan
-
-fan.office_ceiling_fan_level:
-  icon: mdi:fan
-  friendly_name: Ceiling Fan
-
-
 ### SENSORS ###
-sensor.master_bedroom_temperature:
-  friendly_name: Room Temperature
-  icon: mdi:thermometer
-
-sensor.rack_exhaust_temperature:
-  icon: mdi:thermometer-lines
-
 sensor.sonoff_pow_current:
   icon: mdi:flash
 
@@ -112,16 +37,6 @@ sensor.sonoff_pow_today_cost:
 
 sensor.sonoff_pow_yesterday_cost:
   icon: mdi:square-inc-cash
-
-sensor.packages_in_transit:
-  icon: mdi:truck-delivery
-
-sensor.deliveries_today:
-  icon: mdi:package-variant
-
-binary_sensor.master_bedroom_bed:
-  icon: mdi:hotel
-
 
 ### THERMOSTAT ###
 climate.thermostat:
@@ -154,10 +69,6 @@ script.master_bedroom_light_full:
   friendly_name: Master Bedroom Light Full
   icon: mdi:lightbulb
 
-script.master_bedroom_light_dim:
-  friendly_name: Master Bedroom Light Dim
-  icon: mdi:lightbulb-outline
-
 script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark
@@ -166,7 +77,6 @@ script.copy:
   friendly_name: Plex Copy
   icon: mdi:content-copy
 
-
 ### PEOPLE ###
 person.andrew:
   entity_picture: /local/icons/tracker_icons/andrew.jpg
@@ -174,7 +84,6 @@ person.andrew:
 
 person.bethany:
   entity_picture: /local/icons/tracker_icons/bethany.jpg
-
 
 ### OTHER ###
 zone.home:

@@ -17,34 +17,27 @@ automation:
           data:
             type: "announce"
 
-  - alias: 'Change entry switch LEDs based on garage door open'
+  - alias: 'Change entry switch LEDs based on garage door state'
     trigger:
       - platform: state
         entity_id: cover.garage_door
         from: 'closed'
         to: 'open'
     action:
-      repeat:
-        sequence:
-          # Run command that for some reason doesn't always work
-          - service: script.zen30_led_color_change
-            data:
-              color: 'Red'
-          # Give it time to complete
-          - delay:
-              seconds: 2
-        until:
-          - condition: state
-            entity_id: cover.garage_door
-            state: 'closed'
-
-  - alias: 'Change entry switch LEDs based on garage door closed'
-    trigger:
-      - platform: state
-        entity_id: cover.garage_door
-        from: 'open'
-        to: 'closed'
-    action:
+      - repeat:
+          sequence:
+            # Run command that for some reason doesn't always work
+            - service: script.zen30_led_color_change
+              data:
+                color: 'Red'
+            # Give it time to complete
+            - delay:
+                seconds: 2
+          until:
+            - condition: state
+              entity_id: cover.garage_door
+              state: 'closed'
+      - delay: "00:00:02"
       - service: script.zen30_led_color_change
         data:
           color: 'Green'

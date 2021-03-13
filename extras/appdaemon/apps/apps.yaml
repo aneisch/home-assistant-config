@@ -156,6 +156,12 @@ Front House Lights:
   entities: switch.front_sconces
   time_off: "22:00:00"
 
+Workbench Shelf:
+  module: follow_me
+  class: Follow
+  leader: switch.garage_lights
+  follower: switch.workbench_shelf_leds
+
 #Christmas Lights:
 #  module: entity_timer
 #  class: Timer

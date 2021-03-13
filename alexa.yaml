@@ -27,28 +27,28 @@ smart_home:
       - group.common_areas
       - group.under_cabinet_lights
       - fan.living_room_ceiling_fan
-      - light.dining_room_light
-      - light.living_room_ceiling_fan
-      - light.living_room_can_lights
-      - light.living_room_lamps
-      - light.master_bedroom_lamps
-      - light.master_bedroom_ceiling_fan
-      - light.office_ceiling_fan
-      - light.bethany_nightstand_lamp
-      - light.bethany_desk_lamp
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
+      - light.bethany_nightstand_lamp
+      - light.bethany_desk_lamp
+      - light.dining_room_light
       - light.guest_nightstand_lamp
       - light.kitchen_lights
       - light.kitchen_sink_light
       - light.kitchen_can_lights
       - light.kitchen_table_light
       - light.kitchen_table_leds
-      - light.front_porch_lights
-      - script.master_bedroom_bedtime
-      - script.master_bedroom_wakeup
+      - light.living_room_ceiling_fan
+      - light.living_room_can_lights
+      - light.living_room_lamps
+      - light.living_room_sconces
+      - light.master_bedroom_lamps
+      - light.master_bedroom_ceiling_fan
+      - light.office_ceiling_fan
       - script.appdaemon_ac_night
       - script.appdaemon_ac_morning
+      - script.master_bedroom_bedtime
+      - script.master_bedroom_wakeup
       - script.too_cold
       - script.too_hot
       - script.vacuum_clean_kitchen
@@ -58,20 +58,19 @@ smart_home:
       - script.vacuum_clean_bethany_office
       - script.vacuum_clean_master_bedroom
       - script.vacuum_clean_guest_bedroom
-      - sensor.grill_probe_1
-      - sensor.grill_probe_2
       - sensor.master_bedroom_temperature
+      - switch.master_bedroom_ceiling_fan
       - sensor.office_temperature
       - switch.christmas_tree
       - switch.christmas_lights
       - switch.globe_lights
-      - switch.tv
+      - switch.living_room_speakers
       - switch.nas
-      - switch.master_bedroom_ceiling_fan
-      - switch.vacuum
       - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
-      - switch.living_room_speakers
+      - switch.tv
+      - switch.vacuum
+
   entity_config:
     climate.thermostat:
       name: "Thermostat"
@@ -84,9 +83,6 @@ smart_home:
       name: "Under Cabinet Lights"
       display_categories: LIGHT
 
-    light.living_room_lamps:
-      name: "Living Room Lamps"
-
     light.andrew_nightstand_lamp:
       name: "Andrew's Lamp"
       description: "Andrew's nightstand lamp"
@@ -95,38 +91,11 @@ smart_home:
       name: "Bethany's Lamp"
       description: "Bethany's nightstand lamp"
 
-    light.andrew_desk_lamp:
-      name: "Andrew's Desk Lamp"
-
-    light.bethany_desk_lamp:
-      name: "Bethany's Desk Lamp"
-
     light.guest_nightstand_lamp:
       name: "Guest Bedroom Lamp"
 
-    light.kitchen_lights:
-      name: "Kitchen All Lights"
-
-    light.kitchen_can_lights:
-      name: "Kitchen Can Lights"
-
-    light.kitchen_sink_light:
-      name: "Kitchen Sink Light"
-
-    light.kitchen_table_leds:
-      name: "Kitchen Table Leds"
-
-    light.kitchen_table_light:
-      name: "Kitchen Table Light"
-
     light.living_room_ceiling_fan:
       name: "Living Room Ceiling Fan Light"
-
-    light.front_porch_lights:
-      name: "Porch Lights"
-
-    light.master_bedroom_lamps:
-      name: "Master Bedroom Lamps"
 
     light.master_bedroom_ceiling_fan:
       name: "Master Bedroom Ceiling Fan Light"
@@ -200,18 +169,6 @@ smart_home:
       name: "Master Bedroom Temperature"
       display_categories: TEMPERATURE_SENSOR
 
-    sensor.office_temperature:
-      name: "Office Temperature"
-      display_categories: TEMPERATURE_SENSOR
-
-    sensor.grill_probe_1:
-      name: "Probe 1"
-      display_categories: TEMPERATURE_SENSOR
-
-    sensor.grill_probe_2:
-      name: "Probe 2"
-      display_categories: TEMPERATURE_SENSOR
-
     switch.christmas_tree:
       name: "Christmas Tree"
       description: "Christmas Tree"
@@ -232,10 +189,6 @@ smart_home:
       description: "Master Bathroom Light"
       display_categories: LIGHT
 
-    switch.kitchen_table_light_switch:
-      name: "Kitchen Table Light"
-      display_categories: LIGHT
-
     switch.nas:
       name: "Plex"
       display_categories: SWITCH
@@ -243,7 +196,7 @@ smart_home:
     switch.master_bedroom_ceiling_fan:
       name: "Master Bedroom Ceiling Fan"
       display_categories: FAN
-    
+
     switch.vacuum:
       name: Roxie
       display_categories: SWITCH
@@ -251,7 +204,3 @@ smart_home:
     switch.office_ceiling_fan:
       name: "Office Ceiling Fan"
       display_categories: FAN
-
-    switch.outdoor_zwave_switch:
-      name: "Globe Lights"
-      display_categories: SWITCH

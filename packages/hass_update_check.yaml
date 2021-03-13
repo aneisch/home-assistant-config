@@ -106,6 +106,15 @@ automation:
     # Only upgrade if we're home
     condition: '{{ states("person.andrew") == "home" and states("input_boolean.upgrade_hass_now") == "on" }}'
     action:
+      - service: script.hass_upgrade
+
+shell_command:
+  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
+  upgrade_hass: ssh nuc 'nohup sh -c "docker-compose -f /opt/docker-compose/unified/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/unified/docker-compose.yml up -d homeassistant" > /dev/null 2>&1 &'
+
+script:
+  hass_upgrade:
+    sequence:
       - service: notify.pushover
         data:
           message: >
@@ -118,16 +127,12 @@ automation:
         entity_id: input_boolean.hass_update_available
       - service: shell_command.upgrade_hass
 
-shell_command:
-  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
-  upgrade_hass: ssh nuc 'nohup sh -c "docker-compose -f /opt/docker-compose/unified/docker-compose.yml pull --quiet homeassistant; docker-compose -f /opt/docker-compose/unified/docker-compose.yml up -d homeassistant" > /dev/null 2>&1 &'
-
-script:
   hass_update_apply:
     # Turn on boolean which triggers upgrade automation
     sequence:
       - service: homeassistant.turn_on
         entity_id: input_boolean.upgrade_hass_now
+
   hass_update_notify:
     # Notify and enable upgrade button on frontend
     sequence:
