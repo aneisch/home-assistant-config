@@ -56,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1747
-Lines of Home Assistant YAML | 4982
+Lines of Home Assistant YAML | 4983
 [Integrations](https://www.home-assistant.io/integrations/) in use | 27
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 11
  
@@ -115,7 +115,6 @@ Entities in the [`zwave`](https://www.home-assistant.io/components/zwave) domain
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
-[zha-ng/zha-map](https://github.com/zha-ng/zha-map)<br>
 
 **Plugin**:<br>
 [abmantis/ozw-network-visualization-card](https://github.com/abmantis/ozw-network-visualization-card)<br>

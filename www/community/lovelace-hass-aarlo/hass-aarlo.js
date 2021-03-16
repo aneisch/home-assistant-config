@@ -1368,6 +1368,7 @@ class AarloGlance extends LitElement {
                 "Animal":  _value( config.library_animal, 'orangered' ),
                 "Vehicle": _value( config.library_vehicle, 'yellow' ),
                 "Person":  _value( config.library_person, 'lime' ),
+                "Package":  _value( config.library_package, 'cyan' ),
             },
         }
     }
@@ -2204,7 +2205,7 @@ class AarloGlance extends LitElement {
             });
             return ( library.videos.length > 0 ) ? library.videos : [];
         } catch (err) {
-            throw `wsLoadLibrary failed {err}`
+            throw `wsLoadLibrary failed ${err}`
         }
     }
 
@@ -2215,7 +2216,7 @@ class AarloGlance extends LitElement {
                 entity_id: this.cc.id,
             })
         } catch (err) {
-            throw `wsStartStream failed {err}`
+            throw `wsStartStream failed ${err}`
         }
     }
 
@@ -2226,7 +2227,7 @@ class AarloGlance extends LitElement {
                 entity_id: this.cc.id,
             })
         } catch (err) {
-            throw `wsStopStream failed {err}`
+            throw `wsStopStream failed ${err}`
         }
         
     }
@@ -2238,7 +2239,7 @@ class AarloGlance extends LitElement {
                 entity_id: this.cc.id
             })
         } catch (err) {
-            throw `wsUpdateSnapshot failed {err}`
+            throw `wsUpdateSnapshot failed ${err}`
         }
     }
 
@@ -2356,7 +2357,7 @@ class AarloGlance extends LitElement {
         try {
             this._ls[index].recordings = await this.wsLoadLibrary( index )
         } catch(err) {
-            alert(err)
+            this._log(err)
             this._ls[index].recordings = []
         }
     }

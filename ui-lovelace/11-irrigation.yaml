@@ -4,6 +4,7 @@ cards:
   - type: 'entities'
     entities:
       - input_boolean.enable_irrigation_scheduling
+      - sensor.sprinker_interrupt_reason
 
   - type: 'custom:auto-entities'
     filter:
