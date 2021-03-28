@@ -8,7 +8,7 @@
   name: Weather Radar
 
 - platform: local_file
-  file_path: /config/images/mail_and_packages/c0ec0e78-a6bf-4667-9fa4-b7f304e1a550.gif
+  file_path: /config/images/mail_and_packages/overlay.png
   name: mail_usps
 
 #- platform: mjpeg

@@ -22,11 +22,11 @@ localtuya:
         id: 2
         commands_set: # Optional, default: "on_off_stop"
             ["on_off_stop","open_close_stop","fz_zz_stop","1_2_3"]
-        positioning_mode: ["none","position","fake"] # Optional, default: "none"
+        positioning_mode: ["none","position","timed"] # Optional, default: "none"
         currpos_dp: 3 # Optional, required only for "position" mode
         setpos_dp: 4  # Optional, required only for "position" mode
         position_inverted: [True,False] # Optional, default: False
-        span_time: 25 # Full movement time: Optional, required only for "fake" mode
+        span_time: 25 # Full movement time: Optional, required only for "timed" mode
 
       - platform: fan
         friendly_name: Device Fan
@@ -56,20 +56,27 @@ localtuya:
 """
 import asyncio
 import logging
+from datetime import timedelta
 
+import homeassistant.helpers.config_validation as cv
+import homeassistant.helpers.entity_registry as er
+import voluptuous as vol
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     CONF_DEVICE_ID,
     CONF_ENTITIES,
     CONF_HOST,
+    CONF_ID,
     CONF_PLATFORM,
     EVENT_HOMEASSISTANT_STOP,
     SERVICE_RELOAD,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers.event import async_track_time_interval
 from homeassistant.helpers.reload import async_integration_yaml_config
 
-from .common import TuyaDevice
+from .common import TuyaDevice, async_config_entry_by_device_id
 from .config_flow import config_schema
 from .const import CONF_PRODUCT_KEY, DATA_DISCOVERY, DOMAIN, TUYA_DEVICE
 from .discovery import TuyaDiscovery
@@ -78,7 +85,21 @@ _LOGGER = logging.getLogger(__name__)
 
 UNSUB_LISTENER = "unsub_listener"
 
+RECONNECT_INTERVAL = timedelta(seconds=60)
+
 CONFIG_SCHEMA = config_schema()
+
+CONF_DP = "dp"
+CONF_VALUE = "value"
+
+SERVICE_SET_DP = "set_dp"
+SERVICE_SET_DP_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_DEVICE_ID): cv.string,
+        vol.Required(CONF_DP): int,
+        vol.Required(CONF_VALUE): object,
+    }
+)
 
 
 @callback
@@ -117,13 +138,20 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         await asyncio.gather(*reload_tasks)
 
-    def _entry_by_device_id(device_id):
-        """Look up config entry by device id."""
-        current_entries = hass.config_entries.async_entries(DOMAIN)
-        for entry in current_entries:
-            if entry.data[CONF_DEVICE_ID] == device_id:
-                return entry
-        return None
+    async def _handle_set_dp(event):
+        """Handle set_dp service call."""
+        entry = async_config_entry_by_device_id(hass, event.data[CONF_DEVICE_ID])
+        if not entry:
+            raise HomeAssistantError("unknown device id")
+
+        if entry.entry_id not in hass.data[DOMAIN]:
+            raise HomeAssistantError("device has not been discovered")
+
+        device = hass.data[DOMAIN][entry.entry_id][TUYA_DEVICE]
+        if not device.connected:
+            raise HomeAssistantError("not connected to device")
+
+        await device.set_dp(event.data[CONF_VALUE], event.data[CONF_DP])
 
     def _device_discovered(device):
         """Update address of device if it has changed."""
@@ -133,7 +161,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         # If device is not in cache, check if a config entry exists
         if device_id not in device_cache:
-            entry = _entry_by_device_id(device_id)
+            entry = async_config_entry_by_device_id(hass, device_id)
             if entry:
                 # Save address from config entry in cache to trigger
                 # potential update below
@@ -142,7 +170,7 @@ async def async_setup(hass: HomeAssistant, config: dict):
         if device_id not in device_cache:
             return
 
-        entry = _entry_by_device_id(device_id)
+        entry = async_config_entry_by_device_id(hass, device_id)
         if entry is None:
             return
 
@@ -155,11 +183,19 @@ async def async_setup(hass: HomeAssistant, config: dict):
         if entry.data.get(CONF_PRODUCT_KEY) != product_key:
             updates[CONF_PRODUCT_KEY] = product_key
 
+        # Update settings if something changed, otherwise try to connect. Updating
+        # settings triggers a reload of the config entry, which tears down the device
+        # so no need to connect in that case.
         if updates:
             _LOGGER.debug("Update keys for device %s: %s", device_id, updates)
             hass.config_entries.async_update_entry(
                 entry, data={**entry.data, **updates}
             )
+        elif entry.entry_id in hass.data[DOMAIN]:
+            _LOGGER.debug("Device %s found with IP %s", device_id, device_ip)
+
+            device = hass.data[DOMAIN][entry.entry_id][TUYA_DEVICE]
+            device.async_connect()
 
     discovery = TuyaDiscovery(_device_discovered)
 
@@ -171,13 +207,29 @@ async def async_setup(hass: HomeAssistant, config: dict):
         await discovery.start()
         hass.data[DOMAIN][DATA_DISCOVERY] = discovery
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, _shutdown)
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         _LOGGER.exception("failed to set up discovery")
+
+    async def _async_reconnect(now):
+        """Try connecting to devices not already connected to."""
+        for entry_id, value in hass.data[DOMAIN].items():
+            if entry_id == DATA_DISCOVERY:
+                continue
+
+            device = value[TUYA_DEVICE]
+            if not device.connected:
+                device.async_connect()
+
+    async_track_time_interval(hass, _async_reconnect, RECONNECT_INTERVAL)
 
     hass.helpers.service.async_register_admin_service(
         DOMAIN,
         SERVICE_RELOAD,
         _handle_reload,
+    )
+
+    hass.helpers.service.async_register_admin_service(
+        DOMAIN, SERVICE_SET_DP, _handle_set_dp, schema=SERVICE_SET_DP_SCHEMA
     )
 
     for host_config in config.get(DOMAIN, []):
@@ -209,7 +261,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                 for platform in platforms
             ]
         )
-        device.connect()
+        device.async_connect()
+
+    await async_remove_orphan_entities(hass, entry)
 
     hass.async_create_task(setup_entities())
 
@@ -230,7 +284,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     )
 
     hass.data[DOMAIN][entry.entry_id][UNSUB_LISTENER]()
-    hass.data[DOMAIN][entry.entry_id][TUYA_DEVICE].close()
+    await hass.data[DOMAIN][entry.entry_id][TUYA_DEVICE].close()
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 
@@ -240,3 +294,19 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
 async def update_listener(hass, config_entry):
     """Update listener."""
     await hass.config_entries.async_reload(config_entry.entry_id)
+
+
+async def async_remove_orphan_entities(hass, entry):
+    """Remove entities associated with config entry that has been removed."""
+    ent_reg = await er.async_get_registry(hass)
+    entities = {
+        int(ent.unique_id.split("_")[-1]): ent.entity_id
+        for ent in er.async_entries_for_config_entry(ent_reg, entry.entry_id)
+    }
+
+    for entity in entry.data[CONF_ENTITIES]:
+        if entity[CONF_ID] in entities:
+            del entities[entity[CONF_ID]]
+
+    for entity_id in entities.values():
+        ent_reg.async_remove(entity_id)

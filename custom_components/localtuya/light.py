@@ -188,6 +188,11 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
         """Return the hs color value."""
         if self.is_color_mode:
             return self._hs
+        if (
+            self.supported_features & SUPPORT_COLOR
+            and not self.supported_features & SUPPORT_COLOR_TEMP
+        ):
+            return [0, 0]
         return None
 
     @property
@@ -242,25 +247,25 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
     @property
     def is_white_mode(self):
         """Return true if the light is in white mode."""
-        color_mode = self.dps_conf(CONF_COLOR_MODE)
+        color_mode = self.__get_color_mode()
         return color_mode is None or color_mode == MODE_WHITE
 
     @property
     def is_color_mode(self):
         """Return true if the light is in color mode."""
-        color_mode = self.dps_conf(CONF_COLOR_MODE)
+        color_mode = self.__get_color_mode()
         return color_mode is not None and color_mode == MODE_COLOR
 
     @property
     def is_scene_mode(self):
         """Return true if the light is in scene mode."""
-        color_mode = self.dps_conf(CONF_COLOR_MODE)
+        color_mode = self.__get_color_mode()
         return color_mode is not None and color_mode.startswith(MODE_SCENE)
 
     @property
     def is_music_mode(self):
         """Return true if the light is in music mode."""
-        color_mode = self.dps_conf(CONF_COLOR_MODE)
+        color_mode = self.__get_color_mode()
         return color_mode is not None and color_mode == MODE_MUSIC
 
     def __is_color_rgb_encoded(self):
@@ -272,10 +277,18 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
             SCENE_CUSTOM,
         )
 
+    def __get_color_mode(self):
+        return (
+            self.dps_conf(CONF_COLOR_MODE)
+            if self.has_config(CONF_COLOR_MODE)
+            else MODE_WHITE
+        )
+
     async def async_turn_on(self, **kwargs):
         """Turn on or control the light."""
         states = {}
-        states[self._dp_id] = True
+        if not self.is_on:
+            states[self._dp_id] = True
         features = self.supported_features
         brightness = None
         if ATTR_EFFECT in kwargs and (features & SUPPORT_EFFECT):
@@ -325,24 +338,28 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
             if brightness is None:
                 brightness = self._brightness
             hs = kwargs[ATTR_HS_COLOR]
-            if self.__is_color_rgb_encoded():
-                rgb = color_util.color_hsv_to_RGB(
-                    hs[0], hs[1], int(brightness * 100 / self._upper_brightness)
-                )
-                color = "{:02x}{:02x}{:02x}{:04x}{:02x}{:02x}".format(
-                    round(rgb[0]),
-                    round(rgb[1]),
-                    round(rgb[2]),
-                    round(hs[0]),
-                    round(hs[1] * 255 / 100),
-                    brightness,
-                )
+            if hs[1] == 0 and self.has_config(CONF_BRIGHTNESS):
+                states[self._config.get(CONF_BRIGHTNESS)] = brightness
+                states[self._config.get(CONF_COLOR_MODE)] = MODE_WHITE
             else:
-                color = "{:04x}{:04x}{:04x}".format(
-                    round(hs[0]), round(hs[1] * 10.0), brightness
-                )
-            states[self._config.get(CONF_COLOR)] = color
-            states[self._config.get(CONF_COLOR_MODE)] = MODE_COLOR
+                if self.__is_color_rgb_encoded():
+                    rgb = color_util.color_hsv_to_RGB(
+                        hs[0], hs[1], int(brightness * 100 / self._upper_brightness)
+                    )
+                    color = "{:02x}{:02x}{:02x}{:04x}{:02x}{:02x}".format(
+                        round(rgb[0]),
+                        round(rgb[1]),
+                        round(rgb[2]),
+                        round(hs[0]),
+                        round(hs[1] * 255 / 100),
+                        brightness,
+                    )
+                else:
+                    color = "{:04x}{:04x}{:04x}".format(
+                        round(hs[0]), round(hs[1] * 10.0), brightness
+                    )
+                states[self._config.get(CONF_COLOR)] = color
+                states[self._config.get(CONF_COLOR_MODE)] = MODE_COLOR
 
         if ATTR_COLOR_TEMP in kwargs and (features & SUPPORT_COLOR_TEMP):
             if brightness is None:
@@ -366,7 +383,7 @@ class LocaltuyaLight(LocalTuyaEntity, LightEntity):
         self._state = self.dps(self._dp_id)
         supported = self.supported_features
         self._effect = None
-        if supported & SUPPORT_BRIGHTNESS:
+        if supported & SUPPORT_BRIGHTNESS and self.has_config(CONF_BRIGHTNESS):
             self._brightness = self.dps_conf(CONF_BRIGHTNESS)
 
         if supported & SUPPORT_COLOR:

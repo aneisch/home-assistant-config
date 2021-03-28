@@ -149,7 +149,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
         if base_station.has_capability(SIREN_STATE_KEY):
             base_stations_with_sirens = True
 
-    async_add_entities(base_stations, True)
+    async_add_entities(base_stations)
 
     # Component services
     def service_callback(call):
@@ -235,6 +235,10 @@ class ArloBaseStation(AlarmControlPanelEntity):
 
         self._state = self._get_state_from_ha(self._base.attribute(MODE_KEY, ARMED))
         self._base.add_attr_callback(MODE_KEY, update_state)
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def state(self):

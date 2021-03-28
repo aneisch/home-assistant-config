@@ -139,8 +139,8 @@ docker_monitor:
   # scan_interval:
   #   seconds: 10
 
-digital_ocean:
-  access_token: !secret DO_token
+#digital_ocean:
+#  access_token: !secret DO_token
 
 frontend:
   themes: !include_dir_merge_named themes
@@ -249,7 +249,7 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
-    custom_components.apcupsd3: debug
+    #custom_components.apcupsd3: debug
     #homeassistant.components.zha: debug
     #bellows.zigbee.application: debug
     #bellows.ezsp: debug
@@ -266,6 +266,7 @@ logger:
     #custom_components.alexa_media: debug
     #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
+    #custom_components.mail_and_packages: debug
 
 lovelace:
   mode: yaml
@@ -330,13 +331,6 @@ notify:
     vapid_prv_key: !secret vapid_prv_key
     vapid_email: !secret vapid_email
 #  - platform: alexa_media
-
-#panel_custom:
-#  # https://gist.github.com/AdamNaj/cbf4d792a22f443fe9d354e4dca4de00
-#  - name: zwavegraph2
-#    sidebar_title: Z-Wave Graph
-#    sidebar_icon: mdi:access-point-network
-#    url_path: zwave
 
 panel_iframe:
   vscode:
@@ -488,7 +482,7 @@ zha:
       pan_id: 0x1A62
       extended_pan_id: "DD:DD:DD:DD:DD:DD:DD:DD"
 
-zha_map:
+#zha_map:
 
 zone:
   - name: Andrew Work

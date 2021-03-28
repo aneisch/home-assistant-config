@@ -499,3 +499,16 @@
     - delay: '02:00:00'
     - service: homeassistant.turn_off
       entity_id: switch.garage_dyson
+
+
+- alias: "Update USPS Mail Camera Path on Hass Restart"
+  trigger:
+    - platform: state
+      entity_id: sensor.mail_updated
+    - platform: homeassistant
+      event: start
+  action:
+    - service: local_file.update_file_path
+      data_template:
+        entity_id: camera.mail_usps
+        file_path: "{{ states('sensor.mail_image_system_path') }}"

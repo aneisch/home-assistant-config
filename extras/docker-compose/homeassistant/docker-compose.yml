@@ -17,9 +17,9 @@ services:
         environment:
           - TZ=America/Chicago
         healthcheck:
-          test: 'curl -m 30 -sLf http://localhost:8123 || date >> /config/healthcheck | pkill -9 python3'
-          interval: 60s
-          timeout: 25s
+          test: 'curl -m 90 -sLf http://localhost:8123 || date >> /config/healthcheck' #| pkill -9 python3'
+          interval: 90s
+          timeout: 60s
           retries: 2
         network_mode: host
         restart: always
@@ -63,11 +63,11 @@ services:
         #image: influxdb
         image: influxdb:1.8.4-alpine
         user: '99'
-        healthcheck:
-          test: "curl -sf http://localhost:8086/ping"
-          interval: 60s
-          timeout: 10s
-          retries: 5
+        #healthcheck:
+        #  test: "curl -sf http://localhost:8086/ping"
+        #  interval: 60s
+        #  timeout: 10s
+        #  retries: 5
         volumes:
             - '/opt/influxdb:/var/lib/influxdb'
             - '/opt/influxdb/conf:/etc/influxdb'

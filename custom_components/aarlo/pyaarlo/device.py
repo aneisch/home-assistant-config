@@ -1,5 +1,7 @@
 import threading
 
+from unidecode import unidecode
+
 from .constant import (
     BATTERY_KEY,
     BATTERY_TECH_KEY,
@@ -105,8 +107,10 @@ class ArloDevice(object):
     def entity_id(self):
         if self._arlo.cfg.serial_ids:
             return self.device_id
-        else:
+        elif self._arlo.cfg.no_unicode_squash:
             return self.name.lower().replace(" ", "_")
+        else:
+            return unidecode(self.name.lower().replace(" ", "_"))
 
     @property
     def name(self):

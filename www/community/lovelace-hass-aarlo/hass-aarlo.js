@@ -323,10 +323,7 @@ class AarloGlance extends LitElement {
                         </div>
                         <video class="aarlo-modal-video"
                                id="${this._id('modal-video-player')}"
-                               style="display:none" playsinline muted
-                               @ended="${() => { this.videoEnded(); }}"
-                               @mouseover="${() => { this.videoMouseOver(); }}"
-                               @click="${() => { this.videoClicked(); }}">
+                               style="display:none" playsinline muted>
                             Your browser does not support the video tag.
                         </video>
                         <div class="box box-bottom"
@@ -367,10 +364,7 @@ class AarloGlance extends LitElement {
                      id="${this._id('aarlo-wrapper')}">
                     <video class="aarlo-video"
                            id="${this._id('video-player')}"
-                           style="display:none" playsinline muted
-                           @ended="${() => { this.videoEnded(); }}"
-                           @mouseover="${() => { this.videoMouseOver(); }}"
-                           @click="${() => { this.videoClicked(); }}">
+                           style="display:none" playsinline muted>
                         Your browser does not support the video tag.
                     </video>
                     <img class="aarlo-image"
@@ -1945,16 +1939,26 @@ class AarloGlance extends LitElement {
     }
 
     setupRecordingHandlers() {
-        this._element( "video-player" ).addEventListener( 'loadedmetadata', (evt) => {
-            this.setUpSeekBar();
-            this.startVideo( evt.target )
-            this.showVideoControls(4);
-        })
-        this._element( "modal-video-player" ).addEventListener( 'loadedmetadata', (evt) => {
-            this.setUpSeekBar();
-            this.startVideo( evt.target )
-            this.showVideoControls(4);
-        })
+        [ this._element( "video-player" ), this._element( "modal-video-player" )]
+            .forEach( (player) => {
+                player.addEventListener( 'ended', (evt) => {
+                    this.videoEnded()
+                })
+                player.addEventListener( 'click', (evt) => {
+                    this.videoClicked()
+                })
+                player.addEventListener( 'mouseover', (evt) => {
+                    this.videoMouseEvent()
+                })
+                player.addEventListener( 'mousemove', (evt) => {
+                    this.videoMouseEvent()
+                })
+                player.addEventListener( 'loadedmetadata', (evt) => {
+                    this.setUpSeekBar();
+                    this.startVideo( evt.target )
+                    this.showVideoControls(4);
+                })
+            })
     }
 
     updateRecordingView() {
@@ -2509,7 +2513,7 @@ class AarloGlance extends LitElement {
         }
     }
 
-    videoMouseOver() {
+    videoMouseEvent() {
         this.showVideoControls(2)
     }
 
@@ -2599,6 +2603,7 @@ class AarloGlance extends LitElement {
   
     showVideoControls(seconds = 0) {
         this._mshow("video-controls")
+        this._melement("video-player").style.cursor = ""
         this.hideVideoControlsCancel();
         if (seconds !== 0) {
             this.hideVideoControlsLater(seconds);
@@ -2608,6 +2613,7 @@ class AarloGlance extends LitElement {
     hideVideoControls() {
         this.hideVideoControlsCancel();
         this._mhide("video-controls")
+        this._melement("video-player").style.cursor = "none"
     }
 
     hideVideoControlsLater(seconds = 2) {

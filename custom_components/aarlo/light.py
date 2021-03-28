@@ -67,7 +67,7 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
         if camera.has_capability(SPOTLIGHT_KEY):
             lights.append(ArloSpotlight(camera))
 
-    async_add_entities(lights, True)
+    async_add_entities(lights)
 
 
 class ArloLight(LightEntity):
@@ -98,6 +98,10 @@ class ArloLight(LightEntity):
 
         self._light.add_attr_callback(LAMP_STATE_KEY, update_state)
         self._light.add_attr_callback(BRIGHTNESS_KEY, update_state)
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def unique_id(self):

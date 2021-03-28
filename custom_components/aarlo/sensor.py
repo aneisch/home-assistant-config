@@ -80,7 +80,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
                 if light.has_capability(SENSOR_TYPES[sensor_type][3]):
                     sensors.append(ArloSensor(arlo, light, sensor_type))
 
-    async_add_entities(sensors, True)
+    async_add_entities(sensors)
 
 
 class ArloSensor(Entity):
@@ -122,6 +122,10 @@ class ArloSensor(Entity):
         if self._attr is not None:
             self._state = self._device.attribute(self._attr)
             self._device.add_attr_callback(self._attr, update_state)
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def unique_id(self):

@@ -96,7 +96,7 @@
           "securitycode": "Código 2FA (recomendado para evitar problemas de login)",
           "url": "Amazon region domain (e.g., amazon.co.uk)"
         },
-        "description": "Please confirm the information below. For legacy configuration, disable `Use Login Proxy method` option.",
+        "description": "Por favor, confirme as informações abaixo. Para configuração legada, desative a opção `Usar método de proxy de login`.",
         "title": "Alexa Media Player - Configuration"
       }
     }

@@ -184,3 +184,9 @@ spotify_occusim_stop:
     - service: media_player.media_pause
       data:
         entity_id: media_player.spotify
+
+andrew_phone_update_location:
+  sequence:
+    - service: notify.mobile_app_andrew_phone
+      data:
+        message: "request_location_update"

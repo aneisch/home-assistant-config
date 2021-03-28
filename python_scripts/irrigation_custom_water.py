@@ -15,7 +15,7 @@ for i in range(1,6):
       if "Front Beds" in state:
        time = 5
       else:
-        time = 15
+        time = 10
 
       entry = {"zone": zone_entity_id, "time": time}
 

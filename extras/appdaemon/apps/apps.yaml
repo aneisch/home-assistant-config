@@ -160,7 +160,7 @@ Workbench Shelf:
   module: follow_me
   class: Follow
   leader: switch.garage_lights
-  follower: switch.workbench_shelf_leds
+  follower: switch.workbench_shelf_leds,switch.garage_highbay_light
 
 #Christmas Lights:
 #  module: entity_timer
@@ -260,7 +260,7 @@ Bethany Vehicle:
 Office Light at Night With Door:
   module: door_open
   class: DoorLight
-  constrain_input_boolean: input_boolean.house_lamps_automation
+  #constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.front_door
@@ -271,7 +271,7 @@ Office Light at Night With Door:
 Kitchen Light at Night With Door:
   module: door_open
   class: DoorLight
-  constrain_input_boolean: input_boolean.house_lamps_automation
+  #constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   door_sensor: binary_sensor.garage_interior_door
@@ -310,12 +310,12 @@ Living Room Lamp Follow:
   leader: light.master_bedroom_lamps
   follower: light.living_room_lamps
 
-Guest Lamp Follow Master:
-  module: follow_me
-  class: Follow
-  constrain_input_boolean: input_boolean.guest_mode,off
-  leader: light.master_bedroom_lamps
-  follower: light.guest_nightstand_lamp
+#Guest Lamp Follow Master:
+#  module: follow_me
+#  class: Follow
+#  constrain_input_boolean: input_boolean.guest_mode,off
+#  leader: light.master_bedroom_lamps
+#  follower: light.guest_nightstand_lamp
 
 Door Notification and Occusim Security Follow:
   module: follow_me

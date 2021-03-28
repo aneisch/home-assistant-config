@@ -60,7 +60,7 @@ automation:
         entity_id: sensor.ha_docker_version_beta
       - platform: state
         entity_id: sensor.ha_docker_version_stable
-    condition: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) }}'
+    condition: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state != "unknown") }}'
     action:
       - service: shell_command.github_action_trigger
         data:

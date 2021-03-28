@@ -66,7 +66,7 @@ async def async_setup_platform(hass, _config, async_add_entities, _discovery_inf
             name = "{0}".format(camera.name)
             players.append(ArloMediaPlayer(name, camera))
 
-    async_add_entities(players, True)
+    async_add_entities(players)
 
 
 class ArloMediaPlayer(MediaPlayerEntity, ABC):
@@ -129,6 +129,10 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
     def name(self):
         """Return the name of the device."""
         return self._name
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def unique_id(self):

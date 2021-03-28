@@ -167,10 +167,10 @@ automation:
         - switch.irrigation_master_valve
       from: "on"
       to: "off"
-      for: "00:00:02"
+      for: "00:00:35"
     action:
       - service: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop"
-          time: "{{ ((as_timestamp(now()) - 2) | timestamp_custom('%H:%M:%S', true)) }}"
+          time: "{{ ((as_timestamp(now()) - 35) | timestamp_custom('%H:%M:%S', true)) }}"
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"

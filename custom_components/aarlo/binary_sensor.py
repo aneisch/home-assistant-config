@@ -29,11 +29,11 @@ DEPENDENCIES = [COMPONENT_DOMAIN]
 
 # sensor_type [ description, class, attribute ]
 SENSOR_TYPES = {
-    "sound": ["Sound", "sound", AUDIO_DETECTED_KEY, []],
-    "motion": ["Motion", "motion", MOTION_DETECTED_KEY, []],
-    "ding": ["Ding", "occupancy", BUTTON_PRESSED_KEY, [SILENT_MODE_KEY]],
-    "cry": ["Cry", "sound", CRY_DETECTION_KEY, []],
-    "connectivity": ["Connected", "connectivity", CONNECTION_KEY, []],
+    "sound": ["Sound", "sound", AUDIO_DETECTED_KEY, [], None],
+    "motion": ["Motion", "motion", MOTION_DETECTED_KEY, [], None],
+    "ding": ["Ding", None, BUTTON_PRESSED_KEY, [SILENT_MODE_KEY], "mdi:doorbell"],
+    "cry": ["Cry", "sound", CRY_DETECTION_KEY, [], None],
+    "connectivity": ["Connected", "connectivity", CONNECTION_KEY, [], None],
 }
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -67,7 +67,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             if light.has_capability(SENSOR_TYPES.get(sensor_type)[2]):
                 sensors.append(ArloBinarySensor(light, sensor_type))
 
-    async_add_entities(sensors, True)
+    async_add_entities(sensors)
 
 
 class ArloBinarySensor(BinarySensorEntity):
@@ -85,6 +85,7 @@ class ArloBinarySensor(BinarySensorEntity):
         self._class = SENSOR_TYPES.get(self._sensor_type)[1]
         self._attr = SENSOR_TYPES.get(self._sensor_type)[2]
         self._other_attrs = SENSOR_TYPES.get(self._sensor_type)[3]
+        self._icon = SENSOR_TYPES.get(self._sensor_type)[4]
         _LOGGER.info("ArloBinarySensor: %s created", self._name)
 
     async def async_added_to_hass(self):
@@ -104,6 +105,10 @@ class ArloBinarySensor(BinarySensorEntity):
             self._device.add_attr_callback(other_attr, update_state)
 
     @property
+    def should_poll(self):
+        return False
+
+    @property
     def unique_id(self):
         """Return a unique ID."""
         return self._unique_id
@@ -112,6 +117,13 @@ class ArloBinarySensor(BinarySensorEntity):
     def device_class(self):
         """Return the device class of the sensor."""
         return self._class
+
+    @property
+    def icon(self):
+        """Icon to use in the frontend, if any."""
+        if self._icon is not None:
+            return self._icon
+        return super().icon
 
     @property
     def device_state_attributes(self):

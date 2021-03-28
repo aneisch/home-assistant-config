@@ -74,6 +74,9 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
     for camera in arlo.cameras:
         if camera.has_capability(SIREN_STATE_KEY):
             adevices.append(camera)
+    for doorbell in arlo.doorbells:
+        if doorbell.has_capability(SIREN_STATE_KEY):
+            adevices.append(doorbell)
 
     # Create individual switches if asked for
     if config.get(CONF_SIRENS) is True:
@@ -97,7 +100,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
                 devices.append(AarloSilentModeChimeSwitch(doorbell))
                 devices.append(AarloSilentModeCallSwitch(doorbell))
 
-    async_add_entities(devices, True)
+    async_add_entities(devices)
 
 
 class AarloSwitch(SwitchEntity):
@@ -115,6 +118,10 @@ class AarloSwitch(SwitchEntity):
     def icon(self):
         """Icon to use in the frontend, if any."""
         return self._icon
+
+    @property
+    def should_poll(self):
+        return False
 
     @property
     def unique_id(self):
