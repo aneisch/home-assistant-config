@@ -86,7 +86,7 @@ sensor:
     address: 0x0D
     heading:
       id: heading
-      #name: "reading"
+      name: "reading"
     #data_rate: 10Hz
     range: 200uT
     oversampling: 512x
@@ -116,7 +116,9 @@ sensor:
               # This is intentionally duplicated
               - binary_sensor.is_off: automation_safety
           then:
-            - script.execute: gate_toggle
+            # Commented due to broken sensor
+            - delay: 1s
+            #- script.execute: gate_toggle
   
   - platform: adc
     pin: A0

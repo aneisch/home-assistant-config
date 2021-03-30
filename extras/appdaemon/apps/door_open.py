@@ -26,7 +26,7 @@ class DoorLight(hass.Hass):
                 self.activated = True
 
         # When a door closes and we'd previously turned an entity on, schedule a turn_off
-        if (old in ["on", "open"]) and (new in ["off", "closed"]) and self.activated:
+        if (old in ["on", "open"]) and (new in ["off", "closed"]) and self.activated and "time_on" in self.args:
             # Cancel turn_off timer if there is one
             if self.timer != None:
                 self.cancel_timer(self.timer)

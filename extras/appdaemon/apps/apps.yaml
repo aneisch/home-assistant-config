@@ -284,7 +284,8 @@ Garage Lights with Cover and Door:
   class: DoorLight
   door_sensor: cover.garage_door,binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door
   toggle_entity: switch.garage_lights
-  time_on: '600'
+  # Turn_off is handled by automation
+  #time_on: '10'
 
 Sleepy Time Lamp Automation Override:
   # Stop master bedroom lamps from automatic when napping

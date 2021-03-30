@@ -106,33 +106,33 @@ device_tracker:
       - 10.0.1.13/32
       - 10.0.1.59/32
 
-#monitor_docker:
-#  scan_interval: 60
-#  monitored_conditions:
-#    - allinone
-#    - cpu_percentage
-#    - memory
-#    - network_total_up
-#    - network_total_down
-#  rename:
-#    configurator: "VSCode"
-#    esphome: "ESPHome"
-#    grafana: "Grafana"
-#    librespeed: "Speedtest"
-#    ozwcp: "OpenZwave Control Panel"
-#    plex: "Plex"
-#    portainer: "Portainer"
-#    thermopro_mqtt: "Grill Monitor"
-#    adguard: "AdGuard"
-#    apcupsd_650: "APCUPSD 650"
-#    appdaemon: "Appdaemon"
-#    influxdb: "InfluxDB"
-#    mosquitto: "Mosquitto"
-#    nodered: "Node-RED"
-#    thermostat_api_server: "Thermostat API Server"
+monitor_docker:
+  #scan_interval: 60
+  monitored_conditions:
+    - state
+  #switchname: 'docker_{name}'
+  rename:
+    adguard: "AdGuard"
+    apcupsd_650: "APCUPSD 650"
+    apcupsd_950: "APCUPSD 950"
+    appdaemon: "Appdaemon"
+    configurator: "VSCode"
+    esphome: "ESPHome"
+    grafana: "Grafana"
+    influxdb: "InfluxDB"
+    librespeed: "Speedtest"
+    mariadb: "MariaDB"
+    mosquitto: "Mosquitto"
+    nodered: "Node-RED"
+    plex: "Plex"
+    portainer: "Portainer"
+    thermopro_mqtt: "Grill Monitor"
+    thermostat_api_server: "Thermostat API Server"
+    vscode: "VSCode"
+    zwavejs: "Zwave-JS"
 
 # https://github.com/aneisch/docker_monitor
-docker_monitor:
+# docker_monitor:
 #  containers:
 #    - grafana
   # Interval is hard coded in __init__.py

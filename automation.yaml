@@ -363,6 +363,7 @@
         - sensor.water_heater_water_detector_battery_level
         - sensor.hallway_alarm_battery_level
         - sensor.kitchen_alarm_battery_level
+        - sensor.garage_interior_motion_battery_level
       below: 10
   action:
     - service: notify.pushover
@@ -500,7 +501,6 @@
     - service: homeassistant.turn_off
       entity_id: switch.garage_dyson
 
-
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   trigger:
     - platform: state
@@ -512,3 +512,15 @@
       data_template:
         entity_id: camera.mail_usps
         file_path: "{{ states('sensor.mail_image_system_path') }}"
+
+- alias: "Turn off Garage Lights"
+  trigger:
+    platform: state
+    entity_id: binary_sensor.garage_interior_motion
+    from: "on"
+    to: "off"
+    for: "00:05:00"
+  condition: "{{ states('switch.garage_lights') == 'on' }}"
+  action:
+    service: homeassistant.turn_off
+    entity_id: switch.garage_lights
