@@ -31,7 +31,7 @@ cards:
 
   - type: markdown
     content: |
-      {% set irrigation = ["switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
+      {% set irrigation = ["switch.irrigation_pots", "switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
       {% for sprinkler_zone in irrigation -%}
       {%- set entity_name = "input_datetime" + sprinkler_zone | regex_replace(find='switch', replace='', ignorecase=False) -%}
       {% if states(sprinkler_zone) == "on" %}

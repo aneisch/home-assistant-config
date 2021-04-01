@@ -1,5 +1,6 @@
 type: 'custom:simple-thermostat'
 name: false
+show_header: false
 entity: climate.thermostat
 step_size: 1
 hide:

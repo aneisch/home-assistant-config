@@ -12,8 +12,10 @@ for i in range(1,6):
       zone_entity_id = "switch.irrigation_" + state.lower().replace(" ","_")
 
       # Default front beds to 5 minutes
-      if "Front Beds" in state:
-       time = 5
+      if "Front Beds" in state or "Pots" in state:
+        time = 5
+      elif "Front Lawn" in state:
+        time = 8
       else:
         time = 10
 

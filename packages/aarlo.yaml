@@ -16,16 +16,15 @@ binary_sensor:
     - motion
 
 automation:
-  - alias: "Update Garage Image"
-    trigger:
-      platform: time_pattern
-      minutes: "/10"
-    action:
-      - service: camera.aarlo_request_snapshot
-        data:
-          entity_id: camera.aarlo_garage
-          
-          
+  # - alias: "Update Garage Image"
+  #   trigger:
+  #     platform: time_pattern
+  #     hours: "/1"
+  #   action:
+  #     - service: camera.aarlo_request_snapshot
+  #       data:
+  #         entity_id: camera.aarlo_garage
+
   # - alias: "test"
   #   trigger:
   #     - platform: event
