@@ -167,9 +167,9 @@ async def add_services(hass):
         custom_components = get_custom_components(hass)
         hacs_components = get_hacs_components(hass)
         variables = {
-            "custom_components": custom_components, 
-            "states": AllStates(hass), 
-            "hacs_components": hacs_components
+            "custom_components": custom_components,
+            "states": AllStates(hass),
+            "hacs_components": hacs_components,
         }
 
         with open(f"{base}/templates/README.j2", "r") as readme:
@@ -185,50 +185,46 @@ async def add_services(hass):
 
     hass.services.async_register(DOMAIN, "generate", service_generate)
 
+
 def get_hacs_components(hass):
-    base = hass.config.path()
-    keys = []
-    hacs_components = []
+    try:
+        from custom_components.hacs.share import get_hacs
+    except ImportError:
+        return []
 
-    for file in os.listdir(f"{base}/.storage/hacs"):
-        if file.endswith(".hacs"):
-            keys.append(os.path.splitext(file)[0])
+    hacs = get_hacs()
+    repositories = hacs.repositories
+    installed = []
 
-    if os.path.exists(f"{base}/.storage/hacs.repositories"):
-        with open(f"{base}/.storage/hacs.repositories", "r") as repositories:
-            content = repositories.read()
-            content = json.loads(content)
-        
-        for key in keys:
-            repository = content["data"][key]
+    for repo in repositories:
+        if repo.data.installed:
+            repo_json = repo.data.to_json()
 
-            hacs_components.append(
-                {
-                    "category": repository["category"],
-                    "name": get_repository_name(repository),
-                    "description": repository["description"],
-                    "authors": repository["authors"],
-                    "documentation": "https://github.com/"+repository["full_name"]
-                }
-            )
+            # Add additional properites to json
+            repo_json["name"] = get_repository_name(repo)
+            repo_json["documentation"] = "https://github.com/" + repo.data.full_name
 
-    return hacs_components
+            installed.append(repo_json)
+
+    return installed
+
 
 def get_repository_name(repository) -> str:
     """Return the name of the repository for use in the frontend."""
     name = None
-    if repository["repository_manifest"]:
-        name = repository["repository_manifest"]["name"]
+
+    if repository.repository_manifest.name:
+        name = repository.repository_manifest.name
     else:
-        name = repository["full_name"].split("/")[-1]
+        name = repository.data.full_name.split("/")[-1]
+
+    name = name.replace("-", " ").replace("_", " ").strip()
 
     if name.isupper():
         return name
 
-    return (name.replace("-", " ")
-                .replace("_", " ")
-                .replace("homeassistant", "")
-                .title().strip())
+    return name.title()
+
 
 def get_custom_components(hass):
     """Return a list with custom_component info."""

@@ -119,6 +119,7 @@ class AarloGlance extends LitElement {
         this._ready = false
         this._hass = null;
         this._config = null;
+        this._version = "0.2.0b4"
 
         // Internationalisation.
         this._i = null
@@ -898,7 +899,7 @@ class AarloGlance extends LitElement {
             this.cs.details.motion = _tsi(
                 `${this._i.status.motion}: ${has_motion ? this._i.status.detected : this._i.status.clear}`,
                 has_motion ? 'on' : '',
-                "mdi:run-fast"
+                has_motion ? "mdi:run" : "mdi:walk",
             )
         } else {
             this.cs.details.motion = _tsi(this._i.image.feature_disabled, 'off', "mdi:walk")
@@ -1172,7 +1173,6 @@ class AarloGlance extends LitElement {
 
         config.image_top = image_top.join("|")
         config.image_bottom = image_bottom
-        console.log("here!")
     }
 
     getCameraConfigOld( global, local ) {
@@ -2251,7 +2251,7 @@ class AarloGlance extends LitElement {
         this.wsUpdateSnapshot()
             .then()
             .catch( (e) => {
-                alert( e )
+                this._log( e )
             })
     }
 
@@ -2297,7 +2297,7 @@ class AarloGlance extends LitElement {
                     this.showStream()
                 })
                 .catch( (e) => {
-                    alert( e )
+                    this._log( e )
                 })
         } else {
             this.showStream()
@@ -2314,7 +2314,7 @@ class AarloGlance extends LitElement {
         this.wsStopStream()
             .then()
             .catch( (e) => {
-                alert( e )
+                this._log( e )
             })
     }
 

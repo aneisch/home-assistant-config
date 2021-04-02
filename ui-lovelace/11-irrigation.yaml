@@ -6,6 +6,7 @@ cards:
       - input_boolean.enable_irrigation_scheduling
       - sensor.sprinker_interrupt_reason
       - sensor.nws_precip_probability
+      - sensor.nws_wind_speed
       - sensor.netatmo_home_rain_sum_rain_today_inches
 
   - type: 'custom:auto-entities'

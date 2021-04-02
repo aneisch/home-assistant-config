@@ -352,7 +352,7 @@
       value_template: "{{ state_attr('weather.kcll_daynight', 'pressure') }}"
     nws_wind_speed:
       friendly_name: "Wind Speed"
-      unit_of_measurement: "mbar"
+      unit_of_measurement: "mph"
       icon_template: mdi:weather-windy
       value_template: "{{ state_attr('weather.kcll_daynight', 'wind_speed') }}"
     nws_precip_probability:
