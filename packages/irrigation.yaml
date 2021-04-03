@@ -9,17 +9,21 @@
 # switch.irrigation_master_valve               Sprinklers Master Valve               off      2020-09-29T12:32:45.118323+00:00
 
 input_boolean:
-  enable_irrigation_scheduling:
-    name: Irrigation Auto Run
+  lawn_irrigation_scheduling:
+    name: Lawn Irrigation Auto Run
+    icon: mdi:clock-time-two-outline
+
+  drip_irrigation_scheduling:
+    name: Drip Irrigation Auto Run
     icon: mdi:clock-time-two-outline
 
 input_datetime:
-  irrigation_pots_last_start: 
-    name: Sprinkler Pots Last Start Time 
+  irrigation_drip_last_start: 
+    name: Sprinkler Drip Last Start Time 
     has_date: true
     has_time: true
-  irrigation_pots_last_stop: 
-    name: Sprinkler Pots Last Stop Time 
+  irrigation_drip_last_stop: 
+    name: Sprinkler Drip Last Stop Time 
     has_date: true
     has_time: true
 
@@ -146,7 +150,7 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - switch.irrigation_pots
+        - switch.irrigation_drip
         - switch.irrigation_front_beds
         - switch.irrigation_front_lawn 
         - switch.irrigation_left_and_main_rear_lawn
@@ -169,7 +173,7 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - switch.irrigation_pots
+        - switch.irrigation_drip
         - switch.irrigation_front_beds
         - switch.irrigation_front_lawn 
         - switch.irrigation_left_and_main_rear_lawn
