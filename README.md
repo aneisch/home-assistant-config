@@ -2,7 +2,7 @@
 [![Build Status](https://travis-ci.org/aneisch/home-assistant-config.svg?branch=master)](https://travis-ci.org/aneisch/home-assistant-config)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2021.4.0b3%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2021.4.5%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -57,8 +57,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1760
-Lines of Home Assistant YAML | 5009
-[Integrations](https://www.home-assistant.io/integrations/) in use | 27
+Lines of Home Assistant YAML | 5122
+[Integrations](https://www.home-assistant.io/integrations/) in use | 28
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
  
 Description | value
@@ -79,21 +79,21 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 2
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 35
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 14
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 15
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 35
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 251
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 254
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 99
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 101
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **674**
+**Total state objects** | **680**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -117,7 +117,6 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
-[jaruba/ha-samsungtv-tizen](https://github.com/jaruba/ha-samsungtv-tizen)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
@@ -129,6 +128,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
 [custom-cards/favicon-counter](https://github.com/custom-cards/favicon-counter)<br>
 [dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
+[dylandoamaral/uptime-card](https://github.com/dylandoamaral/uptime-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
 [gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>

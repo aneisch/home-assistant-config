@@ -1,0 +1,12 @@
+# Raspberry Pi in Attic
+version: '3.2'
+services:
+    433_mqtt:
+        container_name: 433_mqtt
+        image: hertzg/rtl_433:alpine-3.12-latest
+        restart: 'unless-stopped'
+        devices:
+            - '/dev/bus/usb:/dev/bus/usb'
+        volumes:
+            # Config file for setting overrides
+            - '/home/pi/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'

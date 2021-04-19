@@ -10,6 +10,16 @@ cards:
       - sensor.nws_wind_speed
       - sensor.netatmo_home_rain_sum_rain_today_inches
 
+  - type: 'custom:uptime-card'
+    entity: sensor.sprinker_interrupt_reason
+    name: Irrigation History
+    ok: "None"
+    hours_to_show: 168
+    show:
+      footer: false
+    bar:
+      amount: 7
+
   - type: 'custom:auto-entities'
     filter:
       include:

@@ -1,8 +1,9 @@
 type: 'custom:simple-thermostat'
 name: false
-show_header: false
+header: false
 entity: climate.thermostat
 step_size: 1
+decimals: 0
 hide:
   temperature: True
   state: True

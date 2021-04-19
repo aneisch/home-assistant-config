@@ -34,20 +34,20 @@ cards:
           {%- set days = (hours // 24) | int -%}
           {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
           {% endfor %}
-      - type: 'custom:aarlo-glance'
-        entity: camera.aarlo_garage
-        name: Garage
-        show:
-          - motion
-          - sound
-          - snapshot
-          - captured_today
-          - image_date
-        top_title: false
-        top_status: false
-        top_date: false
-        image_click: play
-        play_direct: true
+      # - type: 'custom:aarlo-glance'
+      #   entity: camera.aarlo_garage
+      #   name: Garage
+      #   show:
+      #     - motion
+      #     - sound
+      #     - snapshot
+      #     - captured_today
+      #     - image_date
+      #   top_title: false
+      #   top_status: false
+      #   top_date: false
+      #   image_click: play
+      #   play_direct: true
 
   - type: entities
     show_header_toggle: false

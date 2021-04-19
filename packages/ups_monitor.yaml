@@ -76,7 +76,7 @@ automation:
       - service: switch.turn_off
         entity_id: switch.nas
 
-  - alias: "Containers With Outage"
+  - alias: "Containers Off With Outage"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
@@ -84,6 +84,17 @@ automation:
         to: "ONBATT"
         for:
           seconds: 30
+    action:
+      - service: homeassistant.turn_off
+        entity_id: 
+          - switch.docker_zwavejs
+          - switch.docker_vscode
+          - switch.docker_thermostat_api_server
+          - switch.docker_esphome
+          - switch.docker_grafana
+
+  - alias: "Containers On With Restore"
+    trigger:
       - platform: state
         entity_id: sensor.ups_status
         from: "ONBATT"
@@ -91,15 +102,13 @@ automation:
         for:
           seconds: 30
     action:
-      - service: "{% if trigger.to_state.state == 'ONBATT' %}homeassistant.turn_off{% else %}homeassistant.turn_on{% endif %}"
+      - service: homeassistant.turn_on
         entity_id: 
           - switch.docker_zwavejs
           - switch.docker_vscode
           - switch.docker_thermostat_api_server
           - switch.docker_nodered
           - switch.docker_appdaemon
-          - switch.docker_esphome
-          - switch.docker_grafana
 
   - alias: "Turn Off NUC When <10 Minutes Remain"
     trigger:

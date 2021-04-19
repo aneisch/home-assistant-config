@@ -16,4 +16,4 @@
   host: "10.0.1.51"
   turn_off: 
     service: media_player.turn_off
-    entity_id: media_player.samsung_tv_remote
+    entity_id: media_player.living_room_tv

@@ -13,6 +13,7 @@ from .constant import (
     MODE_KEY,
     MODE_NAME_TO_ID_KEY,
     MODEL_BABY,
+    MODEL_WIREFREE_VIDEO_DOORBELL,
     PING_CAPABILITY,
     RESTART_PATH,
     SCHEDULE_KEY,
@@ -268,6 +269,7 @@ class ArloBase(ArloDevice):
                             if (
                                 body.get("success", False) is True
                                 or body.get("resource", "") == "modes"
+                                or body.get("resource", "") == "activeAutomations"
                             ):
                                 return
                         self._arlo.warning(
@@ -447,6 +449,9 @@ class ArloBase(ArloDevice):
             if self.model_id.startswith(MODEL_BABY):
                 return True
             if self.is_own_parent and self.using_wifi and not self.is_corded:
+                return False
+            # Wire free video doorbell acting as base station
+            if self.is_own_parent and self.model_id.startswith(MODEL_WIREFREE_VIDEO_DOORBELL) and not self.is_corded:
                 return False
             return True
         return super().has_capability(cap)

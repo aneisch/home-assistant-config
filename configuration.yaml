@@ -267,6 +267,9 @@ logger:
     #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
     #custom_components.mail_and_packages: debug
+  filters:
+    homeassistant.core:
+      - ".*share-service-download-bucket.*" # Ring Video Updates
 
 lovelace:
   mode: yaml
@@ -301,15 +304,16 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-text-input-row/lovelace-text-input-row.js
       type: module
-
+    - url: /hacsfiles/uptime-card/uptime-card.js
+      type: module
 
 map:
 
-media_player:
-  - platform: samsungtv_tizen
-    host: 10.0.1.51
-    port: 8002
-    mac: 44:5c:e9:2e:51:0a
+#media_player:
+#  - platform: samsungtv_tizen
+#    host: 10.0.1.51
+#    port: 8002
+#    mac: 44:5c:e9:2e:51:0a
 
 mobile_app:
 
@@ -439,6 +443,14 @@ recorder:
 
 rest_command: !include rest_command.yaml
 
+samsungtv:
+  - host: 10.0.1.51
+    name: Living Room TV
+    turn_on_action:
+      - service: wake_on_lan.send_magic_packet
+        data:
+          mac: 44:5c:e9:2e:51:0a
+
 scene: !include scene.yaml
 
 script: !include scripts.yaml
@@ -458,6 +470,62 @@ sun:
 switch: !include switches.yaml
 
 system_health:
+
+template:
+  # Grill
+  - trigger:
+      - platform: mqtt
+        topic: "sensor/rtl_433"
+        payload: "Thermopro-TP12"
+        value_template: "{{ value_json.model }}"
+    sensor:
+      - name: "Thermopro Probe 1"
+        state: >
+          {% if trigger.payload_json.temperature_1_F != 608.0 %}
+            {{ trigger.payload_json.temperature_1_F | float | round(2) }}
+          {% else %}
+            unknown
+          {% endif %}        
+        unit_of_measurement: '°F'
+      - name: "Thermopro Probe 2"
+        state: >
+          {% if trigger.payload_json.temperature_2_F != 608.0 %}
+            {{ trigger.payload_json.temperature_2_F | float | round(2) }}
+          {% else %}
+            unknown
+          {% endif %}
+        unit_of_measurement: '°F'
+
+  # Compost
+  - trigger:
+      - platform: mqtt
+        topic: "sensor/rtl_433"
+        payload: "Acurite-00275rm"
+        value_template: "{{ value_json.model }}"
+    sensor:
+      - name: "Compost External Temperature"
+        state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
+        unit_of_measurement: '°F'
+      - name: "Compost External Humidity"
+        state: "{{ trigger.payload_json.humidity | float | round(2) }}"
+        unit_of_measurement: '%'
+      - name: "Compost Internal Temperature"
+        state: "{{ trigger.payload_json.temperature_1_F | float | round(2) }}"
+        unit_of_measurement: '°F'
+
+  # Rain
+  - trigger:
+      - platform: mqtt
+        topic: "sensor/rtl_433"
+        payload: "Oregon-PCR800a"
+        value_template: "{{ value_json.model }}"
+    sensor:
+      - name: "Rain Rate"
+        state: "{{ trigger.payload_json.rain_rate_in_h | float | round(2) }}"
+        unit_of_measurement: 'in/h'
+      - name: "Rain Total"
+        state: "{{ trigger.payload_json.rain_in | float | round(3) }}"
+        unit_of_measurement: 'in'
 
 tplink:
   discovery: false

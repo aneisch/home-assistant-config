@@ -38,7 +38,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
 
-__version__ = "0.7.1b7"
+__version__ = "0.7.1b12"
 
 
 class PyArlo(object):
@@ -71,6 +71,7 @@ class PyArlo(object):
       ISP forced a new IP on you.
     * **synchronous_mode** - Wait for operations to complete before returing. If you are coming from Pyarlo this
       will make Pyaarlo behave more like you expect.
+    * **save_media_to** - Save media to a local directory.
 
     **Debug `kwargs` parameters:**
 

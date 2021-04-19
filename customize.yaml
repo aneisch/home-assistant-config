@@ -7,6 +7,11 @@ light.aquarium_light:
   icon: mdi:fish
   friendly_name: Aquarium Light
 
+### MEDIA PLAYER ###
+# media_player.living_room_2:
+#   friendly_name: "Living Room TV"
+#   icon: mdi:television
+
 ### SWITCHES ###
 switch.andrew_office_speakers:
   icon: "mdi:speaker"

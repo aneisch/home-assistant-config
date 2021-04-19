@@ -1,25 +1,26 @@
 sensor:
-  - platform: mqtt
-    state_topic: sensor/thermopro
-    name: "Thermopro Probe 1"
-    unit_of_measurement: "°F"
-    value_template: >
-      {% if value_json.temperature_1_F != 608.0 %}
-        {{ value_json.temperature_1_F | float | round(2) }}
-      {% else %}
-        unknown
-      {% endif %}
+# Now defined in configuration.yaml as template
+#   - platform: mqtt
+#     state_topic: sensor/thermopro
+#     name: "Thermopro Probe 1"
+#     unit_of_measurement: "°F"
+#     value_template: >
+#       {% if value_json.temperature_1_F != 608.0 %}
+#         {{ value_json.temperature_1_F | float | round(2) }}
+#       {% else %}
+#         unknown
+#       {% endif %}
 
-  - platform: mqtt
-    state_topic: sensor/thermopro
-    name: "Thermopro Probe 2"
-    unit_of_measurement: '°F'
-    value_template: >
-      {% if value_json.temperature_2_F != 608.0 %}
-        {{ value_json.temperature_2_F | float | round(2) }}
-      {% else %}
-        unknown
-      {% endif %}
+#   - platform: mqtt
+#     state_topic: sensor/thermopro
+#     name: "Thermopro Probe 2"
+#     unit_of_measurement: '°F'
+#     value_template: >
+#       {% if value_json.temperature_2_F != 608.0 %}
+#         {{ value_json.temperature_2_F | float | round(2) }}
+#       {% else %}
+#         unknown
+#       {% endif %}
 
   - platform: derivative
     source: sensor.thermopro_probe_1

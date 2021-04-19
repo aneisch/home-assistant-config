@@ -119,7 +119,7 @@ class AarloGlance extends LitElement {
         this._ready = false
         this._hass = null;
         this._config = null;
-        this._version = "0.2.0b4"
+        this._version = "0.2.0b5"
 
         // Internationalisation.
         this._i = null
@@ -875,7 +875,7 @@ class AarloGlance extends LitElement {
 
         // SENSORS
         if ( camera.attributes.wired_only ) {
-            this.cs.details.battery = _tsi( this._i.status.plugged_in, 'state-update', 'power-plug')
+            this.cs.details.battery = _tsi( this._i.status.plugged_in, 'state-update', 'mdi:power-plug')
         } else {
             const battery = this._getState(this.cc.batteryId, 0);
             const prefix = camera.attributes.charging ? 'battery-charging' : 'battery';

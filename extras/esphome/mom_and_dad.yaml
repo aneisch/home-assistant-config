@@ -116,8 +116,8 @@ sensor:
               # This is intentionally duplicated
               - binary_sensor.is_off: automation_safety
           then:
-            # Commented due to broken sensor
             - delay: 1s
+            # Disable due to broken sensor
             #- script.execute: gate_toggle
   
   - platform: adc
