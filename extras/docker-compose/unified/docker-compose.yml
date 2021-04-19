@@ -1,256 +1,4 @@
 # Concat 'homeassistant' and 'other' docker-compose files
-    plex:
-        container_name: plex
-        image: plexinc/pms-docker:latest
-        volumes:
-            - '/opt/plex/db/:/config'
-            - '/opt/plex/transcode/:/transcode'
-            - '/plex/:/data'
-        environment:
-            - TZ=America/Chicago
-            - PLEX_CLAIM=REDACT
-            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-            - TERM=xterm
-            - LANG=C.UTF-8
-            - LC_ALL=C.UTF-8
-            - CHANGE_CONFIG_DIR_OWNERSHIP=true
-            - HOME=/config
-        network_mode: host
-        restart: "no"
-    portainer:
-        container_name: portainer
-        image: portainer/portainer
-        volumes:
-            - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/opt/portainer:/data'
-        ports:
-            - '9000:9000'
-        environment:
-            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
-        restart: "no"
-    grafana:
-        container_name: grafana
-        #image: grafana/grafana:6.4.5
-        image: grafana/grafana
-        #user: '99'
-        volumes:
-            - /opt/grafana:/var/lib/grafana
-        ports:
-            - '3000:3000'
-        environment:
-            - GF_SECURITY_ALLOW_EMBEDDING=true
-            #- GF_SECURITY_COOKIE_SAMESITE=none
-            - GF_INSTALL_PLUGINS=neocat-cal-heatmap-panel
-        restart: "no"
-    esphome:
-        container_name: esphome
-        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
-        #image: esphome-dev
-        #image: esphome/esphome:1.14.4
-        image: esphome/esphome
-        volumes:
-            - /opt/esphome/:/config:rw
-            # Use local time for logging timestamps
-            - /etc/localtime:/etc/localtime:ro
-        network_mode: host
-        restart: "no"
-    thermopro_mqtt:
-        container_name: thermopro_mqtt
-        image: aneisch/rtl_433_mqtt:dev
-        user: '99'
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        restart: 'no'
-        devices:
-            - '/dev/bus/usb:/dev/bus/usb'
-        volumes:
-            # Config file for setting overrides
-            - '/opt/433_mqtt/433_mqtt_grill.conf:/etc/rtl_433/rtl_433.conf'
-    433_mqtt:
-        container_name: 433_mqtt
-        image: aneisch/rtl_433_mqtt:dev
-        user: '99'
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        restart: 'always'
-        devices:
-            - '/dev/bus/usb:/dev/bus/usb'
-        volumes:
-            # Config file for setting overrides
-            - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
-    bitwarden:
-        container_name: bitwarden
-        image: bitwardenrs/server:alpine
-        user: '99'
-        volumes:
-            - /opt/bw-data/:/data/
-            - /etc/localtime:/etc/localtime:ro
-        environment:
-            - DISABLE_ADMIN_TOKEN=true
-            - SIGNUPS_VERIFY=true
-            - SIGNUPS_ALLOWED=false
-            - INVITATIONS_ALLOWED=true
-            - LOG_FILE=/data/bitwarden.log
-            - LOG_LEVEL=error
-            - EXTENDED_LOGGING=true
-            - DOMAIN=REDACT
-            - SMTP_HOST=smtp.gmail.com
-            - SMTP_FROM=REDACT
-            - SMTP_FROM_NAME='Bitwarden Password Manager'
-            - SMTP_SSL=true
-            - SMTP_USERNAME=REDACT
-            - SMTP_PASSWORD=REDACT
-            - ROCKET_PORT=1024
-            - WEBSOCKET_ENABLED=true
-            - DUO_IKEY=
-            - DUO_SKEY=
-            - DUO_HOST=
-        ports:
-            - '8777:1024'
-            - '3012:3012'
-        logging:
-            driver: none
-        restart: always
-    bitwarden_backup:
-        container_name: bitwarden_backup
-        image: shivpatel/bitwarden_rs_dropbox_backup:latest
-        # Has to run as root or something. Whatever.
-        #user: '99'
-        volumes:
-            - /opt/bw-data:/data
-            - /etc/localtime:/etc/localtime:ro
-            - /opt/bw-backup/:/config
-        environment:
-            - BACKUP_ENCRYPTION_KEY=REDACT
-            - DELETE_AFTER=15
-        restart: always
-    #train-sensor:
-    #    container_name: train-sensor
-    #    image: aneisch/train-sensor
-    #    user: '99'
-    #    devices:
-    #        # for some reason path on container must match host path
-    #        # use readlink /dev/rtl_sdr
-    #        # /usr/local/bin/fix_rtl_docker.sh automatically fixes this. Kludge.
-    #        #- '/dev/rtl_sdr_train:/dev/bus/usb/003/037'
-    #        - '/dev/rtl_sdr_train:/dev/bus/usb/003/037'
-    #    environment:
-    #        - DEVICE_INDEX=1
-    #        - SQUELCH=80
-    #        - HOLDOFF_TIME=10
-    #    restart: 'on-failure'
-    #hass-configurator:
-    #    container_name: configurator
-    #    image: causticlab/hass-configurator-docker:x86_64
-    #    ports:
-    #      - "3218:3218/tcp"
-    #    volumes:
-    #      - "/opt/hass-configurator:/config"
-    #      - "/opt/homeassistant:/hass-config"
-    #      - "/opt/appdaemon:/appdaemon"
-    #    restart: 'always'
-    vscode:
-        container_name: vscode
-        image: linuxserver/code-server
-        ports:
-          - '8443:8443'
-        volumes:
-          - '/opt/vscode:/config'
-          - '/opt/homeassistant/:/ha_config'
-          - '/opt/appdaemon/:/appdaemon'
-          - '/opt/docker-compose/:/docker-compose'
-        environment:
-          - 'DOCKER_MODS=stecky/mods:code-server-home-assistant'
-          - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
-          - HOMEASSISTANT_TOKEN=XXX
-    watchtower:
-        container_name: watchtower
-        image: containrrr/watchtower:latest
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-          - /etc/localtime:/etc/localtime:ro
-        #restart: always
-        restart: 'no'
-        environment:
-          - WATCHTOWER_CLEANUP=true
-          - WATCHTOWER_NO_STARTUP_MESSAGE=true
-          #- WATCHTOWER_MONITOR_ONLY=true
-          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
-          - WATCHTOWER_INCLUDE_STOPPED=true
-          - WATCHTOWER_NOTIFICATIONS=email
-          - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-        #command: --schedule "00 00 12 * * *"
-        command: --run-once
-    adguard:
-        container_name: adguard
-        image: adguard/adguardhome:latest
-        user: '99'
-        #logging:
-        #    driver: none
-        volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - /opt/adguard:/opt/adguardhome/conf
-          - /opt/adguard/work:/opt/adguardhome/work
-        ports:
-          - 53:5353/tcp
-          - 53:5353/udp
-          - 8088:8080/tcp
-        restart: 'always'
-    librespeed:
-        image: linuxserver/librespeed
-        container_name: librespeed
-        ports:
-          - 8880:80
-        environment:
-          - PASSWORD=password
-          - TZ=America/Chicago
-        restart: 'no'
-    recipes:
-        container_name: recipes
-        image: aneisch/chowdown:latest
-        user: '99'
-        ports:
-          - "4000:4000"
-        volumes:
-          - '/opt/recipes:/config'
-          - '/etc/localtime:/etc/localtime:ro'
-        restart: always
-    #tuya-convert:
-    #    # https://github.com/ct-Open-Source/tuya-convert
-    #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
-    #    # this is needed to accept EULA
-    #    # then can use docker-compose exec tuya-convert start
-    #    container_name: 'tuya-convert'
-    #    image: tuya-convert:latest
-    #    labels:
-    #      com.centurylinklabs.watchtower.enable: "false"
-    #    privileged: true
-    #    network_mode: "host"
-    #    environment:
-    #      - WLAN=wlp58s0
-    #      - AP=vtrust-flash
-    #      - GATEWAY=10.42.42.1
-    #    volumes:
-    #      - /tmp/tuya:/usr/bin/tuya-convert/backups
-    tailscale:
-        hostname: docker
-        image: richnorth/tailscale:v0.99.1
-        volumes:
-            - "/opt/tailscale:/var/lib"        # State data will be stored in this directory
-            - "/dev/net/tun:/dev/net/tun"           # Required for tailscale to work
-        cap_add:                                    # Required for tailscale to work
-          - net_admin
-          - sys_module
-        command: tailscaled
-        container_name: tailscale
-        network_mode: host
-
 version: '3.2'
 services:
     homeassistant:
@@ -485,30 +233,30 @@ services:
             - /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
-    thermopro_mqtt:
-        container_name: thermopro_mqtt
-        image: aneisch/rtl_433_mqtt:dev
-        user: '99'
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        restart: 'no'
-        devices:
-            - '/dev/bus/usb:/dev/bus/usb'
-        volumes:
-            # Config file for setting overrides
-            - '/opt/433_mqtt/433_mqtt_grill.conf:/etc/rtl_433/rtl_433.conf'
-    433_mqtt:
-        container_name: 433_mqtt
-        image: aneisch/rtl_433_mqtt:dev
-        user: '99'
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
-        restart: 'always'
-        devices:
-            - '/dev/bus/usb:/dev/bus/usb'
-        volumes:
-            # Config file for setting overrides
-            - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
+    #thermopro_mqtt:
+    #    container_name: thermopro_mqtt
+    #    image: aneisch/rtl_433_mqtt:dev
+    #    user: '99'
+    #    labels:
+    #      com.centurylinklabs.watchtower.enable: "false"
+    #    restart: 'no'
+    #    devices:
+    #        - '/dev/bus/usb:/dev/bus/usb'
+    #    volumes:
+    #        # Config file for setting overrides
+    #        - '/opt/433_mqtt/433_mqtt_grill.conf:/etc/rtl_433/rtl_433.conf'
+    #433_mqtt:
+    #    container_name: 433_mqtt
+    #    image: aneisch/rtl_433_mqtt:dev
+    #    user: '99'
+    #    labels:
+    #      com.centurylinklabs.watchtower.enable: "false"
+    #    restart: 'always'
+    #    devices:
+    #        - '/dev/bus/usb:/dev/bus/usb'
+    #    volumes:
+    #        # Config file for setting overrides
+    #        - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
     bitwarden:
         container_name: bitwarden
         image: bitwardenrs/server:alpine

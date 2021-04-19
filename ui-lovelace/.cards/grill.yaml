@@ -1,7 +1,7 @@
 type: conditional
 conditions:
-  - entity: switch.docker_thermopro_mqtt
-    state: "on"
+  - entity: sensor.thermopro_probe_1
+    state_not: "unknown"
 card:
   type: custom:vertical-stack-in-card
   cards:

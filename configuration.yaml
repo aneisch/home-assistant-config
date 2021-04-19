@@ -487,6 +487,7 @@ template:
             unknown
           {% endif %}        
         unit_of_measurement: '°F'
+        device_class: temperature
       - name: "Thermopro Probe 2"
         state: >
           {% if trigger.payload_json.temperature_2_F != 608.0 %}
@@ -495,6 +496,7 @@ template:
             unknown
           {% endif %}
         unit_of_measurement: '°F'
+        device_class: temperature
 
   # Compost
   - trigger:
@@ -506,12 +508,18 @@ template:
       - name: "Compost External Temperature"
         state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
         unit_of_measurement: '°F'
+        device_class: temperature
       - name: "Compost External Humidity"
         state: "{{ trigger.payload_json.humidity | float | round(2) }}"
         unit_of_measurement: '%'
+        device_class: humidity
       - name: "Compost Internal Temperature"
         state: "{{ trigger.payload_json.temperature_1_F | float | round(2) }}"
         unit_of_measurement: '°F'
+        device_class: temperature
+      - name: "Compost Battery OK"
+        state: "{{ trigger.payload_json.battery_ok == 1 }}"
+        device_class: battery
 
   # Rain
   - trigger:
@@ -526,6 +534,9 @@ template:
       - name: "Rain Total"
         state: "{{ trigger.payload_json.rain_in | float | round(3) }}"
         unit_of_measurement: 'in'
+      - name: "Rain Battery OK"
+        state: "{{ trigger.payload_json.battery_ok == 1 }}"
+        device_class: battery
 
 tplink:
   discovery: false
