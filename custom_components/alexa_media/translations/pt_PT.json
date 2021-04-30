@@ -105,6 +105,7 @@
     "step": {
       "init": {
         "data": {
+          "extended_entity_discovery": "Inclui dispositivos conectados via Echo",
           "queue_delay": "Segundos de espera para agrupar comandos"
         }
       }

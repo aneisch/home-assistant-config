@@ -23,6 +23,7 @@ sensor:
     cf1_pin: GPIO14
     power:
       id: power
+      name: "xbox power"
       filters:
         # Some calibration
         - multiply: 0.4545

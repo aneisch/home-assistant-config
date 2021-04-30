@@ -150,12 +150,6 @@ Inside Scenic Lights:
   time_off: "23:00:00"
   brightness: 255
 
-Front House Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.front_sconces
-  time_off: "22:00:00"
-
 Workbench Shelf:
   module: follow_me
   class: Follow
@@ -169,16 +163,16 @@ Workbench Shelf:
 #  time_on: sunset
 #  time_off: "23:00:00"
 
+Plant Light:
+  module: entity_timer
+  class: Timer
+  entities: light.plant_light
+  time_on: sunrise - 04:00:00
+  time_off: "08:30:00"
+
 ############
 # Aquarium #
 ############
-HC Light:
-  module: entity_timer
-  class: Timer
-  entities: switch.hc_light
-  time_on: sunset
-  time_off: sunrise
-
 Circadian Follow:
   module: follow_me
   class: Follow

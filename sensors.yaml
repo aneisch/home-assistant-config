@@ -103,6 +103,22 @@
 #   state_topic: "sensor/rtl_433/temperature_1_F"
 # End now defined
 
+- platform: command_line
+  name: Electricity Daily
+  scan_interval: 600
+  command: !secret utilities_curl
+  value_template: "{{ value_json[-1].Kwh | float }}"  
+  unit_of_measurement: 'kWh' 
+
+- platform: command_line
+  name: Utilities Summary
+  scan_interval: 600
+  command: !secret utilities_curl_3
+  value_template: "{{ value_json.TotalUsage | float }}"   
+  unit_of_measurement: 'kWh' 
+  json_attributes:
+    - TotalCost
+
 ###################
 # MQTT THERMOSTAT #
 ###################

@@ -21,7 +21,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 eWeLink MS01
   - 1 LDS ZBT-CCTSwitch-D0001
   - 1 LUMI lumi.sensor_cube
-  - 9 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
+  - 10 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
@@ -56,18 +56,18 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 1760
-Lines of Home Assistant YAML | 5132
+Lines of ESPHome YAML | 1761
+Lines of Home Assistant YAML | 5181
 [Integrations](https://www.home-assistant.io/integrations/) in use | 28
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 13
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 14
  
 Description | value
 -- | --
-Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 2
+Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 65
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 47
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
-Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 8
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 10
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 2
 Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 7
@@ -86,14 +86,14 @@ Entities in the [`proximity`](https://www.home-assistant.io/components/proximity
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 35
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 254
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 255
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 99
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 100
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **678**
+**Total state objects** | **683**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

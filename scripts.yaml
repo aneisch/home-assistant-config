@@ -49,6 +49,8 @@ security_disarm:
       entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_2
+    - service: alarm_control_panel.alarm_arm_home
+      entity_id: alarm_control_panel.college_station_mode
     - service: notify.pushover
       data:
         message: Disarmed!
@@ -61,6 +63,8 @@ security_arm:
       entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_arm_away
       entity_id: !secret alarm_panel_2
+    - service: alarm_control_panel.alarm_arm_away
+      entity_id: alarm_control_panel.college_station_mode
     - service: notify.pushover
       data:
         message: Armed!
@@ -86,13 +90,17 @@ master_bedroom_bedtime:
     - service: homeassistant.turn_off
       data:
         entity_id: group.off_at_bedtime
-    - service: alarm_control_panel.alarm_arm
+    - service: alarm_control_panel.alarm_arm_away
       entity_id: !secret alarm_panel_2
+    - service: alarm_control_panel.alarm_arm_away
+      entity_id: alarm_control_panel.college_station_mode
 
 master_bedroom_wakeup:
   sequence:
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_2
+    - service: alarm_control_panel.alarm_arm_home
+      entity_id: alarm_control_panel.college_station_mode
     - service: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan

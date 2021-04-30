@@ -476,8 +476,8 @@ template:
   - trigger:
       - platform: mqtt
         topic: "sensor/rtl_433"
-        payload: "Thermopro-TP12"
-        value_template: "{{ value_json.model }}"
+        payload: True
+        value_template: "{{ value_json.model == 'Thermopro-TP12' }}"
     sensor:
       - name: "Thermopro Probe 1"
         state: >
@@ -502,8 +502,8 @@ template:
   - trigger:
       - platform: mqtt
         topic: "sensor/rtl_433"
-        payload: "Acurite-00275rm"
-        value_template: "{{ value_json.model }}"
+        payload: True
+        value_template: "{{ value_json.model == 'Acurite-00275rm' and value_json.id == 16725 }}"
     sensor:
       - name: "Compost External Temperature"
         state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
@@ -525,8 +525,8 @@ template:
   - trigger:
       - platform: mqtt
         topic: "sensor/rtl_433"
-        payload: "Oregon-PCR800a"
-        value_template: "{{ value_json.model }}"
+        payload: True
+        value_template: "{{ value_json.model == 'Oregon-PCR800a' and value_json.id == 58 }}"
     sensor:
       - name: "Rain Rate"
         state: "{{ trigger.payload_json.rain_rate_in_h | float | round(2) }}"
@@ -538,11 +538,37 @@ template:
         state: "{{ trigger.payload_json.battery_ok == 1 }}"
         device_class: battery
 
+  # Outdoor Weather Wittime (back porch on top of column)
+  - trigger:
+    - platform: mqtt
+      topic: "sensor/rtl_433"
+      payload: True
+      value_template: "{{ value_json.model == 'GT-WT03' and value_json.id == 0 and value_json.channel == 1 }}"
+    sensor:
+      - name: "433 Weather Temperature"
+        state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
+        unit_of_measurement: '°F'
+        device_class: temperature
+      - name: "433 Weather Humidity"
+        state: "{{ trigger.payload_json.humidity | float | round(2) }}"
+        unit_of_measurement: '%'
+        device_class: humidity
+      - name: "433 Weather Battery OK"
+        state: "{{ trigger.payload_json.battery_ok == 1 }}"
+        device_class: battery
+
 tplink:
   discovery: false
   light:
     - host: 10.0.1.53
     - host: 10.0.1.54
+
+utility_meter:
+  electricity:
+    source: sensor.electricity_daily
+    cycle: monthly
+    offset:
+      days: 25
 
 wemo:
   discovery: false
@@ -553,6 +579,7 @@ xbox:
   client_id: !secret xbox_id
   client_secret: !secret xbox_secret
 
+  
 zha:
   zigpy_config:
     network:
