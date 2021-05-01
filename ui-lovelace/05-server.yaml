@@ -79,7 +79,32 @@ cards:
         graph: line
         name: CPU History
         detail: 2
-          
+
+  - type: vertical-stack
+    cards:
+      - type: sensor
+        entity: sensor.electric_utilities_daily
+        graph: line
+        name: Daily Electricity
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:flash
+      - type: sensor
+        entity: sensor.electric_utilities_summary
+        graph: line
+        name: Cycle Electricity
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:flash
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - type: attribute
+            entity: sensor.electric_utilities_summary
+            attribute: cost
+            name: Electricity Cost This Cycle
+            icon: mdi:currency-usd
+
   - type: entities
     show_header_toggle: false
     title: 950 UPS

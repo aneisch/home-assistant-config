@@ -203,7 +203,8 @@ services:
         restart: "no"
     portainer:
         container_name: portainer
-        image: portainer/portainer
+        #image: portainer/portainer
+        image: portainer/portainer-ce
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
             - '/opt/portainer:/data'
@@ -264,7 +265,7 @@ services:
     #        - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
     bitwarden:
         container_name: bitwarden
-        image: bitwardenrs/server:alpine
+        image: vaultwarden/server:alpine
         user: '99'
         volumes:
             - /opt/bw-data/:/data/

@@ -501,6 +501,17 @@
     - service: homeassistant.turn_off
       entity_id: switch.garage_dyson
 
+- alias: "Update Utilities Cost"
+  trigger:
+    - platform: state
+      entity_id: 
+        - sensor.electric_utilities_summary
+        - sensor.electric_utilities_daily
+  action:
+    - service: python_script.add_elecrtric_cost_attribute
+      data:
+        entity_id: '{{ trigger.entity_id }}'
+
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   trigger:
     - platform: state

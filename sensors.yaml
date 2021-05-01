@@ -104,20 +104,27 @@
 # End now defined
 
 - platform: command_line
-  name: Electricity Daily
+  name: Electric Utilities Daily
   scan_interval: 600
   command: !secret utilities_curl
-  value_template: "{{ value_json[-1].Kwh | float }}"  
+  value_template: "{{ value_json.Kwh | float }}"  
   unit_of_measurement: 'kWh' 
+  json_attributes:
+    - ReadDate
 
 - platform: command_line
-  name: Utilities Summary
+  name: Electric Utilities Summary
   scan_interval: 600
   command: !secret utilities_curl_3
   value_template: "{{ value_json.TotalUsage | float }}"   
   unit_of_measurement: 'kWh' 
   json_attributes:
     - TotalCost
+    - MinUsage
+    - MaxUsage
+    - AvgUsage
+    - StartDate
+    - EndDate
 
 ###################
 # MQTT THERMOSTAT #

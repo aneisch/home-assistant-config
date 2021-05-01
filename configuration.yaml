@@ -563,13 +563,6 @@ tplink:
     - host: 10.0.1.53
     - host: 10.0.1.54
 
-utility_meter:
-  electricity:
-    source: sensor.electricity_daily
-    cycle: monthly
-    offset:
-      days: 25
-
 wemo:
   discovery: false
   static:
