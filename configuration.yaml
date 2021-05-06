@@ -317,6 +317,8 @@ map:
 
 mobile_app:
 
+my:
+
 netatmo:
   client_id: !secret netatmo_key
   client_secret: !secret netatmo_secret
@@ -471,91 +473,7 @@ switch: !include switches.yaml
 
 system_health:
 
-template:
-  # Grill
-  - trigger:
-      - platform: mqtt
-        topic: "sensor/rtl_433"
-        payload: True
-        value_template: "{{ value_json.model == 'Thermopro-TP12' }}"
-    sensor:
-      - name: "Thermopro Probe 1"
-        state: >
-          {% if trigger.payload_json.temperature_1_F != 608.0 %}
-            {{ trigger.payload_json.temperature_1_F | float | round(2) }}
-          {% else %}
-            unknown
-          {% endif %}        
-        unit_of_measurement: '°F'
-        device_class: temperature
-      - name: "Thermopro Probe 2"
-        state: >
-          {% if trigger.payload_json.temperature_2_F != 608.0 %}
-            {{ trigger.payload_json.temperature_2_F | float | round(2) }}
-          {% else %}
-            unknown
-          {% endif %}
-        unit_of_measurement: '°F'
-        device_class: temperature
-
-  # Compost
-  - trigger:
-      - platform: mqtt
-        topic: "sensor/rtl_433"
-        payload: True
-        value_template: "{{ value_json.model == 'Acurite-00275rm' and value_json.id == 16725 }}"
-    sensor:
-      - name: "Compost External Temperature"
-        state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
-        unit_of_measurement: '°F'
-        device_class: temperature
-      - name: "Compost External Humidity"
-        state: "{{ trigger.payload_json.humidity | float | round(2) }}"
-        unit_of_measurement: '%'
-        device_class: humidity
-      - name: "Compost Internal Temperature"
-        state: "{{ trigger.payload_json.temperature_1_F | float | round(2) }}"
-        unit_of_measurement: '°F'
-        device_class: temperature
-      - name: "Compost Battery OK"
-        state: "{{ trigger.payload_json.battery_ok == 1 }}"
-        device_class: battery
-
-  # Rain
-  - trigger:
-      - platform: mqtt
-        topic: "sensor/rtl_433"
-        payload: True
-        value_template: "{{ value_json.model == 'Oregon-PCR800a' and value_json.id == 58 }}"
-    sensor:
-      - name: "Rain Rate"
-        state: "{{ trigger.payload_json.rain_rate_in_h | float | round(2) }}"
-        unit_of_measurement: 'in/h'
-      - name: "Rain Total"
-        state: "{{ trigger.payload_json.rain_in | float | round(3) }}"
-        unit_of_measurement: 'in'
-      - name: "Rain Battery OK"
-        state: "{{ trigger.payload_json.battery_ok == 1 }}"
-        device_class: battery
-
-  # Outdoor Weather Wittime (back porch on top of column)
-  - trigger:
-    - platform: mqtt
-      topic: "sensor/rtl_433"
-      payload: True
-      value_template: "{{ value_json.model == 'GT-WT03' and value_json.id == 0 and value_json.channel == 1 }}"
-    sensor:
-      - name: "433 Weather Temperature"
-        state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
-        unit_of_measurement: '°F'
-        device_class: temperature
-      - name: "433 Weather Humidity"
-        state: "{{ trigger.payload_json.humidity | float | round(2) }}"
-        unit_of_measurement: '%'
-        device_class: humidity
-      - name: "433 Weather Battery OK"
-        state: "{{ trigger.payload_json.battery_ok == 1 }}"
-        device_class: battery
+template: !include template.yaml
 
 tplink:
   discovery: false

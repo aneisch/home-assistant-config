@@ -507,10 +507,16 @@
       entity_id: 
         - sensor.electric_utilities_summary
         - sensor.electric_utilities_daily
+    - platform: homeassistant
+      event: start
+        
   action:
     - service: python_script.add_elecrtric_cost_attribute
       data:
-        entity_id: '{{ trigger.entity_id }}'
+        entity_id: sensor.electric_utilities_summary
+    - service: python_script.add_elecrtric_cost_attribute
+      data:
+        entity_id: sensor.electric_utilities_daily
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   trigger:

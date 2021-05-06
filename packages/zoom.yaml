@@ -1,77 +1,77 @@
 automation:
-  - alias: "Zoom State Sensor Update"
-    mode: queued
-    trigger:
-      - platform: webhook
-        webhook_id: !secret zoom_webhook
-    action:
-      - service: setter.set
-        data:
-          entity_id: "sensor.andrew_zoom_status"
-          state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
-          attributes:
-            friendly_name: "Andrew Zoom Status"
-            icon: "mdi:cctv"
+  # - alias: "Zoom State Sensor Update"
+  #   mode: queued
+  #   trigger:
+  #     - platform: webhook
+  #       webhook_id: !secret zoom_webhook
+  #   action:
+  #     - service: setter.set
+  #       data:
+  #         entity_id: "sensor.andrew_zoom_status"
+  #         state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
+  #         attributes:
+  #           friendly_name: "Andrew Zoom Status"
+  #           icon: "mdi:cctv"
 
-  - alias: "Zoom LED On"
-    trigger:
-      - platform: state
-        entity_id: sensor.andrew_zoom_status
-        to:
-          - in_calendar_event
-          - presenting
-          - in_meeting
-    condition: '{{ trigger.to_state.state in ["presenting","in_meeting","in_calendar_event"] }}'
-    action:
-      - service: homeassistant.turn_on
-        entity_id: light.zoom_led
-        data:
-          rgb_color: [255,0,0]
-          brightness: 255
-          effect: "custom scan"
+  # - alias: "Zoom LED On"
+  #   trigger:
+  #     - platform: state
+  #       entity_id: 
+  #         - binary_sensor.in_meeting_weasel
+  #         - binary_sensor.in_meeting_work
+  #       to:
+  #         - "on"
+  #   action:
+  #     - service: homeassistant.turn_on
+  #       entity_id: light.zoom_led
+  #       data:
+  #         rgb_color: [255,0,0]
+  #         brightness: 255
+  #         effect: "custom scan"
 
   - alias: "Zoom LED Off"
     trigger:
       - platform: state
-        entity_id: sensor.andrew_zoom_status
-        from:
-          - in_calendar_event
-          - presenting
-          - in_meeting
-    condition: '{{ trigger.to_state.state not in ["presenting","in_meeting","in_calendar_event"] }}'
+        entity_id: 
+          - binary_sensor.in_meeting_weasel
+          - binary_sensor.in_meeting_work
+        to:
+          - "off"
     action:
       - service: homeassistant.turn_off
         entity_id: light.zoom_led
 
-  - alias: "Zoom LED Color"
+  - alias: "Zoom LED On"
     trigger:
       - platform: state
-        entity_id: sensor.zoom_mute_state
+        entity_id: binary_sensor.muted_weasel
       - platform: state
-        entity_id: sensor.zoom_video_state
-    condition: '{{ states("sensor.andrew_zoom_status") in ["presenting","in_meeting","in_calendar_event"] }}'
+        entity_id: binary_sensor.muted_work
+      - platform: state
+        entity_id: 
+          - binary_sensor.in_meeting_weasel
+          - binary_sensor.in_meeting_weasel
+        to: "on"
     action:
       - service: homeassistant.turn_on
         entity_id: light.zoom_led
         data:
           rgb_color: >
-            {% if states("sensor.zoom_mute_state") == "muted" and states("sensor.zoom_video_state") == "active" %}
+            {% if ( states("binary_sensor.muted_work") == "on" and states("binary_sensor.in_meeting_work") == "on" ) or ( states("binary_sensor.muted_weasel") == "on" and states("binary_sensor.in_meeting_weasel") == "on" ) %}
             [255,255,0]
-            {% elif states("sensor.zoom_mute_state") == "muted" and states("sensor.zoom_video_state") == "inactive" %}
-            [0,255,0]
-            {% elif states("sensor.zoom_mute_state") == "unmuted" %}
+            {% elif states("binary_sensor.in_meeting_work") == "on" or states("binary_sensor.in_meeting_weasel") == "on" %}
             [255,0,0]
             {% endif %}
           brightness: 255
           effect: "custom scan"
 
-sensor:
-  - platform: mqtt
-    state_topic: "sensor/zoom_comms"
-    name: "Zoom Mute State"
-    value_template: "{{ value_json.mute }}"
+# sensor:
+#   - platform: mqtt
+#     state_topic: "sensor/zoom_comms"
+#     name: "Zoom Mute State"
+#     value_template: "{{ value_json.mute }}"
 
-  - platform: mqtt
-    state_topic: "sensor/zoom_comms"
-    name: "Zoom Video State"
-    value_template: "{{ value_json.video }}"
+#   - platform: mqtt
+#     state_topic: "sensor/zoom_comms"
+#     name: "Zoom Video State"
+#     value_template: "{{ value_json.video }}"

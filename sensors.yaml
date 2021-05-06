@@ -362,24 +362,29 @@
               {{' '}}in transit.{{' '}}
           {%- endmacro %}
         {{deliveries_sentence()}}
+
     nws_temperature:
       friendly_name: "Temperature"
       unit_of_measurement: "°F"
       value_template: "{{ state_attr('weather.kcll_daynight', 'temperature') }}"
+
     nws_humidity:
       friendly_name: "Humidity"
       unit_of_measurement: "%"
       icon_template: mdi:water-percent
       value_template: "{{ state_attr('weather.kcll_daynight', 'humidity') }}"
+
     nws_pressure:
       friendly_name: "Pressure"
       unit_of_measurement: "mbar"
       value_template: "{{ state_attr('weather.kcll_daynight', 'pressure') }}"
+
     nws_wind_speed:
       friendly_name: "Wind Speed"
       unit_of_measurement: "mph"
       icon_template: mdi:weather-windy
       value_template: "{{ state_attr('weather.kcll_daynight', 'wind_speed') }}"
+
     nws_precip_probability:
       friendly_name: "Percent Chance of Rain"
       unit_of_measurement: "%"
