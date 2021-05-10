@@ -1,22 +1,33 @@
 # See also: ../python_scripts/vacuum_custom_clean.py that allows custom room clean
 
 automation:
-  alias: "Roborock Go to Trashcan After Cleaning"
-  trigger:
-    - platform: state
-      entity_id: vacuum.roborock_s4
-      to: 'returning'
-  condition:
-    condition: state
-    entity_id: input_boolean.return_to_trashcan
-    state: 'on'
-  action:
-    - service: vacuum.pause
-      entity_id: vacuum.roborock_s4
-    - delay: '00:00:02'
-    - service: script.vacuum_park_trashcan
-    - service: homeassistant.turn_off
+  - alias: "Roborock Go to Trashcan After Cleaning"
+    trigger:
+      - platform: state
+        entity_id: vacuum.roborock_s4
+        to: 'returning'
+    condition:
+      condition: state
       entity_id: input_boolean.return_to_trashcan
+      state: 'on'
+    action:
+      - service: vacuum.pause
+        entity_id: vacuum.roborock_s4
+      - delay: '00:00:02'
+      - service: script.vacuum_park_trashcan
+      - service: homeassistant.turn_off
+        entity_id: input_boolean.return_to_trashcan
+
+  - alias: "Vacuum When House Unoccupied"
+    initial_state: off
+    trigger:
+      - platform: state
+        entity_id: group.trackers
+        to: not_home
+    action:
+      - service: python_script.vacuum_custom_clean
+      - service: homeassistant.turn_off
+        entity_id: automation.vacuum_when_house_unoccupied
 
 sensor:
   - platform: template
@@ -111,6 +122,7 @@ input_select:
       - Standard
       - Medium
       - Turbo
+
   vacuum_room_select:
     name: Choose a room to clean
     # Define these zones in NodeRed
@@ -131,7 +143,7 @@ input_select:
 
   vacuum_custom_clean_1:
     name: Custom Clean Room 1
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -149,7 +161,7 @@ input_select:
 
   vacuum_custom_clean_2:
     name: Custom Clean Room 2
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -167,7 +179,7 @@ input_select:
 
   vacuum_custom_clean_3:
     name: Custom Clean Room 3
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -185,7 +197,7 @@ input_select:
 
   vacuum_custom_clean_4:
     name: Custom Clean Room 4
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -203,7 +215,7 @@ input_select:
 
   vacuum_custom_clean_5:
     name: Custom Clean Room 5
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -221,7 +233,7 @@ input_select:
 
   vacuum_custom_clean_6:
     name: Custom Clean Room 6
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -239,7 +251,7 @@ input_select:
 
   vacuum_custom_clean_7:
     name: Custom Clean Room 7
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -257,7 +269,7 @@ input_select:
 
   vacuum_custom_clean_8:
     name: Custom Clean Room 8
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -275,7 +287,7 @@ input_select:
 
   vacuum_custom_clean_9:
     name: Custom Clean Room 9
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room
@@ -293,7 +305,7 @@ input_select:
 
   vacuum_custom_clean_10:
     name: Custom Clean Room 10
-    initial: None
+    # initial: None
     options:
       - None
       - Dining Room

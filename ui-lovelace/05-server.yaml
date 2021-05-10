@@ -99,12 +99,7 @@ cards:
       - type: entities
         show_header_toggle: false
         entities:
-          - type: attribute
-            entity: sensor.electric_utilities_summary
-            attribute: cost
-            name: Electricity Cost This Cycle
-            icon: mdi:currency-usd
-
+          - sensor.electricity_cost_monthly
   - type: entities
     show_header_toggle: false
     title: 950 UPS

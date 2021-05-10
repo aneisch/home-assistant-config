@@ -164,6 +164,8 @@ cards:
     title: Custom Clean
     show_header_toggle: false
     entities:
+      - entity: automation.vacuum_when_house_unoccupied
+        icon: "mdi:robot-vacuum"
       - input_select.vacuum_custom_clean_1
       - input_select.vacuum_custom_clean_2
       - input_select.vacuum_custom_clean_3
@@ -180,8 +182,7 @@ cards:
         service: python_script.vacuum_custom_clean
         name: " "
         icon: " "
-        
-        
+
   - type: 'custom:card-templater'
     entities:
       - input_select.vacuum_mode
