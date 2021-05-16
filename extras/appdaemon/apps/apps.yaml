@@ -10,7 +10,7 @@ AutoAdjust:
   night_adjust_weekday: '01:00:00'
   night_adjust_weekend: '01:00:00'
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: '80'
+  cool_day: '77'
   cool_night: '72'
   cool_unoccupied: '82'
   heat_day: '67'
@@ -282,11 +282,11 @@ Garage Lights with Cover and Door:
   #time_on: '10'
 
 Sleepy Time Lamp Automation Override:
-  # Stop master bedroom lamps from automatic when napping
+  # Disable / Turn off some things when sleeping
   module: follow_me
   class: Follow
   leader: switch.master_bedroom_ceiling_fan
-  follower: input_boolean.house_lamps_automation
+  follower: input_boolean.house_lamps_automation,automation.turn_on_speakers_and_tv_when_xbox_powers_on
   invert: True
 
 Indoor Light Automation Sunset:

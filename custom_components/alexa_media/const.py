@@ -8,7 +8,7 @@ https://community.home-assistant.io/t/echo-devices-alexa-as-media-player-testers
 """
 from datetime import timedelta
 
-__version__ = "3.10.1"
+__version__ = "3.10.4"
 PROJECT_URL = "https://github.com/custom-components/alexa_media_player/"
 ISSUE_URL = f"{PROJECT_URL}issues"
 
@@ -23,7 +23,13 @@ MIN_TIME_BETWEEN_FORCED_SCANS = timedelta(seconds=1)
 ALEXA_COMPONENTS = [
     "media_player",
 ]
-DEPENDENT_ALEXA_COMPONENTS = ["notify", "switch", "sensor", "alarm_control_panel", "light"]
+DEPENDENT_ALEXA_COMPONENTS = [
+    "notify",
+    "switch",
+    "sensor",
+    "alarm_control_panel",
+    "light",
+]
 
 HTTP_COOKIE_HEADER = "# HTTP Cookie File"
 CONF_ACCOUNTS = "accounts"
