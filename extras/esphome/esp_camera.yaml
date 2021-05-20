@@ -8,9 +8,16 @@ esphome:
   board: esp32dev
 
 <<: !include common.yaml
-<<: !include midnight_reboot.yaml
+#<<: !include midnight_reboot.yaml
 
 esp32_ble_tracker:
+
+ble_client:
+  - mac_address: 80:30:DC:EB:B8:92
+    id: ble_itag
+    on_connect:
+      then:
+        - lambda: ESP_LOGD("ble_client_lambda", "Connected to BLE device");
 
 # ESP32-CAM
 # esp32_camera:

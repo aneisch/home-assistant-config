@@ -477,6 +477,8 @@
   trigger:
     - platform: time
       at: "15:00:00"
+    - platform: time
+      at: "20:00:00"
   condition:
     condition: and
     conditions:
@@ -488,8 +490,6 @@
       # Watchtower runs once at container start then turns back off
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
-    - delay: '00:02:00'
-    - service: homeassistant.restart
 
 - alias: "Dyson Charger"
   trigger:

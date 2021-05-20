@@ -30,6 +30,11 @@ guest_bedroom:
   entities:
     - light.guest_nightstand_lamp
 
+back_bedroom:
+  name: Back Bedroom
+  entities:
+    - light.back_bedroom_nightstand_lamp
+
 trackers:
   name: Trackers
   entities:

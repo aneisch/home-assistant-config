@@ -197,9 +197,11 @@ cards:
             fan_speed_template: "{{states('input_select.vacuum_mode')}}"
           name: " "
           icon: " "
-  - type: picture-glance
-    camera_image: camera.xiaomi_cloud_map_extractor
-    entities: []
+
+  - type: custom:xiaomi-vacuum-map-card
+    entity: vacuum.roborock_s4
+    map_camera: camera.xiaomi_cloud_map_extractor
+    camera_calibration: true
 
   - type: vertical-stack
     cards:

@@ -407,6 +407,10 @@ camera:
     username: !secret xiaomi_cloud_username
     password: !secret xiaomi_cloud_password
     draw: ['all']
+    attributes:
+      - calibration_points
+      - vacuum_position
+      - vacuum_room
     colors:
       color_path: [255, 255, 255]
     map_transformation:

@@ -306,6 +306,8 @@ lovelace:
       type: module
     - url: /hacsfiles/uptime-card/uptime-card.js
       type: module
+    - url: /hacsfiles/lovelace-xiaomi-vacuum-map-card/xiaomi-vacuum-map-card.js
+      type: module
 
 map:
 

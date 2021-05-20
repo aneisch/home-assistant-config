@@ -62,9 +62,10 @@ cards:
 
   - type: entities
     show_header_toggle: false
-    title: Guest Bedroom
+    title: Guest Bedrooms
     entities:
       - light.guest_nightstand_lamp
+      - light.back_bedroom_nightstand_lamp
 
   - type: entities
     show_header_toggle: false

@@ -35,8 +35,8 @@ automation:
         entity_id: 
           - binary_sensor.in_meeting_weasel
           - binary_sensor.in_meeting_work
-        to:
-          - "off"
+        from: "on"
+        to: "off"
     action:
       - service: homeassistant.turn_off
         entity_id: light.zoom_led
@@ -51,6 +51,7 @@ automation:
         entity_id: 
           - binary_sensor.in_meeting_weasel
           - binary_sensor.in_meeting_weasel
+        from: "off"
         to: "on"
     action:
       - service: homeassistant.turn_on
