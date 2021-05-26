@@ -541,3 +541,20 @@
   action:
     service: homeassistant.turn_off
     entity_id: switch.garage_lights
+
+- alias: "Fingerprint Safe Open"
+  trigger:
+    platform: state
+    entity_id: sensor.fingerprint_state
+    to: "Authorized finger"
+  condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.safe
+    - service: notify.pushover
+      data:
+        message: "Safe opened by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% endif %}!"
+        # data:
+        #   priority: 2
+        #   expire: 3600
+        #   retry: 30

@@ -1,0 +1,119 @@
+substitutions:
+  name: fingerprint_reader
+  friendly_name: "Fingerprint Reader"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+  on_boot:
+    priority: -100
+    then:
+      - fingerprint_grow.led_control: OFF
+
+<<: !include common.yaml
+  
+  # Example configuration entry
+uart:
+  rx_pin: D6
+  tx_pin: D5
+  baud_rate: 57600
+
+# Declare Grow Fingerprint Reader
+fingerprint_grow:
+  sensing_pin: D3
+  on_finger_scan_matched:
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: "Authorized finger"
+    - delay: 0.2s
+    - fingerprint_grow.led_control: OFF
+    - delay: 0.2s
+    - fingerprint_grow.led_control: ON
+    - delay: 0.2s
+    - fingerprint_grow.led_control: OFF
+    - delay: 0.2s
+    - fingerprint_grow.led_control: ON
+    - delay: 0.2s
+    - fingerprint_grow.led_control: OFF
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: ""
+
+  on_finger_scan_unmatched:
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: "Unauthorized finger"
+    - delay: 1s
+    - fingerprint_grow.led_control: OFF
+    - delay: 1s
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: ""
+
+  on_enrollment_scan:
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: "Finger scanned"
+    - delay: 1s
+    - fingerprint_grow.led_control: OFF
+
+  on_enrollment_done:
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: "Enrolled fingerprint"
+    - delay: 1s
+    - fingerprint_grow.led_control: OFF
+
+  on_enrollment_failed:
+    - text_sensor.template.publish:
+        id: fingerprint_state
+        state: "Failed to enroll fingerprint"
+    - delay: 1s
+    - fingerprint_grow.led_control: OFF
+
+api:
+  services:
+  - service: enroll
+    variables:
+      finger_id: int
+      num_scans: int
+    then:
+      - fingerprint_grow.enroll:
+          finger_id: !lambda 'return finger_id;'
+          num_scans: !lambda 'return num_scans;'
+  - service: cancel_enroll
+    then:
+      - fingerprint_grow.cancel_enroll:
+  - service: delete
+    variables:
+      finger_id: int
+    then:
+      - fingerprint_grow.delete:
+          finger_id: !lambda 'return finger_id;'
+  - service: delete_all
+    then:
+      - fingerprint_grow.delete_all:
+
+# Optional template text sensor for visual feedback
+text_sensor:
+  - platform: template
+    id: fingerprint_state
+    name: "Fingerprint State"
+
+# Optional component (GPIO switch, lock etc.) to control in on_finger_scan_matched trigger
+switch:
+  - platform: gpio
+    pin: D7
+    id: gate
+
+# Optional sensors
+binary_sensor:
+  - platform: fingerprint_grow
+    id: fingerprint_enrolling
+    name: "Fingerprint Enrolling"
+
+sensor:
+  - platform: fingerprint_grow
+    last_finger_id:
+      name: "Fingerprint Last Finger ID"

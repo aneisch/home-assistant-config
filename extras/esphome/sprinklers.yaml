@@ -10,11 +10,11 @@ esphome:
     - shift_register_switch.h
   libraries:
     - ShiftRegister74HC595@1.2
-  on_boot:
-    priority: -100
-    then:
-      # Enable 24v supply after successful boot
-      - switch.turn_on: relay_24v_power
+  # on_boot:
+  #   priority: -100
+  #   then:
+  #     # Enable 24v supply after successful boot
+  #     - switch.turn_on: relay_24v_power
 
 <<: !include common.yaml
   

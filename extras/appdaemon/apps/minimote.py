@@ -9,26 +9,21 @@ import appdaemon.plugins.hass.hassapi as hass
 #
 # Args:
 #
-#device - name of the device. This will be the ZWave name without an entity type, e.g. minimote_31
 #scene_<id>_on - name of the entity to turn on when scene <id> is activated
 #scene_<id>_off - name of the entity to turn off when scene <id> is activated. If the entity is a scene it will be turned on.
 #scene_<id>_toggle - name of the entity to toggle when scene <id> is activated
 #
 # Each scene can have up to one of each type of action, or no actions - e.g. you can turn on one light and turn off another light for a particular scene if desired
 #
-# Release Notes
-#
-# Version 1.0:
-#   Initial Version
 
 class MiniMote(hass.Hass):
 
   def initialize(self):
-    self.listen_event(self.zwave_event, "ozw.scene_activated", node_id = self.args["node_id"])
+    self.listen_event(self.zwave_event, "zwave_js_value_notification", node_id = self.args["node_id"])
     
   def zwave_event(self, event_name, data, kwargs):
     #self.log("Event: {}, data = {}, args = {}".format(event_name, data, kwargs))
-    scene = data["scene_value_id"]
+    scene = data["value"]
     on = "scene_{}_on".format(scene)
     off = "scene_{}_off".format(scene)
     toggle = "scene_{}_toggle".format(scene)
