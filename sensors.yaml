@@ -2,16 +2,6 @@
 
 - platform: uptime
 
-#- platform: arlo
-
-#- platform: aarlo
-#  monitored_conditions:
-#  - last_capture
-#  - total_cameras
-#  - battery_level
-#  - captured_today
-#  - signal_strength
-
 - platform: systemmonitor
   scan_interval:
     seconds: 60
@@ -49,63 +39,9 @@
   value_template: "{{ value_json.download }}"
   json_attributes_topic: "sensor/home_wifi"
 
-####################
-# BEGIN SONOFF POW #
-####################
-- platform: mqtt
-  name: Sonoff Pow Yesterday Energy
-  unit_of_measurement: "kWh"
-  state_topic: "tele/sonoff_pow_1/ENERGY"
-  value_template: "{{ value_json.Yesterday }}"
-
-- platform: mqtt
-  name: Sonoff Pow Today Energy
-  unit_of_measurement: "kWh"
-  state_topic: "tele/sonoff_pow_1/ENERGY"
-  value_template: "{{ value_json.Today }}"
-
-- platform: mqtt
-  name: Sonoff Pow Current
-  unit_of_measurement: "Amps"
-  state_topic: "tele/sonoff_pow_1/ENERGY"
-  value_template: "{{ value_json.Current }}"
-
-- platform: mqtt
-  name: Sonoff Pow Power
-  unit_of_measurement: "Watts"
-  state_topic: "tele/sonoff_pow_1/ENERGY"
-  value_template: "{{ value_json.Power }}"
-
-# Now defined in configuration.yaml as template
-# - platform: mqtt
-#   name: Rain Total
-#   unit_of_measurement: "in"
-#   state_topic: "sensor/rtl_433/rain_in"
-
-# - platform: mqtt
-#   name: Rain Rate
-#   unit_of_measurement: "in/h"
-#   state_topic: "sensor/rtl_433/rain_rate_in_h"
-
-# - platform: mqtt
-#   name: Compost External Temperature
-#   unit_of_measurement: "°F"
-#   state_topic: "sensor/rtl_433/temperature_F"
-
-# - platform: mqtt
-#   name: Compost External Humidity
-#   unit_of_measurement: "%"
-#   state_topic: "sensor/rtl_433/humidity"
-
-# - platform: mqtt
-#   name: Compost Internal Temperature
-#   unit_of_measurement: "°F"
-#   state_topic: "sensor/rtl_433/temperature_1_F"
-# End now defined
-
 - platform: command_line
   name: Electric Utilities Daily
-  scan_interval: 600
+  scan_interval: 3600
   command: !secret utilities_curl
   value_template: "{{ value_json.Kwh | float }}"  
   unit_of_measurement: 'kWh' 
@@ -114,7 +50,7 @@
 
 - platform: command_line
   name: Electric Utilities Summary
-  scan_interval: 600
+  scan_interval: 3600
   command: !secret utilities_curl_3
   value_template: "{{ value_json.TotalUsage | float }}"   
   unit_of_measurement: 'kWh' 

@@ -162,7 +162,7 @@ services:
           - '/opt/appdaemon/:/appdaemon'
           - '/opt/docker-compose/:/docker-compose'
         environment:
-          - 'DOCKER_MODS=stecky/mods:code-server-home-assistant'
+          - 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
           - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
           - HOMEASSISTANT_TOKEN=XXX
     watchtower:
@@ -214,6 +214,7 @@ services:
           - TZ=America/Chicago
         restart: 'no'
     recipes:
+        # Public consumption at VPS, duplicated locally for home use though
         container_name: recipes
         image: aneisch/chowdown:latest
         user: '99'

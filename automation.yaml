@@ -558,3 +558,12 @@
         #   priority: 2
         #   expire: 3600
         #   retry: 30
+
+- alias: "Restart Mosquitto"
+  initial_state: on
+  trigger:
+    - platform: time
+      at: "03:30:00"
+  action:
+    - service: homeassistant.toggle
+      entity_id: switch.docker_mosquitto
