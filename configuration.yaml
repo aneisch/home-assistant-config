@@ -246,6 +246,11 @@ light:
     entities:
       - light.front_sconce_left
       - light.front_sconce_right
+  - platform: group
+    name: Front House Lights
+    entities:
+      - light.front_sconces
+      - light.front_porch_lights
 
 logbook:
 
