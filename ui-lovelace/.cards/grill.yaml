@@ -2,6 +2,8 @@ type: conditional
 conditions:
   - entity: sensor.thermopro_probe_1
     state_not: "unknown"
+  - entity: sensor.thermopro_probe_2
+    state_not: "unknown"
 card:
   type: custom:vertical-stack-in-card
   cards:

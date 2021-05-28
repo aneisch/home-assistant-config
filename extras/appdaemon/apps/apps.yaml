@@ -135,7 +135,15 @@ Occupancy Simulator:
   step_dark_off_5: light.andrew_desk_lamp
   step_dark_off_6: light.office_ceiling_fan
 
-Front Porch Lights:
+Front Porch Switch:
+  module: entity_timer
+  class: Timer
+  # The switch might have been manually turned off
+  # bulbs are ZigBee
+  entities: switch.front_porch_lights
+  time_on: sunset - 00:45:00
+
+Front House Lights:
   module: entity_timer
   class: Timer
   entities: light.front_porch_lights,switch.front_sconces
