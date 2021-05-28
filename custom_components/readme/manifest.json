@@ -4,6 +4,7 @@
   "documentation": "https://github.com/custom-components/readme",
   "dependencies": [],
   "config_flow": true,
+  "version": "1.0",
   "codeowners": [
     "@ludeeus"
   ],

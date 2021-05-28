@@ -1,0 +1,8 @@
+{
+  "domain": "date_reminder",
+  "name": "Date Reminder",
+  "documentation": "https://github.com",
+  "codeowners": [],
+  "version": "1.0",
+  "dependencies": [],
+}
