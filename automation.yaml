@@ -568,5 +568,5 @@
     - service: homeassistant.turn_off
       entity_id: switch.docker_mosquitto
     - delay: '00:00:05'
-    - service: homeassistant.turn_off
+    - service: homeassistant.turn_on
       entity_id: switch.docker_mosquitto

@@ -239,8 +239,13 @@ light:
   - platform: group
     name: Front Porch Lights
     entities:
-      - light.front_porch_1
-      - light.front_porch_2
+      - light.front_porch_left
+      - light.front_porch_right
+  - platform: group
+    name: Front Sconces
+    entities:
+      - light.front_sconce_left
+      - light.front_sconce_right
 
 logbook:
 

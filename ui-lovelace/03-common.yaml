@@ -72,7 +72,7 @@ cards:
     title: Outside
     entities:
       - light.front_porch_lights
-      - switch.front_sconces
+      - light.front_sconces
       - light.back_porch_light
       - light.garage_exterior_light
       - switch.garage_lights
