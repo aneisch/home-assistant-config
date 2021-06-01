@@ -4,21 +4,25 @@ Use Jinja and data from Home Assistant to generate your README.md file
 For more details about this component, please refer to
 https://github.com/custom-components/readme
 """
-import os
+from __future__ import annotations
+
+import asyncio
 import json
-from datetime import timedelta
-from jinja2 import Template
-import voluptuous as vol
-from homeassistant import config_entries
+import os
+from shutil import copyfile
+from typing import Any, List
+
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers import discovery
+import voluptuous as vol
+import yaml
+from homeassistant import config_entries
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.template import AllStates
-from homeassistant.util import Throttle
+from homeassistant.loader import Integration, IntegrationNotFound, async_get_integration
+from homeassistant.setup import async_get_loaded_integrations
+from jinja2 import Template
 
-from integrationhelper import Logger
-from integrationhelper.const import CC_STARTUP_VERSION
-
-from .const import DOMAIN_DATA, DOMAIN, ISSUE_URL, REQUIRED_FILES, VERSION
+from .const import DOMAIN, DOMAIN_DATA, LOGGER, STARTUP_MESSAGE
 
 CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({vol.Optional("convert_lovelace"): cv.boolean})},
@@ -26,37 +30,24 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-class ReadmeConfiguration:
-    """Configuration class for readme."""
-
-    convert_lovelace = False
-
-
-async def async_setup(hass, config):
+async def async_setup(hass: HomeAssistant, config: dict):
     """Set up this component using YAML."""
     if config.get(DOMAIN) is None:
         # We get her if the integration is set up using config flow
         return True
 
     # Print startup message
-    Logger("custom_components.readme").info(
-        CC_STARTUP_VERSION.format(
-            name=DOMAIN.capitalize(), version=VERSION, issue_link=ISSUE_URL
-        )
-    )
-
-    # Check that all required files are present
-    file_check = await check_files(hass)
-    if not file_check:
-        return False
+    LOGGER.info(STARTUP_MESSAGE)
 
     # Create DATA dict
-    hass.data[DOMAIN_DATA] = {}
+    hass.data.setdefault(DOMAIN_DATA, config[DOMAIN])
 
-    # Get "global" configuration.
-    ReadmeConfiguration.convert_lovelace = config[DOMAIN].get("convert_lovelace")
     await add_services(hass)
-    create_initial_files(hass)
+
+    def _create_initial_files():
+        create_initial_files(hass)
+
+    await hass.async_add_executor_job(_create_initial_files)
 
     hass.async_create_task(
         hass.config_entries.flow.async_init(
@@ -66,147 +57,135 @@ async def async_setup(hass, config):
     return True
 
 
-async def async_setup_entry(hass, config_entry):
+async def async_setup_entry(hass: HomeAssistant, config_entry):
     """Set up this integration using UI."""
-    conf = hass.data.get(DOMAIN_DATA)
     if config_entry.source == config_entries.SOURCE_IMPORT:
-        if conf is None:
+        if hass.data.get(DOMAIN_DATA) is None:
             hass.async_create_task(
                 hass.config_entries.async_remove(config_entry.entry_id)
             )
-        return False
+        return True
 
     # Print startup message
-    Logger("custom_components.readme").info(
-        CC_STARTUP_VERSION.format(
-            name=DOMAIN.capitalize(), version=VERSION, issue_link=ISSUE_URL
-        )
-    )
-
-    # Check that all required files are present
-    file_check = await check_files(hass)
-    if not file_check:
-        return False
+    LOGGER.info(STARTUP_MESSAGE)
 
     # Create DATA dict
-    hass.data[DOMAIN_DATA] = {}
+    hass.data[DOMAIN_DATA] = config_entry.data
 
-    # Get "global" configuration.
-    ReadmeConfiguration.convert_lovelace = config_entry.data.get("convert", False)
     await add_services(hass)
-    create_initial_files(hass)
+
+    def _create_initial_files():
+        create_initial_files(hass)
+
+    await hass.async_add_executor_job(_create_initial_files)
 
     return True
 
 
-async def check_files(hass):
-    """Return bool that indicates if all files are present."""
-    # Verify that the user downloaded all files.
-    base = f"{hass.config.path()}/custom_components/{DOMAIN}/"
-    missing = []
-    for file in REQUIRED_FILES:
-        fullpath = "{}{}".format(base, file)
-        if not os.path.exists(fullpath):
-            missing.append(file)
-
-    if missing:
-        Logger("custom_components.readme").critical(
-            f"The following files are missing: {str(missing)}"
-        )
-        returnvalue = False
-    else:
-        returnvalue = True
-
-    return returnvalue
-
-
-def create_initial_files(hass):
+def create_initial_files(hass: HomeAssistant):
     """Create the initial files for this integration."""
-    base = hass.config.path()
+    if not os.path.exists(hass.config.path("templates")):
+        os.mkdir(hass.config.path("templates"))
 
-    if not os.path.exists(f"{base}/templates"):
-        os.mkdir(f"{base}/templates")
-
-    if not os.path.exists(f"{base}/templates/README.j2"):
-        from shutil import copyfile
+    if not os.path.exists(hass.config.path("templates/README.j2")):
 
         copyfile(
-            f"{base}/custom_components/readme/default.j2",
-            f"{base}/templates/README.j2",
+            hass.config.path("custom_components/readme/default.j2"),
+            hass.config.path("templates/README.j2"),
         )
 
 
-def convert_lovelace(hass):
+async def convert_lovelace(hass: HomeAssistant):
     """Convert the lovelace configuration."""
-    base = hass.config.path()
-    if os.path.exists(f"{base}/.storage/lovelace"):
-        import yaml
+    if os.path.exists(hass.config.path(".storage/lovelace")):
+        content = (
+            json.loads(read_file(hass, ".storage/lovelace") or {})
+            .get("data", {})
+            .get("config", {})
+        )
 
-        with open(f"{base}/.storage/lovelace", "r") as lovelace:
-            content = lovelace.read()
-            content = json.loads(content)
-        content = content.get("data", {})
-        content = content.get("config", {})
-        with open(f"{base}/ui-lovelace.yaml", "w") as out_file:
-            yaml.dump(content, out_file, default_flow_style=False)
+        await write_file(hass, "ui-lovelace.yaml", content, as_yaml=True)
 
 
-async def async_remove_entry(hass, config_entry):
+async def async_remove_entry(hass: HomeAssistant, config_entry):
     """Handle removal of an entry."""
     hass.services.async_remove(DOMAIN, "generate")
+    hass.data.pop(DOMAIN_DATA)
 
 
-async def add_services(hass):
+async def read_file(hass: HomeAssistant, path: str) -> Any:
+    """Read a file."""
+
+    def read():
+        with open(hass.config.path(path), "r") as open_file:
+            return open_file.read()
+
+    return await hass.async_add_executor_job(read)
+
+
+async def write_file(
+    hass: HomeAssistant, path: str, content: Any, as_yaml=False
+) -> None:
+    """Write a file."""
+
+    def write():
+        with open(hass.config.path(path), "w") as open_file:
+            if as_yaml:
+                yaml.dump(content, open_file, default_flow_style=False)
+            else:
+                open_file.write(content)
+
+    await hass.async_add_executor_job(write)
+
+
+async def add_services(hass: HomeAssistant):
     """Add services."""
     # Service registration
-    async def service_generate(call):
+
+    async def service_generate(_call):
         """Generate the files."""
-        base = hass.config.path()
-        if ReadmeConfiguration.convert_lovelace:
+        if hass.data[DOMAIN_DATA].get("convert") or hass.data[DOMAIN_DATA].get(
+            "convert_lovelace"
+        ):
             convert_lovelace(hass)
-        custom_components = get_custom_components(hass)
-        hacs_components = get_hacs_components(hass)
+
+        custom_components = await get_custom_integrations(hass)
+        hacs_components = get_hacs_components()
+
         variables = {
             "custom_components": custom_components,
             "states": AllStates(hass),
             "hacs_components": hacs_components,
         }
 
-        with open(f"{base}/templates/README.j2", "r") as readme:
-            content = readme.read()
+        content = await read_file(hass, "templates/README.j2")
 
         template = Template(content)
         try:
             render = template.render(variables)
-            with open(f"{base}/README.md", "w") as out_file:
-                out_file.write(render)
+            await write_file(hass, "README.md", render)
         except Exception as exception:
-            Logger("custom_components.readme").error(exception)
+            LOGGER.error(exception)
 
     hass.services.async_register(DOMAIN, "generate", service_generate)
 
 
-def get_hacs_components(hass):
+def get_hacs_components():
     try:
         from custom_components.hacs.share import get_hacs
     except ImportError:
         return []
 
     hacs = get_hacs()
-    repositories = hacs.repositories
-    installed = []
 
-    for repo in repositories:
-        if repo.data.installed:
-            repo_json = repo.data.to_json()
-
-            # Add additional properites to json
-            repo_json["name"] = get_repository_name(repo)
-            repo_json["documentation"] = "https://github.com/" + repo.data.full_name
-
-            installed.append(repo_json)
-
-    return installed
+    return [
+        {
+            **repo.data.to_json(),
+            "name": get_repository_name(repo),
+            "documentation": f"https://github.com/{repo.data.full_name}",
+        }
+        for repo in hacs.repositories or []
+    ]
 
 
 def get_repository_name(repository) -> str:
@@ -226,25 +205,37 @@ def get_repository_name(repository) -> str:
     return name.title()
 
 
-def get_custom_components(hass):
-    """Return a list with custom_component info."""
-    base = hass.config.path()
-    custom_components = []
+async def get_custom_integrations(hass: HomeAssistant):
+    """Return a list with custom integration info."""
+    custom_integrations = []
+    configured_integrations: List[
+        Integration | IntegrationNotFound | BaseException
+    ] = await asyncio.gather(
+        *[
+            async_get_integration(hass, domain)
+            for domain in async_get_loaded_integrations(hass)
+        ],
+        return_exceptions=True,
+    )
 
-    for integration in os.listdir(f"{base}/custom_components"):
-        if os.path.exists(f"{base}/custom_components/{integration}/manifest.json"):
-            with open(
-                f"{base}/custom_components/{integration}/manifest.json", "r"
-            ) as manifest:
-                content = manifest.read()
-                content = json.loads(content)
-            custom_components.append(
-                {
-                    "domain": content["domain"],
-                    "name": content["name"],
-                    "documentation": content["documentation"],
-                    "codeowners": content["codeowners"],
-                }
-            )
+    for integration in configured_integrations:
+        if isinstance(integration, IntegrationNotFound):
+            continue
 
-    return custom_components
+        if isinstance(integration, BaseException):
+            raise integration
+
+        if integration.disabled or integration.is_built_in:
+            continue
+
+        custom_integrations.append(
+            {
+                "domain": integration.domain,
+                "name": integration.name,
+                "documentation": integration.documentation,
+                "version": integration.version,
+                "codeowners": integration.manifest.get("codeowners"),
+            }
+        )
+
+    return custom_integrations

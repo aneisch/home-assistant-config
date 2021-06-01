@@ -396,6 +396,7 @@ services:
           - TZ=America/Chicago
         restart: 'no'
     recipes:
+        # Public consumption at VPS, duplicated locally for home use though
         container_name: recipes
         image: aneisch/chowdown:latest
         user: '99'

@@ -23,6 +23,7 @@ cards:
         - entity_id: "light.garage"
         - entity_id: "light.front_porch_*"
         - entity_id: "switch.front_porch_lights"
+        - entity_id: "switch.front_sconces"
         - entity_id: "switch.circadian_lighting_aquarium_circadian"
         - entity_id: "light.office_ceiling_fan_fan"
         - entity_id: "light.living_room_ceiling_fan_fan"

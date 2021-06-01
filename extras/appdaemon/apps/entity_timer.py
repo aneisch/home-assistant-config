@@ -1,5 +1,4 @@
 import appdaemon.plugins.hass.hassapi as hass
-import time
 
 class Timer(hass.Hass):
   def initialize(self):
@@ -18,7 +17,6 @@ class Timer(hass.Hass):
           self.turn_on(device, brightness = self.args["brightness"])
         else:
           self.turn_on(device)
-          time.sleep(0.5)
 
   def off(self, kwargs):
     for device in self.split_device_list(self.args["entities"]):

@@ -1,6 +1,5 @@
 {
     "config": {
-        "title": "Generate readme",
         "step": {
             "user": {
                 "title": "Generate readme",
