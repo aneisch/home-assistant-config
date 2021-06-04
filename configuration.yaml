@@ -1,6 +1,7 @@
 homeassistant:
   name: Home
   external_url: !secret external_url
+  internal_url: http://assistlocal
   elevation: !secret elevation
   unit_system: imperial
   latitude: !secret home_lat
@@ -420,7 +421,7 @@ readme:
 
 recorder:
   db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
-  purge_keep_days: 180
+  purge_keep_days: 365
   exclude:
     entities:
       - binary_sensor.internet_reachability
@@ -442,18 +443,21 @@ recorder:
       - sensor.circadian_values
       - binary_sensor.gate_heading_comparison
     domains:
-      - automation
+      #- automation
       - alarm_panel
       - camera
       - group
       - media_player
       - notify
       - scene
-      - script
+      #- script
       - shell_command
       - sun
       - zone
-      - zwave
+  include:
+    entities:
+      - group.trackers
+
 
 rest_command: !include rest_command.yaml
 

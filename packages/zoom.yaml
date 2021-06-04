@@ -53,6 +53,7 @@ automation:
           - binary_sensor.in_meeting_weasel
         from: "off"
         to: "on"
+    condition: "{{ trigger.from_state.state != 'unavailable' }}"
     action:
       - service: homeassistant.turn_on
         entity_id: light.zoom_led

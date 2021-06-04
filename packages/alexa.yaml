@@ -41,22 +41,3 @@ script:
         entity_id: '{{ states("sensor.last_echo") }}'
         media_content_id: "stop"
         media_content_type: custom
-
-sensor:
-  - platform: template
-    sensors:
-      last_echo:
-        value_template: >
-          {{ expand(states.group.echos) | selectattr('attributes.last_called','eq',True) | map(attribute='entity_id') | first }}
-
-automation:
-  - alias: "Change Alexa Input Select"
-    initial_state: on
-    trigger:
-      - platform: state
-        entity_id: sensor.last_echo
-    action:
-      - service: input_select.select_option
-        data:
-          entity_id: input_select.target_echo
-          option: '{{ states("sensor.last_echo") }}'

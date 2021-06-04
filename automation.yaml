@@ -82,8 +82,8 @@
           {% elif trigger.to_state.state == 'not_home' %}
             script.home_empty
           {% endif %}
-    # Prevent trigger for 5 minutes
-    - delay: "00:05:00"
+    # Prevent trigger for 2 minutes
+    - delay: "00:02:00"
 
 - alias: "Andrew Desk Button"
   initial_state: on
@@ -502,6 +502,7 @@
       entity_id: switch.garage_dyson
 
 - alias: "Update Utilities Cost"
+  mode: parallel
   trigger:
     - platform: state
       entity_id: 
@@ -509,7 +510,6 @@
         - sensor.electric_utilities_daily
     - platform: homeassistant
       event: start
-        
   action:
     - service: python_script.add_elecrtric_cost_attribute
       data:

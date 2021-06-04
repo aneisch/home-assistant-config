@@ -188,12 +188,12 @@ Circadian Follow:
   leader: light.aquarium_light
   follower: switch.circadian_lighting_aquarium_circadian
 
-CO2 On Morning:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: switch.aquarium_co2
-  time_on: "07:00:00"
+#CO2 On Morning:
+#  module: entity_timer
+#  class: Timer
+#  constrain_input_boolean: input_boolean.aquarium_automation
+#  entities: switch.aquarium_co2
+#  time_on: "07:00:00"
 
 Aquarium Light On Morning:
   module: entity_timer
@@ -210,12 +210,12 @@ Aquarium Light On Morning:
 #  time_off: "13:00:00"
 #  time_on: "14:30:00"
 
-CO2 Off Evening:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: switch.aquarium_co2
-  time_off: "16:30:00"
+#CO2 Off Evening:
+#  module: entity_timer
+#  class: Timer
+#  constrain_input_boolean: input_boolean.aquarium_automation
+#  entities: switch.aquarium_co2
+#  time_off: "16:30:00"
 
 Aquarium Light Off Evening:
   module: entity_timer
