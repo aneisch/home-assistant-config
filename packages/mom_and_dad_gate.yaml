@@ -55,6 +55,7 @@ binary_sensor:
 
 automation:
   - alias: "Gate Heading Comparison Action Notify"
+    id: "gate_heading_notify"
     trigger:
       - platform: state
         entity_id: binary_sensor.gate_automation_safety
@@ -66,6 +67,7 @@ automation:
             Vehicle Sensor Automation Fired!
 
   - alias: "Webhook Trigger Gate"
+    id: "webhook_trigger_gate"
     initial_state: 'on'
     trigger:
       platform: webhook
@@ -75,6 +77,7 @@ automation:
       entity_id: script.mom_and_dad_gate_toggle
 
   - alias: "Webhook Trigger Garage"
+    id: "webhook_trigger_garage"
     initial_state: 'on'
     trigger:
       platform: webhook
@@ -82,7 +85,6 @@ automation:
     action:
       service: cover.toggle
       entity_id: cover.mom_and_dad_garage
-
 
 
 script:

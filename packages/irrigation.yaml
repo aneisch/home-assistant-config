@@ -145,6 +145,7 @@ sensor:
 
 automation:
   - alias: Store Sprinkler Start/Stop Times
+    id: "store_sprinkler_times"
     initial_state: on
     mode: parallel
     trigger:

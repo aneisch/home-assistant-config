@@ -87,6 +87,7 @@ input_number:
 
 automation:
   - alias: Probe Temperature Alert
+    id: "grill_probe_alert"
     trigger:
       - platform: state
         entity_id: binary_sensor.thermopro_probe_1_in_range
@@ -115,6 +116,7 @@ automation:
       - delay: 60
 
   - alias: Hopper Level Alert
+    id: "grill_hopper_alert"
     trigger:
       - platform: numeric_state
         entity_id: sensor.traeger_hopper_level

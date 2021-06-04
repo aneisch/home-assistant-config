@@ -28,6 +28,7 @@ sensor:
 
 automation:
   - alias: "UPS Alert"
+    id: "ups_alert"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
@@ -41,6 +42,7 @@ automation:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
   - alias: "UPS Recovery"
+    id: "ups_recovery"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
@@ -59,6 +61,7 @@ automation:
             {% endif %}
 
   - alias: "Turn Off NAS After 10 Minute Outage"
+    id: "nas_off_ups_outage"
     trigger:
       platform: state
       entity_id: sensor.ups_status
@@ -77,6 +80,7 @@ automation:
         entity_id: switch.nas
 
   - alias: "Containers Off With Outage"
+    id: "containers_off_ups_outage"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
@@ -94,6 +98,7 @@ automation:
           - switch.docker_grafana
 
   - alias: "Containers On With Restore"
+    id: "containers_on_ups_restore"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
@@ -111,6 +116,7 @@ automation:
           - switch.docker_appdaemon
 
   - alias: "Turn Off NUC When <10 Minutes Remain"
+    id: "nuc_off_ups_critical"
     trigger:
       platform: numeric_state
       entity_id: sensor.ups_time_left

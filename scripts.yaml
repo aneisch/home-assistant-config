@@ -5,15 +5,15 @@
 # Turn off master and common room things, arm security
 home_empty:
   sequence:
+    - service: homeassistant.turn_on
+      data:
+        entity_id: input_boolean.security_status
     - service: homeassistant.turn_off
       data:
         entity_id: group.master_bedroom
     - service: homeassistant.turn_off
       data:
         entity_id: group.common_areas
-    - service: homeassistant.turn_on
-      data:
-        entity_id: input_boolean.security_status
 
 # Turn on lights and disarm security
 home_occupied:

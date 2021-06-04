@@ -21,7 +21,7 @@ master_bedroom:
   entities:
     - light.master_bedroom_ceiling_fan
     - switch.master_bedroom_ceiling_fan
-    - switch.master_bedroom_sound_machine
+    #- switch.master_bedroom_sound_machine
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
 
@@ -64,8 +64,9 @@ living_room:
     - switch.living_room_ceiling_fan_light
     - fan.living_room_ceiling_fan
     - switch.living_room_speakers
+    - light.living_room_sconces
     - switch.tv
-    - switch.christmas_tree
+    #- switch.christmas_tree
 
 off_at_bedtime:
   name: Off at Bedtime

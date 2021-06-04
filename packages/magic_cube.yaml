@@ -14,6 +14,7 @@ script:
 
 automation:
   - alias: "Magic Cube Knock or Slide"
+    id: "magic_cube_knock_slide"
     trigger:
       - platform: event
         event_type: zha_event
@@ -42,6 +43,7 @@ automation:
             {% endif %}
 
   - alias: "Magic Cube Rotate"
+    id: "magic_cube_rotate"
     mode: single
     trigger:
       - platform: event

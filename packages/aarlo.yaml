@@ -37,6 +37,7 @@ automation:
   #           image: !secret garage_image_url
 
   - alias: "Snapshot garage and send photo when motion detected"
+    id: "snapshot_garage_send_notification"
     trigger:
       - platform: state
         entity_id: binary_sensor.garage_exterior_door
@@ -63,6 +64,7 @@ automation:
 
   # Helper
   - alias: "Snapshot garage"
+    id: "snapshot_garage"
     trigger:
       - platform: event
         event_type: take_garage_snapshot

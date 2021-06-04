@@ -1,4 +1,5 @@
 - alias: "Update README"
+  id: "update_Readme"
   initial_state: on
   trigger:
     - platform: time
@@ -12,6 +13,7 @@
     - service: readme.generate
 
 - alias: "Set dark theme for night"
+  id: "dark_theme"
   initial_state: on
   trigger:
     - platform: time
@@ -28,6 +30,7 @@
         name: "Google Dark Theme"
 
 - alias: "Set light theme for day"
+  id: "light_theme"
   initial_state: on
   trigger:
     - platform: time
@@ -44,6 +47,7 @@
         name: default
 
 - alias: "Security Arm/Disarm"
+  id: "arm_disarm"
   initial_state: on
   trigger:
     platform: state
@@ -59,6 +63,7 @@
           {% endif %}
 
 - alias: "House Occupied/Empty"
+  id: "occupied_empty"
   initial_state: on
   trigger:
     - platform: state
@@ -86,6 +91,7 @@
     - delay: "00:02:00"
 
 - alias: "Andrew Desk Button"
+  id: "desk_button"
   initial_state: on
   trigger:
     platform: state
@@ -104,6 +110,7 @@
         {% endif %}
 
 - alias: "Mount/Umount /Plex"
+  id: "mount_unmount_plex"
   initial_state: on
   trigger:
     - platform: state
@@ -127,6 +134,7 @@
       {% endif %}
 
 - alias: "Notify when AC Offline"
+  id: "notify_ac_offline"
   initial_state: on
   trigger:
     - platform: state
@@ -137,27 +145,9 @@
       data:
         message: "The thermostat appears to be offline.."
 
-- alias: "Notify when AC BREAKS"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: sensor.thermostat_setpoint
-  condition:
-    condition: or
-    conditions:
-      - "{{ (states('sensor.thermostat_setpoint') | int > 70) and (states('sensor.thermostat_operating_mode') == 'heat') }}"
-      - "{{ (states('sensor.thermostat_setpoint') | int < 68) and (states('sensor.thermostat_operating_mode') == 'cool') }}"
-  action:
-    # Push actionable HTML5 notification to allow timely shutoff
-    - service: notify.html5
-      data:
-        message: "AC Exception. Mode: {{ states('sensor.thermostat_operating_mode') }} Setpoint: {{ states('sensor.thermostat_setpoint') }}"
-        data:
-          actions:
-            - action: turn_ac_off
-              title: Set AC mode to off
 
 - alias: "Notify when AC setting changes"
+  id: "ac_notify_change"
   initial_state: on
   trigger:
     - platform: state
@@ -179,6 +169,7 @@
 # Working as of 2/12/2020
 # Handle all actions for html5 and android push notifications
 - alias: HTML5 or Android push notification action button clicked
+  id: "html5_android_push"
   trigger:
     - platform: event
       event_type: html5_notification.clicked
@@ -191,6 +182,7 @@
       {% endif %}
 
 - alias: Clear Alexa Recording History
+  id: "alexa_history"
   trigger:
     platform: time
     at: "22:00:00"
@@ -198,6 +190,7 @@
     - service: alexa_media.clear_history
 
 - alias: "Update door last opened"
+  id: "update_door_last_opened"
   trigger:
     - platform: state
       entity_id: 
@@ -216,6 +209,7 @@
 
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
+  id: "panic_script_webhook"
   initial_state: on
   trigger:
     platform: webhook
@@ -228,6 +222,7 @@
       entity_id: switch.master_bathroom_light_switch
 
 - alias: "Pull Recipes Github Webhook"
+  id: "recipes_github_pull"
   initial_state: on
   trigger:
     platform: webhook
@@ -236,6 +231,7 @@
     - service: shell_command.pull_recipes
 
 - alias: "Power off NAS after backup"
+  id: "nas_poweroff_post_backup"
   initial_state: on
   trigger:
     platform: state
@@ -254,6 +250,7 @@
       - binary_sensor.backups_complete
 
 - alias: "Turn on office speakers when spotify begins playing including this source"
+  id: "office_speakers_spotify"
   initial_state: on
   trigger:
     - platform: state
@@ -273,6 +270,7 @@
       entity_id: switch.andrew_office_speakers
 
 - alias: "Turn on speakers and tv when XBOX powers on"
+  id: "speakers_with_xbox"
   trigger:
     platform: state
     entity_id: binary_sensor.xbox_power
@@ -284,6 +282,7 @@
       - switch.tv
       
 - alias: "Turn off speakers when tv OR xbox powers off"
+  id: "tv_off_with_xbox_off"
   trigger:
     - platform: state
       entity_id: switch.tv
@@ -297,19 +296,8 @@
       - switch.living_room_speakers
       - switch.tv
 
-#- alias: "Desk Lamp off when MacBook Inactive"
-#  initial_state: on
-#  trigger:
-#    platform: state
-#    entity_id: binary_sensor.andrew_macbook_active
-#    to: "off"
-#    for: "00:15:00"
-#  condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
-#  action:
-#    - service: homeassistant.turn_off
-#      entity_id: light.andrew_desk_lamp
-
 - alias: "Desk Lamp on when MacBook Active"
+  id: "desk_lamp_macbook_active"
   initial_state: on
   trigger:
     platform: state
@@ -321,6 +309,7 @@
       entity_id: light.andrew_desk_lamp
 
 - alias: "Water Sensor Alerts"
+  id: "water_sensor_alert"
   trigger:
     - platform: state
       entity_id: 
@@ -343,6 +332,7 @@
           retry: 30
 
 - alias: "Master Closet Light with Motion"
+  id: "closet_motion_light"
   trigger:
     - platform: state
       entity_id: "binary_sensor.master_closet_motion_sensor"
@@ -356,6 +346,7 @@
       entity_id: switch.master_closet_light
 
 - alias: "Sensor Battery Alerts"
+  id: "sensor_battery_alert"
   trigger:
     - platform: numeric_state
       entity_id: 
@@ -376,6 +367,7 @@
           {% endif %}
 
 - alias: "Wifi too slow"
+  id: "wifi_too_slow_alert"
   trigger:
     - platform: numeric_state
       entity_id: sensor.home_wifi_speedtest
@@ -388,6 +380,7 @@
             Wifi speed measured at {{ trigger.to_state.attributes.download }}
 
 - alias: "Compost Turn Reset"
+  id: "compost_turn_reset"
   trigger:
     - platform: state
       entity_id: input_boolean.compost_turn
@@ -398,6 +391,7 @@
       entity_id: input_boolean.compost_turn
 
 - alias: "Smoke Alarm Detection"
+  id: "smoke_alarm_detection"
   initial_state: on
   trigger:
     platform: state
@@ -433,7 +427,7 @@
 #   alias: "Webhook Debugger"
 #   trigger:
 #     - platform: webhook
-#       webhook_id: !secret zoom_webhook
+#       webhook_id: !secret test_webhook
 #   action:
 #     - service: persistent_notification.create
 #       data:
@@ -448,32 +442,8 @@
 #             Query: {{ dict(trigger.query)|tojson }}
 #           {% endif %}
 
-- alias: "Andrew Z-Wave Remote"
-  mode: single
-  trigger:
-    - platform: event
-      event_type: zwave_js_event
-      event_data:
-        node_id: 11
-  action:
-    - service: homeassistant.toggle
-      data:
-        entity_id: >
-          {% if trigger.event.data['value'] in [1,3] %}
-            switch.master_bedroom_ceiling_fan
-          {% elif trigger.event.data['value'] in [2] %}
-            script.master_bedroom_light_full
-          {% elif trigger.event.data['value'] in [4] %}
-            script.master_bedroom_light_dim
-          {% elif trigger.event.data['value'] in [6] %}
-            script.master_bedroom_bedtime
-          {% elif trigger.event.data['value'] in [7] %}
-            light.master_bedroom_lamps
-          {% elif trigger.event.data['value'] in [8] %}
-            script.appdaemon_ac_night
-          {% endif %}
-
 - alias: "Watchtower Updates"
+  id: "watchertower_run_update"
   trigger:
     - platform: time
       at: "15:00:00"
@@ -492,16 +462,19 @@
       entity_id: switch.docker_watchtower
 
 - alias: "Dyson Charger"
+  id: "dyson_charger"
   trigger:
     - platform: state
       entity_id: switch.garage_dyson
       to: 'on'
+  condition: "{{ states('person.andrew') == 'home'}}"
   action:
     - delay: '02:00:00'
     - service: homeassistant.turn_off
       entity_id: switch.garage_dyson
 
 - alias: "Update Utilities Cost"
+  id: "update_utilities_cost"
   mode: parallel
   trigger:
     - platform: state
@@ -519,6 +492,7 @@
         entity_id: sensor.electric_utilities_daily
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
+  id: "usps_mail_path_update"
   trigger:
     - platform: state
       entity_id: sensor.mail_updated
@@ -531,6 +505,7 @@
         file_path: "{{ states('sensor.mail_image_system_path') }}"
 
 - alias: "Turn off Garage Lights"
+  id: "garge_lights_off"
   trigger:
     platform: state
     entity_id: binary_sensor.garage_interior_motion
@@ -543,6 +518,7 @@
     entity_id: switch.garage_lights
 
 - alias: "Fingerprint Safe Open"
+  id: "fingerprint_safe"
   trigger:
     platform: state
     entity_id: sensor.fingerprint_state
@@ -560,6 +536,7 @@
         #   retry: 30
 
 - alias: "Restart Mosquitto"
+  id: "mosquitto_reboot"
   initial_state: on
   trigger:
     - platform: time

@@ -1,23 +1,6 @@
 automation:
-  - alias: Front door switch toggle garage
-    trigger:
-      # Double tap bottom button (relay)
-      platform: event
-      event_type: zwave_js_event
-      event_data:
-        node_id: 2
-        value: KeyPressed2x
-    action:
-      - service: cover.toggle
-        entity_id: cover.garage_door
-      - service: notify.alexa_media
-        data:
-          message: "{% if states('cover.garage_door') == 'open' %}Closing garage door{% else %}Opening garage door{% endif %}"
-          target: "Kitchen"
-          data:
-            type: "announce"
-
   - alias: 'Change entry switch LEDs based on garage door state'
+    id: "garage_opened_switch_leds"
     trigger:
       - platform: state
         entity_id: cover.garage_door
@@ -43,6 +26,7 @@ automation:
           color: 'Green'
 
   - alias: "Garage still open reminder night"
+    id: "garage_night_reminder"
     trigger:
       - platform: event
         event_type: script_started
@@ -65,6 +49,7 @@ automation:
           message: "The garage door is still open. You can say 'Alexa, close the garage door.'"
   
   - alias: "Garage door still opened when no one home"
+    id: "garage_open_noone_home"
     trigger:
       - platform: state
         entity_id: group.trackers
@@ -87,6 +72,7 @@ automation:
                 title: "Ignore"
 
   - alias: "Close garage after confirmation"
+    id: "garage_confirmation"
       # Android
     trigger:
       - platform: event
@@ -98,6 +84,7 @@ automation:
       entity_id: cover.garage_door
 
   - alias: "Garage changed to open when no one home"
+    id: "garage_opened_noone_home"
     trigger:
       - platform: state
         entity_id: cover.garage_door

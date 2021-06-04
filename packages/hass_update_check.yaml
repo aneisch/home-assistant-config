@@ -39,6 +39,7 @@ sensor:
 
 automation:
   - alias: "Set state of input_boolean.hass_update_available"
+    id: "hass_update_available_boolean"
     trigger:
       - platform: homeassistant
         event: start
@@ -53,6 +54,7 @@ automation:
 
   # Trigger GitHub action(s) when upgrade is available
   - alias: "Auto-Upgrade: Trigger Github Action"
+    id: "hass_github_action"
     mode: queued
     initial_state: 'on'
     trigger:
@@ -78,6 +80,7 @@ automation:
 
   # Respond to GitHub action to begin auto-upgrade flow
   - alias: "Auto-Upgrade: Github Action Callback Turn on Boolean"
+    id: "auto_upgrade_boolean"
     initial_state: 'on'
     trigger:
       platform: webhook
@@ -92,6 +95,7 @@ automation:
 
   # Actually try to upgrade if conditions are met (home and boolean on)
   - alias: "Auto-Upgrade: Do Upgrade"
+    id: auto_upgrade_upgrade"
     mode: single
     initial_state: 'on'
     trigger:

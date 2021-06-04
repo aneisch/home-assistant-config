@@ -2,6 +2,7 @@
 
 automation:
   - alias: "Roborock Go to Trashcan After Cleaning"
+    id: "roborock_to_trashcan"
     trigger:
       - platform: state
         entity_id: vacuum.roborock_s4
@@ -19,6 +20,7 @@ automation:
         entity_id: input_boolean.return_to_trashcan
 
   - alias: "Vacuum When House Unoccupied"
+    id: "vacuum_house_unoccupied"
     initial_state: off
     trigger:
       - platform: state

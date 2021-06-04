@@ -30,6 +30,7 @@ automation:
   #         effect: "custom scan"
 
   - alias: "Zoom LED Off"
+    id: "zoom_led_off"
     trigger:
       - platform: state
         entity_id: 
@@ -42,6 +43,7 @@ automation:
         entity_id: light.zoom_led
 
   - alias: "Zoom LED On"
+    id: "zoom_led_on"
     trigger:
       - platform: state
         entity_id: binary_sensor.muted_weasel
