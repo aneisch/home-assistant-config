@@ -423,7 +423,9 @@ recorder:
   purge_keep_days: 365
   exclude:
     entities:
+      - automation.update_usps_mail_camera_path_on_hass_restart
       - binary_sensor.internet_reachability
+      - binary_sensor.gate_heading_comparison
       - binary_sensor.iss
       - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
@@ -440,7 +442,6 @@ recorder:
       - sensor.thermopro_probe_1_high_estimated_length
       - sensor.thermopro_probe_2_high_estimated_length
       - sensor.circadian_values
-      - binary_sensor.gate_heading_comparison
     domains:
       #- automation
       - alarm_panel
