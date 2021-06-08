@@ -28,7 +28,7 @@ jobs:
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           hass -c . --script check_config
           
-  ha-update-install:
+  hass-update-install:
     runs-on: ubuntu-latest
     # If minor release, upgrade to latest
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
@@ -41,7 +41,7 @@ jobs:
     steps:
         - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant update triggered"
 
-  ha-update-notify:
+  hass-update-notify:
     runs-on: ubuntu-latest
     # If major release, only send notification
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
