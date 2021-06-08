@@ -7,8 +7,9 @@
 
 input_boolean:
   # Automation when off --> on to call upgrade
-  upgrade_hass_now:
+  hass_update_trigger:
     name: Upgrade HASS Now
+  # Allow us to display update button on frontend when things are ready
   hass_update_available:
     name: HASS Update Available
 
@@ -38,22 +39,8 @@ sensor:
     scan_interval: 1800
 
 automation:
-  - alias: "Set state of input_boolean.hass_update_available"
-    id: "hass_update_available_boolean"
-    trigger:
-      - platform: homeassistant
-        event: start
-    condition: '{{ states("input_boolean.hass_update_available") == "on" }}'
-    action:
-      - delay: '00:00:30'
-      - service: >
-          {% if states("sensor.ha_version") == states("sensor.ha_docker_version_stable") %}
-            homeassistant.turn_off
-          {% endif %}
-        entity_id: input_boolean.hass_update_available
-
-  # Trigger GitHub action(s) when upgrade is available
-  - alias: "Auto-Upgrade: Trigger Github Action"
+  # Trigger GitHub action(s) when new version is available
+  - alias: "Auto Update: Trigger Github Action"
     id: "hass_github_action"
     mode: queued
     initial_state: 'on'
@@ -79,7 +66,7 @@ automation:
           version: '{{ trigger.to_state.state }}'
 
   # Respond to GitHub action to begin auto-upgrade flow
-  - alias: "Auto-Upgrade: Github Action Callback Turn on Boolean"
+  - alias: "Auto Update: Github Action Callback"
     id: "auto_upgrade_boolean"
     initial_state: 'on'
     trigger:
@@ -88,41 +75,61 @@ automation:
     action:
       service: >
         {% if trigger.json.upgrade == True %}
-          script.hass_update_apply
+          script.hass_update_stage
         {% elif trigger.json.upgrade == False %}
           script.hass_update_notify
         {% endif %}
 
   # Actually try to upgrade if conditions are met (home and boolean on)
-  - alias: "Auto-Upgrade: Do Upgrade"
+  - alias: "Auto Update: Install Update or Notify"
     id: auto_upgrade_upgrade"
     mode: single
     initial_state: 'on'
     trigger:
       - platform: state
-        entity_id: input_boolean.upgrade_hass_now
+        entity_id: input_boolean.hass_update_trigger
         from: "off"
         to: "on"
       - platform: state
         entity_id: person.andrew
         from: "not_home"
         to: "home"
-    # Only upgrade if we're home
-    condition: '{{ states("input_boolean.upgrade_hass_now") == "on" }}'
+    condition: '{{ states("input_boolean.hass_update_trigger") == "on" }}'
     action:
       - service: > 
           {% if states("person.andrew") == "home" %}
-            script.hass_upgrade
+            script.hass_update_install
           {% else %}
             script.hass_update_notify
           {% endif %}
 
+  - alias: "Auto Update: Set State of input_boolean.hass_update_available at Boot"
+    id: "hass_update_available_boolean"
+    trigger:
+      - platform: homeassistant
+        event: start
+    condition: '{{ states("input_boolean.hass_update_available") == "on" }}'
+    action:
+      - delay: '00:00:30'
+      - service: >
+          {% if states("sensor.ha_version") == states("sensor.ha_docker_version_stable") %}
+            homeassistant.turn_off
+          {% endif %}
+        entity_id: input_boolean.hass_update_available
+
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"build\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
-  upgrade_hass: /config/upgrade_hass.sh &
+  update_hass: /config/update_hass.sh &
 
 script:
-  hass_upgrade:
+  hass_update_stage:
+    # Turn on boolean to trigger upgrade automation
+    sequence:
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.hass_update_trigger
+
+  hass_update_install:
+    # Notify and install latest version
     sequence:
       - service: notify.pushover
         data:
@@ -131,19 +138,13 @@ script:
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
       - service: homeassistant.turn_off
-        entity_id: input_boolean.upgrade_hass_now
+        entity_id: input_boolean.hass_update_trigger
       - service: homeassistant.turn_off
         entity_id: input_boolean.hass_update_available
-      - service: shell_command.upgrade_hass
-
-  hass_update_apply:
-    # Turn on boolean which triggers upgrade automation
-    sequence:
-      - service: homeassistant.turn_on
-        entity_id: input_boolean.upgrade_hass_now
+      - service: shell_command.update_hass
 
   hass_update_notify:
-    # Notify and enable upgrade button on frontend
+    # Notify and enable update button on frontend
     sequence:
       - service: notify.pushover
         data:
