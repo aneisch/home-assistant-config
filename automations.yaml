@@ -534,16 +534,3 @@
         #   priority: 2
         #   expire: 3600
         #   retry: 30
-
-- alias: "Restart Mosquitto"
-  id: "mosquitto_reboot"
-  initial_state: on
-  trigger:
-    - platform: time
-      at: "03:30:00"
-  action:
-    - service: homeassistant.turn_off
-      entity_id: switch.docker_mosquitto
-    - delay: '00:00:05'
-    - service: homeassistant.turn_on
-      entity_id: switch.docker_mosquitto

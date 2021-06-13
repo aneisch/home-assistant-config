@@ -19,6 +19,7 @@ from .constant import (
     MEDIA_LIBRARY_DELAY,
     MODEL_ESSENTIAL,
     MODEL_ESSENTIAL_INDOOR,
+    MODEL_GO,
     MODEL_PRO_3_FLOODLIGHT,
     MODEL_PRO_4,
     MODEL_WIRED_VIDEO_DOORBELL,
@@ -38,7 +39,7 @@ from .util import time_to_arlotime
 
 _LOGGER = logging.getLogger("pyaarlo")
 
-__version__ = "0.7.1"
+__version__ = "0.7.1.2"
 
 
 class PyArlo(object):
@@ -146,11 +147,12 @@ class PyArlo(object):
         self._cfg = ArloCfg(self, **kwargs)
 
         # Create storage/scratch directory.
-        if self._cfg.state_file is not None or self._cfg.dump_file is not None:
+        if self._cfg.save_state or self._cfg.dump or self._cfg.save_session:
             try:
-                os.mkdir(self._cfg.storage_dir)
+                if not os.path.exists(self._cfg.storage_dir):
+                    os.mkdir(self._cfg.storage_dir)
             except Exception:
-                pass
+                self.warning(f"Problem creating {self._cfg.storage_dir}")
 
         # Create remaining components.
         self._bg = ArloBackground(self)
@@ -197,6 +199,7 @@ class PyArlo(object):
             if (
                 dtype == "basestation"
                 or device.get("modelId") == "ABC1000"
+                or device.get("modelId").startswith(MODEL_GO)
                 or dtype == "arloq"
                 or dtype == "arloqs"
             ):
@@ -220,6 +223,7 @@ class PyArlo(object):
                 dtype == "camera"
                 or dtype == "arloq"
                 or dtype == "arloqs"
+                or device.get("modelId").startswith(MODEL_GO)
                 or device.get("modelId").startswith(MODEL_WIRED_VIDEO_DOORBELL)
                 or device.get("modelId").startswith(MODEL_WIREFREE_VIDEO_DOORBELL)
             ):

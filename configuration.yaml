@@ -424,6 +424,7 @@ recorder:
   exclude:
     entities:
       - automation.update_usps_mail_camera_path_on_hass_restart
+      - automation.update_utilities_cost
       - binary_sensor.internet_reachability
       - binary_sensor.gate_heading_comparison
       - binary_sensor.iss

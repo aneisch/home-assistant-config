@@ -1,4 +1,7 @@
-DEFAULT_HOST = "https://my.arlo.com"
+DEFAULT_HOST = "https://myapi.arlo.com"
+
+ORIGIN_HOST = "https://my.arlo.com"
+REFERER_HOST = "https://my.arlo.com/"
 
 DEVICES_PATH = "/hmsweb/users/devices"
 DEFINITIONS_PATH = "/hmsweb/users/automation/definitions"
@@ -237,3 +240,5 @@ MODEL_ESSENTIAL_INDOOR = "VMC2040"
 
 MODEL_WIRED_VIDEO_DOORBELL = "AVD1001"
 MODEL_WIREFREE_VIDEO_DOORBELL = "AVD2001"
+
+MODEL_GO = "VML4030"
