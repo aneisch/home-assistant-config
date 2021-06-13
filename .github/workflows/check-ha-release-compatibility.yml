@@ -1,4 +1,4 @@
-name: Check HA Release Compatibility
+name: Check Home Assistant Release Compatibility
 # Only run when called from webhook https://github.com/marketplace/actions/repository-dispatch
 on: repository_dispatch
 jobs:
@@ -16,36 +16,36 @@ jobs:
         with:
           python-version: '3.9.x'
 
-      - name: Install Deps
+      - name: Install Home Assistant Dependencies
         run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
       - name: Install Home Assistant ${{ github.event.client_payload.version }}
         run: pip install homeassistant==${{ github.event.client_payload.version }}
       
-      - name: Check Config
+      - name: Check Home Assistant Config
         run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           hass -c . --script check_config
           
-  upgrade-hass:
+  hass-update-install:
     runs-on: ubuntu-latest
     # If minor release, upgrade to latest
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
-    name: Upgrade HASS Minor Release
+    name: Update Home Assistant Minor Release
     # Ensure config test was successful
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
     env:
       HEADER: "Content-Type: application/json"
     steps:
-        - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant auto-update triggered"
+        - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant update triggered"
 
-  notify-hass-upgrade:
+  hass-update-notify:
     runs-on: ubuntu-latest
     # If major release, only send notification
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
-    name: Notify HASS Major Release
+    name: Notify Home Assistant Major Release
     # Ensure config test was successful
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
