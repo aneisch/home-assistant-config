@@ -32,7 +32,7 @@ jobs:
         run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
-          docker run --rm -v "$(pwd):/config" --entrypoint "hass -c . --script check_config" \
+          docker run --rm -v "$(pwd):/config" --entrypoint "" \
           homeassistant/home-assistant:${{ github.event.client_payload.version }} \
           python -m homeassistant --config "/config" --script check_config
 
