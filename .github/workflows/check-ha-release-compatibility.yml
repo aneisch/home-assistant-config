@@ -11,22 +11,31 @@ jobs:
       - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
 
       - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v1   
-        with:
-          python-version: '3.9.x'
+      #- name: Set up Python
+      #  uses: actions/setup-python@v1   
+      #  with:
+      #    python-version: '3.9.x'
 
-      - name: Install Home Assistant Dependencies
-        run: sudo apt-get update && sudo apt-get install -y libudev-dev
+      #- name: Install Home Assistant Dependencies
+      #  run: sudo apt-get update && sudo apt-get install -y libudev-dev
           
-      - name: Install Home Assistant ${{ github.event.client_payload.version }}
-        run: pip install homeassistant==${{ github.event.client_payload.version }}
+      #- name: Install Home Assistant ${{ github.event.client_payload.version }}
+      #  run: pip install homeassistant==${{ github.event.client_payload.version }}
       
-      - name: Check Home Assistant Config
+      #- name: Check Home Assistant Config
+      #  run: |
+      #    mv travis_secrets.yaml secrets.yaml
+      #    sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
+      #    hass -c . --script check_config
+          
+      - name: Check Home Assistant Config Docker
         run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
-          hass -c . --script check_config
+          docker run --rm -v "$(pwd):/config" --entrypoint "hass -c . --script check_config" \
+          homeassistant/home-assistant:${{ github.event.client_payload.version }} \
+          python -m homeassistant --config "/config" --script check_config
+
           
   hass-update-install:
     runs-on: ubuntu-latest
