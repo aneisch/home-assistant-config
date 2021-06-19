@@ -22,7 +22,7 @@ switch:
     name: Aquarium Circadian
     lights_brightness:
       - light.aquarium_light
-    #max_brightness: 85
+    max_brightness: 85
     # Set light to 1% if comes on after real sunset
     sleep_entity: "sun.sun"
     sleep_state: "below_horizon"

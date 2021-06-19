@@ -92,7 +92,6 @@ automation:
         to: "on"
       - platform: state
         entity_id: person.andrew
-        from: "not_home"
         to: "home"
     condition: '{{ states("input_boolean.hass_update_trigger") == "on" }}'
     action:
