@@ -1,6 +1,13 @@
 name: Check Home Assistant Release Compatibility
 # Only run when called from webhook https://github.com/marketplace/actions/repository-dispatch
-on: repository_dispatch
+on: 
+  repository_dispatch:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/README.md'
+
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
