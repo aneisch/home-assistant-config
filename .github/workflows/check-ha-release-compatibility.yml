@@ -37,12 +37,12 @@ jobs:
           
       - name: Check Home Assistant Config Docker
         run: |
-          BRANCH="${{ github.event.client_payload.version }}"
-          [[ "${{ github.event.client_payload.version }}" == '' ]] && BRANCH=latest
+          VERSION="${{ github.event.client_payload.version }}"
+          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          homeassistant/home-assistant:${{ github.event.client_payload.version }} \
+          homeassistant/home-assistant:$VERSION \
           python -m homeassistant --config "/config" --script check_config
 
           
