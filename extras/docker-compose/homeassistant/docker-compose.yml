@@ -127,8 +127,6 @@ services:
     thermostat_api_server:
         container_name: thermostat_api_server
         image: ghcr.io/aneisch/thermostat_api_server:latest
-        labels:
-          com.centurylinklabs.watchtower.enable: "false"
         volumes:
           - /etc/localtime:/etc/localtime:ro
         ports:
@@ -144,26 +142,6 @@ services:
           timeout: 5s
           retries: 3
         restart: always
-    #openzwave:
-    #    image: openzwave/ozwdaemon:allinone-latest
-    #    container_name: openzwave
-    #    devices:
-    #        - "/dev/zwave:/dev/zwave"
-    #    volumes:
-    #        - /opt/ozw:/opt/ozw/config
-    #    #security_opt:
-    #    #    - seccomp:unconfined
-    #    ports:
-    #        # Web VNC
-    #        - "7800:7800"
-    #        # API
-    #        - "1983:1983"
-    #    environment:
-    #        TZ: "America/Chicago"
-    #        MQTT_SERVER: "10.0.1.22"
-    #        USB_PATH: "/dev/zwave"
-    #        OZW_NETWORK_KEY: "0x48, 0xA8, 0x80, 0x12, 0x30, 0xB0, 0x44, 0xDD, 0x60, 0xD3, 0xA1, 0x46, 0x59, 0xE3, 0x75, 0x7F"
-    #    restart: 'no'
     zwavejs:
         container_name: zwavejs
         image: zwavejs/zwavejs2mqtt:latest
