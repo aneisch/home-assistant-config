@@ -1,6 +1,13 @@
 name: Check Home Assistant Release Compatibility
 # Only run when called from webhook https://github.com/marketplace/actions/repository-dispatch
-on: repository_dispatch
+on: 
+  repository_dispatch:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/README.md'
+
 jobs:
   check-ha-config:
     runs-on: ubuntu-latest
@@ -30,10 +37,12 @@ jobs:
           
       - name: Check Home Assistant Config Docker
         run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          homeassistant/home-assistant:${{ github.event.client_payload.version }} \
+          homeassistant/home-assistant:$VERSION \
           python -m homeassistant --config "/config" --script check_config
 
           
