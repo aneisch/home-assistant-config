@@ -11,6 +11,7 @@ services:
           - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
+          - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/zigbee
         environment:
@@ -125,7 +126,7 @@ services:
         restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
-        image: aneisch/thermostat_api_server
+        image: ghcr.io/aneisch/thermostat_api_server:latest
         labels:
           com.centurylinklabs.watchtower.enable: "false"
         volumes:

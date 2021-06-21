@@ -12,6 +12,7 @@ services:
           - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
+          - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/zigbee
         environment:
@@ -126,7 +127,7 @@ services:
         restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
-        image: aneisch/thermostat_api_server
+        image: ghcr.io/aneisch/thermostat_api_server:latest
         labels:
           com.centurylinklabs.watchtower.enable: "false"
         volumes:
@@ -237,7 +238,7 @@ services:
         volumes:
             - /opt/esphome/:/config:rw
             # Use local time for logging timestamps
-            - /etc/localtime:/etc/localtime:ro
+            #- /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
     #thermopro_mqtt:
@@ -400,7 +401,7 @@ services:
     recipes:
         # Public consumption at VPS, duplicated locally for home use though
         container_name: recipes
-        image: aneisch/chowdown:latest
+        image: ghcr.io/aneisch/chowdown:latest
         user: '99'
         ports:
           - "4000:4000"
