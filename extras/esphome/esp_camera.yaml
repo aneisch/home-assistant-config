@@ -62,141 +62,141 @@ sensor:
     battery_level:
       name: "MiFlora Battery Level" 
       
-  - platform: ble_client
-    ble_client_id: scale
-    name: "1"
-    service_uuid: '1800'
-    characteristic_uuid: '2a00'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "1"
+  #   service_uuid: '1800'
+  #   characteristic_uuid: '2a00'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
     
-  - platform: ble_client
-    ble_client_id: scale
-    name: "2"
-    service_uuid: '1800'
-    characteristic_uuid: '2a01'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "2"
+  #   service_uuid: '1800'
+  #   characteristic_uuid: '2a01'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "3"
-    service_uuid: '1800'
-    characteristic_uuid: '2a02'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "3"
+  #   service_uuid: '1800'
+  #   characteristic_uuid: '2a02'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "4"
-    service_uuid: '1800'
-    characteristic_uuid: '2a03'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "4"
+  #   service_uuid: '1800'
+  #   characteristic_uuid: '2a03'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "5"
-    service_uuid: '1800'
-    characteristic_uuid: '2a04'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "5"
+  #   service_uuid: '1800'
+  #   characteristic_uuid: '2a04'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
     
-  - platform: ble_client
-    ble_client_id: scale
-    name: "6"
-    service_uuid: '1801'
-    characteristic_uuid: '2a05'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "6"
+  #   service_uuid: '1801'
+  #   characteristic_uuid: '2a05'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "7"
-    service_uuid: 'FFF0'
-    characteristic_uuid: 'FFF1'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "7"
+  #   service_uuid: 'FFF0'
+  #   characteristic_uuid: 'FFF1'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
     
-  - platform: ble_client
-    ble_client_id: scale
-    name: "8"
-    service_uuid: 'FFF0'
-    characteristic_uuid: 'FFF4'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "8"
+  #   service_uuid: 'FFF0'
+  #   characteristic_uuid: 'FFF4'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "9"
-    service_uuid: '180A'
-    characteristic_uuid: '2A23'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "9"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A23'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "10"
-    service_uuid: '180A'
-    characteristic_uuid: '2A24'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "10"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A24'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "11"
-    service_uuid: '180A'
-    characteristic_uuid: '2A25'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "11"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A25'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "12"
-    service_uuid: '180A'
-    characteristic_uuid: '2A26'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "12"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A26'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "13"
-    service_uuid: '180A'
-    characteristic_uuid: '2A27'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "13"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A27'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "14"
-    service_uuid: '180A'
-    characteristic_uuid: '2A28'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "14"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A28'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "15"
-    service_uuid: '180A'
-    characteristic_uuid: '2A29'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "15"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A29'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "16"
-    service_uuid: '180A'
-    characteristic_uuid: '2A2A'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "16"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A2A'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
-  - platform: ble_client
-    ble_client_id: scale
-    name: "17"
-    service_uuid: '180A'
-    characteristic_uuid: '2A50'
-    update_interval: 2s
-    accuracy_decimals: 5
+  # - platform: ble_client
+  #   ble_client_id: scale
+  #   name: "17"
+  #   service_uuid: '180A'
+  #   characteristic_uuid: '2A50'
+  #   update_interval: 2s
+  #   accuracy_decimals: 5
 
 switch:
   - platform: restart
