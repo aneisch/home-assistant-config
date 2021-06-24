@@ -40,9 +40,18 @@
   json_attributes_topic: "sensor/home_wifi"
 
 - platform: command_line
+  name: Electric Utilities Realtime
+  scan_interval: 600
+  command: !secret utilities_curl_realtime
+  value_template: "{{ value_json.Kwh | float }}"
+  unit_of_measurement: 'kWh'
+  json_attributes:
+    - ReadDate
+
+- platform: command_line
   name: Electric Utilities Daily
   scan_interval: 3600
-  command: !secret utilities_curl
+  command: !secret utilities_curl_daily
   value_template: "{{ value_json.Kwh | float }}"  
   unit_of_measurement: 'kWh' 
   json_attributes:
@@ -51,7 +60,7 @@
 - platform: command_line
   name: Electric Utilities Summary
   scan_interval: 3600
-  command: !secret utilities_curl_3
+  command: !secret utilities_curl_summary
   value_template: "{{ value_json.TotalUsage | float }}"   
   unit_of_measurement: 'kWh' 
   json_attributes:
