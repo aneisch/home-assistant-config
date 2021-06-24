@@ -44,7 +44,6 @@ cards:
             icon: 'mdi:clock'
           - sensor.sensor_thermopro_probe_1_derivative
           - sensor.sensor_thermopro_probe_2_derivative
-          - switch.docker_thermopro_mqtt
       - type: markdown
         content: |
           Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') }}

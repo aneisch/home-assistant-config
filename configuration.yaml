@@ -428,6 +428,7 @@ recorder:
       - binary_sensor.internet_reachability
       - binary_sensor.gate_heading_comparison
       - binary_sensor.iss
+      - script.zen30_led_color_change
       - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
       - sensor.irrigation_time_remaining
@@ -440,19 +441,17 @@ recorder:
       - sensor.network_in_eno1
       - sensor.network_out_eno1
       - sensor.roborock_s4_last_cleaned
-      - sensor.thermopro_probe_1_high_estimated_length
-      - sensor.thermopro_probe_2_high_estimated_length
       - sensor.circadian_values
     domains:
       #- automation
-      - alarm_panel
+      #- alarm_panel
       - camera
       - group
       - media_player
       - notify
       - scene
       #- script
-      - shell_command
+      #- shell_command
       - sun
       - zone
   include:
