@@ -108,6 +108,17 @@ sensor:
         unit_of_measurement: 'hrs'
         value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
+      roborock_current_room:
+        friendly_name: 'Roborock Current Room'
+        value_template: >
+          {% set room = state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') %}
+          {% set lookup = {22: 'Dining Room', 24:'Kitchen', 23:'Living Room', 21: 'Office', 26: 'Guest Bedroom', 19: 'Guest Bathroom', 16: 'Hallway', 20: "Bethany's Office", 18: 'Master Bedroom', 27: 'Master Bathroom', 17: 'Back Bathroom', 25: 'Back Bedroom'} %}
+          {% if room != None %}
+          {{ lookup[room] }}
+          {% else %}
+          Unavailable
+          {% endif %}
+
 input_boolean:
   # Nodered
   roborock_daily_run:

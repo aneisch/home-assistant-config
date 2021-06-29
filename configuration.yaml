@@ -386,7 +386,7 @@ person:
   - name: Bethany
     id: bethany
     device_trackers:
-      - device_tracker.bethanys_iphone_nmap
+      #- device_tracker.bethanys_iphone_nmap
       - device_tracker.bethany_s_iphone
 
 plant:

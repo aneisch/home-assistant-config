@@ -89,6 +89,13 @@ cards:
         detail: 2
         hours_to_show: 730
         icon: mdi:flash
+      # - type: sensor
+      #   entity: sensor.electric_utilities_realtime
+      #   graph: line
+      #   name: Realtime Electricity
+      #   detail: 2
+      #   hours_to_show: 24
+      #   icon: mdi:flash
       - type: sensor
         entity: sensor.electric_utilities_summary
         graph: line
