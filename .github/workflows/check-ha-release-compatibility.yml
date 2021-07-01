@@ -20,8 +20,9 @@ jobs:
         if: ${{ github.event.client_payload.release_type }} != ""
       - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
         if:  ${{ github.event.client_payload.version }} != ""
-      - run: VERSION="${{ github.event.client_payload.version }}"; [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
-      - run: echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"
+      - run: VERSION="latest"
+        if:  ${{ github.event.client_payload.version }} == ""
+      - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
           
       - uses: actions/checkout@v2
 
