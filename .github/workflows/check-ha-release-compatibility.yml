@@ -21,11 +21,11 @@ jobs:
         run: |
           echo "Branch: ${{ github.event.client_payload.branch }}"
           echo "Release Type: ${{ github.event.client_payload.release_type }}"
-          echo "Release Version: ${{ github.event.client_payload.version }}" && DOCKER_TAG="${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+          echo "Release Version: ${{ github.event.client_payload.version }}" && echo "DOCKER_TAG=${{ github.event.client_payload.version }}" >> $GITHUB_ENV
       
       - name: Set Docker Tag
         if: github.event_name == 'push'
-        run: 'DOCKER_TAG="latest" >> $GITHUB_ENV'
+        run: 'echo "DOCKER_TAG=latest" >> $GITHUB_ENV'
         
       - name: Log Docker Tag
         run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }}"'
