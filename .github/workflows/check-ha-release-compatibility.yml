@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Console output for logging
-      - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
-        if: ${{ github.event.client_payload.branch }} != ""
+      - run: 'echo "Branch: .${{ github.event.client_payload.branch }}."'
+        if: ${{ github.event.client_payload.branch }}
       - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
         if: ${{ github.event.client_payload.release_type }} != ""
       - run: 'echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV'
