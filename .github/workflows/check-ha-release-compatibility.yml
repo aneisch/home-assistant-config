@@ -15,14 +15,14 @@ jobs:
     steps:
       # Console output for logging
       - run: 'echo "Trigger: ${{ github.event_name }}"'
-      - run: | 
+      - if: github.event_name == "repository_dispatch"
+        run: |
           echo "Branch: ${{ github.event.client_payload.branch }}"
           echo "Release Type: ${{ github.event.client_payload.release_type }}"
           echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV
-        if: github.event_name == "repository_dispatch"
       
-      - run: 'VERSION="latest >> $GITHUB_ENV"'
-        if: github.event_name == "push"
+      - if: github.event_name == "push"
+        run: 'VERSION="latest >> $GITHUB_ENV"'
         
       - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
           
