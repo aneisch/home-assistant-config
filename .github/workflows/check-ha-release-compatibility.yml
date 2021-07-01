@@ -15,19 +15,18 @@ jobs:
     steps:
       # Console output for logging
       - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
+        if: ${{ github.event.client_payload.branch }} != ""
       - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
+        if: ${{ github.event.client_payload.release_type }} != ""
       - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
-      - run: |
-          VERSION="${{ github.event.client_payload.version }}"
-          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
-          echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"
+        if:  ${{ github.event.client_payload.version }} != ""
+      - run: VERSION="${{ github.event.client_payload.version }}"; [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
+      - run: echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"
           
       - uses: actions/checkout@v2
 
       - name: Check Home Assistant Config Docker
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
-          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
