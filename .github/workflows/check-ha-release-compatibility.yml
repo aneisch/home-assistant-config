@@ -13,10 +13,11 @@ jobs:
   check-ha-config:
     runs-on: ubuntu-latest
     steps:
-      - name: Output Trigger Type
+      - name: Log Trigger Type
         run: 'echo "Trigger: ${{ github.event_name }}"'
-      - if: github.event_name == 'repository_dispatch'
-        name: Output Repo Dispatch Data
+
+      - name: Log Repo Dispatch Data
+        if: github.event_name == 'repository_dispatch'
         run: |
           echo "Branch: ${{ github.event.client_payload.branch }}"
           echo "Release Type: ${{ github.event.client_payload.release_type }}"
@@ -26,17 +27,17 @@ jobs:
         if: github.event_name == 'push'
         run: 'DOCKER_TAG="latest" >> $GITHUB_ENV'
         
-      - name: Output Docker Tag
-        run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.docker_tag }}"'
+      - name: Log Docker Tag
+        run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }}"'
           
       - uses: actions/checkout@v2
 
-      - name: Check Home Assistant Config Docker
+      - name: Check Home Assistant Config
         run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          ghcr.io/home-assistant/home-assistant:${{ env.docker_tag }} \
+          ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }} \
           python -m homeassistant --config "/config" --script check_config
 
   # Call Home Assistant Webook to instruct HASS to self-upgrade
