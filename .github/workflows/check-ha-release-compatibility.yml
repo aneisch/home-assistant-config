@@ -18,9 +18,9 @@ jobs:
         if: ${{ github.event.client_payload.branch }} != ""
       - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
         if: ${{ github.event.client_payload.release_type }} != ""
-      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
+      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV'
         if:  ${{ github.event.client_payload.version }} != ""
-      - run: VERSION="latest"
+      - run: 'VERSION="latest >> $GITHUB_ENV"'
         if:  ${{ github.event.client_payload.version }} == ""
       - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
           
