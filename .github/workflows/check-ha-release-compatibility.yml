@@ -15,11 +15,15 @@ jobs:
     steps:
       # Console output for logging
       - run: 'echo "Trigger: ${{ github.event_name }}"'
-      - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
-      - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
-      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV'
+      - run: | 
+          echo "Branch: ${{ github.event.client_payload.branch }}"
+          echo "Release Type: ${{ github.event.client_payload.release_type }}"
+          echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+        if: github.event_name == "repository_dispatch"
+      
       - run: 'VERSION="latest >> $GITHUB_ENV"'
-        if:  ${{ github.event.client_payload.version }} == ""
+        if:  ${{ github.event_name} == "push"
+        
       - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
           
       - uses: actions/checkout@v2
