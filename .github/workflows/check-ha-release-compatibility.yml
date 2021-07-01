@@ -17,7 +17,11 @@ jobs:
       - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
       - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
       - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
-
+      - run: |
+          VERSION="${{ github.event.client_payload.version }}"
+          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
+          echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"
+          
       - uses: actions/checkout@v2
 
       - name: Check Home Assistant Config Docker
@@ -27,7 +31,7 @@ jobs:
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          homeassistant/home-assistant:$VERSION \
+          ghcr.io/home-assistant/home-assistant:$VERSION \
           python -m homeassistant --config "/config" --script check_config
 
   # Call Home Assistant Webook to instruct HASS to self-upgrade
