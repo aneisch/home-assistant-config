@@ -22,7 +22,7 @@ jobs:
         if: github.event_name == "repository_dispatch"
       
       - run: 'VERSION="latest >> $GITHUB_ENV"'
-        if:  ${{ github.event_name} == "push"
+        if: github.event_name == "push"
         
       - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
           
