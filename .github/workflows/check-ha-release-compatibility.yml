@@ -13,18 +13,20 @@ jobs:
   check-ha-config:
     runs-on: ubuntu-latest
     steps:
-      # Console output for logging
-      - run: 'echo "Trigger: ${{ github.event_name }}"'
+      - name: Output Trigger Type
+        run: 'echo "Trigger: ${{ github.event_name }}"'
       - if: github.event_name == 'repository_dispatch'
+        name: Output Repo Dispatch Data
         run: |
           echo "Branch: ${{ github.event.client_payload.branch }}"
           echo "Release Type: ${{ github.event.client_payload.release_type }}"
-          echo "Release Version: ${{ github.event.client_payload.version }}" && VERSION="${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+          echo "Release Version: ${{ github.event.client_payload.version }}" && DOCKER_TAG="${{ github.event.client_payload.version }}" >> $GITHUB_ENV
       
       - if: github.event_name == 'push'
-        run: 'VERSION="latest >> $GITHUB_ENV"'
+        run: 'DOCKER_TAG="latest >> $GITHUB_ENV"'
         
-      - run: 'echo "Image: ghcr.io/home-assistant/home-assistant:$VERSION"'
+      - name: Output Docker Tag
+        run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.docker_tag }}"'
           
       - uses: actions/checkout@v2
 
@@ -33,7 +35,7 @@ jobs:
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          ghcr.io/home-assistant/home-assistant:$VERSION \
+          ghcr.io/home-assistant/home-assistant:${{ env.docker_tag }} \
           python -m homeassistant --config "/config" --script check_config
 
   # Call Home Assistant Webook to instruct HASS to self-upgrade
