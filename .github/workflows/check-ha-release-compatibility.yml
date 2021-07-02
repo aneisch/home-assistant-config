@@ -13,40 +13,34 @@ jobs:
   check-ha-config:
     runs-on: ubuntu-latest
     steps:
-      # Console output for logging
-      - run: 'echo "Branch: ${{ github.event.client_payload.branch }}"'
-      - run: 'echo "Release Type: ${{ github.event.client_payload.release_type }}"'
-      - run: 'echo "Release Version: ${{ github.event.client_payload.version }}"'
+      - name: Log Trigger Type
+        run: 'echo "Trigger: ${{ github.event_name }}"'
 
-      - uses: actions/checkout@v2
-      #- name: Set up Python
-      #  uses: actions/setup-python@v1   
-      #  with:
-      #    python-version: '3.9.x'
-
-      #- name: Install Home Assistant Dependencies
-      #  run: sudo apt-get update && sudo apt-get install -y libudev-dev
-          
-      #- name: Install Home Assistant ${{ github.event.client_payload.version }}
-      #  run: pip install homeassistant==${{ github.event.client_payload.version }}
-      
-      #- name: Check Home Assistant Config
-      #  run: |
-      #    mv travis_secrets.yaml secrets.yaml
-      #    sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
-      #    hass -c . --script check_config
-          
-      - name: Check Home Assistant Config Docker
+      - name: Log Repo Dispatch Data
+        if: github.event_name == 'repository_dispatch'
         run: |
-          VERSION="${{ github.event.client_payload.version }}"
-          [[ "${{ github.event.client_payload.version }}" == '' ]] && VERSION="latest"
+          echo "Branch: ${{ github.event.client_payload.branch }}"
+          echo "Release Type: ${{ github.event.client_payload.release_type }}"
+          echo "Release Version: ${{ github.event.client_payload.version }}" && echo "DOCKER_TAG=${{ github.event.client_payload.version }}" >> $GITHUB_ENV
+      
+      - name: Set Docker Tag
+        if: github.event_name == 'push'
+        run: 'echo "DOCKER_TAG=latest" >> $GITHUB_ENV'
+        
+      - name: Log Docker Tag
+        run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }}"'
+          
+      - uses: actions/checkout@v2
+
+      - name: Check Home Assistant Config
+        run: |
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          homeassistant/home-assistant:$VERSION \
+          ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }} \
           python -m homeassistant --config "/config" --script check_config
 
-          
+  # Call Home Assistant Webook to instruct HASS to self-upgrade
   hass-update-install:
     runs-on: ubuntu-latest
     # If minor release, upgrade to latest
@@ -60,6 +54,7 @@ jobs:
     steps:
         - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant update triggered"
 
+  # Call Home Assistant Webook to instruct HASS to notify only
   hass-update-notify:
     runs-on: ubuntu-latest
     # If major release, only send notification
