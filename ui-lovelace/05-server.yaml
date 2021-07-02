@@ -146,7 +146,6 @@ cards:
           - entity: switch.nas
             name: "NAS / Plex"
       - type: conditional
-        title: Misc
         conditions:
           - entity: switch.nas
             state: "on"
@@ -191,8 +190,20 @@ cards:
           - sensor.ha_docker_version_beta
           - entity: sensor.hacs
             name: HACS Updates
+
       - type: conditional
-        title: Update HASS
+        conditions:
+          - entity: binary_sensor.ha_beta_available
+            state: "on"
+        card:
+          type: entities
+          entities:
+            - entity: script.hass_switch_to_beta
+              icon: mdi:beta
+            - entity: script.hass_switch_to_stable
+              icon: mdi:check
+
+      - type: conditional
         conditions:
           - entity: input_boolean.hass_update_available
             state: "on"

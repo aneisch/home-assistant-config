@@ -259,7 +259,7 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
-    homeassistant.components.http: debug
+    #homeassistant.components.http: debug
     #custom_components.apcupsd3: debug
     #homeassistant.components.zha: debug
     #bellows.zigbee.application: debug

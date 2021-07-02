@@ -82,3 +82,22 @@
     - name: "433 Weather Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
+
+# These really belong in hass_update_check package but https://community.home-assistant.io/t/allow-integration-template-in-packages/305865
+- trigger:
+    - platform: state
+      entity_id: sensor.ha_version
+    - platform: homeassistant
+      event: start
+  binary_sensor:
+    - name: HASS on Beta
+      state: '{{ "b" in states("sensor.ha_version") }}'
+
+- trigger:
+    - platform: state
+      entity_id: sensor.ha_docker_version_beta
+    - platform: homeassistant
+      event: start
+  binary_sensor:
+    - name: HA Beta Available
+      state: '{{ "b" in states("sensor.ha_docker_version_beta") }}'
