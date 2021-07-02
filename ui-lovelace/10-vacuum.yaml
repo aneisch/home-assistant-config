@@ -161,6 +161,11 @@ cards:
             width: 25%
 
   - type: entities
+    entities:
+      - entity: sensor.roborock_current_room
+        icon: "mdi:crosshairs"
+
+  - type: entities
     title: Custom Clean
     show_header_toggle: false
     entities:
