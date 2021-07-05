@@ -164,6 +164,7 @@ cards:
       - switch.docker_librespeed
       - switch.docker_plex
       - switch.docker_portainer
+      - switch.docker_watchtower
       - switch.docker_adguard
       #- switch.docker_apcupsd_950
       - switch.docker_apcupsd_650

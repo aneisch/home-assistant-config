@@ -129,6 +129,7 @@ monitor_docker:
     thermopro_mqtt: "Grill Monitor"
     thermostat_api_server: "Thermostat API Server"
     vscode: "VSCode"
+    watchtower: "Watchtower"
     zwavejs: "Zwave-JS"
 
 # https://github.com/aneisch/docker_monitor

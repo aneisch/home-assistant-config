@@ -467,7 +467,7 @@
     - platform: state
       entity_id: switch.garage_dyson
       to: 'on'
-  condition: "{{ states('person.andrew') == 'home'}}"
+  condition: "{{ states('person.andrew') == 'home' }}"
   action:
     - delay: '02:00:00'
     - service: homeassistant.turn_off
