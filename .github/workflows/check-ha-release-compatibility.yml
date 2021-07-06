@@ -11,6 +11,7 @@ on:
 
 jobs:
   check-ha-config:
+    name: Check Configuration
     runs-on: ubuntu-latest
     steps:
       - name: Log Trigger Type
@@ -42,10 +43,10 @@ jobs:
 
   # Call Home Assistant Webook to instruct HASS to self-upgrade
   hass-update-install:
+    name: Update Home Assistant Minor Release
     runs-on: ubuntu-latest
     # If minor release, upgrade to latest
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
-    name: Update Home Assistant Minor Release
     # Ensure config test was successful
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
@@ -56,10 +57,10 @@ jobs:
 
   # Call Home Assistant Webook to instruct HASS to notify only
   hass-update-notify:
+    name: Notify Home Assistant Major Release
     runs-on: ubuntu-latest
     # If major release, only send notification
     if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
-    name: Notify Home Assistant Major Release
     # Ensure config test was successful
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
