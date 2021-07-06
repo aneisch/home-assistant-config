@@ -37,7 +37,7 @@ jobs:
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }} \
+          homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
           python -m homeassistant --config "/config" --script check_config
 
   # Call Home Assistant Webook to instruct HASS to self-upgrade
