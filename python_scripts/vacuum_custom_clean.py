@@ -1,9 +1,9 @@
 """
 Take input from a number of input_select and then tell Roborock to clean those rooms
 
-miiocli vacuum --ip 10.0.0.10 --token XX get_room_mapping
-OR
-Use attribute vacuum_room on camera.xiaomi_cloud_map_extractor to get room mappings
+miiocli vacuum --ip 10.0.0.10 --token $(cat ~/homeassistant/secrets.yaml | grep -F roborock_token | awk ' {print $2 }') get_room_mapping
+
+OR use sensor.roborock_current_room attribute "room_number" to get rooms
 """
 
 rooms = {'Dining Room':22,'Kitchen':24,'Living Room':23,'Office':21,'Guest Bedroom':26,'Guest Bathroom':19,'Hallway':16,"Bethany's Office":20,'Master Bedroom':18,'Master Bathroom':27, 'Back Bathroom':17, 'Back Bedroom':25}

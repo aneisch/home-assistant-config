@@ -100,8 +100,9 @@ climate:
 config:
 
 device_tracker:
+  # Don't forget to edit known_devices.yaml if hardware changes :)
   - platform: nmap_tracker
-    home_interval: 10
+    home_interval: 5
     hosts: 
       - 10.0.1.24/32
       - 10.0.1.59/32
@@ -260,7 +261,6 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
-    homeassistant.components.version: debug
     #homeassistant.components.http: debug
     #custom_components.apcupsd3: debug
     #homeassistant.components.zha: debug

@@ -113,11 +113,13 @@ sensor:
         value_template: >
           {% set room = state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') %}
           {% set lookup = {22: 'Dining Room', 24:'Kitchen', 23:'Living Room', 21: 'Office', 26: 'Guest Bedroom', 19: 'Guest Bathroom', 16: 'Hallway', 20: "Bethany's Office", 18: 'Master Bedroom', 27: 'Master Bathroom', 17: 'Back Bathroom', 25: 'Back Bedroom'} %}
-          {% if room != None %}
+          {% if room != None and room in lookup %}
           {{ lookup[room] }}
           {% else %}
           Unavailable
           {% endif %}
+        attributes:
+          segment: "{{ state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') }}"
 
 input_boolean:
   # Nodered
