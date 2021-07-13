@@ -12,6 +12,12 @@ cards:
         title: Security
         entities:
           - input_boolean.security_status
+          - name: Ring Alarm Mode
+            entity: alarm_control_panel.college_station_mode
+          - name: Alexa Guard Mode
+            entity: alarm_control_panel.alexa_guard_7f9e9
+          - name: Aarlo Mode
+            entity: alarm_control_panel.aarlo_garage
           - entity: cover.garage_door
             style: |
                 :host {
