@@ -118,7 +118,7 @@ sensor:
           {% else %}
           Unavailable
           {% endif %}
-        attributes:
+        attribute_templates:
           segment: "{{ state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') }}"
 
 input_boolean:
