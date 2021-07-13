@@ -103,7 +103,7 @@ device_tracker:
   - platform: nmap_tracker
     home_interval: 10
     hosts: 
-      - 10.0.1.13/32
+      - 10.0.1.24/32
       - 10.0.1.59/32
 
 monitor_docker:
@@ -260,6 +260,7 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
+    homeassistant.components.version: debug
     #homeassistant.components.http: debug
     #custom_components.apcupsd3: debug
     #homeassistant.components.zha: debug
@@ -388,7 +389,7 @@ person:
   - name: Bethany
     id: bethany
     device_trackers:
-      #- device_tracker.bethanys_iphone_nmap
+      - device_tracker.bethanys_iphone_nmap
       - device_tracker.bethany_s_iphone
 
 plant:

@@ -15,12 +15,12 @@ input_boolean:
 
 sensor:
   - platform: version
-    source: docker
+    source: container
     name: ha_docker_version_stable
 
   - platform: version
     beta: true
-    source: docker
+    source: container
     name: ha_docker_version_beta
 
   - platform: version
@@ -49,12 +49,18 @@ automation:
         entity_id: sensor.ha_docker_version_beta
       - platform: state
         entity_id: sensor.ha_docker_version_stable
-    condition: '{{ (trigger.to_state.state != trigger.from_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state != "unknown") }}'
+    condition: >
+      # Only run beta check if the beta is a true beta release
+      {% if trigger.entity_id == "sensor.ha_docker_version_beta" %}
+        {{ "b" in trigger.to_state.state }}
+      {% else %}
+        {{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state != "unknown") }}'
+      {% endif %}
     action:
       - service: shell_command.github_action_trigger
         data:
           github_token: !secret github_token
-          # https://github.com/aneisch/home-assistant-config/blob/master/.github/workflows/check_ha_release-compatibility.yml
+          # https://github.com/aneisch/home-assistant-config/actions
           # Options are: beta, stable
           branch: '{% if trigger.entity_id == "sensor.ha_docker_version_beta" %}beta{% elif trigger.entity_id == "sensor.ha_docker_version_stable" %}stable{% endif %}'
           release_type: >
