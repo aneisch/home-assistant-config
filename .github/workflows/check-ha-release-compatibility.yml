@@ -35,6 +35,7 @@ jobs:
 
       - name: Check Home Assistant Config
         run: |
+          docker pull -q "homeassistant/home-assistant:${{ env.DOCKER_TAG }}"
           mv travis_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
