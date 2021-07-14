@@ -18,6 +18,7 @@ ac_change_notification:
 occusim:
   name: Occupancy Simulator
 
+# Disable occupied/unoccupied presence scripts when guests present
 guest_mode:
   name: Guest Mode
   icon: mdi:account-plus
