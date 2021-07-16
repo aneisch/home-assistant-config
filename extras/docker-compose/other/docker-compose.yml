@@ -139,7 +139,6 @@ services:
         environment:
           - WATCHTOWER_CLEANUP=true
           - WATCHTOWER_NO_STARTUP_MESSAGE=true
-          #- WATCHTOWER_MONITOR_ONLY=true
           - WATCHTOWER_NOTIFICATIONS_LEVEL=info
           - WATCHTOWER_INCLUDE_STOPPED=true
           - WATCHTOWER_NOTIFICATIONS=email
@@ -150,6 +149,7 @@ services:
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
           - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+          - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
         #command: --schedule "00 00 12 * * *"
         command: --run-once
     adguard:
