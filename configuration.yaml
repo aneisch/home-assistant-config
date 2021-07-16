@@ -43,7 +43,7 @@ camera: !include camera.yaml
 circadian_lighting:
   # Set manual sunrise/sunset for aquarium brightness
   sunrise_time: "09:00:00"
-  sunset_time: "15:45:00"
+  sunset_time: "20:00:00"
   interval: 300
   transition: 10
 
