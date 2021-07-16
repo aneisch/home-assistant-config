@@ -379,3 +379,12 @@ services:
             - ENABLEMODES=true
         volumes:
             - '/opt/ring-mqtt:/data'
+    tailscale:
+        container_name: tailscale
+        volumes:
+            - '/var/lib:/var/lib'
+            - '/dev/net/tun:/dev/net/tun'
+        network_mode: host
+        privileged: true
+        image: shaynesweeney/tailscale
+        entrypoint: tailscaled
