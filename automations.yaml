@@ -455,6 +455,9 @@
       - condition: time
         weekday:
           - sun
+          - mon
+          - wed
+          - fri
       - "{{ states('person.andrew') == 'home'}}"
   action:
       # Watchtower runs once at container start then turns back off
