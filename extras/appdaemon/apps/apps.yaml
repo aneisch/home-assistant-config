@@ -154,14 +154,6 @@ Front House Lights:
   time_on: sunset - 00:45:00
   time_off: "23:00:00"
 
-Inside Scenic Lights:
-  module: entity_timer
-  class: Timer
-  entities: light.entryway_light
-  time_on: sunset - 00:45:00
-  time_off: "23:00:00"
-  brightness: 255
-
 Workbench Shelf:
   module: follow_me
   class: Follow
@@ -192,7 +184,7 @@ Circadian Follow:
   leader: light.aquarium_light
   follower: switch.circadian_lighting_aquarium_circadian
 
-CO2 On Morning:
+CO2:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.aquarium_automation
@@ -301,7 +293,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:45:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.entryway_light
   brightness: 255
 
 Living Room Lamp Follow:

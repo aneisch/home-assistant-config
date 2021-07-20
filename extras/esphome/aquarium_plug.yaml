@@ -13,6 +13,7 @@ esphome:
 time:
   - platform: homeassistant
     id: homeassistant_time
+    timezone: 'America/Chicago'
     # Turn Off CO2 as safety in case appdaemon didn't do it
     on_time:
       - seconds: 0
