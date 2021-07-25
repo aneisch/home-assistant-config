@@ -92,7 +92,7 @@ switch:
           value: '1'
       - switch.turn_on: zone1
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone1
     turn_off_action:
       - switch.turn_off: zone1
@@ -112,7 +112,7 @@ switch:
           value: '2'
       - switch.turn_on: zone2
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone2
     turn_off_action:
       - switch.turn_off: zone2
@@ -132,7 +132,7 @@ switch:
           value: '3'
       - switch.turn_on: zone3
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone3
     turn_off_action:
       - switch.turn_off: zone3
@@ -152,7 +152,7 @@ switch:
           value: '4'
       - switch.turn_on: zone4
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone4
     turn_off_action:
       - switch.turn_off: zone4
@@ -172,7 +172,7 @@ switch:
           value: '5'
       - switch.turn_on: zone5
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone5
     turn_off_action:
       - switch.turn_off: zone5
@@ -192,7 +192,7 @@ switch:
           value: '6'
       - switch.turn_on: zone6
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone6
     turn_off_action:
       - switch.turn_off: zone6
@@ -212,7 +212,7 @@ switch:
           value: '7'
       - switch.turn_on: zone7
       - script.execute: turn_off_other_zones
-      - delay: 20min
+      - delay: 25min
       - switch.turn_off: zone7
     turn_off_action:
       - switch.turn_off: zone7
