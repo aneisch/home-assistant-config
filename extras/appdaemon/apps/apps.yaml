@@ -285,7 +285,7 @@ Kitchen Light at Night With Door:
 Garage Lights with Cover and Door:
   module: door_open
   class: DoorLight
-  door_sensor: cover.garage_door,binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door
+  trigger_sensor: cover.garage_door,binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door
   toggle_entity: switch.garage_lights
   # Turn_off is handled by automation
   #time_on: '10'
