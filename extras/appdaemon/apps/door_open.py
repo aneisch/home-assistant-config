@@ -7,8 +7,8 @@ class DoorLight(hass.Hass):
         self.activated = False
         self.device = self.args["toggle_entity"]
 
-        if "door_sensor" in self.args:
-            for sensor in self.split_device_list(self.args["door_sensor"]):
+        if "trigger_sensor" in self.args:
+            for sensor in self.split_device_list(self.args["trigger_sensor"]):
                 self.listen_state(self.state_change, sensor)
 
     def state_change(self, entity, attribute, old, new, kwargs):
@@ -22,7 +22,10 @@ class DoorLight(hass.Hass):
             # If entity off, turn it on and store a variable to let us know we did it
             if self.get_state(self.device) == "off":
                 self.log("Turning " + self.device + " On")
-                self.turn_on(self.device)
+                if "brightness" in self.args:
+                    self.turn_on(self.device, brightness=self.args["brightness"])
+                else:
+                    self.turn_on(self.device)
                 self.activated = True
 
         # When a door closes and we'd previously turned an entity on, schedule a turn_off

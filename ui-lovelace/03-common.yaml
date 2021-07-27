@@ -8,6 +8,7 @@ cards:
     show_header_toggle: false
     title: Living Room
     entities:
+      - binary_sensor.living_room_motion
       - light.living_room_lamp
       - light.living_room_lamp_2
       - type: custom:slider-entity-row

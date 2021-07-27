@@ -18,10 +18,10 @@ My Home Assistant installation contains many different components and runs on a 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
 - ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware with various devices
-  - 1 eWeLink MS01
   - 1 LDS ZBT-CCTSwitch-D0001
   - 1 LUMI lumi.sensor_cube
   - 1 Philips LWB014
+  - 2 eWeLink MS01
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
@@ -58,9 +58,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2119
-Lines of Home Assistant YAML | 5292
+Lines of Home Assistant YAML | 5293
 [Integrations](https://www.home-assistant.io/integrations/) in use | 30
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 16
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 17
  
 Description | value
 -- | --
