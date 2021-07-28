@@ -269,7 +269,7 @@ Living Room Sconces at Night With Motion:
   toggle_entity: light.living_room_sconces
   brightness: 85
   # Seconds to turn entity on when triggered
-  time_on: '30'
+  time_on: '1'
 
 Kitchen Light at Night With Door:
   module: door_open

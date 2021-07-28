@@ -308,6 +308,16 @@
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
 
+- alias: "Monitor when MacBook Active"
+  id: "monitor_macbook_active"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: binary_sensor.andrew_macbook_active
+  action:
+    - service: '{% if trigger.to_state.state == "off" %}homeassistant.turn_off{% else %}homeassistant.turn_on{% endif %}'
+      entity_id: switch.andrew_monitor
+
 - alias: "Water Sensor Alerts"
   id: "water_sensor_alert"
   trigger:
