@@ -282,6 +282,16 @@ Kitchen Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
+Front House Lights at Night With Doorbell Motion:
+  module: door_open
+  class: DoorLight
+  constrain_end_time: sunrise
+  constrain_start_time: sunset
+  trigger_sensor: binary_sensor.front_door_motion
+  toggle_entity: light.front_house_lights
+  # Seconds to turn entity on when triggered
+  time_on: '1'
+
 Garage Lights with Cover and Door:
   module: door_open
   class: DoorLight

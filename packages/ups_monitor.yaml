@@ -8,7 +8,8 @@ apcupsd:
  port: 3551
 
 #apcusd_650
-apcupsd3:
+# Custom component clone of built in apcupsd with some minor tweaks
+apcupsd2:
   port: 3552
 
 sensor:
@@ -19,7 +20,7 @@ sensor:
       - timeleft
       - status
 
-  - platform: apcupsd3
+  - platform: apcupsd2
     resources:
       - loadpct
       - bcharge

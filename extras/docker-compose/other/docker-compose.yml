@@ -214,6 +214,8 @@ services:
             # docker run -it --rm --entrypoint /app/ring-mqtt/node_modules/ring-client-api/ring-auth-cli.js tsightler/ring-mqtt
             - RINGTOKEN=TOKEN
             - ENABLEMODES=true
+            - SNAPSHOTMODE=all
+            - ENABLECAMERAS=true
         volumes:
             - '/opt/ring-mqtt:/data'
     tailscale:
