@@ -9,8 +9,9 @@ apcupsd:
 
 #apcusd_650
 # Custom component clone of built in apcupsd with some minor tweaks
-apcupsd2:
-  port: 3552
+# Disable until 2021.8 release
+#apcupsd2:
+#  port: 3552
 
 sensor:
   - platform: apcupsd
@@ -20,12 +21,13 @@ sensor:
       - timeleft
       - status
 
-  - platform: apcupsd2
-    resources:
-      - loadpct
-      - bcharge
-      - timeleft
-      - status
+  # Disable until 2021.8 release
+  # - platform: apcupsd2
+  #   resources:
+  #     - loadpct
+  #     - bcharge
+  #     - timeleft
+  #     - status
 
 automation:
   - alias: "UPS Alert"
