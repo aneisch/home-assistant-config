@@ -17,6 +17,10 @@ input_boolean:
     name: Drip Irrigation Auto Run
     icon: mdi:clock-time-two-outline
 
+  irrigation_force_run:
+    name: "Force Scheduled Run"
+    icon: mdi:sprinkler-variant
+
 input_datetime:
   irrigation_drip_last_start: 
     name: Sprinkler Drip Last Start Time 

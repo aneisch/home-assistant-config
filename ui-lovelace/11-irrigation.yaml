@@ -5,6 +5,7 @@ cards:
     entities:
       - input_boolean.drip_irrigation_scheduling
       - input_boolean.lawn_irrigation_scheduling
+      - input_boolean.irrigation_force_run
       - entity: sensor.sprinker_interrupt_reason
         name: Interrupt Reason
       - sensor.nws_precip_probability
