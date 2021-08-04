@@ -136,6 +136,7 @@ automation:
 shell_command:
   github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"Test {{ release_type }} {{ branch }} release {{ version }}\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
   update_hass: /config/scripts/update_hass.sh &
+  pull_hass: /config/scripts/pull_hass.sh &
   switch_to_beta: /config/scripts/switch_hass_running_branch.sh beta &
   switch_to_stable: /config/scripts/switch_hass_running_branch.sh stable &
 
@@ -176,6 +177,7 @@ script:
   hass_update_notify:
     # Notify and enable update button on frontend
     sequence:
+      - service: shell_command.pull_hass
       - service: notify.pushover
         data:
           message: >
