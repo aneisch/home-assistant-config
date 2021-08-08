@@ -267,7 +267,7 @@ Living Room Sconces at Night With Motion:
   constrain_start_time: sunset
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
-  brightness: 85
+  brightness: 60
   # Seconds to turn entity on when triggered
   time_on: '1'
 
