@@ -2,6 +2,8 @@
 
 - platform: uptime
 
+- platform: dnsip
+
 - platform: systemmonitor
   scan_interval:
     seconds: 60

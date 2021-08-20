@@ -161,8 +161,8 @@ services:
         volumes:
             - /opt/zwavejs:/usr/src/app/store
         ports:
-            - '8091:8091' # port for web interface
-            - '3001:3000' # port for zwave-js websocket server
+        #    - '8091:8091' # port for web interface
+            - '3000:3000' # port for zwave-js websocket server
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -188,8 +188,8 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
             - '/opt/portainer:/data'
-        ports:
-            - '9000:9000'
+        #ports:
+        #    - '9000:9000'
         environment:
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
@@ -200,8 +200,8 @@ services:
         #user: '99'
         volumes:
             - /opt/grafana:/var/lib/grafana
-        ports:
-            - '3000:3000'
+        #ports:
+        #    - '3000:3000'
         environment:
             - GF_SECURITY_ALLOW_EMBEDDING=true
             #- GF_SECURITY_COOKIE_SAMESITE=none
@@ -258,9 +258,9 @@ services:
             - DUO_IKEY=
             - DUO_SKEY=
             - DUO_HOST=
-        ports:
-            - '8777:1024'
-            - '3012:3012'
+        #ports:
+        #    - '8777:1024'
+        #    - '3012:3012'
         logging:
             driver: none
         restart: always
@@ -280,8 +280,8 @@ services:
     vscode:
         container_name: vscode
         image: linuxserver/code-server
-        ports:
-          - '8443:8443'
+        #ports:
+        #  - '8443:8443'
         volumes:
           - '/opt/vscode:/config'
           - '/opt/homeassistant/:/ha_config'
@@ -290,6 +290,8 @@ services:
         environment:
           - 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
           - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
+          - PUID=1000
+          - PGID=1000
           - HOMEASSISTANT_TOKEN=XXX
     watchtower:
         container_name: watchtower
@@ -328,7 +330,7 @@ services:
         ports:
           - 53:5353/tcp
           - 53:5353/udp
-          - 8088:8080/tcp
+        #  - 8088:8080/tcp
         restart: 'always'
     librespeed:
         image: linuxserver/librespeed
@@ -339,17 +341,17 @@ services:
           - PASSWORD=password
           - TZ=America/Chicago
         restart: 'no'
-    recipes:
-        # Public consumption at VPS, duplicated locally for home use though
-        container_name: recipes
-        image: ghcr.io/aneisch/chowdown:latest
-        user: '99'
-        ports:
-          - "4000:4000"
-        volumes:
-          - '/opt/recipes:/config'
-          - '/etc/localtime:/etc/localtime:ro'
-        restart: always
+    #recipes:
+    #    # Public consumption at VPS, duplicated locally for home use though
+    #    container_name: recipes
+    #    image: ghcr.io/aneisch/chowdown:latest
+    #    user: '99'
+    #    ports:
+    #      - "4000:4000"
+    #    volumes:
+    #      - '/opt/recipes:/config'
+    #      - '/etc/localtime:/etc/localtime:ro'
+    #    restart: always
     #tuya-convert:
     #    # https://github.com/ct-Open-Source/tuya-convert
     #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
@@ -390,3 +392,17 @@ services:
         privileged: true
         image: shaynesweeney/tailscale
         entrypoint: tailscaled
+    nginx-proxy-manager:
+        container_name: nginx-proxy-manager
+        image: jlesage/nginx-proxy-manager
+        restart: 'always'
+        environment:
+            - USER_ID=99
+            - GROUP_ID=99
+        ports:
+        #    - "8181:8181"
+            - "80:8080"
+            - "443:4443"
+        volumes:
+            - "/opt/nginx-proxy-manager:/config:rw"
+            - /etc/localtime:/etc/localtime:ro

@@ -415,6 +415,21 @@
         message: >
             Wifi speed measured at {{ trigger.to_state.attributes.download }}
 
+- alias: "Update CloudFlare Firewall Rule"
+  id: "update_cloudflare_firewall_rule"
+  trigger:
+    - platform: state
+      entity_id: sensor.myip
+  action:
+    - service: shell_command.update_cloudflare_firewall
+      data:
+        old: "{{ trigger.from_state.state }}"
+        new: "{{ trigger.to_state.state }}"
+    - service: notify.pushover
+      data:
+        message: >
+          CloudFlare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
+
 - alias: "Compost Turn Reset"
   id: "compost_turn_reset"
   trigger:

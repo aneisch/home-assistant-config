@@ -27,6 +27,10 @@ cards:
             icon: "mdi:arrow-up-bold"
             entity: sensor.home_wifi_speedtest
             attribute: "upload"
+          - entity: sensor.speedtest_download
+            name: Frontier Download
+          - entity: sensor.speedtest_upload
+            name: Frontier Upload
       - type: custom:vertical-stack-in-card
         cards:
           - type: markdown

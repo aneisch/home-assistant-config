@@ -156,8 +156,7 @@ homekit: !include homekit.yaml
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 127.0.0.1
-    - ::1
+    - 172.21.0.0/24 # Nginx Proxy Manager
   server_port: 8123
 
 influxdb:
