@@ -264,7 +264,7 @@ Living Room Sconces at Night With Motion:
   module: door_open
   class: DoorLight
   constrain_end_time: sunrise
-  constrain_start_time: sunset
+  constrain_start_time: '01:00:00'
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
   brightness: 60
