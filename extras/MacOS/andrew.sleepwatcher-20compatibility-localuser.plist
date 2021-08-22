@@ -1,5 +1,6 @@
 <!--
 ~/Library/LaunchAgents/andrew.sleepwatcher-20compatibility-localuser.plist
+launchctl load ~/Library/LaunchAgents/andrew.sleepwatcher-20compatibility-localuser.plist
 -->
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -10,6 +11,7 @@
         <key>ProgramArguments</key>
         <array>
                 <string>/usr/local/sbin/sleepwatcher</string>
+                <string>-V</string>
                 <string>-t3000</string>
                 <string>-i '/usr/local/bin/macbook_inactive.sh'</string>
                 <string>-R '/usr/local/bin/macbook_active.sh'</string>
