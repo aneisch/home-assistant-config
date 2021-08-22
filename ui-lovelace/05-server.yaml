@@ -145,7 +145,6 @@ cards:
         show_header_toggle: false
         entities:
           - input_boolean.rack_fan_auto_off
-          - fan.rack_fan
           - switch.adguard_protection
           - entity: switch.nas
             name: "NAS / Plex"
