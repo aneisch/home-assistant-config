@@ -71,7 +71,7 @@ class AutoAdjust(hass.Hass):
                 self.run_in(self.adjust_temp, 5, temp = self.args["cool_unoccupied"])
 
     # Set day time temperature
-    def adjust_morning(self, kwargs):
+    def adjust_morning(self, *kwargs):
         if self.get_state(self.args["device_tracker"]) == "home":
             # Do nothing if AC off
             if self.get_state("sensor.thermostat_operating_mode").lower() == "off":
@@ -105,7 +105,7 @@ class AutoAdjust(hass.Hass):
         return response, 200
 
 
-    def adjust_night(self, kwargs):
+    def adjust_night(self, *kwargs):
         if self.get_state(self.args["device_tracker"]) == "home":
             # Do nothing if AC off
             if self.get_state("sensor.thermostat_operating_mode").lower() == "off":

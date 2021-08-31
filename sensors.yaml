@@ -23,6 +23,15 @@
     - type: load_5m
     - type: load_15m
 
+- platform: rest
+  name: "Verizon Network Extender Status"
+  resource: 'http://10.0.1.47/cgi-bin/femto_status.cgi'
+  value_template: '{% if value_json.data.service_status == 0 %}In Service{% else %}Out of Service{% endif %}'
+  json_attributes_path: "$.data"
+  json_attributes:
+    - connected_users
+    - gps_status
+
 - platform: mqtt
   state_topic: "sensor/rsync_nuc"
   name: "Last NUC Backup Completed"

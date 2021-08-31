@@ -5,7 +5,7 @@ substitutions:
 esphome:
   name: ${name}
   platform: ESP8266
-  board: esp01_1m
+  board: esp8285
 
 <<: !include common.yaml
 

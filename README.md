@@ -21,6 +21,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 LDS ZBT-CCTSwitch-D0001
   - 1 LUMI lumi.sensor_cube
   - 1 Philips LWB014
+  - 1 unk_manufacturer unk_model
   - 2 eWeLink MS01
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
@@ -58,9 +59,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2119
-Lines of Home Assistant YAML | 5349
+Lines of Home Assistant YAML | 5370
 [Integrations](https://www.home-assistant.io/integrations/) in use | 31
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 17
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 18
  
 Description | value
 -- | --
@@ -79,9 +80,10 @@ Entities in the [`input_datetime`](https://www.home-assistant.io/components/inpu
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 6
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 2
-Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
+Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 38
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 10
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 5
+Entities in the [`persistent_notification`](https://www.home-assistant.io/components/persistent_notification) domain | 1
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1

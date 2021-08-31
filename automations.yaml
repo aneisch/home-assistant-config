@@ -143,8 +143,19 @@
   action:
     - service: notify.pushover
       data:
-        message: "The thermostat appears to be offline.."
+        message: "The thermostat appears to be offline..."
 
+- alias: "Notify when Verizon Extender Offline"
+  id: "notify_verizon_extender_offline"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: sensor.verizon_network_extender_status
+      from: "In Service"
+  action:
+    - service: notify.pushover
+      data:
+        message: "The Verizon extender appears to be out of service..."
 
 - alias: "Notify when AC setting changes"
   id: "ac_notify_change"
@@ -319,6 +330,7 @@
     platform: state
     entity_id: binary_sensor.andrew_macbook_active
     to: "off"
+    for: '00:15:00'
   condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
   action:
     - service: homeassistant.turn_off
