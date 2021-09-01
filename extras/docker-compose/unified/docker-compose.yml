@@ -8,6 +8,7 @@ services:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
           - /opt/homeassistant:/config
+          - /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
           - /var/run/docker.sock:/var/run/docker.sock
           - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
           - /tmp/radar.gif:/tmp/radar.gif

@@ -28,6 +28,8 @@ homeassistant:
     - type: trusted_networks
       trusted_networks:
         - 10.0.1.0/24
+  allowlist_external_dirs:
+    - "/tmp"
 
 alexa: !include alexa.yaml
 
@@ -106,6 +108,13 @@ device_tracker:
     hosts: 
       - 10.0.1.24/32
       - 10.0.1.59/32
+
+# Watch for nginx proxy manager changes
+folder_watcher:
+  - folder: /tmp
+    use_polling: True
+    patterns:
+      - 'database.sqlite'
 
 monitor_docker:
   #scan_interval: 60

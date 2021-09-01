@@ -432,6 +432,7 @@
   trigger:
     - platform: state
       entity_id: sensor.myip
+  condition: '{{ trigger.to_state.state != "unknown" }}'
   action:
     - service: shell_command.update_cloudflare_firewall
       data:
@@ -440,7 +441,22 @@
     - service: notify.pushover
       data:
         message: >
-          CloudFlare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
+          Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
+
+- alias: "Sync Cloudflare CNAME Records"
+  id: "sync_cloudflare_cnames"
+  trigger:
+    platform: event
+    event_type: folder_watcher
+    event_data:
+      event_type: modified
+  action:
+    - service: shell_command.sync_cloudflare_records
+    - service: notify.pushover
+      data:
+        message: >
+          Cloudflare Records Synced
+
 
 - alias: "Compost Turn Reset"
   id: "compost_turn_reset"

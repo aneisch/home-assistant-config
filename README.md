@@ -59,20 +59,20 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2119
-Lines of Home Assistant YAML | 5370
+Lines of Home Assistant YAML | 5393
 [Integrations](https://www.home-assistant.io/integrations/) in use | 31
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 18
  
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 65
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 66
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 60
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 12
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 2
-Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 4
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 3
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 12
 Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 21
@@ -83,7 +83,6 @@ Entities in the [`input_text`](https://www.home-assistant.io/components/input_te
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 38
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 10
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 5
-Entities in the [`persistent_notification`](https://www.home-assistant.io/components/persistent_notification) domain | 1
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`proximity`](https://www.home-assistant.io/components/proximity) domain | 1
@@ -91,7 +90,7 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 6
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 37
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 1
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 252
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 253
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 83

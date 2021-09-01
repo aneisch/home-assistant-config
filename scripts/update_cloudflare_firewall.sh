@@ -3,7 +3,7 @@
 # Update cloudflare firewall rule for restricted things
 
 # API token
-token="XXX"
+token="TOKEN")
 # Find this on right on zone home page
 zone="XXX"
 # Find this from API
