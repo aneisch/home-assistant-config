@@ -20,6 +20,7 @@ def add_cloudflare_record(dns_name):
 
     try:
         r = cf.zones.dns_records.post(zone_id, data=dns_record)
+        print(r)
     except CloudFlare.CloudFlareAPIError as e:
         pass
 
