@@ -13,10 +13,10 @@ cur = con.cursor()
 cf = CloudFlare.CloudFlare()
 
 def add_cloudflare_record(dns_name):
-    zone_id = "966f52dba7e90f4f9847a446f4d5d48a"
-    cf = CloudFlare.CloudFlare(token='zrs-P94o4y8eydStRaZDeqmEAweoSBoqaU0x7r3a')
+    zone_id = "ZONE_ID"
+    cf = CloudFlare.CloudFlare(token="TOKEN")
 
-    dns_record = {'name': dns_name, 'type':'CNAME', 'content':'pi.aneis.ch', 'proxied': True}
+    dns_record = {'name': dns_name, 'type':'CNAME', 'content':'google.com', 'proxied': True}
 
     try:
         r = cf.zones.dns_records.post(zone_id, data=dns_record)
