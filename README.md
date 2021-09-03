@@ -35,8 +35,8 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 GE/Jasco 45603
   - 2 GE/Jasco 45604
   - 1 Leviton DZPA1
-  - 2 Nortek Security _ZWAVEDEVICES_ Control LLC WADWAZ-1
-  - 1 Nortek Security _ZWAVEDEVICES_ Control LLC WAPIRZ-1
+  - 2 Nortek Security + Control LLC WADWAZ-1
+  - 1 Nortek Security + Control LLC WAPIRZ-1
   - 5 Zooz ZEN21
   - 6 Zooz ZEN27
   - 3 Zooz ZEN30
