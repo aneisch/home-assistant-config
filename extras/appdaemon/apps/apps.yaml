@@ -249,6 +249,22 @@ Bethany Vehicle:
   notify: pushover # The name of the notify service
   message: "It's time to renew Bethany's vehicle registration!"
 
+Garage Exterior Light at Night With Door:
+  module: door_open
+  class: DoorLight
+  constrain_end_time: sunrise
+  constrain_start_time: sunset
+  trigger_sensor: binary_sensor.garage_exterior_door
+  toggle_entity: light.garage_exterior_door
+  # Seconds to turn entity on when triggered
+  time_on: '1'
+
+Ensure Garage Exterior Light Off:
+  module: entity_timer
+  class: Timer
+  entities: light.garage_exterior_door
+  time_off: "00:00:00"
+
 Office Light at Night With Door:
   module: door_open
   class: DoorLight

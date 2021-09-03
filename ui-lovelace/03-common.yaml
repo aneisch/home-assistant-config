@@ -85,6 +85,7 @@ cards:
       - light.front_sconces
       - light.back_porch_light
       - light.garage_exterior_light
+      - light.garage_exterior_door
       - switch.garage_lights
       - switch.workbench_shelf_leds
       #- switch.christmas_lights

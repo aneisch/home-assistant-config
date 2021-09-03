@@ -43,6 +43,7 @@ automation:
         entity_id: binary_sensor.garage_exterior_door
         from: 'off'
         to: 'on'
+    condition: '{{ states("input_boolean.security_status") == "on" }}'
     action:
       - event: take_garage_snapshot
         event_data:

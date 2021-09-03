@@ -162,6 +162,7 @@ script:
   hass_update_install:
     # Notify and install latest version
     sequence:
+      - service: shell_command.pull_hass
       - service: notify.pushover
         data:
           message: >

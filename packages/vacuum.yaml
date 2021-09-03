@@ -338,6 +338,11 @@ input_select:
       - Back Bathroom
 
 script:
+  vacuum_locate:
+    sequence:
+      - service: vacuum.locate
+        entity_id: vacuum.roborock_s4
+
   vacuum_park_trashcan:
     sequence:
       - service: xiaomi_miio.vacuum_goto

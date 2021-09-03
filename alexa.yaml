@@ -58,6 +58,7 @@ smart_home:
       - script.vacuum_clean_bethany_office
       - script.vacuum_clean_master_bedroom
       - script.vacuum_clean_guest_bedroom
+      - script.vacuum_locate
       - sensor.master_bedroom_temperature
       - switch.master_bedroom_ceiling_fan
       - sensor.office_temperature

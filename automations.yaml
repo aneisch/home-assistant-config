@@ -402,8 +402,8 @@
   trigger:
     - platform: numeric_state
       entity_id: 
-        - sensor.washing_machine_water_detector_battery_level
-        - sensor.water_heater_water_detector_battery_level
+        # - sensor.washing_machine_water_detector_battery_level
+        # - sensor.water_heater_water_detector_battery_level
         - sensor.hallway_alarm_battery_level
         - sensor.kitchen_alarm_battery_level
         - sensor.garage_interior_motion_battery_level
