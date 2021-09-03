@@ -35,12 +35,12 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 GE/Jasco 45603
   - 1 GE/Jasco 45604
   - 1 Leviton DZPA1
-  - 1 None None
+  - 2 None None
   - 2 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 5 Zooz ZEN21
   - 6 Zooz ZEN27
-  - 3 Zooz ZEN30
+  - 5 Zooz ZEN30
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))

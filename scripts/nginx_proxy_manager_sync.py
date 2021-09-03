@@ -27,7 +27,8 @@ def add_cloudflare_record(dns_name):
 for row in cur.execute('SELECT domain_names FROM proxy_host'):
         domain_names = eval(row[0])
         for name in domain_names:
-            try:
-                add_cloudflare_record(name.split(".")[0])
-            except:
-                pass
+            if "mydomain.com" in name:
+                try:
+                    add_cloudflare_record(name.split(".")[0])
+                except:
+                    pass
