@@ -27,19 +27,19 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - OpenZWave (beta) using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
-  - 1 12719 Plug-in Smart Switch
-  - 1 [12720 Outdoor Smart Switch](https://amzn.to/3m4Rsqi)
-  - 1 12722 On/Off Relay Switch
-  - 1 Leviton DZPA1 Plug-In Outlet
-  - 1 Unknown: type=0000, id=0000
-  - 1 [WAPIRZ-1 Motion Sensor](https://amzn.to/2LhyH5F)
-  - 1 [ZW090 Z-Stick Gen5 US](https://amzn.to/39cmb1b)
-  - 2 12730 Fan Control Switch
-  - 2 WADWAZ-1 Door/Window Sensor
-  - 2 [ZCombo-G Smoke/CO Alarm](https://amzn.to/2VOXBLY)
-  - 3 [ZEN30 Double Switch](https://amzn.to/39kGkSC)
-  - 5 [ZEN21 Switch V3](https://amzn.to/33hhTBT)
-  - 6 [ZEN27 S2 Dimmer Wall Switch](https://amzn.to/3q2hm0C)
+  - 1 AEON Labs DSA03XXX-ZW
+  - 1 AEON Labs ZW090
+  - 2 First Alert (BRK Brands Inc) ZCOMBO
+  - 1 GE/Jasco 12722 / ZW4005
+  - 2 GE/Jasco 12730  / ZW4002
+  - 1 GE/Jasco 45603
+  - 2 GE/Jasco 45604
+  - 1 Leviton DZPA1
+  - 2 Nortek Security _ZWAVEDEVICES_ Control LLC WADWAZ-1
+  - 1 Nortek Security _ZWAVEDEVICES_ Control LLC WAPIRZ-1
+  - 5 Zooz ZEN21
+  - 6 Zooz ZEN27
+  - 3 Zooz ZEN30
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
@@ -72,7 +72,7 @@ Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) 
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 12
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 2
-Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 3
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 4
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 12
 Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 21
@@ -97,7 +97,7 @@ Entities in the [`switch`](https://www.home-assistant.io/components/switch) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **692**
+**Total state objects** | **693**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
