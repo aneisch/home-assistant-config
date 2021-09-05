@@ -29,6 +29,7 @@ smart_home:
       - fan.living_room_ceiling_fan
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
+      - light.bethany_office_ceiling_fan
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.dining_room_light
@@ -60,6 +61,7 @@ smart_home:
       - script.vacuum_clean_guest_bedroom
       - script.vacuum_locate
       - sensor.master_bedroom_temperature
+      - switch.bethany_office_ceiling_fan
       - switch.master_bedroom_ceiling_fan
       - sensor.office_temperature
       - switch.christmas_tree
@@ -91,6 +93,9 @@ smart_home:
     light.bethany_nightand_lamp:
       name: "Bethany's Lamp"
       description: "Bethany's nightstand lamp"
+
+    light.bethany_office_ceiling_fan:
+      name: "Bethany's Office Ceiling Fan Light"
 
     light.guest_nightstand_lamp:
       name: "Guest Bedroom Lamp"
@@ -185,17 +190,16 @@ smart_home:
       description: "TV Power"
       display_categories: TV
 
-    switch.master_bathroom_light_switch:
-      name: "Bathroom Light"
-      description: "Master Bathroom Light"
-      display_categories: LIGHT
-
     switch.nas:
       name: "Plex"
       display_categories: SWITCH
 
+    switch.bethany_office_ceiling_fan:
+      name: "Bethany's Office Fan"
+      display_categories: FAN
+
     switch.master_bedroom_ceiling_fan:
-      name: "Master Bedroom Ceiling Fan"
+      name: "Master Bedroom Fan"
       display_categories: FAN
 
     switch.vacuum:

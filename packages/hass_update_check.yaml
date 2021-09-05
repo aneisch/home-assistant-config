@@ -183,7 +183,7 @@ script:
           message: >
             Not Installing: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
             Changes: https://git.io/JvkT4
-            Tested: https://git.io/
+            Tested: https://git.io/JvkTY
       - service: homeassistant.turn_on
         entity_id: input_boolean.hass_update_available
 

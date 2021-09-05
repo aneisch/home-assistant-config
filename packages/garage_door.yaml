@@ -142,3 +142,17 @@ script:
         data:
           parameter: LED Indicator Color for Relay
           value: '{{ color }}'
+
+      # Bethany's Office
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.bethany_office_ceiling_fan
+        data:
+          parameter: LED Indicator Color for Dimmer
+          value: '{{ color }}'
+      - service: zwave_js.set_config_parameter
+        target:
+          entity_id: light.bethany_office_ceiling_fan
+        data:
+          parameter: LED Indicator Color for Relay
+          value: '{{ color }}'
