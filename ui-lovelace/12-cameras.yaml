@@ -8,20 +8,35 @@ cards:
 
   - type: picture-entity
     entity: camera.aarlo_garage
+    name: Last Capture
     show_state: false
-    show_name: false
 
   - type: picture-entity
     entity: camera.back_porch
+    name: Last Capture
     show_state: false
-    show_name: false
 
   - type: picture-entity
     entity: camera.front_door
+    name: Last Capture
     show_state: false
-    show_name: false
 
   - type: picture-entity
     entity: camera.garage
+    name: Last Capture
     show_state: false
-    show_name: false
+
+  - type: picture-entity
+    entity: camera.back_porch_live
+    name: Stream
+    show_state: false
+
+  - type: picture-entity
+    entity: camera.front_door_live
+    name: Stream
+    show_state: false
+
+  - type: picture-entity
+    entity: camera.garage_live
+    name: Stream
+    show_state: false

@@ -494,6 +494,8 @@ spotify:
   client_id: !secret spotify_client_id
   client_secret: !secret spotify_client_secret
 
+stream:
+
 sun:
 
 switch: !include switches.yaml

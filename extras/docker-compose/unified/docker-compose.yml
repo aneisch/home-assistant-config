@@ -374,8 +374,11 @@ services:
         container_name: ring-mqtt
         image: tsightler/ring-mqtt
         restart: 'always'
-        user: '99'
+        #user: '99'
+        ports:
+            - 8554:8554
         environment:
+            - S6_READ_ONLY_ROOT=1
             - MQTTHOST=10.0.1.22
             # docker run -it --rm --entrypoint /app/ring-mqtt/node_modules/ring-client-api/ring-auth-cli.js tsightler/ring-mqtt
             - RINGTOKEN=TOKEN

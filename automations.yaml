@@ -452,11 +452,6 @@
       event_type: modified
   action:
     - service: shell_command.sync_cloudflare_records
-    - service: notify.pushover
-      data:
-        message: >
-          Cloudflare Records Synced
-
 
 - alias: "Compost Turn Reset"
   id: "compost_turn_reset"

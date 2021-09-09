@@ -1,7 +1,3 @@
-#- platform: generic
-#  still_image_url: !secret weather_url
-#  name: Weather
-
 # Updating this with cronjob
 - platform: local_file
   file_path: /tmp/radar.gif
@@ -15,17 +11,17 @@
 #  mjpeg_url: http://10.0.0.26:8080/?action=stream
 #  name: Outdoor
 
-#- platform: ffmpeg
-#  input: /opt/nodered/garden_timelapse/garden_timelapse.mp4
-#  name: Garden Timelapse
-#  extra_arguments: '-q:v 2 -r 3'
+- platform: generic
+  name: Back Porch Live
+  still_image_url: http://10.0.1.22:8123{{ states.camera.back_porch_snapshot.attributes.entity_picture }}
+  stream_source: rtsp://10.0.1.22:8554/10cea9e1c2ee_live
 
-#- platform: ffmpeg
-#  input: /opt/nodered/front_timelapse/front_timelapse.mp4
-#  name: Front Timelapse
-#  extra_arguments: '-q:v 2 -r 3'
+- platform: generic
+  name: Garage Live
+  still_image_url: http://10.0.1.22:8123{{ states.camera.garage_snapshot.attributes.entity_picture }}
+  stream_source: rtsp://10.0.1.22:8554/0cb2b774a9ab_live
 
-#- platform: ffmpeg
-#  input: /opt/nodered/side_timelapse/side_timelapse.mp4
-#  name: Side Timelapse
-#  extra_arguments: '-q:v 2 -r 3'
+- platform: generic
+  name: Front Door Live
+  still_image_url: http://10.0.1.22:8123{{ states.camera.front_door_snapshot.attributes.entity_picture }}
+  stream_source: rtsp://10.0.1.22:8554/e04f43a51cbd_live
