@@ -77,7 +77,7 @@ Occupancy Simulator:
   dump_times: '1'
   log_msg: '1'
   step_evening_name: Evening
-  step_evening_start: sunset - 00:45:00
+  step_evening_start: sunset - 00:20:00
   step_night_name: Night
   step_night_start: '23:59:59'
 
@@ -145,13 +145,13 @@ Front Porch Switch:
   # The switchs might have been manually turned off
   # bulbs are ZigBee
   entities: switch.front_porch_lights,switch.front_sconces
-  time_on: sunset - 00:45:00
+  time_on: sunset - 00:20:00
 
 Front House Lights:
   module: entity_timer
   class: Timer
   entities: light.front_porch_lights,light.front_sconces
-  time_on: sunset - 00:45:00
+  time_on: sunset - 00:20:00
   time_off: "23:00:00"
 
 Workbench Shelf:
@@ -306,7 +306,7 @@ Front House Lights at Night With Doorbell Motion:
   trigger_sensor: binary_sensor.front_door_motion
   toggle_entity: light.front_house_lights
   # Seconds to turn entity on when triggered
-  time_on: '1'
+  time_on: '30'
 
 Garage Lights with Cover and Door:
   module: door_open
@@ -329,7 +329,7 @@ Indoor Light Automation Sunset:
   class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
-  time_on: sunset - 00:45:00
+  time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.entryway_light
   brightness: 255
 

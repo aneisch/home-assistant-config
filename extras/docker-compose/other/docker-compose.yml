@@ -210,7 +210,7 @@ services:
         container_name: ring-mqtt
         image: tsightler/ring-mqtt
         restart: 'always'
-        #user: '99'
+        user: '99'
         ports:
             - 8554:8554
         environment:
