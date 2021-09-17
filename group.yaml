@@ -77,4 +77,4 @@ off_at_bedtime:
 andrew_desk:
   entities:
       - light.andrew_desk_lamp
-      - light.andrew_monitor_backlight
+      - switch.andrew_monitor

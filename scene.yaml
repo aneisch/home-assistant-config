@@ -8,26 +8,6 @@
       transition: 5
       rgb_color: [255, 255, 255]
 
-- name: Monitor Backlight Full
-  entities:
-    light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-
-- name: Monitor Backlight Full Red
-  entities:
-    light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-      rgb_color: [255, 0, 0]
-
-- name: Monitor Backlight Full White
-  entities:
-    light.andrew_monitor_backlight:
-      state: on
-      brightness: 255
-      rgb_color: [255, 255, 255]
-
 - name: Master Lamps Slow On
   entities: 
     light.master_bedroom_lamps:
