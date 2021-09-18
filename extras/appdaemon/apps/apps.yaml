@@ -252,12 +252,12 @@ Bethany Vehicle:
 Garage Exterior Light at Night With Door:
   module: door_open
   class: DoorLight
-  constrain_end_time: sunrise
   constrain_start_time: sunset
+  constrain_end_time: sunrise
   trigger_sensor: binary_sensor.garage_exterior_door
-  toggle_entity: light.garage_exterior_door
+  toggle_entity: switch.garage_exterior_light
   # Seconds to turn entity on when triggered
-  time_on: '1'
+  time_on: '5'
 
 Ensure Garage Exterior Light Off:
   module: entity_timer

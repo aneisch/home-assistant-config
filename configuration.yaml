@@ -222,10 +222,11 @@ light:
         version: 5
         port: 8899
         groups:
-        - number: 1
-          type: rgbw
-          name: Garage
-          fade: on
+        # big bulbs
+        #- number: 1 
+        #  type: rgbw
+        #  name: Garage
+        #  fade: on
         - number: 2
           type: rgbw
           name: aquarium_light
