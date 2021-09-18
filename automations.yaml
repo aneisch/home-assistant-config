@@ -615,3 +615,16 @@
         #   priority: 2
         #   expire: 3600
         #   retry: 30
+
+- alias: "Garage Exterior Switch Scenes"
+  id: "garage_exterior_scenes"
+  trigger:
+    - platform: event
+      event_type: zwave_js_value_notification
+      event_data:
+        node_id: 39
+        # Double tap up
+        value: 3
+  action:
+    - service: homeassistant.turn_on
+      entity_id: switch.garage_lights
