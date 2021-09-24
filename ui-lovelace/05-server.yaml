@@ -162,7 +162,6 @@ cards:
     show_header_toggle: false
     title: Docker
     entities:
-      - switch.docker_vscode
       - switch.docker_esphome
       - switch.docker_grafana
       - switch.docker_librespeed
@@ -170,15 +169,16 @@ cards:
       - switch.docker_portainer
       - switch.docker_watchtower
       - switch.docker_adguard
-      #- switch.docker_apcupsd_950
+      - switch.docker_apcupsd_950
       - switch.docker_apcupsd_650
       - switch.docker_appdaemon
       - switch.docker_influxdb
       - switch.docker_mariadb
       - switch.docker_mosquitto
       - switch.docker_nodered
-      - switch.docker_zwavejs
       - switch.docker_thermostat_api_server
+      - switch.docker_vscode
+      - switch.docker_zwavejs
 
   #- type: custom:gui-sandbox
 

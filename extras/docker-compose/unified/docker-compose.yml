@@ -283,6 +283,7 @@ services:
         image: linuxserver/code-server
         #ports:
         #  - '8443:8443'
+        restart: always
         volumes:
           - '/opt/vscode:/config'
           - '/opt/homeassistant/:/ha_config'

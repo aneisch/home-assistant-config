@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2021.9.6%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2021.9.7%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -39,7 +39,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 5 Zooz ZEN21
   - 6 Zooz ZEN27
-  - 3 Zooz ZEN30
+  - 6 Zooz ZEN30
   - 1 Zooz ZEN71
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
@@ -67,7 +67,7 @@ Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 19
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 67
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 68
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 61
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
@@ -81,7 +81,7 @@ Entities in the [`input_datetime`](https://www.home-assistant.io/components/inpu
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 6
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 2
-Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
+Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 38
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 10
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 5
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
