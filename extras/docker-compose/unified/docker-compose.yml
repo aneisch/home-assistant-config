@@ -154,8 +154,8 @@ services:
           timeout: 5s
           retries: 3
         restart: always
-        labels:
-          com.centurylinklabs.watchtower.monitor-only: "true"
+        #labels:
+        #  com.centurylinklabs.watchtower.monitor-only: "true"
         stop_signal: SIGINT
         devices:
             - '/dev/zwave:/dev/zwave'
