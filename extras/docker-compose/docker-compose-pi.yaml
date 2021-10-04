@@ -1,4 +1,4 @@
-# Raspberry Pi in Attic
+# Raspberry Pi in Attic, OS is https://blog.hypriot.com/downloads/
 version: '3.2'
 services:
     433_mqtt:
