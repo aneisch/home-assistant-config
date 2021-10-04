@@ -25,7 +25,7 @@ home_occupied:
       data:
         entity_id: 
           - light.master_bedroom_lamps
-          - light.living_room_sconces
+          #- light.living_room_sconces
         # Not so bright if it's late..
         brightness: > 
           {% if now().hour >= 20 %}

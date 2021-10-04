@@ -443,6 +443,7 @@ recorder:
       - script.zen30_led_color_change
       - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
+      - sensor.kitchen_next_timer
       - sensor.irrigation_time_remaining
       - sensor.last_boot
       - sensor.load_1m

@@ -1,4 +1,4 @@
-AutoAdjust:
+AC Automation:
   module: ac_automation
   class: AutoAdjust
   constrain_input_boolean: input_boolean.ac_automation
@@ -139,21 +139,6 @@ Occupancy Simulator:
   step_dark_off_7: light.guest_nightstand_lamp
   step_dark_off_8: light.back_bedroom_nightstand_lamp
 
-Front Porch Switch:
-  module: entity_timer
-  class: Timer
-  # The switchs might have been manually turned off
-  # bulbs are ZigBee
-  entities: switch.front_porch_lights,switch.front_sconces
-  time_on: sunset - 00:20:00
-
-Front House Lights:
-  module: entity_timer
-  class: Timer
-  entities: light.front_porch_lights,light.front_sconces
-  time_on: sunset - 00:20:00
-  time_off: "23:00:00"
-
 Workbench Shelf:
   module: follow_me
   class: Follow
@@ -184,13 +169,13 @@ Circadian Follow:
   leader: light.aquarium_light
   follower: switch.circadian_lighting_aquarium_circadian
 
-CO2:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: switch.aquarium_co2
-  time_on: "07:00:00"
-  time_off: "16:30:00"
+# CO2:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: input_boolean.aquarium_automation
+#   entities: switch.aquarium_co2
+#   time_on: "07:00:00"
+#   time_off: "16:30:00"
 
 Aquarium Light On Morning:
   module: entity_timer
@@ -259,12 +244,6 @@ Garage Exterior Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '5'
 
-Ensure Garage Exterior Light Off:
-  module: entity_timer
-  class: Timer
-  entities: light.garage_exterior_door
-  time_off: "00:00:00"
-
 Office Light at Night With Door:
   module: door_open
   class: DoorLight
@@ -276,17 +255,6 @@ Office Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: '30'
 
-Living Room Sconces at Night With Motion:
-  module: door_open
-  class: DoorLight
-  constrain_end_time: sunrise
-  constrain_start_time: '01:00:00'
-  trigger_sensor: binary_sensor.living_room_motion
-  toggle_entity: light.living_room_sconces
-  brightness: 60
-  # Seconds to turn entity on when triggered
-  time_on: '1'
-
 Kitchen Light at Night With Door:
   module: door_open
   class: DoorLight
@@ -297,6 +265,17 @@ Kitchen Light at Night With Door:
   toggle_entity: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
   time_on: '30'
+
+Living Room Sconces at Night With Motion:
+  module: door_open
+  class: DoorLight
+  constrain_end_time: sunrise
+  constrain_start_time: '01:00:00'
+  trigger_sensor: binary_sensor.living_room_motion
+  toggle_entity: light.living_room_sconces
+  brightness: 70
+  # Seconds to turn entity on when triggered
+  time_on: '1'
 
 Front House Lights at Night With Doorbell Motion:
   module: door_open
@@ -330,7 +309,29 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.entryway_light
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces
+  brightness: 255
+
+Front Porch Switch Sunset:
+  module: entity_timer
+  class: Timer
+  # The switchs might have been manually turned off
+  # bulbs are ZigBee
+  entities: switch.front_porch_lights,switch.front_sconces
+  time_on: sunset - 00:15:00
+
+Front House Lights Sunset:
+  module: entity_timer
+  class: Timer
+  entities: light.front_porch_lights,light.front_sconces
+  time_on: sunset - 00:20:00
+  time_off: "23:00:00"
+
+Entryway Light Sunset:
+  module: entity_timer
+  class: Timer
+  time_on: sunset - 00:20:00
+  entities: light.entryway_light
   brightness: 255
 
 Living Room Lamp Follow:
@@ -340,31 +341,25 @@ Living Room Lamp Follow:
   leader: light.master_bedroom_lamps
   follower: light.living_room_lamps
 
-#Guest Lamp Follow Master:
-#  module: follow_me
-#  class: Follow
-#  constrain_input_boolean: input_boolean.guest_mode,off
-#  leader: light.master_bedroom_lamps
-#  follower: light.guest_nightstand_lamp
-
 Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
   leader: input_boolean.security_status
   follower: input_boolean.door_notify,input_boolean.occusim
 
-# Algo Timer:
-#  module: algo_timer
-#  class: SmartTimer
-#  db_location: /opt/homeassistant/home-assistant_v2.db
-#  entity_id: switch.bathroom_light_switch
-#  debug: True
-
 Timer:
- module: timer
- class: Timer
- timer_entity: sensor.kitchen_next_timer
- # what entity will hold the countdown state?
- countdown_destination_entity: sensor.kitchen_timer_countdown
- # Publish to MQTT (remove mqtt entry if you don't want..)
- mqtt: True
+  module: timer
+  class: Timer
+  timer_entity: sensor.kitchen_next_timer
+  # what entity will hold the countdown state?
+  countdown_destination_entity: sensor.kitchen_timer_countdown
+  # Publish to MQTT (remove mqtt entry if you don't want..)
+  mqtt: True
+
+TV Automation Smallgroup:
+  module: entity_timer
+  constrain_days: wed
+  class: Timer
+  time_off: "18:00:00"
+  time_on: "22:00:00"
+  entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
