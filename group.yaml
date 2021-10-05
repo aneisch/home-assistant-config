@@ -28,7 +28,7 @@ master_bedroom:
 guest_bedroom:
   name: Guest Bedroom
   entities:
-    - light.guest_nightstand_lamp
+    - light.guest_bedroom_nightstand_lamp
 
 back_bedroom:
   name: Back Bedroom

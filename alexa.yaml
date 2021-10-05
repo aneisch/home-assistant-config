@@ -33,7 +33,7 @@ smart_home:
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.dining_room_light
-      - light.guest_nightstand_lamp
+      - light.guest_bedroom_nightstand_lamp
       - light.kitchen_lights
       - light.kitchen_sink_light
       - light.kitchen_can_lights
@@ -97,7 +97,7 @@ smart_home:
     light.bethany_office_ceiling_fan:
       name: "Bethany's Office Ceiling Fan Light"
 
-    light.guest_nightstand_lamp:
+    light.guest_bedroom_nightstand_lamp:
       name: "Guest Bedroom Lamp"
 
     light.living_room_ceiling_fan:
