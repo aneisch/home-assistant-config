@@ -56,8 +56,6 @@ services:
             - '/opt/mosquitto/config:/mosquitto/config:ro'
             - '/opt/mosquitto/log:/mosquitto/log'
             - '/opt/mosquitto/data:/mosquitto/data'
-            # Hack for letsencrypt root expiry
-            - '/etc/ssl/ca.pem:/cert/ca.pem:ro'
         ports:
             - '1883:1883'
         restart: always
