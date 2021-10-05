@@ -21,7 +21,7 @@ import appdaemon.plugins.hass.hassapi as hass
 # Version 1.0:
 #   Initial Version
 
-class ZigbeeRemote(hass.Hass):
+class EcoSmartZigbeeRemote(hass.Hass):
 
   def initialize(self):
     
@@ -34,6 +34,47 @@ class ZigbeeRemote(hass.Hass):
     on = "button_{}_on".format(buttons[command])
     off = "button_{}_off".format(buttons[command])
     toggle = "button_{}_toggle".format(buttons[command])
+
+    if on in self.args:
+      self.log("Turning {} on".format(self.args[on]))
+      self.turn_on(self.args[on])
+
+    elif off in self.args:
+      type, id = self.args[off].split(".")
+      if type == "scene":
+        self.log("Turning {} on".format(self.args[off]))
+        self.turn_on(self.args[off])
+      else:
+        self.log("Turning {} off".format(self.args[off]))
+        self.turn_off(self.args[off])
+
+    elif toggle in self.args:
+      self.log("Toggling {}".format(self.args[toggle]))
+      self.toggle(self.args[toggle])
+
+
+class SengledZigbeeRemote(hass.Hass):
+
+  def initialize(self):
+    
+    self.listen_event(self.zha_event, "zha_event", device_ieee = self.args["device_ieee"])
+    
+  def zha_event(self, event_name, data, kwargs):
+    self.log("Event: {}, data = {}, args = {}".format(event_name, data, kwargs))
+    command = data["command"]
+    args = data["args"]
+
+    if args == [0, 1, 0]:
+      command = '2'
+    elif args == [1, 1, 0]:
+      command = '3'
+
+    buttons = { 'on': '1', '2': '2', '3': '3', 'off': '4' }
+
+    on = "button_{}_on".format(buttons[command])
+    off = "button_{}_off".format(buttons[command])
+    toggle = "button_{}_toggle".format(buttons[command])
+    self.log(toggle)
 
     if on in self.args:
       self.log("Turning {} on".format(self.args[on]))

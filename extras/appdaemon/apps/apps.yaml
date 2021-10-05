@@ -19,12 +19,22 @@ AC Automation:
 
 Back Bedroom Zigbee Remote:
   module: zigbee_remote
-  class: ZigbeeRemote
+  class: EcoSmartZigbeeRemote
   device_ieee: cc:cc:cc:ff:fe:d9:03:f7
   button_1_toggle: light.back_bedroom_ceiling_fan
   button_2_toggle: switch.back_bedroom_ceiling_fan
   #button_2_hold_toggle: switch.master_bedroom_ceiling_fan
   button_3_toggle: light.back_bedroom_nightstand_lamp
+
+Guest Bedroom Zigbee Remote:
+  module: zigbee_remote
+  class: SengledZigbeeRemote
+  device_ieee: b0:ce:18:14:03:5e:06:9d
+  button_1_toggle: light.guest_bedroom_ceiling_fan
+  button_2_toggle: switch.guest_bedroom_ceiling_fan
+  button_3_toggle: light.guest_bedroom_nightstand_lamp
+  button_4_toggle: switch.guest_bedroom_ceiling_fan
+
 
 #Minimote Morning:
 #  module: minimote
@@ -86,7 +96,7 @@ Occupancy Simulator:
   step_evening_on_2: light.kitchen_table_light
   step_evening_on_3: light.andrew_desk_lamp
   step_evening_on_4: light.office_ceiling_fan
-  step_evening_on_7: light.guest_nightstand_lamp
+  step_evening_on_7: light.guest_bedroom_nightstand_lamp
   step_evening_on_8: light.back_bedroom_nightstand_lamp
 
   #random_master_name: Master
@@ -136,7 +146,7 @@ Occupancy Simulator:
   step_dark_off_3: light.kitchen_table_light
   step_dark_off_5: light.andrew_desk_lamp
   step_dark_off_6: light.office_ceiling_fan
-  step_dark_off_7: light.guest_nightstand_lamp
+  step_dark_off_7: light.guest_bedroom_nightstand_lamp
   step_dark_off_8: light.back_bedroom_nightstand_lamp
 
 Workbench Shelf:
