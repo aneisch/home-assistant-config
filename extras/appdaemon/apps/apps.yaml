@@ -17,14 +17,14 @@ AC Automation:
   heat_night: '65'
   heat_unoccupied: '50'
 
-Zigbee Remote:
+Back Bedroom Zigbee Remote:
   module: zigbee_remote
   class: ZigbeeRemote
   device_ieee: cc:cc:cc:ff:fe:d9:03:f7
-  button_1_toggle: light.master_bedroom_lamps
-  button_2_toggle: switch.master_bedroom_ceiling_fan
-  button_2_hold_toggle: switch.master_bedroom_ceiling_fan
-  button_3_toggle: switch.master_bedroom_ceiling_fan
+  button_1_toggle: light.back_bedroom_ceiling_fan
+  button_2_toggle: switch.back_bedroom_ceiling_fan
+  #button_2_hold_toggle: switch.master_bedroom_ceiling_fan
+  button_3_toggle: light.back_bedroom_nightstand_lamp
 
 #Minimote Morning:
 #  module: minimote
