@@ -23,7 +23,6 @@ Back Bedroom Zigbee Remote:
   device_ieee: cc:cc:cc:ff:fe:d9:03:f7
   button_1_toggle: light.back_bedroom_ceiling_fan
   button_2_toggle: switch.back_bedroom_ceiling_fan
-  #button_2_hold_toggle: switch.master_bedroom_ceiling_fan
   button_3_toggle: light.back_bedroom_nightstand_lamp
 
 Guest Bedroom Zigbee Remote:
@@ -33,8 +32,6 @@ Guest Bedroom Zigbee Remote:
   button_1_toggle: light.guest_bedroom_ceiling_fan
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
-  button_4_toggle: switch.guest_bedroom_ceiling_fan
-
 
 #Minimote Morning:
 #  module: minimote
