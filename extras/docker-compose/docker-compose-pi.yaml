@@ -9,4 +9,4 @@ services:
             - '/dev/bus/usb:/dev/bus/usb'
         volumes:
             # Config file for setting overrides
-            - '/home/pi/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
+            - '/home/pi/433_mqtt_pi_attic.conf:/etc/rtl_433/rtl_433.conf'
