@@ -1,9 +1,11 @@
 # Raspberry Pi in Attic
+# Runs https://blog.hypriot.com/downloads/
+# Might need to apt update; apt upgrade after deploy
 version: '3.2'
 services:
     433_mqtt:
         container_name: 433_mqtt
-        image: hertzg/rtl_433:alpine-3.12-latest
+        image: hertzg/rtl_433:alpine-3.12-20.02
         restart: 'unless-stopped'
         devices:
             - '/dev/bus/usb:/dev/bus/usb'
