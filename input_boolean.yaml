@@ -15,6 +15,10 @@ ac_change_notification:
   name: AC Change Notification
   icon: mdi:alert-circle
 
+# Have we told Alexa goodnight?
+goodnight:
+  name: Goodnight Activated
+
 occusim:
   name: Occupancy Simulator
 

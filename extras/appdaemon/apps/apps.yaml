@@ -268,7 +268,7 @@ Kitchen Light at Night With Door:
   #constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
-  trigger_sensor: binary_sensor.garage_interior_door
+  trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.back_porch_door
   toggle_entity: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
   time_on: '30'
@@ -277,7 +277,7 @@ Living Room Sconces at Night With Motion:
   module: door_open
   class: DoorLight
   constrain_end_time: sunrise
-  constrain_start_time: '01:00:00'
+  constrain_input_boolean: input_boolean.goodnight
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
   brightness: 70

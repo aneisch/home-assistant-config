@@ -94,6 +94,8 @@ master_bedroom_bedtime:
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_away
       entity_id: alarm_control_panel.college_station_mode
+    - service: homeassistant.turn_on
+      entity_id: input_boolean.goodnight
 
 master_bedroom_wakeup:
   sequence:
@@ -114,6 +116,8 @@ master_bedroom_wakeup:
           {% else %}
             scene.master_lamps_fast_on
           {% endif %}
+    - service: homeassistant.turn_off
+      entity_id: input_boolean.goodnight
 
 #########
 # OTHER #
