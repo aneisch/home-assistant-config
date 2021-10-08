@@ -20,7 +20,7 @@ automation:
             - condition: state
               entity_id: cover.garage_door
               state: 'closed'
-      - delay: "00:00:02"
+      - delay: "00:00:05"
       - service: script.zen30_led_color_change
         data:
           color: 'Green'

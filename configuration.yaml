@@ -181,6 +181,7 @@ influxdb:
       - sensor.last_boot
       - sensor.mail_updated
       - sensor.moon
+      - sensor.thermostat_last_communication
     domains:
       - automation
       - alarm_panel
@@ -456,6 +457,7 @@ recorder:
       - sensor.network_out_eno1
       - sensor.roborock_s4_last_cleaned
       - sensor.circadian_values
+      - sensor.thermostat_last_communication
     domains:
       #- automation
       #- alarm_panel
@@ -506,12 +508,6 @@ switch: !include switches.yaml
 system_health:
 
 template: !include template.yaml
-
-tplink:
-  discovery: false
-  light:
-    - host: 10.0.1.53
-    - host: 10.0.1.54
 
 wemo:
   discovery: false
