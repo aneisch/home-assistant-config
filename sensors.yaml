@@ -100,88 +100,90 @@
 # MQTT THERMOSTAT #
 ###################
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Temperature"
-  unit_of_measurement: "°F"
-  value_template: "{{ value_json.rt }}"
+# Provided by MQTT Discovery
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Temperature"
+#   unit_of_measurement: "°F"
+#   value_template: "{{ value_json.rt }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Humidity"
-  unit_of_measurement: "%"
-  value_template: "{{ value_json.rh }}"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Humidity"
+#   unit_of_measurement: "%"
+#   value_template: "{{ value_json.rh }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Operating Mode"
-  value_template: "{{ value_json.mode }}"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Operating Mode"
+#   value_template: "{{ value_json.mode }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Fan Mode"
-  value_template: "{{ value_json.fan }}"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Fan Mode"
+#   value_template: "{{ value_json.fan }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat State"
-  value_template: >
-    {% if value_json.coolicon == 'on' %}
-      Cooling
-    {% elif value_json.heaticon == 'on' %}
-      Heating
-    {% elif value_json.fanicon == 'on' %}
-      Idle Fan
-    {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' and value_json.fanicon == 'off' %}
-      Idle
-    {% else %}
-      Unknown
-    {% endif %}
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat State"
+#   value_template: >
+#     {% if value_json.coolicon == 'on' %}
+#       Cooling
+#     {% elif value_json.heaticon == 'on' %}
+#       Heating
+#     {% elif value_json.fanicon == 'on' %}
+#       Idle Fan
+#     {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' and value_json.fanicon == 'off' %}
+#       Idle
+#     {% else %}
+#       Unknown
+#     {% endif %}
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  unit_of_measurement: "°F"
-  name: "Thermostat Setpoint"
-  value_template: >
-    {% if value_json.mode == 'cool' %}
-      {{ value_json.clsp }}
-    {% elif value_json.mode == 'heat' %}
-      {{ value_json.htsp }}
-    {% endif %}
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   unit_of_measurement: "°F"
+#   name: "Thermostat Setpoint"
+#   value_template: >
+#     {% if value_json.mode == 'cool' %}
+#       {{ value_json.clsp }}
+#     {% elif value_json.mode == 'heat' %}
+#       {{ value_json.htsp }}
+#     {% endif %}
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Fan Status"
-  value_template: "{{ value_json.fanicon }}"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Fan Status"
+#   value_template: "{{ value_json.fanicon }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Hold"
-  value_template: "{{ value_json.hold }}"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Hold"
+#   value_template: "{{ value_json.hold }}"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Filter Hours Remain"
-  value_template: "{{ value_json.filtrlvl }}"
-  unit_of_measurement: "h"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Filter Hours Remain"
+#   value_template: "{{ value_json.filtrlvl }}"
+#   unit_of_measurement: "h"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Outdoor Coil Temperature"
-  value_template: "{{ value_json.oducoiltmp }}"
-  unit_of_measurement: "°F"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Outdoor Coil Temperature"
+#   value_template: "{{ value_json.oducoiltmp }}"
+#   unit_of_measurement: "°F"
 
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Outdoor Ambient Temperature"
-  value_template: "{{ value_json.oat }}"
-  unit_of_measurement: "°F"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Outdoor Ambient Temperature"
+#   value_template: "{{ value_json.oat }}"
+#   unit_of_measurement: "°F"
   
-- platform: mqtt
-  state_topic: "sensor/thermostat"
-  name: "Thermostat Indoor CFM"
-  value_template: "{{ value_json.iducfm }}"
-  unit_of_measurement: "cfm"
+# - platform: mqtt
+#   state_topic: "sensor/thermostat"
+#   name: "Thermostat Indoor CFM"
+#   value_template: "{{ value_json.iducfm }}"
+#   unit_of_measurement: "cfm"
+# End Provided by MQTT Discovery
 
 - platform: history_stats
   name: ac_runtime_today_cool

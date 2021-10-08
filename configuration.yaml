@@ -49,50 +49,51 @@ circadian_lighting:
   interval: 300
   transition: 10
 
-climate:
-  # https://www.home-assistant.io/integrations/climate.mqtt/
-  - platform: mqtt
-    name: "Thermostat"
-    max_temp: 85
-    min_temp: 50
-    action_topic: "sensor/thermostat"
-    action_template: >
-      {% if value_json.coolicon == 'on' %}
-        cooling
-      {% elif value_json.heaticon == 'on' %}
-        heating
-      {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' %}
-        idle
-      {% endif %}
-    current_temperature_topic: "sensor/thermostat"
-    current_temperature_template: "{{ value_json.rt }}"
-    fan_mode_state_topic: "sensor/thermostat"
-    fan_mode_state_template: "{{ value_json.fan }}"
-    fan_modes:
-      - auto
-      - low
-      - med
-      - high
-    hold_state_topic: "sensor/thermostat"
-    hold_state_template: "{{ value_json.hold }}"
-    mode_state_topic: "sensor/thermostat"
-    mode_state_template: "{{ value_json.mode }}"
-    modes:
-      - off
-      - cool
-      - heat
-    temperature_state_topic: "sensor/thermostat"
-    temperature_state_template: >
-      {% if value_json.mode == 'cool' %}
-        {{ value_json.clsp }}
-      {% elif value_json.mode == 'heat' %}
-        {{ value_json.htsp }}
-      {% endif %}
-    temperature_unit: "F"
-    mode_command_topic: "cmnd/thermostat/operating_mode"
-    fan_mode_command_topic: "cmnd/thermostat/fan_mode"
-    hold_command_topic: "cmnd/thermostat/hold"
-    temperature_command_topic: "cmnd/thermostat/temperature"
+# Provided by MQTT Discovery
+# climate:
+#   # https://www.home-assistant.io/integrations/climate.mqtt/
+#   - platform: mqtt
+#     name: "Thermostat"
+#     max_temp: 85
+#     min_temp: 50
+#     action_topic: "sensor/thermostat"
+#     action_template: >
+#       {% if value_json.coolicon == 'on' %}
+#         cooling
+#       {% elif value_json.heaticon == 'on' %}
+#         heating
+#       {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' %}
+#         idle
+#       {% endif %}
+#     current_temperature_topic: "sensor/thermostat"
+#     current_temperature_template: "{{ value_json.rt }}"
+#     fan_mode_state_topic: "sensor/thermostat"
+#     fan_mode_state_template: "{{ value_json.fan }}"
+#     fan_modes:
+#       - auto
+#       - low
+#       - med
+#       - high
+#     hold_state_topic: "sensor/thermostat"
+#     hold_state_template: "{{ value_json.hold }}"
+#     mode_state_topic: "sensor/thermostat"
+#     mode_state_template: "{{ value_json.mode }}"
+#     modes:
+#       - off
+#       - cool
+#       - heat
+#     temperature_state_topic: "sensor/thermostat"
+#     temperature_state_template: >
+#       {% if value_json.mode == 'cool' %}
+#         {{ value_json.clsp }}
+#       {% elif value_json.mode == 'heat' %}
+#         {{ value_json.htsp }}
+#       {% endif %}
+#     temperature_unit: "F"
+#     mode_command_topic: "cmnd/thermostat/operating_mode"
+#     fan_mode_command_topic: "cmnd/thermostat/fan_mode"
+#     hold_command_topic: "cmnd/thermostat/hold"
+#     temperature_command_topic: "cmnd/thermostat/temperature"
 
 #  platform: radiotherm
 #  host:

@@ -125,6 +125,7 @@ services:
           - '/opt/homeassistant/:/ha_config'
           - '/opt/appdaemon/:/appdaemon'
           - '/opt/docker-compose/:/docker-compose'
+          - '/home/aneisch:/home/aneisch'
         environment:
           - 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
           - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
