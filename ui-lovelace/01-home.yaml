@@ -144,6 +144,10 @@ cards:
     entities:
       - calendar.garbage_collection
 
+  - type: entities
+    entities:
+      - sensor.andrew_covid_test_result
+
   # - type: picture-glance
   #   camera_image: camera.outdoor
   #   entities: []

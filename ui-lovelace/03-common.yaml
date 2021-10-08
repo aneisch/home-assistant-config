@@ -107,9 +107,8 @@ cards:
 
   - type: entities
     show_header_toggle: false
-    title: Office
+    title: Andrew's Office
     entities:
-      - light.bethany_desk_lamp
       - light.andrew_desk_lamp
       - sensor.office_temperature
       - fan.office_ceiling_fan
@@ -123,6 +122,16 @@ cards:
       - switch.office_heater_oscillate
       - switch.plant_light
       - switch.hc_light
+
+  - type: entities
+    show_header_toggle: false
+    title: Bethany's Office
+    entities:
+      - light.bethany_desk_lamp
+      - light.bethany_office_hanging
+      - light.bethany_office_ceiling_fan
+      - switch.bethany_office_ceiling_fan
+
 
   - !include .cards/spotify.yaml
 

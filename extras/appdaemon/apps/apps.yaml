@@ -152,6 +152,13 @@ Workbench Shelf:
   leader: switch.garage_lights
   follower: switch.workbench_shelf_leds,switch.garage_highbay_light
 
+Bwthany Office Hanging:
+  module: follow_me
+  class: Follow
+  leader: light.bethany_desk_lamp
+  follower: light.bethany_office_hanging
+
+#Christmas Lights:
 #Christmas Lights:
 #  module: entity_timer
 #  class: Timer

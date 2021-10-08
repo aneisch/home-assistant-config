@@ -628,3 +628,14 @@
   action:
     - service: homeassistant.turn_on
       entity_id: switch.garage_lights
+
+- alias: "Andrew Covid Test Result"
+  id: "andrew_covid_test_esult"
+  trigger:
+    - platform: state
+      entity_id: sensor.andrew_covid_test_result
+      from: None
+  action:
+    - service: notify.pushover
+      data:
+        message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
