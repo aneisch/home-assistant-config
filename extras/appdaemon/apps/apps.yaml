@@ -338,7 +338,8 @@ Front House Lights Sunset:
   class: Timer
   entities: light.front_porch_lights,light.front_sconces
   time_on: sunset - 00:20:00
-  time_off: "23:00:00"
+  time_off: sunrise - 00:30:00
+  brightness: 254
 
 Entryway Light Sunset:
   module: entity_timer
