@@ -266,7 +266,7 @@ Office Light at Night With Door:
   trigger_sensor: binary_sensor.front_door
   toggle_entity: light.andrew_desk_lamp
   # Seconds to turn entity on when triggered
-  time_on: '30'
+  time_on: '60'
 
 Kitchen Light at Night With Door:
   module: door_open
@@ -277,7 +277,7 @@ Kitchen Light at Night With Door:
   trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.back_porch_door
   toggle_entity: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
-  time_on: '30'
+  time_on: '60'
 
 Living Room Sconces at Night With Motion:
   module: door_open

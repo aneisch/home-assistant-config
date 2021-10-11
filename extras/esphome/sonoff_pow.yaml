@@ -5,12 +5,9 @@ esphome:
   name: sonoff_pow
   platform: ESP8266
   board: esp01_1m
+  board_flash_mode: dout
 
 <<: !include common.yaml
-
-uart:
-  rx_pin: RX
-  baud_rate: 4800
 
 binary_sensor:
   - platform: gpio
@@ -35,30 +32,18 @@ sensor:
     power:
       name: ${friendly_name} Power
       id: power
-      on_value_range:
-        - above: 4.0
-          then:
-            - light.turn_on: led
-        - below: 3.0
-          then:
-            - light.turn_off: led
-  - platform: total_daily_energy
-    name: ${friendly_name} Total Daily Energy
-    power_id: power
 
 switch:
-  - platform: restart
-    name:  ${friendly_name} Restart
   - platform: template
     name: ${friendly_name} Relay
     optimistic: true
     id: fakebutton
     turn_on_action:
-    - switch.turn_on: relay
-    - light.turn_on: led
+      - switch.turn_on: relay
+      - light.turn_on: led
     turn_off_action:
-    - switch.turn_off: relay
-    - light.turn_off: led
+      - switch.turn_off: relay
+      - light.turn_off: led
   - platform: gpio
     id: relay
     pin: GPIO12
@@ -68,14 +53,10 @@ output:
     id: pow_blue_led
     pin:
       number: GPIO15
-      inverted: True
+      inverted: False
 
 light:
   - platform: monochromatic
     name: ${friendly_name} Blue LED
     output: pow_blue_led
     id: led
-
-time:
-  - platform: homeassistant
-    id: homeassistant_time

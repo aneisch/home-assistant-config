@@ -56,18 +56,18 @@ services:
             #- /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
-#    433_mqtt:
-#        container_name: 433_mqtt
-#        image: ghcr.io/aneisch/rtl_433_mqtt:latest
-#        user: '99'
-#        labels:
-#          com.centurylinklabs.watchtower.enable: "false"
-#        restart: 'always'
-#        devices:
-#            - '/dev/bus/usb:/dev/bus/usb'
-#        volumes:
-#            # Config file for setting overrides
-#            - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
+    433_mqtt:
+        container_name: 433_mqtt
+        image: ghcr.io/aneisch/rtl_433_mqtt:latest
+        user: '99'
+        labels:
+          com.centurylinklabs.watchtower.enable: "false"
+        restart: 'always'
+        devices:
+            - '/dev/bus/usb:/dev/bus/usb'
+        volumes:
+            # Config file for setting overrides
+            - '/opt/433_mqtt/433_mqtt_rain_compost.conf:/etc/rtl_433/rtl_433.conf'
     bitwarden:
         container_name: bitwarden
         image: vaultwarden/server:alpine

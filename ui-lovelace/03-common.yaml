@@ -120,8 +120,6 @@ cards:
         icon: mdi:speaker
       - switch.office_heater
       - switch.office_heater_oscillate
-      - switch.plant_light
-      - switch.hc_light
 
   - type: entities
     show_header_toggle: false
