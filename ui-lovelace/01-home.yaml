@@ -7,10 +7,8 @@ cards:
   - type: custom:vertical-stack-in-card
     cards:
       - !include .cards/thermostat.yaml
-
       - type: markdown
-        content: |
-          Last Thermostat Communication: {{ relative_time(as_datetime(states("sensor.thermostat_last_communication"))) }} ago
+        content: Last Thermostat Communication: {{ relative_time(as_datetime(states("sensor.thermostat_last_communication"))) }} ago
 
 
 
