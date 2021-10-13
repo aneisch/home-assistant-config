@@ -22,32 +22,32 @@ sensor:
 #         unknown
 #       {% endif %}
 
-  - platform: derivative
-    source: sensor.thermopro_probe_1
-    unit_time: min
-    time_window: "00:15:00"
+  #- platform: derivative
+  #  source: sensor.thermopro_probe_1
+  #  unit_time: min
+  #  time_window: "00:15:00"
 
-  - platform: derivative
-    source: sensor.thermopro_probe_2
-    unit_time: min
-    time_window: "00:15:00"
+  #- platform: derivative
+  #  source: sensor.thermopro_probe_2
+  #  unit_time: min
+  #  time_window: "00:15:00"
 
-  - platform: template
-    sensors:
-      thermopro_probe_1_high_estimated_length:
-        unit_of_measurement: Minutes
-        value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) }}"
-        attribute_templates:
-          timestamp: >
-            {% set time = '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) %}
-            {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
-      thermopro_probe_2_high_estimated_length:
-        unit_of_measurement: Minutes
-        value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) }}"
-        attribute_templates:
-          timestamp: >
-            {% set time = '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) %}
-            {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
+  #- platform: template
+  #  sensors:
+  #    thermopro_probe_1_high_estimated_length:
+  #      unit_of_measurement: Minutes
+  #      value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) }}"
+  #      attribute_templates:
+  #        timestamp: >
+  #          {% set time = '%.2f'%((states('input_number.thermopro_probe_1_set_high')|int - states('sensor.thermopro_probe_1')|int) / states('sensor.sensor_thermopro_probe_1_derivative')|float) %}
+  #          {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
+  #    thermopro_probe_2_high_estimated_length:
+  #      unit_of_measurement: Minutes
+  #      value_template: "{{ '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) }}"
+  #      attribute_templates:
+  #        timestamp: >
+  #          {% set time = '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) %}
+  #          {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
 
 binary_sensor:
   - platform: template

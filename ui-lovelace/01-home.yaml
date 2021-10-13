@@ -8,7 +8,7 @@ cards:
     cards:
       - !include .cards/thermostat.yaml
       - type: markdown
-        content: Last Thermostat Communication: {{ relative_time(as_datetime(states("sensor.thermostat_last_communication"))) }} ago
+        content: 'Last Thermostat Status Update: {{ relative_time(as_datetime(states("sensor.thermostat_last_communication"))) }} ago'
 
 
 
