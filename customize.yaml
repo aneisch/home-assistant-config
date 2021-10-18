@@ -70,10 +70,6 @@ sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
 ### SCRIPTS ###
-script.master_bedroom_light_full:
-  friendly_name: Master Bedroom Light Full
-  icon: mdi:lightbulb
-
 script.master_bedroom_bedtime:
   friendly_name: Bedtime
   icon: mdi:theme-light-dark

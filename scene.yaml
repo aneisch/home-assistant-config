@@ -1,13 +1,4 @@
 # Let's only use these to control advanced lighting features.
-
-- name: Master Bedroom Light Full
-  entities:
-    light.master_bedroom:
-      state: on
-      brightness: 255
-      transition: 5
-      rgb_color: [255, 255, 255]
-
 - name: Master Lamps Slow On
   entities: 
     light.master_bedroom_lamps:

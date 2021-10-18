@@ -27,8 +27,8 @@ Back Bedroom Zigbee Remote:
 
 Guest Bedroom Zigbee Remote:
   module: zigbee_remote
-  class: SengledZigbeeRemote
-  device_ieee: b0:ce:18:14:03:5e:06:9d
+  class: EcoSmartZigbeeRemote
+  device_ieee: cc:cc:cc:ff:fe:a9:e6:43
   button_1_toggle: light.guest_bedroom_ceiling_fan
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
@@ -66,16 +66,15 @@ Minimote Non-Morning:
   # this should probably be a script
   panic_mode_boolean: input_boolean.panic_mode
   panic_entity: script.panic
-  # Toggle = short press
-  # On = long press
+  # even number = button hold
   scene_1_toggle: light.master_bedroom_ceiling_fan
-  scene_2_on: script.master_bedroom_light_full
+  #scene_2_on: script.master_bedroom_light_full
   scene_3_toggle: switch.master_bedroom_ceiling_fan
-  scene_4_on: script.master_bedroom_light_dim
-  scene_5_toggle: switch.master_bedroom_sound_machine
-  scene_6_on: script.master_bedroom_bedtime
+  #scene_4_on: script.master_bedroom_light_dim
+  #scene_5_toggle: switch.master_bedroom_sound_machine
+  #scene_6_on: script.master_bedroom_bedtime
   scene_7_toggle: light.master_bedroom_lamps
-  scene_8_on: script.appdaemon_ac_night
+  #scene_8_on: script.appdaemon_ac_night
 
 Occupancy Simulator:
   module: occusim
@@ -345,6 +344,7 @@ Entryway Light Sunset:
   module: entity_timer
   class: Timer
   time_on: sunset - 00:20:00
+  time_off: 23:00:00
   entities: light.entryway_light
   brightness: 255
 
