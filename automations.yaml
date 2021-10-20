@@ -195,8 +195,8 @@
 - alias: Clear Alexa Recording History
   id: "alexa_history"
   trigger:
-    platform: time
-    at: "22:00:00"
+    platform: time_pattern
+    hours: "/1"
   action:
     - service: alexa_media.clear_history
 
@@ -537,18 +537,6 @@
       # Watchtower runs once at container start then turns back off
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
-
-- alias: "Dyson Charger"
-  id: "dyson_charger"
-  trigger:
-    - platform: state
-      entity_id: switch.garage_dyson
-      to: 'on'
-  condition: "{{ states('person.andrew') == 'home' }}"
-  action:
-    - delay: '02:00:00'
-    - service: homeassistant.turn_off
-      entity_id: switch.garage_dyson
 
 - alias: "Update Utilities Cost"
   id: "update_utilities_cost"

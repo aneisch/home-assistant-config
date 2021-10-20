@@ -437,8 +437,10 @@ recorder:
   purge_keep_days: 365
   exclude:
     entities:
+      - automation.update_readme
       - automation.update_usps_mail_camera_path_on_hass_restart
       - automation.update_utilities_cost
+      - automation.sync_cloudflare_cname_records
       - binary_sensor.internet_reachability
       - binary_sensor.gate_heading_comparison
       - binary_sensor.iss

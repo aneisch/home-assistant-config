@@ -224,9 +224,18 @@ Dyson Charger:
   module: entity_timer
   class: Timer
   entities: switch.garage_dyson
-  time_on: '12:00:00'
-  time_off: '14:00:00'
+  time_on: '15:00:00'
+  time_off: '18:00:00'
   constrain_presence: anyone
+
+AC Filter Change:
+  module: countdown_notify
+  class: Notify
+  countdown_entity: sensor.ac_filter_change
+  notification_days: 0,-7,-14 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
+  notify_overdue: False # An optional argument, if true we will continue to notify after 0
+  notify: pushover # The name of the notify service
+  message: "It's time to change the AC filter!"
 
 Andrew Vehicle:
   module: countdown_notify
@@ -344,7 +353,7 @@ Entryway Light Sunset:
   module: entity_timer
   class: Timer
   time_on: sunset - 00:20:00
-  time_off: 23:00:00
+  time_off: '23:00:00'
   entities: light.entryway_light
   brightness: 255
 

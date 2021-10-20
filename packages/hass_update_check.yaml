@@ -110,6 +110,7 @@ automation:
     # Only run if we're on mainline/stable branch
     condition: '{{ states("input_boolean.hass_update_trigger") == "on" and states("binary_sensor.hass_on_beta") == "off" }}'
     action:
+      - delay: '00:05:00'
       - service: > 
           {% if states("person.andrew") == "home" %}
             script.hass_update_install
