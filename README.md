@@ -93,14 +93,14 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 38
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 7
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 226
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 225
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 95
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 94
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **677**
+**Total state objects** | **675**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
