@@ -1,7 +1,7 @@
 """ Constants for Mail and Packages."""
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.3"
+VERSION = "0.3.3-1"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
@@ -101,6 +101,7 @@ SENSOR_DATA = {
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
+            "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
         ],
         "subject": ["Your Daily Digest"],
