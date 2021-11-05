@@ -12,7 +12,9 @@ from homeassistant.util import slugify
 from .const import (
     API,
     ATTR_NAME,
+    ATTR_SERVER,
     CONF_CONTAINERS,
+    CONF_PREFIX,
     CONF_RENAME,
     CONF_SWITCHENABLED,
     CONF_SWITCHNAME,
@@ -23,7 +25,7 @@ from .const import (
     SERVICE_RESTART,
 )
 
-SERVICE_RESTART_SCHEMA = vol.Schema({ATTR_NAME: cv.string})
+SERVICE_RESTART_SCHEMA = vol.Schema({ATTR_NAME: cv.string, ATTR_SERVER: cv.string})
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,20 +36,30 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     async def async_restart(parm):
 
         cname = parm.data[ATTR_NAME]
-        if len(config[CONF_CONTAINERS]) == 0:
-            api = hass.data[DOMAIN][name][API]
-            if api.get_container(cname):
-                await api.get_container(cname).restart()
+        cserver = parm.data.get(ATTR_SERVER, None)
+
+        server_name = name
+        if cserver is not None:
+            if cserver not in hass.data[DOMAIN]:
+                _LOGGER.error("Server '%s' is not configured", cserver)
+                return
+            else:
+                server_name = cserver
+
+        server_config = hass.data[DOMAIN][server_name][CONFIG]
+        server_api = hass.data[DOMAIN][server_name][API]
+
+        if len(server_config[CONF_CONTAINERS]) == 0:
+            if server_api.get_container(cname):
+                await server_api.get_container(cname).restart()
             else:
                 _LOGGER.error(
                     "Service restart failed, container '%s'does not exist", cname
                 )
-        elif cname in config[CONF_CONTAINERS]:
+        elif cname in server_config[CONF_CONTAINERS]:
             _LOGGER.debug("Trying to restart container '%s'", cname)
-
-            api = hass.data[DOMAIN][name][API]
-            if api.get_container(cname):
-                await api.get_container(cname).restart()
+            if server_api.get_container(cname):
+                await server_api.get_container(cname).restart()
             else:
                 _LOGGER.error(
                     "Service restart failed, container '%s'does not exist", cname
@@ -60,17 +72,22 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     if discovery_info is None:
         return
 
+    instance = discovery_info[CONF_NAME]
     name = discovery_info[CONF_NAME]
     api = hass.data[DOMAIN][name][API]
     config = hass.data[DOMAIN][name][CONFIG]
-    prefix = config[CONF_NAME]
+
+    # Set or overrule prefix
+    prefix = name
+    if config[CONF_PREFIX]:
+        prefix = config[CONF_PREFIX]
 
     # Don't create any switch if disabled
     if not config[CONF_SWITCHENABLED]:
-        _LOGGER.debug("Switch(es) are disabled")
+        _LOGGER.debug("[%s]: Switch(es) are disabled", instance)
         return True
 
-    _LOGGER.debug("Setting up switch(es)")
+    _LOGGER.debug("[%s]: Setting up switch(es)", instance)
 
     switches = []
 
@@ -82,11 +99,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     for cname in clist:
         if cname in config[CONF_CONTAINERS] or not config[CONF_CONTAINERS]:
-            _LOGGER.debug("%s: Adding component Switch", cname)
+            _LOGGER.debug("[%s] %s: Adding component Switch", instance, cname)
 
             switches.append(
                 DockerContainerSwitch(
                     api.get_container(cname),
+                    instance,
                     prefix,
                     cname,
                     config[CONF_RENAME].get(cname, cname),
@@ -95,7 +113,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             )
 
     if not switches:
-        _LOGGER.info("No containers set-up")
+        _LOGGER.info("[%s]: No containers set-up", instance)
         return False
 
     async_add_entities(switches, True)
@@ -109,10 +127,12 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     return True
 
 
+#################################################################
 class DockerContainerSwitch(SwitchEntity):
-    def __init__(self, container, prefix, cname, alias, name_format):
+    def __init__(self, container, instance, prefix, cname, alias, name_format):
         self._loop = asyncio.get_running_loop()
         self._container = container
+        self._instance = instance
         self._prefix = prefix
         self._cname = cname
         self._state = False
@@ -168,7 +188,7 @@ class DockerContainerSwitch(SwitchEntity):
         """Callback for update of container information."""
 
         if remove:
-            _LOGGER.info("%s: Removing switch entity", self._cname)
+            _LOGGER.info("[%s] %s: Removing switch entity", self._instance, self._cname)
             self._loop.create_task(self.async_remove())
             return
 
@@ -177,7 +197,12 @@ class DockerContainerSwitch(SwitchEntity):
         try:
             info = self._container.get_info()
         except Exception as err:
-            _LOGGER.error("%s: Cannot request container info", str(err))
+            _LOGGER.error(
+                "[%s] %s: Cannot request container info (%s)",
+                self._instance,
+                name,
+                str(err),
+            )
         else:
             if info is not None:
                 state = info.get(CONTAINER_INFO_STATE) == "running"

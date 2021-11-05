@@ -306,7 +306,7 @@ Front House Lights at Night With Doorbell Motion:
   trigger_sensor: binary_sensor.front_door_motion
   toggle_entity: light.front_house_lights
   # Seconds to turn entity on when triggered
-  time_on: '30'
+  time_on: '60'
 
 Garage Lights with Cover and Door:
   module: door_open

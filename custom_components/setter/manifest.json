@@ -1,9 +1,9 @@
 {
   "domain": "setter",
   "name": "Setter",
+  "version": "1.0.0",
   "documentation": "https://github.com/dlashua/hass-setter",
   "issue_tracker": "https://github.com/dlashua/hass-setter/issues",
-  "version": "1.0",
   "dependencies": [],
   "codeowners": ["@dlashua"],
   "requirements": [],

@@ -1,7 +1,7 @@
 """ Constants for Mail and Packages."""
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = "{}_data".format(DOMAIN)
-VERSION = "0.3.3-1"
+VERSION = "0.3.3-2"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["camera", "sensor"]
@@ -188,6 +188,16 @@ SENSOR_DATA = {
     },
     "royal_packages": {},
     "royal_tracking": {"pattern": ["[A-Za-z]{2}[0-9]{9}GB"]},
+    "auspost_delivered": {
+        "email": ["noreply@notifications.auspost.com.au"],
+        "subject": ["Your shipment has been delivered"],
+    },
+    "auspost_delivering": {
+        "email": ["noreply@notifications.auspost.com.au"],
+        "subject": ["Your delivery is coming today"],
+    },
+    "auspost_packages": {},
+    "auspost_tracking": {"pattern": ["\\d{7,10,12}|[A-Za-z]{2}[0-9]{9}AU "]},
 }
 
 # Sensor definitions
@@ -282,6 +292,21 @@ SENSOR_TYPES = {
         "package(s)",
         "mdi:package-variant-closed",
     ],
+    "auspost_delivered": [
+        "Mail AusPost Delivered",
+        "package(s)",
+        "mdi:package-variant",
+    ],
+    "auspost_delivering": [
+        "Mail AusPost Delivering",
+        "package(s)",
+        "mdi:truck-delivery",
+    ],
+    "auspost_packages": [
+        "Mail AusPost Packages",
+        "package(s)",
+        "mdi:package-variant-closed",
+    ],  
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -323,4 +348,4 @@ SENSOR_UNIT = 1
 SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
-SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes", "royal"]
+SHIPPERS = ["capost", "dhl", "fedex", "ups", "usps", "hermes", "royal", "auspost"]

@@ -88,7 +88,7 @@ automation:
       webhook_id: !secret hass_github_action_webhook
     action:
       service: >
-        {% if trigger.json.upgrade == True %}
+        {% if trigger.json.upgrade == True and states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2] %}
           script.hass_update_stage
         {% elif trigger.json.upgrade == False %}
           script.hass_update_notify
