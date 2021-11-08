@@ -41,72 +41,72 @@ sensor:
         unit_of_measurement: '%'
         device_class: battery
 
-      roborock_s4_lifetime_cleaned_area:
-        friendly_name: 'Lifetime Cleaned Area'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'total_cleaned_area')}}"
-        unit_of_measurement: ㎡
+      # roborock_s4_lifetime_cleaned_area:
+      #   friendly_name: 'Lifetime Cleaned Area'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'total_cleaned_area')}}"
+      #   unit_of_measurement: ㎡
 
-      roborock_s4_lifetime_cleaning_time:
-        friendly_name: 'Lifetime Cleaning Time'
-        value_template: "{{(state_attr('vacuum.roborock_s4', 'total_cleaning_time') / 60)|round(1, 'floor')}}"
+      # roborock_s4_lifetime_cleaning_time:
+      #   friendly_name: 'Lifetime Cleaning Time'
+      #   value_template: "{{(state_attr('vacuum.roborock_s4', 'total_cleaning_time') / 60)|round(1, 'floor')}}"
 
       # NOTE: This date is converted to be timezone aware so that it plays nice
       # with some other templating functions and filters.
       roborock_s4_last_cleaned:
         friendly_name: Relative time since last cleaning ended
-        value_template: "{{relative_time(strptime(as_timestamp(state_attr('vacuum.roborock_s4', 'clean_stop'))|timestamp_custom('%Y-%m-%d %H:%M:%S%z'), '%Y-%m-%d %H:%M:%S%z'))}}"
+        value_template: "{{relative_time(strptime(as_timestamp(states('sensor.roborock_s4_last_clean_end'))|timestamp_custom('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))}}"
 
-      roborock_s4_lifetime_cleaning_count:
-        friendly_name: 'Lifetime Cleaning Count'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'cleaning_count')}}"
+      # roborock_s4_lifetime_cleaning_count:
+      #   friendly_name: 'Lifetime Cleaning Count'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'cleaning_count')}}"
 
-      # Used for the Filter maintenance card
-      roborock_s4_filter_remaining:
-        friendly_name: '% Filter Remaining'
-        unit_of_measurement: '%'
-        value_template: "{{((state_attr('vacuum.roborock_s4', 'filter_left') / 150) * 100) | round | int}}"
+      # # Used for the Filter maintenance card
+      # roborock_s4_filter_remaining:
+      #   friendly_name: '% Filter Remaining'
+      #   unit_of_measurement: '%'
+      #   value_template: "{{((state_attr('vacuum.roborock_s4', 'filter_left') / 150) * 100) | round | int}}"
 
-      # Used for the Filter maintenance card
-      roborock_s4_filter_hrs_remaining:
-        friendly_name: 'Filter Remaining Hours'
-        unit_of_measurement: 'hrs'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'filter_left')}}"
+      # # Used for the Filter maintenance card
+      # roborock_s4_filter_hrs_remaining:
+      #   friendly_name: 'Filter Remaining Hours'
+      #   unit_of_measurement: 'hrs'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'filter_left')}}"
 
-      # Used for the Side Brush maintenance card
-      roborock_s4_side_brush_remaining:
-        friendly_name: '% Side Brush Remaining'
-        unit_of_measurement: '%'
-        value_template: "{{((state_attr('vacuum.roborock_s4', 'side_brush_left') / 200) * 100) | round | int}}"
+      # # Used for the Side Brush maintenance card
+      # roborock_s4_side_brush_remaining:
+      #   friendly_name: '% Side Brush Remaining'
+      #   unit_of_measurement: '%'
+      #   value_template: "{{((state_attr('vacuum.roborock_s4', 'side_brush_left') / 200) * 100) | round | int}}"
   
-      # Used for the Side Brush maintenance card
-      roborock_s4_side_brush_hrs_remaining:
-        friendly_name: 'Side Brush Remaining Hours'
-        unit_of_measurement: 'hrs'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'side_brush_left')}}"
+      # # Used for the Side Brush maintenance card
+      # roborock_s4_side_brush_hrs_remaining:
+      #   friendly_name: 'Side Brush Remaining Hours'
+      #   unit_of_measurement: 'hrs'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'side_brush_left')}}"
 
-      # Used for the Main Brush maintenance card
-      roborock_s4_main_brush_remaining:
-        friendly_name: '% Main Brush Remaining'
-        unit_of_measurement: '%'
-        value_template: "{{((state_attr('vacuum.roborock_s4', 'main_brush_left') / 300) * 100) | round | int}}"
+      # # Used for the Main Brush maintenance card
+      # roborock_s4_main_brush_remaining:
+      #   friendly_name: '% Main Brush Remaining'
+      #   unit_of_measurement: '%'
+      #   value_template: "{{((state_attr('vacuum.roborock_s4', 'main_brush_left') / 300) * 100) | round | int}}"
 
-      # Used for the Main Brush maintenance card
-      roborock_s4_main_brush_hrs_remaining:
-        friendly_name: 'Main Brush Remaining Hours'
-        unit_of_measurement: 'hrs'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'main_brush_left')}}"
+      # # Used for the Main Brush maintenance card
+      # roborock_s4_main_brush_hrs_remaining:
+      #   friendly_name: 'Main Brush Remaining Hours'
+      #   unit_of_measurement: 'hrs'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'main_brush_left')}}"
 
-      # Used for the Sensors maintenance card
-      roborock_s4_sensors_remaining:
-        friendly_name: '% Sensors Remaining'
-        unit_of_measurement: '%'
-        value_template: "{{((state_attr('vacuum.roborock_s4', 'sensor_dirty_left') / 30) * 100) | round | int}}"
+      # # Used for the Sensors maintenance card
+      # roborock_s4_sensors_remaining:
+      #   friendly_name: '% Sensors Remaining'
+      #   unit_of_measurement: '%'
+      #   value_template: "{{((state_attr('vacuum.roborock_s4', 'sensor_dirty_left') / 30) * 100) | round | int}}"
 
-      # Used for the Sensors maintenance card
-      roborock_s4_sensors_hrs_remaining:
-        friendly_name: 'Sensors Remaining Hours'
-        unit_of_measurement: 'hrs'
-        value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
+      # # Used for the Sensors maintenance card
+      # roborock_s4_sensors_hrs_remaining:
+      #   friendly_name: 'Sensors Remaining Hours'
+      #   unit_of_measurement: 'hrs'
+      #   value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
       roborock_current_room:
         friendly_name: 'Roborock Current Room'

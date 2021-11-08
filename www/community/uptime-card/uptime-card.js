@@ -329,12 +329,13 @@ found at http://polymer.github.io/PATENTS.txt
     }
 
     .header[alignment='left'] {
-        align-self: flex-start;
+        justify-content: flex-start;
     }
 
     .header[alignment='right'] {
-        align-self: flex-end;
+        justify-content: flex-end;
     }
+
     .header[reverse] {
         flex-direction: row-reverse;
     }
@@ -427,8 +428,8 @@ found at http://polymer.github.io/PATENTS.txt
             <div class="information" @click=${this.handleClick} ?hover=${this.actions.includes(e.action)}>
                 ${this.renderHeader()} ${this.renderStatus()}
             </div>
-        `}renderHeader(){const{show:e,alignment:t}=this.config;return e.header?he`
-                  <div class="header flex" alignment="${t.header}" ?reverse="${t.icon_first}">
+        `}renderHeader(){const{show:e,alignment:t}=this.config;let n=t.header;return t.icon_first&&("right"===n?n="left":"left"===n&&(n="right")),e.header?he`
+                  <div class="header flex" alignment="${n}" ?reverse="${t.icon_first}">
                       ${this.renderTitle()} ${this.renderIcon()}
                   </div>
               `:he``}renderTitle(){var e;const{name:t,color:n,title_adaptive_color:r,show:o}=this.config;let i=t;return null==i&&(i=(null===(e=this.sensor)||void 0===e?void 0:e.entity_id)||""),o.title?he`
