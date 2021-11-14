@@ -218,6 +218,20 @@
       entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
+- alias: "Update cover last opened"
+  id: "update_cover_last_opened"
+  trigger:
+    - platform: state
+      entity_id: 
+        - cover.garage_door
+      from: "closed"
+      to: "open"
+  action:
+    service: input_datetime.set_datetime
+    data:
+      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='cover.', replace='') }}_last"
+      datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
   id: "panic_script_webhook"
@@ -627,3 +641,15 @@
     - service: notify.pushover
       data:
         message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
+
+- alias: "Sync Alexa Timers"
+  id: "sync_alexa_timers"
+  trigger:
+    - platform: state
+      entity_id: sensor.kitchen_next_timer
+      to: "active"
+  action:
+    - service: '{% if trigger.to_state.state == "unavailable" %}timer.cancel{% else %}timer.start{% endif %}'
+      data:
+        duration: '{{ as_timestamp(states("sensor.kitchen_next_timer")) - as_timestamp(now()) }}'
+        entity_id: timer.kitchen_alexa

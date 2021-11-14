@@ -18,7 +18,16 @@ esphome:
 
 <<: !include common.yaml
   
-  
+time:
+  - platform: homeassistant
+    timezone: America/Chicago
+    id: homeassistant_time
+
+text_sensor:
+  - platform: template
+    name: Garage Door Last Opened
+    id: garage_door_last
+
 dallas:
   - pin:
       number: D4
@@ -69,8 +78,17 @@ binary_sensor:
     id: garage_status
     device_class: door
     filters:
-      - delayed_on: 1s
-      - delayed_off: 1s
+      - delayed_on: 0.2s
+      - delayed_off: 0.2s
+    on_press:
+      then:
+        - text_sensor.template.publish:
+            id: garage_door_last
+            state: !lambda |-
+                char str[20];
+                time_t currTime = id(homeassistant_time).now().timestamp;
+                strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+                return  { str };
 
   # - platform: template
   #   name: "Cruze"

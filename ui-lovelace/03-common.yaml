@@ -70,6 +70,18 @@ cards:
                 action: call-service
                 service: esphome.living_room_speakers_volume_up
 
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "light.*christmas*"
+        - entity_id: "switch.*christmas*"
+    card:
+      type: entities
+      show_header_toggle: false
+    sort:
+      method: name
+
+
   - type: entities
     show_header_toggle: false
     title: Guest Bedrooms

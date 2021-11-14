@@ -2,6 +2,7 @@ title: Home
 icon: mdi:home-circle
 cards:
   - !include .cards/kitchen_timer.yaml
+  - !include .cards/kitchen_timer_2.yaml
   - !include .cards/grill.yaml
 
   - type: custom:vertical-stack-in-card
@@ -32,14 +33,45 @@ cards:
                   --paper-item-icon-color: red
                   {% endif %}
                 }
-          - binary_sensor.front_door
-          - binary_sensor.back_porch_door
-          - binary_sensor.garage_exterior_door
-          - binary_sensor.garage_interior_door
-          - binary_sensor.master_bedroom_exterior_door
+          - entity: binary_sensor.garage_exterior_door
+            style: |
+                :host {
+                  {% if states('binary_sensor.garage_exterior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+          - entity: binary_sensor.garage_interior_door
+            style: |
+                :host {
+                  {% if states('binary_sensor.garage_interior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+          - entity: binary_sensor.front_door
+            style: |
+                :host {
+                  {% if states('binary_sensor.front_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+          - entity: binary_sensor.master_bedroom_exterior_door
+            style: |
+                :host {
+                  {% if states('binary_sensor.master_bedroom_exterior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+          - entity: binary_sensor.back_porch_door
+            style: |
+                :host {
+                  {% if states('binary_sensor.back_porch_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
+
       - type: markdown
         content: |
-          {% set door_sensors = ['front_door_last', 'back_porch_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last'] %}
+          {% set door_sensors = ['front_door_last','back_porch_door_last','garage_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last'] %}
           {% for door in door_sensors -%}
           {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.' + door))) | int -%}
           {%- set minutes = (seconds // 60) | int -%}

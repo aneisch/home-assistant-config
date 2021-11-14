@@ -18,3 +18,7 @@ master_bedroom_exterior_door_last:
   name: Master Bedroom Exterior Door Last Opened
   has_date: true
   has_time: true
+garage_door_last:
+  name: Garage Door Last Opened
+  has_date: true
+  has_time: true

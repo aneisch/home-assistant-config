@@ -62,7 +62,7 @@ binary_sensor:
   - platform: gpio
     pin:
       number: GPIO16
-      mode: INPUT_PULLUP
+      mode: INPUT
       inverted: False
     name: "${friendly_name} Button"
     on_press:

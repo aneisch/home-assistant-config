@@ -1,0 +1,17 @@
+type: conditional
+conditions:
+  - entity: timer.kitchen_alexa
+    state: active
+card:
+  type: custom:flipdown-timer-card
+  entity: timer.kitchen_alexa
+  show_hour: true
+  show_title: false
+  duration: "00:00:00"
+  #theme: dark
+  styles:
+  #   rotor:
+  #     width: 60px
+  #     height: 80px
+    button:
+      location: hide

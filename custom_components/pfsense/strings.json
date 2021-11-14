@@ -1,0 +1,47 @@
+{
+  "title": "Connect to the pfSense firewall / router",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to the pfSense firewall / router",
+        "data": {
+          "url": "URL",
+          "username": "Username",
+          "password": "Password",
+          "name": "Firewall Name",
+          "verify_ssl": "Verify SSL certificate"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "invalid_url_format": "Invalid URL Format",
+      "privilege_missing": "User has insufficient privileges (System - HA node sync)",
+      "connect_timeout": "Connection timeout",
+      "cannot_connect_ssl": "SSL Failure",
+      "url_redirect": "Incorrect URL (redirect)"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Scan Interval (seconds)",
+          "device_tracker_enabled": "Enable Device Tracker",
+          "device_tracker_scan_interval": "Device Tracker Scan Interval (seconds)"
+        }
+      },
+      "device_tracker": {
+        "description": "Choose which devices you want to track.",
+        "data": {
+          "devices": "Devices to Track"
+        }
+      }
+    }
+  }
+}

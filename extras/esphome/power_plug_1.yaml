@@ -13,50 +13,50 @@ esphome:
 
 <<: !include common.yaml
 
-# sensor:
-#   # Power measuring sensor
-#   - platform: hlw8012
-#     sel_pin:
-#       number: GPIO12
-#       inverted: True
-#     cf_pin: GPIO5
-#     cf1_pin: GPIO14
-#     current:
-#       name: "${friendly_name} Current"
-#       id: current
-#       filters:
-#         - sliding_window_moving_average:
-#             window_size: 5
-#             send_every: 1
-#     power:
-#       name: "${friendly_name} Power"
-#       id: power
-#       filters:
-#         # Some calibration
-#         - multiply: 0.4545
-#         - sliding_window_moving_average:
-#             window_size: 5
-#             send_every: 1
-#     voltage:
-#       #name: "${friendly_name} Voltage"
-#       id: voltage
-#     current_resistor: 0.001  # default 0.001
-#     voltage_divider: 910     # default 2351
-#     change_mode_every: 3     # default 8
-#     update_interval: 1s      # default 60s
+sensor:
+  # Power measuring sensor
+  - platform: hlw8012
+    sel_pin:
+      number: GPIO12
+      inverted: True
+    cf_pin: GPIO5
+    cf1_pin: GPIO14
+    current:
+      name: "${friendly_name} Current"
+      id: current
+      filters:
+        - sliding_window_moving_average:
+            window_size: 5
+            send_every: 1
+    power:
+      name: "${friendly_name} Power"
+      id: power
+      filters:
+        # Some calibration
+        - multiply: 0.4545
+        - sliding_window_moving_average:
+            window_size: 5
+            send_every: 1
+    voltage:
+      #name: "${friendly_name} Voltage"
+      id: voltage
+    current_resistor: 0.001  # default 0.001
+    voltage_divider: 910     # default 2351
+    change_mode_every: 3     # default 8
+    update_interval: 1s      # default 60s
 
-#   # Sum power readings over the day
-#   - platform: total_daily_energy
-#     name: "${friendly_name} Total Daily Energy"
-#     power_id: power
-#     filters:
-#       - multiply: 0.001   # convert Wh to kWh
-#     unit_of_measurement: kWh
+  # Sum power readings over the day
+  - platform: total_daily_energy
+    name: "${friendly_name} Total Daily Energy"
+    power_id: power
+    filters:
+      - multiply: 0.001   # convert Wh to kWh
+    unit_of_measurement: kWh
 
-# # Enable getting local time for total daily energy calculation
-# time:
-#   - platform: homeassistant
-#     id: homeassistant_time
+# Enable getting local time for total daily energy calculation
+time:
+  - platform: homeassistant
+    id: homeassistant_time
 
 status_led:
   pin:

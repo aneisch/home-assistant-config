@@ -1,14 +1,14 @@
-custom_header:
-  compact_mode: true
-  hide_help: true
-  hide_config: true
-  background: var(--app-header-background-color)
-  elements_color: var(--app-header-text-color)
-  chevrons: false
-  # Hide grill tab if grill inactive
-  hide_tabs: "{% if ( ((states.sensor.thermopro_probe_1.state == 'unknown') and (states.sensor.thermopro_probe_2.state == 'unknown')) and (is_state('sensor.traeger_temperature', 'unavailable')) ) %}5{% endif %}"
-  tab_indicator_color: "rgb(214, 122, 127)"
-  # Only footer mode on Andrew phone
-  footer_mode: "{% if 'Pixel 2' in userAgent %}true{% else %}false{% endif %}"
+#custom_header:
+#  compact_mode: true
+#  hide_help: true
+#  hide_config: true
+#  background: var(--app-header-background-color)
+#  elements_color: var(--app-header-text-color)
+#  chevrons: false
+#  # Hide grill tab if grill inactive
+#  hide_tabs: "{% if ( ((states.sensor.thermopro_probe_1.state == 'unknown') and (states.sensor.thermopro_probe_2.state == 'unknown')) and (is_state('sensor.traeger_temperature', 'unavailable')) ) %}5{% endif %}"
+#  tab_indicator_color: "rgb(214, 122, 127)"
+#  # Only footer mode on Andrew phone
+#  footer_mode: "{% if 'Pixel 2' in userAgent %}true{% else %}false{% endif %}"
 
 views: !include_dir_list ui-lovelace/
