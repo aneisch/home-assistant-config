@@ -116,13 +116,12 @@ class BigNumberCard extends HTMLElement {
       }
       root.querySelector("ha-card").style.setProperty('--bignumber-fill-color', `${this._getStyle(entityState, config)}`);
       root.querySelector("ha-card").style.setProperty('--bignumber-color', `${this._getColor(entityState, config)}`);
-      if (config.hideunit==true) 
-        { root.getElementById("value").textContent = `${entityState}`; }
-      else 
-        { root.getElementById("value").textContent = `${entityState} ${measurement}`; }
       this._entityState = entityState
       let value = (config.round == null ? entityState : parseFloat(entityState).toFixed(config.round)) 
-      root.getElementById("value").textContent = `${value} ${measurement}`;
+      if (config.hideunit==true) 
+        { root.getElementById("value").textContent = `${value}`; }
+      else 
+        { root.getElementById("value").textContent = `${value} ${measurement}`; }
       if (this.isNoneConfig){
         if (isNaN(value)) {
           if (config.noneString) {

@@ -1,4 +1,59 @@
 automation:
+  - alias: "Update cover last opened"
+    id: "update_cover_last_opened"
+    trigger:
+      - platform: state
+        entity_id: 
+          - cover.garage_door
+        from: "closed"
+        to: "open"
+    action:
+      service: input_datetime.set_datetime
+      data:
+        entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='cover.', replace='') }}_last"
+        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+
+  - alias: "Garage Exterior Switch Scenes"
+    id: "garage_exterior_scenes"
+    trigger:
+      - platform: event
+        event_type: zwave_js_value_notification
+        event_data:
+          node_id: 39
+          # Double tap up
+          value: 3
+    action:
+      - service: homeassistant.turn_on
+        entity_id: switch.garage_lights
+
+  - alias: "Turn off Garage Lights"
+    id: "garge_lights_off"
+    trigger:
+      platform: state
+      entity_id: binary_sensor.garage_interior_motion
+      from: "on"
+      to: "off"
+      for: "00:05:00"
+    condition: "{{ states('switch.garage_lights') == 'on' }}"
+    action:
+      service: homeassistant.turn_off
+      entity_id: switch.garage_lights
+
+  - alias: "Turn on garage light when motor light switches"
+    id: "garage_laser_trip"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.garage_motor_light_status
+        from: "off"
+        to: "on"
+    condition:
+      - condition: state
+        entity_id: switch.garage_lights
+        state: "off"
+    action:
+      service: light.turn_on
+      entity_id: switch.garage_lights
+
   - alias: 'Change entry switch LEDs based on garage door state'
     id: "garage_opened_switch_leds"
     trigger:

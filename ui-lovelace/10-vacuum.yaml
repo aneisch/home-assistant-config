@@ -205,9 +205,10 @@ cards:
 
   - type: custom:xiaomi-vacuum-map-card
     entity: vacuum.roborock_s4
-    map_camera: camera.xiaomi_cloud_map_extractor
-    camera_calibration: true
-
+    map_source:
+      camera: camera.xiaomi_cloud_map_extractor
+    calibration_source:
+      camera: true
   # - type: vertical-stack
   #   cards:
   #     - type: horizontal-stack

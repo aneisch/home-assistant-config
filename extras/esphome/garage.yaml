@@ -23,10 +23,10 @@ time:
     timezone: America/Chicago
     id: homeassistant_time
 
-text_sensor:
-  - platform: template
-    name: Garage Door Last Opened
-    id: garage_door_last
+# text_sensor:
+#   - platform: template
+#     name: Garage Door Last Opened
+#     id: garage_door_last
 
 dallas:
   - pin:
@@ -73,6 +73,13 @@ sensor:
 binary_sensor:
   - platform: gpio
     pin:
+      number: D6
+      mode: INPUT_PULLUP
+      inverted: true
+    name: Garage Motor Light Status
+
+  - platform: gpio
+    pin:
       number: D7
       mode: INPUT_PULLUP
     id: garage_status
@@ -80,15 +87,15 @@ binary_sensor:
     filters:
       - delayed_on: 0.2s
       - delayed_off: 0.2s
-    on_press:
-      then:
-        - text_sensor.template.publish:
-            id: garage_door_last
-            state: !lambda |-
-                char str[20];
-                time_t currTime = id(homeassistant_time).now().timestamp;
-                strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-                return  { str };
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: garage_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
 
   # - platform: template
   #   name: "Cruze"
