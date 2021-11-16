@@ -51,7 +51,7 @@ automation:
         entity_id: switch.garage_lights
         state: "off"
     action:
-      service: light.turn_on
+      service: homeassistant.turn_on
       entity_id: switch.garage_lights
 
   - alias: 'Change entry switch LEDs based on garage door state'
