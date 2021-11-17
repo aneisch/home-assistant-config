@@ -80,10 +80,11 @@ Occupancy Simulator:
   module: occusim
   class: OccuSim
   constrain_input_boolean: input_boolean.occusim
+  reset_time: 02:00:00
   dump_times: '1'
   log_msg: '1'
   step_evening_name: Evening
-  step_evening_start: sunset - 00:20:00
+  step_evening_start: sunset - 00:30:00
   step_night_name: Night
   step_night_start: '23:59:59'
 

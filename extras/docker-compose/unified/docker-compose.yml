@@ -406,9 +406,18 @@ services:
             - USER_ID=99
             - GROUP_ID=99
         ports:
-        #    - "8181:8181"
+            #- "8181:8181"
             - "80:8080"
             - "443:4443"
         volumes:
             - "/opt/nginx-proxy-manager:/config:rw"
             - /etc/localtime:/etc/localtime:ro
+
+    cloudflared:
+        container_name: cloudflared
+        image: cloudflare/cloudflared:2021.11.0
+        restart: 'always'
+        network_mode: host
+        volumes:
+            - /opt/cloudflared/:/home/nonroot/.cloudflared/
+        command: tunnel run nuc

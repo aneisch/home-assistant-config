@@ -430,8 +430,29 @@ camera:
     draw: ['all']
     attributes:
       - calibration_points
+      - charger
+      - cleaned_rooms
+      - country
+      - goto_path
+      - goto_predicted_path
+      - goto
+      - ignored_obstacles_with_photo
+      - ignored_obstacles
+      - image
+      - is_empty
+      - map_name
+      - no_go_areas
+      - no_mopping_areas
+      - obstacles_with_photo
+      - obstacles
+      - path
+      - room_numbers
+      - rooms
       - vacuum_position
+      - vacuum_room_name
       - vacuum_room
+      - walls
+      - zones
     colors:
       color_path: [255, 255, 255]
     map_transformation:
