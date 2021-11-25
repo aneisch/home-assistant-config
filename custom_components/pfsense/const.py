@@ -161,6 +161,14 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         # entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
     ),
     # cpu
+    "telemetry.cpu.used_percent": SensorEntityDescription(
+        key="telemetry.cpu.used_percent",
+        name="CPU Usage",
+        native_unit_of_measurement=PERCENTAGE,
+        icon="mdi:speedometer-medium",
+        state_class=STATE_CLASS_MEASUREMENT,
+        # entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+    ),
     "telemetry.cpu.frequency.current": SensorEntityDescription(
         key="telemetry.cpu.frequency.current",
         name="CPU Frequency Current",

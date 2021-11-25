@@ -156,6 +156,8 @@ monitor_docker:
 
 frontend:
   themes: !include_dir_merge_named themes
+  extra_module_url:
+    - /hacsfiles/lovelace-card-mod/card-mod.js
 
 group: !include group.yaml
 
@@ -305,8 +307,6 @@ lovelace:
     - url: /hacsfiles/lovelace-hass-aarlo/hass-aarlo.js
       type: module
     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
-      type: module
-    - url: /hacsfiles/lovelace-card-mod/card-mod.js
       type: module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
       type: module

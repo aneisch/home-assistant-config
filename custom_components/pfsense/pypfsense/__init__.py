@@ -75,7 +75,22 @@ class Client(object):
 
     @_apply_timeout
     def _exec_php(self, script):
-        return self._get_proxy().pfsense.exec_php(script)
+        script = """
+ini_set('display_errors', 0);
+
+{}
+
+// wrapping this in json_encode and then unwrapping in python prevents funny XMLRPC NULL encoding errors
+// https://github.com/travisghansen/hass-pfsense/issues/35
+$toreturn_real = $toreturn;
+$toreturn = [];
+$toreturn["real"] = json_encode($toreturn_real);
+""".format(
+            script
+        )
+        response = self._get_proxy().pfsense.exec_php(script)
+        response = json.loads(response["real"])
+        return response
 
     @_apply_timeout
     def get_host_firmware_version(self):
@@ -704,24 +719,19 @@ $memory_info = exec_command("sysctl hw.physmem hw.usermem hw.realmem vm.swap_tot
 $memory_parts = explode("\n", $memory_info);
 
 $toreturn = [
-  // true argument resolves hostnames
-  //"arp_table" => json_encode(system_get_arp_table(true)),
-  // true returns in percentage
-  //"g" => json_encode($g),
-  //"freebsd_version" => json_encode(get_freebsd_version()),
-  //"version" => json_encode($version),
-  //"system_uniqueid" => json_encode(system_get_uniqueid()),
-  //"host_firmware_version" => json_encode(host_firmware_version()),
+
   "pfstate" => [
     "used" => (int) $pfstate_parts[0],
     "total" => (int) $pfstate_parts[1],
     "used_percent" => get_pfstate(true),
   ],
+
   "mbuf" => [
     "used" => (int) $mbuf_parts[0],
     "total" => (int) $mbuf_parts[1],
     "used_percent" => floatval($mbufpercent),
   ],
+
   "memory" => [
     "swap_used_percent" => floatval(swap_usage()),
     "used_percent" => floatval(mem_usage()),
@@ -731,11 +741,13 @@ $toreturn = [
     "swap_total" => (int) trim(explode(":", $memory_parts[3])[1]),
     "swap_reserved" => (int) trim(explode(":", $memory_parts[4])[1]),
   ],
+
   "system" => [
     "boottime" => $boottime,
     "uptime" => (int) get_uptime_sec(),
     "temp" => floatval(get_temp()),
   ],
+
   "cpu" => [
     "frequency" => [
         "current" => (int) stripalpha($cpu_frequency_parts[0]),
@@ -753,9 +765,13 @@ $toreturn = [
         "fifteen_minute" => floatval(trim($cpu_load_average_parts[2])),
     ],
   ],
+
   "filesystems" => $filesystems,
+
   "interfaces" => [],
+
   "gateways" => return_gateways_status(true),
+
 ];
 
 foreach($filesystems as $fs) {
@@ -770,16 +786,13 @@ foreach ($ifdescrs as $ifdescr => $ifname) {
   // I know these look off, but they are indeed correct
   $data["descr"] = $ifname;
   $data["ifname"] = $ifdescr;
-  $toreturn["interfaces"][${ifdescr}] = json_encode($data);
+  $toreturn["interfaces"]["${ifdescr}"] = $data;
 }
 """
         data = self._exec_php(script)
 
         for fs in data["filesystems"]:
             fs["percent_used"] = int(fs["percent_used"])
-
-        for i, i_key in enumerate(data["interfaces"].keys()):
-            data["interfaces"][i_key] = json.loads(data["interfaces"][i_key])
 
         if isinstance(data["gateways"], list):
             data["gateways"] = {}

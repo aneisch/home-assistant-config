@@ -158,12 +158,12 @@ Bethany Office Hanging Lights:
   leader: light.bethany_desk_lamp
   follower: light.bethany_office_hanging
 
-#Christmas Lights:
-#  module: entity_timer
-#  class: Timer
-#  entities: switch.christmas_lights
-#  time_on: sunset
-#  time_off: "23:00:00"
+Christmas Lights:
+  module: entity_timer
+  class: Timer
+  entities: switch.christmas_lights
+  time_on: sunset - 00:20:00
+  time_off: "00:00:00"
 
 ############
 # Aquarium #

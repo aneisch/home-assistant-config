@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 from datetime import timedelta
 import logging
+import math
 import re
 import time
 from typing import Callable
@@ -282,6 +283,31 @@ class PfSenseData:
 
             if previous_update_time is not None:
                 elapsed_time = update_time - previous_update_time
+
+                # calculate CPU Usage based on ticks
+                # /usr/local/www/widgets/widgets/system_information.widget.php
+                previous_cpu = dict_get(self._state, "previous_state.telemetry.cpu")
+                if previous_cpu is not None:
+                    current_cpu = dict_get(self._state, "telemetry.cpu")
+                    if (
+                        dict_get(previous_cpu, "ticks.total")
+                        <= dict_get(current_cpu, "ticks.total")
+                    ) and (
+                        dict_get(previous_cpu, "ticks.idle")
+                        <= dict_get(current_cpu, "ticks.idle")
+                    ):
+                        total_change = dict_get(current_cpu, "ticks.total") - dict_get(
+                            previous_cpu, "ticks.total"
+                        )
+                        idle_change = dict_get(current_cpu, "ticks.idle") - dict_get(
+                            previous_cpu, "ticks.idle"
+                        )
+                        cpu_used_percent = math.floor(
+                            ((total_change - idle_change) / total_change) * 100
+                        )
+                        self._state["telemetry"]["cpu"][
+                            "used_percent"
+                        ] = cpu_used_percent
 
                 for interface_name in self._state["telemetry"]["interfaces"].keys():
                     interface = dict_get(

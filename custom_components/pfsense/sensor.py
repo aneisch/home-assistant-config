@@ -58,6 +58,7 @@ async def async_setup_entry(
                 "telemetry.mbuf.used_percent",
                 "telemetry.memory.swap_used_percent",
                 "telemetry.memory.used_percent",
+                "telemetry.cpu.used_percent",
                 "telemetry.cpu.frequency.current",
                 "telemetry.cpu.load_average.one_minute",
                 "telemetry.cpu.load_average.five_minute",
@@ -293,6 +294,7 @@ class PfSenseSensor(PfSenseEntity, SensorEntity):
         self._attr_unique_id = slugify(
             f"{self.pfsense_device_unique_id}_{entity_description.key}"
         )
+        self._previous_value = None
 
     @property
     def native_value(self):
@@ -301,8 +303,24 @@ class PfSenseSensor(PfSenseEntity, SensorEntity):
         if value is None:
             return STATE_UNKNOWN
 
+        if value == 0 and self.entity_description.key == "telemetry.system.temp":
+            return STATE_UNKNOWN
+
         if self.entity_description.key == "telemetry.system.boottime":
             value = utc_from_timestamp(value).isoformat()
+
+        if self.entity_description.key == "telemetry.cpu.frequency.current":
+            if value == 0 and self._previous_value is not None:
+                value = self._previous_value
+
+        if (
+            value == 0
+            and self.entity_description.key == "telemetry.cpu.frequency.current"
+        ):
+            return STATE_UNKNOWN
+
+        self._previous_value = value
+
         return value
 
 
