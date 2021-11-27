@@ -38,6 +38,16 @@ sensor:
       {{ value_json.tag_name }}
     scan_interval: 1800
 
+template:
+  - trigger:
+      - platform: state
+        entity_id: sensor.ha_version
+      - platform: homeassistant
+        event: start
+    binary_sensor:
+      - name: HASS on Beta
+        state: '{{ "b" in states("sensor.ha_version") }}'
+
 automation:
   # Trigger GitHub action(s) when new beta version is available
   - alias: "Auto Update: Trigger Github Action BETA"

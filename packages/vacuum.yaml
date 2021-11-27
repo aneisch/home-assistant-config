@@ -338,6 +338,42 @@ input_select:
       - Back Bathroom
 
 script:
+  vacuum_follow_path:
+    mode: single
+    alias: Vacuum follow path
+    fields:
+      path:
+        name: Path
+      entity_id:
+        name: Vacuum entity
+    sequence:
+      - repeat:
+          count: "{{ path | length }}"
+          sequence:
+            - choose:
+                - conditions: "{{ mode == 'individual' }}"
+                  sequence:
+                    - service: "{{ service }}"
+                      data:
+                        entity_id: "{{ entity_id }}"
+                        x_coord: "{{ path[repeat.index-1][0] }}"
+                        y_coord: "{{ path[repeat.index-1][1] }}"
+            - choose:
+                - conditions: "{{ mode == 'send_command' }}"
+                  sequence:
+                    - service: "{{ service }}"
+                      data:
+                        entity_id: "{{ entity_id }}"
+                        command: app_goto_target
+                        params: "{{ path[repeat.index-1] }}"
+            - wait_template: "{{ is_state(entity_id, 'cleaning') }}"
+              timeout: 00:00:30
+              continue_on_timeout: false
+            - delay: 00:00:01
+            - wait_template: "{{ is_state(entity_id, 'idle') or is_state(entity_id, 'paused') }}"
+              timeout: 00:05:00
+              continue_on_timeout: false
+  
   vacuum_locate:
     sequence:
       - service: vacuum.locate

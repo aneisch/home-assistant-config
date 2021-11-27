@@ -8,10 +8,12 @@ automation:
         from: "closed"
         to: "open"
     action:
-      service: input_datetime.set_datetime
-      data:
-        entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='cover.', replace='') }}_last"
-        datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - service: input_datetime.set_datetime
+        data:
+          entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='cover.', replace='') }}_last"
+          datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+      - service: counter.increment
+        entity_id: counter.garage_door_cycles
 
   - alias: "Garage Exterior Switch Scenes"
     id: "garage_exterior_scenes"
@@ -152,6 +154,10 @@ automation:
       - service: notify.pushover
         data:
           message: "Garage door opened and no one home.."
+
+counter:
+  garage_door_cycles:
+    icon: mdi:garage
 
 script:
   zen30_led_color_change:

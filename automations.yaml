@@ -617,17 +617,15 @@
 - alias: "315Mhz Remote"
   id: "315mhz_remote"
   trigger:
-    - platform: state
-      entity_id: binary_sensor.315mhz_remote
-      to: "on"
-    - platform: state
-      entity_id: binary_sensor.315mhz_remote
-      to: "off"
+    - platform: mqtt
+      topic: 'sensor/rtl_433_test'
+      value_template: "{{ value_json.model }}"
+      payload: 'Smoke-GS558'
   action:
     service: >
-      {% if trigger.to_state.state == "on" %}
+      {% if trigger.payload_json.code == "87f7b0" %}
         homeassistant.turn_on
-      {% elif trigger.to_state.state == "off" %}
+      {% elif trigger.payload_json.code == "67f7b0" %}
         homeassistant.turn_off
       {% endif %}
     entity_id: group.christmas_trees

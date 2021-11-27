@@ -49,6 +49,32 @@ sensor:
   #          {% set time = '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) %}
   #          {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
 
+template:
+  - trigger:
+      - platform: mqtt
+        topic: "sensor/rtl_433"
+        payload: True
+        value_template: "{{ value_json.model == 'Thermopro-TP12' }}"
+    sensor:
+      - name: "Thermopro Probe 1"
+        state: >
+          {% if trigger.payload_json.temperature_1_F != 608.0 %}
+            {{ trigger.payload_json.temperature_1_F | float | round(2) }}
+          {% else %}
+            unknown
+          {% endif %}        
+        unit_of_measurement: '°F'
+        device_class: temperature
+      - name: "Thermopro Probe 2"
+        state: >
+          {% if trigger.payload_json.temperature_2_F != 608.0 %}
+            {{ trigger.payload_json.temperature_2_F | float | round(2) }}
+          {% else %}
+            unknown
+          {% endif %}
+        unit_of_measurement: '°F'
+        device_class: temperature
+
 binary_sensor:
   - platform: template
     sensors:
