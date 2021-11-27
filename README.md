@@ -62,7 +62,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2283
-Lines of Home Assistant YAML | 5629
+Lines of Home Assistant YAML | 5657
 [Integrations](https://www.home-assistant.io/integrations/) in use | 31
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 20
  
@@ -96,12 +96,12 @@ Entities in the [`select`](https://www.home-assistant.io/components/select) doma
 Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 222
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 97
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 98
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **684**
+**Total state objects** | **685**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -118,6 +118,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
 **Integration**:<br>
+[AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
 [PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>

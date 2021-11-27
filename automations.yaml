@@ -613,3 +613,21 @@
       data:
         duration: '{{ as_timestamp(states("sensor.kitchen_next_timer")) - as_timestamp(now()) }}'
         entity_id: timer.kitchen_alexa
+
+- alias: "315Mhz Remote"
+  id: "315mhz_remote"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.315mhz_remote
+      to: "on"
+    - platform: state
+      entity_id: binary_sensor.315mhz_remote
+      to: "off"
+  action:
+    service: >
+      {% if trigger.to_state.state == "on" %}
+        homeassistant.turn_on
+      {% elif trigger.to_state.state == "off" %}
+        homeassistant.turn_off
+      {% endif %}
+    entity_id: group.christmas_trees

@@ -101,3 +101,12 @@
   binary_sensor:
     - name: HA Beta Available
       state: '{{ "b" in states("sensor.ha_docker_version_beta") }}'
+
+- trigger:
+  - platform: mqtt
+    topic: "sensor/rtl_433_test"
+    payload: True
+    value_template: "{{ value_json.model == 'Smoke-GS558' }}"
+  binary_sensor:
+    - name: "315Mhz Remote"
+      state: "{% if trigger.payload_json.code == '87f7b0' %}on{% elif trigger.payload_json.code == '67f7b0'%}off{% endif %}"

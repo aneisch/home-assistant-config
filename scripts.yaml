@@ -36,6 +36,9 @@ home_occupied:
     - service: homeassistant.turn_on
       data:
         entity_id: group.under_cabinet_lights
+    - service: homeassistant.turn_on
+      data:
+        entity_id: group.christmas_trees
 
 ############
 # SECURITY #
