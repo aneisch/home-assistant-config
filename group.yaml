@@ -6,6 +6,7 @@ common_areas:
     - group.living_room
     - group.kitchen
     - group.office
+    - group.garage
     - group.christmas_trees
 
 office:
@@ -27,6 +28,14 @@ master_bedroom:
     #- switch.master_bedroom_sound_machine
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
+
+garage:
+  name: Garage
+  entities:
+    - switch.garage_exterior_light
+    - switch.workbench_shelf_leds
+    - switch.garage_highbay_light
+    - switch.garage_lights
 
 guest_bedroom:
   name: Guest Bedroom

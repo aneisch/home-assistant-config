@@ -1,6 +1,6 @@
 title: Vacuum
 icon: mdi:robot-vacuum
-panel: true
+panel: false
 cards:
   # - type: 'custom:card-templater'
   #   entities:
@@ -119,90 +119,52 @@ cards:
   #           line-height: 2px
   #           color: white
   #           transform: translate(0%,0%)
-  #       # - type: state-label
-  #       #   prefix: "Ran "
-  #       #   suffix: "x"
-  #       #   entity: sensor.roborock_s4_lifetime_cleaning_count
-  #       #   style:
-  #       #     background-color: "rgba(0, 0, 0, 0.3)"
-  #       #     bottom: 85%
-  #       #     right: 0px
-  #       #     padding: 8px
-  #       #     font-size: 16px
-  #       #     line-height: 2px
-  #       #     color: white
-  #       #     transform: translate(0%,0%)
-  #       #     width: 25%
-  #       # - type: state-label
-  #       #   prefix: "Ran for "
-  #       #   suffix: " hrs"
-  #       #   entity: sensor.roborock_s4_lifetime_cleaning_time
-  #       #   style:
-  #       #     background-color: "rgba(0, 0, 0, 0.3)"
-  #       #     bottom: 72%
-  #       #     right: 0px
-  #       #     padding: 8px
-  #       #     font-size: 16px
-  #       #     line-height: 2px
-  #       #     color: white
-  #       #     transform: translate(0%,0%)
-  #       #     width: 25%
-  #       # - type: state-label
-  #       #   entity: sensor.roborock_s4_lifetime_cleaned_area
-  #       #   prefix: "Cleaned "
-  #       #   style:
-  #       #     background-color: "rgba(0, 0, 0, 0.3)"
-  #       #     bottom: 59%
-  #       #     right: 0px
-  #       #     padding: 8px
-  #       #     font-size: 16px
-  #       #     line-height: 2px
-  #       #     color: white
-  #       #     transform: translate(0%,0%)
-  #       #     width: 25%
+        # - type: state-label
+        #   prefix: "Ran "
+        #   suffix: "x"
+        #   entity: sensor.roborock_s4_lifetime_cleaning_count
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 85%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
+        # - type: state-label
+        #   prefix: "Ran for "
+        #   suffix: " hrs"
+        #   entity: sensor.roborock_s4_lifetime_cleaning_time
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 72%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
+        # - type: state-label
+        #   entity: sensor.roborock_s4_lifetime_cleaned_area
+        #   prefix: "Cleaned "
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 59%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
 
   # - type: entities
   #   entities:
   #     - entity: sensor.roborock_current_room
   #       icon: "mdi:crosshairs"
-
-  # - type: entities
-  #   title: Custom Clean
-  #   show_header_toggle: false
-  #   entities:
-  #     - entity: automation.vacuum_when_house_unoccupied
-  #       icon: "mdi:robot-vacuum"
-  #     - input_select.vacuum_custom_clean_1
-  #     - input_select.vacuum_custom_clean_2
-  #     - input_select.vacuum_custom_clean_3
-  #     - input_select.vacuum_custom_clean_4
-  #     - input_select.vacuum_custom_clean_5
-  #     - input_select.vacuum_custom_clean_6
-  #     - input_select.vacuum_custom_clean_7
-  #     - input_select.vacuum_custom_clean_8
-  #     - input_select.vacuum_custom_clean_9
-  #     - input_select.vacuum_custom_clean_10
-  #     - entity: input_boolean.return_to_trashcan
-  #       name: Go to Trashcan When Done
-  #     - type: call-service
-  #       service: python_script.vacuum_custom_clean
-  #       name: " "
-  #       icon: " "
-
-  # - type: 'custom:card-templater'
-  #   entities:
-  #     - input_select.vacuum_mode
-  #   card: 
-  #     type: entities
-  #     entities:
-  #       - input_select.vacuum_mode
-  #       - type: call-service
-  #         service: vacuum.set_fan_speed
-  #         service_data:
-  #           entity_id: vacuum.roborock_s4
-  #           fan_speed_template: "{{states('input_select.vacuum_mode')}}"
-  #         name: " "
-  #         icon: " "
 
   - type: custom:xiaomi-vacuum-map-card
     style: |
@@ -215,6 +177,92 @@ cards:
     calibration_source:
       camera: true
     map_locked: true
+    icons:
+      - icon: "mdi:play"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "cleaning"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "returning"
+        tap_action:
+          action: call-service
+          service: vacuum.start
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:pause"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "idle"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "paused"
+        tap_action: 
+          action: call-service
+          service: vacuum.pause
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:stop"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "idle"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "paused"
+        tap_action:
+          action: call-service
+          service: vacuum.stop
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:home-map-marker"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "returning"
+        tap_action:
+          action: call-service
+          service: vacuum.return_to_base
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: mdi:trash-can
+        tap_action:
+          action: call-service
+          service: script.vacuum_park_trashcan
+    tiles:
+      - label: "Status"
+        entity: vacuum.roborock_s4
+        attribute: "status"
+        icon: "mdi:robot-vacuum"
+      - label: "Battery"
+        entity: vacuum.roborock_s4
+        attribute: "battery_level"
+        icon: mdi:battery
+        unit: "%"
+      - label: "Fan Speed"
+        entity: vacuum.roborock_s4
+        attribute: "fan_speed"
+        icon: mdi:fan
+      - label: "Location"
+        entity: sensor.roborock_current_room
+        icon: mdi:crosshairs
+        # conditions:
+        #   - entity: sensor.roborock_current_room
+        #     value_not: Unavailable
+      - label: "Go To Trashcan When Done"
+        entity: input_boolean.return_to_trashcan
+        tap_action:
+          action: call-service
+          service: homeassistant.toggle
+          service_data:
+            entity_id: input_boolean.return_to_trashcan
     map_modes:
       - template: vacuum_clean_segment
         max_selections: 20
@@ -442,3 +490,28 @@ cards:
   #                 padding: 7px
   #                 transform: translate(0%,0%)
   #                 color: white
+
+
+  - type: entities
+    title: Custom Clean
+    show_header_toggle: false
+    entities:
+      - entity: automation.vacuum_when_house_unoccupied
+        icon: "mdi:robot-vacuum"
+      - input_select.vacuum_custom_clean_1
+      - input_select.vacuum_custom_clean_2
+      - input_select.vacuum_custom_clean_3
+      - input_select.vacuum_custom_clean_4
+      - input_select.vacuum_custom_clean_5
+      - input_select.vacuum_custom_clean_6
+      - input_select.vacuum_custom_clean_7
+      - input_select.vacuum_custom_clean_8
+      - input_select.vacuum_custom_clean_9
+      - input_select.vacuum_custom_clean_10
+      # - entity: input_boolean.return_to_trashcan
+      #   name: Go to Trashcan When Done
+      - type: call-service
+        service: python_script.vacuum_custom_clean
+        name: " "
+        icon: " "
+

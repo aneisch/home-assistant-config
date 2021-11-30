@@ -24,6 +24,9 @@ switch.nas:
   friendly_name: "Plex"
   icon: mdi:server
 
+switch.dining_room_christmas_tree:
+  icon: mdi:pine-tree
+
 ### SENSORS ###
 sensor.sonoff_pow_current:
   icon: mdi:flash

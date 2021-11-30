@@ -116,7 +116,7 @@ sensor:
           {% if room != None and room in lookup %}
           {{ lookup[room] }}
           {% else %}
-          Unavailable
+          Dock
           {% endif %}
         attribute_templates:
           segment: "{{ state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') }}"

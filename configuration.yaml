@@ -102,13 +102,13 @@ circadian_lighting:
 
 config:
 
-device_tracker:
-  # Don't forget to edit known_devices.yaml if hardware changes :)
-  - platform: nmap_tracker
-    home_interval: 5
-    hosts: 
-      - 10.0.1.24/32
-      - 10.0.1.59/32
+#device_tracker:
+#  # Don't forget to edit known_devices.yaml if hardware changes :)
+#  - platform: nmap_tracker
+#    home_interval: 5
+#    hosts: 
+#      - 10.0.1.24/32
+#      - 10.0.1.59/32
 
 # Watch for nginx proxy manager changes
 folder_watcher:
@@ -498,6 +498,10 @@ setter:
 sensor: !include sensors.yaml
 
 shell_command: !include shell_command.yaml
+
+sonoff:
+  username: !secret ewelink_user
+  password: !secret ewelink_pass
 
 spotify:
   client_id: !secret spotify_client_id
