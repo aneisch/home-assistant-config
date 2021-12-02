@@ -13,6 +13,18 @@ script:
           media_content_type: playlist
 
 automation:
+  - alias: "Magic Cube Shake"
+    id: "magic_cube_knock_slide"
+    trigger:
+      - platform: event
+        event_type: zha_event
+        event_data:
+          command: "shake"
+    action:
+      - service: homeassistant.toggle
+        data:
+          entity_id: group.christmas_trees
+
   - alias: "Magic Cube Knock or Slide"
     id: "magic_cube_knock_slide"
     trigger:

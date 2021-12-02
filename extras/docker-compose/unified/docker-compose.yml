@@ -291,7 +291,8 @@ services:
           - '/opt/docker-compose/:/docker-compose'
           - '/home/aneisch:/home/aneisch'
         environment:
-          - 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
+          #- 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
+          - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
           - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
           - PUID=1000
           - PGID=1000
@@ -421,3 +422,17 @@ services:
         volumes:
             - /opt/cloudflared/:/home/nonroot/.cloudflared/
         command: tunnel run nuc
+    github-runner:
+        container_name: github-runner
+        image: myoung34/github-runner:latest
+        environment:
+          RUNNER_NAME: nuc-runner
+          ACCESS_TOKEN: XXXX
+          REPO_URL: https://github.com/aneisch/thermostat_api_server_docker
+          RUNNER_WORKDIR: /tmp/runner/work
+          LABELS: linux,x64,self-hosted
+        security_opt:
+          - label:disable
+        volumes:
+          - '/var/run/docker.sock:/var/run/docker.sock'
+          - '/tmp/runner:/tmp/runner'

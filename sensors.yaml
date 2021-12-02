@@ -295,28 +295,28 @@
 
     mail_deliveries_message:
       friendly_name: "Deliveries Summary"
-      value_template: > 
+      value_template: >
         {# Deliveries Sentence #}
           {% macro deliveries_sentence() -%}
-                {%- if states('sensor.mail_usps_mail')|int == 0 -%}
+                {%- if states("sensor.mail_usps_mail")|int(0) == 0 -%}
                   No
                 {%- else -%}
-                  {{states('sensor.mail_usps_mail')|int}}
+                  {{states("sensor.mail_usps_mail")|int(0)}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states('sensor.mail_usps_mail')|int <= 1 -%}
+                {%- if states("sensor.mail_usps_mail")|int(0) <= 1 -%}
                   mail
                 {%- else -%}
                   pieces of mail
                 {%- endif -%}
               {{' '}}will be delivered.{{' '}} 
-                {%- if states('sensor.mail_packages_in_transit')|int == 0 -%}
+                {%- if states("sensor.mail_packages_in_transit")|int(0) == 0 -%}
                   No
                 {%- else -%}
-                  {{states('sensor.mail_packages_in_transit')|int}}
+                  {{states("sensor.mail_packages_in_transit")|int(0)}}
                 {%- endif -%}
               {{' '}} 
-                {%- if states('sensor.mail_packages_in_transit')|int == 1 -%}
+                {%- if states("sensor.mail_packages_in_transit")|int(0) == 1 -%}
                   package is
                 {%- else -%}
                   packages are
