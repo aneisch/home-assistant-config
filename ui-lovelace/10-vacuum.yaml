@@ -257,6 +257,7 @@ cards:
         #   - entity: sensor.roborock_current_room
         #     value_not: Unavailable
       - label: "Go To Trashcan When Done"
+        icon: mdi:delete
         entity: input_boolean.return_to_trashcan
         tap_action:
           action: call-service
