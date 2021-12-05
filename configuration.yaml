@@ -502,6 +502,8 @@ shell_command: !include shell_command.yaml
 sonoff:
   username: !secret ewelink_user
   password: !secret ewelink_pass
+  mode: local
+  reload: always
 
 spotify:
   client_id: !secret spotify_client_id
