@@ -75,18 +75,25 @@ cards:
       include:
         - entity_id: "light.*christmas*"
         - entity_id: "switch.*christmas*"
+        - entity_id: switch.sonoff_usb_1
+        - entity_id: switch.sonoff_usb_2
+        - entity_id: switch.sonoff_1_switch
     card:
       type: entities
+      title: Christmas
       show_header_toggle: false
     sort:
       method: name
-
 
   - type: entities
     show_header_toggle: false
     title: Guest Bedrooms
     entities:
+      - light.guest_bedroom_ceiling_fan
+      - switch.guest_bedroom_ceiling_fan
       - light.guest_bedroom_nightstand_lamp
+      - light.back_bedroom_ceiling_fan
+      - switch.back_bedroom_ceiling_fan
       - light.back_bedroom_nightstand_lamp
 
   - type: entities

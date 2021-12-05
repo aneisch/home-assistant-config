@@ -65,7 +65,7 @@ from .const import (
     PRECISION,
 )
 
-VERSION = "1.11"
+VERSION = "1.12"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -115,7 +115,7 @@ class DockerAPI:
                 url = url.replace("unix://", "unix:///")
 
             # When we reconnect with tcp, we should delay - docker is maybe not fully ready
-            if startCount > 0 and url.find("unix:") != 0:
+            if startCount > 0 and url is not None and url.find("unix:") != 0:
                 time.sleep(5)
 
             # Do some debugging logging for TCP/TLS
@@ -175,12 +175,18 @@ class DockerAPI:
         # Compare version with 19.03 when memory calculation has changed
         self._version1904 = None
         if version is not None:
-            if tuple(map(int, (version.split(".")))) > tuple(
-                map(int, ("19.03".split(".")))
-            ):
+            try:
+                if tuple(map(int, (version.split(".")[0:2]))) > tuple(
+                    map(int, ("19.03".split(".")))
+                ):
+                    self._version1904 = True
+                else:
+                    self._version1904 = False
+            except ValueError as err:
+                _LOGGER.error(
+                    "[%s]: ValueError in version '%s' ", self._instance, version
+                )
                 self._version1904 = True
-            else:
-                self._version1904 = False
 
         _LOGGER.debug(
             "[%s]: Docker version: %s (%s)", self._instance, version, self._version1904
@@ -938,7 +944,8 @@ class DockerContainerAPI:
                     cache = raw["memory_stats"]["stats"]["inactive_file"]
 
             memory_stats["usage"] = toMB(
-                raw["memory_stats"]["usage"] - cache, self._config[CONF_PRECISION_MEMORY_MB]
+                raw["memory_stats"]["usage"] - cache,
+                self._config[CONF_PRECISION_MEMORY_MB],
             )
             memory_stats["limit"] = toMB(
                 raw["memory_stats"]["limit"], self._config[CONF_PRECISION_MEMORY_MB]
