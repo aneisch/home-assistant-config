@@ -81,7 +81,7 @@ cards:
     card:
       type: entities
       title: Christmas
-      show_header_toggle: false
+      show_header_toggle: true
     sort:
       method: name
 
