@@ -76,7 +76,6 @@ cards:
         - entity_id: "light.*christmas*"
         - entity_id: "switch.*christmas*"
         - entity_id: switch.sonoff_usb_1
-        - entity_id: switch.sonoff_usb_2
         - entity_id: switch.sonoff_1_switch
     card:
       type: entities

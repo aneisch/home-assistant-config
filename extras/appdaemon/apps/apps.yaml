@@ -169,7 +169,7 @@ Christmas Trinkets Follow:
   module: follow_me
   class: Follow
   leader: group.christmas_trees
-  follower: switch.sonoff_usb_1,switch.sonoff_usb_2,switch.sonoff_1_switch
+  follower: switch.christmas_manger,switch.sonoff_usb_1,switch.sonoff_1_switch
 
 ############
 # Aquarium #

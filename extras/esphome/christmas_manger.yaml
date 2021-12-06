@@ -1,0 +1,21 @@
+substitutions:
+  name: christmas_manger
+  friendly_name: "Christmas Manger"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+
+<<: !include common.yaml
+  
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    name: ${friendly_name}
+    icon: "mdi:horse"
+    pin:
+      number: D1
+      inverted: False
