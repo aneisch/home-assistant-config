@@ -7,7 +7,7 @@ common_areas:
     - group.kitchen
     - group.office
     - group.garage
-    - group.christmas_trees
+    - group.christmas
 
 office:
   name: Office
@@ -98,3 +98,10 @@ christmas_trees:
     - switch.dining_room_christmas_tree
     - switch.kitchen_christmas_tree
     - switch.living_room_christmas_tree
+
+christmas:
+  entities:
+    - group.christmas_trees
+    - switch.sonoff_1_switch
+    - switch.sonoff_usb_1
+    - switch.nativity

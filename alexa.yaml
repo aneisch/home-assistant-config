@@ -79,6 +79,10 @@ smart_home:
       - switch.kitchen_christmas_tree
       - switch.dining_room_christmas_tree
       - group.christmas_trees
+      - group.christmas
+      - switch.sonoff_1_switch # Ferris Wheel
+      - switch.sonoff_usb_1 # Santa Tree
+      - switch.nativity
 
   entity_config:
     climate.thermostat:
@@ -229,7 +233,24 @@ smart_home:
       description: "All Christmas Trees"
       display_categories: SWITCH
 
+    group.christmas:
+      name: Christmas
+      description: "All Indoor Christmas"
+      display_categories: SWITCH
+
     switch.christmas_lights:
       name: "Christmas Lights"
       description: "Christmas Lights"
+      display_categories: SWITCH
+
+    switch.sonoff_1_switch:
+      name: "Ferris Wheel"
+      display_categories: SWITCH
+
+    switch.sonoff_usb_1:
+      name: "Santa Tree"
+      display_categories: SWITCH
+
+    switch.nativity:
+      name: "Nativity"
       display_categories: SWITCH

@@ -77,6 +77,7 @@ cards:
         - entity_id: "switch.*christmas*"
         - entity_id: switch.sonoff_usb_1
         - entity_id: switch.sonoff_1_switch
+        - entity_id: switch.nativity
     card:
       type: entities
       title: Christmas

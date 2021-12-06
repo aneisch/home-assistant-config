@@ -165,12 +165,6 @@ Christmas Lights:
   time_on: sunset - 00:20:00
   time_off: "00:00:00"
 
-Christmas Trinkets Follow:
-  module: follow_me
-  class: Follow
-  leader: group.christmas_trees
-  follower: switch.christmas_manger,switch.sonoff_usb_1,switch.sonoff_1_switch
-
 ############
 # Aquarium #
 ############
