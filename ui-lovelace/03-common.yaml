@@ -18,7 +18,6 @@ cards:
       - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
-      # - switch.christmas_tree
 
   - type: vertical-stack
     cards:
@@ -75,7 +74,7 @@ cards:
       include:
         - entity_id: "light.*christmas*"
         - entity_id: "switch.*christmas*"
-        - entity_id: switch.sonoff_usb_1
+        - entity_id: switch.santa_tree
         - entity_id: switch.sonoff_1_switch
         - entity_id: switch.nativity
     card:

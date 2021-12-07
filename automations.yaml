@@ -140,6 +140,7 @@
     - platform: state
       entity_id: binary_sensor.thermostat_online
       to: "off"
+      for: "00:30:00"
   action:
     - service: notify.pushover
       data:
