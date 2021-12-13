@@ -198,7 +198,7 @@ cards:
 
       - type: conditional
         conditions:
-          - entity: binary_sensor.ha_beta_available
+          - entity: binary_sensor.hass_on_beta
             state: "on"
         card:
           type: entities

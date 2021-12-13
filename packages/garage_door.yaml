@@ -3,8 +3,7 @@ automation:
     id: "update_cover_last_opened"
     trigger:
       - platform: state
-        entity_id: 
-          - cover.garage_door
+        entity_id: cover.garage_door
         from: "closed"
         to: "open"
     action:
@@ -35,7 +34,7 @@ automation:
       entity_id: binary_sensor.garage_interior_motion
       from: "on"
       to: "off"
-      for: "00:05:00"
+      for: "00:10:00"
     condition: "{{ states('switch.garage_lights') == 'on' }}"
     action:
       service: homeassistant.turn_off
@@ -48,6 +47,10 @@ automation:
         entity_id: binary_sensor.garage_motor_light_status
         from: "off"
         to: "on"
+      - platform: state
+        entity_id: cover.garage_door
+        from: "closed"
+        to: "open"
     condition:
       - condition: state
         entity_id: switch.garage_lights

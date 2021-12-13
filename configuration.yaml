@@ -462,6 +462,11 @@ recorder:
       - sensor.roborock_s4_last_cleaned
       - sensor.circadian_values
       - sensor.thermostat_last_communication
+      - sensor.weasel_last_seen
+      - sensor.nuc_nuc_last_seen
+      - sensor.it_c02xrkvwjg5j_last_seen
+      - sensor.pixel_2_xl_last_seen
+      - sensor.aneischvps_last_seen
     domains:
       #- automation
       #- alarm_panel

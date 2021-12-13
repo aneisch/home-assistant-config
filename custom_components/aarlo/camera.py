@@ -35,17 +35,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_aiohttp_proxy_stream
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
-
-from . import (
-    COMPONENT_ATTRIBUTION,
-    COMPONENT_BRAND,
-    COMPONENT_DATA,
-    COMPONENT_DOMAIN,
-    COMPONENT_SERVICES,
-    get_entity_from_domain,
-    is_homekit,
-)
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     ACTIVITY_STATE_KEY,
     CHARGER_KEY,
     CHARGING_KEY,
@@ -57,6 +47,17 @@ from .pyaarlo.constant import (
     PRIVACY_KEY,
     RECENT_ACTIVITY_KEY,
     SIREN_STATE_KEY,
+)
+
+from . import get_entity_from_domain, is_homekit
+from .const import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_CONFIG,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+    COMPONENT_SERVICES,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,8 +86,6 @@ ATTR_VOLUME = "volume"
 ATTR_LAST_THUMBNAIL = "last_thumbnail"
 ATTR_DURATION = "duration"
 ATTR_TIME_ZONE = "time_zone"
-ATTR_WIFI = "wifi"
-ATTR_CORDED = "corded"
 
 CONF_FFMPEG_ARGUMENTS = "ffmpeg_arguments"
 
@@ -199,11 +198,12 @@ SCHEMA_WS_SIREN_OFF = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
 async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up an Arlo IP Camera."""
     arlo = hass.data[COMPONENT_DATA]
+    arlo_cfg = hass.data[COMPONENT_CONFIG]
 
     cameras = []
     cameras_with_siren = False
     for camera in arlo.cameras:
-        cameras.append(ArloCam(camera, config, arlo, hass))
+        cameras.append(ArloCam(camera, config, arlo, arlo_cfg, hass))
         if camera.has_capability(SIREN_STATE_KEY):
             cameras_with_siren = True
 
@@ -269,43 +269,6 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             schema=CAMERA_SERVICE_SCHEMA,
         )
 
-    # Deprecated Services.
-    if not arlo.cfg.hide_deprecated_services:
-        component = hass.data[DOMAIN]
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_SNAPSHOT,
-            CAMERA_SERVICE_SCHEMA,
-            aarlo_snapshot_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_SNAPSHOT_TO_FILE,
-            CAMERA_SERVICE_SNAPSHOT,
-            aarlo_snapshot_to_file_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_REQUEST_VIDEO_TO_FILE,
-            CAMERA_SERVICE_SNAPSHOT,
-            aarlo_video_to_file_service_handler,
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_STOP_ACTIVITY,
-            CAMERA_SERVICE_SCHEMA,
-            aarlo_stop_activity_handler,
-        )
-        if cameras_with_siren:
-            component.async_register_entity_service(
-                OLD_SERVICE_SIREN_ON, SIREN_ON_SCHEMA, aarlo_siren_on_service_handler
-            )
-            component.async_register_entity_service(
-                OLD_SERVICE_SIREN_OFF, SIREN_OFF_SCHEMA, aarlo_siren_off_service_handler
-            )
-        component.async_register_entity_service(
-            OLD_SERVICE_RECORD_START, RECORD_START_SCHEMA, aarlo_start_recording_handler
-        )
-        component.async_register_entity_service(
-            OLD_SERVICE_RECORD_STOP, CAMERA_SERVICE_SCHEMA, aarlo_stop_recording_handler
-        )
-
     # Websockets
     hass.components.websocket_api.async_register_command(
         WS_TYPE_VIDEO_URL, websocket_video_url, SCHEMA_WS_VIDEO_URL
@@ -340,7 +303,7 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 class ArloCam(Camera):
     """An implementation of a Netgear Arlo IP camera."""
 
-    def __init__(self, camera, config, arlo, hass):
+    def __init__(self, camera, config, arlo, arlo_cfg, hass):
         """Initialize an Arlo camera."""
         super().__init__()
         self._name = camera.name
@@ -350,8 +313,8 @@ class ArloCam(Camera):
         self._recent = False
         self._last_image_source_ = None
         self._motion_status = False
-        self._stream_snapshot = arlo.cfg.stream_snapshot
-        self._save_updates_to = arlo.cfg.save_updates_to
+        self._stream_snapshot = arlo_cfg.stream_snapshot
+        self._save_updates_to = arlo_cfg.save_updates_to
         self._ffmpeg = hass.data[DATA_FFMPEG]
         self._ffmpeg_arguments = config.get(CONF_FFMPEG_ARGUMENTS)
         _LOGGER.info("ArloCam: %s created", self._name)
@@ -497,7 +460,7 @@ class ArloCam(Camera):
         return self._camera.state
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the state attributes."""
         attrs = {
             name: value
@@ -523,8 +486,6 @@ class ArloCam(Camera):
                 (ATTR_LAST_THUMBNAIL, self.last_thumbnail_url),
                 (ATTR_LAST_VIDEO, self.last_video_url),
                 (ATTR_TIME_ZONE, self._camera.timezone),
-                (ATTR_WIFI, self._camera.using_wifi),
-                (ATTR_CORDED, self._camera.is_corded),
             )
             if value is not None
         }
@@ -538,6 +499,17 @@ class ArloCam(Camera):
         attrs["siren"] = self._camera.has_capability(SIREN_STATE_KEY)
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {(DOMAIN, self._camera.device_id)},
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+            "model": self._camera.model_id,
+            "id": self._camera.device_id,
+        }
 
     @property
     def model(self):

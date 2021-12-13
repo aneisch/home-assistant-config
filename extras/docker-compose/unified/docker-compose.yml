@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -425,6 +425,7 @@ services:
     github-runner:
         container_name: github-runner
         image: myoung34/github-runner:latest
+        restart: 'always'
         environment:
           RUNNER_NAME: nuc-runner
           ACCESS_TOKEN: XXXX

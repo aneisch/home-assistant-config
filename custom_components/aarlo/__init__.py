@@ -24,101 +24,14 @@ from homeassistant.const import (
 )
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv
+from pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
 from requests.exceptions import ConnectTimeout, HTTPError
 
-from .pyaarlo.constant import DEFAULT_AUTH_HOST, DEFAULT_HOST, SIREN_STATE_KEY
+from .const import *
 
-__version__ = "0.7.2b1"
+__version__ = "0.8.0a7"
 
 _LOGGER = logging.getLogger(__name__)
-
-DOMAIN = "aarlo"
-COMPONENT_DOMAIN = "aarlo"
-COMPONENT_DATA = "aarlo-data"
-COMPONENT_SERVICES = "aarlo-services"
-COMPONENT_ATTRIBUTION = "Data provided by my.arlo.com"
-COMPONENT_BRAND = "Netgear Arlo"
-
-NOTIFICATION_ID = "aarlo_notification"
-NOTIFICATION_TITLE = "aarlo Component Setup"
-
-CONF_PACKET_DUMP = "packet_dump"
-CONF_CACHE_VIDEOS = "cache_videos"
-CONF_DB_MOTION_TIME = "db_motion_time"
-CONF_DB_DING_TIME = "db_ding_time"
-CONF_RECENT_TIME = "recent_time"
-CONF_LAST_FORMAT = "last_format"
-CONF_CONF_DIR = "conf_dir"
-CONF_REQ_TIMEOUT = "request_timeout"
-CONF_STR_TIMEOUT = "stream_timeout"
-CONF_NO_MEDIA_UP = "no_media_upload"
-CONF_MEDIA_RETRY = "media_retry"
-CONF_SNAPSHOT_CHECKS = "snapshot_checks"
-CONF_USER_AGENT = "user_agent"
-CONF_MODE_API = "mode_api"
-CONF_DEVICE_REFRESH = "refresh_devices_every"
-CONF_MODE_REFRESH = "refresh_modes_every"
-CONF_HTTP_CONNECTIONS = "http_connections"
-CONF_HTTP_MAX_SIZE = "http_max_size"
-CONF_RECONNECT_EVERY = "reconnect_every"
-CONF_VERBOSE_DEBUG = "verbose_debug"
-CONF_HIDE_DEPRECATED_SERVICES = "hide_deprecated_services"
-CONF_INJECTION_SERVICE = "injection_service"
-CONF_SNAPSHOT_TIMEOUT = "snapshot_timeout"
-CONF_TFA_SOURCE = "tfa_source"
-CONF_TFA_TYPE = "tfa_type"
-CONF_TFA_HOST = "tfa_host"
-CONF_TFA_USERNAME = "tfa_username"
-CONF_TFA_PASSWORD = "tfa_password"
-CONF_LIBRARY_DAYS = "library_days"
-CONF_AUTH_HOST = "auth_host"
-CONF_SERIAL_IDS = "serial_ids"
-CONF_STREAM_SNAPSHOT = "stream_snapshot"
-CONF_STREAM_SNAPSHOT_STOP = "stream_snapshot_stop"
-CONF_SAVE_UPDATES_TO = "save_updates_to"
-CONF_USER_STREAM_DELAY = "user_stream_delay"
-CONF_SAVE_MEDIA_TO = "save_media_to"
-CONF_NO_UNICODE_SQUASH = "no_unicode_squash"
-CONF_SAVE_SESSION = "save_session"
-
-SCAN_INTERVAL = timedelta(seconds=60)
-PACKET_DUMP = False
-CACHE_VIDEOS = False
-DB_MOTION_TIME = timedelta(seconds=30)
-DB_DING_TIME = timedelta(seconds=10)
-RECENT_TIME = timedelta(minutes=10)
-LAST_FORMAT = "%m-%d %H:%M"
-CONF_DIR = ""
-REQ_TIMEOUT = timedelta(seconds=60)
-STR_TIMEOUT = timedelta(seconds=0)
-NO_MEDIA_UP = False
-MEDIA_RETRY = None
-SNAPSHOT_CHECKS = None
-USER_AGENT = "arlo"
-MODE_API = "auto"
-DEVICE_REFRESH = 0
-MODE_REFRESH = 0
-HTTP_CONNECTIONS = 5
-HTTP_MAX_SIZE = 10
-RECONNECT_EVERY = 0
-VERBOSE_DEBUG = False
-HIDE_DEPRECATED_SERVICES = False
-DEFAULT_INJECTION_SERVICE = False
-SNAPSHOT_TIMEOUT = timedelta(seconds=45)
-DEFAULT_TFA_SOURCE = "imap"
-DEFAULT_TFA_TYPE = "email"
-DEFAULT_TFA_HOST = "unknown.imap.com"
-DEFAULT_TFA_USERNAME = "unknown@unknown.com"
-DEFAULT_TFA_PASSWORD = "unknown"
-DEFAULT_LIBRARY_DAYS = 30
-SERIAL_IDS = False
-STREAM_SNAPSHOT = False
-STREAM_SNAPSHOT_STOP = 0
-SAVE_UPDATES_TO = ""
-USER_STREAM_DELAY = 1
-SAVE_MEDIA_TO = ""
-NO_UNICODE_SQUASH = True
-SAVE_SESSION = True
 
 CONFIG_SCHEMA = vol.Schema(
     {
@@ -141,7 +54,7 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(CONF_REQ_TIMEOUT, default=REQ_TIMEOUT): cv.time_period,
                 vol.Optional(CONF_STR_TIMEOUT, default=STR_TIMEOUT): cv.time_period,
                 vol.Optional(CONF_NO_MEDIA_UP, default=NO_MEDIA_UP): cv.boolean,
-                vol.Optional(CONF_MEDIA_RETRY, default=list()): vol.All(
+                vol.Optional(CONF_MEDIA_RETRY, default=MEDIA_RETRY): vol.All(
                     cv.ensure_list, [cv.positive_int]
                 ),
                 vol.Optional(CONF_SNAPSHOT_CHECKS, default=list()): vol.All(
@@ -154,18 +67,9 @@ CONFIG_SCHEMA = vol.Schema(
                 ): cv.positive_int,
                 vol.Optional(CONF_MODE_REFRESH, default=MODE_REFRESH): cv.positive_int,
                 vol.Optional(
-                    CONF_HTTP_CONNECTIONS, default=HTTP_CONNECTIONS
-                ): cv.positive_int,
-                vol.Optional(
-                    CONF_HTTP_MAX_SIZE, default=HTTP_MAX_SIZE
-                ): cv.positive_int,
-                vol.Optional(
                     CONF_RECONNECT_EVERY, default=RECONNECT_EVERY
                 ): cv.positive_int,
                 vol.Optional(CONF_VERBOSE_DEBUG, default=VERBOSE_DEBUG): cv.boolean,
-                vol.Optional(
-                    CONF_HIDE_DEPRECATED_SERVICES, default=HIDE_DEPRECATED_SERVICES
-                ): cv.boolean,
                 vol.Optional(
                     CONF_INJECTION_SERVICE, default=DEFAULT_INJECTION_SERVICE
                 ): cv.boolean,
@@ -250,6 +154,8 @@ async def async_setup(hass, config):
     # Read config
     conf = config[COMPONENT_DOMAIN]
     injection_service = conf.get(CONF_INJECTION_SERVICE)
+    save_updates_to = conf.get(CONF_SAVE_UPDATES_TO)
+    stream_snapshot = conf.get(CONF_STREAM_SNAPSHOT)
 
     # Fix up streaming...
     patch_file = hass.config.config_dir + "/aarlo.patch"
@@ -264,6 +170,10 @@ async def async_setup(hass, config):
 
     hass.data[COMPONENT_DATA] = arlo
     hass.data[COMPONENT_SERVICES] = {}
+    hass.data[COMPONENT_CONFIG] = ArloCfg(
+        save_updates_to=save_updates_to,
+        stream_snapshot=stream_snapshot,
+    )
 
     # Component services
     has_sirens = False
@@ -333,7 +243,6 @@ async def async_setup(hass, config):
 
 
 def login(hass, conf):
-
     # Read config
     username = conf.get(CONF_USERNAME)
     password = conf.get(CONF_PASSWORD)
@@ -355,11 +264,8 @@ def login(hass, conf):
     mode_api = conf.get(CONF_MODE_API)
     device_refresh = conf.get(CONF_DEVICE_REFRESH)
     mode_refresh = conf.get(CONF_MODE_REFRESH)
-    http_connections = conf.get(CONF_HTTP_CONNECTIONS)
-    http_max_size = conf.get(CONF_HTTP_MAX_SIZE)
     reconnect_every = conf.get(CONF_RECONNECT_EVERY)
     verbose_debug = conf.get(CONF_VERBOSE_DEBUG)
-    hide_deprecated_services = conf.get(CONF_HIDE_DEPRECATED_SERVICES)
     snapshot_timeout = conf.get(CONF_SNAPSHOT_TIMEOUT).total_seconds()
     tfa_source = conf.get(CONF_TFA_SOURCE)
     tfa_type = conf.get(CONF_TFA_TYPE)
@@ -385,7 +291,7 @@ def login(hass, conf):
     while True:
 
         try:
-            from .pyaarlo import PyArlo
+            from pyaarlo import PyArlo
 
             if attempt != 1:
                 _LOGGER.debug(f"login-attempt={attempt}")
@@ -412,9 +318,6 @@ def login(hass, conf):
                 refresh_devices_every=device_refresh,
                 refresh_modes_every=mode_refresh,
                 reconnect_every=reconnect_every,
-                http_connections=http_connections,
-                http_max_size=http_max_size,
-                hide_deprecated_services=hide_deprecated_services,
                 snapshot_timeout=snapshot_timeout,
                 tfa_source=tfa_source,
                 tfa_type=tfa_type,
@@ -557,3 +460,29 @@ def aarlo_inject_response(hass, call):
     if packet is not None:
         _LOGGER.debug("injecting->{}".format(pprint.pformat(packet)))
         hass.data[COMPONENT_DATA].inject_response(packet)
+
+
+class ArloCfg(object):
+    """Helper class to get at Arlo configuration options.
+
+    I got sick of adding in variables each time the config changed so I moved it all here. Config
+    is passed in a kwarg and parsed out by the property methods.
+
+    """
+
+    def __init__(self, **kwargs):
+        """The constructor.
+
+        Args:
+            kwargs (kwargs): Configuration options.
+
+        """
+        self._kw = kwargs
+
+    @property
+    def save_updates_to(self):
+        return self._kw.get("save_updates_to", "")
+
+    @property
+    def stream_snapshot(self):
+        return self._kw.get("stream_snapshot", False)

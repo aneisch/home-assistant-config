@@ -20,9 +20,7 @@ from homeassistant.core import callback
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.icon import icon_for_battery_level
-
-from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, COMPONENT_DOMAIN
-from .pyaarlo.constant import (
+from pyaarlo.constant import (
     AIR_QUALITY_KEY,
     BATTERY_KEY,
     CAPTURED_TODAY_KEY,
@@ -32,6 +30,14 @@ from .pyaarlo.constant import (
     SIGNAL_STR_KEY,
     TEMPERATURE_KEY,
     TOTAL_CAMERAS_KEY,
+)
+
+from .const import (
+    COMPONENT_ATTRIBUTION,
+    COMPONENT_BRAND,
+    COMPONENT_DATA,
+    COMPONENT_DOMAIN,
+    DOMAIN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -164,7 +170,7 @@ class ArloSensor(Entity):
         return None
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return the device state attributes."""
         attrs = {
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
@@ -176,13 +182,23 @@ class ArloSensor(Entity):
         }
 
         if self._sensor_type == "last_capture":
-            video = self._device.last_video
+            video = self._device.last_video_url
             if video is not None:
-                attrs["object_type"] = video.object_type
-                attrs["object_region"] = video.object_region
-                attrs["thumbnail_url"] = video.thumbnail_url
-                attrs["video_url"] = video.video_url
+                attrs["video_url"] = video
+                attrs["thumbnail_url"] = self._device.last_video_thumbnail_url
+                attrs["object_type"] = self._device.last_video_object_type
+                attrs["object_region"] = self._device.last_video_object_region
             else:
                 attrs["object_type"] = None
 
         return attrs
+
+    @property
+    def device_info(self):
+        """Return the related device info to group entities"""
+        return {
+            "identifiers": {(DOMAIN, self._device.device_id)},
+            "name": self._name,
+            "manufacturer": COMPONENT_BRAND,
+            "id": self._device.device_id,
+        }

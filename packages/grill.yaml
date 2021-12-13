@@ -87,26 +87,26 @@ binary_sensor:
 
 input_number:
   thermopro_probe_1_set_low:
-    min: -32
-    max: 300
+    min: -100
+    max: 600
     name: Probe 1 Low
     mode: box
     unit_of_measurement: '°F'
   thermopro_probe_2_set_low:
-    min: -32
-    max: 300
+    min: -100
+    max: 600
     name: Probe 2 Low
     mode: box
     unit_of_measurement: '°F'
   thermopro_probe_1_set_high:
-    min: -32
-    max: 300
+    min: -100
+    max: 600
     name: Probe 1 High
     mode: box
     unit_of_measurement: '°F'
   thermopro_probe_2_set_high:
-    min: -32
-    max: 300
+    min: -100
+    max: 600
     name: Probe 2 High
     mode: box
     unit_of_measurement: '°F'
