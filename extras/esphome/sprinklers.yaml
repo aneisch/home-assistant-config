@@ -6,15 +6,6 @@ esphome:
   name: ${name}
   platform: ESP8266
   board: d1_mini_pro
-  includes:
-    - shift_register_switch.h
-  libraries:
-    - ShiftRegister74HC595@1.2
-  # on_boot:
-  #   priority: -100
-  #   then:
-  #     # Enable 24v supply after successful boot
-  #     - switch.turn_on: relay_24v_power
 
 <<: !include common.yaml
   
@@ -24,9 +15,16 @@ globals:
     restore_value: no
     initial_value: '0'
 
+sn74hc595:
+  - id: 'shift_register'
+    data_pin: D1
+    clock_pin: D2
+    latch_pin: D5
+
 script:
   - id: turn_off_other_zones
     then:
+      - delay: 1s
       - lambda: |-
           // Don't let valves turn on if 24v or master is off
           if (!id(master_valve).state || !id(relay_24v_power).state) {
@@ -76,167 +74,143 @@ switch:
       then:
         - script.execute: turn_off_other_zones
         - switch.turn_off: master_valve
-  
-  - platform: template
+
+  - platform: gpio
     name: "${friendly_name} Front Beds"
+    id: zone1
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone1).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 0
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '1'
-      - switch.turn_on: zone1
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone1
-    turn_off_action:
-      - switch.turn_off: zone1
-      
-  - platform: template
+
+  - platform: gpio
     name: "${friendly_name} Front Lawn"
+    id: zone2
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone2).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 1
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '2'
-      - switch.turn_on: zone2
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone2
-    turn_off_action:
-      - switch.turn_off: zone2
-  
-  - platform: template
+
+  - platform: gpio
     name: "${friendly_name} Left and Main Rear Lawn"
+    id: zone3
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone3).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 2
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '3'
-      - switch.turn_on: zone3
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone3
-    turn_off_action:
-      - switch.turn_off: zone3
 
-  - platform: template
+  - platform: gpio
     name: "${friendly_name} Front and Right Rear Lawn"
+    id: zone4
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone4).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 3
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '4'
-      - switch.turn_on: zone4
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone4
-    turn_off_action:
-      - switch.turn_off: zone4
 
-  - platform: template
+  - platform: gpio
     name: "${friendly_name} Side Lawn"
+    id: zone5
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone5).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 4
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '5'
-      - switch.turn_on: zone5
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone5
-    turn_off_action:
-      - switch.turn_off: zone5
 
-  - platform: template
+  - platform: gpio
     name: "${friendly_name} Zone 6"
+    id: zone6
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone6).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 5
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '6'
-      - switch.turn_on: zone6
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone6
-    turn_off_action:
-      - switch.turn_off: zone6
-  
-  - platform: template
+
+  - platform: gpio
     name: "${friendly_name} Zone 7"
+    id: zone7
     icon: mdi:sprinkler
-    lambda: |-
-      if (id(zone7).state) {
-        return true;
-      } else {
-        return false;
-      }
-    turn_on_action:
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 6
+      inverted: true
+    on_turn_on:
       - globals.set: 
           id: current_zone
           value: '7'
-      - switch.turn_on: zone7
       - script.execute: turn_off_other_zones
       - delay: 25min
       - switch.turn_off: zone7
-    turn_off_action:
-      - switch.turn_off: zone7
-  
-  - platform: custom
-    lambda: |-
-      std::vector<switch_::Switch *> switches;
-      for(int i = 0; i < 8; i++) {
-          auto zone_switch = new ShiftRegisterSwitch(i);
-          App.register_component(zone_switch);
-          switches.push_back(zone_switch);
-      }
-      return switches;
-    switches:
-      - id: zone1
-      - id: zone2
-      - id: zone3
-      - id: zone4
-      - id: zone5
-      - id: zone6
-      - id: zone7
-      - name: "${friendly_name} Master Valve"
-        id: master_valve
-        icon: mdi:valve
-        on_turn_off:
+
+  - platform: gpio
+    name: "${friendly_name} Master Valve"
+    id: master_valve
+    icon: mdi:valve
+    pin:
+      sn74hc595: shift_register
+      # shift register pin
+      number: 7
+      inverted: true
+    on_turn_on:
+      then:
+        if:
+          condition:
+            - switch.is_off: relay_24v_power
           then:
-            - script.execute: turn_off_other_zones
+            - delay: 1s
+            - switch.turn_off: master_valve
+    on_turn_off:
+      then:
+        - script.execute: turn_off_other_zones
