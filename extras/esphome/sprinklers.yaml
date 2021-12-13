@@ -81,7 +81,7 @@ switch:
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 0
       inverted: true
     on_turn_on:
@@ -98,7 +98,7 @@ switch:
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 1
       inverted: true
     on_turn_on:
@@ -115,7 +115,7 @@ switch:
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 2
       inverted: true
     on_turn_on:
@@ -132,7 +132,7 @@ switch:
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 3
       inverted: true
     on_turn_on:
@@ -149,7 +149,7 @@ switch:
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 4
       inverted: true
     on_turn_on:
@@ -161,12 +161,12 @@ switch:
       - switch.turn_off: zone5
 
   - platform: gpio
-    name: "${friendly_name} Zone 6"
+    name: "${friendly_name} Zone 6 - Unused"
     id: zone6
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 5
       inverted: true
     on_turn_on:
@@ -178,12 +178,12 @@ switch:
       - switch.turn_off: zone6
 
   - platform: gpio
-    name: "${friendly_name} Zone 7"
+    name: "${friendly_name} Zone 7 - Unused"
     id: zone7
     icon: mdi:sprinkler
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 6
       inverted: true
     on_turn_on:
@@ -200,7 +200,7 @@ switch:
     icon: mdi:valve
     pin:
       sn74hc595: shift_register
-      # shift register pin
+      # Corresponds to relay # (starts at 0)
       number: 7
       inverted: true
     on_turn_on:
