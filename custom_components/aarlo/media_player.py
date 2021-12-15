@@ -24,9 +24,9 @@ from homeassistant.const import (
     STATE_PLAYING,
 )
 from homeassistant.core import callback
-from pyaarlo.constant import MEDIA_PLAYER_KEY
 
-from .const import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, DOMAIN
+from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
+from .pyaarlo.constant import MEDIA_PLAYER_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -190,16 +190,6 @@ class ArloMediaPlayer(MediaPlayerEntity, ABC):
             ATTR_ATTRIBUTION: COMPONENT_ATTRIBUTION,
             "brand": COMPONENT_BRAND,
             "friendly_name": self._name,
-        }
-
-    @property
-    def device_info(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(DOMAIN, self._unique_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "id": self._unique_id,
         }
 
     @property

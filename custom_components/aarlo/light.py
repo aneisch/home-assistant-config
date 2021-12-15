@@ -26,7 +26,9 @@ from homeassistant.const import (
     ATTR_BATTERY_LEVEL,
 )
 from homeassistant.core import callback
-from pyaarlo.constant import (
+
+from . import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA
+from .pyaarlo.constant import (
     BRIGHTNESS_KEY,
     FLOODLIGHT_KEY,
     LAMP_STATE_KEY,
@@ -36,8 +38,6 @@ from pyaarlo.constant import (
     SPOTLIGHT_BRIGHTNESS_KEY,
     SPOTLIGHT_KEY,
 )
-
-from .const import COMPONENT_ATTRIBUTION, COMPONENT_BRAND, COMPONENT_DATA, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -163,16 +163,6 @@ class ArloLight(LightEntity):
         attrs["friendly_name"] = self._name
 
         return attrs
-
-    @property
-    def device_info(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(DOMAIN, self._unique_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "id": self._unique_id,
-        }
 
 
 class ArloNightLight(ArloLight):

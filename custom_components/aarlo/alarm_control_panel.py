@@ -40,18 +40,16 @@ from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.config_validation import PLATFORM_SCHEMA
 from homeassistant.helpers.event import track_point_in_time
-from pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
-from . import get_entity_from_domain
-from .const import (
+from . import (
     COMPONENT_ATTRIBUTION,
     COMPONENT_BRAND,
-    COMPONENT_CONFIG,
     COMPONENT_DATA,
     COMPONENT_DOMAIN,
     COMPONENT_SERVICES,
-    DOMAIN,
+    get_entity_from_domain,
 )
+from .pyaarlo.constant import MODE_KEY, SIREN_STATE_KEY
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,6 +171,24 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
             async_service_callback,
             schema=SERVICE_MODE_SCHEMA,
         )
+
+    # Deprecated Services.
+    if not arlo.cfg.hide_deprecated_services:
+        component = hass.data[DOMAIN]
+        component.async_register_entity_service(
+            OLD_SERVICE_MODE, SERVICE_MODE_SCHEMA, aarlo_mode_service_handler
+        )
+        if base_stations_with_sirens:
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_ON,
+                SERVICE_SIREN_ON_SCHEMA,
+                aarlo_siren_on_service_handler,
+            )
+            component.async_register_entity_service(
+                OLD_SERVICE_SIREN_OFF,
+                SERVICE_SIREN_OFF_SCHEMA,
+                aarlo_siren_off_service_handler,
+            )
 
     # Websockets.
     if base_stations_with_sirens:
@@ -326,17 +342,6 @@ class ArloBaseStation(AlarmControlPanelEntity):
             "friendly_name": self._name,
             "on_schedule": self._base.on_schedule,
             "siren": self._base.has_capability(SIREN_STATE_KEY),
-        }
-
-    @property
-    def device_info(self):
-        """Return the related device info to group entities"""
-        return {
-            "identifiers": {(DOMAIN, self._base.device_id)},
-            "name": self._name,
-            "manufacturer": COMPONENT_BRAND,
-            "model": self._base.model_id,
-            "id": self._base.device_id,
         }
 
     def _get_state_from_ha(self, mode):

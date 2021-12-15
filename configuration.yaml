@@ -392,18 +392,19 @@ panel_iframe:
     icon: mdi:sitemap
     url: !secret nodered
 
-person:
-  - name: Andrew
-    id: andrew
-    device_trackers:
-      - device_tracker.andrews_phone_nmap
-      - device_tracker.andrew_s_phone_andrewworkphone
-      - device_tracker.andrew_phone
-  - name: Bethany
-    id: bethany
-    device_trackers:
-      - device_tracker.bethanys_iphone_nmap
-      - device_tracker.bethany_s_iphone
+# now defined in UI
+#person:
+  # - name: Andrew
+  #   id: andrew
+  #   device_trackers:
+  #     - device_tracker.andrews_phone_nmap
+  #     - device_tracker.andrew_s_phone_andrewworkphone
+  #     - device_tracker.andrew_phone
+  # - name: Bethany
+  #   id: bethany
+  #   device_trackers:
+  #     - device_tracker.bethanys_iphone_nmap
+  #     - device_tracker.bethany_s_iphone
 
 plant:
   garden:

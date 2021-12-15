@@ -39,6 +39,15 @@ sensor:
     address: 0x4C01204F1CFB3628
     name: "${friendly_name} Temperature"
 
+  # 5v supply connected to lightbulb socket through voltage divider
+  - platform: adc
+    pin: A0
+    id: motor_light
+    update_interval: 0.5s
+    accuracy_decimals: 2
+    filters:
+      - multiply: 15.43
+
 # custom_component:
 # - lambda: |-
 #     auto change_address = new ChangeAddress();
@@ -71,12 +80,14 @@ sensor:
 #     setup_priority: 200 # Delay setup to after address change
 
 binary_sensor:
-  - platform: gpio
-    pin:
-      number: D6
-      mode: INPUT_PULLUP
-      inverted: true
+  - platform: template
     name: Garage Motor Light Status
+    lambda: |-
+      if (id(motor_light).state > 1) {
+        return true;
+      } else {
+        return false;
+      }
 
   - platform: gpio
     pin:
