@@ -15,13 +15,6 @@
 #  count: 3
 #  scan_interval: 30
 
-- platform: mqtt
-  name: "Andrew MacBook Active"
-  state_topic: "sensor/andrew_macbook"
-  value_template: "{{ value_json.active }}"
-  payload_on: true
-  payload_off: false
-
 - platform: template
   sensors:
     # On if both backups < 10 minutes ago

@@ -36,6 +36,7 @@ automation:
         entity_id: 
           - binary_sensor.in_meeting_weasel
           - binary_sensor.in_meeting_work
+          - binary_sensor.weasel_microphone_in_use
         from: "on"
         to: "off"
     action:
@@ -46,9 +47,10 @@ automation:
     id: "zoom_led_on"
     trigger:
       - platform: state
-        entity_id: binary_sensor.muted_weasel
-      - platform: state
-        entity_id: binary_sensor.muted_work
+        entity_id: 
+          - binary_sensor.muted_weasel
+          - binary_sensor.muted_work
+          - binary_sensor.weasel_microphone_in_use
       - platform: state
         entity_id: 
           - binary_sensor.in_meeting_weasel

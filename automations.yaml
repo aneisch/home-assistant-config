@@ -317,7 +317,7 @@
   initial_state: on
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_macbook_active
+    entity_id: binary_sensor.weasel_active
     to: "on"
   condition: "{{ states('light.andrew_desk_lamp') == 'off' }}"
   action:
@@ -329,7 +329,7 @@
   initial_state: on
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_macbook_active
+    entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
   condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
