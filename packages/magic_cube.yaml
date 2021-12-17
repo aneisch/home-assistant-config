@@ -14,7 +14,7 @@ script:
 
 automation:
   - alias: "Magic Cube Shake"
-    id: "magic_cube_knock_slide"
+    id: "magic_cube_knock_shake"
     trigger:
       - platform: event
         event_type: zha_event
