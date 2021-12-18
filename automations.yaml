@@ -342,7 +342,7 @@
   initial_state: on
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_macbook_active
+    entity_id: binary_sensor.weasel_active
     to: 'on'
   action:
     - service: homeassistant.turn_on
@@ -353,7 +353,7 @@
   initial_state: on
   trigger:
     platform: state
-    entity_id: binary_sensor.andrew_macbook_active
+    entity_id: binary_sensor.weasel_active
     to: 'off'
     for: '00:30:00'
   action:
