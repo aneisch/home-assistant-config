@@ -158,6 +158,17 @@
       data:
         message: "The Verizon extender appears to be out of service..."
 
+- alias: "Notify AC Equipment Event Occurs"
+  id: "notify_ac_equipment_event"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: sensor.thermostat_latest_equipment_event
+  action:
+    - service: notify.pushover
+      data:
+        message: "AC Equipment Event: {{ trigger.to_state.state }}"
+
 - alias: "Notify when AC setting changes"
   id: "ac_notify_change"
   initial_state: on
