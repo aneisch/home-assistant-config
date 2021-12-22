@@ -1,0 +1,31 @@
+substitutions:
+  name: sonoff_rack_fan
+  friendly_name: "Rack Fan"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: esp8285
+
+<<: !include common.yaml
+
+fan:
+  - platform: binary
+    name: "${friendly_name}"
+    id: rack_fan
+    output: relay
+
+output:
+  - platform: gpio
+    pin: GPIO12
+    id: relay
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

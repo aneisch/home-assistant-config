@@ -1,0 +1,50 @@
+substitutions:
+  name: zoom
+  friendly_name: "Zoom"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: D4
+    num_leds: 7
+    rgb_order: GRB
+    name: "${friendly_name} LED"
+    effects:
+      - addressable_scan:
+      - addressable_lambda:
+          name: Custom Scan
+          update_interval: 75ms
+          lambda:
+            static int step = 1;
+            if(initial_run){
+              step = 1;
+              it[0] = ESPColor::BLACK;
+            }
+
+            it[step] = current_color;
+
+            if(step == 1){
+              it[it.size()-1] = ESPColor::BLACK;
+            }
+
+            else if(step > 1){
+              it[step -1] = ESPColor::BLACK;
+            }
+
+            step = step + 1;
+
+            if(step >= it.size()){
+              step = 1;
+            }
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

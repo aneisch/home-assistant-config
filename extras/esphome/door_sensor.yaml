@@ -1,0 +1,135 @@
+substitutions:
+  name: door_sensor
+  friendly_name: "Door Sensor"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+# See https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/ for
+# allowable pins
+
+# text_sensor:
+#   - platform: template
+#     name: Front Door Last Opened
+#     id: front_door_last
+    
+#   - platform: template
+#     name: Back Door Last Opened
+#     id: back_door_last
+
+#   - platform: template
+#     name: Garage Exterior Door Last Opened
+#     id: garage_exterior_door_last
+
+#   - platform: template
+#     name: Garage Interior Door Last Opened
+#     id: garage_interior_door_last
+
+#   - platform: template
+#     name: Master Bedroomn Exterior Door Last Opened
+#     id: master_bedroom_exterior_door_last
+
+time:
+  - platform: homeassistant
+    timezone: America/Chicago
+    id: homeassistant_time
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D1
+    name: "Front Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: front_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D2
+    name: "Master Bedroom Exterior Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: master_bedroom_exterior_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D5
+    name: "Back Porch Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: back_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+      
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D6
+    name: "Garage Interior Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: garage_interior_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      number: D7
+    name: "Garage Exterior Door"
+    device_class: door
+    filters:
+      - delayed_on_off: 0.5s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: garage_exterior_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

@@ -1,0 +1,167 @@
+# D1 = relay
+# D2 = XSHUT 1
+# D3 = XSHUT 2
+# D7 = Magnet 
+
+substitutions:
+  name: garage
+  friendly_name: "Garage"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini_pro
+  # includes:
+  #   - change_VL53L0X_address.h
+  # libraries:
+  #   - VL53L0X
+
+<<: !include common.yaml
+  
+time:
+  - platform: homeassistant
+    timezone: America/Chicago
+    id: homeassistant_time
+
+# text_sensor:
+#   - platform: template
+#     name: Garage Door Last Opened
+#     id: garage_door_last
+
+dallas:
+  - pin:
+      number: D4
+      #mode: INPUT_PULLUP
+    update_interval: 300s
+
+sensor:
+  - platform: dallas
+    address: 0x4C01204F1CFB3628
+    name: "${friendly_name} Temperature"
+
+  # 5v supply connected to lightbulb socket through voltage divider
+  - platform: adc
+    pin: A0
+    id: motor_light
+    update_interval: 0.5s
+    accuracy_decimals: 2
+    filters:
+      - multiply: 15.43
+
+# custom_component:
+# - lambda: |-
+#     auto change_address = new ChangeAddress();
+#     return {change_address};
+
+# Vehicle sensor shelved now due to inability to track down source of interference on i2c bus
+# Simply flipping the light on the garage on/off multiple times causes NACK and no reading on sensor until reboot
+# maybe some shielding would help... maybe I'll take a look again at a later date. 
+# i2c:
+#   sda: D5
+#   scl: D6
+#   scan: True
+#   #frequency: 200kHz
+
+# sensor:
+#   # Cruze
+#   - platform: vl53l0x
+#     id: car_sensor_1
+#     address: 0x23
+#     update_interval: 10s
+#     accuracy_decimals: 3
+#     setup_priority: 200 # Delay setup to after address change
+
+#   # CX5
+#   - platform: vl53l0x
+#     id: car_sensor_2
+#     address: 0x19
+#     update_interval: 10s
+#     accuracy_decimals: 3
+#     setup_priority: 200 # Delay setup to after address change
+
+binary_sensor:
+  - platform: template
+    name: Garage Motor Light Status
+    lambda: |-
+      if (id(motor_light).state > 1) {
+        return true;
+      } else {
+        return false;
+      }
+
+  - platform: gpio
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+    id: garage_status
+    device_class: door
+    filters:
+      - delayed_on: 0.2s
+      - delayed_off: 0.2s
+    # on_press:
+    #   then:
+    #     - text_sensor.template.publish:
+    #         id: garage_door_last
+    #         state: !lambda |-
+    #             char str[20];
+    #             time_t currTime = id(homeassistant_time).now().timestamp;
+    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
+    #             return  { str };
+
+  # - platform: template
+  #   name: "Cruze"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_1).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
+
+  # - platform: template
+  #   name: "CX5"
+  #   device_class: presence
+  #   lambda: |-
+  #     if (id(car_sensor_2).state < 0.80 ) {
+  #       // Car Present
+  #       return true;
+  #     } else {
+  #       // Car Not Present
+  #       return false;
+  #     }
+
+cover:
+  - platform: template
+    name: "Garage Door"
+    device_class: garage
+    lambda: |-
+      if (id(garage_status).state) {
+        return COVER_OPEN;
+      } else {
+        return COVER_CLOSED;
+      }
+    open_action:
+      - switch.turn_on: garage
+    close_action:
+      - switch.turn_on: garage
+    stop_action:
+      - switch.turn_on: garage
+    
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    pin:
+      number: D1
+      inverted: False
+
+  - platform: template
+    id: garage
+    #name: "Garage Remote"
+    icon: "mdi:garage"
+    turn_on_action:
+    - switch.turn_on: relay
+    - delay: 500ms
+    - switch.turn_off: relay

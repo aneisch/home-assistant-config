@@ -1,0 +1,32 @@
+substitutions:
+  name: office
+  friendly_name: "Office"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+  
+i2c:
+  sda: D2
+  scl: D1
+  scan: False
+  
+sensor:
+  - platform: sht3xd
+    temperature:
+      name: "${friendly_name} Temperature"
+      filters:
+        - lambda: return x * (9.0/5.0) + 32.0;
+      unit_of_measurement: "°F"
+    humidity:
+      name: "${friendly_name} Humidity"
+    address: 0x45
+    update_interval: 60s
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

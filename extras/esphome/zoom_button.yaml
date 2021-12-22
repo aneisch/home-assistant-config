@@ -1,0 +1,110 @@
+substitutions:
+  name: zoom_button
+  friendly_name: "Zoom Button"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+binary_sensor:
+  - platform: gpio
+    id: button
+    pin: D5
+    on_press:
+      then:
+        if: 
+          condition:
+            light.is_on: led
+          then:
+            light.turn_off: led
+          else:
+            light.turn_on: 
+              id: led
+              effect: pulse
+
+  - platform: homeassistant
+    id: work_mute
+    entity_id: binary_sensor.muted_work
+
+  - platform: homeassistant
+    id: work_meeting
+    entity_id: binary_sensor.in_meeting_work
+
+  - platform: homeassistant
+    id: weasel_mute
+    entity_id: binary_sensor.muted_weasel
+
+  - platform: homeassistant
+    id: weasel_meeting
+    entity_id: binary_sensor.in_meeting_weasel
+
+  - platform: template
+    id: in_meeting
+    lambda: |-
+      if (id(work_meeting).state == true || id(weasel_meeting).state == true) {
+        return true;
+      } else {
+        return false;
+      }
+
+  - platform: template
+    id: muted
+    lambda: |-
+      if (id(work_mute).state == true || id(weasel_mute).state == true) {
+        return true;
+      } else {
+        return false;
+      }
+
+  - platform: template
+    id: mute_state
+    lambda: |-
+      if (id(in_meeting).state == true && id(muted).state == true) {
+        return true;
+      } else {
+        return false;
+      }
+    on_press:
+      then:
+        - light.turn_on: 
+            id: led
+            effect: pulse
+    on_release:
+      then:
+        - light.turn_off: 
+            id: led
+
+api:
+  services:
+    - service: toggle_zoom_mute
+      then:
+        - switch.turn_on: toggle
+        - delay: 200ms
+        - switch.turn_off: toggle
+
+switch:
+  - platform: gpio
+    pin: D6
+    id: toggle
+    on_turn_on:
+    - delay: 500ms
+    - switch.turn_off: toggle      
+
+output:
+  - platform: esp8266_pwm
+    id: led_output
+    pin:
+      number: D8
+
+light:
+  - platform: monochromatic
+    default_transition_length: 0s
+    output: led_output
+    id: led
+    effects:
+      - pulse:
+          transition_length: 0.2s
+          update_interval: 0.2s

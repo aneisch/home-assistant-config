@@ -1,0 +1,24 @@
+substitutions:
+  name: sonoff_1
+  friendly_name: "Sonoff 1"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: esp8285
+
+<<: !include common.yaml
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+  - platform: gpio
+    pin: GPIO12
+    name: "${friendly_name} Switch"

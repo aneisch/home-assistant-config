@@ -1,0 +1,25 @@
+substitutions:
+  name: aquarium
+  friendly_name: "Aquarium"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+  esp8266_restore_from_flash: yes
+
+<<: !include common.yaml
+
+dallas:
+  - pin: D4
+    update_interval: 30s
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+sensor:
+  - platform: dallas
+    address: 0x38000006C7F38D28
+    name: "${friendly_name} Temperature"
