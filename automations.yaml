@@ -605,7 +605,7 @@
         #   retry: 30
 
 - alias: "Covid Test Result"
-  id: "covid_test_esult"
+  id: "covid_test_result"
   trigger:
     - platform: state
       entity_id: sensor.andrew_covid_test_result
