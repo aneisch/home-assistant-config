@@ -330,7 +330,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "on"
-  condition: "{{ states('light.andrew_desk_lamp') == 'off' }}"
+  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
@@ -343,7 +343,7 @@
     entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
-  condition: "{{ states('light.andrew_desk_lamp') == 'on' }}"
+  condition: "{{ states('light.andrew_desk_lamp') == 'on' and states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp
@@ -355,6 +355,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: 'on'
+  condition: "{{ states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: switch.andrew_monitor
@@ -367,10 +368,10 @@
     entity_id: binary_sensor.weasel_active
     to: 'off'
     for: '00:30:00'
+  condition: "{{ states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_off
       entity_id: switch.andrew_monitor
-
 
 - alias: "Water Sensor Alerts"
   id: "water_sensor_alert"
@@ -603,11 +604,14 @@
         #   expire: 3600
         #   retry: 30
 
-- alias: "Andrew Covid Test Result"
-  id: "andrew_covid_test_esult"
+- alias: "Covid Test Result"
+  id: "covid_test_esult"
   trigger:
     - platform: state
       entity_id: sensor.andrew_covid_test_result
+      from: None
+    - platform: state
+      entity_id: sensor.bethany_covid_test_result
       from: None
   action:
     - service: notify.pushover

@@ -106,14 +106,14 @@ Occupancy Simulator:
   #random_master_off_1: light.master_bedroom_lamps
 
   # Randomly turn dining room light on and off a few times
-  random_dining_name: Dining Room
-  random_dining_start: Evening
-  random_dining_end: Night
-  random_dining_maxduration: 01:00:00
-  random_dining_minduration: 00:10:00
-  random_dining_number: '3'
-  random_dining_on_1: light.dining_room_light
-  random_dining_off_1: light.dining_room_light
+  #random_dining_name: Dining Room
+  #random_dining_start: Evening
+  #random_dining_end: Night
+  #random_dining_maxduration: 01:00:00
+  #random_dining_minduration: 00:10:00
+  #random_dining_number: '3'
+  #random_dining_on_1: light.dining_room_light
+  #random_dining_off_1: light.dining_room_light
 
   #random_living_name: Living Room
   #random_living_start: Evening
