@@ -21,6 +21,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 LUMI lumi.router
   - 1 LUMI lumi.sensor_cube
   - 1 Philips LWB014
+  - 1 sengled E1E-G7F
   - 2 eWeLink MS01
   - 2 LDS ZBT-CCTSwitch-D0001
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
@@ -35,13 +36,14 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 GE/Jasco 45603
   - 2 GE/Jasco 45604
   - 1 Leviton DZPA1
-  - 2 Nortek Security + Control LLC WADWAZ-1
+  - 1 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 5 Zooz ZEN21
   - 6 Zooz ZEN27
   - 6 Zooz ZEN30
   - 1 Zooz ZEN71
   - 1 Zooz ZEN77
+  - 3 Zooz ZSE42
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
@@ -61,15 +63,15 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1917
-Lines of Home Assistant YAML | 5853
+Lines of Home Assistant YAML | 5849
 [Integrations](https://www.home-assistant.io/integrations/) in use | 32
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 19
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 20
  
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 75
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 104
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 102
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
@@ -93,7 +95,7 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 7
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 248
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 249
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 103
@@ -101,7 +103,7 @@ Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **768**
+**Total state objects** | **767**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

@@ -380,17 +380,14 @@
       entity_id: 
         - binary_sensor.washing_machine_water_detector  
         - binary_sensor.water_heater_water_detector  
+        - binary_sensor.guest_bathroom_toilet_water_detector  
+        - binary_sensor.back_bathroom_toilet_water_detector
       to: "on"
-      for: "00:00:05"
   action:
     - service: notify.pushover
       data:
         message: >
-          {% if trigger.entity_id == 'binary_sensor.washing_machine_water_detector' %}
-            Water detected under washing machine!
-          {% elif trigger.entity_id == 'binary_sensor.water_heater_water_detector' %}
-            Water detected under water heater!
-          {% endif %}
+            Water detected by {{ trigger.to_state.name }}
         data:
           priority: 2
           expire: 3600
@@ -415,8 +412,9 @@
   trigger:
     - platform: numeric_state
       entity_id: 
-        # - sensor.washing_machine_water_detector_battery_level
-        # - sensor.water_heater_water_detector_battery_level
+        - sensor.back_bathroom_toilet_water_detector_battery_level
+        - sensor.guest_bathroom_toilet_water_detector_battery_level
+        - sensor.washing_machine_water_detector_battery_level
         - sensor.hallway_alarm_battery_level
         - sensor.kitchen_alarm_battery_level
         - sensor.garage_interior_motion_battery_level

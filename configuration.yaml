@@ -296,6 +296,7 @@ logger:
   filters:
     homeassistant.core:
       - ".*share-service-download-bucket.*" # Ring Video Updates
+      - ".*camera.xiaomi_cloud_map_extractor.*" # Ring Video Updates
 
 lovelace:
   mode: yaml

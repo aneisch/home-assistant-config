@@ -33,6 +33,14 @@ Guest Bedroom Zigbee Remote:
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
 
+Guest Bedroom Zigbee Remote:
+  module: zigbee_remote
+  class: SengledZigbeeRemote
+  device_ieee: b0:ce:18:14:03:5e:06:9d
+  button_1_toggle: light.guest_bedroom_ceiling_fan
+  button_2_toggle: switch.guest_bedroom_ceiling_fan
+  button_3_toggle: light.guest_bedroom_nightstand_lamp
+
 #Minimote Morning:
 #  module: minimote
 #  class: MiniMote
