@@ -218,20 +218,81 @@ class PfSenseData:
     def state(self):
         return self._state
 
+    def _log_timing(func):
+        def inner(*args, **kwargs):
+            begin = time.time()
+            response = func(*args, **kwargs)
+            end = time.time()
+            elapsed = round((end - begin), 3)
+            _LOGGER.debug(f"execution time: PfSenseData.{func.__name__} {elapsed}")
+
+            return response
+
+        return inner
+
+    @_log_timing
     def _get_system_info(self):
         return self._client.get_system_info()
 
+    @_log_timing
+    def _get_firmware_update_info(self):
+        try:
+            return self._client.get_firmware_update_info()
+        except BaseException as err:
+            # can take some time to refresh data
+            # will catch it the next cycle likely
+            if "timed out" in str(err):
+                return None
+            raise err
+
+    @_log_timing
     def _get_telemetry(self):
         return self._client.get_telemetry()
 
+    @_log_timing
     def _get_host_firmware_version(self):
         return self._client.get_host_firmware_version()
 
+    @_log_timing
     def _get_config(self):
         return self._client.get_config()
 
+    @_log_timing
+    def _get_interfaces(self):
+        return self._client.get_interfaces()
+
+    @_log_timing
+    def _get_services(self):
+        return self._client.get_services()
+
+    @_log_timing
+    def _get_carp_interfaces(self):
+        return self._client.get_carp_interfaces()
+
+    @_log_timing
+    def _get_carp_status(self):
+        return self._client.get_carp_status()
+
+    @_log_timing
+    def _get_dhcp_leases(self):
+        return self._client.get_dhcp_leases()
+
+    @_log_timing
+    def _are_notices_pending(self):
+        return self._client.are_notices_pending()
+
+    @_log_timing
+    def _get_notices(self):
+        return self._client.get_notices()
+
+    @_log_timing
+    def _get_arp_table(self):
+        return self._client.get_arp_table(True)
+
     def update(self, opts={}):
         """Fetch the latest state from pfSense."""
+        current_time = time.time()
+
         # copy the old data to have around
         previous_state = copy.deepcopy(self._state)
         if "previous_state" in previous_state.keys():
@@ -239,26 +300,26 @@ class PfSenseData:
 
         self._state["system_info"] = self._get_system_info()
         self._state["host_firmware_version"] = self._get_host_firmware_version()
-        current_time = time.time()
         self._state["update_time"] = current_time
         self._state["previous_state"] = previous_state
 
         if "scope" in opts.keys() and opts["scope"] == "device_tracker":
-            self._state["arp_table"] = self._client.get_arp_table(True)
+            self._state["arp_table"] = self._get_arp_table()
         else:
+            self._state["firmware_update_info"] = self._get_firmware_update_info()
             self._state["telemetry"] = self._get_telemetry()
             self._state["config"] = self._get_config()
-            self._state["interfaces"] = self._client.get_interfaces()
-            self._state["services"] = self._client.get_services()
-            self._state["carp_interfaces"] = self._client.get_carp_interfaces()
-            self._state["carp_status"] = self._client.get_carp_status()
-            self._state["dhcp_leases"] = self._client.get_dhcp_leases()
+            self._state["interfaces"] = self._get_interfaces()
+            self._state["services"] = self._get_services()
+            self._state["carp_interfaces"] = self._get_carp_interfaces()
+            self._state["carp_status"] = self._get_carp_status()
+            self._state["dhcp_leases"] = self._get_dhcp_leases()
             self._state["dhcp_stats"] = {}
             self._state["notices"] = {}
             self._state["notices"][
                 "pending_notices_present"
-            ] = self._client.are_notices_pending()
-            self._state["notices"]["pending_notices"] = self._client.get_notices()
+            ] = self._are_notices_pending()
+            self._state["notices"]["pending_notices"] = self._get_notices()
 
             lease_stats = {"total": 0, "online": 0, "offline": 0}
             for lease in self._state["dhcp_leases"]:
@@ -309,7 +370,9 @@ class PfSenseData:
                             "used_percent"
                         ] = cpu_used_percent
 
-                for interface_name in self._state["telemetry"]["interfaces"].keys():
+                for interface_name in dict_get(
+                    self._state, "telemetry.interfaces", {}
+                ).keys():
                     interface = dict_get(
                         self._state, f"telemetry.interfaces.{interface_name}"
                     )
@@ -374,6 +437,55 @@ class PfSenseData:
                                 previous_value = value
                             interface[new_property] = int(round(previous_value, 0))
 
+                for server_name in dict_get(
+                    self._state, "telemetry.openvpn.servers", {}
+                ).keys():
+                    if (
+                        server_name
+                        not in dict_get(
+                            self._state, "telemetry.openvpn.servers", {}
+                        ).keys()
+                    ):
+                        continue
+
+                    if (
+                        server_name
+                        not in dict_get(
+                            self._state, "previous_state.telemetry.openvpn.servers", {}
+                        ).keys()
+                    ):
+                        continue
+
+                    server = self._state["telemetry"]["openvpn"]["servers"][server_name]
+                    previous_server = self._state["previous_state"]["telemetry"][
+                        "openvpn"
+                    ]["servers"][server_name]
+
+                    for property in [
+                        "total_bytes_recv",
+                        "total_bytes_sent",
+                    ]:
+
+                        current_parent_value = server[property]
+                        previous_parent_value = previous_server[property]
+                        change = abs(current_parent_value - previous_parent_value)
+                        rate = change / elapsed_time
+
+                        value = 0
+                        if "pkts" in property:
+                            label = "packets_per_second"
+                            value = rate
+                        if "bytes" in property:
+                            label = "kilobytes_per_second"
+                            # 1 Byte = 8 bits
+                            # 1 byte is equal to 0.001 kilobytes
+                            KBs = rate / 1000
+                            # Kbs = KBs * 8
+                            value = KBs
+
+                        new_property = f"{property}_{label}"
+                        server[new_property] = int(round(value, 0))
+
 
 class CoordinatorEntityManager:
     def __init__(
@@ -424,7 +536,6 @@ class CoordinatorEntityManager:
                 # del self.entities[entity_unique_id]
 
     async def async_remove_entity(self, entity):
-        print("removing entity: " + str(entity.entity_id))
         registry = await async_get_registry(self.hass)
         if entity.entity_id in registry.entities:
             registry.async_remove(entity.entity_id)

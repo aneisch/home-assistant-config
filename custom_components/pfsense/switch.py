@@ -226,6 +226,14 @@ class PfSenseFilterSwitch(PfSenseSwitch):
         return found
 
     @property
+    def available(self) -> bool:
+        rule = self._pfsense_get_rule()
+        if rule is None:
+            return False
+
+        return super().available
+
+    @property
     def is_on(self):
         rule = self._pfsense_get_rule()
         if rule is None:
@@ -283,6 +291,14 @@ class PfSenseNatSwitch(PfSenseSwitch):
                 found = rule
                 break
         return found
+
+    @property
+    def available(self) -> bool:
+        rule = self._pfsense_get_rule()
+        if rule is None:
+            return False
+
+        return super().available
 
     @property
     def is_on(self):
@@ -343,6 +359,15 @@ class PfSenseServiceSwitch(PfSenseSwitch):
                 found = service
                 break
         return found
+
+    @property
+    def available(self) -> bool:
+        service = self._pfsense_get_service()
+        property = self._pfsense_get_property_name()
+        if service is None or property not in service.keys():
+            return False
+
+        return super().available
 
     @property
     def is_on(self):

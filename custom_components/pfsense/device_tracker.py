@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any, Mapping
 
 from homeassistant.components.device_tracker import SOURCE_TYPE_ROUTER
@@ -20,7 +21,9 @@ from mac_vendor_lookup import AsyncMacLookup
 
 from . import CoordinatorEntityManager, PfSenseEntity, dict_get
 from .const import (
+    CONF_DEVICE_TRACKER_CONSIDER_HOME,
     CONF_DEVICES,
+    DEFAULT_DEVICE_TRACKER_CONSIDER_HOME,
     DEVICE_TRACKER_COORDINATOR,
     DOMAIN,
     SHOULD_RELOAD,
@@ -158,6 +161,7 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
         self._mac_vendor = mac_vendor
         self._last_known_ip = None
         self._last_known_hostname = None
+        self._last_known_connected_time = None
         self._extra_state = {}
 
         self._attr_entity_registry_enabled_default = enabled_default
@@ -196,6 +200,11 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
 
         if self._last_known_ip is not None:
             self._extra_state["last_known_ip"] = self._last_known_ip
+
+        if self._last_known_connected_time is not None:
+            self._extra_state[
+                "last_known_connected_time"
+            ] = self._last_known_connected_time
 
         return self._extra_state
 
@@ -265,11 +274,25 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
     @property
     def is_connected(self) -> bool:
         """Return true if the device is connected to the network."""
+        state = self.coordinator.data
+        update_time = state["update_time"]
         entry = self._get_pfsense_arp_entry()
         if entry is None:
             if self._last_known_ip is not None and len(self._last_known_ip) > 0:
                 # force a ping to _last_known_ip to possibly recreate arp entry?
                 pass
+
+            device_tracker_consider_home = self.config_entry.options.get(
+                CONF_DEVICE_TRACKER_CONSIDER_HOME, DEFAULT_DEVICE_TRACKER_CONSIDER_HOME
+            )
+            if (
+                device_tracker_consider_home > 0
+                and self._last_known_connected_time is not None
+            ):
+                current_time = int(time.time())
+                elapsed = current_time - self._last_known_connected_time
+                if elapsed < device_tracker_consider_home:
+                    return True
 
             return False
         # TODO: check "expires" here to add more honed in logic?
@@ -278,6 +301,8 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
         if ip_address is not None and len(ip_address) > 0:
             client = self._get_pfsense_client()
             self.hass.async_add_executor_job(client.delete_arp_entry, ip_address)
+
+        self._last_known_connected_time = int(update_time)
 
         return True
 
@@ -298,6 +323,7 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
             "type",
             "last_known_ip",
             "last_known_hostname",
+            "last_known_connected_time",
         ]:
             value = state.get(attr, None)
             if value is not None:
@@ -307,3 +333,6 @@ class PfSenseScannerEntity(PfSenseEntity, ScannerEntity):
 
                 if attr == "last_known_ip":
                     self._last_known_ip = value
+
+                if attr == "last_known_connected_time":
+                    self._last_known_connected_time = value

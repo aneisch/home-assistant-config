@@ -1,0 +1,17 @@
+type: custom:vertical-stack-in-card
+cards:
+  - type: conditional
+    conditions:
+      - entity: sensor.andrew_covid_test_result
+        state_not: "unknown"
+    card:
+      type: entity
+      entity: sensor.andrew_covid_test_result
+  - type: conditional
+    conditions:
+      - entity: sensor.bethany_covid_test_result
+        state_not: "unknown"
+    card:
+      type: entity
+      entity: sensor.bethany_covid_test_result
+      
