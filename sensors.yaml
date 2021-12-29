@@ -23,33 +23,33 @@
     - type: load_5m
     - type: load_15m
 
-- platform: rest
-  name: Andrew Covid Test Result
-  resource: !secret andrew_covid_test_result
-  method: POST
-  payload: !secret andrew_birthday
-  headers: 
-    content-type: application/json
-  value_template: "{{ value_json.result }}"
-  json_attributes:
-    - full_reference_number # CURXXXXXX
-    - accessioned_at # Arrived at Lab
-    - in_testing_at # Testing Began
-    - released_at # Testing Complete
+#- platform: rest
+#  name: Andrew Covid Test Result
+#  resource: !secret andrew_covid_test_result
+#  method: POST
+#  payload: !secret andrew_birthday
+#  headers: 
+#    content-type: application/json
+#  value_template: "{{ value_json.result }}"
+#  json_attributes:
+#    - full_reference_number # CURXXXXXX
+#    - accessioned_at # Arrived at Lab
+#    - in_testing_at # Testing Began
+#    - released_at # Testing Complete
 
-- platform: rest
-  name: Bethany Covid Test Result
-  resource: !secret bethany_covid_test_result
-  method: POST
-  payload: !secret bethany_birthday
-  headers: 
-    content-type: application/json
-  value_template: "{{ value_json.result }}"
-  json_attributes:
-    - full_reference_number # CURXXXXXX
-    - accessioned_at # Arrived at Lab
-    - in_testing_at # Testing Began
-    - released_at # Testing Complete
+#- platform: rest
+#  name: Bethany Covid Test Result
+#  resource: !secret bethany_covid_test_result
+#  method: POST
+#  payload: !secret bethany_birthday
+#  headers: 
+#    content-type: application/json
+#  value_template: "{{ value_json.result }}"
+#  json_attributes:
+#    - full_reference_number # CURXXXXXX
+#    - accessioned_at # Arrived at Lab
+#    - in_testing_at # Testing Began
+#    - released_at # Testing Complete
 
 - platform: rest
   name: "Verizon Network Extender Status"

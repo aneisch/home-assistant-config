@@ -697,6 +697,7 @@ require_once '/etc/inc/pfsense-utils.inc';
 require_once '/etc/inc/system.inc';
 require_once '/etc/inc/util.inc';
 require_once 'interfaces.inc';
+require_once '/etc/inc/openvpn.inc';
 
 global $config;
 global $g;

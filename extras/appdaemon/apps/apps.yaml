@@ -87,7 +87,7 @@ Minimote Non-Morning:
 Occupancy Simulator:
   module: occusim
   class: OccuSim
-  constrain_input_boolean: input_boolean.occusim
+  enable: input_boolean.occusim
   reset_time: 02:00:00
   dump_times: '1'
   log_msg: '1'
