@@ -425,19 +425,6 @@
       data:
         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%"
 
-- alias: "Wifi too slow"
-  id: "wifi_too_slow_alert"
-  trigger:
-    - platform: numeric_state
-      entity_id: sensor.home_wifi_speedtest
-      value_template: "{{ state.attributes.download }}"
-      below: 100
-  action:
-    - service: notify.pushover
-      data:
-        message: >
-            Wifi speed measured at {{ trigger.to_state.attributes.download }}
-
 - alias: "Update CloudFlare Firewall Rule"
   id: "update_cloudflare_firewall_rule"
   trigger:

@@ -70,14 +70,6 @@
   name: "Last VPS Backup Completed"
   value_template: "{{ strptime(value_json.timestamp, '%Y-%m-%d %H:%M:%S') }}"
 
-# Measure wifi speed from macbook to NUC
-# uses librespeed container on NUC and librespeed-cli on mac
-- platform: mqtt
-  state_topic: "sensor/home_wifi"
-  name: "Home Wifi Speedtest"
-  value_template: "{{ value_json.download }}"
-  json_attributes_topic: "sensor/home_wifi"
-
 # - platform: command_line
 #   name: Electric Utilities Realtime
 #   scan_interval: 600

@@ -17,16 +17,16 @@ cards:
           - sensor.network_out_eno1
           - sensor.network_in_eno1
           - sensor.last_boot
-          - type: attribute
-            name: Wifi Download
-            icon: "mdi:arrow-down-bold"
-            entity: sensor.home_wifi_speedtest
-            attribute: "download"
-          - type: attribute
-            name: Wifi Upload
-            icon: "mdi:arrow-up-bold"
-            entity: sensor.home_wifi_speedtest
-            attribute: "upload"
+          # - type: attribute
+          #   name: Wifi Download
+          #   icon: "mdi:arrow-down-bold"
+          #   entity: sensor.home_wifi_speedtest
+          #   attribute: "download"
+          # - type: attribute
+          #   name: Wifi Upload
+          #   icon: "mdi:arrow-up-bold"
+          #   entity: sensor.home_wifi_speedtest
+          #   attribute: "upload"
           - entity: sensor.speedtest_download
             name: Frontier Download
           - entity: sensor.speedtest_upload

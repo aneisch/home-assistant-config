@@ -188,6 +188,7 @@ Dining Room Christmas Tree Timer:
   class: Timer
   entities: switch.dining_room_christmas_tree
   time_on: sunset - 00:20:00
+  time_off: 00:00:00
 
 ############
 # Aquarium #
