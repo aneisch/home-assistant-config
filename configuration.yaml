@@ -39,9 +39,6 @@ binary_sensor: !include binary_sensor.yaml
 
 camera: !include camera.yaml
 
-# 5/21/2020 Fix Custom Header https://github.com/maykar/custom-header/issues/192
-#conversation:
-
 circadian_lighting:
   # Set manual sunrise/sunset for aquarium brightness
   sunrise_time: "09:00:00"
@@ -49,66 +46,7 @@ circadian_lighting:
   interval: 300
   transition: 10
 
-# Provided by MQTT Discovery
-# climate:
-#   # https://www.home-assistant.io/integrations/climate.mqtt/
-#   - platform: mqtt
-#     name: "Thermostat"
-#     max_temp: 85
-#     min_temp: 50
-#     action_topic: "sensor/thermostat"
-#     action_template: >
-#       {% if value_json.coolicon == 'on' %}
-#         cooling
-#       {% elif value_json.heaticon == 'on' %}
-#         heating
-#       {% elif value_json.coolicon == 'off' and value_json.heaticon == 'off' %}
-#         idle
-#       {% endif %}
-#     current_temperature_topic: "sensor/thermostat"
-#     current_temperature_template: "{{ value_json.rt }}"
-#     fan_mode_state_topic: "sensor/thermostat"
-#     fan_mode_state_template: "{{ value_json.fan }}"
-#     fan_modes:
-#       - auto
-#       - low
-#       - med
-#       - high
-#     hold_state_topic: "sensor/thermostat"
-#     hold_state_template: "{{ value_json.hold }}"
-#     mode_state_topic: "sensor/thermostat"
-#     mode_state_template: "{{ value_json.mode }}"
-#     modes:
-#       - off
-#       - cool
-#       - heat
-#     temperature_state_topic: "sensor/thermostat"
-#     temperature_state_template: >
-#       {% if value_json.mode == 'cool' %}
-#         {{ value_json.clsp }}
-#       {% elif value_json.mode == 'heat' %}
-#         {{ value_json.htsp }}
-#       {% endif %}
-#     temperature_unit: "F"
-#     mode_command_topic: "cmnd/thermostat/operating_mode"
-#     fan_mode_command_topic: "cmnd/thermostat/fan_mode"
-#     hold_command_topic: "cmnd/thermostat/hold"
-#     temperature_command_topic: "cmnd/thermostat/temperature"
-
-#  platform: radiotherm
-#  host:
-#    - 10.0.0.29
-#  hold_temp: True
-
 config:
-
-#device_tracker:
-#  # Don't forget to edit known_devices.yaml if hardware changes :)
-#  - platform: nmap_tracker
-#    home_interval: 5
-#    hosts: 
-#      - 10.0.1.24/32
-#      - 10.0.1.59/32
 
 # Watch for nginx proxy manager changes
 folder_watcher:
@@ -142,17 +80,6 @@ monitor_docker:
     vscode: "VSCode"
     watchtower: "Watchtower"
     zwavejs: "Zwave-JS"
-
-# https://github.com/aneisch/docker_monitor
-# docker_monitor:
-#  containers:
-#    - grafana
-  # Interval is hard coded in __init__.py
-  # scan_interval:
-  #   seconds: 10
-
-#digital_ocean:
-#  access_token: !secret DO_token
 
 frontend:
   themes: !include_dir_merge_named themes
@@ -338,12 +265,6 @@ lovelace:
 
 map:
 
-#media_player:
-#  - platform: samsungtv_tizen
-#    host: 10.0.1.51
-#    port: 8002
-#    mac: 44:5c:e9:2e:51:0a
-
 mobile_app:
 
 my:
@@ -365,7 +286,6 @@ notify:
     vapid_pub_key: !secret vapid_pub_key
     vapid_prv_key: !secret vapid_prv_key
     vapid_email: !secret vapid_email
-#  - platform: alexa_media
 
 panel_iframe:
   vscode:
@@ -393,20 +313,6 @@ panel_iframe:
     icon: mdi:sitemap
     url: !secret nodered
 
-# now defined in UI
-#person:
-  # - name: Andrew
-  #   id: andrew
-  #   device_trackers:
-  #     - device_tracker.andrews_phone_nmap
-  #     - device_tracker.andrew_s_phone_andrewworkphone
-  #     - device_tracker.andrew_phone
-  # - name: Bethany
-  #   id: bethany
-  #   device_trackers:
-  #     - device_tracker.bethanys_iphone_nmap
-  #     - device_tracker.bethany_s_iphone
-
 plant:
   garden:
     sensors:
@@ -416,21 +322,6 @@ plant:
       brightness: sensor.miflora_illuminance
     min_moisture: 20
     max_moisture: 100
-
-#plex:
-#  host: 10.0.1.22
-#  token: !secret plex_token
-#  media_player:
-#    use_episode_art: false
-#    show_all_controls: true
-
-proximity:
-  home:
-    devices:
-      - device_tracker.owntracks_andrewworkphone
-      - device_tracker.bethany_s_iphone
-    tolerance: 50
-    unit_of_measurement: mi
 
 python_script:
 
@@ -485,7 +376,6 @@ recorder:
     entities:
       - group.trackers
 
-
 rest_command: !include rest_command.yaml
 
 samsungtv:
@@ -539,7 +429,6 @@ xbox:
   client_id: !secret xbox_id
   client_secret: !secret xbox_secret
 
-  
 zha:
   zigpy_config:
     network:
@@ -547,8 +436,6 @@ zha:
       channels: [11]
       pan_id: 0x1A62
       extended_pan_id: "DD:DD:DD:DD:DD:DD:DD:DD"
-
-#zha_map:
 
 zone:
   - name: Andrew Work

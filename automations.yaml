@@ -475,6 +475,17 @@
     - service: homeassistant.turn_off
       entity_id: input_boolean.compost_turn
 
+- alias: "Mailbox Reset"
+  id: "mailbox_reset"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.mailbox
+      to: "on"
+  action:
+    - delay: "00:01:00"
+    - service: homeassistant.turn_off
+      entity_id: binary_sensor.mailbox
+
 - alias: "Smoke Alarm Detection"
   id: "smoke_alarm_detection"
   initial_state: on

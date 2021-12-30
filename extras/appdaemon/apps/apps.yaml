@@ -244,7 +244,7 @@ Dyson Charger:
   entities: switch.garage_dyson
   time_on: '15:00:00'
   time_off: '18:00:00'
-  constrain_presence: anyone
+  constrain_person: anyone
 
 AC Filter Change:
   module: countdown_notify
@@ -346,7 +346,7 @@ Indoor Light Automation Sunset:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
-  constrain_presence: anyone
+  constrain_person: anyone
   time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces
   brightness: 255
