@@ -1,0 +1,72 @@
+      - type: vertical-stack
+        cards:
+          - content: |
+              ## Code TEMPLATENUM
+            type: markdown
+          - type: entities
+            show_header_toggle: false
+            entities:
+              - entity: input_text.LOCKNAME_name_TEMPLATENUM
+              - entity: input_text.LOCKNAME_pin_TEMPLATENUM
+              - entity: input_boolean.enabled_LOCKNAME_TEMPLATENUM
+              - entity: input_boolean.notify_LOCKNAME_TEMPLATENUM
+              - type: divider
+              - entity: sensor.connected_LOCKNAME_TEMPLATENUM
+                state_color: true
+              - entity: binary_sensor.active_LOCKNAME_TEMPLATENUM
+                state_color: true
+              - type: 'custom:fold-entity-row'
+                head:
+                  type: section
+                  label: Advanced Options
+                entities:
+                  - entity: input_boolean.reset_codeslot_LOCKNAME_TEMPLATENUM
+                  - type: divider
+                  - entity: input_boolean.accesslimit_LOCKNAME_TEMPLATENUM
+                  - entity: input_number.accesscount_LOCKNAME_TEMPLATENUM
+                    type: 'custom:numberbox-card'
+                    icon: 'mdi:key-variant'
+                    speed: 250
+                  - type: divider
+                  - entity: input_boolean.daterange_LOCKNAME_TEMPLATENUM
+                  - entity: input_datetime.start_date_LOCKNAME_TEMPLATENUM
+                  - entity: input_datetime.end_date_LOCKNAME_TEMPLATENUM
+                  - type: 'custom:fold-entity-row'
+                    head:
+                      type: section
+                      label: Custom Weekdays
+                    entities:
+                      - input_boolean.sun_LOCKNAME_TEMPLATENUM
+                      - input_boolean.sun_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.sun_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.sun_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.mon_LOCKNAME_TEMPLATENUM
+                      - input_boolean.mon_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.mon_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.mon_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.tue_LOCKNAME_TEMPLATENUM
+                      - input_boolean.tue_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.tue_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.tue_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.wed_LOCKNAME_TEMPLATENUM
+                      - input_boolean.wed_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.wed_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.wed_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.thu_LOCKNAME_TEMPLATENUM
+                      - input_boolean.thu_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.thu_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.thu_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.fri_LOCKNAME_TEMPLATENUM
+                      - input_boolean.fri_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.fri_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.fri_end_date_LOCKNAME_TEMPLATENUM
+                      - type: divider
+                      - input_boolean.sat_LOCKNAME_TEMPLATENUM
+                      - input_boolean.sat_inc_LOCKNAME_TEMPLATENUM
+                      - input_datetime.sat_start_date_LOCKNAME_TEMPLATENUM
+                      - input_datetime.sat_end_date_LOCKNAME_TEMPLATENUM

@@ -1,0 +1,25 @@
+{
+  "domain": "keymaster",
+  "name": "keymaster",
+  "documentation": "https://github.com/FutureTense/keymaster",
+  "dependencies": [],
+  "after_dependencies": [
+    "automation",
+    "input_boolean",
+    "input_datetime",
+    "input_number",
+    "input_text",
+    "mqtt",
+    "ozw",
+    "script",
+    "template",
+    "zwave",
+    "zwave_js"
+  ],
+  "codeowners": ["@FutureTense", "@firstof9", "@raman325"],
+  "config_flow": true,
+  "issue_tracker": "https://github.com/FutureTense/keymaster/issues",
+  "requirements": [],
+  "iot_class": "local_polling",
+  "version": "v0.0.77"
+}

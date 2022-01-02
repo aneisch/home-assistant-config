@@ -200,21 +200,22 @@ logger:
   #default: debug
   default: warn
   logs:
+    asyncio: debug
     homeassistant.core: debug
-    #homeassistant.components.http: debug
-    #custom_components.apcupsd3: debug
-    #homeassistant.components.zha: debug
-    #bellows.zigbee.application: debug
-    #bellows.ezsp: debug
-    #zigpy: debug
-    #zigpy_cc: debug
-    #zigpy_deconz.zigbee.application: debug
-    #zigpy_deconz.api: debug
-    #zigpy_xbee.zigbee.application: debug
-    #zigpy_xbee.api: debug
-    #zigpy_zigate: debug
-    #zigpy_znp: debug
-    #zhaquirks: debug
+    homeassistant.components.zha: debug
+    zigpy: debug
+    bellows: debug
+    zigpy_xbee: debug
+    zigpy_deconz: debug
+    zigpy_zigate: debug
+    zigpy_cc: debug
+    bellows.zigbee.application: debug
+    bellows.ezsp: debug
+    zigpy_deconz.zigbee.application: debug
+    zigpy_deconz.api: debug
+    zigpy_xbee.ap: debug
+    zigpy_znp: debug
+    zhaquirks: debug
     #custom_components.docker_monitor: debug
     #custom_components.alexa_media: debug
     #custom_components.localtuya: debug
@@ -430,6 +431,8 @@ xbox:
   client_secret: !secret xbox_secret
 
 zha:
+  enable_quirks: true
+  custom_quirks_path: /config/custom_zha_quirks/
   zigpy_config:
     network:
       channel: 11

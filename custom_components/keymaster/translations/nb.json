@@ -1,0 +1,54 @@
+{
+  "config": {
+    "error": {
+      "invalid_path": "Vennligst oppbevar bildene i en annen katalog.",
+      "same_name": "Name already in use",
+      "invalid_child_locks_file": "Problem with child locks file, refer to logs for more information"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "alarm_level_or_user_code_entity_id": "Brukerkodesensor (fra lås)",
+          "alarm_type_or_access_control_entity_id": "Tilgangskontrollsensor (fra lås)",
+          "lock_entity_id": "Velg lås",
+          "slots": "Kodespor",
+          "start_from": "Start fra kodespor #",
+          "sensorname": "Dørsensor",
+          "lockname": "Låsnavn (dvs. frontdør)",
+          "packages_path": "Sti til pakkekatalog",
+          "child_locks_file": "Path to child locks file",
+          "parent": "Select parent lock",          
+          "hide_pins": "Hide PINs in UI?"
+        },
+        "description": "Velg låsen du vil sette opp og kodesporene du vil opprette.",
+        "title": "KeyMaster"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "invalid_path": "Vennligst oppbevar bildene i en annen katalog.",
+      "same_name": "Name already in use",
+      "invalid_child_locks_file": "Problem with child locks file, refer to logs for more information"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "alarm_level_or_user_code_entity_id": "Brukerkodesensor (fra lås)",
+          "alarm_type_or_access_control_entity_id": "Tilgangskontrollsensor (fra lås)",
+          "lock_entity_id": "Velg lås",
+          "slots": "Kodespor",
+          "start_from": "Start fra kodespor #",
+          "sensorname": "Dørsensor",
+          "lockname": "Låsnavn (dvs. frontdør)",
+          "packages_path": "Sti til pakkekatalog",
+          "child_locks_file": "Path to child locks file",
+          "parent": "Select parent lock",          
+          "hide_pins": "Hide PINs in UI?"
+        },
+        "description": "Velg låsen du vil sette opp og kodesporene du vil opprette.",
+        "title": "KeyMaster"
+      }
+    }
+  }
+}

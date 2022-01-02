@@ -102,6 +102,7 @@ services:
           - /opt/appdaemon:/conf
           # Mount directory of appdaemon apps installed by HACS
           - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
+          #- /home/aneisch/dockerStart.sh:/usr/src/app/dockerStart.sh:ro
         ports:
             - '8888:8888'
         restart: always

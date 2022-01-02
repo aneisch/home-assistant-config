@@ -1,0 +1,67 @@
+generate_package:
+  name: Generate lock manager files
+  description: (Re-)Generates the package files that are used to provide the input helpers and automations that make Keymaster work
+  fields:
+    lockname:
+      name: Lock Name
+      description: The name that you specified during keymaster configuration.
+      example: frontdoor
+      required: true
+      selector:
+        text:
+
+add_code:
+  name: Add code to lock
+  description: Supports ozw, zwave, and zwave_js locks.
+  fields:
+    entity_id:
+      name: Lock
+      description: Lock to add a code to
+      required: true
+      selector:
+        entity:
+          domain: lock
+    code_slot:
+      name: Code Slot
+      description: The code slot you are attempting to add/replace a code into
+      example: 2
+      required: true
+      selector:
+        text:
+    usercode:
+      name: Usercode
+      description: The code you are attempting to set
+      example: 1234
+      required: true
+      selector:
+        text:
+      
+clear_code:
+  name: Clear code from lock
+  description: Supports ozw, zwave, and zwave_js locks.
+  fields:
+    entity_id:
+      name: Lock
+      description: Lock to clear a code from
+      required: true
+      selector:
+        entity:
+          domain: lock
+    code_slot:
+      name: Code Slot
+      description: The code slot you are attempting to clear
+      example: 2
+      selector:
+        text:
+
+refresh_codes:
+  name: Refresh codes from a lock
+  description: Experimental. Only supports ozw locks for now, and may not be fully functional.
+  fields:
+    entity_id:
+      name: Lock
+      description: Lock to refresh codes on
+      required: true
+      selector:
+        entity:
+          domain: lock

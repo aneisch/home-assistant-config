@@ -123,6 +123,7 @@ services:
         volumes:
           - '/opt/vscode:/config'
           - '/opt/homeassistant/:/ha_config'
+          - '/opt/appdaemon/:/ha_config/appdaemon_symlink'
           - '/opt/appdaemon/:/appdaemon'
           - '/opt/docker-compose/:/docker-compose'
           - '/home/aneisch:/home/aneisch'

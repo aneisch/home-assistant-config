@@ -1,0 +1,992 @@
+# yamllint disable
+############  input_number:  #####################
+input_number:
+  accesscount_LOCKNAME_TEMPLATENUM:
+    name: "Unlock events"
+    min: 0
+    max: 100
+    step: 1
+    mode: box
+
+#################  input_datetime:  ##############
+input_datetime:
+  end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: true
+  start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: true
+
+  sun_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  sun_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  mon_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  mon_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  tue_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  tue_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  wed_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  wed_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  thu_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  thu_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  fri_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  fri_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+  sat_start_date_LOCKNAME_TEMPLATENUM:
+    name: "Start"
+    has_time: true
+    has_date: false
+  sat_end_date_LOCKNAME_TEMPLATENUM:
+    name: "End"
+    has_time: true
+    has_date: false
+
+####################  input_text:  ###############
+input_text:
+  LOCKNAME_name_TEMPLATENUM:
+    name: "Name"
+  LOCKNAME_pin_TEMPLATENUM:
+    name: "PIN"
+    mode: HIDE_PINS
+
+#################  input_boolean: ################
+input_boolean:
+  notify_LOCKNAME_TEMPLATENUM:
+    name: "Notifications"
+  daterange_LOCKNAME_TEMPLATENUM:
+    name: "Use Date Range"
+  enabled_LOCKNAME_TEMPLATENUM:
+    name: "Enabled"
+  accesslimit_LOCKNAME_TEMPLATENUM:
+    name: "Enforce PIN limit"
+  reset_codeslot_LOCKNAME_TEMPLATENUM:
+    name: "Reset Code Slot"
+  override_parent_LOCKNAME_TEMPLATENUM:
+    name: "Override PARENTLOCK TEMPLATENUM"
+    initial: false
+
+  sun_LOCKNAME_TEMPLATENUM:
+    name: "Sunday"
+
+  mon_LOCKNAME_TEMPLATENUM:
+    name: "Monday"
+
+  tue_LOCKNAME_TEMPLATENUM:
+    name: "Tuesday"
+
+  wed_LOCKNAME_TEMPLATENUM:
+    name: "Wednesday"
+
+  thu_LOCKNAME_TEMPLATENUM:
+    name: "Thursday"
+
+  fri_LOCKNAME_TEMPLATENUM:
+    name: "Friday"
+
+  sat_LOCKNAME_TEMPLATENUM:
+    name: "Saturday"
+
+  sun_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  mon_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  tue_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  wed_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  thu_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  fri_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+  sat_inc_LOCKNAME_TEMPLATENUM:
+    name: "include (on)/exclude (off)"
+
+################  automation: #################
+automation:
+  - alias: keymaster_turn_on_access_limit_LOCKNAME_TEMPLATENUM
+    id: keymaster_turn_on_access_limit_LOCKNAME_TEMPLATENUM
+    trigger:
+      platform: state
+      entity_id: input_number.accesscount_LOCKNAME_TEMPLATENUM
+    condition:
+      - condition: template
+        value_template: >-
+          {{ (states('input_number.accesscount_LOCKNAME_TEMPLATENUM') | int > 0) }}
+    action:
+      service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.accesslimit_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_synchronize_codeslot_LOCKNAME_TEMPLATENUM
+    id: keymaster_synchronize_codeslot_LOCKNAME_TEMPLATENUM
+    initial_state: true
+    mode: single
+    max_exceeded: silent
+    trigger:
+      - platform: state
+        entity_id: "binary_sensor.pin_synched_LOCKNAME_TEMPLATENUM"
+        from: "on"
+        to: "off"
+    condition:
+      - condition: template
+        value_template: >-
+          {{ states("sensor.LOCKNAME_code_slot_TEMPLATENUM") != "unavailable" }}
+    action:
+      - choose:
+          # The code should be added to the lock's slot
+          - conditions:
+              - condition: template
+                value_template: "{{ is_state('binary_sensor.active_LOCKNAME_TEMPLATENUM','on') }}"
+            sequence:
+              - service: keymaster.add_code
+                data_template:
+                  entity_id: LOCKENTITYNAME
+                  code_slot: >-
+                    {{ TEMPLATENUM }}
+                  usercode: >-
+                    {{ states('input_text.LOCKNAME_pin_TEMPLATENUM').strip() }}
+
+          # The code should be removed from the lock's slot
+          - conditions:
+              - condition: template
+                value_template: "{{ is_state('binary_sensor.active_LOCKNAME_TEMPLATENUM','off') }}"
+            sequence:
+              - service: keymaster.clear_code
+                data_template:
+                  entity_id: LOCKENTITYNAME
+                  code_slot: >-
+                    {{ TEMPLATENUM }}
+
+  - alias: keymaster_override_parent_LOCKNAME_TEMPLATENUM_state_change
+    id: keymaster_override_parent_LOCKNAME_TEMPLATENUM_state_change
+    trigger:
+      entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+      platform: state
+      to: "off"
+    action:
+      - service: script.keymaster_LOCKNAME_copy_from_parent_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_name_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_name_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_text.PARENTLOCK_name_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.LOCKNAME_name_TEMPLATENUM
+        data:
+          value: "{{ states('input_text.PARENTLOCK_name_TEMPLATENUM') }}"
+
+  - alias: keymaster_copy_PARENTLOCK_pin_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_pin_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_text.PARENTLOCK_pin_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_text.set_value
+        target:
+          entity_id: input_text.LOCKNAME_pin_TEMPLATENUM
+        data:
+          value: "{{ states('input_text.PARENTLOCK_pin_TEMPLATENUM') }}"
+
+  - alias: keymaster_copy_PARENTLOCK_enabled_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_enabled_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.enabled_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.enabled_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.enabled_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_notify_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_notify_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.notify_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.notify_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.notify_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_reset_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_reset_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.reset_codeslot_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.reset_codeslot_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.reset_codeslot_PARENTLOCK_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_accesslimit_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_accesslimit_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.accesslimit_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.accesslimit_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.accesslimit_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_accesscount_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_accesscount_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_number.accesscount_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_number.set_value
+        entity_id: input_number.accesscount_LOCKNAME_TEMPLATENUM
+        data_template:
+          value: "{{ states.input_number.accesscount_PARENTLOCK_TEMPLATENUM.state | int }}"
+
+  - alias: keymaster_copy_PARENTLOCK_daterange_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_daterange_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.daterange_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.daterange_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.daterange_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_start_date_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.start_date_LOCKNAME_TEMPLATENUM
+        data:
+          datetime: "{{ states.input_datetime.start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_end_date_LOCKNAME_TEMPLATENUM
+    id: keymaster_copy_PARENTLOCK_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.end_date_LOCKNAME_TEMPLATENUM
+        data:
+          datetime: "{{ states.input_datetime.end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_sun_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.sun_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.sun_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.sun_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_sun_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.sun_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.sun_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.sun_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_sun_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.sun_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.sun_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.sun_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_sun_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.sun_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.sun_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.sun_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_mon_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.mon_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.mon_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.mon_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_mon_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.mon_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.mon_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.mon_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_mon_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.mon_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.mon_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.mon_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_mon_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.mon_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.mon_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.mon_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_tue_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.tue_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.tue_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.tue_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_tue_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.tue_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.tue_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.tue_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_tue_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.tue_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.tue_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.tue_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_tue_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.tue_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.tue_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.tue_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_wed_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.wed_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.wed_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.wed_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_wed_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.wed_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.wed_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.wed_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_wed_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.wed_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.wed_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.wed_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_wed_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.wed_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.wed_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.wed_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_thu_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.thu_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.thu_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.thu_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_thu_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.thu_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.thu_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.thu_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_thu_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.thu_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.thu_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.thu_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_thu_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.thu_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.thu_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.thu_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_fri_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.fri_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.fri_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.fri_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_fri_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.fri_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.fri_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.fri_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_fri_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.fri_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.fri_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.fri_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_fri_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.fri_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.fri_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.fri_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_sat_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.sat_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.sat_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.sat_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_sat_inc_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_boolean.sat_inc_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service_template: >
+          {% if (states.input_boolean.sat_inc_PARENTLOCK_TEMPLATENUM.state == 'on') %}
+            input_boolean.turn_on
+          {% else %}
+            input_boolean.turn_off
+          {% endif %}
+        entity_id: input_boolean.sat_inc_LOCKNAME_TEMPLATENUM
+
+  - alias: keymaster_copy_PARENTLOCK_sat_start_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.sat_start_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.sat_start_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.sat_start_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+  - alias: keymaster_copy_PARENTLOCK_sat_end_date_LOCKNAME_TEMPLATENUM
+    trigger:
+      entity_id: input_datetime.sat_end_date_PARENTLOCK_TEMPLATENUM
+      platform: state
+    condition:
+      - condition: state
+        entity_id: input_boolean.override_parent_LOCKNAME_TEMPLATENUM
+        state: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.sat_end_date_LOCKNAME_TEMPLATENUM
+        data:
+          time: "{{ states.input_datetime.sat_end_date_PARENTLOCK_TEMPLATENUM.state }}"
+
+###################  script:  ####################
+script:
+  keymaster_LOCKNAME_copy_from_parent_TEMPLATENUM:
+    sequence:
+      - service: automation.trigger
+        data: {}
+        target:
+          entity_id:
+            - automation.copy_PARENTLOCK_name_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_pin_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_enabled_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_notify_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_reset_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_accesslimit_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_accesscount_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_daterange_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sun_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sun_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sun_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sun_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_mon_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_mon_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_mon_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_mon_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_tue_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_tue_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_tue_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_tue_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_wed_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_wed_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_wed_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_wed_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_thu_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_thu_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_thu_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_thu_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_fri_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_fri_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_fri_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_fri_end_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sat_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sat_inc_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sat_start_date_LOCKNAME_TEMPLATENUM
+            - automation.copy_PARENTLOCK_sat_end_date_LOCKNAME_TEMPLATENUM
+
+################  binary_sensor: #################
+binary_sensor:
+  - platform: template
+    sensors:
+      active_LOCKNAME_TEMPLATENUM:
+        friendly_name: "Desired PIN State"
+        value_template: >-
+          {## This template checks whether the PIN should be considered active based on ##}
+          {## all of the different ways the PIN can be conditionally enabled/disabled ##}
+
+          {## Get current date and time ##}
+          {% set now = now() %}
+
+          {## Get current day of week, date (integer yyyymmdd), and time (integer hhmm) ##}
+          {% set current_day = now.strftime('%a')[0:3] | lower %}
+          {% set current_date = now.strftime('%Y%m%d') | int %}
+          {% set current_time = now.strftime('%H%M') | int %}
+          {% set current_timestamp = as_timestamp(now) | int %}
+
+          {## Get whether date range toggle is enabled as well as start and end date (integer yyyymmdd) ##}
+          {## Determine whether current date is within date range using integer (yyyymmdd) comparison ##}
+          {% set is_date_range_enabled = is_state('input_boolean.daterange_LOCKNAME_TEMPLATENUM', 'on') %}
+          {% set start_date = state_attr('input_datetime.start_date_LOCKNAME_TEMPLATENUM', 'timestamp') | int %}
+          {% set end_date = state_attr('input_datetime.end_date_LOCKNAME_TEMPLATENUM', 'timestamp') | int %}
+
+          {## Only active if within the full datetime range. To get a single day both start and stop times must be set ##}
+          {% set is_in_date_range = (start_date < end_date and current_timestamp >= start_date and current_timestamp <= end_date) %}
+
+          {## Get current days start and end time (integer hhmm). Assume time range is considered enabled if start time != end time. ##}
+          {## If time range is inclusive, check if current time is between start and end times. If exclusive, check if current time is before start time or after end time. ##}
+          {% set current_day_start_time = (states('input_datetime.' + current_day + '_start_date_LOCKNAME_TEMPLATENUM')[0:5]).replace(':', '') | int %}
+          {% set current_day_end_time = (states('input_datetime.' + current_day + '_end_date_LOCKNAME_TEMPLATENUM')[0:5]).replace(':', '') | int %}
+          {% set is_time_range_enabled = (current_day_start_time != current_day_end_time) %}
+          {% set is_time_range_inclusive = is_state('input_boolean.' + current_day + '_inc_LOCKNAME_TEMPLATENUM', 'on') %}
+          {% set is_in_time_range = (
+            (is_time_range_inclusive and (current_time >= current_day_start_time and current_time <= current_day_end_time))
+            or
+            (not is_time_range_inclusive and (current_time < current_day_start_time or current_time > current_day_end_time))
+          ) %}
+
+          {## Get whether code slot is active and current day is enabled ##}
+          {% set is_slot_enabled = is_state('input_boolean.enabled_LOCKNAME_TEMPLATENUM', 'on') %}
+          {% set is_current_day_enabled = is_state('input_boolean.' + current_day + '_LOCKNAME_TEMPLATENUM', 'on') %}
+
+          {## Check if access limit is enabled and if there are access counts left. ##}
+          {% set is_access_limit_enabled = is_state('input_boolean.accesslimit_LOCKNAME_TEMPLATENUM', 'on') %}
+          {% set is_access_count_valid = states('input_number.accesscount_LOCKNAME_TEMPLATENUM') | int > 0 %}
+
+          {## Code slot is active if slot is enabled + current day is enabled + date range is not enabled or current date is within date range ##}
+          {## + time range is not enabled or current time is within time range (based on include/exclude) + access limit is not enabled or there are more access counts left ##}
+          {{
+            is_slot_enabled and is_current_day_enabled
+            and
+            (not is_date_range_enabled or is_in_date_range)
+            and
+            (not is_time_range_enabled or is_in_time_range)
+            and
+            (not is_access_limit_enabled or is_access_count_valid)
+          }}
+
+      pin_synched_LOCKNAME_TEMPLATENUM:
+        friendly_name: "PIN synchronized with lock"
+        value_template: >
+          {% set lockpin = states('sensor.LOCKNAME_code_slot_TEMPLATENUM').strip()  %}
+          {% set localpin = states('input_text.LOCKNAME_pin_TEMPLATENUM').strip()  %}
+          {% set pin_active = is_state('binary_sensor.active_LOCKNAME_TEMPLATENUM', 'on')  %}
+          {% if lockpin == "0000" %}
+          {%   set lockpin = "" %}
+          {% endif %}
+          {% if pin_active %}
+            {{ localpin == lockpin }}
+          {% else %}
+            {{ lockpin == "" }}
+          {% endif %}
+
+###################  sensor:  ####################
+sensor:
+  - platform: template
+    sensors:
+      connected_LOCKNAME_TEMPLATENUM:
+        friendly_name: "PIN Status"
+        value_template: >-
+          {% set pin_active = is_state('binary_sensor.active_LOCKNAME_TEMPLATENUM', 'on')  %}      
+          {% set synched = is_state('binary_sensor.pin_synched_LOCKNAME_TEMPLATENUM', 'on')  %}      
+          {% if pin_active %}
+            {% if synched %}
+              Connected
+            {% else %}
+              Adding
+            {% endif %}
+          {% else %}
+            {% if synched %}
+              Disconnected
+            {% else %}
+              Deleting
+            {% endif %}
+          {% endif %}
+        icon_template: >
+          {% set pin_active = is_state('binary_sensor.active_LOCKNAME_TEMPLATENUM', 'on')  %}      
+          {% set synched = is_state('binary_sensor.pin_synched_LOCKNAME_TEMPLATENUM', 'on')  %}      
+          {% if pin_active %}
+            {% if synched %}
+              mdi:folder-key
+            {% else %}
+              mdi:folder-key-network
+            {% endif %}
+          {% else %}
+            {% if synched %}
+              mdi:folder-open
+            {% else %}
+              mdi:wiper-wash
+            {% endif %}
+          {% endif %}

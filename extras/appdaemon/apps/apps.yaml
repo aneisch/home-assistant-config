@@ -100,7 +100,7 @@ Occupancy Simulator:
   step_evening_on_1: light.master_bedroom_lamps
   step_evening_on_2: light.kitchen_table_light
   step_evening_on_3: light.andrew_desk_lamp
-  step_evening_on_4: light.office_ceiling_fan
+  #step_evening_on_4: light.office_ceiling_fan
   step_evening_on_7: light.guest_bedroom_nightstand_lamp
   step_evening_on_8: light.back_bedroom_nightstand_lamp
 
@@ -150,7 +150,7 @@ Occupancy Simulator:
   step_dark_off_2: light.dining_room_light
   step_dark_off_3: light.kitchen_table_light
   step_dark_off_5: light.andrew_desk_lamp
-  step_dark_off_6: light.office_ceiling_fan
+  #step_dark_off_6: light.office_ceiling_fan
   step_dark_off_7: light.guest_bedroom_nightstand_lamp
   step_dark_off_8: light.back_bedroom_nightstand_lamp
 
@@ -245,7 +245,7 @@ Dyson Charger:
   entities: switch.garage_dyson
   time_on: '15:00:00'
   time_off: '18:00:00'
-  constrain_person: anyone
+  constrain_presence: anyone
 
 AC Filter Change:
   module: countdown_notify
@@ -347,7 +347,7 @@ Indoor Light Automation Sunset:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
-  constrain_person: anyone
+  constrain_presence: anyone
   time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces
   brightness: 255

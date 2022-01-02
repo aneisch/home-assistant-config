@@ -22,6 +22,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 LUMI lumi.sensor_cube
   - 1 Philips LWB014
   - 1 sengled E1E-G7F
+  - 1 Yunding Ford
   - 2 LDS ZBT-CCTSwitch-D0001
   - 3 eWeLink MS01
   - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
@@ -35,6 +36,7 @@ My Home Assistant installation contains many different components and runs on a 
   - 2 GE/Jasco 12730  / ZW4002
   - 1 GE/Jasco 45603
   - 2 GE/Jasco 45604
+  - 1 Kwikset 910
   - 1 Leviton DZPA1
   - 1 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
@@ -63,15 +65,15 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1917
-Lines of Home Assistant YAML | 5755
+Lines of Home Assistant YAML | 5763
 [Integrations](https://www.home-assistant.io/integrations/) in use | 32
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 21
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 22
  
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 74
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 105
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 106
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
@@ -86,7 +88,8 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 2
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 40
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 11
+Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 2
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 12
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 3
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
@@ -94,15 +97,15 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 7
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 234
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 240
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 99
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 102
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **747**
+**Total state objects** | **760**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -120,6 +123,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 
 **Integration**:<br>
 [AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
+[FutureTense/keymaster](https://github.com/FutureTense/keymaster)<br>
 [PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
