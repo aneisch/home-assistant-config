@@ -67,7 +67,8 @@ services:
             - '/dev/bus/usb:/dev/bus/usb'
         volumes:
             # Config file for setting overrides
-            - '/opt/433_mqtt/433_mqtt_315mhz.conf:/etc/rtl_433/rtl_433.conf'
+            #- '/opt/433_mqtt/433_mqtt_315mhz.conf:/etc/rtl_433/rtl_433.conf'
+            - '/opt/433_mqtt/433_mqtt_916mhz.conf:/etc/rtl_433/rtl_433.conf'
     bitwarden:
         container_name: bitwarden
         image: vaultwarden/server:alpine

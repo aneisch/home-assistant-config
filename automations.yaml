@@ -602,20 +602,6 @@
         #   expire: 3600
         #   retry: 30
 
-- alias: "Covid Test Result"
-  id: "covid_test_result"
-  trigger:
-    - platform: state
-      entity_id: sensor.andrew_covid_test_result
-      from: None
-    - platform: state
-      entity_id: sensor.bethany_covid_test_result
-      from: None
-  action:
-    - service: notify.pushover
-      data:
-        message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
-
 - alias: "Sync Alexa Timers"
   id: "sync_alexa_timers"
   trigger:

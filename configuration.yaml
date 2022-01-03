@@ -12,6 +12,7 @@ homeassistant:
     alexa: !include packages/alexa.yaml
     aarlo: !include packages/aarlo.yaml
     aquarium: !include packages/aquarium.yaml
+    covid: !include packages/covid.yaml
     #fingerprint: !include packages/fingerprint.yaml
     garage_door: !include packages/garage_door.yaml
     gate: !include packages/mom_and_dad_gate.yaml

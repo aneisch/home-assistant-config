@@ -4,6 +4,8 @@ cards:
     conditions:
       - entity: sensor.andrew_covid_test_result
         state_not: "unknown"
+      - entity: sensor.andrew_covid_test_result
+        state_not: "unavailable"
     card:
       type: entity
       entity: sensor.andrew_covid_test_result
@@ -11,6 +13,8 @@ cards:
     conditions:
       - entity: sensor.bethany_covid_test_result
         state_not: "unknown"
+      - entity: sensor.bethany_covid_test_result
+        state_not: "unavailable"
     card:
       type: entity
       entity: sensor.bethany_covid_test_result

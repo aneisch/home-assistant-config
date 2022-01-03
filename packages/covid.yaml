@@ -1,0 +1,61 @@
+automation:
+  - alias: "Covid Test Result"
+    id: "covid_test_result"
+    trigger:
+      - platform: state
+        entity_id: sensor.andrew_covid_test_result
+        from: None
+      - platform: state
+        entity_id: sensor.bethany_covid_test_result
+        from: None
+    condition: '{{ trigger.to_state.state != "unknown" }}'
+    action:
+      - service: notify.pushover
+        data:
+          message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
+
+input_text:
+  andrew_covid_test_key:
+    name: Andrew Covid Test Key
+
+  bethany_covid_test_key:
+    name: Bethany Covid Test Key
+
+sensor:
+  - platform: rest
+    name: Andrew Covid Test Result
+    resource_template: >
+      {% if states("input_text.andrew_covid_test_key") != "" %}
+        https://labtools.curativeinc.com/api/v1/appointments/get_by_access_token/{{ states("input_text.andrew_covid_test_key") }}
+      {% else %}
+        http://localhost
+      {% endif %}
+    method: POST
+    payload: !secret andrew_birthday
+    headers: 
+      content-type: application/json
+    value_template: "{{ value_json.result }}"
+    json_attributes:
+      - full_reference_number # CURXXXXXX
+      - accessioned_at # Arrived at Lab
+      - in_testing_at # Testing Began
+      - released_at # Testing Complete
+
+  - platform: rest
+    name: Bethany Covid Test Result
+    resource_template: >
+      {% if states("input_text.bethany_covid_test_key") != "" %}
+        https://labtools.curativeinc.com/api/v1/appointments/get_by_access_token/{{ states("input_text.bethany_covid_test_key") }}
+      {% else %}
+        http://localhost
+      {% endif %}
+    method: POST
+    payload: !secret bethany_birthday
+    headers: 
+      content-type: application/json
+    value_template: "{{ value_json.result }}"
+    json_attributes:
+      - full_reference_number # CURXXXXXX
+      - accessioned_at # Arrived at Lab
+      - in_testing_at # Testing Began
+      - released_at # Testing Complete

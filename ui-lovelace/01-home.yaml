@@ -4,7 +4,7 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/kitchen_timer_2.yaml
   - !include .cards/grill.yaml
-  #- !include .cards/covid.yaml
+  - !include .cards/covid.yaml
 
   - type: custom:vertical-stack-in-card
     cards:
