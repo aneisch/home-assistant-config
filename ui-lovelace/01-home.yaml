@@ -28,7 +28,19 @@ cards:
           - name: Aarlo Mode
             entity: alarm_control_panel.aarlo_garage
           - entity: lock.front_door
+            style: |
+                :host {
+                  {% if states('lock.front_door') == 'unlocked' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: lock.garage_exterior_door
+            style: |
+                :host {
+                  {% if states('lock.garage_exterior_door') == 'unlocked' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: cover.garage_door
             style: |
                 :host {

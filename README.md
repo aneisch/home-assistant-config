@@ -65,14 +65,14 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1917
-Lines of Home Assistant YAML | 5763
+Lines of Home Assistant YAML | 5781
 [Integrations](https://www.home-assistant.io/integrations/) in use | 32
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 22
  
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 74
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 106
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 106
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
@@ -105,7 +105,7 @@ Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **760**
+**Total state objects** | **792**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -123,7 +123,6 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 
 **Integration**:<br>
 [AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
-[FutureTense/keymaster](https://github.com/FutureTense/keymaster)<br>
 [PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
@@ -147,12 +146,15 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [dylandoamaral/uptime-card](https://github.com/dylandoamaral/uptime-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
 [gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
+[htmltiger/numberbox-card](https://github.com/htmltiger/numberbox-card)<br>
 [kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
 [nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
 [ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
 [pmongloid/flipdown-timer-card](https://github.com/pmongloid/flipdown-timer-card)<br>
 [thomasloven/lovelace-auto-entities](https://github.com/thomasloven/lovelace-auto-entities)<br>
 [thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
+[thomasloven/lovelace-card-tools](https://github.com/thomasloven/lovelace-card-tools)<br>
+[thomasloven/lovelace-fold-entity-row](https://github.com/thomasloven/lovelace-fold-entity-row)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
 [twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>
 
