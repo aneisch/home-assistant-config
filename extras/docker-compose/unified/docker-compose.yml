@@ -414,7 +414,7 @@ services:
             - "80:8080"
             - "443:4443"
         volumes:
-            - "/opt/nginx-proxy-manager2:/config:rw"
+            - "/opt/nginx-proxy-manager:/config:rw"
             - /etc/localtime:/etc/localtime:ro
 
     cloudflared:
