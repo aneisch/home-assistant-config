@@ -230,6 +230,33 @@
       entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
+- alias: "Door Lock Alerts"
+  id: "door_lock_alerts"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: 
+      - lock.front_door
+      - lock.garage_exterior_door
+    to: "unlocked"
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+          {{ trigger.to_state.name }} Unlocked
+
+- alias: "Andrew Webhook Trigger"
+  id: "andrew_webhook"
+  initial_state: on
+  trigger:
+    platform: webhook
+    webhook_id: !secret andrew_webhook
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+            Stacey unused
+
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
   id: "panic_script_webhook"

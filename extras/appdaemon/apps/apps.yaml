@@ -14,8 +14,8 @@ AC Automation:
   cool_night: '72'
   cool_unoccupied: '82'
   heat_day: '65'
-  heat_night: '62'
-  heat_unoccupied: '50'
+  heat_night: '60'
+  heat_unoccupied: '55'
 
 Back Bedroom Zigbee Remote:
   module: zigbee_remote

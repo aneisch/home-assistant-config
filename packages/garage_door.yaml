@@ -63,20 +63,14 @@ automation:
         from: 'closed'
         to: 'open'
     action:
-      - repeat:
-          sequence:
-            # Run command that for some reason doesn't always work
-            - service: script.zen30_led_color_change
-              data:
-                color: 'Red'
-            # Give it time to complete
-            - delay:
-                seconds: 2
-          until:
-            - condition: state
-              entity_id: cover.garage_door
-              state: 'closed'
-      - delay: "00:00:05"
+      # Run command that for some reason doesn't always work
+      - service: script.zen30_led_color_change
+        data:
+          color: 'Red'
+      - wait_for_trigger:
+        - platform: state
+          entity_id: cover.garage_door
+          to: 'closed'
       - service: script.zen30_led_color_change
         data:
           color: 'Green'

@@ -95,8 +95,10 @@ class WyzeCluster(CustomCluster, Basic):
         for arg in args:
             self.info("index: %s value: %s", i, arg)
             i += 1
+        self.warning("argument length: %s", len(args))
         self.warning("argument: %s", ",".join(map(str, args)))
-        if len(args) < 70:
+        if len(args) < 70 or len(args) > 100:
+            self.warning("argument list bad length: %s", len(args))
             return
         self.info(
             "Interesting attributes - 52: %s, 41: %s, 56: %s, 57: %s",

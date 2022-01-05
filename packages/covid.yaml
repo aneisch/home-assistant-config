@@ -8,7 +8,7 @@ automation:
       - platform: state
         entity_id: sensor.bethany_covid_test_result
         from: None
-    condition: '{{ trigger.to_state.state != "unknown" }}'
+    condition: '{{ trigger.to_state.state != "unknown" and trigger.to_state.state != "unavailable" }}'
     action:
       - service: notify.pushover
         data:
@@ -37,6 +37,7 @@ sensor:
     value_template: "{{ value_json.result }}"
     json_attributes:
       - full_reference_number # CURXXXXXX
+      - completed_at # Test Complete
       - accessioned_at # Arrived at Lab
       - in_testing_at # Testing Began
       - released_at # Testing Complete
@@ -56,6 +57,7 @@ sensor:
     value_template: "{{ value_json.result }}"
     json_attributes:
       - full_reference_number # CURXXXXXX
+      - completed_at # Test Complete
       - accessioned_at # Arrived at Lab
       - in_testing_at # Testing Began
       - released_at # Testing Complete
