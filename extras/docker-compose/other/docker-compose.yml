@@ -117,7 +117,7 @@ services:
         restart: always
     vscode:
         container_name: vscode
-        image: linuxserver/code-server
+        image: linuxserver/code-server:3.12.0
         #ports:
         #  - '8443:8443'
         restart: always

@@ -121,6 +121,11 @@ master_bedroom_bedtime:
       entity_id: alarm_control_panel.college_station_mode
     - service: homeassistant.turn_on
       entity_id: input_boolean.goodnight
+    - service: lock.lock
+      target:
+        entity_id: 
+          - lock.front_door
+          - lock.garage_exterior_door
 
 #########
 # OTHER #
