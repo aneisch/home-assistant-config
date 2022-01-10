@@ -230,6 +230,20 @@
       entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
+- alias: "Mailbox Alert"
+  id: "mailbox_alert"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: 
+      - binary_sensor.mailbox
+    to: "on"
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+          Mailbox Opened!
+
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
   initial_state: on
@@ -499,8 +513,15 @@
       to: "on"
   action:
     - delay: "00:01:00"
-    - service: homeassistant.turn_off
-      entity_id: binary_sensor.mailbox
+    - service: setter.set
+      data:
+        entity_id: binary_sensor.mailbox
+        state: 'off'
+        attributes: 
+          device_class: motion
+          icon: mdi:mailbox
+          friendly_name: Mailbox
+
 
 - alias: "Smoke Alarm Detection"
   id: "smoke_alarm_detection"

@@ -31,6 +31,8 @@ switch:
 api:
   services:
     # Help from https://github.com/aamarioneta/IRDenon
+    # See also https://github.com/aneisch/home-assistant-config/blob/master/extras/denon%20master%20ir%20hex.xls
+    # And https://github.com/aneisch/home-assistant-config/blob/master/extras/scripts/convert_pronto_codes.py
     - service: power_on
       then:
         - remote_transmitter.transmit_raw:

@@ -1,9 +1,9 @@
-- platform: orvibo
-  switches:
-     - host: 10.0.0.21
-       name: "Andrew Monitor"
-     - host: 10.0.0.14
-       name: "Dining Room Christmas Tree"
+# - platform: orvibo
+#   switches:
+#      - host: 10.0.0.21
+#        name: "Andrew Monitor"
+#      - host: 10.0.0.14
+#        name: "Dining Room Christmas Tree"
 
 - platform: wake_on_lan
   name: "NAS"

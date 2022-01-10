@@ -22,6 +22,7 @@ from homeassistant.loader import Integration, IntegrationNotFound, async_get_int
 from homeassistant.setup import async_get_loaded_integrations
 from jinja2 import Template
 
+
 from .const import DOMAIN, DOMAIN_DATA, LOGGER, STARTUP_MESSAGE
 
 CONFIG_SCHEMA = vol.Schema(
@@ -99,7 +100,7 @@ async def convert_lovelace(hass: HomeAssistant):
     """Convert the lovelace configuration."""
     if os.path.exists(hass.config.path(".storage/lovelace")):
         content = (
-            json.loads(read_file(hass, ".storage/lovelace") or {})
+            json.loads(await read_file(hass, ".storage/lovelace") or {})
             .get("data", {})
             .get("config", {})
         )
@@ -131,7 +132,7 @@ async def write_file(
     def write():
         with open(hass.config.path(path), "w") as open_file:
             if as_yaml:
-                yaml.dump(content, open_file, default_flow_style=False)
+                yaml.dump(content, open_file, default_flow_style=False, allow_unicode=True)
             else:
                 open_file.write(content)
 
@@ -147,10 +148,10 @@ async def add_services(hass: HomeAssistant):
         if hass.data[DOMAIN_DATA].get("convert") or hass.data[DOMAIN_DATA].get(
             "convert_lovelace"
         ):
-            convert_lovelace(hass)
+            await convert_lovelace(hass)
 
         custom_components = await get_custom_integrations(hass)
-        hacs_components = get_hacs_components()
+        hacs_components = get_hacs_components(hass)
 
         variables = {
             "custom_components": custom_components,
@@ -170,13 +171,9 @@ async def add_services(hass: HomeAssistant):
     hass.services.async_register(DOMAIN, "generate", service_generate)
 
 
-def get_hacs_components():
-    try:
-        from custom_components.hacs.share import get_hacs
-    except ImportError:
+def get_hacs_components(hass: HomeAssistant):
+    if (hacs := hass.data.get("hacs")) is None:
         return []
-
-    hacs = get_hacs()
 
     return [
         {
@@ -184,7 +181,7 @@ def get_hacs_components():
             "name": get_repository_name(repo),
             "documentation": f"https://github.com/{repo.data.full_name}",
         }
-        for repo in hacs.repositories or []
+        for repo in hacs.repositories.list_downloaded or []
     ]
 
 

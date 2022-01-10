@@ -169,26 +169,26 @@ Bethany Office Hanging Lights:
 #############
 # Christmas #
 #############
-Christmas Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.christmas_lights
-  time_on: sunset - 00:20:00
-  time_off: "00:00:00"
+#Christmas Lights:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.christmas_lights
+#  time_on: sunset - 00:20:00
+#  time_off: "00:00:00"
 
-Dining Room Christmas Tree Follow:
-  module: follow_me
-  class: Follow
-  leader: group.christmas_trees
-  follower: switch.dining_room_christmas_tree
-  follow_off: False # Only follow state to on
+#Dining Room Christmas Tree Follow:
+#  module: follow_me
+#  class: Follow
+#  leader: group.christmas_trees
+#  follower: switch.dining_room_christmas_tree
+#  follow_off: False # Only follow state to on
 
-Dining Room Christmas Tree Timer:
-  module: entity_timer
-  class: Timer
-  entities: switch.dining_room_christmas_tree
-  time_on: sunset - 00:20:00
-  time_off: 00:00:00
+#Dining Room Christmas Tree Timer:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.dining_room_christmas_tree
+#  time_on: sunset - 00:20:00
+#  time_off: 00:00:00
 
 ############
 # Aquarium #
