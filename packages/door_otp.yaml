@@ -1,0 +1,25 @@
+# Cloudflare worker calls this autmation via webhook. 
+# Worker code at extras/door_otp_worker.js
+
+
+automation:
+  - alias: "Set Garage Exterior Door OTP"
+    id: set_garage_otp
+    mode: single
+    trigger:
+      - platform: webhook
+        webhook_id: !secret cf_lock_otp_webhook
+    action:
+      - service: notify.pushover
+        data:
+          message: "Garage code {{ trigger.json['otp'] }} generated for {{ trigger.json['email'] }}"
+      - service: zwave_js.set_lock_usercode
+        data:
+          entity_id: lock.garage_exterior_door
+          code_slot: 16
+          usercode: "{{ trigger.json['otp'] }}"
+      - delay: 30
+      - service: zwave_js.clear_lock_usercode
+        entity_id: lock.garage_exterior_door
+        data:
+          code_slot: 16

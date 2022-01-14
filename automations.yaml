@@ -560,7 +560,7 @@
 #   alias: "Webhook Debugger"
 #   trigger:
 #     - platform: webhook
-#       webhook_id: !secret test_webhook
+#       webhook_id: !secret cf_lock_otp_webhook
 #   action:
 #     - service: persistent_notification.create
 #       data:
@@ -569,7 +569,7 @@
 #             Data: {{ dict(trigger.data)|tojson }}
 #           {% elif 'json' in trigger %}
 #             JSON: {{ dict(trigger.json)|tojson }}
-#             {{ dict(trigger.json)['payload']['object']['presence_status'] }}
+#           {% else %}
 #           {% endif %}
 #           {% if 'query' in trigger and trigger.query|length > 0 %}
 #             Query: {{ dict(trigger.query)|tojson }}

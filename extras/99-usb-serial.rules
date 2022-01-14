@@ -4,5 +4,8 @@ SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{product}=="EC650LCD", SYMLINK+="u
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", ATTRS{serial}=="00000101", SYMLINK+="rtl_sdr_grill", MODE="0666", RUN+="/usr/local/bin/fix_rtl_docker.sh" 
 # New metal
 SUBSYSTEM=="usb", ATTRS{idVendor}=="0bda", ATTRS{idProduct}=="2838", ATTRS{serial}=="00000001", SYMLINK+="rtl_sdr_rain", MODE="0666", RUN+="/usr/local/bin/fix_rtl_docker.sh"
+# CC2531 
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0451", ATTRS{idProduct}=="16a8", SYMLINK+="zigbee", MODE="0666"
+# Sonoff USB
+SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="zigbee", MODE="0666"
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0658", ATTRS{idProduct}=="0200", SYMLINK+="zwave"
