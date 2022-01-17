@@ -27,7 +27,7 @@ async function handleRequest(request) {
     if(timeleft <= 0){
       clearInterval(downloadTimer);
     document.innerHTML = "<strong>Your code has expired. Refresh to get a new one</strong>";
-    document.getElementById("message").innerHTML = "<strong>Your code has expired. Refresh to get a new one</strong>";
+    document.getElementById("message").innerHTML = "<strong>Your code has expired. Refresh page to get a new one</strong>";
 
     }
     document.getElementById("time").innerHTML = timeleft;
@@ -36,7 +36,7 @@ async function handleRequest(request) {
   </script>
   </head>
   <body>
-    <span id=message>Hi ${requestHeaders["cf-access-authenticated-user-email"]}, your one time unlock code is <span id=code>${otp}</span>. Use this at the garage exterior door behind the gate. <span id=remain>This code will expire in <span id=time>30</span> seconds</span>.</span>
+    <span id=message>Hi ${requestHeaders["cf-access-authenticated-user-email"]}, your one time unlock code is <span id=code><strong>${otp}</strong></span>. Use this at the garage exterior door behind the gate. <span id=remain>This code will expire in <span id=time>30</span> seconds</span>.</span>
   </body>`
 
   body = {
