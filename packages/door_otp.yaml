@@ -10,6 +10,8 @@ automation:
       - platform: webhook
         webhook_id: !secret cf_lock_otp_webhook
     action:
+      - service: switch.turn_on
+        entity_id: switch.garage_exterior_light
       - service: notify.pushover
         data:
           message: "Garage code {{ trigger.json['otp'] }} generated for {{ trigger.json['email'] }}"
@@ -23,3 +25,5 @@ automation:
         entity_id: lock.garage_exterior_door
         data:
           code_slot: 16
+      - service: switch.turn_off
+        entity_id: switch.garage_exterior_light
