@@ -67,8 +67,8 @@ async function handleRequest(request) {
     </head>
     <body>
       <center>
-      <span style="font-size:8vw;" id=message>Hi ${requestHeaders["cf-access-authenticated-user-email"]}, tap below to get your code.</span><br><br><br>
-      <button style="font-size:6vw;" class="btn btn-primary btn-lg" onclick="window.location.href = './get-otp'">Get OTP</button>
+      <span style="font-size:8vw;" id=message>Hi ${requestHeaders["cf-access-authenticated-user-email"]}! When you're in front of the garage exterior door (behind the gate) tap below to get your unlock code.</span><br><br><br>
+      <button style="font-size:6vw;" class="btn btn-primary btn-lg" onclick="window.location.href = './get-otp'">Get Code</button>
       </center>
     </body>`
   }
