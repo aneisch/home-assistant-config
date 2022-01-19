@@ -1,7 +1,6 @@
 # Cloudflare worker calls this autmation via webhook. 
 # Worker code at extras/door_otp_worker.js
 
-
 automation:
   - alias: "Set Garage Exterior Door OTP"
     id: set_garage_otp
