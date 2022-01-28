@@ -42,11 +42,11 @@ async function handleRequest(request) {
     <head>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     <script>
-    var timeleft = 30;
+    var timeleft = 60; // OTP Lifetime in Seconds
     var downloadTimer = setInterval(function(){
       if(timeleft <= 0){
         clearInterval(downloadTimer);
-      document.getElementById("message").innerHTML = "<h1>Your code has expired. Refresh to get a new one</h1>"
+      document.getElementById("message").innerHTML = '<span style="font-size:8vw;">Your code has expired. Refresh to get a new one</span>'
       }
       document.getElementById("time").innerHTML = timeleft;
       timeleft -= 1;
@@ -55,7 +55,7 @@ async function handleRequest(request) {
     </head>
     <body>
       <center>
-      <span style="font-size:8vw;" id=message>Your one time unlock code is <span id=code><strong>${otp}</strong></span><br><br>Use it at the garage exterior door behind the gate.<br><br><span id=remain>This code will expire in <span id=time>30</span> seconds</span>.</span>
+      <span style="font-size:8vw;" id=message>Your one time unlock code is <span id=code><strong>${otp}</strong></span><br><br>Use it at the garage exterior door behind the gate.<br><br><span id=remain>This code will expire in <span id=time>60</span> seconds</span>.</span>
       </center>
     </body>`
   }

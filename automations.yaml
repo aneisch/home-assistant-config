@@ -146,6 +146,19 @@
       data:
         message: "The thermostat appears to be offline..."
 
+- alias: "Notify when Zigbee Pi"
+  id: "notify_zigbee_offline"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.zigbee2mqtt_pi
+      to: "off"
+      for: "00:10:00"
+  action:
+    - service: notify.pushover
+      data:
+        message: "The Zigbee2MQTT Pi appears to be offline..."
+
 - alias: "Notify when Verizon Extender Offline"
   id: "notify_verizon_extender_offline"
   initial_state: on
@@ -243,6 +256,23 @@
       data:
         message: >
           Mailbox Opened!
+
+- alias: "Mailbox Reset"
+  id: "mailbox_reset"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.mailbox
+      to: "on"
+  action:
+    - delay: "00:01:00"
+    - service: setter.set
+      data:
+        entity_id: binary_sensor.mailbox
+        state: 'off'
+        attributes: 
+          device_class: motion
+          icon: mdi:mailbox
+          friendly_name: Mailbox
 
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
@@ -504,24 +534,6 @@
     - delay: "00:01:00"
     - service: homeassistant.turn_off
       entity_id: input_boolean.compost_turn
-
-- alias: "Mailbox Reset"
-  id: "mailbox_reset"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.mailbox
-      to: "on"
-  action:
-    - delay: "00:01:00"
-    - service: setter.set
-      data:
-        entity_id: binary_sensor.mailbox
-        state: 'off'
-        attributes: 
-          device_class: motion
-          icon: mdi:mailbox
-          friendly_name: Mailbox
-
 
 - alias: "Smoke Alarm Detection"
   id: "smoke_alarm_detection"

@@ -165,6 +165,19 @@ services:
         ports:
             - '8091:8091' # port for web interface
             - '3000:3000' # port for zwave-js websocket server
+    zigbee2mqtt:
+        container_name: zigbee2mqtt
+        image: koenkk/zigbee2mqtt
+        restart: unless-stopped
+        ports:
+            - '8880:8080'
+        volumes:
+            - /opt/zigbee2mqtt:/app/data
+            - /run/udev:/run/udev:ro
+        environment:
+            - TZ=America/Chicago
+        devices:
+            - /dev/sonoff_zigbee:/dev/sonoff_zigbee
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
