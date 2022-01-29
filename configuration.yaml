@@ -297,6 +297,18 @@ notify:
     vapid_pub_key: !secret vapid_pub_key
     vapid_prv_key: !secret vapid_prv_key
     vapid_email: !secret vapid_email
+  - platform: signal_messenger
+    name: signal_self
+    url: "http://10.0.1.22:8800" # the URL where the Signal Messenger REST API is listening
+    number: "+10000000000"
+    recipients: # one or more recipients
+      - "+10000000000"
+  - platform: signal_messenger
+    name: signal_smallgroup
+    url: "http://10.0.1.22:8800" # the URL where the Signal Messenger REST API is listening
+    number: "+10000000000"
+    recipients: # one or more recipients
+      - "SECRET"
 
 panel_iframe:
   vscode:

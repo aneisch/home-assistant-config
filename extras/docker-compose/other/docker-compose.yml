@@ -275,3 +275,13 @@ services:
         volumes:
           - '/var/run/docker.sock:/var/run/docker.sock'
           - '/tmp/runner:/tmp/runner'
+    signal-rest-api:
+        container_name: signal-rest-api
+        image: bbernhard/signal-cli-rest-api:latest
+        restart: 'always'
+        environment:
+          - MODE=json-rpc
+        ports:
+          - "8800:8080" 
+        volumes:
+          - "/opt/signal-rest-api:/home/.local/share/signal-cli" 

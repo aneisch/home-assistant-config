@@ -257,22 +257,22 @@
         message: >
           Mailbox Opened!
 
-- alias: "Mailbox Reset"
-  id: "mailbox_reset"
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.mailbox
-      to: "on"
-  action:
-    - delay: "00:01:00"
-    - service: setter.set
-      data:
-        entity_id: binary_sensor.mailbox
-        state: 'off'
-        attributes: 
-          device_class: motion
-          icon: mdi:mailbox
-          friendly_name: Mailbox
+# - alias: "Mailbox Reset"
+#   id: "mailbox_reset"
+#   trigger:
+#     - platform: state
+#       entity_id: binary_sensor.mailbox
+#       to: "on"
+#   action:
+#     - delay: "00:01:00"
+#     - service: setter.set
+#       data:
+#         entity_id: binary_sensor.mailbox
+#         state: 'off'
+#         attributes: 
+#           device_class: motion
+#           icon: mdi:mailbox
+#           friendly_name: Mailbox
 
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
