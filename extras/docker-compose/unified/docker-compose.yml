@@ -456,8 +456,9 @@ services:
     signal-rest-api:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest
-        #environment:
-        #  - MODE=json-rpc
+        restart: 'always'
+        environment:
+          - MODE=json-rpc
         ports:
           - "8800:8080" 
         volumes:

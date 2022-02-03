@@ -14,19 +14,6 @@ input_boolean:
     name: HASS Update Available
 
 sensor:
-  - platform: version
-    source: container
-    name: ha_docker_version_stable
-
-  - platform: version
-    beta: true
-    source: container
-    name: ha_docker_version_beta
-
-  - platform: version
-    name: ha_version
-    source: local
-
   - platform: rest
     name: ha_github_version
     resource: 'https://api.github.com/repos/home-assistant/core/releases/latest'

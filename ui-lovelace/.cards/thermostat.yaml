@@ -24,6 +24,8 @@ sensors:
     name: Master Closet
   - entity: sensor.office_temperature
     name: Office
+  - entity: sensor.garage_temperature
+    name: Garage
   - entity: sensor.ac_runtime_today
     name: Today
   - entity: sensor.ac_runtime_yesterday

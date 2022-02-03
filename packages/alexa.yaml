@@ -38,6 +38,6 @@ script:
     sequence:
     - service: media_player.play_media
       data_template:
-        entity_id: '{{ states("sensor.last_echo") }}'
+        entity_id: '{{ states("input_select.target_echo") }}'
         media_content_id: "stop"
         media_content_type: custom

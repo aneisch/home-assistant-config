@@ -137,16 +137,16 @@ intent_script: !include intent_script.yaml
 
 input_text: !include input_text.yaml
 
-ios:
-  push:
-    categories:
-      - name: Confirm
-        identifier: "confirm"
-        actions:
-          - identifier: "confirm_unlock"
-            title: "Confirm"
-          - identifier: "ignore_unlock"
-            title: "Ignore"
+# ios:
+#   push:
+#     categories:
+#       - name: Confirm
+#         identifier: "confirm"
+#         actions:
+#           - identifier: "confirm_unlock"
+#             title: "Confirm"
+#           - identifier: "ignore_unlock"
+#             title: "Ignore"
 
 light:
   - platform: limitlessled

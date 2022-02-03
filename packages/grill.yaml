@@ -158,3 +158,31 @@ automation:
             retry: 30
       # Only fire 1 time per 10 minutes
       - delay: 600 
+
+  # Clear out temperatures if not updated for 30 seconds
+  - alias: Probe Temperature Clear
+    id: probe_temperature_clear
+    mode: restart
+    trigger:
+      - platform: mqtt
+        topic: sensor/rtl_433
+        value_template: "{{ value_json.model == 'Thermopro-TP12' }}"
+        payload: True
+    action:
+      - delay: 30
+      - service: setter.set
+        data:
+          entity_id: sensor.thermopro_probe_1
+          state: 'unknown'
+          attributes: 
+            device_class: temperature
+            friendly_name: Thermopro Probe 1
+            unit_of_measurement: °F
+      - service: setter.set
+        data:
+          entity_id: sensor.thermopro_probe_2
+          state: 'unknown'
+          attributes: 
+            device_class: temperature
+            friendly_name: Thermopro Probe 2
+            unit_of_measurement: °F

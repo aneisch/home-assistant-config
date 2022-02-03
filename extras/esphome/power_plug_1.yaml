@@ -84,10 +84,10 @@ switch:
     name: "${friendly_name}"
     restore_mode: ALWAYS_OFF
     # Tie Blue LED to relay
-    on_turn_on:
-      - switch.turn_on: blue_led
-    on_turn_off:
-      - switch.turn_off: blue_led
+    # on_turn_on:
+    #   - switch.turn_on: blue_led
+    # on_turn_off:
+    #   - switch.turn_off: blue_led
     
   - platform: restart
     id: restart_device
