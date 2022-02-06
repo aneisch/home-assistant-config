@@ -12,8 +12,6 @@ cards:
       - type: markdown
         content: 'Last Thermostat Status Update: {{ relative_time(as_datetime(states("sensor.thermostat_last_communication"))) }} ago'
 
-
-
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
@@ -160,6 +158,13 @@ cards:
             state_filter:
               - operator: "regex"
                 value: 20
+      - type: markdown
+        content: |
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.mailbox_last'))) | int -%}
+          {%- set minutes = (seconds // 60) | int -%}
+          {%- set hours = (minutes // 60) | int -%}
+          {%- set days = (hours // 24) | int -%}
+          {{ state_attr('input_datetime.mailbox_last', 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml

@@ -32,6 +32,25 @@ automation:
       - service: homeassistant.turn_off
         entity_id: automation.vacuum_when_house_unoccupied
 
+  - alias: "Vacuum Kitchen With Button"
+    id: "vacuum_kitchen_button"
+    initial_state: on
+    trigger:
+      - platform: event
+        event_type: zwave_js_value_notification
+        event_data:
+          # Kitchen Sink Button
+          node_id: 3
+          # Hold Down
+          value: "KeyHeldDown"
+    action:
+      - service: notify.alexa_media_kitchen
+        data:
+          data:
+            type: tts
+          message: "Sending Roxie to Clean Kitchen"
+      - service: script.vacuum_clean_kitchen
+
 sensor:
   - platform: template
     sensors:

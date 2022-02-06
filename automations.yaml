@@ -235,6 +235,7 @@
         - binary_sensor.garage_exterior_door
         - binary_sensor.garage_interior_door
         - binary_sensor.master_bedroom_exterior_door
+        - binary_sensor.mailbox
       from: "off"
       to: "on"
   action:
