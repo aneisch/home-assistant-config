@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.2.2%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.2.5%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -66,8 +66,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1919
-Lines of Home Assistant YAML | 5886
-[Integrations](https://www.home-assistant.io/integrations/) in use | 32
+Lines of Home Assistant YAML | 5910
+[Integrations](https://www.home-assistant.io/integrations/) in use | 33
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 23
  
 Description | value
@@ -88,7 +88,7 @@ Entities in the [`input_boolean`](https://www.home-assistant.io/components/input
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 24
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 5
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
-Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 4
+Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 5
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 2
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 10
@@ -97,9 +97,9 @@ Entities in the [`person`](https://www.home-assistant.io/components/person) doma
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
-Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
+Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 40
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 7
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 216
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 217
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 104
@@ -107,7 +107,7 @@ Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **752**
+**Total state objects** | **755**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

@@ -204,21 +204,21 @@ logger:
   logs:
     homeassistant.core: debug
     # Start ZHA Debugging
-    asyncio: debug
-    homeassistant.components.zha: debug
-    zigpy: debug
-    bellows: debug
-    zigpy_xbee: debug
-    zigpy_deconz: debug
-    zigpy_zigate: debug
-    zigpy_cc: debug
-    bellows.zigbee.application: debug
-    bellows.ezsp: debug
-    zigpy_deconz.zigbee.application: debug
-    zigpy_deconz.api: debug
-    zigpy_xbee.ap: debug
-    zigpy_znp: debug
-    zhaquirks: debug
+    # asyncio: debug
+    # homeassistant.components.zha: debug
+    # zigpy: debug
+    # bellows: debug
+    # zigpy_xbee: debug
+    # zigpy_deconz: debug
+    # zigpy_zigate: debug
+    # zigpy_cc: debug
+    # bellows.zigbee.application: debug
+    # bellows.ezsp: debug
+    # zigpy_deconz.zigbee.application: debug
+    # zigpy_deconz.api: debug
+    # zigpy_xbee.ap: debug
+    # zigpy_znp: debug
+    # zhaquirks: debug
     # End ZHA Debugging
     #custom_components.docker_monitor: debug
     #custom_components.alexa_media: debug

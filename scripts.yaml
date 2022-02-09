@@ -104,9 +104,9 @@ master_bedroom_bedtime:
     - service: switch.turn_on
       data:
         entity_id: switch.master_bedroom_ceiling_fan
-    - service: switch.turn_on
-      data:
-        entity_id: switch.master_bedroom_sound_machine
+    #- service: switch.turn_on
+    #  data:
+    #    entity_id: switch.master_bedroom_sound_machine
     - service: light.turn_off
       data:
         entity_id: light.master_bedroom_ceiling_fan

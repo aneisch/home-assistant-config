@@ -178,7 +178,7 @@ cards:
           - weather.kcll_daynight
           - sensor.nws_temperature
           - sensor.nws_humidity
-          - sensor.nws_precip_probability
+          - sensor.precip_probability
           - sun.sun
           - sensor.moon
           - sensor.rain_total

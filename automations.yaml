@@ -253,10 +253,16 @@
       - binary_sensor.mailbox
     to: "on"
   action:
+    # Force capture of clip
+    - service: switch.turn_on
+      entity_id: switch.garage_stream
     - service: notify.pushover
       data:
         message: >
           Mailbox Opened!
+    - delay: 10
+    - service: switch.turn_off
+      entity_id: switch.garage_stream
 
 # - alias: "Mailbox Reset"
 #   id: "mailbox_reset"

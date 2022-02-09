@@ -193,6 +193,9 @@ cards:
           - sensor.ha_github_version
           - sensor.ha_docker_version_stable
           - sensor.ha_docker_version_beta
+          - input_text.hass_target_branch
+          - name: "Switch Branch"
+            entity: script.hass_switch_to_version
           - entity: sensor.hacs
             name: HACS Updates
 
