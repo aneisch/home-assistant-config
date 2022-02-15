@@ -1,70 +1,70 @@
-sensor:
-  # Gate
-  - platform: mqtt
-    state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
-    name: gate_battery_voltage
-    unit_of_measurement: 'V'
-  - platform: mqtt
-    state_topic: "mom_and_dad/sensor/ip_address/state"
-    name: gate_ip_address
-  - platform: mqtt
-    state_topic: "mom_and_dad/sensor/gate_movement_cause/state"
-    name: gate_movement_cause
-  - platform: mqtt
-    state_topic: "mom_and_dad/sensor/uptime/state"
-    name: gate_uptime
-    unit_of_measurement: 's'
-  - platform: mqtt
-    state_topic: "mom_and_dad/status"
-    name: gate_online_offline
+# sensor:
+#   # Gate
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/sensor/gate_battery_voltage/state"
+#     name: gate_battery_voltage
+#     unit_of_measurement: 'V'
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/sensor/ip_address/state"
+#     name: gate_ip_address
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/sensor/gate_movement_cause/state"
+#     name: gate_movement_cause
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/sensor/uptime/state"
+#     name: gate_uptime
+#     unit_of_measurement: 's'
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/status"
+#     name: gate_online_offline
 
-  # Garage
-  - platform: mqtt
-    state_topic: "mom_and_dad_garage/sensor/ip_address/state"
-    name: mom_and_dad_garage_ip_address
-  - platform: mqtt
-    state_topic: "mom_and_dad_garage/sensor/uptime/state"
-    name: mom_and_dad_garage_uptime
-    unit_of_measurement: 's'
+#   # Garage
+#   - platform: mqtt
+#     state_topic: "mom_and_dad_garage/sensor/ip_address/state"
+#     name: mom_and_dad_garage_ip_address
+#   - platform: mqtt
+#     state_topic: "mom_and_dad_garage/sensor/uptime/state"
+#     name: mom_and_dad_garage_uptime
+#     unit_of_measurement: 's'
 
-cover:
-  - platform: mqtt
-    name: "Mom and Dad Garage"
-    availability:
-      - topic: "mom_and_dad_garage/status"
-    command_topic: "cmd/mom_and_dad_garage"
-    state_topic: "mom_and_dad_garage/cover/garage_door/state"
-    qos: 0
-    retain: false
-    optimistic: false
+# cover:
+#   - platform: mqtt
+#     name: "Mom and Dad Garage"
+#     availability:
+#       - topic: "mom_and_dad_garage/status"
+#     command_topic: "cmd/mom_and_dad_garage"
+#     state_topic: "mom_and_dad_garage/cover/garage_door/state"
+#     qos: 0
+#     retain: false
+#     optimistic: false
 
-binary_sensor:
-  - platform: mqtt
-    state_topic: "mom_and_dad/binary_sensor/gate_status/state"
-    name: gate_status
-    device_class: door
+# binary_sensor:
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/binary_sensor/gate_status/state"
+#     name: gate_status
+#     device_class: door
 
-  - platform: mqtt
-    state_topic: "mom_and_dad/binary_sensor/heading_comparison_trigger/state"
-    name: gate_heading_comparison
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/binary_sensor/heading_comparison_trigger/state"
+#     name: gate_heading_comparison
 
-  - platform: mqtt
-    state_topic: "mom_and_dad/binary_sensor/automation_safety/state"
-    name: gate_automation_safety
+#   - platform: mqtt
+#     state_topic: "mom_and_dad/binary_sensor/automation_safety/state"
+#     name: gate_automation_safety
 
 
 automation:
-  - alias: "Gate Heading Comparison Action Notify"
-    id: "gate_heading_notify"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.gate_automation_safety
-        to: 'on'
-    action:
-      - service: notify.pushover
-        data:
-          message: >
-            Vehicle Sensor Automation Fired!
+  # - alias: "Gate Heading Comparison Action Notify"
+  #   id: "gate_heading_notify"
+  #   trigger:
+  #     - platform: state
+  #       entity_id: binary_sensor.gate_automation_safety
+  #       to: 'on'
+  #   action:
+  #     - service: notify.pushover
+  #       data:
+  #         message: >
+  #           Vehicle Sensor Automation Fired!
 
   - alias: "Webhook Trigger Gate"
     id: "webhook_trigger_gate"
@@ -73,8 +73,8 @@ automation:
       platform: webhook
       webhook_id: !secret gate_webhook_id
     action:
-      service: script.turn_on
-      entity_id: script.mom_and_dad_gate_toggle
+      service: cover.toggle
+      entity_id: cover.mom_and_dad_gate
 
   - alias: "Webhook Trigger Garage"
     id: "webhook_trigger_garage"
@@ -84,19 +84,4 @@ automation:
       webhook_id: !secret mom_and_dad_garage_webhook_id
     action:
       service: cover.toggle
-      entity_id: cover.mom_and_dad_garage
-
-
-script:
-  mom_and_dad_gate_toggle:
-    sequence:
-      - service: mqtt.publish
-        data:
-          topic: "cmd/mom_and_dad_gate"
-          payload: 'toggle'
-  mom_and_dad_garage_toggle:
-    sequence:
-      - service: mqtt.publish
-        data:
-          topic: "cmd/mom_and_dad_garage"
-          payload: 'toggle'
+      entity_id: cover.mom_and_dad_garage_door

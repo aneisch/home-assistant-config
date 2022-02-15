@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 3.4');
+console.info('NUMBERBOX_CARD 3.6');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -11,6 +11,7 @@ constructor() {
 	this.pending = false;
 	this.rolling = false;
 	this.state = 0;
+	this.laststate = undefined;
 }
 
 render() {
@@ -27,8 +28,6 @@ render() {
 	if(!this.config.icon_plus){this.config.icon_plus='mdi:plus';}
 	if(!this.config.icon_minus){this.config.icon_minus='mdi:minus';}
 	if( this.config.delay === undefined ){ this.config.delay=1000;}
-	this.state=this.stateObj.state;
-	if(this.config.state){this.state=this.stateObj.attributes[this.config.state];}
 	if(this.config.min === undefined){ this.config.min=this.stateObj.attributes.min;}
 	if(this.config.max === undefined){ this.config.max=this.stateObj.attributes.max;}
 	if(this.config.step === undefined){ this.config.step=this.stateObj.attributes.step;}
@@ -127,6 +126,7 @@ publishNum(dhis){
 	const s=dhis.config.service.split('.');
 	const v={entity_id: dhis.config.entity, [dhis.config.param]: dhis.pending};
 	dhis.pending=false;
+	dhis.laststate=dhis.state;
 	dhis._hass.callService(s[0], s[1], v);
 }
 
@@ -140,8 +140,10 @@ niceNum(){
 			v=Number(this.config.initial);
 		}
 	}	
-	const stp=Number(this.config.step) || 1;
-	if( Math.round(stp) != stp ){ fix=stp.toString().split(".")[1].length || 1;}
+	let stp=Number(this.config.step) || 1;
+	if( Math.round(stp) != stp ){
+		fix=stp.toString().split(".")[1].length || 1; stp=fix;
+	}else{ stp=fix; }
 	fix = v.toFixed(fix);
 	const u=this.config.unit;
 	if( u=="time" ){
@@ -153,6 +155,10 @@ niceNum(){
 			(fix%60).toString().padStart(2,'0')
 			}`
 	}
+	fix = new Intl.NumberFormat(
+			this._hass.language,
+			{maximumFractionDigits: stp, minimumFractionDigits: stp}
+		).format(Number(fix));
 	return u===false ? fix: html`${fix}<span class="cur-unit" >${u}</span>`;
 }
 
@@ -178,6 +184,7 @@ static get properties() {
 		rolling: {},
 		pending: {},
 		state: {},
+		laststate: {},
 	}
 }
 
@@ -279,7 +286,11 @@ set hass(hass) {
 }
 
 shouldUpdate(changedProps) {
-	if( changedProps.has('config') || changedProps.has('stateObj') || changedProps.has('pending') ){return true;}
+	if( changedProps.has('config') || changedProps.has('stateObj') || changedProps.has('pending') ){
+		this.state=this.stateObj.state;
+		if(this.config.state){this.state=this.stateObj.attributes[this.config.state];}
+		if(this.laststate != this.state){ return true; }
+	}
 }
 
 static getConfigElement() {

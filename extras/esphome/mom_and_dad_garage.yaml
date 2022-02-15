@@ -35,7 +35,7 @@ binary_sensor:
 
 cover:
   - platform: template
-    name: "Garage Door"
+    name: "Mom and Dad Garage Door"
     device_class: garage
     lambda: |-
       if (id(garage_status).state) {
@@ -58,11 +58,10 @@ switch:
       number: D1
       inverted: False
   - platform: restart
-    name: "Reboot"
+    name: "Mom and Dad Garage Reboot"
 
   - platform: template
     id: garage
-    #name: "Garage Remote"
     icon: "mdi:garage"
     turn_on_action:
     - switch.turn_on: relay
@@ -82,9 +81,9 @@ mqtt:
 text_sensor:
   - platform: wifi_info
     ip_address:
-      name: "IP Address"
+      name: "Mom and Dad Garage IP Address"
 
 sensor:
   - platform: uptime
-    name: "Uptime"
+    name: "Mom and Dad Garage Uptime"
     update_interval: 600s

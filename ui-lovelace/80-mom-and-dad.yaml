@@ -7,38 +7,29 @@ cards:
     show_header_toggle: false
     title: Gate
     entities:
-      - binary_sensor.gate_status
-      - sensor.gate_movement_cause
-      - binary_sensor.gate_automation_safety
-      - binary_sensor.gate_heading_comparison
-      - sensor.gate_battery_voltage
-      - entity: sensor.gate_ip_address
+      #- binary_sensor.mom_and_dad_gate_status
+      # - sensor.gate_movement_cause
+      # - binary_sensor.gate_automation_safety
+      # - binary_sensor.gate_heading_comparison
+      # - sensor.gate_battery_voltage
+      - cover.mom_and_dad_gate
+      - entity: sensor.mom_and_dad_gate_ip_address
         name: Microcontroller IP Address
-      - entity: sensor.gate_uptime
+      - entity: sensor.mom_and_dad_gate_uptime
         name: Microcontroller Uptime
-      - entity: sensor.gate_online_offline
-        style: |
-          :host {
-              {% if states(config.entity) == "offline" %}
-                color: red
-              {% endif %}
-              ;
-          }
-      - automation.gate_heading_comparison_action_notify
-      - input_boolean.gate_alert
-      - entity: script.mom_and_dad_gate_toggle
-        name: Gate Toggle
+      # - automation.gate_heading_comparison_action_notify
+      # - input_boolean.gate_alert
+      # - entity: script.mom_and_dad_gate_toggle
+      #   name: Gate Toggle
 
 
   - type: entities
     show_header_toggle: false
     title: Garage
     entities:
-      - cover.mom_and_dad_garage
+      - cover.mom_and_dad_garage_door
       - entity: sensor.mom_and_dad_garage_ip_address
         name: Microcontroller IP Address
       - entity: sensor.mom_and_dad_garage_uptime
         name: Microcontroller Uptime
-      - entity: script.mom_and_dad_garage_toggle
-        name: Garage Toggle
 
