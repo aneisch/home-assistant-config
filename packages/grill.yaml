@@ -58,7 +58,7 @@ template:
     sensor:
       - name: "Thermopro Probe 1"
         state: >
-          {% if trigger.payload_json.temperature_1_F != 608.0 %}
+          {% if trigger.payload_json.temperature_1_F != 608.0 and trigger.payload_json.temperature_1_F != "unknown" %}
             {{ trigger.payload_json.temperature_1_F | float | round(2) }}
           {% else %}
             unknown
@@ -67,7 +67,7 @@ template:
         device_class: temperature
       - name: "Thermopro Probe 2"
         state: >
-          {% if trigger.payload_json.temperature_2_F != 608.0 %}
+          {% if trigger.payload_json.temperature_2_F != 608.0 and trigger.payload_json.temperature_2_F != "unknown" %}
             {{ trigger.payload_json.temperature_2_F | float | round(2) }}
           {% else %}
             unknown
@@ -166,23 +166,13 @@ automation:
     trigger:
       - platform: mqtt
         topic: sensor/rtl_433
-        value_template: "{{ value_json.model == 'Thermopro-TP12' }}"
+        value_template: "{{ value_json.model == 'Thermopro-TP12' and value_json.temperature_1_F != 'unknown' and value_json.temperature_2_F != 'unknown' }}"
         payload: True
     action:
-      - delay: 30
-      - service: setter.set
+      - delay: 20
+      - service: mqtt.publish
         data:
-          entity_id: sensor.thermopro_probe_1
-          state: 'unknown'
-          attributes: 
-            device_class: temperature
-            friendly_name: Thermopro Probe 1
-            unit_of_measurement: °F
-      - service: setter.set
-        data:
-          entity_id: sensor.thermopro_probe_2
-          state: 'unknown'
-          attributes: 
-            device_class: temperature
-            friendly_name: Thermopro Probe 2
-            unit_of_measurement: °F
+          topic: sensor/rtl_433
+          payload: >-
+            {"time":"2022-02-17
+            02:26:13","model":"Thermopro-TP12","id":77,"temperature_1_F":"unknown","temperature_2_F":"unknown","mic":"CRC"}
