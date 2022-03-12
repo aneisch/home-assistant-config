@@ -48,7 +48,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_beta
-    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state != "unknown") and "b" in trigger.to_state.state }}'
+    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state not in ["unknown", "unavailable"]) and "b" in trigger.to_state.state }}'
     action:
       - service: shell_command.github_action_trigger
         data:
@@ -68,7 +68,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_stable
-    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state != "unknown") }}'
+    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state not in ["unknown", "unavailable"]) }}'
     action:
       - service: shell_command.github_action_trigger
         data:

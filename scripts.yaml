@@ -46,8 +46,8 @@ home_occupied:
 
 security_disarm:
   sequence:
-    - service: alarm_control_panel.alarm_disarm
-      entity_id: alarm_control_panel.alexa_guard_7f9e9
+    # - service: alarm_control_panel.alarm_disarm
+    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_disarm
@@ -60,8 +60,8 @@ security_disarm:
 
 security_arm:
   sequence:
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: alarm_control_panel.alexa_guard_7f9e9
+    # - service: alarm_control_panel.alarm_arm_away
+    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: alarm_control_panel.alarm_arm_away
       entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_arm_away
@@ -129,6 +129,12 @@ master_bedroom_bedtime:
         entity_id: 
           - lock.front_door
           - lock.garage_exterior_door
+    - condition: "{{ states('input_boolean.guest_mode') == 'off' }}"
+    - service: light.turn_off
+      entity_id:
+        - light.guest_bedroom_nightstand_lamp
+        - light.back_bedroom_nightstand_lamp
+
 
 #########
 # OTHER #

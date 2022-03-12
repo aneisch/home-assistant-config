@@ -33,6 +33,7 @@ smart_home:
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.dining_room_light
+      - light.entryway_light
       - light.guest_bedroom_nightstand_lamp
       - light.kitchen_lights
       - light.kitchen_sink_light

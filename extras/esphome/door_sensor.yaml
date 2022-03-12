@@ -12,32 +12,6 @@ esphome:
 # See https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/ for
 # allowable pins
 
-# text_sensor:
-#   - platform: template
-#     name: Front Door Last Opened
-#     id: front_door_last
-    
-#   - platform: template
-#     name: Back Door Last Opened
-#     id: back_door_last
-
-#   - platform: template
-#     name: Garage Exterior Door Last Opened
-#     id: garage_exterior_door_last
-
-#   - platform: template
-#     name: Garage Interior Door Last Opened
-#     id: garage_interior_door_last
-
-#   - platform: template
-#     name: Master Bedroomn Exterior Door Last Opened
-#     id: master_bedroom_exterior_door_last
-
-time:
-  - platform: homeassistant
-    timezone: America/Chicago
-    id: homeassistant_time
-
 binary_sensor:
   - platform: gpio
     pin:
@@ -47,15 +21,6 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
-    # on_press:
-    #   then:
-    #     - text_sensor.template.publish:
-    #         id: front_door_last
-    #         state: !lambda |-
-    #             char str[20];
-    #             time_t currTime = id(homeassistant_time).now().timestamp;
-    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-    #             return  { str };
 
   - platform: gpio
     pin:
@@ -65,15 +30,6 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
-    # on_press:
-    #   then:
-    #     - text_sensor.template.publish:
-    #         id: master_bedroom_exterior_door_last
-    #         state: !lambda |-
-    #             char str[20];
-    #             time_t currTime = id(homeassistant_time).now().timestamp;
-    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-    #             return  { str };
 
   - platform: gpio
     pin:
@@ -83,16 +39,7 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
-    # on_press:
-    #   then:
-    #     - text_sensor.template.publish:
-    #         id: back_door_last
-    #         state: !lambda |-
-    #             char str[20];
-    #             time_t currTime = id(homeassistant_time).now().timestamp;
-    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-    #             return  { str };
-      
+
   - platform: gpio
     pin:
       mode: INPUT_PULLUP
@@ -101,15 +48,6 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
-    # on_press:
-    #   then:
-    #     - text_sensor.template.publish:
-    #         id: garage_interior_door_last
-    #         state: !lambda |-
-    #             char str[20];
-    #             time_t currTime = id(homeassistant_time).now().timestamp;
-    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-    #             return  { str };
 
   - platform: gpio
     pin:
@@ -119,17 +57,21 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
-    # on_press:
-    #   then:
-    #     - text_sensor.template.publish:
-    #         id: garage_exterior_door_last
-    #         state: !lambda |-
-    #             char str[20];
-    #             time_t currTime = id(homeassistant_time).now().timestamp;
-    #             strftime(str, sizeof(str), "%Y-%m-%d %H:%M:%S", localtime(&currTime));
-    #             return  { str };
 
 switch:
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"
+
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    icon: "mdi:alarm-bell"
+    name: "Attic Siren"
+    pin:
+      number: D8
+      inverted: False
+    on_turn_on:
+      # Sound siren for max 5 minutes
+      - delay: 300s
+      - switch.turn_off: relay

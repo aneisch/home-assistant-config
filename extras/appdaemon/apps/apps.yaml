@@ -13,8 +13,8 @@ AC Automation:
   cool_day: '77'
   cool_night: '72'
   cool_unoccupied: '82'
-  heat_day: '65'
-  heat_night: '60'
+  heat_day: '63'
+  heat_night: '62'
   heat_unoccupied: '55'
 
 Back Bedroom Zigbee Remote:
@@ -25,7 +25,7 @@ Back Bedroom Zigbee Remote:
   button_2_toggle: switch.back_bedroom_ceiling_fan
   button_3_toggle: light.back_bedroom_nightstand_lamp
 
-Guest Bedroom Zigbee Remote:
+Guest Bedroom EcoSmart Zigbee Remote:
   module: zigbee_remote
   class: EcoSmartZigbeeRemote
   device_ieee: cc:cc:cc:ff:fe:a9:e6:43
@@ -33,7 +33,7 @@ Guest Bedroom Zigbee Remote:
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
 
-Guest Bedroom Zigbee Remote:
+Guest Bedroom Sengled Zigbee Remote:
   module: zigbee_remote
   class: SengledZigbeeRemote
   device_ieee: b0:ce:18:14:03:5e:06:9d
@@ -388,6 +388,12 @@ Door Notification and Occusim Security Follow:
   class: Follow
   leader: input_boolean.security_status
   follower: input_boolean.door_notify,input_boolean.occusim
+
+Andrew Desk Lamp Monitor Follow:
+  module: follow_me
+  class: Follow
+  leader: light.andrew_desk_lamp
+  follower: switch.andrew_monitor
 
 Timer:
   module: timer

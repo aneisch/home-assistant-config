@@ -401,6 +401,7 @@
       - switch.living_room_speakers
       - switch.tv
 
+# Monitor follows via appdaemon
 - alias: "Desk Lamp on when MacBook Active"
   id: "desk_lamp_macbook_active"
   initial_state: on
@@ -413,7 +414,8 @@
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
 
-- alias: "Desk Lamp on when MacBook Inactive"
+# Monitor follows via appdaemon
+- alias: "Desk Lamp off when MacBook Inactive"
   id: "desk_lamp_macbook_inactive"
   initial_state: on
   trigger:
@@ -421,35 +423,9 @@
     entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
-  condition: "{{ states('light.andrew_desk_lamp') == 'on' and states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp
-
-- alias: "Monitor on when MacBook active"
-  id: "monitor_macbook_active"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: binary_sensor.weasel_active
-    to: 'on'
-  condition: "{{ states('person.andrew') == 'home' }}"
-  action:
-    - service: homeassistant.turn_on
-      entity_id: switch.andrew_monitor
-
-- alias: "Monitor off when MacBook inactive"
-  id: "monitor_macbook_inactive"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: binary_sensor.weasel_active
-    to: 'off'
-    for: '00:30:00'
-  condition: "{{ states('person.andrew') == 'home' }}"
-  action:
-    - service: homeassistant.turn_off
-      entity_id: switch.andrew_monitor
 
 - alias: "Water Sensor Alerts"
   id: "water_sensor_alert"
@@ -696,3 +672,15 @@
         homeassistant.turn_off
       {% endif %}
     entity_id: group.christmas_trees
+
+- alias: "Covid Booking"
+  id: "covid_booking"
+  trigger:
+    - platform: time
+      at: "12:00:00"
+  condition:
+    condition: time
+    weekday:
+      - mon
+  action:
+    - service: shell_command.covid_booking

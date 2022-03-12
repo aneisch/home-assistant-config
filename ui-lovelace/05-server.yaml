@@ -111,23 +111,24 @@ cards:
         show_header_toggle: false
         entities:
           - sensor.electricity_cost_monthly
-  - type: entities
-    show_header_toggle: false
-    title: 950 UPS
-    entities:
-      - sensor.ups_status
-      - sensor.ups_battery
-      - sensor.ups_time_left
-      - sensor.ups_load
 
-  - type: entities
-    show_header_toggle: false
-    title: 650 UPS
-    entities:
-      - sensor.650_ups_status
-      - sensor.650_ups_battery
-      - sensor.650_ups_time_left
-      - sensor.650_ups_load
+  # - type: entities
+  #   show_header_toggle: false
+  #   title: 950 UPS
+  #   entities:
+  #     - sensor.ups_status
+  #     - sensor.ups_battery
+  #     - sensor.ups_time_left
+  #     - sensor.ups_load
+
+  # - type: entities
+  #   show_header_toggle: false
+  #   title: 650 UPS
+  #   entities:
+  #     - sensor.650_ups_status
+  #     - sensor.650_ups_battery
+  #     - sensor.650_ups_time_left
+  #     - sensor.650_ups_load
 
   - type: vertical-stack
     cards:
@@ -169,8 +170,8 @@ cards:
       - switch.docker_portainer
       - switch.docker_watchtower
       - switch.docker_adguard
-      - switch.docker_apcupsd_950
-      - switch.docker_apcupsd_650
+      #- switch.docker_apcupsd_950
+      #- switch.docker_apcupsd_650
       - switch.docker_appdaemon
       - switch.docker_influxdb
       - switch.docker_mariadb

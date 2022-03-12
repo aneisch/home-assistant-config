@@ -107,26 +107,26 @@ services:
         ports:
             - '8888:8888'
         restart: always
-    apcupsd_950:
-        container_name: apcupsd_950
-        image: gersilex/apcupsd
-        ports:
-            - '3551:3551'
-        volumes:
-            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-        devices:
-            - '/dev/ups_monitor_950:/dev/usb/hiddev0'
-        restart: always
-    apcupsd_650:
-        container_name: apcupsd_650
-        image: gersilex/apcupsd
-        ports:
-            - '3552:3551'
-        volumes:
-            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-        devices:
-            - '/dev/ups_monitor_650:/dev/usb/hiddev0'
-        restart: always
+    #apcupsd_950:
+    #    container_name: apcupsd_950
+    #    image: gersilex/apcupsd
+    #    ports:
+    #        - '3551:3551'
+    #    volumes:
+    #        - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+    #    devices:
+    #        - '/dev/ups_monitor_950:/dev/usb/hiddev0'
+    #    restart: always
+    #apcupsd_650:
+    #    container_name: apcupsd_650
+    #    image: gersilex/apcupsd
+    #    ports:
+    #        - '3552:3551'
+    #    volumes:
+    #        - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+    #    devices:
+    #        - '/dev/ups_monitor_650:/dev/usb/hiddev0'
+    #    restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
         image: ghcr.io/aneisch/thermostat_api_server:latest

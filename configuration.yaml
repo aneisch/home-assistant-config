@@ -22,7 +22,7 @@ homeassistant:
     magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
-    ups_monitoring: !include packages/ups_monitor.yaml
+    # ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
     zoom: !include packages/zoom.yaml
   auth_providers:

@@ -1,5 +1,6 @@
 # SSH to host to run shell commands
 # SSH key shared via Docker volume
+covid_booking: /config/scripts/covid_booking.sh
 
 nas_poweroff: ssh nuc '/usr/local/bin/nas-poweroff.sh'
 
