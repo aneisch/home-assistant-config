@@ -199,9 +199,21 @@ cards:
     camera_image: camera.weather_radar
     entities: []
 
-  - type: calendar
-    entities:
-      - calendar.garbage_collection
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: markdown
+        content: |
+          {% if states("binary_sensor.trashcan") == "off" %}
+            **Trashcan is at street**
+          {% else %}
+            **Trashcan is at house**
+          {% endif %}
+
+      - type: calendar
+        entities:
+          - calendar.garbage_collection
+
+
 
   # - type: picture-glance
   #   camera_image: camera.outdoor
