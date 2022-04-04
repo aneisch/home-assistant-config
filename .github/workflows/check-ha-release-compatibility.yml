@@ -65,8 +65,8 @@ jobs:
   hass-update-notify:
     name: Notify Home Assistant Major Release
     runs-on: ubuntu-latest
-    # If major release, only send notification
-    if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
+    # If major release or beta release, only send notification request
+    if: (github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major') || github.event.client_payload.branch == 'beta'
     # Ensure config test was successful
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
