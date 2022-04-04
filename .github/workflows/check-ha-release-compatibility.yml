@@ -58,4 +58,4 @@ jobs:
     env:
       HEADER: "Content-Type: application/json"
     steps:
-        - run: curl -sX POST -H "$HEADER" ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
+        - run: curl -sX POST -H "$HEADER" -d '{ "action_complete":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
