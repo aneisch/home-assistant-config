@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - '**/README.md'
       - 'extras/**'
+      - '**/check-ha-release-compatibility.yml'
 
 jobs:
   check-ha-config:
@@ -57,4 +58,4 @@ jobs:
     env:
       HEADER: "Content-Type: application/json"
     steps:
-        - run: curl -sX POST -H "$HEADER" -d '${{ github.event.client_payload }}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
+        - run: curl -sX POST -H "$HEADER" ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
