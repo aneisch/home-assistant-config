@@ -51,6 +51,7 @@ jobs:
   hass-callback:
     name: Home Assistant Callback
     runs-on: ubuntu-latest
+    if: github.event_name == 'repository_dispatch'
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
     env:
