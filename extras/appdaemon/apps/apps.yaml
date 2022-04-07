@@ -310,7 +310,7 @@ Living Room Sconces at Night With Motion:
   module: door_open
   class: DoorLight
   constrain_end_time: sunrise
-  constrain_input_boolean: input_boolean.goodnight
+  constrain_input_boolean: input_boolean.guest_mode
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
   brightness: 70
@@ -393,6 +393,7 @@ Andrew Desk Lamp Monitor Follow:
   module: follow_me
   class: Follow
   leader: light.andrew_desk_lamp
+  constrain_presence: anyone
   follower: switch.andrew_monitor
 
 Timer:

@@ -377,8 +377,7 @@
     platform: state
     entity_id: binary_sensor.xbox_power
     to: "on"
-  # Hacky workaround to disable trigger at night
-  condition: "{{ states('switch.master_bedroom_ceiling_fan') == 'off' }}"
+  condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
   action:
     service: homeassistant.turn_on
     entity_id: 
@@ -394,8 +393,7 @@
     - platform: state
       entity_id: binary_sensor.xbox_power
       to: "off"
-  # Hacky workaround to disable trigger at night
-  condition: "{{ states('switch.master_bedroom_ceiling_fan') == 'off' }}"
+  condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
   action:
     service: homeassistant.turn_off
     entity_id: 
@@ -410,7 +408,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "on"
-  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('person.andrew') == 'home' }}"
+  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('sensor.weasel_ssid') == 'Penny' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
@@ -424,6 +422,7 @@
     entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
+  condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp

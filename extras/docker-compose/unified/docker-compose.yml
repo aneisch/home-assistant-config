@@ -150,7 +150,7 @@ services:
         image: zwavejs/zwavejs2mqtt:latest
         #image: zwavejs/zwavejs2mqtt:sha-0a723f9 # 2.4.1
         healthcheck:
-          test: 'curl localhost:8091/health/zwave -H "Accept: text/plain"'
+          test: 'curl 10.0.1.22:8091/health/zwave -H "Accept: text/plain"'
           interval: 60s
           timeout: 5s
           retries: 3

@@ -357,6 +357,7 @@ readme:
 recorder:
   db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
   purge_keep_days: 365
+  commit_interval: 30
   exclude:
     entities:
       - automation.update_readme
