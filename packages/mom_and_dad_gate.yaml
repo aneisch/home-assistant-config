@@ -66,22 +66,48 @@ automation:
   #         message: >
   #           Vehicle Sensor Automation Fired!
 
-  - alias: "Webhook Trigger Gate"
-    id: "webhook_trigger_gate"
+  - alias: "IFTTT Webhook Trigger Magnolia"
+    id: "ifttt_webhook_trigger_magnolia"
+    mode: 'single'
     initial_state: 'on'
     trigger:
-      platform: webhook
-      webhook_id: !secret gate_webhook_id
+      - platform: webhook
+        webhook_id: !secret gate_webhook_id
+        id: gate
+      - platform: webhook
+        webhook_id: !secret mom_and_dad_garage_webhook_id
+        id: garage
     action:
-      service: cover.toggle
-      entity_id: cover.mom_and_dad_gate
+      - service: cover.toggle
+        data:
+          entity_id: >
+            {% if trigger.id == 'gate' %}
+              cover.mom_and_dad_gate
+            {% elif trigger.id == 'garage' %}
+              cover.mom_and_dad_garage_door
+            {% endif %}
+      - delay: '00:00:10'
 
-  - alias: "Webhook Trigger Garage"
-    id: "webhook_trigger_garage"
+  - alias: "Worker Trigger Magnolia"
+    id: "webhook_trigger_magnolia"
+    mode: 'single'
     initial_state: 'on'
     trigger:
-      platform: webhook
-      webhook_id: !secret mom_and_dad_garage_webhook_id
+      - platform: webhook
+        webhook_id: !secret cf_otp_webhook_gate
+        id: gate
+      - platform: webhook
+        webhook_id: !secret cf_otp_webhook_garage
+        id: garage
     action:
-      service: cover.toggle
-      entity_id: cover.mom_and_dad_garage_door
+      - service: cover.toggle
+        data:
+          entity_id: >
+            {% if trigger.id == 'gate' %}
+              cover.mom_and_dad_gate
+            {% elif trigger.id == 'garage' %}
+              cover.mom_and_dad_garage_door
+            {% endif %}
+      - service: notify.pushover
+        data:
+          message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"

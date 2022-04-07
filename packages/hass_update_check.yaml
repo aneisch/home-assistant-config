@@ -38,6 +38,14 @@ template:
     binary_sensor:
       - name: HASS on Beta
         state: '{{ "b" in states("sensor.ha_version") }}'
+  - trigger:
+      - platform: state
+        entity_id: sensor.ha_docker_version_beta
+      - platform: homeassistant
+        event: start
+    binary_sensor:
+      - name: HA Beta Available
+        state: '{{ "b" in states("sensor.ha_docker_version_beta") }}'
 
 automation:
   # Trigger GitHub action(s) when new beta version is available
@@ -48,7 +56,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_beta
-    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state not in ["unknown", "unavailable"]) and "b" in trigger.to_state.state }}'
+    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.from_state.state not in ["unknown", "unavailable"]) and (trigger.to_state.state not in ["unknown", "unavailable"]) and "b" in trigger.to_state.state }}'
     action:
       - service: shell_command.github_action_trigger
         data:
@@ -68,7 +76,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_stable
-    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.to_state.state not in ["unknown", "unavailable"]) }}'
+    condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.from_state.state not in ["unknown", "unavailable"]) and (trigger.to_state.state not in ["unknown", "unavailable"]) }}'
     action:
       - service: shell_command.github_action_trigger
         data:
@@ -80,7 +88,7 @@ automation:
             '{% if states('sensor.ha_docker_version_stable').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
           version: '{{ trigger.to_state.state }}'
 
-  # Respond to GitHub action to begin auto-upgrade flow
+  # Respond to GitHub action to begin auto-upgrade decision flow
   - alias: "Auto Update: Github Action Callback"
     id: "auto_upgrade_boolean"
     initial_state: 'on'
@@ -89,12 +97,18 @@ automation:
       webhook_id: !secret hass_github_action_webhook
     action:
       service: >
-        {% if states("input_text.hass_target_branch") != "stable" %}
+        {% if states("input_text.hass_target_branch") not in ["stable","beta"] %}
           script.hass_update_notify
-        {% elif trigger.json.upgrade == True and states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2] %}
+
+        {% elif states("input_text.hass_target_branch") == "stable" and (states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2]) %}
           script.hass_update_stage
-        {% elif trigger.json.upgrade == False %}
+
+        {% elif states("input_text.hass_target_branch") == "beta" %}
+          script.hass_update_stage
+
+        {% else %}
           script.hass_update_notify
+
         {% endif %}
 
   # Actually try to upgrade if conditions are met (home and boolean on)
@@ -111,7 +125,7 @@ automation:
         entity_id: person.andrew
         to: "home"
     # Only run if we're on mainline/stable branch
-    condition: '{{ states("input_boolean.hass_update_trigger") == "on" and states("binary_sensor.hass_on_beta") == "off" }}'
+    condition: '{{ states("input_boolean.hass_update_trigger") == "on"}}'
     action:
       - delay: '00:05:00'
       - service: > 
@@ -130,7 +144,7 @@ automation:
     condition: '{{ states("input_boolean.hass_update_available") == "on" }}'
     action:
       - service: >
-          {% if states("sensor.ha_version") == states("sensor.ha_docker_version_stable") %}
+          {% if (states("sensor.ha_version") == states("sensor.ha_docker_version_stable")) or (states("sensor.ha_version") == states("sensor.ha_docker_version_beta")) %}
             homeassistant.turn_off
           {% endif %}
         entity_id:
@@ -145,25 +159,11 @@ shell_command:
 
 script:
   hass_switch_to_version:
-    alias: Switch to Stable
+    alias: Switch to Version
     sequence:
       - service: shell_command.switch_hass_running_branch
         data:
           version: "{{ states('input_text.hass_target_branch') }}"
-
-  hass_switch_to_stable:
-    alias: Switch to Stable
-    sequence:
-      - service: shell_command.switch_hass_running_branch
-        data:
-          version: "stable"
-
-  hass_switch_to_beta:
-    alias: Switch to or Update Beta
-    sequence:
-      - service: shell_command.switch_hass_running_branch
-        data:
-          version: "beta"
 
   hass_update_stage:
     # Turn on boolean to trigger upgrade automation
@@ -179,7 +179,7 @@ script:
       - service: notify.pushover
         data:
           message: >
-            Installing: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }} 
+            Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
       - service: homeassistant.turn_off

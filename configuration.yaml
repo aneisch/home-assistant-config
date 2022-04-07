@@ -37,6 +37,8 @@ alexa: !include alexa.yaml
 
 automation: !include automations.yaml
 
+backup:
+
 binary_sensor: !include binary_sensor.yaml
 
 camera: !include camera.yaml

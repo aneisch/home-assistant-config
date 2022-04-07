@@ -27,6 +27,7 @@ smart_home:
       - group.common_areas
       - group.under_cabinet_lights
       - fan.living_room_ceiling_fan
+      - fan.office_ceiling_fan
       - light.andrew_nightstand_lamp
       - light.andrew_desk_lamp
       - light.bethany_office_ceiling_fan
@@ -68,7 +69,6 @@ smart_home:
       - switch.globe_lights
       - switch.living_room_speakers
       - switch.nas
-      - switch.office_ceiling_fan
       - switch.outdoor_zwave_switch
       - switch.tv
       - switch.vacuum
@@ -206,10 +206,6 @@ smart_home:
     switch.vacuum:
       name: Roxie
       display_categories: SWITCH
-
-    switch.office_ceiling_fan:
-      name: "Office Ceiling Fan"
-      display_categories: FAN
 
     #############
     # Christmas #

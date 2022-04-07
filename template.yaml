@@ -38,6 +38,17 @@
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
 
+# Neighbor Rain
+- trigger:
+    - platform: mqtt
+      topic: "sensor/rtl_433"
+      payload: True
+      value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 3324 }}"
+  sensor:
+    - name: "Neighbor Rain Total"
+      state: "{{ trigger.payload_json.rain_in | float | round(5) }}"
+      unit_of_measurement: 'in'
+
 # Outdoor Weather Wittime (back porch on top of column)
 - trigger:
   - platform: mqtt
@@ -56,12 +67,3 @@
     - name: "433 Weather Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
-
-- trigger:
-    - platform: state
-      entity_id: sensor.ha_docker_version_beta
-    - platform: homeassistant
-      event: start
-  binary_sensor:
-    - name: HA Beta Available
-      state: '{{ "b" in states("sensor.ha_docker_version_beta") }}'

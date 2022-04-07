@@ -195,22 +195,10 @@ cards:
           - sensor.ha_docker_version_stable
           - sensor.ha_docker_version_beta
           - input_text.hass_target_branch
-          - name: "Switch Branch"
+          - name: "Switch to Above Branch"
             entity: script.hass_switch_to_version
           - entity: sensor.hacs
             name: HACS Updates
-
-      - type: conditional
-        conditions:
-          - entity: binary_sensor.hass_on_beta
-            state: "on"
-        card:
-          type: entities
-          entities:
-            - entity: script.hass_switch_to_beta
-              icon: mdi:beta
-            - entity: script.hass_switch_to_stable
-              icon: mdi:check
 
       - type: conditional
         conditions:

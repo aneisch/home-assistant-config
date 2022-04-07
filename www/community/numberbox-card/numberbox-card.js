@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 3.9');
+console.info('NUMBERBOX_CARD 3.10');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -25,24 +25,15 @@ render() {
 	if( this.config.unit === undefined && this.stateObj.attributes.unit_of_measurement ){
 		this.config.unit=this.stateObj.attributes.unit_of_measurement;
 	}
-	if(!this.config.icon_plus){this.config.icon_plus='mdi:plus';}
-	if(!this.config.icon_minus){this.config.icon_minus='mdi:minus';}
-	if( this.config.delay === undefined ){ this.config.delay=1000;}
 	if(this.config.min === undefined){ this.config.min=this.stateObj.attributes.min;}
 	if(this.config.max === undefined){ this.config.max=this.stateObj.attributes.max;}
 	if(this.config.step === undefined){ this.config.step=this.stateObj.attributes.step;}
-	if(!this.config.service){this.config.service="set_value";}
-	if(this.config.service.split('.').length < 2){
-		this.config.service=this.config.entity.split('.')[0]+'.'+this.config.service;
-	}
-	if(!this.config.param){this.config.param="value";}
-	if(!this.config.speed){ this.config.speed=0;}
 
 
 	return html`
 	<ha-card class="${(!this.config.border)?'noborder':''}">
 		${(this.config.icon || this.config.name) ? html`<div class="grid">
-		<div class="grid-content grid-left" @click="${() => this.moreInfo('hass-more-info')}">
+		<div class="grid-content grid-left" @click="${() => this.moreInfo()}">
 			${this.config.icon ? html`
 				<state-badge
 				.overrideIcon="${this.config.icon}"
@@ -116,8 +107,8 @@ renderNum(){
 			@touchend="${() => this.Press(2)}"
 		>
 		</ha-icon>
-		<div class="cur-num-box" @click="${() => this.moreInfo('hass-more-info')}" >
-			<h3 class="cur-num ${(this.pending===false)? '':'upd'}" > ${this.niceNum()} </h3>
+		<div class="cur-num-box" @click="${() => this.moreInfo()}" >
+			<h3 class="cur-num ${(this.pending===false)? '':'upd'}"> ${this.niceNum()} </h3>
 		</div>
 		<ha-icon class="padr"
 			icon="${this.config.icon_minus}"
@@ -141,7 +132,7 @@ Press(v) {
 }
 
 timeNum(x,s,m){
-	x=x.toString();
+	x=x+'';
 	if(x.indexOf(':')>0){
 		x = x.split(':');s = 0; m = 1;
 		while (x.length > 0) {
@@ -158,7 +149,7 @@ setNumb(c){
 	if( v===false ){ v=this.timeNum(this.state); v=isNaN(v)?this.config.min:v;}
 	let adval=c?(v + Number(this.config.step)):(v - Number(this.config.step));
 	adval=Math.round(adval*1000)/1000
-	if( adval <=  Number(this.config.max) && adval >= Number(this.config.min)){
+	if( adval <= Number(this.config.max) && adval >= Number(this.config.min)){
 		this.pending=(adval);
 		if(this.config.delay){
 			clearTimeout(this.bounce);
@@ -195,25 +186,23 @@ niceNum(){
 	const u=this.config.unit;
 	if( u=="time" ){
 		let t = fix>=3600? Math.floor(fix/3600).toString().padStart(2,'0') + ':' : '';
-		t += (Math.floor(fix/60)-Math.floor(fix/3600)*60).toString().padStart(2,'0') + ':' + (fix%60).toString().padStart(2,'0')
+		t += (Math.floor(fix/60)-Math.floor(fix/3600)*60).toString().padStart(2,'0')
+		t += ':' + (fix%60).toString().padStart(2,'0')
 		return html`${t}`;
 	}
 	fix = new Intl.NumberFormat(
 			this._hass.language,
 			{maximumFractionDigits: stp, minimumFractionDigits: stp}
 		).format(Number(fix));
-	return u===false ? fix: html`${fix}<span class="cur-unit" >${u}</span>`;
+	return u===false ? fix: html`${fix}<span class="cur-unit">${u}</span>`;
 }
 
 
 
-moreInfo(type, options = {}) {
-	const e = new Event(type, {
-		bubbles: options.bubbles || true,
-		cancelable: options.cancelable || true,
-		composed: options.composed || true,
-	});
-	e.detail = {entityId: this.stateObj.entity_id};
+moreInfo() {
+	if(!this.config.moreinfo){return;}
+	const e = new Event('hass-more-info', {bubbles: true, cancelable: true, composed: true});
+	e.detail = {entityId: this.config.moreinfo};
 	this.dispatchEvent(e);
 	return e;
 }
@@ -256,37 +245,37 @@ static get styles() {
 	.upd{color:#f00}
 	.padr,.padl{padding:8px;cursor:pointer}
 	.grid {
-	  display: grid;
-	  grid-template-columns: repeat(2, auto);
+		display: grid;
+		grid-template-columns: repeat(2, auto);
 	}
 	.grid-content {
-	  display: grid; align-items: center;
+		display: grid; align-items: center;
 	}
 	.grid-left {
-	  cursor: pointer;
-	  flex-direction: row;
-	  display: flex;
-      overflow: hidden;
+		cursor: pointer;
+		flex-direction: row;
+		display: flex;
+		overflow: hidden;
 	}
 	.info{
-	  margin-left: 16px;
-	  margin-right: 8px;
-	  text-align: left;
-	  font-size: var(--paper-font-body1_-_font-size);
-	  flex: 1 0 30%;
+		margin-left: 16px;
+		margin-right: 8px;
+		text-align: left;
+		font-size: var(--paper-font-body1_-_font-size);
+		flex: 1 0 30%;
 	}
 	.info, .info > * {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	.grid-right .body{margin-left:auto}
 	.grid-right {
-	  text-align: right
+		text-align: right
 	}
 	.secondary{
-           color:var(--secondary-text-color);
-           white-space: normal;}
+		color:var(--secondary-text-color);
+		white-space: normal;}
 	`;
 }
 
@@ -296,29 +285,24 @@ getCardSize() {
 
 setConfig(config) {
 	if (!config.entity) throw new Error('Please define an entity.');
-	let c=config.entity.split('.')[0];
+	const c=config.entity.split('.')[0];
 	if (!(config.service || c == 'input_number' || c == 'number')){
 		throw new Error('Please define a number entity.');
 	}
 	this.config = {
-		name: config.name,
-		entity: config.entity,
-		icon: config.icon,
-		border: config.border,
-		unit: config.unit,
-		icon_plus: config.icon_plus,
-		icon_minus: config.icon_minus,
-		delay: config.delay,
-		speed: config.speed,
-		initial: config.initial,
-		secondary_info: config.secondary_info,
-		state: config.state,
-		min: config.min,
-		max: config.max,
-		step: config.step,
-		service: config.service,
-		param: config.param,
+		icon_plus: "mdi:plus",
+		icon_minus: "mdi:minus",
+		service: c + ".set_value",
+		param: "value",
+		delay: 1000,
+		speed: 0,
+		initial: undefined,
+		moreinfo: config.entity,
+		...config
 	};
+	if(this.config.service.split('.').length < 2){
+		this.config.service=c +'.'+this.config.service;
+	}
 }
 
 set hass(hass) {
@@ -341,7 +325,7 @@ shouldUpdate(changedProps) {
 }
 
 static getConfigElement() {
-    return document.createElement("numberbox-card-editor");
+	return document.createElement("numberbox-card-editor");
 }
 
 static getStubConfig() {

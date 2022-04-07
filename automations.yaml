@@ -177,6 +177,7 @@
   trigger:
     - platform: state
       entity_id: sensor.thermostat_latest_equipment_event
+  condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] }}"
   action:
     - service: notify.pushover
       data:
@@ -436,6 +437,7 @@
         - binary_sensor.water_heater_water_detector  
         - binary_sensor.guest_bathroom_toilet_water_detector  
         - binary_sensor.back_bathroom_toilet_water_detector
+        - binary_sensor.kitchen_sink_water_detector
       to: "on"
   action:
     - service: notify.pushover
@@ -471,6 +473,7 @@
         - sensor.back_bathroom_toilet_water_detector_battery_level
         - sensor.guest_bathroom_toilet_water_detector_battery_level
         - sensor.washing_machine_water_detector_battery_level
+        - sensor.kitchen_sink_water_detector_battery_level
         - sensor.hallway_alarm_battery_level
         - sensor.kitchen_alarm_battery_level
         - sensor.garage_interior_motion_battery_level

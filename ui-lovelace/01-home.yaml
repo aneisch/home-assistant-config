@@ -181,8 +181,9 @@ cards:
           - sensor.precip_probability
           - sun.sun
           - sensor.moon
-          - sensor.rain_total
-          - sensor.rain_rate
+          # - sensor.rain_total
+          # - sensor.rain_rate
+          - sensor.neighbor_rain_total
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
           - sensor.compost_external_temperature
