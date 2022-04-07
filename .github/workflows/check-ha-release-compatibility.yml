@@ -8,6 +8,7 @@ on:
     paths-ignore:
       - '**/README.md'
       - 'extras/**'
+      - '**/check-ha-release-compatibility.yml'
 
 jobs:
   check-ha-config:
@@ -47,30 +48,14 @@ jobs:
           homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
           python -m homeassistant --config "/config" --script check_config
 
-  # Call Home Assistant Webook to instruct HASS to self-upgrade
-  hass-update-install:
-    name: Update Home Assistant Minor Release
+  # Call Home Assistant Webook to notify of completion and allow HASS to decide what to do
+  hass-callback:
+    name: Home Assistant Callback
     runs-on: ubuntu-latest
-    # If minor release, upgrade to latest
-    if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'minor'
-    # Ensure config test was successful
+    if: github.event_name == 'repository_dispatch'
     needs: check-ha-config
     # A stupid workaround to be able to set curl header. 
     env:
       HEADER: "Content-Type: application/json"
     steps:
-        - run: curl -sX POST -H "$HEADER" -d '{"upgrade":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant update triggered"
-
-  # Call Home Assistant Webook to instruct HASS to notify only
-  hass-update-notify:
-    name: Notify Home Assistant Major Release
-    runs-on: ubuntu-latest
-    # If major release, only send notification
-    if: github.event.client_payload.branch == 'stable' && github.event.client_payload.release_type == 'major'
-    # Ensure config test was successful
-    needs: check-ha-config
-    # A stupid workaround to be able to set curl header. 
-    env:
-      HEADER: "Content-Type: application/json"
-    steps:
-      - run: curl -sX POST -H "$HEADER" -d '{"upgrade":false}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant notify triggered"
+        - run: curl -sX POST -H "$HEADER" -d '{ "action_complete":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
