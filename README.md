@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.4.0%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.4.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -64,7 +64,7 @@ Description | value
 -- | --
 Lines of ESPHome YAML | 1840
 Lines of Home Assistant YAML | 5906
-[Integrations](https://www.home-assistant.io/integrations/) in use | 37
+[Integrations](https://www.home-assistant.io/integrations/) in use | 38
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 19
  
 Description | value
@@ -74,8 +74,8 @@ Entities in the [`automation`](https://www.home-assistant.io/components/automati
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 66
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 55
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
-Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 12
-Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
+Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 2
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 3
 Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 3
@@ -96,7 +96,7 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 36
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 7
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 218
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 232
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 106
@@ -104,7 +104,7 @@ Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **759**
+**Total state objects** | **777**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

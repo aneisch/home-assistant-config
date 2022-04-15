@@ -192,11 +192,23 @@ class EWeLinkLocal:
 
             _LOGGER.debug(f"{log} | {state} | {seq}")
 
+            # https://github.com/AlexxIT/SonoffLAN/issues/527
+            if 'currentTemperature' in state:
+                try:
+                    state['temperature'] = float(state['currentTemperature'])
+                except ValueError:
+                    pass
+            if 'currentHumidity' in state:
+                try:
+                    state['humidity'] = float(state['currentHumidity'])
+                except ValueError:
+                    pass
+
             # TH bug in local mode https://github.com/AlexxIT/SonoffLAN/issues/110
             if state.get('temperature') == 0 and state.get('humidity') == 0:
                 del state['temperature'], state['humidity']
 
-            elif 'temperature' in state and self.sync_temperature:
+            if 'temperature' in state and self.sync_temperature:
                 # cloud API send only one decimal (not round)
                 state['temperature'] = int(state['temperature'] * 10) / 10.0
 
