@@ -44,12 +44,12 @@ automation:
           # Hold Down
           value: "KeyHeldDown"
     action:
+      - service: script.vacuum_clean_kitchen
       - service: notify.alexa_media_kitchen
         data:
           data:
             type: tts
           message: "Sending Roxie to Clean Kitchen"
-      - service: script.vacuum_clean_kitchen
 
 sensor:
   - platform: template
