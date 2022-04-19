@@ -11,17 +11,17 @@
 #  mjpeg_url: http://10.0.0.26:8080/?action=stream
 #  name: Outdoor
 
-- platform: generic
-  name: Back Porch Live
-  still_image_url: http://10.0.1.22:8123{{ states.camera.back_porch_snapshot.attributes.entity_picture }}
-  stream_source: rtsp://10.0.1.22:8554/10cea9e1c2ee_live
+# - platform: generic
+#   name: Back Porch Live
+#   still_image_url: http://10.0.1.22:8123{{ states.camera.back_porch_snapshot.attributes.entity_picture }}
+#   stream_source: rtsp://10.0.1.22:8554/10cea9e1c2ee_live
 
-- platform: generic
-  name: Garage Live
-  still_image_url: http://10.0.1.22:8123{{ states.camera.garage_snapshot.attributes.entity_picture }}
-  stream_source: rtsp://10.0.1.22:8554/0cb2b774a9ab_live
+# - platform: generic
+#   name: Garage Live
+#   still_image_url: http://10.0.1.22:8123{{ states.camera.garage_snapshot.attributes.entity_picture }}
+#   stream_source: rtsp://10.0.1.22:8554/0cb2b774a9ab_live
 
-- platform: generic
-  name: Front Door Live
-  still_image_url: http://10.0.1.22:8123{{ states.camera.front_door_snapshot.attributes.entity_picture }}
-  stream_source: rtsp://10.0.1.22:8554/e04f43a51cbd_live
+# - platform: generic
+#   name: Front Door Live
+#   still_image_url: http://10.0.1.22:8123{{ states.camera.front_door_snapshot.attributes.entity_picture }}
+#   stream_source: rtsp://10.0.1.22:8554/e04f43a51cbd_live

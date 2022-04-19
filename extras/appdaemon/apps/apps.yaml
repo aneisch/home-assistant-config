@@ -320,7 +320,7 @@ Living Room Sconces at Night With Motion:
 Front House Lights at Night With Doorbell Motion:
   module: door_open
   class: DoorLight
-  constrain_end_time: sunrise
+  constrain_end_time: sunrise - 00:30:00
   constrain_start_time: '23:00:00'
   trigger_sensor: binary_sensor.front_door_motion
   toggle_entity: light.front_house_lights
