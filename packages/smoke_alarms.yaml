@@ -1,119 +1,118 @@
-automation:
-  # Triggered from Github action. Auto-update or notify, we only auto-apply minor releases.
-  - alias: "Smoke Alarm Detection"
-    initial_state: 'on'
+automation: 
+  - alias: "Smoke Alarm Secondary"
+    id: "smoke_alarm_secondary"
+    initial_state: on
     trigger:
       platform: state
       entity_id:
-        - sensor.smoke_detector_living_room_status
-        - sensor.smoke_detector_hallway_status
+        - binary_sensor.kitchen_alarm_co_alarm_alarm_silenced
+        - binary_sensor.kitchen_alarm_co_alarm_carbon_monoxide_detected
+        - binary_sensor.kitchen_alarm_co_alarm_replacement_required_end_of_life
+        - binary_sensor.kitchen_alarm_smoke_alarm_alarm_silenced
+        - binary_sensor.kitchen_alarm_system_system_hardware_failure
+        - binary_sensor.hallway_alarm_co_alarm_alarm_silenced
+        - binary_sensor.hallway_alarm_co_alarm_carbon_monoxide_detected
+        - binary_sensor.hallway_alarm_co_alarm_replacement_required_end_of_life
+        - binary_sensor.hallway_alarm_smoke_alarm_alarm_silenced
+        - binary_sensor.hallway_alarm_system_system_hardware_failure
+      from: "off"
+      to: "on"
     action:
       - service: notify.pushover
         data:
           message: >
-              {{ trigger.from_state.attributes.friendly_name }} {{ trigger.to_state.state }}
+              {{ trigger.from_state.attributes.friendly_name }}
+          data:
+            priority: -1
+            expire: 3600
+            retry: 30
+
+  - alias: "Smoke Alarm Detection"
+    id: "smoke_alarm_detection"
+    initial_state: on
+    trigger:
+      platform: state
+      entity_id:
+        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+      from: "off"
+      to: "on"
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.smoke_alarm_triggered
+      - service: notify.pushover
+        data:
+          message: >
+              {{ trigger.from_state.attributes.friendly_name }} triggered
           data:
             priority: 2
             expire: 3600
             retry: 30
 
-sensor:
-  - platform: template
-    sensors:
-      # Living Room
-      smoke_detector_living_room_status:
-        friendly_name: Smoke Detector Living Room Status
-        value_template: >-
-          {% if is_state('sensor.smoke_detector_living_room_smoke', '3') %}
-            Test
-          {% elif is_state('sensor.smoke_detector_living_room_smoke', '2') %}
-            Smoke
-          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '2') %}
-            CO
-          {% elif is_state('sensor.smoke_detector_living_room_smoke', '6') or is_state('sensor.smoke_detector_living_room_carbon_monoxide', '6') %}
-            Silenced
-          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '5') %}
-            CO_EOL
-          {% else %}
-            Idle
-          {% endif %}
-        icon_template: >-
-          {% if is_state('sensor.smoke_detector_living_room_smoke', '3') %}
-            mdi:cloud-alert
-          {% elif is_state('sensor.smoke_detector_living_room_smoke', '2') %}
-            mdi:fire
-          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '2') %}
-            mdi:cloud-alert
-          {% elif is_state('sensor.smoke_detector_living_room_smoke', '6') or is_state('sensor.smoke_detector_living_room_carbon_monoxide', '6') %}
-            mdi:smoke-detector
-          {% elif is_state('sensor.smoke_detector_living_room_carbon_monoxide', '5') %}
-            mdi:cloud-alert
-          {% else %}
-            mdi:smoke-detector
-          {% endif %}
-      smoke_detector_living_room_health:
-        friendly_name: Smoke Detector Living Room Health
-        value_template: >-
-          {% if is_state('sensor.smoke_detector_living_room_system', '5') %}
-            Healthy
-          {% elif is_state('sensor.smoke_detector_living_room_system', '1') %}
-            Malfunction Detected
-          {% elif is_state('sensor.smoke_detector_living_room_system', '0')  %}
-            Malfunction Clear
-          {% endif %}
-        icon_template: >-
-          {% if is_state('sensor.smoke_detector_living_room_system', '5') %}
-          {% elif is_state('sensor.smoke_detector_living_room_system', '1') %}
-            mdi:alert
-          {% elif is_state('sensor.smoke_detector_living_room_system', '0')  %}
-          {% endif %}
+  - alias: "Smoke Alarm Clear"
+    id: "smoke_alarm_clear"
+    initial_state: on
+    trigger:
+      platform: state
+      entity_id:
+        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+      from: "on"
+      to: "off"
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.smoke_alarm_triggered
+      - service: notify.pushover
+        data:
+          message: >
+              {{ trigger.from_state.attributes.friendly_name }} cleared
+          data:
+            priority: 2
+            expire: 3600
+            retry: 30
 
-      # Hallway
-      smoke_detector_hallway_status:
-        friendly_name: Smoke Detector Hallway Status
-        value_template: >-
-          {% if is_state('sensor.smoke_detector_hallway_smoke', '3') %}
-            Test
-          {% elif is_state('sensor.smoke_detector_hallway_smoke', '2') %}
-            Smoke
-          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '2') %}
-            CO
-          {% elif is_state('sensor.smoke_detector_hallway_smoke', '6') or is_state('sensor.smoke_detector_hallway_carbon_monoxide', '6') %}
-            Silenced
-          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '5') %}
-            CO_EOL
-          {% else %}
-            Idle
-          {% endif %}
-        icon_template: >-
-          {% if is_state('sensor.smoke_detector_hallway_smoke', '3') %}
-            mdi:cloud-alert
-          {% elif is_state('sensor.smoke_detector_hallway_smoke', '2') %}
-            mdi:fire
-          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '2') %}
-            mdi:cloud-alert
-          {% elif is_state('sensor.smoke_detector_hallway_smoke', '6') or is_state('sensor.smoke_detector_hallway_carbon_monoxide', '6') %}
-            mdi:smoke-detector
-          {% elif is_state('sensor.smoke_detector_hallway_carbon_monoxide', '5') %}
-            mdi:cloud-alert
-          {% else %}
-            mdi:smoke-detector
-          {% endif %}
-      smoke_detector_hallway_health:
-        friendly_name: Smoke Detector Hallway Health
-        value_template: >-
-          {% if is_state('sensor.smoke_detector_hallway_system', '5') %}
-            Healthy
-          {% elif is_state('sensor.smoke_detector_hallway_system', '1') %}
-            Malfunction Detected
-          {% elif is_state('sensor.smoke_detector_hallway_system', '0')  %}
-            Malfunction Clear
-          {% endif %}
-        icon_template: >-
-          {% if is_state('sensor.smoke_detector_hallway_system', '5') %}
-          {% elif is_state('sensor.smoke_detector_hallway_system', '1') %}
-            mdi:alert
-          {% elif is_state('sensor.smoke_detector_hallway_system', '0')  %}
-          {% endif %}
+  - alias: "Smoke Alarm Home Response"
+    id: "smoke_alarm_home_response"
+    initial_state: on
+    trigger:
+      platform: state
+      entity_id:
+        - input_boolean.smoke_alarm_triggered
+    action: >
+      {% if trigger.to_state.state == "on " %}
+        script.smoke_alarm_trigger_response
+      {% elif trigger.to_state.state == "off" %}
+        script.smoke_alarm_clear_response 
 
+# script:
+#   smoke_alarm_trigger_response:
+#     sequence:
+#       - service: homeassistant.turn_on
+#         data:
+#           entity_id: input_boolean.security_status
+#       - service: homeassistant.turn_off
+#         data:
+#           entity_id: group.master_bedroom
+#       - service: homeassistant.turn_off
+#         data:
+#           entity_id: group.common_areas
 
+#   smoke_alarm_clear_response:
+#     sequence:
+#       - service: homeassistant.turn_on
+#         data:
+#           entity_id: input_boolean.security_status
+#       - service: homeassistant.turn_off
+#         data:
+#           entity_id: group.master_bedroom
+#       - service: homeassistant.turn_off
+#         data:
+#           entity_id: group.common_areas
+
+input_boolean:
+  smoke_alarm_triggered:
+    name: Smoke Alarm Triggered
