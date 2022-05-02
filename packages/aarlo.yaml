@@ -1,7 +1,7 @@
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
-  user_agent: linux
+  backend: sse
 
 alarm_control_panel:
   - platform: aarlo

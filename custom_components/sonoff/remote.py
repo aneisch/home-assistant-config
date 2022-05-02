@@ -1,123 +1,102 @@
-"""
-Firmware   | LAN type  | uiid | Product Model
------------|-----------|------|--------------
-PSF-BRA-GL | rf        | 28   | RFBridge (Sonoff RF Bridge)
-"""
 import asyncio
-import logging
 
-from homeassistant.components.remote import ATTR_DELAY_SECS, ATTR_COMMAND, \
-    SUPPORT_LEARN_COMMAND, DEFAULT_DELAY_SECS
+from homeassistant.components.remote import RemoteEntity, ATTR_DELAY_SECS, \
+    DEFAULT_DELAY_SECS
+from homeassistant.const import ATTR_COMMAND
 
-from . import DOMAIN
-from .sonoff_main import EWeLinkRegistry
-from .switch import EWeLinkToggle
-from .utils import RemoteEntity
+from .binary_sensor import XRemoteSensor, XRemoteSensorOff
+from .button import XRemoteButton
+from .core.const import DOMAIN
+from .core.entity import XEntity
+from .core.ewelink import XRegistry, SIGNAL_ADD_ENTITIES
 
-_LOGGER = logging.getLogger(__name__)
-
-
-async def async_setup_platform(hass, config, add_entities,
-                               discovery_info=None):
-    if discovery_info is None:
-        return
-
-    deviceid = discovery_info['deviceid']
-    registry = hass.data[DOMAIN]
-    add_entities([EWeLinkRemote(registry, deviceid)])
+PARALLEL_UPDATES = 0  # fix entity_platform parallel_updates Semaphore
 
 
-class EWeLinkRemote(EWeLinkToggle, RemoteEntity):
-    _is_on = True
+async def async_setup_entry(hass, config_entry, add_entities):
+    ewelink: XRegistry = hass.data[DOMAIN][config_entry.entry_id]
+    ewelink.dispatcher_connect(
+        SIGNAL_ADD_ENTITIES,
+        lambda x: add_entities([e for e in x if isinstance(e, RemoteEntity)])
+    )
 
-    def __init__(self, registry: EWeLinkRegistry, deviceid: str):
-        super().__init__(registry, deviceid)
 
-        # init button names
-        self._buttons = {}
-        device = registry.devices[deviceid]
-        for remote in device.get('tags', {}).get('zyx_info', []):
-            buttons = remote['buttonName']
-            if len(buttons) > 1:
-                for button in buttons:
-                    self._buttons.update(button)
-            else:
-                k = next(iter(buttons[0]))
-                self._buttons.update({k: remote['name']})
+# noinspection PyAbstractClass
+class XRemote(XEntity, RemoteEntity):
+    def __init__(self, ewelink: XRegistry, device: dict):
+        XEntity.__init__(self, ewelink, device)
 
-    async def async_added_to_hass(self) -> None:
-        self._init(force_refresh=False)
+        self.childs = {}
+        self.params = {"cmd", "arming"}
+        self.ts = None
 
-    def _update_handler(self, state: dict, attrs: dict):
-        """
-        Cloud States:
-        - {'cmd': 'trigger', 'rfTrig0': '2020-05-10T14:10:17.000Z'}
-        - {'cmd': 'transmit', 'rfChl': 3}
-        - {'cmd': 'capture', 'rfChl': 1},
-        """
-        if not self._is_on:
+        for remote in device.get("tags", {}).get("zyx_info", []):
+            for remote2 in remote["buttonName"]:
+                if remote["remote_type"] == "6":
+                    child = XRemoteSensor(ewelink, device, remote)
+                else:
+                    child = XRemoteButton(ewelink, device, remote2)
+                self.childs[child.channel] = child
+
+        for name, sensor in XRemoteSensorOff.sensors.items():
+            ch = next(k for k, v in self.childs.items() if v.name == name)
+            # replace entity sensor to non entity remote chlid
+            self.childs[ch] = XRemoteSensorOff(ch, name, sensor)
+
+        ewelink.dispatcher_send(SIGNAL_ADD_ENTITIES, self.childs.values())
+
+    def set_state(self, params: dict):
+        # skip full cloud state update
+        if "init" in params:
             return
 
-        self._attrs.update(attrs)
+        for param, ts in params.items():
+            if not param.startswith("rfTrig"):
+                continue
 
-        if 'sledOnline' in state:
-            self._sled_online = state['sledOnline']
+            # skip first msg from LAN because it sent old trigger event with
+            # local discovery and only LAN sends arming param
+            if self.ts is None and params.get("arming"):
+                self.ts = ts
+                return
 
-        for k, v in state.items():
-            if k.startswith('rfTrig'):
-                if v == self._attrs.get('ts'):
-                    # skip same cmd from local and cloud
-                    return
+            # skip same cmd from local and cloud
+            if ts == self.ts:
+                return
 
-                channel = k[6:]
-                data = {'command': int(channel), 'ts': v,
-                        'name': self._buttons.get(channel)}
-                self._attrs.update(data)
+            self.ts = ts
 
-                data['entity_id'] = self.entity_id
-                _LOGGER.debug(f"Fire event sonoff.remote: {data}")
-                self.hass.bus.fire('sonoff.remote', data)
+            child = self.childs.get(param[6:])
+            if not child:
+                return
+            child.internal_update(ts)
 
-                self.schedule_update_ha_state()
-
-    @property
-    def supported_features(self):
-        return SUPPORT_LEARN_COMMAND
-
-    async def async_turn_on(self, **kwargs):
-        self._is_on = True
-        self.schedule_update_ha_state()
-
-    async def async_turn_off(self, **kwargs):
-        self._is_on = False
-        self.schedule_update_ha_state()
+            self._attr_extra_state_attributes = data = {
+                "command": int(child.channel), "name": child.name,
+                "entity_id": self.entity_id, "ts": ts,
+            }
+            self.hass.bus.async_fire("sonoff.remote", data)
 
     async def async_send_command(self, command, **kwargs):
-        if not self._is_on:
-            return
-
         delay = kwargs.get(ATTR_DELAY_SECS, DEFAULT_DELAY_SECS)
         for i, channel in enumerate(command):
             if i:
                 await asyncio.sleep(delay)
 
+            # transform button name to channel number
             if not channel.isdigit():
-                channel = next((k for k, v in self._buttons.items()
-                                if v == channel), None)
-
-            if channel is None:
-                _LOGGER.error(f"Not found RF button for {command}")
-                return
+                channel = next(
+                    k for k, v in self.childs.items() if v.name == channel
+                )
 
             # cmd param for local and for cloud mode
-            await self.registry.send(self.deviceid, {
-                'cmd': 'transmit', 'rfChl': int(channel)})
+            await self.ewelink.send(self.device, {
+                "cmd": "transmit", "rfChl": int(channel)
+            })
 
     async def async_learn_command(self, **kwargs):
-        if not self._is_on:
-            return
-
         command = kwargs[ATTR_COMMAND]
         # cmd param for local and for cloud mode
-        await self.registry.send(self.deviceid, {
-            'cmd': 'capture', 'rfChl': int(command[0])})
+        await self.ewelink.send(self.device, {
+            "cmd": "capture", "rfChl": int(command[0])
+        })

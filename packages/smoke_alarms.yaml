@@ -82,11 +82,21 @@ automation:
       platform: state
       entity_id:
         - input_boolean.smoke_alarm_triggered
-    action: >
-      {% if trigger.to_state.state == "on " %}
-        script.smoke_alarm_trigger_response
-      {% elif trigger.to_state.state == "off" %}
-        script.smoke_alarm_clear_response 
+      to: 'on'
+    action:
+      # If sun down, turn on some lights
+      - choose:
+        - conditions: "{{ states('sun.sun') == 'below_horizon'  }}"
+          sequence:
+            - service: homeassistant.turn_on
+              data:
+                brightness: 255
+                transition: 5
+              target:
+                entity_id:
+                  - light.master_bedroom_lamps
+                  - light.kitchen_can_lights
+                  - light.living_room_can_lights
 
 # script:
 #   smoke_alarm_trigger_response:

@@ -19,6 +19,7 @@ homeassistant:
     gate: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
     hass_update_check: !include packages/hass_update_check.yaml
+    smoke_alarms: !include packages/smoke_alarms.yaml
     magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
