@@ -189,6 +189,7 @@ cards:
           - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
           - sensor.garage_temperature
+          - sensor.deep_freeze_temperature
       - type: custom:weather-card
         entity: weather.kcll_daynight
 

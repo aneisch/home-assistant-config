@@ -29,19 +29,32 @@ DEVICE_CLASSES = {cls.value: cls for cls in BinarySensorDeviceClass}
 class XBinarySensor(XEntity, BinarySensorEntity):
     def __init__(self, ewelink: XRegistry, device: dict):
         XEntity.__init__(self, ewelink, device)
-        self._attr_device_class = DEVICE_CLASSES.get(
-            device.get("device_class")
-        )
+        device_class = device.get("device_class")
+        if device_class in DEVICE_CLASSES:
+            self._attr_device_class = DEVICE_CLASSES[device_class]
 
 
 # noinspection PyAbstractClass
 class XWiFiDoor(XBinarySensor):
     params = {"switch"}
-
     _attr_device_class = BinarySensorDeviceClass.DOOR
 
     def set_state(self, params: dict):
         self._attr_is_on = params['switch'] == 'on'
+
+    def internal_available(self) -> bool:
+        # device with buggy online status
+        return self.ewelink.cloud.online
+
+
+class XWiFiDoorBattery(XWiFiDoor):
+    params = {"battery"}
+    uid = "battery_low"
+    _attr_device_class = BinarySensorDeviceClass.BATTERY
+
+    def set_state(self, params: dict):
+        # device["devConfig"]["lowVolAlarm"] = 2.3
+        self._attr_is_on = params["battery"] < 2.3
 
 
 # noinspection PyAbstractClass

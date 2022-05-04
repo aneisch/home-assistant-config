@@ -97,17 +97,17 @@ automation:
       webhook_id: !secret hass_github_action_webhook
     action:
       service: >
-        {% if states("input_text.hass_target_branch") not in ["stable","beta"] %}
+        {% if (states("input_text.hass_target_branch") not in ["stable","beta"]) and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) %}
           script.hass_update_notify
 
-        {% elif states("input_text.hass_target_branch") == "stable" and (states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2]) %}
+        {% elif (states("input_text.hass_target_branch") == "stable") and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) and (states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2]) %}
           script.hass_update_stage
+
+        {% elif (states("input_text.hass_target_branch") == "stable") and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) %}
+          script.hass_update_notify
 
         {% elif states("input_text.hass_target_branch") == "beta" %}
           script.hass_update_stage
-
-        {% else %}
-          script.hass_update_notify
 
         {% endif %}
 

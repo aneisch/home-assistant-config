@@ -11,10 +11,9 @@ XEntity properties:
 
 Developer can change global properties of existing classes via spec function.
 """
-from typing import Optional
 
 from ..binary_sensor import *
-from ..climate import XClimateTH, XClimateNS
+from ..climate import XClimateTH, XClimateNS, XThermostat
 from ..cover import XCover, XCoverDualR3
 from ..fan import XFan, XDiffuserFan, XToggleFan
 from ..light import *
@@ -116,7 +115,7 @@ DEVICES = {
     82: SPEC_2CH,
     83: SPEC_3CH,
     84: SPEC_4CH,
-    102: [XWiFiDoor, Battery, RSSI],  # Sonoff DW2 Door/Window sensor
+    102: [XWiFiDoor, XWiFiDoorBattery, RSSI],  # Sonoff DW2 Door/Window sensor
     103: [XLightB02, RSSI],  # Sonoff B02 CCT bulb
     104: [XLightB05B, RSSI],  # Sonoff B05-B RGB+CCT color bulb
     107: SPEC_1CH,
@@ -133,11 +132,11 @@ DEVICES = {
         spec(XEnergySensor, param="kwhHistories_01", uid="energy_2",
              get_params={"getKwh_01": 2}),
     ],  # Sonoff DualR3
+    127: [XThermostat],  # https://github.com/AlexxIT/SonoffLAN/issues/358
     133: [
         # Humidity. ALWAYS 50... NSPanel DOESN'T HAVE HUMIDITY SENSOR
         # https://github.com/AlexxIT/SonoffLAN/issues/751
-        Switch1, Switch2, XNSOutdoorTemp, XClimateNS,
-        spec(XSensor, param="temperature"),
+        Switch1, Switch2, XClimateNS, XOutdoorTempNS,
     ],  # Sonoff NS Panel
     # https://github.com/AlexxIT/SonoffLAN/issues/766
     136: [XLightB05B, RSSI],  # Sonoff B05-BL
@@ -178,11 +177,8 @@ POW_UI_ACTIVE = {
 }
 
 
-def get_spec(device: dict) -> Optional[list]:
+def get_spec(device: dict) -> list:
     uiid = device["extra"]["uiid"]
-    # DualR3 in cover mode
-    if uiid in (126, 165) and device["params"].get("workMode") == 2:
-        return [XCoverDualR3, RSSI]
 
     if uiid in DEVICES:
         classes = DEVICES[uiid]
@@ -192,6 +188,11 @@ def get_spec(device: dict) -> Optional[list]:
         classes = SPEC_4CH
     else:
         classes = [XUnknown]
+
+    # DualR3 in cover mode
+    if uiid in (126, 165) and device["params"].get("workMode") == 2:
+        classes = [cls for cls in classes if XSwitches not in cls.__bases__]
+        classes.append(XCoverDualR3)
 
     if "device_class" in device:
         classes = get_custom_spec(classes, device["device_class"])
@@ -244,6 +245,19 @@ def get_custom_spec(classes: list, device_class):
                     ))
 
     return classes
+
+
+def get_spec_wrapper(func, sensors: list):
+    def wrapped(device: dict) -> list:
+        classes = func(device)
+        for uid in sensors:
+            if (uid in device["params"] or uid == "host") and all(
+                    cls.param != uid and cls.uid != uid for cls in classes
+            ):
+                classes.append(spec(XSensor, param=uid))
+        return classes
+
+    return wrapped
 
 
 def set_default_class(device_class: str):

@@ -120,7 +120,7 @@ class XRegistry(XRegistryBase):
         if not device.get("host"):
             return
 
-        ok = await self.local.send(device, timeout=15)
+        ok = await self.local.send(device, {"cmd": "info"}, timeout=15)
         if ok == "online":
             return
 
@@ -195,7 +195,9 @@ class XRegistry(XRegistryBase):
             asyncio.create_task(self.check_offline(device))
             return
 
-        device["host"] = msg.get("host")  # get for tests
+        if device.get("host") != msg.get("host"):
+            # params for custom sensor
+            device["host"] = params["host"] = msg["host"]
 
         self.dispatcher_send(did, params)
 
