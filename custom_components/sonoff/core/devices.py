@@ -11,7 +11,7 @@ XEntity properties:
 
 Developer can change global properties of existing classes via spec function.
 """
-
+from .ewelink import XDevice
 from ..binary_sensor import *
 from ..climate import XClimateTH, XClimateNS, XThermostat
 from ..cover import XCover, XCoverDualR3
@@ -69,7 +69,12 @@ DEVICES = {
     2: SPEC_2CH,
     3: SPEC_3CH,
     4: SPEC_4CH,
-    5: SPEC_SWITCH,
+    5: [
+        XSwitch, LED, RSSI,
+        spec(XSensor, param="power"),
+        spec(XEnergySensor, param="hundredDaysKwhData", uid="energy",
+             get_params={"hundredDaysKwh": "get"}),
+    ],  # Sonoff POW (first)
     6: SPEC_SWITCH,
     7: SPEC_2CH,  # Sonoff T1 2CH
     8: SPEC_3CH,  # Sonoff T1 3CH
@@ -100,7 +105,7 @@ DEVICES = {
         spec(XSensor, param="voltage"),
         spec(XEnergySensor, param="hundredDaysKwhData", uid="energy",
              get_params={"hundredDaysKwh": "get"}),
-    ],  # Sonoff Pow
+    ],  # Sonoff POWR2
     34: [
         XFan, XFanLight, LED, RSSI,
     ],  # Sonoff iFan02 and iFan03
@@ -136,7 +141,7 @@ DEVICES = {
     133: [
         # Humidity. ALWAYS 50... NSPanel DOESN'T HAVE HUMIDITY SENSOR
         # https://github.com/AlexxIT/SonoffLAN/issues/751
-        Switch1, Switch2, XClimateNS, XOutdoorTempNS,
+        Switch1, Switch2, XClimateNS, XTemperatureNS, XOutdoorTempNS,
     ],  # Sonoff NS Panel
     # https://github.com/AlexxIT/SonoffLAN/issues/766
     136: [XLightB05B, RSSI],  # Sonoff B05-BL
@@ -169,8 +174,12 @@ DEVICES = {
 }
 
 # Pow devices sends sensors data via Cloud only in uiActive mode
+# - Sonoff POW1 fw 2.6.1 UIID5 sends power data even without uiActive
+# - Sonoff S40 fw 1.1.0 UIID182 has very low uiActive maximum
+# - Sonoff DualR3 fw 1.4.0 UIID126 has another uiActive format
 # UUID, refresh time in seconds, params payload
 POW_UI_ACTIVE = {
+    5: (3600, {"uiActive": 7200}),
     32: (3600, {"uiActive": 7200}),
     126: (3600, {"uiActive": {"all": 1, "time": 7200}}),
     182: (0, {"uiActive": 180}),  # maximum for this model
@@ -280,9 +289,9 @@ DIY = {
 }
 
 
-def setup_diy(device: dict) -> dict:
+def setup_diy(device: dict) -> XDevice:
     try:
-        uiid, brand, model = DIY[device["diy"]]
+        uiid, brand, model = DIY[device["localtype"]]
         device["name"] = model
         device["brandName"] = brand
         device["extra"] = {"uiid": uiid}
@@ -290,6 +299,6 @@ def setup_diy(device: dict) -> dict:
     except Exception:
         device["name"] = "Unknown DIY"
         device["extra"] = {"uiid": 0}
-        device["productModel"] = device["diy"]
-    device["online"] = False
+        device["productModel"] = device["localtype"]
+    # device["online"] = False
     return device

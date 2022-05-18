@@ -34,20 +34,24 @@ class XRegistry(XRegistryBase):
         from ..devices import get_spec
 
         for device in devices:
-            deviceid = device["deviceid"]
+            did = device["deviceid"]
             try:
-                device.update(self.config["devices"][deviceid])
+                device.update(self.config["devices"][did])
             except Exception:
                 pass
 
-            uiid = device['extra']['uiid']
-            _LOGGER.debug(f"{deviceid} UIID {uiid:04} | %s", device["params"])
+            try:
+                uiid = device['extra']['uiid']
+                _LOGGER.debug(f"{did} UIID {uiid:04} | %s", device["params"])
 
-            spec = get_spec(device)
-            entities = [cls(self, device) for cls in spec]
-            self.dispatcher_send(SIGNAL_ADD_ENTITIES, entities)
+                spec = get_spec(device)
+                entities = [cls(self, device) for cls in spec]
+                self.dispatcher_send(SIGNAL_ADD_ENTITIES, entities)
 
-            self.devices[deviceid] = device
+                self.devices[did] = device
+
+            except Exception as e:
+                _LOGGER.warning(f"{did} !! can't setup device", exc_info=e)
 
     async def stop(self, *args):
         self.devices.clear()
@@ -60,15 +64,18 @@ class XRegistry(XRegistryBase):
             self.task.cancel()
 
     async def send(
-            self, device: XDevice, params: dict, params_lan: dict = None,
-            query_cloud: bool = True
+            self, device: XDevice, params: dict = None,
+            params_lan: dict = None, query_cloud: bool = True
     ):
         """Send command to device with LAN and Cloud. Usual params are same.
 
+        LAN will send new device state after update command, Cloud - don't.
+
         :param device: device object
-        :param params: usual params are same
+        :param params: non empty to update state, empty to query state
         :param params_lan: optional if LAN params different (ex iFan03)
-        :param query_cloud: optional query Cloud device state after send cmd
+        :param query_cloud: optional query Cloud state after update state,
+          ignored if params empty
         """
         seq = self.sequence()
 
@@ -84,7 +91,7 @@ class XRegistry(XRegistryBase):
                 ok = await self.cloud.send(device, params, seq)
                 if ok != 'online':
                     asyncio.create_task(self.check_offline(device))
-                elif query_cloud:
+                elif query_cloud and params:
                     # force update device actual status
                     await self.cloud.send(device, timeout=0)
 
@@ -95,7 +102,7 @@ class XRegistry(XRegistryBase):
 
         elif can_cloud:
             ok = await self.cloud.send(device, params, seq)
-            if ok == "online" and query_cloud:
+            if ok == "online" and query_cloud and params:
                 await self.cloud.send(device, timeout=0)
 
         else:
@@ -158,11 +165,14 @@ class XRegistry(XRegistryBase):
         elif device["online"] is False:
             device["online"] = True
 
+        if "sledOnline" in params:
+            device["params"]["sledOnline"] = params["sledOnline"]
+
         self.dispatcher_send(did, params)
 
     def local_update(self, msg: dict):
         did: str = msg["deviceid"]
-        device: dict = self.devices.get(did)
+        device: XDevice = self.devices.get(did)
         params: dict = msg.get("params")
         if not device:
             if not params:
@@ -188,6 +198,11 @@ class XRegistry(XRegistryBase):
                 _LOGGER.debug("Can't decrypt message", exc_info=e)
                 return
 
+        elif "devicekey" in device:
+            # unencripted device with devicekey in config, this means that the
+            # DIY device is still connected to the ewelink account
+            device.pop("devicekey")
+
         _LOGGER.debug(f"{did} <= Local3 | %s | {msg.get('seq', '')}", params)
 
         # msg from zeroconf ServiceStateChange.Removed
@@ -195,9 +210,13 @@ class XRegistry(XRegistryBase):
             asyncio.create_task(self.check_offline(device))
             return
 
+        if "sledOnline" in params:
+            device["params"]["sledOnline"] = params["sledOnline"]
+
         if device.get("host") != msg.get("host"):
             # params for custom sensor
             device["host"] = params["host"] = msg["host"]
+            device["localtype"] = msg["localtype"]
 
         self.dispatcher_send(did, params)
 
@@ -220,7 +239,7 @@ class XRegistry(XRegistryBase):
             ts = time.time()
 
             for device in devices:
-                if not device["online"] or device.get("pow_ts", 0) > ts:
+                if not device.get("online") or device.get("pow_ts", 0) > ts:
                     continue
 
                 dt, params = POW_UI_ACTIVE[device["extra"]["uiid"]]

@@ -3,7 +3,10 @@ import asyncio
 from homeassistant.components.binary_sensor import BinarySensorEntity, \
     BinarySensorDeviceClass
 from homeassistant.components.script import ATTR_LAST_TRIGGERED
+from homeassistant.const import STATE_ON
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import dt
 
 from .core.const import DOMAIN
 from .core.entity import XEntity
@@ -47,16 +50,6 @@ class XWiFiDoor(XBinarySensor):
         return self.ewelink.cloud.online
 
 
-class XWiFiDoorBattery(XWiFiDoor):
-    params = {"battery"}
-    uid = "battery_low"
-    _attr_device_class = BinarySensorDeviceClass.BATTERY
-
-    def set_state(self, params: dict):
-        # device["devConfig"]["lowVolAlarm"] = 2.3
-        self._attr_is_on = params["battery"] < 2.3
-
-
 # noinspection PyAbstractClass
 class XZigbeeMotion(XBinarySensor):
     params = {"motion", "online"}
@@ -90,34 +83,21 @@ class XWater(XBinarySensor):
 
 
 # noinspection PyAbstractClass
-class XRemoteSensor(BinarySensorEntity):
+class XRemoteSensor(BinarySensorEntity, RestoreEntity):
+    _attr_is_on = False
     task: asyncio.Task = None
 
-    def __init__(self, ewelink: XRegistry, bridge: dict, sensor: dict):
+    def __init__(self, ewelink: XRegistry, bridge: dict, child: dict):
         self.ewelink = ewelink
-        self.channel = next(iter(sensor['buttonName'][0]))
+        self.channel = child["channel"]
+        self.timeout = child.get("timeout", 120)
 
-        name = sensor["name"]
-        try:
-            item = ewelink.config["rfbridge"][name]
-
-            self.timeout = item.get("timeout", 120)
-            self._attr_device_class = DEVICE_CLASSES.get(
-                item.get("device_class")
-            )
-            self._attr_name = item.get("name", name)
-
-            if "payload_off" in item:
-                XRemoteSensorOff.sensors[item["payload_off"]] = self
-        except Exception:
-            self.timeout = 120
-            self._attr_name = name
-
+        self._attr_device_class = DEVICE_CLASSES.get(child.get("device_class"))
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, bridge['deviceid'])}
         )
         self._attr_extra_state_attributes = {}
-        self._attr_is_on = False
+        self._attr_name = child["name"]
         self._attr_unique_id = f"{bridge['deviceid']}_{self.channel}"
 
         self.entity_id = DOMAIN + "." + self._attr_unique_id
@@ -138,17 +118,32 @@ class XRemoteSensor(BinarySensorEntity):
         self._attr_is_on = False
         self._async_write_ha_state()
 
+    async def async_added_to_hass(self) -> None:
+        # restore previous sensor state
+        # if sensor has timeout - restore remaining timer and check expired
+        restore = await self.async_get_last_state()
+        if not restore:
+            return
+
+        self._attr_is_on = restore.state == STATE_ON
+
+        if self.is_on and self.timeout:
+            ts = restore.attributes[ATTR_LAST_TRIGGERED]
+            left = self.timeout - (dt.utcnow() - dt.parse_datetime(ts)).seconds
+            if left > 0:
+                self.task = asyncio.create_task(self.clear_state(left))
+            else:
+                self._attr_is_on = False
+
     async def async_will_remove_from_hass(self):
         if self.task:
             self.task.cancel()
 
 
 class XRemoteSensorOff:
-    sensors = {}
-
-    def __init__(self, channel: str, name: str, sensor: XRemoteSensor):
-        self.channel = channel
-        self.name = name
+    def __init__(self, child: dict, sensor: XRemoteSensor):
+        self.channel = child["channel"]
+        self.name = child["name"]
         self.sensor = sensor
 
     # noinspection PyProtectedMember

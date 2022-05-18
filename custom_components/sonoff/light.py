@@ -122,7 +122,13 @@ class XLightD1(XLight):
 
     def get_params(self, brightness, color_temp, rgb_color, effect) -> dict:
         if brightness:
-            return {"mode": 0, "brightness": conv(brightness, 1, 255, 0, 100)}
+            # brightness can be only with switch=on in one message (error 400)
+            # the purpose of the mode is unclear
+            # max brightness=100 (error 400)
+            return {
+                "brightness": conv(brightness, 1, 255, 0, 100),
+                "mode": 0, "switch": "on",
+            }
 
 
 ###############################################################################
@@ -230,9 +236,9 @@ class XLightL1(XLight):
 
     _attr_color_mode = COLOR_MODE_RGB
     _attr_effect_list = [
-        "Colorful", "Colorful Gradient", "Colorful Breath", "DIY Gradient",
-        "DIY Pulse", "DIY Breath", "DIY Strobe", "RGB Gradient",
-        "DIY Gradient", "RGB Breath", "RGB Strobe", "Music"
+        "Colorful Gradient", "Colorful Breath", "DIY Gradient", "DIY Pulse",
+        "DIY Breath", "DIY Strobe", "RGB Gradient", "DIY Gradient",
+        "RGB Breath", "RGB Strobe", "Music"
     ]
     # support on/off, brightness, RGB
     _attr_supported_color_modes = {COLOR_MODE_RGB}
@@ -248,19 +254,24 @@ class XLightL1(XLight):
                 params['colorR'], params['colorG'], params['colorB']
             )
         if 'mode' in params:
-            self._attr_effect = self.effect_list[params['mode'] - 1]
+            mode = params['mode'] - 2  # 1=Colorful, skip it
+            self._attr_effect = self.effect_list[mode] if mode >= 0 else None
 
     def get_params(self, brightness, color_temp, rgb_color, effect) -> dict:
-        if brightness:
-            return {'mode': 1, "bright": conv(brightness, 1, 255, 1, 100)}
-        if rgb_color:
-            return {
-                "mode": 1, 'colorR': rgb_color[0], 'colorG': rgb_color[1],
-                'colorB': rgb_color[2], 'light_type': 1
-            }
         if effect:
-            mode = self.effect_list.index(effect) + 1
+            mode = self.effect_list.index(effect) + 2
             return {'mode': mode, "switch": "on"}
+        if brightness or rgb_color:
+            # support bright and color in one command
+            params = {"mode": 1}
+            if brightness:
+                params["bright"] = conv(brightness, 1, 255, 1, 100)
+            if rgb_color:
+                params.update({
+                    "colorR": rgb_color[0], "colorG": rgb_color[1],
+                    "colorB": rgb_color[2], "light_type": 1
+                })
+            return params
 
 
 B02_MODE_PAYLOADS = {
@@ -474,12 +485,18 @@ class XFanLight(XEntity, LightEntity):
 
     async def async_turn_on(self, **kwargs):
         params = {"switches": [{"outlet": 0, "switch": "on"}]}
-        params_lan = {"light": "on"}
+        if self.device.get("localtype") == "fan_light":
+            params_lan = {"light": "on"}
+        else:
+            params_lan = None
         await self.ewelink.send(self.device, params, params_lan)
 
     async def async_turn_off(self):
         params = {"switches": [{"outlet": 0, "switch": "off"}]}
-        params_lan = {"light": "off"}
+        if self.device.get("localtype") == "fan_light":
+            params_lan = {"light": "off"}
+        else:
+            params_lan = None
         await self.ewelink.send(self.device, params, params_lan)
 
 

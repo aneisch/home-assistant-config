@@ -85,18 +85,18 @@ automation:
       to: 'on'
     action:
       # If sun down, turn on some lights
-      - choose:
-        - conditions: "{{ states('sun.sun') == 'below_horizon'  }}"
-          sequence:
-            - service: homeassistant.turn_on
-              data:
-                brightness: 255
-                transition: 5
-              target:
-                entity_id:
-                  - light.master_bedroom_lamps
-                  - light.kitchen_can_lights
-                  - light.living_room_can_lights
+      - if: "{{ states('sun.sun') == 'below_horizon' }}"
+        then:
+          - alias: "Turn on some Lights"
+            service: homeassistant.turn_on
+            data:
+              brightness: 255
+              transition: 5
+            target:
+              entity_id:
+                - light.master_bedroom_lamps
+                - light.kitchen_can_lights
+                - light.living_room_can_lights
 
 # script:
 #   smoke_alarm_trigger_response:

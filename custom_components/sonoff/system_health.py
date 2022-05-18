@@ -13,7 +13,7 @@ from homeassistant.components import system_health
 from homeassistant.components.http import HomeAssistantView
 from homeassistant.core import HomeAssistant, callback
 
-from .core.const import DOMAIN
+from .core.const import DOMAIN, PRIVATE_KEYS, source_hash
 
 
 @callback
@@ -32,14 +32,17 @@ async def system_health_info(hass: HomeAssistant) -> dict[str, Any]:
                 cloud_total += 1
                 if registry.cloud.online and device["online"]:
                     cloud_online += 1
-            if "host" in device:
+            # localtype - all discovered local devices
+            # host - all online local devices (maybe encrypted)
+            # params - all local unencrypted devices
+            if "localtype" in device:
                 local_total += 1
-                if "params" in device:
+                if "host" in device and "params" in device:
                     local_online += 1
 
     integration = hass.data["integrations"][DOMAIN]
     info = {
-        "version": str(integration.version),
+        "version": f"{integration.version} ({source_hash()})",
         "cloud_online": f"{cloud_online} / {cloud_total}",
         "local_online": f"{local_online} / {local_total}",
     }
@@ -56,13 +59,10 @@ async def setup_debug(hass: HomeAssistant, logger: Logger):
     view = DebugView(logger)
     hass.http.register_view(view)
 
-    sonoff = hass.data["integrations"][DOMAIN]
+    integration = hass.data["integrations"][DOMAIN]
     info = await hass.helpers.system_info.async_get_system_info()
-    info["sonoff_version"] = str(sonoff.version)
+    info[DOMAIN + "_version"] = f"{integration.version} ({source_hash()})"
     logger.debug(f"SysInfo: {info}")
-
-
-PRIVATE_KEYS = ('bindInfos', 'bssid', 'ssid', 'staMac')
 
 
 class DebugView(logging.Handler, HomeAssistantView):

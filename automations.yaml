@@ -653,3 +653,15 @@
       - mon
   action:
     - service: shell_command.covid_booking
+
+- alias: "Signal Webhook Message BVST"
+  id: "signal_webhook_message_bvst"
+  mode: 'single'
+  initial_state: 'on'
+  trigger:
+    - platform: webhook
+      webhook_id: !secret signal_bvst_webhook_id
+  action:
+    - service: notify.signal_bvst
+      data:
+        message: "{{ trigger.json['message'] }}"

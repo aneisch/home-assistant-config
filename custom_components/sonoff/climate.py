@@ -22,12 +22,15 @@ class XClimateTH(XEntity, ClimateEntity):
     params = {"targets", "deviceType", "currentTemperature", "temperature"}
 
     _attr_entity_registry_enabled_default = False
+    _attr_hvac_mode = None
     _attr_hvac_modes = [
         HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_DRY
     ]
     _attr_max_temp = 99
     _attr_min_temp = 1
     _attr_supported_features = SUPPORT_TARGET_TEMPERATURE_RANGE
+    _attr_target_temperature_high = None
+    _attr_target_temperature_low = None
     _attr_temperature_unit = TEMP_CELSIUS
     _attr_target_temperature_step = 1
 
@@ -127,6 +130,7 @@ class XClimateTH(XEntity, ClimateEntity):
 class XClimateNS(XEntity, ClimateEntity):
     params = {"ATCEnable", "ATCMode", "temperature", "tempCorrection"}
 
+    _attr_entity_registry_enabled_default = False
     _attr_hvac_modes = [HVAC_MODE_OFF, HVAC_MODE_HEAT_COOL, HVAC_MODE_AUTO]
     _attr_max_temp = 31
     _attr_min_temp = 16
@@ -158,9 +162,11 @@ class XClimateNS(XEntity, ClimateEntity):
         if "ATCExpect0" in params:
             self._attr_target_temperature = cache["ATCExpect0"]
 
+        # correction could be optional
+        # https://github.com/AlexxIT/SonoffLAN/issues/812
         if "temperature" in params or "tempCorrection" in params:
             self._attr_current_temperature = \
-                cache["temperature"] + cache["tempCorrection"]
+                cache["temperature"] + cache.get("tempCorrection", 0)
 
     @staticmethod
     def get_params(hvac_mode: str) -> dict:

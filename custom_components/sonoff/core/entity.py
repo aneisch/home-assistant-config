@@ -10,6 +10,7 @@ _LOGGER = logging.getLogger(__name__)
 
 ENTITY_CATEGORIES = {
     "battery": EntityCategory.DIAGNOSTIC,
+    "battery_voltage": EntityCategory.DIAGNOSTIC,
     "led": EntityCategory.CONFIG,
     "rssi": EntityCategory.DIAGNOSTIC,
 }
@@ -88,7 +89,7 @@ class XEntity(Entity):
         pass
 
     def internal_available(self) -> bool:
-        return (self.ewelink.cloud.online and self.device["online"]) or \
+        return (self.ewelink.cloud.online and self.device.get("online")) or \
                (self.ewelink.local.online and "host" in self.device)
 
     def internal_update(self, params: dict = None):
@@ -105,3 +106,6 @@ class XEntity(Entity):
 
         if change and self.hass:
             self._async_write_ha_state()
+
+    async def async_update(self):
+        await self.ewelink.send(self.device)
