@@ -281,6 +281,6 @@ services:
         environment:
           - MODE=json-rpc
         ports:
-          - "8800:8080" 
+          - "127.0.0.1:8800:8080" 
         volumes:
           - "/opt/signal-rest-api:/home/.local/share/signal-cli" 

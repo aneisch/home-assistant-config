@@ -34,7 +34,7 @@ services:
         environment:
           - TZ=America/Chicago
         ports:
-          - '3306:3306'
+          - '127.0.0.1:3306:3306'
         volumes:
           - /opt/mariadb:/var/lib/mysql
         environment:
@@ -164,7 +164,7 @@ services:
             - /opt/zwavejs:/usr/src/app/store
         ports:
             - '8091:8091' # port for web interface
-            - '3000:3000' # port for zwave-js websocket server
+            - '127.0.0.1:3000:3000' # port for zwave-js websocket server
     #zigbee2mqtt:
     #    container_name: zigbee2mqtt
     #    image: koenkk/zigbee2mqtt
@@ -459,6 +459,6 @@ services:
         environment:
           - MODE=json-rpc
         ports:
-          - "8800:8080" 
+          - "127.0.0.1:8800:8080" 
         volumes:
           - "/opt/signal-rest-api:/home/.local/share/signal-cli" 

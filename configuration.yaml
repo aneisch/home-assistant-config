@@ -304,19 +304,19 @@ notify:
     vapid_email: !secret vapid_email
   - platform: signal_messenger
     name: signal_self
-    url: "http://10.0.1.22:8800" # the URL where the Signal Messenger REST API is listening
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: "+10000000000"
     recipients: # one or more recipients
       - "+10000000000"
   - platform: signal_messenger
     name: signal_bvst
-    url: "http://10.0.1.22:8800" # the URL where the Signal Messenger REST API is listening
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: "+10000000000"
     recipients: # one or more recipients
       - "SECRET"
   - platform: signal_messenger
     name: signal_smallgroup
-    url: "http://10.0.1.22:8800" # the URL where the Signal Messenger REST API is listening
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: "+10000000000"
     recipients: # one or more recipients
       - "SECRET"
@@ -362,7 +362,7 @@ python_script:
 readme:
 
 recorder:
-  db_url: mysql://homeassistant:homeassistant@10.0.1.22/homeassistant?charset=utf8
+  db_url: mysql://homeassistant:homeassistant@127.0.0.1/homeassistant?charset=utf8
   purge_keep_days: 365
   commit_interval: 30
   exclude:

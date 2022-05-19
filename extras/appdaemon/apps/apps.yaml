@@ -376,6 +376,15 @@ Entryway Light Sunset:
   entities: light.entryway_light
   brightness: 255
 
+Globe Lights:
+  module: entity_timer
+  class: Timer
+  constrain_days: thu
+  constrain_presence: anyone
+  time_on: sunset - 00:20:00
+  time_off: '23:00:00'
+  entities: switch.globe_lights
+
 Living Room Lamp Follow:
   module: follow_me
   class: Follow
