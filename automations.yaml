@@ -660,8 +660,31 @@
   initial_state: 'on'
   trigger:
     - platform: webhook
-      webhook_id: !secret signal_bvst_webhook_id
+      webhook_id: !secret signal_bvst_contact_webhook_id
+      id: contact
+    - platform: webhook
+      webhook_id: !secret signal_bvst_intake_webhook_id
+      id: intake_forms
   action:
-    - service: notify.signal_bvst
-      data:
-        message: "{{ trigger.json['message'] }}"
+    - if: "{{ trigger.id == 'contact' }}"
+      then:
+        - service: notify.signal_bvst
+          data:
+            message: "{{ trigger.json['message'] }}"
+    - if: "{{ trigger.id == 'intake_forms' }}"
+      then:
+        - service: notify.signal_self
+          data:
+            message: "Intake forms sent to {{ trigger.json['email'] }}"
+
+- alias: "Restart AppDaemon"
+  id: "restart_appdaemon"
+  trigger:
+    platform: time
+    at: "01:30:00"
+  action:
+    - service: switch.turn_off 
+      entity_id: switch.docker_appdaemon
+    - delay: "00:00:30"
+    - service: switch.turn_on
+      entity_id: switch.docker_appdaemon

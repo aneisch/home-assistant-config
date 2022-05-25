@@ -72,7 +72,7 @@ automation:
     initial_state: 'on'
     trigger:
       - platform: webhook
-        webhook_id: !secret gate_webhook_id
+        webhook_id: !secret mom_and_dad_gate_webhook_id
         id: gate
       - platform: webhook
         webhook_id: !secret mom_and_dad_garage_webhook_id
