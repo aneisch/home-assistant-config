@@ -1,4 +1,3 @@
-{%- set custom_component_descriptions = {"readme": "Generates this awesome readme file."} -%}
 # Welcome !
 
 This is my Home Assistant installation.
@@ -11,15 +10,28 @@ Number of entities | {{states | count}}
 Number of sensors | {{states.sensor | count}}
 
 
-{% if custom_components %}
-## The custom_components that I use
-{% for integration in custom_components %}
-### [{{integration.name}}]({{integration.documentation}})
-{% if integration.domain in custom_component_descriptions %}
-_{{custom_component_descriptions[integration.domain]}}_
-{% endif -%}
-{% endfor -%}
-{% endif %}
+## My installed extensions:
+
+### Add-ons
+{%- for addon in addons | sort(attribute='name') %}
+- {{addon.name}}
+{%- endfor %}
+
+### Custom integrations
+{%- for component in hacs_components | selectattr('category', 'equalto', 'integration') | sort(attribute='name') %}
+- [{{component.name}}]({{component.documentation}})
+{%- endfor %}
+
+### Lovelace plugins
+{%- for component in hacs_components | selectattr('category', 'equalto', 'plugin') | sort(attribute='name') %}
+- [{{component.name}}]({{component.documentation}})
+{%- endfor %}
+
+### Themes
+{%- for component in hacs_components | selectattr('category', 'equalto', 'theme') | sort(attribute='name') %}
+- [{{component.name}}]({{component.documentation}})
+{%- endfor %}
+
 
 ***
 

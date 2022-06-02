@@ -127,7 +127,8 @@ automation:
     # Only run if we're on mainline/stable branch
     condition: '{{ states("input_boolean.hass_update_trigger") == "on"}}'
     action:
-      - delay: '00:05:00'
+      # Delay if triggered by occupancy 
+      - delay: "{% if trigger.entity_id == 'person.andrew' %}00:10:00{% else %}00:00:01{% endif %}"
       - service: > 
           {% if states("person.andrew") == "home" %}
             script.hass_update_install
@@ -182,6 +183,20 @@ script:
             Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
             Changes: https://git.io/JvkT4 
             Tested: https://git.io/JvkTY
+      - if: "{{ states('binary_sensor.hass_on_beta') == 'on' and (states('sensor.ha_docker_version_stable') == states('sensor.ha_docker_version_beta')) }}"
+        then:
+          - alias: "Set stable branch"
+            service: input_text.set_value
+            data:
+              value: "stable"
+            target:
+              entity_id:
+                - input_text.hass_target_branch
+          - alias: "Switch to stable branch"
+            service: shell_command.switch_hass_running_branch
+            data:
+              version: "{{ states('input_text.hass_target_branch') }}"
+      - delay: "00:00:05"
       - service: homeassistant.turn_off
         entity_id: input_boolean.hass_update_trigger
       - service: homeassistant.turn_off
@@ -195,7 +210,7 @@ script:
       - service: notify.pushover
         data:
           message: >
-            Not Installing: {{ states('sensor.ha_version') }} --> {{ states('sensor.ha_docker_version_stable') }}
+            Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
             Changes: https://git.io/JvkT4
             Tested: https://git.io/JvkTY
       - service: homeassistant.turn_on

@@ -15,14 +15,15 @@ script:
           payload_template: "{{states('input_number.fingerprint_learning_id') | int}}"
           topic: sensor/fingerprint/mode/delete
 
-sensor:
-  - platform: mqtt
-    name: "Fingerprint"
-    state_topic: "sensor/fingerprint/mode/status"
-    value_template: "{{value_json.state}}"
-    json_attributes_topic: "sensor/fingerprint/mode/status"
-    json_attributes_template: "{{value_json | tojson}}"
+mqtt:
+  sensor:
+    - name: "Fingerprint"
+      state_topic: "sensor/fingerprint/mode/status"
+      value_template: "{{value_json.state}}"
+      json_attributes_topic: "sensor/fingerprint/mode/status"
+      json_attributes_template: "{{value_json | tojson}}"
 
+sensor:
   - platform: template
     sensors:
       fingerprint_mode:

@@ -1,7 +1,7 @@
 {
   "domain": "readme",
   "name": "Generate readme",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "documentation": "https://github.com/custom-components/readme",
   "issue_tracker": "https://github.com/custom-components/issues",
   "config_flow": true,

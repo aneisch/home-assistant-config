@@ -142,10 +142,10 @@ input_select:
       - Side Lawn
       - None
 
-sensor:
-  - platform: mqtt
-    state_topic: "sensor/irrigation_time_remaining"
-    name: "Irrigation Time Remaining"
+mqtt:
+  sensor:
+    - name: "Irrigation Time Remaining"
+      state_topic: "sensor/irrigation_time_remaining"
 
 automation:
   - alias: Store Sprinkler Start/Stop Times

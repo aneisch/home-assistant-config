@@ -206,6 +206,8 @@ logger:
   default: warn
   logs:
     homeassistant.core: debug
+    custom_components.alexa_media: debug  
+
     # Start ZHA Debugging
     # asyncio: debug
     # homeassistant.components.zha: debug
@@ -283,11 +285,9 @@ media_source:
 
 mobile_app:
 
-my:
+mqtt: !include mqtt.yaml
 
-netatmo:
-  client_id: !secret netatmo_key
-  client_secret: !secret netatmo_secret
+my:
 
 notify:
   - platform: pushbullet
@@ -399,7 +399,6 @@ recorder:
       #- automation
       #- alarm_panel
       - camera
-      - group
       - media_player
       - notify
       - scene
@@ -407,9 +406,6 @@ recorder:
       #- shell_command
       - sun
       - zone
-  include:
-    entities:
-      - group.trackers
 
 rest_command: !include rest_command.yaml
 
@@ -436,11 +432,7 @@ sonoff:
   password: !secret ewelink_pass
   mode: local
   reload: always
-
-spotify:
-  client_id: !secret spotify_client_id
-  client_secret: !secret spotify_client_secret
-
+  
 stream:
 
 sun:
@@ -459,10 +451,6 @@ wemo:
   discovery: false
   static:
     - 10.0.1.48
-
-xbox:
-  client_id: !secret xbox_id
-  client_secret: !secret xbox_secret
 
 zha:
   enable_quirks: true

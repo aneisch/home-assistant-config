@@ -9,12 +9,6 @@
   host: 10.0.0.29
   count: 2
 
-- platform: mqtt
-  name: "Zigbee2MQTT Pi"
-  state_topic: "zigbee2mqtt/bridge/state"
-  payload_on: "online"
-  payload_off: "offline"
-
 #- platform: ping
 #  name: internet_reachability
 #  host: 1.1.1.1
