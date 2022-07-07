@@ -665,6 +665,9 @@
     - platform: webhook
       webhook_id: !secret signal_bvst_intake_webhook_id
       id: intake_forms
+    - platform: webhook
+      webhook_id: !secret signal_bvst_insurance_webhook_id
+      id: insurance
   action:
     - if: "{{ trigger.id == 'contact' }}"
       then:
@@ -676,6 +679,11 @@
         - service: notify.signal_self
           data:
             message: "Intake forms sent to {{ trigger.json['email'] }}"
+    - if: "{{ trigger.id == 'insurance' }}"
+      then:
+        - service: notify.signal_bvst_ins
+          data:
+            message: "{{ trigger.json['message'] }}"
 
 - alias: "Restart AppDaemon"
   id: "restart_appdaemon"
@@ -688,3 +696,38 @@
     - delay: "00:00:30"
     - service: switch.turn_on
       entity_id: switch.docker_appdaemon
+
+- alias: "Deep Freeze Temperature"
+  id: "deep_freeze_temperature"
+  initial_state: on
+  trigger:
+    platform: numeric_state
+    entity_id:
+      - sensor.deep_freeze_temperature
+    above: 16
+    for:
+      minutes: 10
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+            The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F
+        data:
+          priority: 2
+          expire: 3600
+          retry: 30
+
+- alias: "Garage Fan"
+  id: "garage_fan"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: cover.garage_door
+  action:
+    - service: >
+        {% if trigger.from_state.state == "closed" and trigger.to_state.state == "open" %}
+          switch.turn_on
+        {% elif trigger.from_state.state == "open" and trigger.to_state.state == "closed" %}
+          switch.turn_off
+        {% endif %}
+      entity_id: switch.garage_fan

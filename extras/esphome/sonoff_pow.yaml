@@ -14,17 +14,23 @@ binary_sensor:
     pin:
       number: GPIO0
       mode: INPUT_PULLUP
-      inverted: True
-    name: ${friendly_name} Button
+      inverted: False
+    name: ${friendly_name} Reed Switch
     on_press:
-      - switch.toggle: fakebutton
+      then:
+        - switch.turn_on: relay
+        - delay: 30min
+        - switch.turn_off: relay
+    on_release:
+      then:
+        - switch.turn_off: relay
 
 sensor:
   - platform: hlw8012
     sel_pin: 5
     cf_pin: 14
     cf1_pin: 13
-    update_interval: 2s
+    update_interval: 60s
     current:
       name: ${friendly_name} Current
     voltage:
@@ -37,13 +43,12 @@ switch:
   - platform: template
     name: ${friendly_name} Relay
     optimistic: true
-    id: fakebutton
     turn_on_action:
       - switch.turn_on: relay
-      - light.turn_on: led
+      #- light.turn_on: led
     turn_off_action:
       - switch.turn_off: relay
-      - light.turn_off: led
+      #- light.turn_off: led
   - platform: gpio
     id: relay
     pin: GPIO12
@@ -55,8 +60,8 @@ output:
       number: GPIO15
       inverted: False
 
-light:
-  - platform: monochromatic
-    name: ${friendly_name} Blue LED
-    output: pow_blue_led
-    id: led
+# light:
+#   - platform: monochromatic
+#     name: ${friendly_name} Blue LED
+#     output: pow_blue_led
+#     id: led

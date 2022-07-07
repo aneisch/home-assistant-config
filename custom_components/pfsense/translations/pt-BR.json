@@ -1,0 +1,53 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::dispositivo_já_configurado%]"
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::não_pode_conectar%]",
+      "invalid_auth": "[%key:common::config_flow::error::autenticação_inválida%]",
+      "unknown": "[%key:common::config_flow::error::desconhecido%]",
+      "invalid_url_format": "Formato de URL inválido",
+      "privilege_missing": "O usuário tem privilégios insuficientes (Sistema - sincronização de nó HA)",
+      "connect_timeout": "Tempo limite de conexão",
+      "cannot_connect_ssl": "Falha SSL",
+      "url_redirect": "URL incorreto (redirecionamento)"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "url": "URL",
+          "username": "Nome de usuário",
+          "name": "Nome do firewall",
+          "password": "Senha",
+          "verify_ssl": "Verificar certificado SSL"
+        },
+        "title": "Conecte-se ao firewall/roteador pfSense"
+      }
+    }
+  },
+  "options": {
+    "error": {
+      "cannot_connect": "Falhou ao conectar",
+      "unknown": "Erro inesperado"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "scan_interval": "Intervalo de escaneamento (segundos)",
+          "device_tracker_enabled": "Habilitar Rastreador de dispositivos",
+          "device_tracker_scan_interval": "Intervalo de escaneamento do Rastreador de dispositivos (segundos)",
+          "device_tracker_consider_home": "Considerar inicial do Rastreador de dispositivos (segundos)"
+        },
+        "description": "Configurar Opções."
+      },
+      "device_tracker": {
+        "description": "Escolha quais dispositivos você deseja rastrear.",
+        "data": {
+          "devices": "Dispositivos para rastrear"
+        }
+      }
+    }
+  },
+  "title": "pfSense"
+}

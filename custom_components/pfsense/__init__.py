@@ -87,11 +87,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         CONF_DEVICE_TRACKER_ENABLED, DEFAULT_DEVICE_TRACKER_ENABLED
     )
     client = pfSenseClient(url, username, password, {"verify_ssl": verify_ssl})
-    data = PfSenseData(client, entry)
+    data = PfSenseData(client, entry, hass)
+    scan_interval = options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     async def async_update_data():
         """Fetch data from pfSense."""
-        async with async_timeout.timeout(10):
+        async with async_timeout.timeout(scan_interval - 1):
             await hass.async_add_executor_job(lambda: data.update())
 
             if not data.state:
@@ -99,7 +100,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
             return data.state
 
-    scan_interval = options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
     coordinator = DataUpdateCoordinator(
         hass,
         _LOGGER,
@@ -113,14 +113,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     if not device_tracker_enabled:
         platforms.remove("device_tracker")
     else:
-        device_tracker_data = PfSenseData(client, entry)
+        device_tracker_data = PfSenseData(client, entry, hass)
         device_tracker_scan_interval = options.get(
             CONF_DEVICE_TRACKER_SCAN_INTERVAL, DEFAULT_DEVICE_TRACKER_SCAN_INTERVAL
         )
 
         async def async_update_device_tracker_data():
             """Fetch data from pfSense."""
-            async with async_timeout.timeout(10):
+            async with async_timeout.timeout(device_tracker_scan_interval - 1):
                 await hass.async_add_executor_job(
                     lambda: device_tracker_data.update({"scope": "device_tracker"})
                 )
@@ -208,11 +208,16 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
 
 class PfSenseData:
-    def __init__(self, client: pfSenseClient, config_entry: ConfigEntry):
+    def __init__(
+        self, client: pfSenseClient, config_entry: ConfigEntry, hass: HomeAssistant
+    ):
         """Initialize the data object."""
         self._client = client
         self._config_entry = config_entry
+        self._hass = hass
         self._state = {}
+        self._firmware_update_info = None
+        self._background_tasks = set()
 
     @property
     def state(self):
@@ -235,15 +240,20 @@ class PfSenseData:
         return self._client.get_system_info()
 
     @_log_timing
-    def _get_firmware_update_info(self):
+    def _refresh_firmware_update_info(self):
         try:
-            return self._client.get_firmware_update_info()
+            self._firmware_update_info = self._client.get_firmware_update_info()
+
         except BaseException as err:
             # can take some time to refresh data
             # will catch it the next cycle likely
             if "timed out" in str(err):
-                return None
+                return
             raise err
+
+    @_log_timing
+    def _get_firmware_update_info(self):
+        return self._firmware_update_info
 
     @_log_timing
     def _get_telemetry(self):
@@ -306,6 +316,12 @@ class PfSenseData:
         if "scope" in opts.keys() and opts["scope"] == "device_tracker":
             self._state["arp_table"] = self._get_arp_table()
         else:
+            # queue up the firmaware task
+            # task = self._hass.loop.create_task(self._refresh_firmware_update_info())
+            # self._background_tasks.add(task)
+            # task.add_done_callback(self._background_tasks.discard)
+            self._hass.add_job(self._refresh_firmware_update_info)
+
             self._state["firmware_update_info"] = self._get_firmware_update_info()
             self._state["telemetry"] = self._get_telemetry()
             self._state["config"] = self._get_config()
@@ -363,12 +379,18 @@ class PfSenseData:
                         idle_change = dict_get(current_cpu, "ticks.idle") - dict_get(
                             previous_cpu, "ticks.idle"
                         )
-                        cpu_used_percent = math.floor(
-                            ((total_change - idle_change) / total_change) * 100
-                        )
-                        self._state["telemetry"]["cpu"][
-                            "used_percent"
-                        ] = cpu_used_percent
+                        # avoid division by 0 issues
+                        if total_change > 0:
+                            cpu_used_percent = math.floor(
+                                ((total_change - idle_change) / total_change) * 100
+                            )
+                            self._state["telemetry"]["cpu"][
+                                "used_percent"
+                            ] = cpu_used_percent
+                        else:
+                            self._state["telemetry"]["cpu"]["used_percent"] = dict_get(
+                                previous_state, "telemetry.cpu.used_percent"
+                            )
 
                 for interface_name in dict_get(
                     self._state, "telemetry.interfaces", {}
@@ -545,6 +567,10 @@ class PfSenseEntity(CoordinatorEntity, RestoreEntity):
     """base entity for pfSense"""
 
     @property
+    def coordinator_context(self):
+        return None
+
+    @property
     def device_info(self):
         """Device info for the firewall."""
         state = self.coordinator.data
@@ -620,3 +646,15 @@ class PfSenseEntity(CoordinatorEntity, RestoreEntity):
     def service_send_wol(self, interface: str, mac: str):
         client = self._get_pfsense_client()
         client.send_wol(interface, mac)
+
+    def service_set_default_gateway(self, gateway: str, ip_version: str):
+        client = self._get_pfsense_client()
+        client.set_default_gateway(gateway, ip_version)
+
+    def service_exec_php(self, script: str):
+        client = self._get_pfsense_client()
+        client._exec_php(script)
+
+    def service_exec_command(self, command: str, background: bool = False):
+        client = self._get_pfsense_client()
+        client._exec_command(command, background)

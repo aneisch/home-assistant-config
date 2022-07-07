@@ -8,9 +8,12 @@ import voluptuous as vol
 from .const import (
     DOMAIN,
     SERVICE_CLOSE_NOTICE,
+    SERVICE_EXEC_COMMAND,
+    SERVICE_EXEC_PHP,
     SERVICE_FILE_NOTICE,
     SERVICE_RESTART_SERVICE,
     SERVICE_SEND_WOL,
+    SERVICE_SET_DEFAULT_GATEWAY,
     SERVICE_START_SERVICE,
     SERVICE_STOP_SERVICE,
     SERVICE_SYSTEM_HALT,
@@ -128,6 +131,41 @@ class ServiceRegistrar:
                 {
                     vol.Required("interface"): vol.Any(cv.string),
                     vol.Required("mac"): vol.Any(cv.string),
+                }
+            ),
+            service_func=_async_send_service,
+        )
+
+        self.hass.services.async_register(
+            domain=DOMAIN,
+            service=SERVICE_SET_DEFAULT_GATEWAY,
+            schema=cv.make_entity_service_schema(
+                {
+                    vol.Required("gateway"): vol.Any(cv.string),
+                    vol.Required("ip_version"): vol.Any(cv.string),
+                }
+            ),
+            service_func=_async_send_service,
+        )
+
+        self.hass.services.async_register(
+            domain=DOMAIN,
+            service=SERVICE_EXEC_COMMAND,
+            schema=cv.make_entity_service_schema(
+                {
+                    vol.Required("command"): vol.Any(cv.string),
+                    vol.Optional("background"): cv.boolean,
+                }
+            ),
+            service_func=_async_send_service,
+        )
+
+        self.hass.services.async_register(
+            domain=DOMAIN,
+            service=SERVICE_EXEC_PHP,
+            schema=cv.make_entity_service_schema(
+                {
+                    vol.Required("script"): vol.Any(cv.string),
                 }
             ),
             service_func=_async_send_service,

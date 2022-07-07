@@ -22,7 +22,7 @@ DOMAIN = "pfsense"
 
 UNDO_UPDATE_LISTENER = "undo_update_listener"
 
-PLATFORMS = ["sensor", "switch", "device_tracker", "binary_sensor"]
+PLATFORMS = ["sensor", "switch", "device_tracker", "binary_sensor", "update"]
 LOADED_PLATFORMS = "loaded_platforms"
 
 PFSENSE_CLIENT = "pfsense_client"
@@ -271,3 +271,6 @@ SERVICE_RESTART_SERVICE = "restart_service"
 SERVICE_SYSTEM_HALT = "system_halt"
 SERVICE_SYSTEM_REBOOT = "system_reboot"
 SERVICE_SEND_WOL = "send_wol"
+SERVICE_SET_DEFAULT_GATEWAY = "set_default_gateway"
+SERVICE_EXEC_PHP = "exec_php"
+SERVICE_EXEC_COMMAND = "exec_command"

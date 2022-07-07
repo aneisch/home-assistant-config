@@ -359,6 +359,7 @@ Front Porch Switch Sunset:
   # bulbs are ZigBee
   entities: switch.front_porch_lights,switch.front_sconces
   time_on: sunset - 00:15:00
+  time_off: sunset - 00:16:00
 
 Front House Lights Sunset:
   module: entity_timer

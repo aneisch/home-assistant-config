@@ -166,3 +166,60 @@ send_wol:
       advanced: false
       example: ""
       default: ""
+
+set_default_gateway:
+  name: Set Default Gateway
+  description: Set the default gateway for ipv4 and ipv6.
+  fields:
+    entity_id:
+      description: pfSense entity id
+      example: "binary_sensor.pfsense_localdomain_pending_notices_present"
+
+    gateway:
+      name: Gateway Name
+      description: The name of the gateway.
+      required: true
+      advanced: false
+      example: "GW_WAN, '-' is None and '' is Automatice"
+      default: ""
+
+    ip_version:
+      name: IP Version
+      description: The IP version to update.
+      required: true
+      advanced: false
+      example: "4|6"
+      default: "4"
+
+exec_php:
+  name: Exec PHP Script
+  description: Execute a fully php script.
+  fields:
+    entity_id:
+      description: pfSense entity id
+      example: "binary_sensor.pfsense_localdomain_pending_notices_present"
+
+    script:
+      name: Gateway Name
+      description: The name of the gateway.
+      required: true
+      advanced: false
+      example: "GW_WAN, '-' is None and '' is Automatice"
+      default: ""
+
+exec_command:
+  name: Exec Command
+  description: Execute a command.
+  fields:
+    entity_id:
+      description: pfSense entity id
+      example: "binary_sensor.pfsense_localdomain_pending_notices_present"
+
+    command:
+      name: Command
+      description: The command to run.
+      required: true
+      advanced: false
+      example: "ping -c 1 yahoo.com"
+      default: ""
+

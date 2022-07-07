@@ -315,6 +315,12 @@ notify:
     recipients: # one or more recipients
       - "SECRET"
   - platform: signal_messenger
+    name: signal_bvst_ins
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
+    number: "+10000000000"
+    recipients: # one or more recipients
+      - "SECRET"
+  - platform: signal_messenger
     name: signal_smallgroup
     url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: "+10000000000"

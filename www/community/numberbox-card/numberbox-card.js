@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 3.10');
+console.info('NUMBERBOX_CARD 3.12');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -11,7 +11,7 @@ constructor() {
 	this.pending = false;
 	this.rolling = false;
 	this.state = 0;
-	this.old = {state: undefined, t:{}, h:''}
+	this.old = {state: undefined, t:{}, h:''};
 }
 
 render() {
@@ -26,7 +26,9 @@ render() {
 		this.config.unit=this.stateObj.attributes.unit_of_measurement;
 	}
 	if(this.config.min === undefined){ this.config.min=this.stateObj.attributes.min;}
+	if(isNaN(parseFloat(this.config.min))){this.config.min=0;}
 	if(this.config.max === undefined){ this.config.max=this.stateObj.attributes.max;}
+	if(isNaN(parseFloat(this.config.max))){this.config.max=9e9;}
 	if(this.config.step === undefined){ this.config.step=this.stateObj.attributes.step;}
 
 
@@ -144,11 +146,18 @@ timeNum(x,s,m){
 	return Number(x);
 }
 
+numTime(x,f,t){
+	t = (x>=3600 || f)? Math.floor(x/3600).toString().padStart(2,'0') + ':' : '';
+	t += (Math.floor(x/60)-Math.floor(x/3600)*60).toString().padStart(2,'0');
+	t += ':' + (x%60).toString().padStart(2,'0');
+	return t;
+}
+
 setNumb(c){
 	let v=this.pending;
 	if( v===false ){ v=this.timeNum(this.state); v=isNaN(v)?this.config.min:v;}
 	let adval=c?(v + Number(this.config.step)):(v - Number(this.config.step));
-	adval=Math.round(adval*1000)/1000
+	adval=Math.round(adval*1000)/1000;
 	if( adval <= Number(this.config.max) && adval >= Number(this.config.min)){
 		this.pending=(adval);
 		if(this.config.delay){
@@ -162,9 +171,11 @@ setNumb(c){
 
 publishNum(dhis){
 	const s=dhis.config.service.split('.');
+	if(s[0]=='input_datetime'){dhis.pending=dhis.numTime(dhis.pending,1);}
 	const v={entity_id: dhis.config.entity, [dhis.config.param]: dhis.pending};
 	dhis.pending=false;
 	dhis.old.state=dhis.state;
+							  
 	dhis._hass.callService(s[0], s[1], v);
 }
 
@@ -185,9 +196,7 @@ niceNum(){
 	fix = v.toFixed(fix);
 	const u=this.config.unit;
 	if( u=="time" ){
-		let t = fix>=3600? Math.floor(fix/3600).toString().padStart(2,'0') + ':' : '';
-		t += (Math.floor(fix/60)-Math.floor(fix/3600)*60).toString().padStart(2,'0')
-		t += ':' + (fix%60).toString().padStart(2,'0')
+		let t = this.numTime(fix);
 		return html`${t}`;
 	}
 	fix = new Intl.NumberFormat(
@@ -217,7 +226,7 @@ static get properties() {
 		pending: {},
 		state: {},
 		old: {},
-	}
+	};
 }
 
 static get styles() {
@@ -345,7 +354,7 @@ const fireEvent = (node, type, detail = {}, options = {}) => {
 	event.detail = detail;
 	node.dispatchEvent(event);
 	return event;
-}
+};
 
 class NumberBoxEditor extends LitElement {
 
@@ -479,7 +488,7 @@ updVal(v) {
 			this.config = {
 				...this.config,
 				[target.configValue]: target.checked !== undefined ? target.checked : target.value,
-			}
+			};
 		}
 	}
 	fireEvent(this, 'config-changed', { config: this.config });

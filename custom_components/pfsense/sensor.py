@@ -479,8 +479,9 @@ class PfSenseInterfaceSensor(PfSenseSensor):
     def extra_state_attributes(self):
         attributes = {}
         interface = self._pfsense_get_interface()
-        for attr in ["hwif", "enable", "if", "macaddr", "mtu"]:
-            attributes[attr] = interface[attr]
+        for attr in ["hwif", "enable", "if", "macaddr", "mtu", "media"]:
+            if attr in interface:
+                attributes[attr] = interface[attr]
 
         return attributes
 

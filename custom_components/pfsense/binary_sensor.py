@@ -62,21 +62,6 @@ async def async_setup_entry(
         )
         entities.append(entity)
 
-        entity = PfSenseFirmwareUpdatesAvailableBinarySensor(
-            config_entry,
-            coordinator,
-            BinarySensorEntityDescription(
-                key=f"firmware.update_available",
-                name="Firmware Updates Available",
-                # native_unit_of_measurement=native_unit_of_measurement,
-                icon="mdi:alert",
-                # state_class=state_class,
-                # entity_category=entity_category,
-            ),
-            True,
-        )
-        entities.append(entity)
-
         return entities
 
     cem = CoordinatorEntityManager(
@@ -150,40 +135,5 @@ class PfSensePendingNoticesPresentBinarySensor(PfSenseBinarySensor):
 
         notices = dict_get(state, "notices.pending_notices")
         attrs["pending_notices"] = notices
-
-        return attrs
-
-
-class PfSenseFirmwareUpdatesAvailableBinarySensor(PfSenseBinarySensor):
-    @property
-    def available(self) -> bool:
-        state = self.coordinator.data
-        if state["firmware_update_info"] is None:
-            return False
-
-        return super().available
-
-    @property
-    def is_on(self):
-        state = self.coordinator.data
-
-        try:
-            return state["firmware_update_info"]["base"]["pkg_version_compare"] != "="
-        except KeyError:
-            return STATE_UNKNOWN
-
-    @property
-    def device_class(self):
-        return DEVICE_CLASS_UPDATE
-
-    @property
-    def extra_state_attributes(self):
-        state = self.coordinator.data
-        attrs = {}
-
-        for key in dict_get(state, "firmware_update_info.base", {}).keys():
-            attrs[f"pfsense_base_{key}"] = dict_get(
-                state, f"firmware_update_info.base.{key}"
-            )
 
         return attrs

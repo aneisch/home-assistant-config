@@ -92,6 +92,66 @@ $toreturn["real"] = json_encode($toreturn_real);
         response = json.loads(response["real"])
         return response
 
+    def _exec_php_no_timeout(self, script):
+        script = """
+ini_set('display_errors', 0);
+
+{}
+
+// wrapping this in json_encode and then unwrapping in python prevents funny XMLRPC NULL encoding errors
+// https://github.com/travisghansen/hass-pfsense/issues/35
+$toreturn_real = $toreturn;
+$toreturn = [];
+$toreturn["real"] = json_encode($toreturn_real);
+""".format(
+            script
+        )
+        response = self._get_proxy().pfsense.exec_php(script)
+        response = json.loads(response["real"])
+        return response
+
+    def _exec_command(self, command, background=False):
+        script = """
+$data = json_decode('{}', true);
+if ($data["background"]) {{
+    $ret = mwexec_bg($data["command"]);    
+}}
+else {{
+    $ret = mwexec($data["command"]);
+}}
+
+$toreturn = [
+  "data" => $ret,
+];
+""".format(
+            json.dumps({"command": command, "background": background})
+        )
+        response = self._exec_php(script)
+        return response["data"]
+
+    def get_gateway_status(self, gateway):
+        gateways = self.get_gateways_status()
+        for g in gateways.keys():
+            if g == gateway:
+                return gateways[g]
+
+    def get_arp_table(self, resolve_hostnames=False):
+        # [{'hostname': '?', 'ip-address': '<ip>', 'mac-address': '<mac>', 'interface': 'em0', 'expires': 1199, 'type': 'ethernet'}, ...]
+        script = """
+
+$data = json_decode('{}', true);
+$resolve_hostnames = $data["resolve_hostnames"];
+$toreturn = [
+  "data" => system_get_arp_table($resolve_hostnames),
+];
+""".format(
+            json.dumps(
+                {
+                    "resolve_hostnames": resolve_hostnames,
+                }
+            )
+        )
+
     @_apply_timeout
     def get_host_firmware_version(self):
         return self._get_proxy().pfsense.host_firmware_version(1, 60)
@@ -114,6 +174,34 @@ $toreturn = [
     ]
 ];
 """
+        response = self._exec_php(script)
+        return response["data"]
+
+    def upgrade_firmware(self):
+        script = """
+$ret = mwexec_bg("pfSense-upgrade -y -l /tmp/hass-upgrade.log -p /tmp/hass-upgrade.sock");
+$toreturn = [
+  "data" => $ret,
+];
+"""
+        response = self._exec_php_no_timeout(script)
+        return response["data"]
+
+    def pid_is_running(self, pid):
+        script = """
+$data = json_decode('{}', true);
+$running = posix_kill($data["pid"],0);
+$toreturn = [
+  "data" => $running,
+];
+""".format(
+            json.dumps(
+                {
+                    "pid": pid,
+                }
+            )
+        )
+
         response = self._exec_php(script)
         return response["data"]
 
@@ -304,6 +392,48 @@ $toreturn = [
         )
         response = self._exec_php(script)
         return response["data"]
+
+    def set_default_gateway(self, gateway, ip_version="4"):
+        ipVersion = str(ip_version)
+        key = "defaultgw4"
+        if "4" in ipVersion:
+            key = "defaultgw4"
+        if "6" in ipVersion:
+            key = "defaultgw6"
+
+        script = """
+require_once '/etc/inc/config.inc';
+global $config;
+
+$data = json_decode('{}', true);
+$key = $data["key"];
+$config['gateways'][$key] = $data["gateway"];
+
+mark_subsystem_dirty('staticroutes');
+write_config("System - Gateways: save default gateway");
+
+$retval = 0;
+                    
+$retval |= system_routing_configure();
+$retval |= system_resolvconf_generate();
+$retval |= filter_configure();
+/* reconfigure our gateway monitor */
+setup_gateways_monitor();
+/* Dynamic DNS on gw groups may have changed */
+send_event("service reload dyndnsall");
+
+if ($retval == 0) {{
+  clear_subsystem_dirty('staticroutes');
+}}
+
+$toreturn = [
+  "data" => $retval
+];
+""".format(
+            json.dumps({"key": key, "gateway": gateway})
+        )
+
+        self._exec_php(script)
 
     def get_services(self):
         # function get_services()
