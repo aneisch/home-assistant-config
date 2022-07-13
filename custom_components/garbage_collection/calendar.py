@@ -30,7 +30,7 @@ class GarbageCollectionCalendar(CalendarEntity):
     def __init__(self) -> None:
         """Create empty calendar."""
         self._cal_data: dict = {}
-        self._name = CALENDAR_NAME
+        self._attr_name = CALENDAR_NAME
         GarbageCollectionCalendar.instances = True
 
     @property
@@ -39,9 +39,9 @@ class GarbageCollectionCalendar(CalendarEntity):
         return self.hass.data[DOMAIN][CALENDAR_PLATFORM].event
 
     @property
-    def name(self) -> str:
+    def name(self) -> str | None:
         """Return the name of the entity."""
-        return self._name
+        return self._attr_name
 
     async def async_update(self) -> None:
         """Update all calendars."""
@@ -102,20 +102,25 @@ class EntitiesCalendarData:
                 continue
             garbage_collection = hass.data[DOMAIN][SENSOR_PLATFORM][entity]
             start = garbage_collection.get_next_date(start_date, True)
-            while start is not None and start >= start_date and start <= end_date:
+            while start is not None and start_date <= start <= end_date:
                 try:
                     end = start + timedelta(days=1)
                 except TypeError:
                     end = start
+                name = (
+                    garbage_collection.name
+                    if garbage_collection.name is not None
+                    else "Unknown"
+                )
                 if garbage_collection.expire_after is None:
                     event = CalendarEvent(
-                        summary=garbage_collection.name,
+                        summary=name,
                         start=start,
                         end=end,
                     )
                 else:
                     event = CalendarEvent(
-                        summary=garbage_collection.name,
+                        summary=name,
                         start=datetime.combine(start, datetime.min.time()),
                         end=datetime.combine(start, garbage_collection.expire_after),
                     )

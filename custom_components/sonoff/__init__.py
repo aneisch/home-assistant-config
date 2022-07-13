@@ -14,21 +14,26 @@ from homeassistant.helpers.device_registry import async_get as device_registry
 from homeassistant.helpers.storage import Store
 
 from . import system_health
-from .core import backward, devices
+from .core import backward, devices as core_devices
 from .core.const import *
-from .core.ewelink import XRegistry, XRegistryCloud, XRegistryLocal
+from .core.ewelink import (
+    XRegistry, XRegistryCloud, XRegistryLocal, SIGNAL_CONNECTED,
+    SIGNAL_ADD_ENTITIES
+)
 from .core.ewelink.camera import XCameras
-from .core.ewelink.cloud import AuthError
+from .core.ewelink.cloud import AuthError, APP
 
 _LOGGER = logging.getLogger(__name__)
 
 PLATFORMS = [
     "binary_sensor", "button", "climate", "cover", "fan", "light", "remote",
-    "sensor", "switch"
+    "sensor", "switch", "number"
 ]
 
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
+        vol.Optional(CONF_APPID): cv.string,
+        vol.Optional(CONF_APPSECRET): cv.string,
         vol.Optional(CONF_USERNAME): cv.string,
         vol.Optional(CONF_PASSWORD): cv.string,
         vol.Optional(CONF_DEFAULT_CLASS): cv.string,
@@ -64,11 +69,13 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     # load optional global registry config
     if DOMAIN in config:
         XRegistry.config = conf = config[DOMAIN]
+        if CONF_APPID in conf and CONF_APPSECRET in conf:
+            APP[0] = (conf[CONF_APPID], conf[CONF_APPSECRET])
         if CONF_DEFAULT_CLASS in conf:
-            devices.set_default_class(conf.pop(CONF_DEFAULT_CLASS))
+            core_devices.set_default_class(conf.pop(CONF_DEFAULT_CLASS))
         if CONF_SENSORS in conf:
-            devices.get_spec = devices.get_spec_wrapper(
-                devices.get_spec, conf.pop(CONF_SENSORS)
+            core_devices.get_spec = core_devices.get_spec_wrapper(
+                core_devices.get_spec, conf.pop(CONF_SENSORS)
             )
 
     # cameras starts only on first command to it
@@ -219,16 +226,9 @@ async def internal_cache_setup(
     registry: XRegistry = hass.data[DOMAIN][entry.entry_id]
     if devices:
         devices = internal_unique_devices(entry.entry_id, devices)
-        registry.setup_devices(devices)
-
-    mode = entry.options.get(CONF_MODE, "auto")
-    if mode != "local" and registry.cloud.auth:
-        registry.cloud.start()
-    if mode != "cloud":
-        zc = await zeroconf.async_get_instance(hass)
-        registry.local.start(zc)
-
-    _LOGGER.debug(f"{mode.upper()} mode start")
+        entities = registry.setup_devices(devices)
+    else:
+        entities = None
 
     if not entry.update_listeners:
         entry.add_update_listener(async_update_options)
@@ -236,6 +236,32 @@ async def internal_cache_setup(
     entry.async_on_unload(
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, registry.stop)
     )
+
+    mode = entry.options.get(CONF_MODE, "auto")
+    if mode != "local" and registry.cloud.auth:
+        registry.cloud.start()
+    if mode != "cloud":
+        registry.local.start(await zeroconf.async_get_instance(hass))
+
+    _LOGGER.debug(mode.upper() + " mode start")
+
+    # at this moment we hold EVENT_HOMEASSISTANT_START event, because run this
+    # coro with `hass.async_create_task` from `async_setup_entry`
+    if registry.cloud.task:
+        # we get cloud connected signal even with a cloud error, so we won't
+        # hold Hass start event forever
+        await registry.cloud.dispatcher_wait(SIGNAL_CONNECTED)
+    elif registry.local.online:
+        # we hope that most of local devices will be discovered in 3 seconds
+        await asyncio.sleep(3)
+
+    # 1. We need add_entities after cloud or local init, so they won't be
+    #    unavailable at init state
+    # 2. We need add_entities before Hass start event, so Hass won't push
+    #    unavailable state with restored=True attribute to history
+    if entities:
+        _LOGGER.debug(f"Add {len(entities)} entities")
+        registry.dispatcher_send(SIGNAL_ADD_ENTITIES, entities)
 
 
 def internal_unique_devices(uid: str, devices: list) -> list:

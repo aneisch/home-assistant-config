@@ -234,7 +234,7 @@ services:
             - '/dev/net/tun:/dev/net/tun'
         network_mode: host
         privileged: true
-        image: shaynesweeney/tailscale
+        image: tailscale/tailscale
         entrypoint: tailscaled
     nginx-proxy-manager:
         container_name: nginx-proxy-manager

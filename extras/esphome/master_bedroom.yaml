@@ -10,28 +10,28 @@ esphome:
 <<: !include common.yaml
 
 sensor:
-  - platform: template
-    id: "master_bed_smoothed"
-    unit_of_measurement: kg
-    #name: "${friendly_name} Bed Raw"
-    lambda: |-
-      if (id(master_bed_read).state > 600000 && id(master_bed_read).state < 710000) {
-        return id(master_bed_read).state; 
-      } else {
-        return {};
-      }
-    update_interval: 1s
-    filters:
-      - sliding_window_moving_average:
-          window_size: 10
-          send_every: 5
+  # - platform: template
+  #   id: "master_bed_smoothed"
+  #   unit_of_measurement: kg
+  #   #name: "${friendly_name} Bed Raw"
+  #   lambda: |-
+  #     if (id(master_bed_read).state > 600000 && id(master_bed_read).state < 710000) {
+  #       return id(master_bed_read).state; 
+  #     } else {
+  #       return {};
+  #     }
+  #   update_interval: 1s
+  #   filters:
+  #     - sliding_window_moving_average:
+  #         window_size: 10
+  #         send_every: 5
 
-  - platform: hx711
-    id: "master_bed_read"
-    dout_pin: D2
-    clk_pin: D3
-    gain: 128
-    update_interval: 5s
+  # - platform: hx711
+  #   id: "master_bed_read"
+  #   dout_pin: D2
+  #   clk_pin: D3
+  #   gain: 128
+  #   update_interval: 5s
 
   - platform: dht
     model: DHT22
@@ -45,11 +45,11 @@ sensor:
       name: "${friendly_name} Humidity"
     update_interval: 60s
 
-binary_sensor:
-  - platform: template
-    name: "${friendly_name} Bed"
-    device_class: occupancy
-    lambda: if (id(master_bed_smoothed).state > 664000) return true; else return false;
+# binary_sensor:
+#   - platform: template
+#     name: "${friendly_name} Bed"
+#     device_class: occupancy
+#     lambda: if (id(master_bed_smoothed).state > 664000) return true; else return false;
 
 switch:
   - platform: restart

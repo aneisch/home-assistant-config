@@ -28,8 +28,8 @@ cards:
     title: Garage
     entities:
       - cover.mom_and_dad_garage_door
-      - entity: sensor.mom_and_dad_garage_ip_address
-        name: Microcontroller IP Address
+      # - entity: sensor.mom_and_dad_garage_ip_address
+      #   name: Microcontroller IP Address
       - entity: sensor.mom_and_dad_garage_uptime
         name: Microcontroller Uptime
 
