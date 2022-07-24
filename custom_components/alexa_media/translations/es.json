@@ -31,7 +31,7 @@
           "debug": "Depuración avanzada",
           "email": "Dirección de correo electrónico",
           "exclude_devices": "Dispositivo excluido (separado por comas)",
-          "hass_url": "Url to access Home Assistant",
+          "hass_url": "Url para acceder a Home Assistant",
           "include_devices": "Dispositivo incluido (separado por comas)",
           "otp_secret": "Built-in 2FA App Key (automatically generate 2FA Codes)",
           "password": "Contraseña",

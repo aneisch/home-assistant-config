@@ -36,7 +36,6 @@ automation:
         entity_id: 
           - binary_sensor.in_meeting_weasel
           - binary_sensor.in_meeting_work
-          - binary_sensor.weasel_microphone_in_use
         from: "on"
         to: "off"
     action:
@@ -50,11 +49,10 @@ automation:
         entity_id: 
           - binary_sensor.muted_weasel
           - binary_sensor.muted_work
-          - binary_sensor.weasel_microphone_in_use
       - platform: state
         entity_id: 
           - binary_sensor.in_meeting_weasel
-          - binary_sensor.in_meeting_weasel
+          - binary_sensor.in_meeting_work
         from: "off"
         to: "on"
     condition: "{{ trigger.from_state.state != 'unavailable' }}"

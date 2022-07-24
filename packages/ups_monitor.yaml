@@ -1,27 +1,14 @@
 # UPS monitoring via docker and https://github.com/DanielWinks/pwrstat_docker
 
-# 650: NUC, AP, Modem, Switch
-# 950: NAS, Firewall
-
-#apcusd_950
 apcupsd:
-  port: 3551
-
-#apcusd_650
-apcupsd2:
-  port: 3552
 
 sensor:
   - platform: apcupsd
     resources:
       - loadpct
-      - bcharge
-      - timeleft
-      - status
-
-  - platform: apcupsd2
-    resources:
-      - loadpct
+      - linev
+      - maxlinev
+      - minlinev
       - bcharge
       - timeleft
       - status
@@ -33,9 +20,6 @@ automation:
       - platform: state
         entity_id: sensor.ups_status
         from: 'ONLINE'
-      - platform: state
-        entity_id: sensor.650_ups_status
-        from: 'ONLINE'
     action:
       - service: notify.pushover
         data:
@@ -46,9 +30,6 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        to: 'ONLINE'
-      - platform: state
-        entity_id: sensor.650_ups_status
         to: 'ONLINE'
     action:
       - service: notify.pushover
@@ -134,10 +115,10 @@ automation:
 homeassistant:
   customize:
     sensor.ups_battery:
-      friendly_name: 950 UPS Battery
+      friendly_name: UPS Battery
     sensor.ups_load:
-      friendly_name: 950 UPS Load
+      friendly_name: UPS Load
     sensor.ups_status:
-      friendly_name: 950 UPS Status
+      friendly_name: UPS Status
     sensor.ups_time_left:
-      friendly_name: 950 UPS Time Left
+      friendly_name: UPS Time Left

@@ -27,6 +27,19 @@ automation:
             expire: 3600
             retry: 30
 
+  - alias: "Smoke Alarm Battery Alerts"
+    id: "smoke_alarm_battery_alert"
+    trigger:
+      - platform: numeric_state
+        entity_id: 
+          - sensor.hallway_alarm_battery_level
+          - sensor.kitchen_alarm_battery_level
+        below: 79
+    action:
+      - service: notify.pushover
+        data:
+          message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%. Time to replace!"
+
   - alias: "Smoke Alarm Detection"
     id: "smoke_alarm_detection"
     initial_state: on

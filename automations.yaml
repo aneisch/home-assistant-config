@@ -291,6 +291,7 @@
       - lock.front_door
       - lock.garage_exterior_door
     to: "unlocked"
+  condition: "{{ states('person.andrew') != 'home'}}"
   action:
     - service: notify.pushover
       data:
@@ -473,8 +474,6 @@
         - sensor.guest_bathroom_toilet_water_detector_battery_level
         - sensor.washing_machine_water_detector_battery_level
         - sensor.kitchen_sink_water_detector_battery_level
-        - sensor.hallway_alarm_battery_level
-        - sensor.kitchen_alarm_battery_level
         - sensor.garage_interior_motion_battery_level
         - sensor.living_room_motion_battery_level
       below: 10
@@ -731,3 +730,23 @@
           switch.turn_off
         {% endif %}
       entity_id: switch.garage_fan
+
+- alias: "Tunnel Notifications"
+  id: "tunnel_notifications"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id:
+        - binary_sensor.kurt_tunnel
+      from: "off"
+      to: "on"
+    - platform: state
+      entity_id:
+        - binary_sensor.kurt_tunnel
+      from: "on"
+      to: "off"
+  action:
+    - service: notify.pushover
+      data:
+        message: >
+            The tunnel "{{ trigger.to_state.attributes.friendly_name }}" is {% if trigger.to_state.state == "off" %}offline{% elif trigger.to_state.state == "on" %}online{% endif %}

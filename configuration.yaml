@@ -23,7 +23,7 @@ homeassistant:
     magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
     reminders: !include packages/reminders.yaml
-    # ups_monitoring: !include packages/ups_monitor.yaml
+    ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
     zoom: !include packages/zoom.yaml
   auth_providers:
@@ -67,8 +67,6 @@ monitor_docker:
   #switchname: 'docker_{name}'
   rename:
     adguard: "AdGuard"
-    apcupsd_650: "APCUPSD 650"
-    apcupsd_950: "APCUPSD 950"
     appdaemon: "Appdaemon"
     configurator: "VSCode"
     esphome: "ESPHome"

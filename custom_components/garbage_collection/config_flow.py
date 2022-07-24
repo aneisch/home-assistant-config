@@ -62,7 +62,7 @@ def optional(
 
 
 def general_options_schema(
-    _,
+    _: SchemaConfigFlowHandler | SchemaOptionsFlowHandler,
     options: Dict[str, Any],
 ) -> vol.Schema:
     """Generate options schema."""
@@ -145,7 +145,7 @@ def detail_config_schema(
         if options[const.CONF_FREQUENCY] in const.WEEKLY_DAILY_MONTHLY:
             # "every-n-weeks", "every-n-days", "monthly"
             options_schema[required(const.CONF_PERIOD, options)] = vol.All(
-                vol.Coerce(int), vol.Range(min=1, max=365)
+                vol.Coerce(int), vol.Range(min=1, max=1000)
             )
         if options[const.CONF_FREQUENCY] in const.WEEKLY_FREQUENCY_X:
             # every-n-weeks
@@ -183,8 +183,8 @@ OPTIONS_FLOW: Dict[str, SchemaFlowFormStep | SchemaFlowMenuStep] = {
 
 
 # mypy: ignore-errors
-class HolidaysConfigFlowHandler(SchemaConfigFlowHandler, domain=const.DOMAIN):
-    """Handle a config or options flow for Holdays."""
+class GarbageCollectionConfigFlowHandler(SchemaConfigFlowHandler, domain=const.DOMAIN):
+    """Handle a config or options flow for GarbageCollection."""
 
     config_flow = CONFIG_FLOW
     options_flow = OPTIONS_FLOW

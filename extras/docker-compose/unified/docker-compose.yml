@@ -463,3 +463,13 @@ services:
           #- "8800:8080" 
         volumes:
           - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
+    apcupsd:
+        container_name: apcupsd
+        image: gersilex/apcupsd
+        ports:
+            - '3551:3551'
+        volumes:
+            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+        devices:
+            - '/dev/ups_monitor_large:/dev/usb/hiddev0'
+        restart: always
