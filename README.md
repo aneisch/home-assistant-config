@@ -107,6 +107,54 @@ Entities in the [`weather`](https://www.home-assistant.io/components/weather) do
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
 **Total state objects** | **866**
 ## The HACS integrations/plugins that I use:
+**Appdaemon**:<br>
+[aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
+
+**Theme**:<br>
+[JuanMTech/google_dark_theme](https://github.com/JuanMTech/google_dark_theme)<br>
+[aFFekopp/dark_teal](https://github.com/aFFekopp/dark_teal)<br>
+[home-assistant-community-themes/amoled](https://github.com/home-assistant-community-themes/amoled)<br>
+[home-assistant-community-themes/aqua-fiesta](https://github.com/home-assistant-community-themes/aqua-fiesta)<br>
+[home-assistant-community-themes/blue-night](https://github.com/home-assistant-community-themes/blue-night)<br>
+[home-assistant-community-themes/dark-mint](https://github.com/home-assistant-community-themes/dark-mint)<br>
+[home-assistant-community-themes/grey-night](https://github.com/home-assistant-community-themes/grey-night)<br>
+[naofireblade/clear-theme-dark](https://github.com/naofireblade/clear-theme-dark)<br>
+[seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
+
+**Integration**:<br>
+[AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
+[PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
+[bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
+[claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
+[custom-components/alexa_media_player](https://github.com/custom-components/alexa_media_player)<br>
+[custom-components/readme](https://github.com/custom-components/readme)<br>
+[dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
+[hacs/integration](https://github.com/hacs/integration)<br>
+[moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
+[rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
+[twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
+[ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
+
+**Plugin**:<br>
+[PiotrMachowski/lovelace-xiaomi-vacuum-map-card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card)<br>
+[bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
+[custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
+[dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
+[dylandoamaral/uptime-card](https://github.com/dylandoamaral/uptime-card)<br>
+[gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>
+[gadgetchnnel/lovelace-text-input-row](https://github.com/gadgetchnnel/lovelace-text-input-row)<br>
+[htmltiger/numberbox-card](https://github.com/htmltiger/numberbox-card)<br>
+[kalkih/mini-media-player](https://github.com/kalkih/mini-media-player)<br>
+[nervetattoo/simple-thermostat](https://github.com/nervetattoo/simple-thermostat)<br>
+[ofekashery/vertical-stack-in-card](https://github.com/ofekashery/vertical-stack-in-card)<br>
+[pmongloid/flipdown-timer-card](https://github.com/pmongloid/flipdown-timer-card)<br>
+[thomasloven/lovelace-auto-entities](https://github.com/thomasloven/lovelace-auto-entities)<br>
+[thomasloven/lovelace-card-mod](https://github.com/thomasloven/lovelace-card-mod)<br>
+[thomasloven/lovelace-card-tools](https://github.com/thomasloven/lovelace-card-tools)<br>
+[thomasloven/lovelace-fold-entity-row](https://github.com/thomasloven/lovelace-fold-entity-row)<br>
+[thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
+[twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>
+
 
 # Interface
 ![UI](images/screenshot1.png)  
