@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.7.6%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2022.7.6%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -27,23 +27,6 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Z-Wave JS using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
-  - 1 AEON Labs DSA03XXX-ZW
-  - 1 AEON Labs ZW090
-  - 2 First Alert (BRK Brands Inc) ZCOMBO
-  - 1 GE/Jasco 12722 / ZW4005
-  - 2 GE/Jasco 12730  / ZW4002
-  - 1 GE/Jasco 45603
-  - 2 GE/Jasco 45604
-  - 1 Kwikset 910
-  - 1 Leviton DZPA1
-  - 1 Nortek Security + Control LLC WADWAZ-1
-  - 1 Nortek Security + Control LLC WAPIRZ-1
-  - 5 Zooz ZEN21
-  - 6 Zooz ZEN27
-  - 6 Zooz ZEN30
-  - 1 Zooz ZEN71
-  - 1 Zooz ZEN77
-  - 4 Zooz ZSE42
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
@@ -66,6 +49,7 @@ Lines of ESPHome YAML | 1870
 Lines of Home Assistant YAML | 6117
 [Integrations](https://www.home-assistant.io/integrations/) in use | 41
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 19
+Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
 Description | value
 -- | --
