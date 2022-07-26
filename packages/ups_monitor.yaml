@@ -48,7 +48,7 @@ automation:
       entity_id: sensor.ups_status
       to: "ONBATT"
       for:
-        minutes: 10
+        minutes: 5
     condition:
       condition: state
       entity_id: switch.nas
@@ -68,7 +68,7 @@ automation:
         from: "ONLINE"
         to: "ONBATT"
         for:
-          seconds: 30
+          seconds: 60
     action:
       - service: homeassistant.turn_off
         entity_id: 
