@@ -27,6 +27,23 @@ My Home Assistant installation contains many different components and runs on a 
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Z-Wave JS using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
+  - 1 AEON Labs DSA03XXX-ZW
+  - 1 AEON Labs ZW090
+  - 2 First Alert (BRK Brands Inc) ZCOMBO
+  - 1 GE/Jasco 12722 / ZW4005
+  - 2 GE/Jasco 12730  / ZW4002
+  - 1 GE/Jasco 45603
+  - 2 GE/Jasco 45604
+  - 1 Kwikset 910
+  - 1 Leviton DZPA1
+  - 1 Nortek Security + Control LLC WADWAZ-1
+  - 1 Nortek Security + Control LLC WAPIRZ-1
+  - 5 Zooz ZEN21
+  - 6 Zooz ZEN27
+  - 6 Zooz ZEN30
+  - 1 Zooz ZEN71
+  - 1 Zooz ZEN77
+  - 4 Zooz ZSE42
 - MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
 - [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
