@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2022.7.6%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2022.8.0b6%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -18,12 +18,7 @@ My Home Assistant installation contains many different components and runs on a 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
 - Wemo wall plugs
 - ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware with various devices
-  - 1 LUMI lumi.sensor_cube
-  - 1 Philips LWB014
-  - 1 Yunding Ford
-  - 2 eWeLink MS01
-  - 2 LDS ZBT-CCTSwitch-D0001
-  - 11 The Home Depot Ecosmart-ZBT-A19-CCT-Bulb
+
 - [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
   - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
 - Z-Wave JS using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
@@ -63,9 +58,9 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1870
-Lines of Home Assistant YAML | 6117
+Lines of Home Assistant YAML | 6135
 [Integrations](https://www.home-assistant.io/integrations/) in use | 41
-Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 19
+Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
 Description | value

@@ -25,7 +25,9 @@ class AutoAdjust(hass.Hass):
                 self.listen_state(self.presence_adjust, device)
 
         # Set our door trigger callback
-        self.listen_state(self.presence_adjust, self.args["door_trigger"])
+        if "door_trigger" in self.args:
+            for device in self.split_device_list(self.args["door_trigger"]):
+                self.listen_state(self.presence_adjust, self.args["door_trigger"])
 
     # Determine whether we're in daytime or nighttime
     def time_in_range(self, start, end, x):

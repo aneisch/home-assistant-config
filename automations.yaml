@@ -142,7 +142,8 @@
       to: "off"
       for: "00:30:00"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "The thermostat appears to be offline..."
 
@@ -155,7 +156,8 @@
       to: "off"
       for: "00:10:00"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "The Zigbee2MQTT Pi appears to be offline..."
 
@@ -167,7 +169,8 @@
       entity_id: sensor.verizon_network_extender_status
       from: "In Service"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "The Verizon extender appears to be out of service..."
 
@@ -179,7 +182,8 @@
       entity_id: sensor.thermostat_latest_equipment_event
   condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] }}"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "AC Equipment Event: {{ trigger.to_state.state }}"
 
@@ -199,7 +203,8 @@
         state: "on"
       - "{{ trigger.from_state.state != trigger.to_state.state }}"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "{% if trigger.entity_id == 'sensor.thermostat_setpoint' %}Setpoint{% elif trigger.entity_id == 'sensor.thermostat_mode' %}Mode{% endif %}: {{ states('sensor.thermostat_setpoint') }}. Mode: {{ states('sensor.thermostat_operating_mode') }}"
 
@@ -257,7 +262,8 @@
     # Force capture of clip
     - service: switch.turn_on
       entity_id: switch.garage_stream
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: >
           Mailbox Opened!
@@ -293,7 +299,8 @@
     to: "unlocked"
   condition: "{{ states('person.andrew') != 'home'}}"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: >
           {{ trigger.to_state.name }} Unlocked
@@ -305,7 +312,8 @@
     platform: webhook
     webhook_id: !secret andrew_webhook
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: >
             Stacey unused
@@ -478,7 +486,8 @@
         - sensor.living_room_motion_battery_level
       below: 10
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%"
 
@@ -493,7 +502,8 @@
       data:
         old: "{{ trigger.from_state.state }}"
         new: "{{ trigger.to_state.state }}"
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: >
           Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
@@ -605,7 +615,8 @@
   action:
     - service: homeassistant.turn_on
       entity_id: switch.safe
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: "Safe opened by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% endif %}!"
         # data:
@@ -746,7 +757,8 @@
       from: "on"
       to: "off"
   action:
-    - service: notify.pushover
+    #- service: notify.pushover
+    - service: notify.signal_self
       data:
         message: >
             The tunnel "{{ trigger.to_state.attributes.friendly_name }}" is {% if trigger.to_state.state == "off" %}offline{% elif trigger.to_state.state == "on" %}online{% endif %}

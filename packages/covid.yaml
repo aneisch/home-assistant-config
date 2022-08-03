@@ -10,7 +10,8 @@ automation:
         from: None
     condition: '{{ trigger.to_state.state != "unknown" and trigger.to_state.state != "unavailable" }}'
     action:
-      - service: notify.pushover
+      #- service: notify.pushover
+      - service: notify.signal_self
         data:
           message: "{{ trigger.to_state.name }}: {{ trigger.to_state.state }}"
 

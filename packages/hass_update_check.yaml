@@ -177,7 +177,8 @@ script:
   hass_update_install:
     # Notify and install latest version
     sequence:
-      - service: notify.pushover
+      #- service: notify.pushover
+      - service: notify.signal_self
         data:
           message: >
             Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
@@ -207,7 +208,8 @@ script:
     # Notify and enable update button on frontend
     sequence:
       - service: shell_command.pull_hass
-      - service: notify.pushover
+      #- service: notify.pushover
+      - service: notify.signal_self
         data:
           message: >
             Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}

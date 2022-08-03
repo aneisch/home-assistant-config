@@ -4,7 +4,6 @@ AC Automation:
   constrain_input_boolean: input_boolean.ac_automation
   thermostats: climate.thermostat
   device_tracker: group.trackers
-  door_trigger: binary_sensor.front_door
   morning_adjust_weekday: '09:00:00'
   morning_adjust_weekend: '11:00:00'
   night_adjust_weekday: '01:00:00'
