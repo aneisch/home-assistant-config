@@ -14,7 +14,7 @@ remote_transmitter:
   pin:
     number: D3
     inverted: False
-  carrier_duty_percent: 50%
+  carrier_duty_percent: 40%
   
 # remote_receiver:
 #   pin: 
@@ -29,6 +29,9 @@ switch:
     name: "${friendly_name} Restart"
 
 api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
   services:
     # Help from https://github.com/aamarioneta/IRDenon
     # See also https://github.com/aneisch/home-assistant-config/blob/master/extras/denon%20master%20ir%20hex.xls
@@ -72,7 +75,7 @@ api:
             repeat:
               times: 2
 
-    - service: input_xbox
+    - service: input_chromecast
       then:
         - remote_transmitter.transmit_raw:
             # Input DVD
@@ -80,7 +83,7 @@ api:
             code: [276, -786, 250, -1822, 250, -810, 250, -788, 246, -814, 244, -1828, 246, -1826, 246, -814, 246, -790, 246, -816, 220, -1852, 246, -1828, 246, -1852, 244, -792, 246, -814, 222, -43910, 250, -812, 246, -1826, 248, -814, 222, -816, 246, -790, 244, -816, 244, -790, 246, -1826, 246, -1852, 246, -1828, 246, -814, 222, -814, 248, -790, 244, -1852, 244, -1828, 246, -43886, 274, -788, 248, -1848, 246, -790, 246, -814, 220, -816, 246, -1826, 246, -1852, 244, -790, 248, -790, 246, -814, 246, -1826, 246, -1852, 220, -1852, 246, -790, 246, -816, 244]
             carrier_frequency: ${carrier}
 
-    - service: input_chromecast
+    - service: input_xbox
       then:
         - remote_transmitter.transmit_raw:
             # Input TV

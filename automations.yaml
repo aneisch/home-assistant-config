@@ -326,11 +326,15 @@
     platform: webhook
     webhook_id: !secret panic_script_webhook
   action:
-    - service: homeassistant.toggle
-      entity_id: switch.master_bathroom_light_switch
-    - delay: "00:00:01"
-    - service: switch.toggle
-      entity_id: switch.master_bathroom_light_switch
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.master
+        volume_level: 0.3
+    - service: notify.alexa_media_master
+      data:
+        data:
+          type: tts
+        message: "Help is on the way"
 
 - alias: "Pull Recipes Github Webhook"
   id: "recipes_github_pull"
@@ -417,7 +421,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "on"
-  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('sensor.weasel_ssid') == 'Penny' }}"
+  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('sensor.weasel_ssid') == 'Penny' and states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
@@ -431,7 +435,7 @@
     entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
-  condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
+  condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp
