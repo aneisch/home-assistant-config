@@ -138,21 +138,11 @@ services:
             - MQTT_SERVER=10.0.1.22
         depends_on:
           - mosquitto
-        healthcheck:
-          test: "curl -sLf http://localhost:8080/time"
-          interval: 60s
-          timeout: 5s
-          retries: 3
         restart: always
     zwavejs:
         container_name: zwavejs
         image: zwavejs/zwavejs2mqtt:latest
         #image: zwavejs/zwavejs2mqtt:sha-0a723f9 # 2.4.1
-        healthcheck:
-          test: 'curl 10.0.1.22:8091/health/zwave -H "Accept: text/plain"'
-          interval: 60s
-          timeout: 5s
-          retries: 3
         restart: always
         #labels:
         #  com.centurylinklabs.watchtower.monitor-only: "true"

@@ -21,6 +21,7 @@ cards:
         - entity_id: "switch.docker*"
         - entity_id: "switch.under*"
         - entity_id: "*.aquarium_*"
+        - entity_id: "switch.irrigation*"
         - entity_id: "light.garage"
         - entity_id: "light.front_porch_*"
         - entity_id: "switch.front_porch_lights"

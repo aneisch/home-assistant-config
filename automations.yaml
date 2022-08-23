@@ -718,7 +718,7 @@
     platform: numeric_state
     entity_id:
       - sensor.deep_freeze_temperature
-    above: 16
+    above: 17
     for:
       minutes: 10
   action:

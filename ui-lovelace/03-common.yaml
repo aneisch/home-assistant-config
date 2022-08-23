@@ -131,9 +131,10 @@ cards:
       - sensor.office_temperature
       - fan.office_ceiling_fan
       - light.office_ceiling_fan
-      - sensor.aquarium_temperature
-      - light.aquarium_light
-      - switch.aquarium_co2
+      # - sensor.aquarium_temperature
+      # - light.aquarium_light
+      # - switch.aquarium_co2
+      - switch.andrew_monitor
       - entity: switch.andrew_office_speakers
         icon: mdi:speaker
       - switch.office_heater
