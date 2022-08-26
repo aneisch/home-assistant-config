@@ -62,7 +62,7 @@ services:
         user: '99'
         labels:
           com.centurylinklabs.watchtower.enable: "false"
-        restart: 'never'
+        restart: 'no'
         devices:
             - '/dev/bus/usb:/dev/bus/usb'
         volumes:
@@ -182,17 +182,17 @@ services:
           - PASSWORD=password
           - TZ=America/Chicago
         restart: 'no'
-    #recipes:
-    #    # Public consumption at VPS, duplicated locally for home use though
-    #    container_name: recipes
-    #    image: ghcr.io/aneisch/chowdown:latest
-    #    user: '99'
-    #    ports:
-    #      - "4000:4000"
-    #    volumes:
-    #      - '/opt/recipes:/config'
-    #      - '/etc/localtime:/etc/localtime:ro'
-    #    restart: always
+    recipes:
+        # Public consumption at VPS, duplicated locally for home use though
+        container_name: recipes
+        image: ghcr.io/aneisch/chowdown:latest
+        user: '99'
+        #ports:
+        #  - "4000:4000"
+        volumes:
+          - '/opt/recipes:/config'
+          - '/etc/localtime:/etc/localtime:ro'
+        restart: always
     #tuya-convert:
     #    # https://github.com/ct-Open-Source/tuya-convert
     #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash

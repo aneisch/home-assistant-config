@@ -131,12 +131,55 @@ master_bedroom_bedtime:
         entity_id: 
           - lock.front_door
           - lock.garage_exterior_door
-    - condition: "{{ states('input_boolean.guest_mode') == 'off' }}"
-    - service: light.turn_off
-      entity_id:
-        - light.guest_bedroom_nightstand_lamp
-        - light.back_bedroom_nightstand_lamp
+    - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
+      then:
+        - service: light.turn_off
+          entity_id:
+            - light.guest_bedroom_nightstand_lamp
+            - light.back_bedroom_nightstand_lamp
+    # - service: script.christmas_goodnight
 
+christmas_goodnight:
+  # Play Christmas music, say goodnight, fade music out, and turn off tree
+  sequence:
+    - service: media_player.select_source
+      data:
+        entity_id: media_player.spotify
+        source: "Master"
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.spotify
+        volume_level: 0.6
+    - service: media_player.shuffle_set
+      data:
+        shuffle: true
+        entity_id: media_player.spotify
+    - service: media_player.play_media
+      data:
+        media_content_id: 'spotify:playlist:3ggRyPeN5BcQSBJ2UB6G8L' # https://open.spotify.com/playlist/3ggRyPeN5BcQSBJ2UB6G8L?si=1aed5ff4d4a946af
+        media_content_type: playlist
+        entity_id: media_player.spotify
+    - delay: "00:00:30"
+    - service: notify.alexa_media_master
+      data:
+        data:
+          type: tts
+        message: "And to all a Goodnight"
+    - repeat:
+        while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
+        sequence:
+          - service: media_player.volume_set
+            data_template:
+              entity_id: media_player.spotify
+              volume_level: >
+                {{ state_attr('media_player.spotify', 'volume_level') - 0.05 }}
+          - delay: 
+              seconds: 0.5
+    - service: media_player.media_pause
+      data_template:
+        entity_id: media_player.spotify
+    - service: switch.turn_off
+      entity_id: switch.master_bedroom_christmas_tree
 
 #########
 # OTHER #

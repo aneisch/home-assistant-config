@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 3.12');
+console.info('NUMBERBOX_CARD 3.13');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -29,8 +29,8 @@ render() {
 	if(isNaN(parseFloat(this.config.min))){this.config.min=0;}
 	if(this.config.max === undefined){ this.config.max=this.stateObj.attributes.max;}
 	if(isNaN(parseFloat(this.config.max))){this.config.max=9e9;}
+	if('step_entity' in this.config && this.config.step_entity in this._hass.states && !isNaN(parseFloat(this._hass.states[this.config.step_entity].state))) {this.config.step=this._hass.states[this.config.step_entity].state;}
 	if(this.config.step === undefined){ this.config.step=this.stateObj.attributes.step;}
-
 
 	return html`
 	<ha-card class="${(!this.config.border)?'noborder':''}">
@@ -157,7 +157,7 @@ setNumb(c){
 	let v=this.pending;
 	if( v===false ){ v=this.timeNum(this.state); v=isNaN(v)?this.config.min:v;}
 	let adval=c?(v + Number(this.config.step)):(v - Number(this.config.step));
-	adval=Math.round(adval*1000)/1000;
+	adval=Math.round(adval*1e9)/1e9;
 	if( adval <= Number(this.config.max) && adval >= Number(this.config.min)){
 		this.pending=(adval);
 		if(this.config.delay){
