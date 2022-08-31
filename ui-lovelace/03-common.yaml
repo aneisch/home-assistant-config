@@ -94,6 +94,7 @@ cards:
       - light.back_bedroom_ceiling_fan
       - switch.back_bedroom_ceiling_fan
       - light.back_bedroom_nightstand_lamp
+      - light.back_bedroom_dresser_lamp
 
   - type: entities
     show_header_toggle: false
@@ -122,6 +123,7 @@ cards:
       - light.kitchen_table_light
       - light.kitchen_table_leds
       - light.dining_room_light
+      - switch.upright_fan
 
   - type: entities
     show_header_toggle: false

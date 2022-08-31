@@ -212,7 +212,8 @@ services:
     #      - /tmp/tuya:/usr/bin/tuya-convert/backups
     ring-mqtt:
         container_name: ring-mqtt
-        image: tsightler/ring-mqtt
+        #image: tsightler/ring-mqtt
+        image: tsightler/ring-mqtt:5.0.2
         restart: 'always'
         user: '99'
         ports:
@@ -227,6 +228,8 @@ services:
             - ENABLECAMERAS=true
         volumes:
             - '/opt/ring-mqtt:/data'
+            #- type: tmpfs
+            #  target: /run
     tailscale:
         container_name: tailscale
         volumes:

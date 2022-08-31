@@ -22,7 +22,7 @@ Back Bedroom Zigbee Remote:
   device_ieee: cc:cc:cc:ff:fe:d9:03:f7
   button_1_toggle: light.back_bedroom_ceiling_fan
   button_2_toggle: switch.back_bedroom_ceiling_fan
-  button_3_toggle: light.back_bedroom_nightstand_lamp
+  button_3_toggle: light.back_bedroom_lamps
 
 Guest Bedroom EcoSmart Zigbee Remote:
   module: zigbee_remote

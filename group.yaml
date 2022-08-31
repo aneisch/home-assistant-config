@@ -46,6 +46,7 @@ back_bedroom:
   name: Back Bedroom
   entities:
     - light.back_bedroom_nightstand_lamp
+    - light.back_bedroom_dresser_lamp
 
 trackers:
   name: Trackers
@@ -104,6 +105,6 @@ andrew_desk:
 # christmas:
 #   entities:
 #     - group.christmas_trees
-#     - switch.sonoff_1_switch
+#     - switch.sonoff_1 # Ferris Wheel
 #     - switch.santa_tree
 #     - switch.nativity

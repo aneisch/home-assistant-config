@@ -180,7 +180,7 @@
   trigger:
     - platform: state
       entity_id: sensor.thermostat_latest_equipment_event
-  condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] }}"
+  condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] and trigger.from_state.state not in [ 'unavailable', '' ] }}"
   action:
     #- service: notify.pushover
     - service: notify.signal_self

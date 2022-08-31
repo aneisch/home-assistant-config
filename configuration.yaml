@@ -182,6 +182,11 @@ light:
       - light.living_room_lamp
       - light.living_room_lamp_2
   - platform: group
+    name: Back Bedroom Lamps
+    entities:
+      - light.back_bedroom_nightstand_lamp
+      - light.back_bedroom_dresser_lamp
+  - platform: group
     name: Front Porch Lights
     entities:
       - light.front_porch_left

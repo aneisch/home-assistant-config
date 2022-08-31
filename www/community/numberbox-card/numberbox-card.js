@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 3.13');
+console.info('NUMBERBOX_CARD 3.16');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -22,6 +22,9 @@ render() {
 	if( this.config.icon === undefined && this.stateObj.attributes.icon ){
 		this.config.icon=this.stateObj.attributes.icon;
 	}
+	if( this.config.picture === undefined && this.stateObj.attributes.entity_picture ){
+		this.config.picture=this.stateObj.attributes.entity_picture;
+	}
 	if( this.config.unit === undefined && this.stateObj.attributes.unit_of_measurement ){
 		this.config.unit=this.stateObj.attributes.unit_of_measurement;
 	}
@@ -36,7 +39,10 @@ render() {
 	<ha-card class="${(!this.config.border)?'noborder':''}">
 		${(this.config.icon || this.config.name) ? html`<div class="grid">
 		<div class="grid-content grid-left" @click="${() => this.moreInfo()}">
-			${this.config.icon ? html`
+			${this.config.picture ? html`
+				<state-badge
+				.overrideImage="${this.config.picture}"
+				></state-badge>` : this.config.icon ? html`
 				<state-badge
 				.overrideIcon="${this.config.icon}"
 				.stateObj=${this.stateObj}
@@ -146,10 +152,13 @@ timeNum(x,s,m){
 	return Number(x);
 }
 
-numTime(x,f,t){
+numTime(x,f,t,u){
+	if(t=="timehm"){u=1;f=1;}
 	t = (x>=3600 || f)? Math.floor(x/3600).toString().padStart(2,'0') + ':' : '';
 	t += (Math.floor(x/60)-Math.floor(x/3600)*60).toString().padStart(2,'0');
-	t += ':' + (x%60).toString().padStart(2,'0');
+	if( !u ){
+		t += ':' + Math.floor(x%60).toString().padStart(2,'0');
+	}
 	return t;
 }
 
@@ -195,8 +204,8 @@ niceNum(){
 	}else{ stp=fix; }
 	fix = v.toFixed(fix);
 	const u=this.config.unit;
-	if( u=="time" ){
-		let t = this.numTime(fix);
+	if( u=="time" || u=="timehm"){
+		let t = this.numTime(fix,0,u);
 		return html`${t}`;
 	}
 	fix = new Intl.NumberFormat(
