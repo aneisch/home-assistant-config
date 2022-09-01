@@ -49,7 +49,7 @@ automation:
         data:
           data:
             type: tts
-          message: "Sending Roxie to Clean Kitchen"
+          message: "Sending Roxie to clean the Kitchen"
 
 sensor:
   - platform: template
