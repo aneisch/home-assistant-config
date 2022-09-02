@@ -7,11 +7,6 @@ cards:
   - type: 'custom:auto-entities'
     filter:
       include:
-        - entity_id: "switch.sonoff_s40*"
-
-  - type: 'custom:auto-entities'
-    filter:
-      include:
         - entity_id: "light.*"
           state: "on"
         - entity_id: "switch.*"
@@ -20,7 +15,6 @@ cards:
           state: "on"
         - entity_id: "group.under_cabinet_lights"
           state: "on"
-        - entity_id: "switch.sonoff_s40*"
       exclude:
         - entity_id: "switch.adguard_protection"
         - entity_id: "switch.irrigation_24v_power"

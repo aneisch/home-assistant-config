@@ -14,13 +14,6 @@ status_led:
     number: GPIO13
     inverted: yes
 
-binary_sensor:
-  platform: gpio
-  name: "${friendly_name} Reed Switch"
-  pin:
-    number: GPIO14
-    inverted: yes
-
 switch:
   - platform: restart
     id: restart_device
