@@ -188,6 +188,14 @@ DEVICES = {
         spec(XSensor, param="power"),
         spec(XSensor, param="voltage"),
     ],  # Sonoff S40
+    190: [
+        Switch1, LED, RSSI,
+        spec(XSensor100, param="current"),
+        spec(XSensor100, param="power"),
+        spec(XSensor100, param="voltage"),
+        spec(XEnergySensor, param="hundredDaysKwhData", uid="energy",
+             get_params={"hundredDaysKwh": "get"}),
+    ],  # Sonoff POWR3
     1000: [XRemoteButton, Battery],  # zigbee_ON_OFF_SWITCH_1000
     1256: [spec(XSwitch, base="light")],  # ZCL_HA_DEVICEID_ON_OFF_LIGHT
     1770: [
@@ -232,9 +240,13 @@ def get_spec(device: dict) -> list:
         classes = [XUnknown]
 
     # DualR3 in cover mode
-    if uiid in (126, 165) and device["params"].get("workMode") == 2:
+    if uiid in [126, 165] and device["params"].get("workMode") == 2:
         classes = [cls for cls in classes if XSwitches not in cls.__bases__]
         classes.append(XCoverDualR3)
+
+    # NSPanel Climate disable without switch configuration
+    if uiid in [133] and not device["params"].get("HMI_ATCDevice"):
+        classes = [cls for cls in classes if XClimateNS not in cls.__bases__]
 
     if "device_class" in device:
         classes = get_custom_spec(classes, device["device_class"])

@@ -609,24 +609,24 @@
         entity_id: camera.mail_usps
         file_path: "{{ states('sensor.mail_image_system_path') }}"
 
-- alias: "Fingerprint Safe Open"
-  id: "fingerprint_safe"
-  trigger:
-    platform: state
-    entity_id: sensor.fingerprint_state
-    to: "Authorized finger"
-  condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
-  action:
-    - service: homeassistant.turn_on
-      entity_id: switch.safe
-    #- service: notify.pushover
-    - service: notify.signal_self
-      data:
-        message: "Safe opened by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% endif %}!"
-        # data:
-        #   priority: 2
-        #   expire: 3600
-        #   retry: 30
+# - alias: "Fingerprint Safe Open"
+#   id: "fingerprint_safe"
+#   trigger:
+#     platform: state
+#     entity_id: sensor.fingerprint_state
+#     to: "Authorized finger"
+#   condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
+#   action:
+#     - service: homeassistant.turn_on
+#       entity_id: switch.safe
+#     #- service: notify.pushover
+#     - service: notify.signal_self
+#       data:
+#         message: "Safe opened by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% endif %}!"
+#         # data:
+#         #   priority: 2
+#         #   expire: 3600
+#         #   retry: 30
 
 - alias: "Sync Alexa Timers"
   id: "sync_alexa_timers"
