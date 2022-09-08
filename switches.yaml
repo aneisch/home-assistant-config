@@ -20,3 +20,13 @@
   turn_off: 
     service: media_player.turn_off
     entity_id: media_player.living_room_tv
+
+- platform: template
+  switches:
+    # Fireplace pumpkin patch
+    ir_candles:
+      turn_on:
+        service: esphome.ir_candles_candles_on
+      turn_off:
+        service: esphome.ir_candles_candles_off
+      icon_template: mdi:candle

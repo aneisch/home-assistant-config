@@ -18,6 +18,7 @@ cards:
       - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
+      - switch.ir_candles
 
   - type: vertical-stack
     cards:

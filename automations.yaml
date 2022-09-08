@@ -386,6 +386,7 @@
 
 - alias: "Turn on speakers and tv when XBOX powers on"
   id: "speakers_with_xbox"
+  initial_state: on
   trigger:
     platform: state
     entity_id: binary_sensor.xbox_power
@@ -399,6 +400,7 @@
       
 - alias: "Turn off speakers when tv OR xbox powers off"
   id: "tv_off_with_xbox_off"
+  initial_state: on
   trigger:
     - platform: state
       entity_id: switch.tv

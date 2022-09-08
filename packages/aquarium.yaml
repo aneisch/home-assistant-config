@@ -17,14 +17,14 @@ script:
           entity_id: light.aquarium_light
           brightness: "{{ [1, state_attr('light.aquarium_light', 'brightness') | int - 50] | max }}"
 
-switch:
-  - platform: circadian_lighting
-    name: Aquarium Circadian
-    lights_brightness:
-      - light.aquarium_light
-    max_brightness: 85
-    # Set light to 1% if comes on after real sunset
-    sleep_entity: "sun.sun"
-    sleep_state: "below_horizon"
-    sleep_brightness: 1
-    sleep_colortemp: 10000
+# switch:
+#   - platform: circadian_lighting
+#     name: Aquarium Circadian
+#     lights_brightness:
+#       - light.aquarium_light
+#     max_brightness: 85
+#     # Set light to 1% if comes on after real sunset
+#     sleep_entity: "sun.sun"
+#     sleep_state: "below_horizon"
+#     sleep_brightness: 1
+#     sleep_colortemp: 10000

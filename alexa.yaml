@@ -72,6 +72,7 @@ smart_home:
       - switch.outdoor_zwave_switch
       - switch.tv
       - switch.vacuum
+      - switch.ir_candles
       #############
       # Christmas #
       #############
@@ -206,6 +207,10 @@ smart_home:
     switch.vacuum:
       name: Roxie
       display_categories: SWITCH
+
+    switch.ir_candles:
+      name: Pumpkin Patch
+      display_categories: LIGHT
 
     #############
     # Christmas #

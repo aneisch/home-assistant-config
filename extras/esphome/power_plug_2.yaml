@@ -23,7 +23,7 @@ sensor:
     cf1_pin: GPIO14
     power:
       id: power
-      name: "xbox power"
+      #name: "xbox power"
       filters:
         # Some calibration
         - multiply: 0.4545
@@ -53,7 +53,7 @@ binary_sensor:
   - platform: template
     name: "${friendly_name} Power"
     device_class: occupancy
-    lambda: if (id(power).state > 1) return true; else return false;
+    lambda: if (id(power).state > 5) return true; else return false;
 
 switch:
   - platform: gpio
