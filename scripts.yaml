@@ -149,7 +149,7 @@ christmas_goodnight:
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify
-        volume_level: 0.6
+        volume_level: 0.55
     - service: media_player.shuffle_set
       data:
         shuffle: true
@@ -159,12 +159,16 @@ christmas_goodnight:
         media_content_id: 'spotify:playlist:3ggRyPeN5BcQSBJ2UB6G8L' # https://open.spotify.com/playlist/3ggRyPeN5BcQSBJ2UB6G8L?si=1aed5ff4d4a946af
         media_content_type: playlist
         entity_id: media_player.spotify
-    - delay: "00:00:30"
+    - delay: "00:00:60"
     - service: notify.alexa_media_master
       data:
         data:
           type: tts
-        message: "And to all a Goodnight"
+          method: speak
+        message: "<prosody rate='65%'><amazon:emotion name='excited' intensity='low'>And to all a good night</amazon:emotion></prosody>"
+    - service: switch.turn_off
+      entity_id: switch.master_bedroom_christmas_tree
+    # Fade music out
     - repeat:
         while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
         sequence:
@@ -172,14 +176,12 @@ christmas_goodnight:
             data_template:
               entity_id: media_player.spotify
               volume_level: >
-                {{ state_attr('media_player.spotify', 'volume_level') - 0.05 }}
+                {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
           - delay: 
-              seconds: 0.5
+              seconds: 0.4
     - service: media_player.media_pause
       data_template:
         entity_id: media_player.spotify
-    - service: switch.turn_off
-      entity_id: switch.master_bedroom_christmas_tree
 
 #########
 # OTHER #

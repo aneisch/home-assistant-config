@@ -768,3 +768,22 @@
       data:
         message: >
             The tunnel "{{ trigger.to_state.attributes.friendly_name }}" is {% if trigger.to_state.state == "off" %}offline{% elif trigger.to_state.state == "on" %}online{% endif %}
+
+- alias: "Door Chime"
+  id: "door_chime"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id:
+        - cover.garage_door
+      from: "closed"
+      to: "open"
+  condition: "{{ states('group.trackers') == 'home'}}"
+  action:
+    - service: notify.alexa_media_kitchen
+      data:
+        data:
+          type: tts
+          method: speak
+        # https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html
+        message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
