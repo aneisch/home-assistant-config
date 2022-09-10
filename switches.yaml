@@ -25,6 +25,7 @@
   switches:
     # Fireplace pumpkin patch
     ir_candles:
+      friendly_name: Pumpkin Patch
       turn_on:
         service: esphome.ir_candles_candles_on
       turn_off:

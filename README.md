@@ -58,7 +58,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 1933
-Lines of Home Assistant YAML | 6114
+Lines of Home Assistant YAML | 6115
 [Integrations](https://www.home-assistant.io/integrations/) in use | 42
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | ZHA_COUNT
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -66,7 +66,7 @@ Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 92
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 93
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 97
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 56
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
@@ -96,7 +96,7 @@ Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) doma
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 135
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 134
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 25
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
