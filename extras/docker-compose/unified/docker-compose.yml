@@ -465,3 +465,9 @@ services:
         devices:
             - '/dev/ups_monitor_large:/dev/usb/hiddev0'
         restart: always
+    container:
+        container_name: container
+        image: container
+        volumes:
+            - /home/aneisch/secret/secret.db:/secret.db:ro
+        restart: always
