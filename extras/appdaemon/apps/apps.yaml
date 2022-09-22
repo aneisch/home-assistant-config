@@ -386,8 +386,9 @@ Living Room Lamp Follow:
 Candles Follow:
   module: follow_me
   class: Follow
+  constrain_presence: anyone
   constrain_input_boolean: input_boolean.house_lamps_automation
-  leader: light.living_room_lamps
+  leader: light.master_bedroom_lamps
   follower: switch.ir_candles
 
 Door Notification and Occusim Security Follow:
@@ -395,13 +396,6 @@ Door Notification and Occusim Security Follow:
   class: Follow
   leader: input_boolean.security_status
   follower: input_boolean.door_notify,input_boolean.occusim
-
-Andrew Desk Lamp Monitor Follow:
-  module: follow_me
-  class: Follow
-  leader: light.andrew_desk_lamp
-  constrain_presence: anyone
-  follower: switch.andrew_monitor
 
 Timer:
   module: timer

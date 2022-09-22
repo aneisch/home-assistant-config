@@ -1,0 +1,14 @@
+tunnel: TUNNEL_ID
+credentials-file: /home/nonroot/.cloudflared/TUNNEL_ID.json
+
+ingress:
+  - hostname: FQDN
+    service: ssh://localhost:22
+  # Used as backup, need to change DNS entry for it to work
+  # DNS entry should match that of assist_tunnel
+  - hostname: FQDN
+    service: http://10.0.1.22:8123
+  # Placeholder mostly, but this is accessible
+  - hostname: FQDN
+    service: http://10.0.1.22:8123
+  - service: http_status:404

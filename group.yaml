@@ -79,6 +79,7 @@ living_room:
     - switch.living_room_speakers
     - light.living_room_sconces
     - switch.tv
+    - switch.ir_candles
 
 off_at_bedtime:
   name: Off at Bedtime
@@ -87,6 +88,7 @@ off_at_bedtime:
     - light.living_room_sconces
     - group.common_areas
     - switch.dining_room_christmas_tree
+    - switch.ir_candles
 
 andrew_desk:
   entities:

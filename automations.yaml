@@ -256,8 +256,8 @@
   trigger:
     platform: state
     entity_id: 
-      - binary_sensor.mailbox
-    to: "on"
+      - sensor.433_mailbox_last_opened
+  condition: "{{ states('sensor.mail_usps_packages') > 0 }}"
   action:
     # Force capture of clip
     - service: switch.turn_on
@@ -270,23 +270,6 @@
     - delay: 10
     - service: switch.turn_off
       entity_id: switch.garage_stream
-
-# - alias: "Mailbox Reset"
-#   id: "mailbox_reset"
-#   trigger:
-#     - platform: state
-#       entity_id: binary_sensor.mailbox
-#       to: "on"
-#   action:
-#     - delay: "00:01:00"
-#     - service: setter.set
-#       data:
-#         entity_id: binary_sensor.mailbox
-#         state: 'off'
-#         attributes: 
-#           device_class: motion
-#           icon: mdi:mailbox
-#           friendly_name: Mailbox
 
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
@@ -423,10 +406,12 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "on"
-  condition: "{{ states('light.andrew_desk_lamp') == 'off' and states('sensor.weasel_ssid') == 'Penny' and states('person.andrew') == 'home' }}"
+  condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
+    - service: homeassistant.turn_on
+      entity_id: switch.andrew_monitor
 
 # Monitor follows via appdaemon
 - alias: "Desk Lamp off when MacBook Inactive"
@@ -441,6 +426,8 @@
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp
+    - service: homeassistant.turn_off
+      entity_id: switch.andrew_monitor
 
 - alias: "Water Sensor Alerts"
   id: "water_sensor_alert"
@@ -502,7 +489,7 @@
   trigger:
     - platform: state
       entity_id: sensor.myip
-  condition: '{{ trigger.to_state.state != "unknown" }}'
+  condition: '{{ trigger.to_state.state not in ["unknown","unavailable"] }}'
   action:
     - service: shell_command.update_cloudflare_firewall
       data:
@@ -672,7 +659,7 @@
 
 - alias: "Signal Webhook Message BVST"
   id: "signal_webhook_message_bvst"
-  mode: 'single'
+  mode: 'queued'
   initial_state: 'on'
   trigger:
     - platform: webhook

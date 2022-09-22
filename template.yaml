@@ -1,7 +1,7 @@
 # Compost
 - trigger:
     - platform: mqtt
-      topic: "sensor/rtl_433"
+      topic: "sensor/rtl_433_attic"
       payload: True
       value_template: "{{ value_json.model == 'Acurite-00275rm' and value_json.id == 16725 }}"
   sensor:
@@ -24,7 +24,7 @@
 # Deep Freeze
 - trigger:
     - platform: mqtt
-      topic: "sensor/rtl_433"
+      topic: "sensor/rtl_433_attic"
       payload: True
       value_template: "{{ value_json.model == 'Acurite-Tower' and value_json.id == 14574 }}"
   sensor:
@@ -44,7 +44,7 @@
 # Rain
 - trigger:
     - platform: mqtt
-      topic: "sensor/rtl_433"
+      topic: "sensor/rtl_433_attic"
       payload: True
       value_template: "{{ value_json.model == 'Oregon-PCR800a' and value_json.id == 58 }}"
   sensor:
@@ -61,7 +61,7 @@
 # Neighbor Rain
 - trigger:
     - platform: mqtt
-      topic: "sensor/rtl_433"
+      topic: "sensor/rtl_433_attic"
       payload: True
       value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 3324 }}"
   sensor:
@@ -72,7 +72,7 @@
 # Outdoor Weather Wittime (back porch on top of column)
 - trigger:
   - platform: mqtt
-    topic: "sensor/rtl_433"
+    topic: "sensor/rtl_433_attic"
     payload: True
     value_template: "{{ value_json.model == 'GT-WT03' and value_json.id == 0 and value_json.channel == 1 }}"
   sensor:
@@ -87,3 +87,13 @@
     - name: "433 Weather Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
+
+# Mailbox
+- trigger:
+  - platform: mqtt
+    topic: "sensor/rtl_433_office"
+    payload: True
+    value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
+  sensor:
+    - name: "433 Mailbox Last Opened"
+      state: "{{ now() }}"

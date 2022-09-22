@@ -160,11 +160,11 @@ cards:
                 value: 20
       - type: markdown
         content: |
-          {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.mailbox_last'))) | int -%}
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states('sensor.433_mailbox_last_opened'))) | int -%}
           {%- set minutes = (seconds // 60) | int -%}
           {%- set hours = (minutes // 60) | int -%}
           {%- set days = (hours // 24) | int -%}
-          {{ state_attr('input_datetime.mailbox_last', 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+          Mailbox Last Opened: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml

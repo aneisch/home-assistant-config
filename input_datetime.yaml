@@ -22,7 +22,3 @@ garage_door_last:
   name: Garage Door Last Opened
   has_date: true
   has_time: true
-mailbox_last:
-  name: Mailbox Last Opened
-  has_date: true
-  has_time: true
