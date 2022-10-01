@@ -1,7 +1,3 @@
-- platform: moon
-
-- platform: uptime
-
 - platform: systemmonitor
   scan_interval:
     seconds: 60

@@ -1,5 +1,8 @@
 {
   "config": {
+    "abort": {
+      "reauth_successful": "Ponowne uwierzytelnienie powiod\u0142o si\u0119"
+    },
     "error": {
       "exists": "To konto jest juz skonfigurowane",
       "template": "{error}"
@@ -29,7 +32,8 @@
     "info": {
       "version": "Wersja",
       "cloud_online": "Urządzenie chmurowe online",
-      "local_online": "Urzadzenia lokalne online"
+      "local_online": "Urzadzenia lokalne online",
+      "debug": "Strona debugowania"
     }
   }
 }

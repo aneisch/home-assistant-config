@@ -57,7 +57,7 @@ sensor:
   - platform: ble_rssi
     id: trashcan_rssi
     mac_address: f7:0a:bf:03:27:e5
-    name: "Trashcan"
+    name: "Trashcan RSSI"
     filters:
       - sliding_window_moving_average:
           window_size: 15

@@ -1,17 +1,19 @@
 # UPS monitoring via docker and https://github.com/DanielWinks/pwrstat_docker
 
-apcupsd:
+# Configured in UI
+# apcupsd:
 
-sensor:
-  - platform: apcupsd
-    resources:
-      - loadpct
-      - linev
-      - maxlinev
-      - minlinev
-      - bcharge
-      - timeleft
-      - status
+# Configured in UI
+# sensor:
+#   - platform: apcupsd
+#     resources:
+#       - loadpct
+#       - linev
+#       - maxlinev
+#       - minlinev
+#       - bcharge
+#       - timeleft
+#       - status
 
 automation:
   - alias: "UPS Alert"

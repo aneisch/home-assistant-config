@@ -89,11 +89,18 @@
       device_class: battery
 
 # Mailbox
+# Front porch for now
 - trigger:
+  # - platform: mqtt
+  #   topic: "sensor/rtl_433_office"
+  #   payload: True
+  #   value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
   - platform: mqtt
-    topic: "sensor/rtl_433_office"
+    topic: "sensor/rtl_433_attic"
     payload: True
     value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
   sensor:
-    - name: "433 Mailbox Last Opened"
+    # - name: "433 Mailbox Last Opened"
+    #   state: "{{ now() }}"
+    - name: "433 Front Porch Motion"
       state: "{{ now() }}"

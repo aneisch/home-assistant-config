@@ -1,5 +1,8 @@
 {
   "config": {
+    "abort": {
+      "reauth_successful": "Re-authentication was successful"
+    },
     "error": {
       "exists": "This account is already configured",
       "template": "{error}"
@@ -29,7 +32,8 @@
     "info": {
       "version": "Version",
       "cloud_online": "Cloud devices online",
-      "local_online": "Local devices online"
+      "local_online": "Local devices online",
+      "debug": "Debug page"
     }
   }
 }

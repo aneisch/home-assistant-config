@@ -250,25 +250,25 @@
       entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
-- alias: "Mailbox Alert"
-  id: "mailbox_alert"
-  initial_state: on
-  trigger:
-    platform: state
-    entity_id: 
-      - sensor.433_mailbox_last_opened
-  condition: "{{ states('sensor.mail_usps_packages') > 0 }}"
-  action:
-    # Force capture of clip
-    - service: switch.turn_on
-      entity_id: switch.garage_stream
-    #- service: notify.pushover
-    - service: notify.signal_self
-      data:
-        message: >
-          Mailbox Opened!
-    - delay: 10
-    - service: switch.turn_off
+# - alias: "Mailbox Alert"
+#   id: "mailbox_alert"
+#   initial_state: on
+#   trigger:
+#     platform: state
+#     entity_id: 
+#       - sensor.433_mailbox_last_opened
+#   condition: "{{ states('sensor.mail_usps_packages') > 0 }}"
+#   action:
+#     # Force capture of clip
+#     - service: switch.turn_on
+#       entity_id: switch.garage_stream
+#     #- service: notify.pushover
+#     - service: notify.signal_self
+#       data:
+#         message: >
+#           Mailbox Opened!
+#     - delay: 10
+#     - service: switch.turn_off
       entity_id: switch.garage_stream
 
 - alias: "Door Lock Alerts"
@@ -774,3 +774,15 @@
           method: speak
         # https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html
         message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
+
+- alias: "Startup Notificiation"
+  id: "startup_notification"
+  initial_state: on
+  trigger:
+    - platform: homeassistant
+      event: start
+  action:
+    - service: notify.signal_self
+      data:
+        message: >
+            Home Assistant v{{ states('sensor.ha_version')}} has started!

@@ -298,9 +298,14 @@ services:
         devices:
             - '/dev/ups_monitor_large:/dev/usb/hiddev0'
         restart: always
-    container:
-        container_name: container
-        image: container
+    secret:
+        container_name: secret
+        image: secret_container
+        labels:
+          com.centurylinklabs.watchtower.monitor-only: "true"
+        #ports: 
+        #    - 9999:9999
         volumes:
-            - /home/aneisch/secret/secret.db:/secret.db:ro
+            - /opt/secret/secret.db:/output_files/secret.db
+            - /opt/secret/input_files/:/input_files/
         restart: always
