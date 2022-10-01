@@ -469,7 +469,7 @@ services:
         container_name: secret
         image: secret_container
         labels:
-          com.centurylinklabs.watchtower.monitor-only: "true"
+          com.centurylinklabs.watchtower.enable: "false"
         #ports: 
         #    - 9999:9999
         volumes:
