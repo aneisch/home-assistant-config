@@ -14,11 +14,11 @@ office:
   entities:
     - switch.office_ceiling_fan
     - light.office_ceiling_fan
-    - light.andrew_desk_lamp
     - light.bethany_desk_lamp
     - switch.andrew_office_speakers
     - light.bethany_office_hanging
     - light.bethany_office_ceiling_fan
+    - group.andrew_desk
 
 master_bedroom:
   name: Master Bedroom
@@ -87,7 +87,7 @@ off_at_bedtime:
     - light.entryway_light
     - light.living_room_sconces
     - group.common_areas
-    - switch.dining_room_christmas_tree
+    # - switch.dining_room_christmas_tree
     - switch.ir_candles
 
 andrew_desk:

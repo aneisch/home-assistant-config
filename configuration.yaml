@@ -213,7 +213,7 @@ logger:
 
     # Start ZHA Debugging
     # asyncio: debug
-    # homeassistant.components.zha: debug
+    homeassistant.components.zha: debug
     # zigpy: debug
     # bellows: debug
     # zigpy_xbee: debug

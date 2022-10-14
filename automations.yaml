@@ -269,7 +269,7 @@
 #           Mailbox Opened!
 #     - delay: 10
 #     - service: switch.turn_off
-      entity_id: switch.garage_stream
+      # entity_id: switch.garage_stream
 
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
@@ -406,7 +406,8 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "on"
-  condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
+  # condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
+  condition: "{{ states('person.andrew') == 'home' }}"
   action:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
@@ -422,7 +423,7 @@
     entity_id: binary_sensor.weasel_active
     to: "off"
     for: '00:15:00'
-  condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
+  # condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
   action:
     - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp

@@ -24,6 +24,9 @@ binary_sensor:
         return true;
       }
 
+bluetooth_proxy:
+  active: true
+
 # ESP32-CAM
 # esp32_camera:
 #   external_clock:

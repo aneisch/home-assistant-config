@@ -32,19 +32,19 @@ cards:
         - automation.hopper_level_alert
         #- sensor.traeger_hopper_level_raw
 
-  # - type: custom:vertical-stack-in-card
-  #   cards:
-  #     - type: entities
-  #       entities:
-  #         - entity: sensor.thermopro_probe_1_high_estimated_length
-  #           name: Probe 1 Time Remaining
-  #           icon: 'mdi:clock'
-  #         - entity: sensor.thermopro_probe_2_high_estimated_length
-  #           name: Probe 2 Time Remaining
-  #           icon: 'mdi:clock'
-  #         - sensor.sensor_thermopro_probe_1_derivative
-  #         - sensor.sensor_thermopro_probe_2_derivative
-  #     - type: markdown
-  #       content: |
-  #         Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') }}
-  #         Probe 2 @ {{ state_attr('sensor.thermopro_probe_2_high_estimated_length','timestamp') }}
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        entities:
+          - entity: sensor.thermopro_probe_1_high_estimated_length
+            name: Probe 1 Time Remaining
+            icon: 'mdi:clock'
+          - entity: sensor.thermopro_probe_2_high_estimated_length
+            name: Probe 2 Time Remaining
+            icon: 'mdi:clock'
+          - sensor.sensor_thermopro_probe_1_derivative
+          - sensor.sensor_thermopro_probe_2_derivative
+      - type: markdown
+        content: |
+          Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') }}
+          Probe 2 @ {{ state_attr('sensor.thermopro_probe_2_high_estimated_length','timestamp') }}

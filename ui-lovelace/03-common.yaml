@@ -47,6 +47,12 @@ cards:
               tap_action: 
                 action: call-service
                 service: esphome.living_room_speakers_input_chromecast
+            - type: "button"
+              name: 3.5mm
+              icon: mdi:ipod
+              tap_action: 
+                action: call-service
+                service: esphome.living_room_speakers_input_3_5mm
       - type: conditional
         conditions:
           - entity: switch.living_room_speakers

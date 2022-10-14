@@ -7,6 +7,9 @@ light.aquarium_light:
   icon: mdi:fish
   friendly_name: Aquarium Light
 
+light.under_cabinet_lights:
+  icon: mdi:wall-sconce-flat
+
 ### MEDIA PLAYER ###
 # media_player.living_room_2:
 #   friendly_name: "Living Room TV"
@@ -15,6 +18,9 @@ light.aquarium_light:
 ### SWITCHES ###
 switch.andrew_office_speakers:
   icon: "mdi:speaker"
+
+switch.andrew_monitor:
+  icon: "mdi:monitor"
 
 switch.tv:
   friendly_name: TV

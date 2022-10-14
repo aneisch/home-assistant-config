@@ -124,7 +124,6 @@ automation:
       - platform: state
         entity_id: person.andrew
         to: "home"
-    # Only run if we're on mainline/stable branch
     condition: '{{ states("input_boolean.hass_update_trigger") == "on"}}'
     action:
       # Delay if triggered by occupancy 
@@ -167,10 +166,25 @@ script:
           version: "{{ states('input_text.hass_target_branch') }}"
 
   hass_update_stage:
-    # Turn on boolean to trigger upgrade automation
+    # Turn on boolean to trigger upgrade automation if we meet criteria
     sequence:
+      - service: shell_command.pull_hass
       - service: homeassistant.turn_on
         entity_id: input_boolean.hass_update_trigger
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.hass_update_available
+
+  hass_update_notify:
+    # Notify and enable update button on frontend
+    sequence:
+      - service: shell_command.pull_hass
+      #- service: notify.pushover
+      - service: notify.signal_self
+        data:
+          message: >
+            Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
+            Changes: https://git.io/JvkT4
+            Tested: https://git.io/JvkTY
       - service: homeassistant.turn_on
         entity_id: input_boolean.hass_update_available
 
@@ -203,20 +217,8 @@ script:
       - service: homeassistant.turn_off
         entity_id: input_boolean.hass_update_available
       - service: shell_command.update_hass
-
-  hass_update_notify:
-    # Notify and enable update button on frontend
-    sequence:
-      - service: shell_command.pull_hass
-      #- service: notify.pushover
-      - service: notify.signal_self
-        data:
-          message: >
-            Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
-            Changes: https://git.io/JvkT4
-            Tested: https://git.io/JvkTY
-      - service: homeassistant.turn_on
-        entity_id: input_boolean.hass_update_available
+      # To force sync of input_text state
+      - service: homeassistant.restart
 
 homeassistant:
   customize:

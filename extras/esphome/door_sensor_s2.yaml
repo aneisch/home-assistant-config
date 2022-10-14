@@ -14,15 +14,12 @@ esp32:
     platform_version: 5.0.0
 
 <<: !include common.yaml
-
-# See https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/ for
-# allowable pins
-
+T
 binary_sensor:
   - platform: gpio
     pin:
       mode: INPUT_PULLUP
-      number: 1
+      number: IO1
     name: "Front Door"
     device_class: door
     filters:
@@ -31,7 +28,7 @@ binary_sensor:
   - platform: gpio
     pin:
       mode: INPUT_PULLUP
-      number: 2
+      number: IO2
     name: "Master Bedroom Exterior Door"
     device_class: door
     filters:
