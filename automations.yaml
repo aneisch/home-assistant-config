@@ -70,7 +70,7 @@
       entity_id: group.trackers
       to: not_home
       for:
-        seconds: 5
+        minutes: 1
     - platform: state
       entity_id: group.trackers
       to: home
