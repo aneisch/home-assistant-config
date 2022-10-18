@@ -57,7 +57,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2011
+Lines of ESPHome YAML | 2050
 Lines of Home Assistant YAML | 6142
 [Integrations](https://www.home-assistant.io/integrations/) in use | 44
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | ZHA_COUNT
@@ -96,13 +96,13 @@ Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) doma
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 137
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 138
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 25
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **977**
+**Total state objects** | **978**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

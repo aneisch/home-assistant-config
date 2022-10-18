@@ -16,12 +16,12 @@ remote_transmitter:
     inverted: False
   carrier_duty_percent: 50%
   
-# remote_receiver:
-#   pin: 
-#     number: D4
-#     inverted: yes
-#     mode: INPUT_PULLUP
-#   dump: all
+remote_receiver:
+  pin: 
+    number: D4
+    inverted: yes
+    mode: INPUT_PULLUP
+  dump: all
   
 switch:
   - platform: restart

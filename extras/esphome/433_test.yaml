@@ -1,0 +1,47 @@
+substitutions:
+  name: 433_test
+  friendly_name: "433 Test"
+  carrier: 38kHz
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+remote_transmitter:
+  pin: D3
+  carrier_duty_percent: 100%
+  
+remote_receiver:
+  pin: 
+    number: D2
+  dump: rc_switch
+  # Settings to optimize recognition of RF devices
+  tolerance: 50%
+  filter: 250us
+  idle: 4ms
+  buffer_size: 2kb
+  
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+  - platform: template
+    name: RF Power Button
+    turn_on_action:
+      - remote_transmitter.transmit_rc_switch_raw:
+          code: '001111111110000000000001'
+          protocol: 1
+    turn_off_action:
+      - remote_transmitter.transmit_rc_switch_raw:
+          code: '001111111110000000000011'
+          protocol: 1
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
+
