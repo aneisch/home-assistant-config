@@ -527,7 +527,7 @@
 #   alias: "Webhook Debugger"
 #   trigger:
 #     - platform: webhook
-#       webhook_id: !secret cf_lock_otp_webhook
+#       webhook_id: hihihi
 #   action:
 #     - service: persistent_notification.create
 #       data:
