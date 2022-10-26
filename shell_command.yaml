@@ -19,5 +19,3 @@ pull_recipes: ssh nuc 'cd /opt/recipes; git pull'
 update_cloudflare_firewall: /config/scripts/update_cloudflare_firewall.sh {{ old }} {{ new }}
 
 sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
-
-gsm_message: ssh nuc '/opt/homeassistant/scripts/gsm_send.sh "{{ message }}"'

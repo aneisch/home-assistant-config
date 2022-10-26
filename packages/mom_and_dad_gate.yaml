@@ -108,7 +108,6 @@ automation:
             {% elif trigger.id == 'garage' %}
               cover.mom_and_dad_garage_door
             {% endif %}
-      #- service: notify.pushover
       - service: notify.signal_self
         data:
           message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"

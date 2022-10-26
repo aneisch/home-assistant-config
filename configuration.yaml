@@ -296,6 +296,7 @@ notify:
   - platform: pushbullet
     api_key: !secret pushbullet_key
     name: pushbullet
+
   - platform: html5
     name: html5
     vapid_pub_key: !secret vapid_pub_key
@@ -322,6 +323,11 @@ notify:
     number: "+10000000000"
     recipients: # one or more recipients
       - "SECRET"
+
+  - name: gsm_message
+    platform: rest
+    resource: http://10.0.1.22:9999/send_message
+    method: POST_JSON
 
 panel_iframe:
   vscode:

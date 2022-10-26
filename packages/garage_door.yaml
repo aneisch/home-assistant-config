@@ -144,8 +144,7 @@ automation:
       entity_id: group.trackers
       state: 'not_home'
     action:
-      #- service: notify.pushover
-      - service: notify.signal_self
+      - service: script.notify_wrapper
         data:
           message: "Garage door opened and no one home.."
 

@@ -187,6 +187,23 @@ christmas_goodnight:
 # OTHER #
 #########
 
+# Change notification platform if internet offline
+notify_wrapper:
+  sequence:
+    - service: >
+        {% if states("binary_sensor.internet_reachability") == "on" %}
+        notify.signal_self
+        {% else %}
+        notify.gsm_message
+        {% endif %}
+      data:
+        message: >
+          {% if states("binary_sensor.internet_reachability") == "on" %}
+          {{ message }}
+          {% else %}
+          {{ message }} (sent via 2g)
+          {% endif %}
+
 copy:
   sequence:
     - service: shell_command.copy

@@ -143,23 +143,9 @@
       for: "00:30:00"
   action:
     #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: "The thermostat appears to be offline..."
-
-- alias: "Notify when Zigbee Pi"
-  id: "notify_zigbee_offline"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.zigbee2mqtt_pi
-      to: "off"
-      for: "00:10:00"
-  action:
-    #- service: notify.pushover
-    - service: notify.signal_self
-      data:
-        message: "The Zigbee2MQTT Pi appears to be offline..."
 
 - alias: "Notify when Verizon Extender Offline"
   id: "notify_verizon_extender_offline"
@@ -183,7 +169,7 @@
   condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] and trigger.from_state.state not in [ 'unavailable', '' ] }}"
   action:
     #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: "AC Equipment Event: {{ trigger.to_state.state }}"
 
@@ -204,7 +190,7 @@
       - "{{ trigger.from_state.state != trigger.to_state.state }}"
   action:
     #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: "{% if trigger.entity_id == 'sensor.thermostat_setpoint' %}Setpoint{% elif trigger.entity_id == 'sensor.thermostat_mode' %}Mode{% endif %}: {{ states('sensor.thermostat_setpoint') }}. Mode: {{ states('sensor.thermostat_operating_mode') }}"
 
@@ -283,23 +269,10 @@
   condition: "{{ states('person.andrew') != 'home'}}"
   action:
     #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: >
           {{ trigger.to_state.name }} Unlocked
-
-- alias: "Andrew Webhook Trigger"
-  id: "andrew_webhook"
-  initial_state: on
-  trigger:
-    platform: webhook
-    webhook_id: !secret andrew_webhook
-  action:
-    #- service: notify.pushover
-    - service: notify.signal_self
-      data:
-        message: >
-            Stacey unused
 
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
@@ -481,7 +454,7 @@
       below: 10
   action:
     #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%"
 
@@ -522,6 +495,28 @@
     - delay: "00:01:00"
     - service: homeassistant.turn_off
       entity_id: input_boolean.compost_turn
+
+- alias: "Internet Reachability GSM Alert"
+  id: "internet_gsm_alert"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.internet_reachability
+      from: "on"
+      to: "off"
+    - platform: state
+      entity_id: binary_sensor.internet_reachability
+      from: "off"
+      to: "on"
+  action:
+    - service: script.notify_wrapper
+      data:
+        message: >
+          {% if trigger.from_state.state == "on" %}
+          Home internet is down
+          {% else %}
+          Home internet has recovered
+          {% endif %}
+
 
 # - id: webhook_debugger
 #   alias: "Webhook Debugger"
@@ -712,7 +707,7 @@
     for:
       minutes: 10
   action:
-    - service: notify.pushover
+    - service: script.notify_wrapper
       data:
         message: >
             The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F

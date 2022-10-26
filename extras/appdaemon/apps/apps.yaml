@@ -351,14 +351,14 @@ Indoor Light Automation Sunset:
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,switch.ir_candles
   brightness: 255
 
-Front Porch Switch Sunset:
-  module: entity_timer
-  class: Timer
-  # The switchs might have been manually turned off
-  # bulbs are ZigBee
-  entities: switch.front_porch_lights,switch.front_sconces
-  time_off: sunset - 00:16:00
-  time_on: sunset - 00:15:00
+#Front Porch Switch Sunset:
+#  module: entity_timer
+#  class: Timer
+#  # The switchs might have been manually turned off
+#  # bulbs are ZigBee
+#  entities: switch.front_porch_lights,switch.front_sconces
+#  time_off: sunset - 00:16:00
+#  time_on: sunset - 00:15:00
 
 Front House Lights Sunset:
   module: entity_timer

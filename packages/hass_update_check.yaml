@@ -178,7 +178,6 @@ script:
     # Notify and enable update button on frontend
     sequence:
       - service: shell_command.pull_hass
-      #- service: notify.pushover
       - service: notify.signal_self
         data:
           message: >
@@ -191,7 +190,6 @@ script:
   hass_update_install:
     # Notify and install latest version
     sequence:
-      #- service: notify.pushover
       - service: notify.signal_self
         data:
           message: >

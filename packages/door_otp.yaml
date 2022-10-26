@@ -13,7 +13,6 @@ automation:
         entity_id: lock.garage_exterior_door
         data:
           code_slot: 30
-      #- service: notify.pushover
       - service: notify.signal_self
         data:
           message: "Garage code {{ trigger.json['otp'] }} generated for {{ trigger.json['email'] }}"

@@ -4,20 +4,18 @@ cards:
   - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
-  - type: horizontal-stack
-    cards:
-      - type: entities
-        show_header_toggle: false
-        title: Low Alert
-        entities:
-          - input_number.thermopro_probe_1_set_low
-          - input_number.thermopro_probe_2_set_low
-      - type: entities
-        show_header_toggle: false
-        title: High Alert
-        entities:
-          - input_number.thermopro_probe_1_set_high
-          - input_number.thermopro_probe_2_set_high
+  - type: entities
+    show_header_toggle: false
+    title: Low Alert
+    entities:
+      - input_number.thermopro_probe_1_set_low
+      - input_number.thermopro_probe_2_set_low
+  - type: entities
+    show_header_toggle: false
+    title: High Alert
+    entities:
+      - input_number.thermopro_probe_1_set_high
+      - input_number.thermopro_probe_2_set_high
 
   - type: conditional
     conditions:

@@ -1,20 +1,3 @@
-# UPS monitoring via docker and https://github.com/DanielWinks/pwrstat_docker
-
-# Configured in UI
-# apcupsd:
-
-# Configured in UI
-# sensor:
-#   - platform: apcupsd
-#     resources:
-#       - loadpct
-#       - linev
-#       - maxlinev
-#       - minlinev
-#       - bcharge
-#       - timeleft
-#       - status
-
 automation:
   - alias: "UPS Alert"
     id: "ups_alert"
@@ -23,8 +6,7 @@ automation:
         entity_id: sensor.ups_status
         from: 'ONLINE'
     action:
-      #- service: notify.pushover
-      - service: notify.signal_self
+      - service: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
@@ -35,8 +17,7 @@ automation:
         entity_id: sensor.ups_status
         to: 'ONLINE'
     action:
-      #- service: notify.pushover
-      - service: notify.signal_self
+      - service: script.notify_wrapper
         data:
           message: > 
             {% if trigger.from_state.state == "ONBATT" %}
@@ -58,8 +39,7 @@ automation:
       entity_id: switch.nas
       state: 'on'
     action:
-      #- service: notify.pushover
-      - service: notify.signal_self
+      - service: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
       - service: switch.turn_off
@@ -112,8 +92,7 @@ automation:
         entity_id: sensor.ups_status
         state: "ONBATT"
     action:
-      #- service: notify.pushover
-      - service: notify.signal_self
+      - service: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - service: shell_command.nuc_poweroff

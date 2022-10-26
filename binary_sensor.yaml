@@ -14,11 +14,11 @@
   host: 192.168.88.1
   count: 2
 
-#- platform: ping
-#  name: internet_reachability
-#  host: 1.1.1.1
-#  count: 3
-#  scan_interval: 30
+- platform: ping
+  name: internet_reachability
+  host: 1.1.1.1
+  count: 3
+  scan_interval: 10
 
 - platform: template
   sensors:
