@@ -185,10 +185,10 @@ christmas_goodnight:
 # OTHER #
 #########
 
-# Change notification platform if internet offline
+# Change notification platform if internet offline, or if a priority is provided
 notify_wrapper:
   sequence:
-    - if: '{{ states("binary_sensor.internet_reachability") == "off" }}'
+    - if: '{{ states("binary_sensor.internet_reachability") == "on" }}'
       then:
         - if: '{{ "priority" in data }}'
           then:
