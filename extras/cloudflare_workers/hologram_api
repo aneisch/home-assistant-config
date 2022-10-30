@@ -1,0 +1,67 @@
+const pushover_url = 'https://api.pushover.net/1/messages.json'
+const pushover_token = 'TOKEN'
+const pushover_user = 'USER'
+
+addEventListener("fetch", event => {
+  event.respondWith(handleRequest(event.request))
+})
+
+async function gatherResponse(response) {
+  const { headers } = response;
+  const contentType = headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return JSON.stringify(await response.json());
+  } else if (contentType.includes('application/text')) {
+    return response.text();
+  } else if (contentType.includes('text/html')) {
+    return response.text();
+  } else {
+    return response.text();
+  }
+}
+
+async function handleRequest(request) {
+  reqBody = JSON.parse(await request.text());
+
+  if (reqBody.priority == "1") {
+    body = {
+        "token": pushover_token,
+        "user": pushover_user,
+        "message": reqBody.message,
+        "priority": 1
+        }   
+  }
+
+  else if (reqBody.priority == "2") {
+    body = {
+        "token": pushover_token,
+        "user": pushover_user,
+        "message": reqBody.message,
+        "priority": 2,
+        "expire": 300,
+        "retry": 30
+        }   
+  }
+
+  else {
+    body = {
+        "token": pushover_token,
+        "user": pushover_user,
+        "message": reqBody.message,
+        }     
+  } 
+
+  const init = {
+    body: JSON.stringify(body),
+    method: "POST",
+    headers: {
+      "content-type": "application/json;charset=UTF-8",
+    },
+  }
+
+  if (request.method === 'POST') {
+    const response = await fetch(pushover_url, init)
+    const results = await gatherResponse(response);
+    return new Response(results, init);
+  }
+}

@@ -18,14 +18,9 @@ automation:
       from: "off"
       to: "on"
     action:
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
-          message: >
-              {{ trigger.from_state.attributes.friendly_name }}
-          data:
-            priority: -1
-            expire: 3600
-            retry: 30
+          message: "{{ trigger.from_state.attributes.friendly_name }}"
 
   - alias: "Smoke Alarm Battery Alerts"
     id: "smoke_alarm_battery_alert"
@@ -36,7 +31,7 @@ automation:
           - sensor.kitchen_alarm_battery_level
         below: 79
     action:
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%. Time to replace!"
 
@@ -55,14 +50,12 @@ automation:
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.smoke_alarm_triggered
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
           message: >
               {{ trigger.from_state.attributes.friendly_name }} triggered
           data:
             priority: 2
-            expire: 3600
-            retry: 30
 
   - alias: "Smoke Alarm Clear"
     id: "smoke_alarm_clear"
@@ -79,14 +72,11 @@ automation:
     action:
       - service: input_boolean.turn_off
         entity_id: input_boolean.smoke_alarm_triggered
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
           message: >
               {{ trigger.from_state.attributes.friendly_name }} cleared
-          data:
-            priority: 2
-            expire: 3600
-            retry: 30
+          priority: 1
 
   - alias: "Smoke Alarm Home Response"
     id: "smoke_alarm_home_response"

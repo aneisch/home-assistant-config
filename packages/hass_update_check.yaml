@@ -161,9 +161,14 @@ script:
   hass_switch_to_version:
     alias: Switch to Version
     sequence:
+      # Change docker compose image tag
       - service: shell_command.switch_hass_running_branch
         data:
           version: "{{ states('input_text.hass_target_branch') }}"
+      # Pull new tag
+      - service: shell_command.update_hass
+      # To force sync of states
+      - service: homeassistant.restart
 
   hass_update_stage:
     # Turn on boolean to trigger upgrade automation if we meet criteria

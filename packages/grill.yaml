@@ -122,7 +122,7 @@ automation:
         entity_id: binary_sensor.thermopro_probe_2_in_range
         to: 'off'
     action:
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
           message: |
             {% if trigger.entity_id == 'binary_sensor.thermopro_probe_1_in_range' %}
@@ -136,8 +136,6 @@ automation:
             {% endif %}
           data:
             priority: 2
-            expire: 3600
-            retry: 30
       # Only fire 1 time per minute
       - delay: 60
 
@@ -154,8 +152,6 @@ automation:
           message: "Traeger Hopper level too low!! ({{ states('sensor.traeger_hopper_level') }}%)"
           data:
             priority: 2
-            expire: 3600
-            retry: 30
       # Only fire 1 time per 10 minutes
       - delay: 600 
 

@@ -142,7 +142,6 @@
       to: "off"
       for: "00:30:00"
   action:
-    #- service: notify.pushover
     - service: script.notify_wrapper
       data:
         message: "The thermostat appears to be offline..."
@@ -155,7 +154,6 @@
       entity_id: sensor.verizon_network_extender_status
       from: "In Service"
   action:
-    #- service: notify.pushover
     - service: notify.signal_self
       data:
         message: "The Verizon extender appears to be out of service..."
@@ -168,7 +166,6 @@
       entity_id: sensor.thermostat_latest_equipment_event
   condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] and trigger.from_state.state not in [ 'unavailable', '' ] }}"
   action:
-    #- service: notify.pushover
     - service: script.notify_wrapper
       data:
         message: "AC Equipment Event: {{ trigger.to_state.state }}"
@@ -189,7 +186,6 @@
         state: "on"
       - "{{ trigger.from_state.state != trigger.to_state.state }}"
   action:
-    #- service: notify.pushover
     - service: script.notify_wrapper
       data:
         message: "{% if trigger.entity_id == 'sensor.thermostat_setpoint' %}Setpoint{% elif trigger.entity_id == 'sensor.thermostat_mode' %}Mode{% endif %}: {{ states('sensor.thermostat_setpoint') }}. Mode: {{ states('sensor.thermostat_operating_mode') }}"
@@ -268,11 +264,11 @@
     to: "unlocked"
   condition: "{{ states('person.andrew') != 'home'}}"
   action:
-    #- service: notify.pushover
     - service: script.notify_wrapper
       data:
         message: >
           {{ trigger.to_state.name }} Unlocked
+        priority: 1
 
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
@@ -415,14 +411,10 @@
         - binary_sensor.kitchen_sink_water_detector
       to: "on"
   action:
-    - service: notify.pushover
+    - service: script.notify_wrapper
       data:
-        message: >
-            Water detected by {{ trigger.to_state.name }}
-        data:
-          priority: 2
-          expire: 3600
-          retry: 30
+        message: "Water detected by {{ trigger.to_state.name }}"
+        priority: 2
 
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"
@@ -453,7 +445,6 @@
         - sensor.living_room_motion_battery_level
       below: 10
   action:
-    #- service: notify.pushover
     - service: script.notify_wrapper
       data:
         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%"
@@ -469,7 +460,6 @@
       data:
         old: "{{ trigger.from_state.state }}"
         new: "{{ trigger.to_state.state }}"
-    #- service: notify.pushover
     - service: notify.signal_self
       data:
         message: >
@@ -711,10 +701,7 @@
       data:
         message: >
             The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F
-        data:
-          priority: 2
-          expire: 3600
-          retry: 30
+        priority: 2
 
 - alias: "Garage Fan"
   id: "garage_fan"
@@ -746,8 +733,7 @@
       from: "on"
       to: "off"
   action:
-    #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: >
             The tunnel "{{ trigger.to_state.attributes.friendly_name }}" is {% if trigger.to_state.state == "off" %}offline{% elif trigger.to_state.state == "on" %}online{% endif %}

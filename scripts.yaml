@@ -54,8 +54,7 @@ security_disarm:
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
       entity_id: alarm_control_panel.college_station_mode
-    #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: Disarmed!
 
@@ -69,8 +68,7 @@ security_arm:
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_away
       entity_id: alarm_control_panel.college_station_mode
-    #- service: notify.pushover
-    - service: notify.signal_self
+    - service: script.notify_wrapper
       data:
         message: Armed!
 
@@ -190,19 +188,35 @@ christmas_goodnight:
 # Change notification platform if internet offline
 notify_wrapper:
   sequence:
-    - service: >
-        {% if states("binary_sensor.internet_reachability") == "on" %}
-        notify.signal_self
-        {% else %}
-        notify.gsm_message
-        {% endif %}
-      data:
-        message: >
-          {% if states("binary_sensor.internet_reachability") == "on" %}
-          {{ message }}
-          {% else %}
-          {{ message }} (sent via 2g)
-          {% endif %}
+    - if: '{{ states("binary_sensor.internet_reachability") == "off" }}'
+      then:
+        - if: '{{ "priority" in data }}'
+          then:
+            - service: notify.pushover
+              data:
+                message: '{{ message }}'
+                data:
+                  priority: '{{ data.priority }}'
+                  expire: 600
+                  retry: 30
+          else:
+            - service: notify.signal_self
+              data:
+                message: '{{ message }}'
+      else:
+        - if: '{{ "priority" in data }}'
+          then: 
+            - service: notify.gsm_message
+              data: 
+                message: '{{ message }}'
+                data:
+                  priority: '{{ data.priority }}' # passing priority to the notify_wrapper script is optional
+                  # 1 results in a notification that overrides DnD
+                  # 2 results in an emergency level notification (requires ack)
+          else:
+            - service: notify.gsm_message
+              data: 
+                message: '{{ message }}'
 
 copy:
   sequence:

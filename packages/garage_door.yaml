@@ -146,7 +146,7 @@ automation:
     action:
       - service: script.notify_wrapper
         data:
-          message: "Garage door opened and no one home.."
+          message: "Garage door opened and no one home"
 
 counter:
   garage_door_cycles:
