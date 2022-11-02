@@ -2,7 +2,51 @@ title: Grill
 icon: mdi:grill
 cards:
   - !include .cards/kitchen_timer.yaml
-  - !include .cards/grill.yaml
+
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: conditional
+        conditions:
+          - entity: sensor.thermopro_probe_1
+            state_not: "unknown"
+        card:
+          type: custom:bignumber-card
+          entity: sensor.thermopro_probe_1
+          title: Probe 1
+          style: |
+              @keyframes blink {
+                50% {
+                  {% if states('binary_sensor.thermopro_probe_1_in_range') == "off" %}
+                  background: red;
+                  {% endif %}
+                }
+              }
+              ha-card {
+                {% if states('binary_sensor.thermopro_probe_1_in_range') == "off" %}
+                animation: blink 1s linear infinite;
+                {% endif %}
+              }
+      - type: conditional
+        conditions:
+          - entity: sensor.thermopro_probe_2
+            state_not: "unknown"
+        card:
+          type: custom:bignumber-card
+          entity: sensor.thermopro_probe_2
+          title: Probe 2
+          style: |
+              @keyframes blink {
+                50% {
+                  {% if states('binary_sensor.thermopro_probe_2_in_range') == "off" %}
+                  background: red;
+                  {% endif %}
+                }
+              }
+              ha-card {
+                {% if states('binary_sensor.thermopro_probe_2_in_range') == "off" %}
+                animation: blink 1s linear infinite;
+                {% endif %}
+              }
 
   - type: entities
     show_header_toggle: false
