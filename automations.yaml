@@ -631,17 +631,17 @@
       {% endif %}
     entity_id: group.christmas_trees
 
-- alias: "Covid Booking"
-  id: "covid_booking"
-  trigger:
-    - platform: time
-      at: "12:00:00"
-  condition:
-    condition: time
-    weekday:
-      - mon
-  action:
-    - service: shell_command.covid_booking
+# - alias: "Covid Booking"
+#   id: "covid_booking"
+#   trigger:
+#     - platform: time
+#       at: "12:00:00"
+#   condition:
+#     condition: time
+#     weekday:
+#       - mon
+#   action:
+#     - service: shell_command.covid_booking
 
 - alias: "Signal Webhook Message BVST"
   id: "signal_webhook_message_bvst"

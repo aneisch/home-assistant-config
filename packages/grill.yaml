@@ -137,23 +137,23 @@ automation:
           data:
             priority: 2
       # Only fire 1 time per minute
-      - delay: 60
+      - delay: 600
 
   - alias: Hopper Level Alert
     id: "grill_hopper_alert"
     trigger:
       - platform: numeric_state
         entity_id: sensor.traeger_hopper_level
-        below: 2
+        below: 5
     condition: "{{ as_timestamp(now()) - as_timestamp(state_attr('automation.hopper_level_alert.attributes','last_triggered')) | int > 600 }}"
     action: 
-      - service: notify.pushover
+      - service: script.notify_wrapper
         data:
           message: "Traeger Hopper level too low!! ({{ states('sensor.traeger_hopper_level') }}%)"
           data:
             priority: 2
       # Only fire 1 time per 10 minutes
-      - delay: 600 
+      - delay: 600
 
   # Clear out temperatures if not updated for 30 seconds
   - alias: Probe Temperature Clear
