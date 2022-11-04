@@ -88,5 +88,5 @@ cards:
           - sensor.sensor_thermopro_probe_2_derivative
       - type: markdown
         content: |
-          Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') }}
-          Probe 2 @ {{ state_attr('sensor.thermopro_probe_2_high_estimated_length','timestamp') }}
+          Probe 1 @ {{ state_attr('sensor.thermopro_probe_1_high_estimated_length','timestamp') | as_timestamp | timestamp_custom("%I:%M %p", "Error") }}
+          Probe 2 @ {{ state_attr('sensor.thermopro_probe_2_high_estimated_length','timestamp') | as_timestamp | timestamp_custom("%I:%M %p", "Error") }}
