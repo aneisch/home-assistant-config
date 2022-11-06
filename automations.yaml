@@ -768,3 +768,43 @@
       data:
         message: >
             Home Assistant v{{ states('sensor.ha_version')}} has started!
+
+- alias: "Coffee Maker on With Alarm Clock"
+  id: "coffee_maker_alarm_clock"
+  initial_state: on
+  trigger:
+    # Andrew Phone Alarm Clock
+    - platform: state
+      entity_id: sensor.andrew_phone_last_notification
+      attribute: channel_id
+      to: Firing
+  condition:
+    condition: and
+    conditions:
+      - "{{ states('binary_sensor.workday_sensor') == 'on' }}"
+      - "{{ states('person.andrew') == 'home' }}"
+      - condition: time
+        after: "05:30:00"
+        before: "09:45:00"
+  action:
+    - service: switch.turn_on
+      entity_id: switch.coffee_maker
+    - service: notify.signal_self
+      data:
+        message: >
+            Turned coffee maker on!
+
+- alias: "Coffee Maker Off"
+  id: "coffee_maker_off"
+  initial_state: on
+  trigger:
+    - platform: time
+      at: "10:00:00"
+  condition: "{{ states('switch.coffee_maker') == 'on' }}"
+  action:
+    - service: switch.turn_off
+      entity_id: switch.coffee_maker
+    - service: notify.signal_self
+      data:
+        message: >
+            Turned coffee maker off!
