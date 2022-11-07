@@ -800,6 +800,8 @@
   trigger:
     - platform: time
       at: "10:00:00"
+    # also auto turns off after 30 minutes via ESPhome 
+    # switch config of power_plug_1
   condition: "{{ states('switch.coffee_maker') == 'on' }}"
   action:
     - service: switch.turn_off

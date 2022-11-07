@@ -57,8 +57,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2050
-Lines of Home Assistant YAML | 6209
+Lines of ESPHome YAML | 2052
+Lines of Home Assistant YAML | 6212
 [Integrations](https://www.home-assistant.io/integrations/) in use | 44
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | ZHA_COUNT
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -66,7 +66,7 @@ Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_
 Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 3
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 96
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 98
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 103
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 56
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
@@ -102,7 +102,7 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 7
-**Total state objects** | **1016**
+**Total state objects** | **1018**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

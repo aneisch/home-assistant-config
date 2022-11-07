@@ -19,6 +19,8 @@ cards:
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
       - switch.ir_candles
+      - switch.upright_fan
+
 
   - type: vertical-stack
     cards:
@@ -130,7 +132,7 @@ cards:
       - light.kitchen_table_light
       - light.kitchen_table_leds
       - light.dining_room_light
-      - switch.upright_fan
+      - switch.coffee_maker
 
   - type: entities
     show_header_toggle: false
