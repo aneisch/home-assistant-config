@@ -48,8 +48,8 @@ security_disarm:
   sequence:
     - service: alarm_control_panel.alarm_disarm
       entity_id: alarm_control_panel.alexa_guard_7f9e9
-    - service: alarm_control_panel.alarm_disarm
-      entity_id: !secret alarm_panel_1
+    # - service: alarm_control_panel.alarm_disarm
+    #   entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
@@ -62,8 +62,8 @@ security_arm:
   sequence:
     - service: alarm_control_panel.alarm_arm_away
       entity_id: alarm_control_panel.alexa_guard_7f9e9
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: !secret alarm_panel_1
+    # - service: alarm_control_panel.alarm_arm_away
+    #   entity_id: !secret alarm_panel_1
     - service: alarm_control_panel.alarm_arm_away
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_away

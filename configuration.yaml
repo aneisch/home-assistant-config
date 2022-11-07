@@ -471,12 +471,6 @@ zha:
       extended_pan_id: "DD:DD:DD:DD:DD:DD:DD:DD"
 
 zone:
-  - name: Andrew Work
-    latitude: !secret andrew_work_lat
-    longitude: !secret andrew_work_long
-    radius: 500
-    icon: mdi:worker
-
   - name: Bethany Work
     latitude: !secret bethany_work_lat
     longitude: !secret bethany_work_long

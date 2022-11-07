@@ -160,7 +160,11 @@ SCHEMA_WS_LIBRARY = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
     }
 )
 SCHEMA_WS_STREAM_URL = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
-    {vol.Required("type"): WS_TYPE_STREAM_URL, vol.Required("entity_id"): cv.entity_id}
+    {
+        vol.Required("type"): WS_TYPE_STREAM_URL,
+        vol.Required("entity_id"): cv.entity_id,
+        vol.Optional("user_agent"): cv.string,
+    }
 )
 SCHEMA_WS_SNAPSHOT_IMAGE = websocket_api.BASE_COMMAND_MESSAGE_SCHEMA.extend(
     {
@@ -345,6 +349,7 @@ class ArloCam(Camera):
         super().__init__()
         self._name = camera.name
         self._unique_id = camera.entity_id
+        self._device_id = camera.device_id
         self._camera = camera
         self._state = None
         self._recent = False
@@ -392,16 +397,17 @@ class ArloCam(Camera):
                         _LOGGER.debug("{0} snapshot updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_snapshot_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                         )
                     else:
                         _LOGGER.debug("{0} capture updated".format(self._unique_id))
                         self.hass.bus.fire(
                             "aarlo_capture_updated",
-                            {"entity_id": "aarlo." + self._unique_id},
+                            {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                         )
                     self.hass.bus.fire(
-                        "aarlo_image_updated", {"entity_id": "aarlo." + self._unique_id}
+                        "aarlo_image_updated", 
+                        {"entity_id": "camera.aarlo_" + self._unique_id, "device_id": self._device_id},
                     )
                 self._last_image_source_ = value
 
@@ -794,9 +800,13 @@ async def websocket_stream_url(hass, connection, msg):
         camera = get_entity_from_domain(hass, DOMAIN, msg["entity_id"])
         _LOGGER.debug("stream_url for " + str(camera.unique_id))
 
+        user_agent = msg.get("user_agent", "linux")
+        if user_agent != "linux":
+            user_agent = "!" + user_agent
+
         # start stream and force user agent to linux, this will return a `mpeg dash`
         # stream we can use directly from the Lovelace card
-        stream = await camera.async_stream_source(user_agent="linux")
+        stream = await camera.async_stream_source(user_agent=user_agent)
         connection.send_message(
             websocket_api.result_message(msg["id"], {"url": stream})
         )
