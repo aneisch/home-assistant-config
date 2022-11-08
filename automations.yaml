@@ -787,6 +787,8 @@
         after: "05:30:00"
         before: "09:45:00"
   action:
+    - wait_template: "{{ is_state('sensor.andrew_phone_charger_type', 'none') }}"
+      timeout: "00:05:00"
     - service: switch.turn_on
       entity_id: switch.coffee_maker
     - service: notify.signal_self
@@ -795,6 +797,13 @@
             Turned coffee maker on!
     - service: switch.turn_on
       entity_id: switch.under_cabinet_lights_coffee
+    - wait_template: "{{ is_state('switch.under_cabinet_lights_coffee', 'off') }}"
+      timeout: "00:20:00"
+    - if:
+        - "{{ wait.completed }}"
+      then:
+        - service: switch.turn_off
+          entity_id: switch.coffee_maker
 
 - alias: "Coffee Maker Off"
   id: "coffee_maker_off"
