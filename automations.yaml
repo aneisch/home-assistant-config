@@ -378,8 +378,10 @@
   # condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
   condition: "{{ states('person.andrew') == 'home' }}"
   action:
-    - service: homeassistant.turn_on
-      entity_id: light.andrew_desk_lamp
+    - if: "{{ states('sun.sun') == 'below_horizon' }}"
+      then:
+        - service: homeassistant.turn_on
+          entity_id: light.andrew_desk_lamp
     - service: homeassistant.turn_on
       entity_id: switch.andrew_monitor
 
@@ -391,7 +393,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "off"
-    for: '00:15:00'
+    for: '00:30:00'
   # condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
   action:
     - service: homeassistant.turn_off

@@ -53,7 +53,7 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-              {{ trigger.from_state.attributes.friendly_name }} triggered
+              {{ trigger.from_state.attributes.friendly_name }}: triggered
           data:
             priority: 2
 
@@ -75,8 +75,9 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-              {{ trigger.from_state.attributes.friendly_name }} cleared
-          priority: 1
+              {{ trigger.from_state.attributes.friendly_name }}: cleared
+          data:
+            priority: 1
 
   - alias: "Smoke Alarm Home Response"
     id: "smoke_alarm_home_response"
