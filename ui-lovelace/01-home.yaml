@@ -176,8 +176,8 @@ cards:
         title: Weather
         entities:
           - weather.kcll_daynight
-          - sensor.nws_temperature
-          - sensor.nws_humidity
+          - sensor.433_weather_temperature
+          - sensor.433_weather_humidity
           - sensor.precip_probability
           - sun.sun
           - sensor.moon

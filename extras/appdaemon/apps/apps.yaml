@@ -32,13 +32,16 @@ Guest Bedroom EcoSmart Zigbee Remote:
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
 
-Guest Bedroom Sengled Zigbee Remote:
+Kitchen Sengled Zigbee Remote:
   module: zigbee_remote
   class: SengledZigbeeRemote
   device_ieee: b0:ce:18:14:03:5e:06:9d
-  button_1_toggle: light.guest_bedroom_ceiling_fan
-  button_2_toggle: switch.guest_bedroom_ceiling_fan
-  button_3_toggle: light.guest_bedroom_nightstand_lamp
+  button_1_toggle: group.christmas
+  button_2_toggle: group.christmas
+  button_3_toggle: group.christmas
+  button_4_toggle: group.christmas
+  # button_2_toggle: switch.guest_bedroom_ceiling_fan
+  # button_3_toggle: light.guest_bedroom_nightstand_lamp
 
 #Minimote Morning:
 #  module: minimote
@@ -175,29 +178,29 @@ Bethany Office Hanging Lights:
 #  time_on: sunset - 00:20:00
 #  time_off: "00:00:00"
 
-#Dining Room Christmas Tree Follow:
-#  module: follow_me
-#  class: Follow
-#  leader: group.christmas_trees
-#  follower: switch.dining_room_christmas_tree
-#  follow_off: False # Only follow state to on
+Christmas Trees Follow:
+  module: follow_me
+  class: Follow
+  leader: group.christmas_trees
+  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+  follow_off: False # Only follow state to on
 
-#Dining Room Christmas Tree Timer:
-#  module: entity_timer
-#  class: Timer
-#  entities: switch.dining_room_christmas_tree
-#  time_on: sunset - 00:20:00
-#  time_off: 00:00:00
+Front House Christmas Trees Timer:
+  module: entity_timer
+  class: Timer
+  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+  time_on: sunset - 00:20:00
+  time_off: 00:00:00
 
 ############
 # Aquarium #
 ############
-Circadian Follow:
-  module: follow_me
-  class: Follow
-  constrain_input_boolean: input_boolean.aquarium_automation
-  leader: light.aquarium_light
-  follower: switch.circadian_lighting_aquarium_circadian
+# Circadian Follow:
+#   module: follow_me
+#   class: Follow
+#   constrain_input_boolean: input_boolean.aquarium_automation
+#   leader: light.aquarium_light
+#   follower: switch.circadian_lighting_aquarium_circadian
 
 # CO2:
 #   module: entity_timer
@@ -207,27 +210,27 @@ Circadian Follow:
 #   time_on: "07:00:00"
 #   time_off: "16:30:00"
 
-Aquarium Light On Morning:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_light
-  time_on: "09:00:00"
+# Aquarium Light On Morning:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: input_boolean.aquarium_automation
+#   entities: light.aquarium_light
+#   time_on: "09:00:00"
 
-Aquarium Light Afternoon:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_light
-  time_off: "13:00:00"
-  time_on: "14:30:00"
+# Aquarium Light Afternoon:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: input_boolean.aquarium_automation
+#   entities: light.aquarium_light
+#   time_off: "13:00:00"
+#   time_on: "14:30:00"
 
-Aquarium Light Off Evening:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: input_boolean.aquarium_automation
-  entities: light.aquarium_light
-  time_off: "17:30:00"
+# Aquarium Light Off Evening:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: input_boolean.aquarium_automation
+#   entities: light.aquarium_light
+#   time_off: "17:30:00"
 
 NAS:
   module: entity_timer

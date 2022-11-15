@@ -1,5 +1,3 @@
-### USING LOVELACE INSTEAD OF LEGACY UI  ###
-
 common_areas:
   name: Common Areas
   entities:
@@ -7,7 +5,7 @@ common_areas:
     - group.kitchen
     - group.office
     - group.garage
-    #- group.christmas
+    - group.christmas
 
 office:
   name: Office
@@ -28,6 +26,7 @@ master_bedroom:
     #- switch.master_bedroom_sound_machine
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
+    - switch.master_bedroom_christmas_tree
 
 garage:
   name: Garage
@@ -87,7 +86,8 @@ off_at_bedtime:
     - light.entryway_light
     - light.living_room_sconces
     - group.common_areas
-    # - switch.dining_room_christmas_tree
+    - switch.dining_room_christmas_tree
+    - switch.office_christmas_tree
     - switch.ir_candles
 
 andrew_desk:
@@ -98,15 +98,17 @@ andrew_desk:
 #############
 # Christmas #
 #############
-# christmas_trees:
-#   entities:
-#     # - switch.dining_room_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime
-#     - switch.kitchen_christmas_tree
-#     - switch.living_room_christmas_tree
+christmas:
+  entities:
+    - group.christmas_trees
+    - switch.ferris_wheel
+    - switch.santa_tree
+    - switch.nativity
 
-# christmas:
-#   entities:
-#     - group.christmas_trees
-#     - switch.sonoff_1 # Ferris Wheel
-#     - switch.santa_tree
-#     - switch.nativity
+christmas_trees:
+  entities:
+    # - switch.dining_room_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime
+    # - switch.office_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime
+    # - switch.master_bedroom_christmas_tree # On follows other trees via appdaemon
+    - switch.kitchen_christmas_tree
+    - switch.living_room_christmas_tree

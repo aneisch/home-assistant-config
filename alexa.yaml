@@ -76,15 +76,17 @@ smart_home:
       #############
       # Christmas #
       #############
-      # - switch.christmas_lights
-      # - switch.living_room_christmas_tree
-      # - switch.kitchen_christmas_tree
-      # - switch.dining_room_christmas_tree
-      # - group.christmas_trees
-      # - group.christmas
-      # - switch.sonoff_1_switch # Ferris Wheel
-      # - switch.sonoff_usb_1 # Santa Tree
-      # - switch.nativity
+      - switch.christmas_lights
+      - switch.living_room_christmas_tree
+      - switch.office_christmas_tree
+      - switch.master_bedroom_christmas_tree
+      - switch.kitchen_christmas_tree
+      - switch.dining_room_christmas_tree
+      - group.christmas_trees
+      - group.christmas
+      - switch.ferris_wheel
+      - switch.nativity
+      - switch.santa_tree
 
   entity_config:
     climate.thermostat:
@@ -215,44 +217,54 @@ smart_home:
     #############
     # Christmas #
     #############
-    # switch.living_room_christmas_tree:
-    #   name: "Living Room Christmas Tree"
-    #   description: "Living Room Christmas Tree"
-    #   display_categories: SWITCH
+    switch.living_room_christmas_tree:
+      name: "Living Room Christmas Tree"
+      description: "Living Room Christmas Tree"
+      display_categories: SWITCH
 
-    # switch.kitchen_christmas_tree:
-    #   name: "Kitchen Christmas Tree"
-    #   description: "Kitchen Christmas Tree"
-    #   display_categories: SWITCH
+    switch.kitchen_christmas_tree:
+      name: "Kitchen Christmas Tree"
+      description: "Kitchen Christmas Tree"
+      display_categories: SWITCH
 
-    # switch.dining_room_christmas_tree:
-    #   name: "Dining Room Christmas Tree"
-    #   description: "Dining Room Christmas Tree"
-    #   display_categories: SWITCH
+    switch.dining_room_christmas_tree:
+      name: "Dining Room Christmas Tree"
+      description: "Dining Room Christmas Tree"
+      display_categories: SWITCH
 
-    # group.christmas_trees:
-    #   name: Christmas Trees
-    #   description: "All Christmas Trees"
-    #   display_categories: SWITCH
+    switch.office_christmas_tree:
+      name: "Office Christmas Tree"
+      description: "Office Christmas Tree"
+      display_categories: SWITCH
 
-    # group.christmas:
-    #   name: Christmas
-    #   description: "All Indoor Christmas"
-    #   display_categories: SWITCH
+    switch.master_bedroom_christmas_tree:
+      name: "Master Bedroom Christmas Tree"
+      description: "Master Bedroom Christmas Tree"
+      display_categories: SWITCH
 
-    # switch.christmas_lights:
-    #   name: "Christmas Lights"
-    #   description: "Christmas Lights"
-    #   display_categories: SWITCH
+    group.christmas_trees:
+      name: Christmas Trees
+      description: "All Christmas Trees"
+      display_categories: SWITCH
 
-    # switch.sonoff_1_switch:
-    #   name: "Ferris Wheel"
-    #   display_categories: SWITCH
+    group.christmas:
+      name: Christmas
+      description: "All Indoor Christmas"
+      display_categories: SWITCH
 
-    # switch.sonoff_usb_1:
-    #   name: "Santa Tree"
-    #   display_categories: SWITCH
+    switch.christmas_lights:
+      name: "Christmas Lights"
+      description: "Christmas Lights"
+      display_categories: SWITCH
 
-    # switch.nativity:
-    #   name: "Nativity"
-    #   display_categories: SWITCH
+    switch.ferris_wheel:
+      name: "Ferris Wheel"
+      display_categories: SWITCH
+
+    switch.santa_tree:
+      name: "Santa Tree"
+      display_categories: SWITCH
+
+    switch.nativity:
+      name: "Nativity"
+      display_categories: SWITCH

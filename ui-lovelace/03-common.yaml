@@ -78,20 +78,20 @@ cards:
                 action: call-service
                 service: esphome.living_room_speakers_volume_up
 
-  # - type: 'custom:auto-entities'
-  #   filter:
-  #     include:
-  #       - entity_id: "light.*christmas*"
-  #       - entity_id: "switch.*christmas*"
-  #       - entity_id: switch.santa_tree
-  #       - entity_id: switch.sonoff_1_switch
-  #       - entity_id: switch.nativity
-  #   card:
-  #     type: entities
-  #     title: Christmas
-  #     show_header_toggle: true
-  #   sort:
-  #     method: name
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "light.*christmas*"
+        - entity_id: "switch.*christmas*"
+        - entity_id: switch.santa_tree
+        - entity_id: switch.ferris_wheel
+        - entity_id: switch.nativity
+    card:
+      type: entities
+      title: Christmas
+      show_header_toggle: false
+    sort:
+      method: name
 
   - type: entities
     show_header_toggle: false

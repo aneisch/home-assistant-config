@@ -10,10 +10,9 @@ home_empty:
         entity_id: input_boolean.security_status
     - service: homeassistant.turn_off
       data:
-        entity_id: group.master_bedroom
-    - service: homeassistant.turn_off
-      data:
-        entity_id: group.common_areas
+        entity_id: 
+          - group.master_bedroom
+          - group.common_areas
 
 # Turn on lights and disarm security
 home_occupied:
@@ -35,10 +34,9 @@ home_occupied:
           {% endif %}
     - service: homeassistant.turn_on
       data:
-        entity_id: group.under_cabinet_lights
-    - service: homeassistant.turn_on
-      data:
-        entity_id: group.christmas_trees
+        entity_id: 
+          - group.under_cabinet_lights
+          - group.christmas # dining, office, master tree follow 'on' via appdaemon
 
 ############
 # SECURITY #
@@ -97,6 +95,8 @@ master_bedroom_wakeup:
           {% endif %}
     - service: homeassistant.turn_off
       entity_id: input_boolean.goodnight
+    - service: homeassistant.turn_on
+      entity_id: group.christmas
 
 master_bedroom_bedtime:
   sequence:
@@ -164,6 +164,7 @@ christmas_goodnight:
           type: tts
           method: speak
         message: "<prosody rate='65%'><amazon:emotion name='excited' intensity='low'>And to all a good night</amazon:emotion></prosody>"
+    - delay: '00:00:02'
     - service: switch.turn_off
       entity_id: switch.master_bedroom_christmas_tree
     # Fade music out
