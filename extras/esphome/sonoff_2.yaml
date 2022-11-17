@@ -9,10 +9,11 @@ esphome:
 
 <<: !include common.yaml
 
-status_led:
-  pin:
-    number: GPIO13
-    inverted: yes
+# breaks unit on AC power
+# status_led:
+#   pin:
+#     number: GPIO13
+#     inverted: yes
 
 switch:
   - platform: restart

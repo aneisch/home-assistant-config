@@ -414,6 +414,9 @@ recorder:
       #- shell_command
       - sun
       - zone
+  include:
+    entities:
+      - media_player.living_room_tv
 
 rest_command: !include rest_command.yaml
 

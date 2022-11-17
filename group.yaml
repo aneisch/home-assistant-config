@@ -104,6 +104,7 @@ christmas:
     - switch.ferris_wheel
     - switch.santa_tree
     - switch.nativity
+    - switch.christmas_picture
 
 christmas_trees:
   entities:

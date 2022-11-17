@@ -1,0 +1,25 @@
+substitutions:
+  name: christmas_picture
+  friendly_name: "Christmas Picture"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+  - platform: gpio
+    pin: D3
+    id: relay
+    name: "${friendly_name}"
+    restore_mode: ALWAYS_OFF
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
