@@ -209,7 +209,7 @@
   id: "alexa_history"
   trigger:
     platform: time_pattern
-    hours: "/1"
+    hours: "/12"
   action:
     - service: alexa_media.clear_history
 
@@ -223,13 +223,17 @@
         - binary_sensor.garage_exterior_door
         - binary_sensor.garage_interior_door
         - binary_sensor.master_bedroom_exterior_door
-        - binary_sensor.mailbox
+        - binary_sensor.garage_interior_motion
+        - binary_sensor.living_room_motion
+        - binary_sensor.hallway_motion
       from: "off"
       to: "on"
+    - platform: state
+      entity_id: sensor.433_front_porch_motion
   action:
     service: input_datetime.set_datetime
     data:
-      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') }}_last"
+      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') | regex_replace(find='sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
 # - alias: "Mailbox Alert"

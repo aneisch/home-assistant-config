@@ -137,7 +137,9 @@ master_bedroom_bedtime:
             - light.back_bedroom_nightstand_lamp
     # - service: script.christmas_goodnight
 
+
 christmas_goodnight:
+  mode: 'restart'
   # Play Christmas music, say goodnight, fade music out, and turn off tree
   sequence:
     - service: switch.turn_on
@@ -156,7 +158,7 @@ christmas_goodnight:
     #     entity_id: media_player.spotify
     - service: media_player.play_media
       data:
-        media_content_id: spotify:track:6ajihXpsHpDnIdqtBXZYGN
+        media_content_id: spotify:track:3XsaSIPWvM61RIFfeb0BBR
         media_content_type: music
         entity_id: media_player.spotify
     - delay: "00:01:35" # Song length

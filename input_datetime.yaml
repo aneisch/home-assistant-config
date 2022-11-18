@@ -22,3 +22,19 @@ garage_door_last:
   name: Garage Door Last Opened
   has_date: true
   has_time: true
+garage_motion_last:
+  name: Last Garage Interior Motion 
+  has_date: true
+  has_time: true
+living_room_motion_last:
+  name: Last Living Room Motion 
+  has_date: true
+  has_time: true
+hallway_motion_last:
+  name: Last Hallway Motion 
+  has_date: true
+  has_time: true
+433_front_porch_motion_last:
+  name: Last Front Porch Motion 
+  has_date: true
+  has_time: true

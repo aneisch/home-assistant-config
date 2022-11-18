@@ -88,7 +88,7 @@ off_at_bedtime:
     - group.common_areas
     - switch.dining_room_christmas_tree
     - switch.office_christmas_tree
-    - switch.ir_candles
+    #- switch.ir_candles
 
 andrew_desk:
   entities:
