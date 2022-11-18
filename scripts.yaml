@@ -140,6 +140,8 @@ master_bedroom_bedtime:
 christmas_goodnight:
   # Play Christmas music, say goodnight, fade music out, and turn off tree
   sequence:
+    - service: switch.turn_on
+      entity_id: switch.master_bedroom_christmas_tree
     - service: media_player.select_source
       data:
         entity_id: media_player.spotify
@@ -148,16 +150,16 @@ christmas_goodnight:
       data:
         entity_id: media_player.spotify
         volume_level: 0.55
-    - service: media_player.shuffle_set
-      data:
-        shuffle: true
-        entity_id: media_player.spotify
+    # - service: media_player.shuffle_set
+    #   data:
+    #     shuffle: true
+    #     entity_id: media_player.spotify
     - service: media_player.play_media
       data:
-        media_content_id: 'spotify:playlist:3ggRyPeN5BcQSBJ2UB6G8L' # https://open.spotify.com/playlist/3ggRyPeN5BcQSBJ2UB6G8L?si=1aed5ff4d4a946af
-        media_content_type: playlist
+        media_content_id: spotify:track:6ajihXpsHpDnIdqtBXZYGN
+        media_content_type: music
         entity_id: media_player.spotify
-    - delay: "00:00:60"
+    - delay: "00:01:35" # Song length
     - service: notify.alexa_media_master
       data:
         data:
@@ -168,19 +170,19 @@ christmas_goodnight:
     - service: switch.turn_off
       entity_id: switch.master_bedroom_christmas_tree
     # Fade music out
-    - repeat:
-        while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
-        sequence:
-          - service: media_player.volume_set
-            data_template:
-              entity_id: media_player.spotify
-              volume_level: >
-                {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
-          - delay: 
-              seconds: 0.4
-    - service: media_player.media_pause
-      data_template:
-        entity_id: media_player.spotify
+    # - repeat:
+    #     while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
+    #     sequence:
+    #       - service: media_player.volume_set
+    #         data_template:
+    #           entity_id: media_player.spotify
+    #           volume_level: >
+    #             {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
+    #       - delay: 
+    #           seconds: 0.4
+    # - service: media_player.media_pause
+    #   data_template:
+    #     entity_id: media_player.spotify
 
 #########
 # OTHER #
