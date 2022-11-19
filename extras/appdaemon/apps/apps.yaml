@@ -351,7 +351,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces #,switch.ir_candles
   brightness: 255
 
 # This seems to make zwave network freak out. Disabled 10/2022

@@ -77,7 +77,7 @@ security_arm:
 master_bedroom_wakeup:
   sequence:
     - service: script.turn_on # Calling this way allows the sequence to continue without blocking
-      entity_id: script.christmas_goodnight
+      entity_id: script.christmas_wakeup
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
@@ -205,6 +205,9 @@ christmas_wakeup:
       data:
         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
         media_content_type: music
+        entity_id: media_player.spotify
+    - service: media_player.media_pause
+      data_template:
         entity_id: media_player.spotify
 
 #########
