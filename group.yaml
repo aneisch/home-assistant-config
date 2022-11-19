@@ -85,7 +85,7 @@ off_at_bedtime:
   entities:
     - light.entryway_light
     - light.living_room_sconces
-    - group.common_areas
+    - group.common_areas # contains christmas group
     - switch.dining_room_christmas_tree
     - switch.office_christmas_tree
     #- switch.ir_candles
@@ -108,8 +108,8 @@ christmas:
 
 christmas_trees:
   entities:
-    # - switch.dining_room_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime
-    # - switch.office_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime
+    # - switch.dining_room_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime OR timer
+    # - switch.office_christmas_tree # On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime OR timer
     # - switch.master_bedroom_christmas_tree # On follows other trees via appdaemon
     - switch.kitchen_christmas_tree
     - switch.living_room_christmas_tree

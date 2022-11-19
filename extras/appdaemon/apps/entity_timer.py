@@ -2,12 +2,12 @@ import appdaemon.plugins.hass.hassapi as hass
 
 class Timer(hass.Hass):
   def initialize(self):
-    if self.noone_home(person=True):
-      self.log("No one home")
-    if self.anyone_home(person=True):
-      self.log("Anyone home")
-    if self.everyone_home(person=True):
-      self.log("Everyone home")
+    # if self.noone_home(person=True):
+    #   self.log("No one home")
+    # if self.anyone_home(person=True):
+    #   self.log("Anyone home")
+    # if self.everyone_home(person=True):
+    #   self.log("Everyone home")
 
     if "time_on" in self.args:
       time_on = self.parse_time(self.args["time_on"])

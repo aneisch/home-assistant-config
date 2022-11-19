@@ -171,12 +171,12 @@ Bethany Office Hanging Lights:
 #############
 # Christmas #
 #############
-#Christmas Lights:
-#  module: entity_timer
-#  class: Timer
-#  entities: switch.christmas_lights
-#  time_on: sunset - 00:20:00
-#  time_off: "00:00:00"
+Christmas Lights:
+  module: entity_timer
+  class: Timer
+  entities: switch.christmas_lights
+  time_on: sunset - 00:20:00
+  time_off: "00:00:00"
 
 Christmas Trees Follow:
   module: follow_me
