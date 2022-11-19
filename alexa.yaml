@@ -118,7 +118,7 @@ smart_home:
       name: "Living Room Ceiling Fan Light"
 
     light.master_bedroom_ceiling_fan:
-      name: "Master Bedroom Ceiling Fan Light"
+      name: "Master Bedroom Light"
 
     script.appdaemon_ac_night:
       name: "AC Night Mode"  
@@ -203,7 +203,7 @@ smart_home:
       display_categories: FAN
 
     switch.master_bedroom_ceiling_fan:
-      name: "Master Bedroom Fan"
+      name: "Master Bedroom Ceiling Fan"
       display_categories: FAN
 
     switch.vacuum:
