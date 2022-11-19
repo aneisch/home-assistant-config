@@ -1,10 +1,12 @@
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
-  backend: sse
+  #backend: sse
 
 alarm_control_panel:
   - platform: aarlo
+    away_mode_name: armed
+    home_mode_name: disarmed
 
 camera:
   - platform: aarlo

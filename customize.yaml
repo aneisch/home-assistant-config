@@ -79,10 +79,6 @@ sensor.ac_runtime_yesterday:
   friendly_name: Runtime Yesterday
 
 ### SCRIPTS ###
-script.master_bedroom_bedtime:
-  friendly_name: Bedtime
-  icon: mdi:theme-light-dark
-
 script.copy:
   friendly_name: Plex Copy
   icon: mdi:content-copy

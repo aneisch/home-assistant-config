@@ -90,7 +90,7 @@ cards:
           {%- set minutes = (seconds // 60) | int -%}
           {%- set hours = (minutes // 60) | int -%}
           {%- set days = (hours // 24) | int -%}
-          {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+          {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: {% if seconds < 60 %}<font color='red'>{% elif seconds < 300 %}<font color='orange'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font>
           {% endfor %}
       # - type: 'custom:aarlo-glance'
       #   entity: camera.aarlo_garage
