@@ -212,6 +212,7 @@ christmas_wakeup:
         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
         media_content_type: music
         entity_id: media_player.spotify
+    - delay: '00:02:12'
     - service: media_player.media_pause
       data_template:
         entity_id: media_player.spotify
