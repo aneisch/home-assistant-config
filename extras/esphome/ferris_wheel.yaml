@@ -1,0 +1,20 @@
+substitutions:
+  name: ferris_wheel
+  friendly_name: "Ferris Wheel"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+  
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: relay
+    name: ${friendly_name}
+    icon: "mdi:ferris-wheel"
+    pin:
+      number: D1
+      inverted: False

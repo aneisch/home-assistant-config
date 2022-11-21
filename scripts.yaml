@@ -13,6 +13,13 @@ home_empty:
         entity_id: 
           - group.master_bedroom
           - group.common_areas
+    # Before dark, turn off christmas trees in front
+    - if: "{{ now().hour < 16 }}"
+      then:
+        - service: switch.turn_off
+          entity_id:
+            - switch.office_christmas_tree
+            - switch.dining_room_christmas_tree
 
 # Turn on lights and disarm security
 home_occupied:
@@ -76,14 +83,11 @@ security_arm:
 
 master_bedroom_wakeup:
   sequence:
-    - service: script.turn_on # Calling this way allows the sequence to continue without blocking
-      data:
-        entity_id: >
-          {% if now().hour < 11 %}
-            script.christmas_wakeup
-          {% else %}
-            script.noop
-          {% endif %}
+    - if: "{{ now().hour < 11 }}"
+      then:
+        - service: script.turn_on
+          entity_id:
+            - script.christmas_wakeup
     - service: alarm_control_panel.alarm_disarm
       entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
@@ -156,6 +160,7 @@ christmas_goodnight:
       data:
         entity_id: media_player.spotify
         source: "Master"
+    - delay: '00:00:01'
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify
@@ -203,6 +208,7 @@ christmas_wakeup:
       data:
         entity_id: media_player.spotify
         source: "Master"
+    - delay: '00:00:01'
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify
