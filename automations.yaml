@@ -270,9 +270,9 @@
   action:
     - service: script.notify_wrapper
       data:
-        message: >
-          {{ trigger.to_state.name }} Unlocked
-        priority: 1
+        message: "{{ trigger.to_state.name }} Unlocked"
+        data:
+          priority: 1
 
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
@@ -420,7 +420,8 @@
     - service: script.notify_wrapper
       data:
         message: "Water detected by {{ trigger.to_state.name }}"
-        priority: 2
+        data:
+          priority: 2
 
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"
@@ -705,9 +706,9 @@
   action:
     - service: script.notify_wrapper
       data:
-        message: >
-            The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F
-        priority: 2
+        message: "The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F"
+        data:
+          priority: 2
 
 - alias: "Garage Fan"
   id: "garage_fan"

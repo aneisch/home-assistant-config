@@ -171,7 +171,7 @@ services:
         image: ghcr.io/aneisch/gsm_message_relay:latest
         #image: test
         ports:
-            - '9999:9999'
+            - '127.0.0.1:9999:9999'
         environment:
             # Optional GSM_MODEM - defaults to /dev/gsm_modem
             #- GSM_MODEM=/dev/gsm_modem

@@ -84,7 +84,7 @@ cards:
 
       - type: markdown
         content: |
-          {% set door_sensors = ['front_door_last','back_porch_door_last','garage_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last','garage_motion_last','living_room_motion_last','hallway_motion_last', '433_front_porch_motion_last'] %}
+          {% set door_sensors = ['front_door_last','back_porch_door_last','garage_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last','garage_interior_motion_last','living_room_motion_last','hallway_motion_last', '433_front_porch_motion_last'] %}
           {% for door in door_sensors -%}
           {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.' + door))) | int -%}
           {%- set minutes = (seconds // 60) | int -%}

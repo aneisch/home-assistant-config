@@ -160,7 +160,7 @@ christmas_goodnight:
       data:
         entity_id: media_player.spotify
         source: "Master"
-    - delay: '00:00:01'
+    - delay: '00:00:03'
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify
@@ -208,16 +208,20 @@ christmas_wakeup:
       data:
         entity_id: media_player.spotify
         source: "Master"
-    - delay: '00:00:01'
+    - delay: '00:00:03'
     - service: media_player.volume_set
       data:
         entity_id: media_player.spotify
-        volume_level: 0.50
+        volume_level: 0.40    
     - service: media_player.play_media
       data:
         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
         media_content_type: music
         entity_id: media_player.spotify
+    - service: media_player.volume_set
+      data:
+        entity_id: media_player.spotify
+        volume_level: 0.40
     - delay: '00:02:12'
     - service: media_player.media_pause
       data_template:
