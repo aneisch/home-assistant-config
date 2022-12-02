@@ -1,0 +1,137 @@
+substitutions:
+  name: twinkle_lights
+  friendly_name: "Twinkle Lights"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+remote_transmitter:
+  pin: D3
+  carrier_duty_percent: 100%
+  
+remote_receiver:
+  pin: 
+    number: D2
+  dump: rc_switch
+  # Settings to optimize recognition of RF devices
+  tolerance: 50%
+  filter: 250us
+  idle: 4ms
+  buffer_size: 2kb
+  
+# Raz Christmas Cluster Lights
+# on: 001111111110000000000001
+# off: 001111111110000000000011
+# timer: 001111111110000000000010
+# timer off: 001111111110000000001110
+# 1 (combo): 001111111110000000000100
+# 2 (medium twinkle): 001111111110000000000110
+# 3 (sequential): 001111111110000000000111
+# 4 (slow twinkle): 001111111110000000001001
+# 5 (chasing/flash): 001111111110000000001010
+# 6 (slow fade): 001111111110000000001100
+# 7 (twinkle/flash): 001111111110000000001101
+# 8 (steady on): 001111111110000000001111 
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+  - platform: template
+    name: RF Power Button
+    optimistic: True
+    turn_on_action:
+      - remote_transmitter.transmit_rc_switch_raw:
+          code: '001111111110000000000001'
+          protocol: 1
+          repeat: 
+            times: 4
+            wait_time: 0s
+    turn_off_action:
+      - remote_transmitter.transmit_rc_switch_raw:
+          code: '001111111110000000000011'
+          protocol: 1
+          repeat: 
+            times: 4
+            wait_time: 0s
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
+  services:
+    - service: string_1_combo
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000000100'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_2_medium_twinkle
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000000110'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_3_sequential
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000000111'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_4_slow_twinkle
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000001001'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_5_chasing_flash
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000001010'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_6_slow_fade
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000001100'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_7_twinkle_flash
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000001101'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s
+
+    - service: string_8_steady_on
+      then:
+        - remote_transmitter.transmit_rc_switch_raw:
+            code: '001111111110000000001111'
+            protocol: 1
+            repeat: 
+              times: 4
+              wait_time: 0s

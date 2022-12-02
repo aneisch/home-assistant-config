@@ -505,7 +505,7 @@
       from: "off"
       to: "on"
   action:
-    - service: script.notify_wrapper
+    - service: notify.gsm_message
       data:
         message: >
           {% if trigger.from_state.state == "on" %}
@@ -513,6 +513,8 @@
           {% else %}
           Home internet has recovered
           {% endif %}
+        data:
+          priority: 1
 
 
 # - id: webhook_debugger
@@ -798,10 +800,10 @@
       timeout: "00:05:00"
     - service: switch.turn_on
       entity_id: switch.coffee_maker
-    - service: notify.signal_self
-      data:
-        message: >
-            Turned coffee maker on!
+    # - service: notify.signal_self
+    #   data:
+    #     message: >
+    #         Turned coffee maker on!
     - service: switch.turn_on
       entity_id: switch.under_cabinet_lights_coffee
     - wait_template: "{{ is_state('switch.under_cabinet_lights_coffee', 'off') }}"

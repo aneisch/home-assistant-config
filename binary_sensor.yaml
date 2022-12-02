@@ -18,6 +18,11 @@
   count: 2
 
 - platform: ping
+  name: Andrew Work Laptop
+  host: 10.0.1.27
+  count: 2
+
+- platform: ping
   name: Kurt Tunnel
   host: 192.168.88.1
   count: 2

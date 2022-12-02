@@ -5,7 +5,8 @@ cards:
   - !include .cards/kitchen_timer_2.yaml
   - !include .cards/grill.yaml
   - !include .cards/covid.yaml
-
+  - !include .cards/desk_led.yaml
+  
   - type: custom:vertical-stack-in-card
     cards:
       - !include .cards/thermostat.yaml
@@ -114,7 +115,7 @@ cards:
       - input_boolean.door_notify
       - input_boolean.ac_automation
       - input_boolean.ac_change_notification
-      - input_boolean.aquarium_automation
+      # - input_boolean.aquarium_automation
       - input_boolean.occusim
       - input_boolean.guest_mode
       - input_boolean.house_lamps_automation

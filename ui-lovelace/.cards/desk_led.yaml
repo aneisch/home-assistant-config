@@ -1,0 +1,10 @@
+type: conditional
+conditions:
+  - entity: binary_sensor.andrew_work_laptop
+    state: "on"
+card:
+  type: entities
+  entities:
+    - light.desk_led
+    - script.desk_led_red
+    - script.desk_led_white

@@ -1,0 +1,68 @@
+substitutions:
+  name: mute_button
+  friendly_name: "Mute Button"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+binary_sensor:
+  - platform: gpio
+    id: button
+    pin: D5
+    on_press:
+      then:
+        if: 
+          condition:
+            light.is_on: led
+          then:
+            - light.turn_off: led
+            - homeassistant.service:
+                service: script.desk_led_white
+          else:
+            - light.turn_on: 
+                id: led
+                effect: pulse
+            - switch.turn_on: toggle
+            - homeassistant.service:
+                service: script.desk_led_red
+
+  - platform: homeassistant
+    id: desk_led
+    entity_id: light.desk_led
+    on_press:
+      then:
+        - light.turn_on: 
+            id: led
+            effect: pulse
+    on_release:
+      then:
+        - light.turn_off: 
+            id: led
+
+switch:
+  - platform: gpio
+    pin: D6
+    id: toggle
+    on_turn_on:
+    - delay: 500ms
+    - switch.turn_off: toggle      
+
+output:
+  - platform: esp8266_pwm
+    id: led_output
+    pin:
+      number: D8
+
+light:
+  - platform: monochromatic
+    default_transition_length: 0s
+    output: led_output
+    id: led
+    effects:
+      - pulse:
+          transition_length: 0.2s
+          update_interval: 0.2s

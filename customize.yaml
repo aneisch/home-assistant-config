@@ -84,12 +84,12 @@ script.copy:
   icon: mdi:content-copy
 
 ### PEOPLE ###
-person.andrew:
-  entity_picture: /local/icons/tracker_icons/andrew.jpg
-  user_id: dd85e42ea84e4f4c87a6fa93ab87a870
+# person.andrew:
+#   entity_picture: /local/icons/tracker_icons/andrew.jpg
+#   user_id: dd85e42ea84e4f4c87a6fa93ab87a870
 
-person.bethany:
-  entity_picture: /local/icons/tracker_icons/bethany.jpg
+# person.bethany:
+#   entity_picture: /local/icons/tracker_icons/bethany.jpg
 
 ### OTHER ###
 zone.home:

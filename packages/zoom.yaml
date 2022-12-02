@@ -29,43 +29,61 @@ automation:
   #         brightness: 255
   #         effect: "custom scan"
 
-  - alias: "Zoom LED Off"
-    id: "zoom_led_off"
-    trigger:
-      - platform: state
-        entity_id: 
-          - binary_sensor.in_meeting_weasel
-          - binary_sensor.in_meeting_work
-        from: "on"
-        to: "off"
-    action:
-      - service: homeassistant.turn_off
-        entity_id: light.zoom_led
+  # - alias: "Zoom LED Off"
+  #   id: "zoom_led_off"
+  #   trigger:
+  #     - platform: state
+  #       entity_id: 
+  #         - binary_sensor.in_meeting_weasel
+  #         - binary_sensor.in_meeting_work
+  #       from: "on"
+  #       to: "off"
+  #   action:
+  #     - service: homeassistant.turn_off
+  #       entity_id: light.zoom_led
 
-  - alias: "Zoom LED On"
-    id: "zoom_led_on"
-    trigger:
-      - platform: state
-        entity_id: 
-          - binary_sensor.muted_weasel
-          - binary_sensor.muted_work
-      - platform: state
-        entity_id: 
-          - binary_sensor.in_meeting_weasel
-          - binary_sensor.in_meeting_work
-        from: "off"
-        to: "on"
-    condition: "{{ trigger.from_state.state != 'unavailable' }}"
-    action:
+  # - alias: "Zoom LED On"
+  #   id: "zoom_led_on"
+  #   trigger:
+  #     - platform: state
+  #       entity_id: 
+  #         - binary_sensor.muted_weasel
+  #         - binary_sensor.muted_work
+  #     - platform: state
+  #       entity_id: 
+  #         - binary_sensor.in_meeting_weasel
+  #         - binary_sensor.in_meeting_work
+  #       from: "off"
+  #       to: "on"
+  #   condition: "{{ trigger.from_state.state != 'unavailable' }}"
+  #   action:
+  #     - service: homeassistant.turn_on
+  #       entity_id: light.zoom_led
+  #       data:
+  #         rgb_color: >
+  #           {% if ( states("binary_sensor.muted_work") == "on" and states("binary_sensor.in_meeting_work") == "on" ) or ( states("binary_sensor.muted_weasel") == "on" and states("binary_sensor.in_meeting_weasel") == "on" ) %}
+  #           [255,255,0]
+  #           {% elif states("binary_sensor.in_meeting_work") == "on" or states("binary_sensor.in_meeting_weasel") == "on" %}
+  #           [255,0,0]
+  #           {% endif %}
+  #         brightness: 255
+  #         effect: "custom scan"
+
+script:
+  desk_led_red:
+    sequence:
       - service: homeassistant.turn_on
-        entity_id: light.zoom_led
+        entity_id: light.desk_led
         data:
-          rgb_color: >
-            {% if ( states("binary_sensor.muted_work") == "on" and states("binary_sensor.in_meeting_work") == "on" ) or ( states("binary_sensor.muted_weasel") == "on" and states("binary_sensor.in_meeting_weasel") == "on" ) %}
-            [255,255,0]
-            {% elif states("binary_sensor.in_meeting_work") == "on" or states("binary_sensor.in_meeting_weasel") == "on" %}
-            [255,0,0]
-            {% endif %}
+          rgb_color: [255,0,0]
+          brightness: 255
+          effect: "custom scan"
+  desk_led_white:
+    sequence:
+      - service: homeassistant.turn_on
+        entity_id: light.desk_led
+        data:
+          rgb_color: [255,255,255]
           brightness: 255
           effect: "custom scan"
 

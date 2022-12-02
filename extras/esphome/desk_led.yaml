@@ -1,0 +1,63 @@
+substitutions:
+  name: desk_led
+  friendly_name: "Desk LED"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  framework:
+    version: 2.7.4
+  board: d1_mini
+
+wifi:
+  ssid: SSID
+  password: WPA_KEY
+
+  # Optional manual IP
+  manual_ip:
+    static_ip: 10.0.0.7
+    gateway: 10.0.1.1
+    subnet: 255.255.255.0
+
+<<: !include common.yaml
+
+light:
+  - platform: fastled_clockless
+    chipset: WS2812B
+    pin: D4
+    num_leds: 7
+    rgb_order: GRB
+    name: "${friendly_name}"
+    effects:
+      - addressable_scan:
+      - addressable_lambda:
+          name: Custom Scan
+          update_interval: 75ms
+          lambda:
+            static int step = 1;
+            if(initial_run){
+              step = 1;
+              it[0] = ESPColor::BLACK;
+            }
+
+            it[step] = current_color;
+
+            if(step == 1){
+              it[it.size()-1] = ESPColor::BLACK;
+            }
+
+            else if(step > 1){
+              it[step -1] = ESPColor::BLACK;
+            }
+
+            step = step + 1;
+
+            if(step >= it.size()){
+              step = 1;
+            }
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

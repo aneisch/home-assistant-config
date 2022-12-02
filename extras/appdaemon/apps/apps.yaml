@@ -176,7 +176,7 @@ Christmas Lights:
   class: Timer
   entities: switch.christmas_lights
   time_on: sunset - 00:20:00
-  time_off: "00:00:00"
+  time_off: "23:30:00"
 
 Christmas Trees Follow:
   module: follow_me
@@ -190,7 +190,7 @@ Front House Christmas Trees Timer:
   class: Timer
   entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
   time_on: sunset - 00:20:00
-  time_off: 00:00:00
+  time_off: '23:30:00'
 
 ############
 # Aquarium #

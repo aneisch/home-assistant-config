@@ -1,21 +1,21 @@
-input_boolean:
-  aquarium_automation:
-    name: Aquarium Automation
-    icon: mdi:fish
+# input_boolean:
+#   aquarium_automation:
+#     name: Aquarium Automation
+#     icon: mdi:fish
 
-script:
-  aquarium_light_increase:
-    sequence:
-      - service: light.turn_on
-        data:
-          entity_id: light.aquarium_light
-          brightness: "{{ [255, state_attr('light.aquarium_light', 'brightness') | int + 50] | min }}"
-  aquarium_light_decrease:
-    sequence:
-      - service: light.turn_on
-        data:
-          entity_id: light.aquarium_light
-          brightness: "{{ [1, state_attr('light.aquarium_light', 'brightness') | int - 50] | max }}"
+# script:
+#   aquarium_light_increase:
+#     sequence:
+#       - service: light.turn_on
+#         data:
+#           entity_id: light.aquarium_light
+#           brightness: "{{ [255, state_attr('light.aquarium_light', 'brightness') | int + 50] | min }}"
+#   aquarium_light_decrease:
+#     sequence:
+#       - service: light.turn_on
+#         data:
+#           entity_id: light.aquarium_light
+#           brightness: "{{ [1, state_attr('light.aquarium_light', 'brightness') | int - 50] | max }}"
 
 # switch:
 #   - platform: circadian_lighting
