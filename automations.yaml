@@ -266,7 +266,7 @@
       - lock.front_door
       - lock.garage_exterior_door
     to: "unlocked"
-  condition: "{{ states('person.andrew') != 'home'}}"
+  condition: "{{ states('group.trackers') != 'home'}}"
   action:
     - service: script.notify_wrapper
       data:

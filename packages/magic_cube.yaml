@@ -40,25 +40,38 @@ automation:
         event_type: zha_event
         event_data:
           command: "shake"
+      - platform: event
+        event_type: zha_event
+        event_data:
+          command: "flip"
     action:
-      - service: homeassistant.toggle
-        data:
-          entity_id: >
-            {% if trigger.event.data.args["activated_face"] == 1  %}
-              switch.placeholder
-            {% elif trigger.event.data.args["activated_face"] == 2 %}
-              switch.placeholder
-            {% elif trigger.event.data.args["activated_face"] == 3 %}
-              switch.placeholder
-            {% elif trigger.event.data.args["activated_face"] == 4 %}
-              light.office_ceiling_fan
-            {% elif trigger.event.data.args["activated_face"] == 5 %}
-              switch.office_heater
-            {% elif trigger.event.data.args["activated_face"] == 6 %}
-              light.andrew_desk_lamp
-            {% elif trigger.event.data.command == "shake"  %}
-              group.christmas_trees
-            {% endif %}
+      - if: "{{ trigger.event.data['command'] in ['knock'] and trigger.event.data.args['activated_face'] == 1 }}"
+        then:
+          - service: shell_command.turn_off_mirroring
+      - if: "{{ trigger.event.data['command'] in ['knock'] and trigger.event.data.args['activated_face'] == 2 }}"
+        then:
+          - service: shell_command.turn_on_mirroring
+        else:
+          - if: "{{ trigger.event.data['command'] in ['knock','slide'] }}"
+            then:
+              - service: homeassistant.toggle
+                data:
+                  entity_id: >
+                    {% if trigger.event.data.args["activated_face"] == 1  %}
+                      switch.placeholder
+                    {% elif trigger.event.data.args["activated_face"] == 2 %}
+                      switch.placeholder
+                    {% elif trigger.event.data.args["activated_face"] == 3 %}
+                      switch.placeholder
+                    {% elif trigger.event.data.args["activated_face"] == 4 %}
+                      light.office_ceiling_fan
+                    {% elif trigger.event.data.args["activated_face"] == 5 %}
+                      switch.office_heater
+                    {% elif trigger.event.data.args["activated_face"] == 6 %}
+                      light.andrew_desk_lamp
+                    {% elif trigger.event.data.command == "shake"  %}
+                      group.christmas_trees
+                    {% endif %}
 
   # - alias: "Magic Cube Rotate"
   #   id: "magic_cube_rotate"
