@@ -26,7 +26,7 @@ automation:
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
             {% endif %}
 
-  - alias: "Turn Off NAS After 10 Minute Outage"
+  - alias: "Turn Off NAS After 5 Minute Outage"
     id: "nas_off_ups_outage"
     trigger:
       platform: state
@@ -53,7 +53,7 @@ automation:
         from: "ONLINE"
         to: "ONBATT"
         for:
-          seconds: 60
+          minutes: 5
     action:
       - service: homeassistant.turn_off
         entity_id: 

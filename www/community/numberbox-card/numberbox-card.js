@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.0');
+console.info('NUMBERBOX_CARD 4.1');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -197,6 +197,7 @@ niceNum(){
 		v=this.timeNum(v);
 		if(isNaN(v) && this.config.initial !== undefined){
 			v=Number(this.config.initial);
+			if(isNaN(v)){return this.config.initial;}
 		}
 	}	
 	let stp=Number(this.config.step) || 1;
@@ -209,6 +210,7 @@ niceNum(){
 		let t = this.numTime(fix,0,u);
 		return html`${t}`;
 	}
+	if(isNaN(Number(fix))){return fix;}
 	fix = new Intl.NumberFormat(
 			this._hass.language,
 			{maximumFractionDigits: stp, minimumFractionDigits: stp}
@@ -432,34 +434,34 @@ render() {
 	</ha-formfield>
 </div>
 <div class="side">
-	<paper-input
-		label="Secondary Info (Optional)"
-		.value="${this.config.secondary_info}"
-		.configValue="${'secondary_info'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
-</div>
-<div class="side">
-	<paper-input
+	<ha-textfield
 		label="Name (Optional, false to hide)"
-		.value="${this.config.name}"
+		.value="${(this.config.name!==undefined)?this.config.name:''}"
 		.configValue="${'name'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
+		@input="${this.updVal}"
+	></ha-textfield>
 	<ha-icon-picker
 		label="Icon (Optional, false to hide)"
-		.value="${this.config.icon}"
+		.value="${(this.config.icon!==undefined)?this.config.icon:''}"
 		.configValue="${'icon'}"
 		@value-changed="${this.updVal}"
 	></ha-icon-picker>
 </div>
 <div class="side">
-	<paper-input
+	<ha-textfield
+		label="Secondary Info (Optional)"
+		.value="${(this.config.secondary_info!==undefined)?this.config.secondary_info:''}"
+		.configValue="${'secondary_info'}"
+		@input="${this.updVal}"
+	></ha-textfield>
+</div>
+<div class="side">
+	<ha-textfield
 		label="Picture url(Optional, false to hide)"
-		.value="${this.config.picture}"
+		.value="${(this.config.picture!==undefined)?this.config.picture:''}"
 		.configValue="${'picture'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
+		@input="${this.updVal}"
+	></ha-textfield>
 </div><div class="side">
 	<ha-icon-picker
 		label="Icon Plus [mdi:plus]"
@@ -475,53 +477,63 @@ render() {
 	></ha-icon-picker>
 </div>			
 <div class="side">
-	<paper-input
+	<ha-textfield
 		label="Initial [?]"
-		.value="${this.config.initial}"
+		.value="${(this.config.initial!==undefined)?this.config.initial:''}"
 		.configValue=${'initial'}
-		@value-changed=${this.updVal}
-	></paper-input>
-	<paper-input
+		@input=${this.updVal}
+		type="number"
+		step="any"
+	></ha-textfield>
+	<ha-textfield
 		label="Unit (false to hide)"
-		.value="${this.config.unit}"
+		.value="${(this.config.unit!==undefined)?this.config.unit:''}"
 		.configValue=${'unit'}
-		@value-changed=${this.updVal}
-	></paper-input>
+		@input=${this.updVal}
+	></ha-textfield>
 </div>
 <div class="side">
-	<paper-input
+	<ha-textfield
 		label="Update Delay [1000] ms"
-		.value="${this.config.delay}"
+		.value="${(this.config.delay!==undefined)?this.config.delay:''}"
 		.configValue=${'delay'}
-		@value-changed=${this.updVal}
-	></paper-input>
-	<paper-input
+		@input=${this.updVal}
+		type="number"
+	></ha-textfield>
+	<ha-textfield
 		label="Long press Speed [0] ms"
-		.value="${this.config.speed}"
+		.value="${(this.config.speed!==undefined)?this.config.speed:''}"
 		.configValue=${'speed'}
-		@value-changed=${this.updVal}
-	></paper-input>
+		@input=${this.updVal}
+		type="number"
+	></ha-textfield>
 </div>
 <div><b>Advanced Config</b> <a target="_blank" href="https://github.com/htmltiger/numberbox-card#configuration">more info</a></div>
 <div class="side">
-	<paper-input
+	<ha-textfield
 		label="min"
-		.value="${this.config.min}"
+		.value="${(this.config.min!==undefined)?this.config.min:''}"
 		.configValue="${'min'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
-	<paper-input
+		@input="${this.updVal}"
+		type="number"
+		step="any"
+	></ha-textfield>
+	<ha-textfield
 		label="max"
-		.value="${this.config.max}"
+		.value="${(this.config.max!==undefined)?this.config.max:''}"
 		.configValue="${'max'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
-	<paper-input
+		@input="${this.updVal}"
+		type="number"
+		step="any"
+	></ha-textfield>
+	<ha-textfield
 		label="step"
-		.value="${this.config.step}"
+		.value="${(this.config.step!==undefined)?this.config.step:''}"
 		.configValue="${'step'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
+		@input="${this.updVal}"
+		type="number"
+		step="any"
+	></ha-textfield>
 </div>
 <div class="side">
 	<ha-entity-picker
@@ -542,24 +554,24 @@ render() {
 	></ha-entity-picker>
 </div>
 <div class="side">
-	<paper-input
+	<ha-textfield
 		label="service"
-		.value="${this.config.service}"
+		.value="${(this.config.service!==undefined)?this.config.service:''}"
 		.configValue="${'service'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
-	<paper-input
+		@input="${this.updVal}"
+	></ha-textfield>
+	<ha-textfield
 		label="param"
-		.value="${this.config.param}"
+		.value="${(this.config.param!==undefined)?this.config.param:''}"
 		.configValue="${'param'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
-	<paper-input
+		@input="${this.updVal}"
+	></ha-textfield>
+	<ha-textfield
 		label="state"
-		.value="${this.config.state}"
+		.value="${(this.config.state!==undefined)?this.config.state:''}"
 		.configValue="${'state'}"
-		@value-changed="${this.updVal}"
-	></paper-input>
+		@input="${this.updVal}"
+	></ha-textfield>
 </div>
 
 `;
@@ -576,7 +588,12 @@ updVal(v) {
 		if (target.value === '') {
 			try{delete this.config[target.configValue];}catch(e){}
 		} else {
-		if (target.value === 'false') {target.value = false;}
+			const reg = new RegExp(/^-?\d*\.?\d+$/);
+			if (target.value === 'false') {
+				target.value = false;
+			}else if(reg.test(target.value)){
+				target.value=Number(target.value);
+			}
 			this.config = {
 				...this.config,
 				[target.configValue]: target.checked !== undefined ? target.checked : target.value,

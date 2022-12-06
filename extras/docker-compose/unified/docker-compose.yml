@@ -308,6 +308,7 @@ services:
           - '/opt/appdaemon/:/ha_config/appdaemon'
           - '/opt/docker-compose/:/ha_config/docker-compose'
           - '/opt/github:/ha_config/github_projects'
+          - '/home/aneisch/.backup:/ha_config/homeassistant-git'
         environment:
           #- 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
           - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
