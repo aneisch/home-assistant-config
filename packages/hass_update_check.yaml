@@ -214,6 +214,10 @@ script:
             service: shell_command.switch_hass_running_branch
             data:
               version: "{{ states('input_text.hass_target_branch') }}"
+          - service: notify.signal_self
+            data:
+              message: >
+                Auto-switched to stable build
       - delay: "00:00:05"
       - service: homeassistant.turn_off
         entity_id: input_boolean.hass_update_trigger
