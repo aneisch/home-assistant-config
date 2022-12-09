@@ -1,0 +1,143 @@
+title: Tablet
+visible: false
+type: panel
+path: tablet
+cards:
+  - type: horizontal-stack
+    cards:
+      # Column 1
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: lock.front_door
+            tap_action: 
+              action: toggle
+            style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('lock.front_door') == "unlocked" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('lock.front_door') == "unlocked" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: custom:mushroom-entity-card
+            entity: cover.garage_door
+            tap_action: 
+              action: toggle
+            style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('cover.garage_door') == "open" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('cover.garage_door') == "open" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: custom:mushroom-light-card
+            entity: light.andrew_desk_lamp
+
+          - type: custom:mushroom-light-card
+            entity: light.entryway_light
+
+          - type: custom:mushroom-fan-card
+            entity: fan.office_ceiling_fan
+
+          - type: custom:mushroom-entity-card
+            entity: switch.office_heater
+            tap_action: 
+              action: toggle
+
+      # Column 2
+      - type: vertical-stack
+        cards:
+          - !include .cards/kitchen_timer.yaml
+          - type: custom:mushroom-entity-card
+            entity: group.kitchen
+            icon: mdi:countertop
+            tap_action: 
+              action: toggle
+          - type: custom:mushroom-entity-card
+            entity: group.living_room
+            icon: mdi:sofa-outline
+            tap_action: 
+              action: toggle
+          - type: custom:mushroom-entity-card
+            entity: group.master_bedroom
+            icon: mdi:bed
+            tap_action: 
+              action: toggle
+          - type: custom:mushroom-entity-card
+            entity: group.christmas
+            icon: mdi:forest
+            tap_action: 
+              action: toggle
+
+      # Column 3
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: switch.andrew_monitor
+            tap_action: 
+              action: toggle
+          - type: custom:mushroom-template-card
+            primary: "Enable Mirroring"
+            icon: mdi:monitor
+            tap_action:
+              action: call-service
+              service: shell_command.turn_on_mirroring
+          - type: custom:mushroom-template-card
+            primary: "Disable Mirroring"
+            icon: mdi:monitor
+            tap_action:
+              action: call-service
+              service: shell_command.turn_off_mirroring
+          - type: custom:mushroom-light-card
+            entity: light.desk_led
+            style: |
+                @keyframes blink {
+                  50% {
+                    {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
+                    background: red;
+                    {% elif state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
+                    background: white;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('light.desk_led') == 'on' %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+          - type: horizontal-stack
+            cards:
+            - type: custom:mushroom-template-card
+              primary: "LED White"
+              tap_action:
+                action: call-service
+                service: light.turn_on
+                data:
+                  rgb_color: [255,255,255]
+                  brightness: 255
+                  effect: "custom scan"
+                  entity_id: light.desk_led
+            - type: custom:mushroom-template-card
+              primary: "LED Red"
+              tap_action:
+                action: call-service
+                service: light.turn_on
+                data:
+                  rgb_color: [255,0,0]
+                  brightness: 255
+                  effect: "custom scan"
+                  entity_id: light.desk_led

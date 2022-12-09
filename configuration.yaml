@@ -290,6 +290,10 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-card-tools/card-tools.js
       type: module
+    - url: /hacsfiles/lovelace-wallpanel/wallpanel.js
+      type: module
+    - url: /hacsfiles/lovelace-mushroom/mushroom.js
+      type: module
 
 map:
 
@@ -466,6 +470,9 @@ template: !include template.yaml
 timer:
   kitchen_alexa:
     duration: "00:00:00"
+
+tts:
+  - platform: picotts
 
 wemo:
   discovery: false

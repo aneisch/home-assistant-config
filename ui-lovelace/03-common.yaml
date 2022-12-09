@@ -79,82 +79,82 @@ cards:
                 service: esphome.living_room_speakers_volume_up
 
   # Raz Christmas Cluster Lights remote
-  - type: vertical-stack
-    cards:
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            icon: "mdi:power-on"
-            name: "On"
-            tap_action:
-              action: call-service
-              service: switch.turn_on
-              target:
-                entity_id: switch.rf_power_button
-          - type: "button"
-            icon: "mdi:power-off"
-            name: "Off"
-            tap_action:
-              action: call-service
-              service: switch.turn_off
-              target:
-                entity_id: switch.rf_power_button
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            name: Combo
-            icon: "mdi:numeric-1-box"
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_1_combo
-          - type: "button"
-            name: Medium Twinkle
-            icon: "mdi:numeric-2-box"
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_2_medium_twinkle
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            name: Sequential
-            icon: "mdi:numeric-3-box"
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_3_sequential
-          - type: "button"
-            icon: "mdi:numeric-4-box"
-            name: Slow Twinkle
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_4_slow_twinkle
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            icon: "mdi:numeric-5-box"
-            name: Chasing Flash
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_5_chasing_flash
-          - type: "button"
-            icon: "mdi:numeric-6-box"
-            name: Slow Fade
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_6_slow_fade
-      - type: horizontal-stack
-        cards:
-          - type: "button"
-            icon: "mdi:numeric-7-box"
-            name: Twinkle Flash
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_7_twinkle_flash
-          - type: "button"
-            icon: "mdi:numeric-8-box"
-            name: Steady On
-            tap_action:
-              action: call-service
-              service: esphome.twinkle_lights_string_8_steady_on
+  # - type: vertical-stack
+  #   cards:
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:power-on"
+  #           name: "On"
+  #           tap_action:
+  #             action: call-service
+  #             service: switch.turn_on
+  #             target:
+  #               entity_id: switch.rf_power_button
+  #         - type: "button"
+  #           icon: "mdi:power-off"
+  #           name: "Off"
+  #           tap_action:
+  #             action: call-service
+  #             service: switch.turn_off
+  #             target:
+  #               entity_id: switch.rf_power_button
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           name: Combo
+  #           icon: "mdi:numeric-1-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_1_combo
+  #         - type: "button"
+  #           name: Medium Twinkle
+  #           icon: "mdi:numeric-2-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_2_medium_twinkle
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           name: Sequential
+  #           icon: "mdi:numeric-3-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_3_sequential
+  #         - type: "button"
+  #           icon: "mdi:numeric-4-box"
+  #           name: Slow Twinkle
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_4_slow_twinkle
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:numeric-5-box"
+  #           name: Chasing Flash
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_5_chasing_flash
+  #         - type: "button"
+  #           icon: "mdi:numeric-6-box"
+  #           name: Slow Fade
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_6_slow_fade
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:numeric-7-box"
+  #           name: Twinkle Flash
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_7_twinkle_flash
+  #         - type: "button"
+  #           icon: "mdi:numeric-8-box"
+  #           name: Steady On
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_8_steady_on
 
   - type: 'custom:auto-entities'
     filter:

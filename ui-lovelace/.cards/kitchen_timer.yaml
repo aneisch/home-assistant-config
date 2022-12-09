@@ -9,7 +9,7 @@ conditions:
 card:
   type: custom:bignumber-card
   entity: sensor.kitchen_timer_countdown
-  title: Kitchen Timer
+  #title: Kitchen Timer
   style: |
       @keyframes blink {
         50% {

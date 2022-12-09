@@ -33,6 +33,7 @@ cards:
         - entity_id: "switch.office_heater_oscillate"
         - entity_id: "switch.aquarium_heater"
         - entity_id: "switch.aquarium_power_strip_usb"
+        - entity_id: "*nexus*"
 
     card:
       type: entities

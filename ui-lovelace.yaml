@@ -11,4 +11,12 @@
 #  # Only footer mode on Andrew phone
 #  footer_mode: "{% if 'Pixel 2' in userAgent %}true{% else %}false{% endif %}"
 
+# Enabled on tablet only via appending ?wp_enabled=true to url
+wallpanel:
+  enabled: false
+  hide_toolbar: true
+  hide_sidebar: true
+  fullscreen: true
+  idle_time: 0
+
 views: !include_dir_list ui-lovelace/

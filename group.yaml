@@ -99,12 +99,15 @@ andrew_desk:
 # Christmas #
 #############
 christmas:
+  name: Christmas
   entities:
     - group.christmas_trees
     - switch.ferris_wheel
     - switch.santa_tree
     - switch.nativity
     - switch.christmas_picture
+    - switch.christmas_fena_s_village
+    - switch.christmas_fena_s_village_2
 
 christmas_trees:
   entities:
