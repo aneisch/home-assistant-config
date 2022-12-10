@@ -418,3 +418,9 @@ TV Automation Smallgroup:
   time_off: "18:00:00"
   time_on: "22:00:00"
   entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
+
+Mac Focus Mode Follow Desk LED:
+  module: follow_me
+  class: Follow
+  leader: light.desk_led
+  follower: switch.weasel_focus

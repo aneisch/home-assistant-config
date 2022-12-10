@@ -31,3 +31,27 @@
       turn_off:
         service: esphome.ir_candles_candles_off
       icon_template: mdi:candle
+
+    weasel_focus:
+      friendly_name: Mac Focus Mode
+      value_template: "{{ is_state('binary_sensor.weasel_focus', 'on') }}"
+      turn_on:
+        service: >
+          {% if is_state('binary_sensor.weasel_focus', 'on') %}
+            script.noop
+          {% else %}
+            shell_command.toggle_weasel_focus
+          {% endif %}
+      turn_off:
+        service: >
+          {% if is_state('binary_sensor.weasel_focus', 'off') %}
+            script.noop
+          {% else %}
+            shell_command.toggle_weasel_focus
+          {% endif %}
+      icon_template: >
+        {% if is_state('binary_sensor.weasel_focus', 'off') %}
+          mdi:bell
+        {% else %}
+          mdi:bell-cancel
+        {% endif %}

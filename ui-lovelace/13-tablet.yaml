@@ -102,27 +102,42 @@ cards:
             tap_action:
               action: call-service
               service: shell_command.turn_off_mirroring
-          - type: custom:mushroom-light-card
-            entity: light.desk_led
-            style: |
-                @keyframes blink {
-                  50% {
-                    {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
-                    background: red;
-                    {% elif state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
-                    background: white;
-                    {% endif %}
-                  }
-                }
-                ha-card {
-                  {% if states('light.desk_led') == 'on' %}
-                  animation: blink 1s linear infinite;
-                  {% endif %}
-                }
+          # - type: custom:mushroom-light-card
+          #   entity: light.desk_led
+          #   style: |
+          #       @keyframes blink {
+          #         50% {
+          #           {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
+          #           background: red;
+          #           {% elif state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
+          #           background: white;
+          #           {% endif %}
+          #         }
+          #       }
+          #       ha-card {
+          #         {% if states('light.desk_led') == 'on' %}
+          #         animation: blink 1s linear infinite;
+          #         {% endif %}
+          #       }
           - type: horizontal-stack
             cards:
             - type: custom:mushroom-template-card
-              primary: "LED White"
+              primary: "LED"
+              secondary: "White"
+              style: |
+                @keyframes blink {
+                  50% {
+                    background: white;
+                  }
+                }
+                ha-card {
+                  {% if state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
+                  background: black;
+                  animation: blink 1s linear infinite;
+                  {% else %}
+                  background: white;
+                  {% endif %}
+                }
               tap_action:
                 action: call-service
                 service: light.turn_on
@@ -132,7 +147,31 @@ cards:
                   effect: "custom scan"
                   entity_id: light.desk_led
             - type: custom:mushroom-template-card
-              primary: "LED Red"
+              primary: "LED"
+              secondary: "Off"
+              tap_action:
+                action: call-service
+                service: light.turn_off
+                data:
+                  entity_id: light.desk_led
+            - type: custom:mushroom-template-card
+              primary: "LED"
+              secondary: "Red"
+
+              style: |
+                @keyframes blink {
+                  50% {
+                    background: red;
+                  }
+                }
+                ha-card {
+                  {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
+                  background: black;
+                  animation: blink 1s linear infinite;
+                  {% else %}
+                  background: red;
+                  {% endif %}
+                }
               tap_action:
                 action: call-service
                 service: light.turn_on

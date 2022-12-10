@@ -353,4 +353,4 @@ andrew_phone_update_location:
 # Do nothing but act as a placeholder in "else" calls when using scripts in automation
 noop:
   sequence:
-    - delay: "00:00:01"
+    - delay: "00:00:00"

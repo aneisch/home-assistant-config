@@ -22,4 +22,6 @@ turn_on_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Service
 
 turn_off_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Services/Mirror\ Off.workflow'
 
+toggle_weasel_focus: ssh weasel '/usr/bin/osascript /Users/aneisch/Library/Services/focus.applescript'
+
 sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
