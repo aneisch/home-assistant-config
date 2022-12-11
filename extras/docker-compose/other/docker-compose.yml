@@ -314,6 +314,7 @@ services:
         volumes:
             - /opt/secret/secret.db:/output_files/secret.db
             - /opt/secret/input_files/:/input_files/
+            - /opt/secret/secret.log:/var/log/secret.log
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always

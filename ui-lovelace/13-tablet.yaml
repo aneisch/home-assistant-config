@@ -180,3 +180,11 @@ cards:
                   brightness: 255
                   effect: "custom scan"
                   entity_id: light.desk_led
+          - type: custom:mushroom-media-player-card
+            entity: media_player.spotify
+            collapsible_controls: true
+            use_media_info: true
+            media_controls:
+              - on_off
+              - play_pause_stop
+              - next
