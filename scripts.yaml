@@ -354,3 +354,20 @@ andrew_phone_update_location:
 noop:
   sequence:
     - delay: "00:00:00"
+
+desk_led_red:
+  sequence:
+    - service: homeassistant.turn_on
+      entity_id: light.desk_led
+      data:
+        rgb_color: [255,0,0]
+        brightness: 255
+        effect: "custom scan"
+desk_led_white:
+  sequence:
+    - service: homeassistant.turn_on
+      entity_id: light.desk_led
+      data:
+        rgb_color: [255,255,255]
+        brightness: 255
+        effect: "custom scan"

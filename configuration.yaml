@@ -25,7 +25,6 @@ homeassistant:
     reminders: !include packages/reminders.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
-    zoom: !include packages/zoom.yaml
   auth_providers:
     - type: homeassistant
     - type: trusted_networks
