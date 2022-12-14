@@ -45,10 +45,10 @@ cards:
                 }
 
           - type: custom:mushroom-light-card
-            entity: light.andrew_desk_lamp
+            entity: light.entryway_light
 
           - type: custom:mushroom-light-card
-            entity: light.entryway_light
+            entity: light.andrew_desk_lamp
 
           - type: custom:mushroom-fan-card
             entity: fan.office_ceiling_fan
@@ -62,21 +62,25 @@ cards:
       - type: vertical-stack
         cards:
           - !include .cards/kitchen_timer.yaml
+
           - type: custom:mushroom-entity-card
             entity: group.kitchen
             icon: mdi:countertop
             tap_action: 
               action: toggle
+
           - type: custom:mushroom-entity-card
             entity: group.living_room
             icon: mdi:sofa-outline
             tap_action: 
               action: toggle
+
           - type: custom:mushroom-entity-card
             entity: group.master_bedroom
             icon: mdi:bed
             tap_action: 
               action: toggle
+
           - type: custom:mushroom-entity-card
             entity: group.christmas
             icon: mdi:forest
@@ -90,35 +94,21 @@ cards:
             entity: switch.andrew_monitor
             tap_action: 
               action: toggle
+
           - type: custom:mushroom-template-card
             primary: "Enable Mirroring"
-            icon: mdi:monitor
+            icon: mdi:mirror-rectangle
             tap_action:
               action: call-service
               service: shell_command.turn_on_mirroring
+
           - type: custom:mushroom-template-card
             primary: "Disable Mirroring"
-            icon: mdi:monitor
+            icon: mdi:cancel
             tap_action:
               action: call-service
               service: shell_command.turn_off_mirroring
-          # - type: custom:mushroom-light-card
-          #   entity: light.desk_led
-          #   style: |
-          #       @keyframes blink {
-          #         50% {
-          #           {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
-          #           background: red;
-          #           {% elif state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
-          #           background: white;
-          #           {% endif %}
-          #         }
-          #       }
-          #       ha-card {
-          #         {% if states('light.desk_led') == 'on' %}
-          #         animation: blink 1s linear infinite;
-          #         {% endif %}
-          #       }
+
           - type: horizontal-stack
             cards:
             - type: custom:mushroom-template-card
@@ -146,6 +136,7 @@ cards:
                   brightness: 255
                   effect: "custom scan"
                   entity_id: light.desk_led
+
             - type: custom:mushroom-template-card
               primary: "LED"
               secondary: "Off"
@@ -154,6 +145,7 @@ cards:
                 service: light.turn_off
                 data:
                   entity_id: light.desk_led
+
             - type: custom:mushroom-template-card
               primary: "LED"
               secondary: "Red"
@@ -180,6 +172,7 @@ cards:
                   brightness: 255
                   effect: "custom scan"
                   entity_id: light.desk_led
+
           - type: custom:mushroom-media-player-card
             entity: media_player.spotify
             collapsible_controls: true

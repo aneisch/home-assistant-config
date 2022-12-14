@@ -108,7 +108,7 @@
 	}
 }
 
-const version = "4.5";
+const version = "4.6";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -130,6 +130,7 @@ const defaultConfig = {
 	image_list_update_interval: 3600,
 	image_order: 'sorted', // sorted / random
 	image_excludes: [],
+	show_progress_bar: false,
 	show_exif_info: false,
 	fetch_address_data: false,
 	exif_info_template: '${DateTimeOriginal}',
@@ -166,6 +167,16 @@ let classStyles = {
 		"background": "#00000055",
 		"backdrop-filter": "blur(2px)",
 		"border-radius": "0.1em"
+	},
+	"wallpanel-progress": {
+		"position": "absolute",
+		"bottom": "0",
+		"height": "2px",
+		"width": "100%",
+	},
+	"wallpanel-progress-inner": {
+		"height": "100%",
+		"background-color": "white"
 	}
 }
 let exifDataCache = {};
@@ -658,7 +669,7 @@ class WallpanelView extends HuiView {
 		this.imageTwoContainer.style.left = 0;
 		this.imageTwoContainer.style.width = '100%';
 		this.imageTwoContainer.style.height = '100%';
-		this.imageTwoContainer.style.opacity = 1;
+		this.imageTwoContainer.style.opacity = 0;
 		
 		this.imageTwo.removeAttribute('style');
 		this.imageTwo.style.position = 'relative';
@@ -710,6 +721,7 @@ class WallpanelView extends HuiView {
 	}
 
 	updateStyle() {
+		this.screensaverOverlay.style.background = '#00000000';
 		this.debugBox.style.visibility = config.debug ? 'visible' : 'hidden';
 		//this.screensaverContainer.style.transition = `opacity ${Math.round(config.fade_in_time*1000)}ms ease-in-out`;
 		this.style.transition = `opacity ${Math.round(config.fade_in_time*1000)}ms ease-in-out`;
@@ -797,6 +809,14 @@ class WallpanelView extends HuiView {
 			@keyframes moveY {
 				100% {
 					transform: translate3d(0, ${maxY}px, 0);
+				}
+			}
+			@keyframes horizontalProgress {
+				0% {
+					width: 0%;
+				}
+				100% {
+					width: 100%;
 				}
 			}
 			${classCss}
@@ -912,6 +932,28 @@ class WallpanelView extends HuiView {
 		setTimeout(this.updateShadowStyle.bind(this), 500);
 	}
 
+	createProgressbarDiv(wrapper) {
+		const div = document.createElement('div');
+		div.className = 'wallpanel-progress';
+		const inner = document.createElement('div');
+		inner.className = 'wallpanel-progress-inner';
+		inner.id = 'wallpanel-progress-inner';
+		inner.style.animation =
+		    `horizontalProgress ${config.display_time}s linear`;
+		div.appendChild(inner);
+		wrapper.appendChild(div);
+	}
+
+	restartProgressBarAnimation() {
+		if (!config.show_progress_bar) {
+			return;
+		}
+		// Restart CSS animation.
+		const oldDiv = this.shadowRoot.getElementById('wallpanel-progress-inner');
+		const newDiv = oldDiv.cloneNode(true);
+		oldDiv.parentNode.replaceChild(newDiv, oldDiv);
+	}
+
 	connectedCallback() {
 		this.style.zIndex = 1000;
 		this.style.visibility = 'hidden';
@@ -964,6 +1006,10 @@ class WallpanelView extends HuiView {
 		this.imageTwoContainer.appendChild(this.imageTwo);
 		this.imageTwoContainer.appendChild(this.imageTwoInfoContainer);
 		this.screensaverContainer.appendChild(this.imageTwoContainer);
+
+		if (config.show_progress_bar) {
+			this.createProgressbarDiv(this.screensaverContainer);
+		}
 		
 		this.infoContainer = document.createElement('div');
 		this.infoContainer.id = 'wallpanel-screensaver-info-container';
@@ -1124,6 +1170,21 @@ class WallpanelView extends HuiView {
 			}
 		});
 	}
+
+	createImagePathExifObject(imagePath) {
+		const imageInfo = {url: imagePath};
+
+		const extractPathComponentToImageInfo = (key, stringToSplitOn) => {
+			const components = imagePath.split(stringToSplitOn);
+			if (components.length > 1 && components[1]) {
+				imageInfo[key] = components[1].substring(1);
+			}
+		}
+		extractPathComponentToImageInfo('path', 'media-source://media_source');
+		extractPathComponentToImageInfo('relativePath', config.image_url);
+
+		return imageInfo;
+	}
 	
 	setEXIFImageInfo(imagePath) {
 		let imgExifData = exifDataCache[imagePath];
@@ -1144,11 +1205,11 @@ class WallpanelView extends HuiView {
 		}
 		
 		let html = config.exif_info_template;
-		html = html.replace(/\${([^}]+)}/g, function (match, tags, offset, string) {
+		html = html.replace(/\${([^}]+)}/g, (match, tags, offset, string) => {
 			if (!imgExifData) {
 				return "";
 			}
-			imgExifData["image"] = {path: imagePath};
+			imgExifData["image"] = this.createImagePathExifObject(imagePath);;
 			let prefix = "";
 			let suffix = "";
 			let options = null;
@@ -1353,6 +1414,8 @@ class WallpanelView extends HuiView {
 			curActive.style.opacity = 0;
 		}
 
+		this.restartProgressBarAnimation();
+
 		// Load next image after fade out
 		let wp = this;
 		setTimeout(function() {
@@ -1399,6 +1462,7 @@ class WallpanelView extends HuiView {
 
 		this.updateStyle();
 		this.setupScreensaver();
+		this.restartProgressBarAnimation();
 		
 		if (config.keep_screen_on_time > 0) {
 			let wp = this;
@@ -1473,15 +1537,7 @@ class WallpanelView extends HuiView {
 
 		if (config.black_screen_after_time > 0 && now - this.screensaverStartedAt >= config.black_screen_after_time*1000) {
 			if (config.debug) console.debug("Setting screen to black");
-			if (this.imageOneContainer.style.visibility != 'hidden') {
-				this.imageOneContainer.style.visibility = 'hidden';
-			}
-			if (this.imageTwoContainer.style.visibility != 'hidden') {
-				this.imageTwoContainer.style.visibility = 'hidden';
-			}
-			if (this.infoContainer.style.visibility != 'hidden') {
-				this.infoContainer.style.visibility = 'hidden';
-			}
+			this.screensaverOverlay.style.background = '#000000';
 		}
 		else if (config.image_url) {
 			if (now - this.lastImageUpdate >= config.display_time*1000) {

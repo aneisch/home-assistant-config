@@ -51,6 +51,21 @@ automation:
             type: tts
           message: "Sending Roxie to clean the Kitchen"
 
+  - alias: "Pause Vacuum When Timer Expires"
+    id: pause_vacuum_timer_expire
+    trigger:
+      - platform: state
+        entity_id: sensor.kitchen_timer_countdown
+        to: 'Expired'
+    condition: '{{ states("vacuum.roborock_s4") == "cleaning" }}'
+    action:
+      - service: vacuum.pause
+        entity_id: vacuum.roborock_s4
+      - wait_template: "{{ states('sensor.kitchen_timer_countdown') != 'Expired' }}"
+        timeout: "00:01:30"
+      - service: vacuum.start
+        entity_id: vacuum.roborock_s4
+
 sensor:
   - platform: template
     sensors:

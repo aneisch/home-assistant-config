@@ -26,7 +26,7 @@ binary_sensor:
             - light.turn_on: 
                 id: led
                 effect: pulse
-            - switch.turn_on: toggle
+            # - switch.turn_on: toggle
             - homeassistant.service:
                 service: script.desk_led_red
 
@@ -43,13 +43,13 @@ binary_sensor:
         - light.turn_off: 
             id: led
 
-switch:
-  - platform: gpio
-    pin: D6
-    id: toggle
-    on_turn_on:
-    - delay: 500ms
-    - switch.turn_off: toggle      
+# switch:
+#   - platform: gpio
+#     pin: D6
+#     id: toggle
+#     on_turn_on:
+#     - delay: 500ms
+#     - switch.turn_off: toggle      
 
 output:
   - platform: esp8266_pwm
