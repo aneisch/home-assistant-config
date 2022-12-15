@@ -70,7 +70,7 @@ jobs:
       - name: Push Tag
         uses: laputansoft/github-tag-action@v4.6
         with:
-          github_token: ${{ env.github-token }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.event.client_payload.version }}
       - name: Create Release
         id: create_release
