@@ -67,8 +67,19 @@ jobs:
     if: (github.event_name == 'repository_dispatch') && (github.event.client_payload.release_type == 'major') && (github.event.client_payload.branch == 'stable')
     steps:
       - uses: actions/checkout@v1
-      - uses: bubkoo/release-github-action@v1
+      - name: Push Tag
+        uses: laputansoft/github-tag-action@v4.6
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          body: |
-            Tagged for ${{ github.event.client_payload.version }} release.
+          github_token: ${{ env.github-token }}
+          tag: ${{ github.event.client_payload.version }}
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.event.client_payload.version }}
+          release_name: Release for v${{ github.event.client_payload.version }}
+          body: Release for v${{ github.event.client_payload.version }}
+          draft: false
+          prerelease: false
