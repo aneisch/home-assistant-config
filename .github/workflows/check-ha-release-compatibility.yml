@@ -79,3 +79,8 @@ jobs:
           body: Release for v${{ github.event.client_payload.version }}
           draft: false
           prerelease: false
+      - uses: dev-drprasad/delete-older-releases@v0.2.0
+        with:
+          keep_latest: 24
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
