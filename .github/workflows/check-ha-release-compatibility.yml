@@ -68,11 +68,6 @@ jobs:
     if: (github.event_name == 'repository_dispatch') && (github.event.client_payload.release_type == 'major') && (github.event.client_payload.branch == 'stable')
     steps:
       - uses: actions/checkout@v1
-      - name: Push Tag
-        uses: laputansoft/github-tag-action@v4.6
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.event.client_payload.version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
