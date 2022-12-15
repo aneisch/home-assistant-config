@@ -59,3 +59,15 @@ jobs:
       HEADER: "Content-Type: application/json"
     steps:
         - run: curl -sX POST -H "$HEADER" -d '{ "action_complete":true}' ${{ secrets.HASS_WEBHOOK }} && echo "Home Assistant callback complete"
+
+  # Tag a release for current state with major stable version
+  publish-release:
+    runs-on: ubuntu-latest
+    needs: check-ha-config
+    if: (github.event_name == 'repository_dispatch') && (github.event.client_payload.release_type == 'major') && (github.event.client_payload.branch == 'stable')
+    steps:
+      - uses: actions/checkout@v1
+      - uses: bubkoo/release-github-action@v1
+        with:
+          body: |
+            Tagged for ${{ github.event.client_payload.version }} release.
