@@ -69,5 +69,6 @@ jobs:
       - uses: actions/checkout@v1
       - uses: bubkoo/release-github-action@v1
         with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           body: |
             Tagged for ${{ github.event.client_payload.version }} release.
