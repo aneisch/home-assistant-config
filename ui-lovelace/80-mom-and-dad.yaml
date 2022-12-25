@@ -15,8 +15,8 @@ cards:
       - cover.mom_and_dad_gate
       - entity: sensor.mom_and_dad_gate_ip_address
         name: Microcontroller IP Address
-      - entity: sensor.mom_and_dad_gate_uptime
-        name: Microcontroller Uptime
+      # - entity: sensor.mom_and_dad_gate_uptime
+      #   name: Microcontroller Uptime
       # - automation.gate_heading_comparison_action_notify
       # - input_boolean.gate_alert
       # - entity: script.mom_and_dad_gate_toggle
@@ -27,9 +27,10 @@ cards:
     show_header_toggle: false
     title: Garage
     entities:
-      - cover.mom_and_dad_garage_door
+      - cover.mom_and_dad_garage
+      - sensor.mom_and_dad_garage_ip_address
       # - entity: sensor.mom_and_dad_garage_ip_address
       #   name: Microcontroller IP Address
-      - entity: sensor.mom_and_dad_garage_uptime
-        name: Microcontroller Uptime
+      # - entity: sensor.mom_and_dad_garage_uptime
+      #   name: Microcontroller Uptime
 

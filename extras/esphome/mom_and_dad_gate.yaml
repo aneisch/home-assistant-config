@@ -1,17 +1,12 @@
 esphome:
   name: mom_and_dad_gate
   platform: ESP8266
-  board: d1_mini_pro
-  on_boot:
-    then:
-      # # Set/get initial states
-      # - binary_sensor.template.publish:
-      #     id: automation_safety
-      #     state: OFF
-      # - binary_sensor.template.publish:
-      #     id: heading_comparison
-      #     state: OFF
-      # - component.update: battery_level
+  board: d1_mini
+  platformio_options:
+    platform: espressif8266@2.6.3
+    platform_packages: 
+      - platformio/toolchain-xtensa@2.40802.200502
+      - platformio/framework-arduinoespressif8266@3.20704.0
 
 web_server:
   port: 80
@@ -66,20 +61,14 @@ ota:
 
 mqtt:
   broker: MQTT_BROKER
-  username: gate
-  password: MQTT_PASS
+  port: 8883
+  ssl_fingerprints:
+    - 3f3077cf1c6becb8fa6dbc497ac6d9dc2a51bd42
+  username: owntracks
+  password: totallyowned
   log_topic: 
-  on_message:
-    - topic: cmd/mom_and_dad_gate
-      then:
-        - switch.toggle: gate
-        # - text_sensor.template.publish:
-        #     id: gate_movement_cause
-        #     state: 'mqtt'
-        # - delay: 5s
-        # - text_sensor.template.publish:
-        #     id: gate_movement_cause
-        #     state: ''
+    topic: ${mqtt_prefix}/logs
+    level: NONE
   
 sensor:
   # - platform: qmc5883l
@@ -130,7 +119,8 @@ sensor:
   #     - multiply: 15.43
 
   - platform: uptime
-    name: "Mom and Dad Gate Uptime"
+    id: uptime_sensor
+    #name: "Mom and Dad Gate Uptime"
     update_interval: 600s
 
 binary_sensor:
@@ -156,26 +146,26 @@ binary_sensor:
   #     }
 
   # Magnet sensor to get real-world state
-  - platform: gpio
-    pin:
-      number: D5
-      mode: INPUT_PULLUP
-    name: "Mom and Dad Gate Status"
-    id: gate_status
-    device_class: door
-    filters:
-      - delayed_on: 1s
-      - delayed_off: 1s
+  # - platform: gpio
+  #   pin:
+  #     number: 14
+  #     mode: INPUT_PULLUP
+  #   #name: "Mom and Dad Gate Status"
+  #   id: gate_status
+  #   device_class: door
+  #   filters:
+  #     - delayed_on: 1s
+  #     - delayed_off: 1s
 
 switch:
   - platform: restart
-    name: "Mom and Dad Gate Reboot"
+    id: Reboot
     
   # Actual GPIO output
   - platform: gpio
     id: relay
     pin:
-      number: D1
+      number: 5
       inverted: False
   
   # Switch which toggles the relay on and off
@@ -191,12 +181,6 @@ cover:
   - platform: template
     name: "Mom and Dad Gate"
     device_class: garage
-    lambda: |-
-      if (id(gate_status).state) {
-        return COVER_OPEN;
-      } else {
-        return COVER_CLOSED;
-      }
     open_action:
       - switch.turn_on: gate
     close_action:

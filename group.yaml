@@ -107,7 +107,6 @@ christmas:
     - switch.nativity
     - switch.christmas_picture
     - switch.christmas_fena_s_village
-    - switch.christmas_fena_s_village_2
 
 christmas_trees:
   entities:

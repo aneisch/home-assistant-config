@@ -168,6 +168,13 @@ Bethany Office Hanging Lights:
   leader: light.bethany_desk_lamp
   follower: light.bethany_office_hanging
 
+Nexus Screen Follow:
+  module: follow_me
+  class: Follow
+  leader: switch.andrew_monitor
+  follower: switch.nexus_7_screen
+  follow_off: False # Only follow state to on
+
 #############
 # Christmas #
 #############
@@ -388,13 +395,13 @@ Living Room Lamp Follow:
   leader: light.master_bedroom_lamps
   follower: light.living_room_lamps
 
-Candles Follow:
-  module: follow_me
-  class: Follow
-  constrain_presence: anyone
-  constrain_input_boolean: input_boolean.house_lamps_automation
-  leader: light.master_bedroom_lamps
-  follower: switch.ir_candles
+# Candles Follow:
+#   module: follow_me
+#   class: Follow
+#   constrain_presence: anyone
+#   constrain_input_boolean: input_boolean.house_lamps_automation
+#   leader: light.master_bedroom_lamps
+#   follower: switch.ir_candles
 
 Door Notification and Occusim Security Follow:
   module: follow_me

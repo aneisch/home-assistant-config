@@ -48,7 +48,7 @@ services:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
         #image: esphome-dev
-        #image: esphome/esphome:1.14.4
+        #image: esphome/esphome:2021.10.3
         image: esphome/esphome
         volumes:
             - /opt/esphome/:/config:rw
@@ -118,6 +118,7 @@ services:
     vscode:
         container_name: vscode
         image: linuxserver/code-server:3.12.0
+        #image: lscr.io/linuxserver/code-server
         #ports:
         #  - '8443:8443'
         restart: always
@@ -131,6 +132,7 @@ services:
         environment:
           #- 'DOCKER_MODS=ghcr.io/stecky/mods:code-server-home-assistant'
           - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
+          #- 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
           - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
           - PUID=1000
           - PGID=1000

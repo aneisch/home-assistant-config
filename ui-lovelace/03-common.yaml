@@ -18,7 +18,7 @@ cards:
       - light.entryway_light
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
-      - switch.ir_candles
+      #- switch.ir_candles
       - switch.upright_fan
 
 
@@ -216,6 +216,7 @@ cards:
     show_header_toggle: false
     title: Andrew's Office
     entities:
+      - switch.nexus_7_screen
       - light.andrew_desk_lamp
       - sensor.office_temperature
       - fan.office_ceiling_fan

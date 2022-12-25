@@ -404,6 +404,18 @@
     - service: homeassistant.turn_off
       entity_id: switch.andrew_monitor
 
+- alias: "Nexus off After Monitor"
+  id: "nexus_7_off_after_monitor"
+  initial_state: on
+  trigger:
+    platform: state
+    entity_id: switch.andrew_monitor
+    to: "off"
+    for: '00:05:00'
+  action:
+    - service: homeassistant.turn_off
+      entity_id: switch.nexus_7_screen
+
 - alias: "Water Sensor Alerts"
   id: "water_sensor_alert"
   trigger:
