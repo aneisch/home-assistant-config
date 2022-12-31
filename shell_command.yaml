@@ -16,6 +16,8 @@ copy: ssh -n -f nuc "nohup /usr/local/bin/nas-copy.sh > /dev/null 2>&1 &"
 
 pull_recipes: ssh nuc 'cd /opt/recipes; git pull'
 
+generate_heatmap: ssh nuc '/opt/github/heatmap/generate_heatmap.py'
+
 update_cloudflare_firewall: /config/scripts/update_cloudflare_firewall.sh {{ old }} {{ new }}
 
 turn_on_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Services/Mirror\ On.workflow'

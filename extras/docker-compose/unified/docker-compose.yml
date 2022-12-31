@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -167,19 +167,25 @@ services:
     #        - TZ=America/Chicago
     #    devices:
     #        - /dev/sonoff_zigbee:/dev/sonoff_zigbee
-    gsm_message_relay:
-        container_name: gsm_message_relay
-        image: ghcr.io/aneisch/gsm_message_relay:latest
-        #image: test
+    cellular_message_relay_sim800c:
+        container_name: cellular_message_relay_sim800c
+        image: ghcr.io/aneisch/cellular_message_relay:sim800c
         ports:
             - '127.0.0.1:9999:9999'
         environment:
-            # Optional GSM_MODEM - defaults to /dev/gsm_modem
-            #- GSM_MODEM=/dev/gsm_modem
-            # SIM key from Hologram Device dashboard
             - SIM_KEY=SIM_KEY
         devices:
-            - /dev/gsm_modem:/dev/gsm_modem
+            - /dev/usb_modem_sim800c:/dev/cellular_modem
+        restart: always
+    cellular_message_relay_sim7080g:
+        container_name: cellular_message_relay_sim7080g
+        image: ghcr.io/aneisch/cellular_message_relay:sim7080g
+        ports:
+            - '127.0.0.1:9998:9999'
+        environment:
+            - SIM_KEY=SIM_KEY
+        devices:
+            - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always
     plex:
         container_name: plex
@@ -283,19 +289,33 @@ services:
         logging:
             driver: none
         restart: always
-    bitwarden_backup:
-        container_name: bitwarden_backup
-        image: shivpatel/bitwarden_rs_dropbox_backup:latest
-        # Has to run as root or something. Whatever.
-        #user: '99'
-        volumes:
-            - /opt/bw-data:/data
-            - /etc/localtime:/etc/localtime:ro
-            - /opt/bw-backup/:/config
-        environment:
-            - BACKUP_ENCRYPTION_KEY=REDACT
-            - DELETE_AFTER=15
+    #bitwarden_backup:
+    #    container_name: bitwarden_backup
+    #    image: shivpatel/bitwarden_rs_dropbox_backup:latest
+    #    # Has to run as root or something. Whatever.
+    #    #user: '99'
+    #    volumes:
+    #        - /opt/bw-data:/data
+    #        - /etc/localtime:/etc/localtime:ro
+    #        - /opt/bw-backup/:/config
+    #    environment:
+    #        - BACKUP_ENCRYPTION_KEY=REDACT
+    #        - DELETE_AFTER=15
+    #    restart: always
+    vaultwarden-backup:
+        image: ttionya/vaultwarden-backup:latest
+        container_name: vaultwarden-backup
         restart: always
+        environment:
+            CRON: '00 00 * * *'
+            ZIP_ENABLE: 'TRUE'
+            ZIP_PASSWORD: 'PASSWORD'
+            ZIP_TYPE: 'zip'
+            BACKUP_KEEP_DAYS: 30
+            TIMEZONE: 'America/Chicago'
+        volumes:
+            - /opt/bw-data:/bitwarden/data/
+            - /opt/vaultwarden-backup/:/config/
     vscode:
         container_name: vscode
         image: linuxserver/code-server:3.12.0
@@ -469,7 +489,6 @@ services:
           - MODE=json-rpc
         ports:
           - "127.0.0.1:8800:8080" 
-          #- "8800:8080" 
         volumes:
           - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
     apcupsd:
@@ -501,3 +520,15 @@ services:
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always
+    vrs:
+        container_name: vrs
+        restart: 'always'
+        image: mikenye/virtualradarserver
+        # ports:
+        #     - '1234:8080'
+        environment:
+            - USERNAME=aneisch
+            - PASSWORD=PASSWORD
+            - TZ=America/Chicago
+        volumes:
+            - /opt/vrs/config:/config

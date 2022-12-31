@@ -1,0 +1,25 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Device is already configured"
+        },
+        "error": {
+            "cannot_connect": "Failed to connect, please try again",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error"
+        },
+        "step": {
+            "user": {
+                "data": {
+                    "email": "Email",
+                    "password": "Password",
+                    "enable_1s": "One Second Sensor",
+                    "enable_1m": "One Minute Sensor",
+                    "enable_1d": "One Day Sensor",
+                    "enable_1mon": "One Month Sensor"
+                }
+            }
+        },
+        "title": "Emporia Vue"
+    }
+}

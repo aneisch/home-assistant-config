@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2022.12.8%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2023.1.0b3%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -57,8 +57,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2163
-Lines of Home Assistant YAML | 6717
+Lines of ESPHome YAML | 2281
+Lines of Home Assistant YAML | 6731
 [Integrations](https://www.home-assistant.io/integrations/) in use | 46
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -92,17 +92,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 46
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 22
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 304
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 305
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 151
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 153
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 25
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1085**
+**Total state objects** | **1088**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -127,6 +127,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
+[magico13/ha-emporia-vue](https://github.com/magico13/ha-emporia-vue)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>

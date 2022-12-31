@@ -1,3 +1,5 @@
+# udevadm control --reload-rules && udevadm trigger
+
 SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{product}=="ST Series", SYMLINK+="ups_monitor_950" MODE="0666"
 SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{product}=="EC650LCD", SYMLINK+="ups_monitor_650", MODE="0666"
 SUBSYSTEM=="usbmisc", KERNEL=="hiddev*", ATTRS{idVendor}=="051d", ATTRS{idProduct}=="0002", SYMLINK+="ups_monitor_large", MODE="0666"
@@ -12,4 +14,6 @@ SUBSYSTEM=="tty", ATTRS{idVendor}=="10c4", ATTRS{idProduct}=="ea60", SYMLINK+="s
 SUBSYSTEM=="tty", ATTRS{idVendor}=="0658", ATTRS{idProduct}=="0200", SYMLINK+="zwave"
 
 # GSM Modem
-SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="gsm_modem", MODE="0666"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="usb_modem_sim800c", MODE="0666"
+# 7080G Modem
+SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="usb_modem_sim7080g", MODE="0666"

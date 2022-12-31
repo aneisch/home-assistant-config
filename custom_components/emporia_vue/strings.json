@@ -1,0 +1,25 @@
+{
+  "title": "Emporia Vue",
+  "config": {
+    "step": {
+      "user": {
+        "data": {
+          "email": "[%key:common::config_flow::data::email%]",
+          "password": "[%key:common::config_flow::data::password%]",
+          "enable_1s": "One Second Sensor",
+          "enable_1m": "One Minute Sensor",
+          "enable_1d": "One Day Sensor",
+          "enable_1mon": "One Month Sensor"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]"
+    }
+  }
+}

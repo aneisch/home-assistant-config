@@ -2,7 +2,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -166,17 +166,23 @@ services:
     #        - TZ=America/Chicago
     #    devices:
     #        - /dev/sonoff_zigbee:/dev/sonoff_zigbee
-    gsm_message_relay:
-        container_name: gsm_message_relay
-        image: ghcr.io/aneisch/gsm_message_relay:latest
-        #image: test
+    cellular_message_relay_sim800c:
+        container_name: cellular_message_relay_sim800c
+        image: ghcr.io/aneisch/cellular_message_relay:sim800c
         ports:
             - '127.0.0.1:9999:9999'
         environment:
-            # Optional GSM_MODEM - defaults to /dev/gsm_modem
-            #- GSM_MODEM=/dev/gsm_modem
-            # SIM key from Hologram Device dashboard
             - SIM_KEY=SIM_KEY
         devices:
-            - /dev/gsm_modem:/dev/gsm_modem
+            - /dev/usb_modem_sim800c:/dev/cellular_modem
+        restart: always
+    cellular_message_relay_sim7080g:
+        container_name: cellular_message_relay_sim7080g
+        image: ghcr.io/aneisch/cellular_message_relay:sim7080g
+        ports:
+            - '127.0.0.1:9998:9999'
+        environment:
+            - SIM_KEY=SIM_KEY
+        devices:
+            - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always

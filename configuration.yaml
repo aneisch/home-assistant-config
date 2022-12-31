@@ -52,6 +52,8 @@ camera: !include camera.yaml
 
 config:
 
+energy:
+
 # Watch for nginx proxy manager changes
 folder_watcher:
   - folder: /tmp
@@ -336,9 +338,23 @@ notify:
     recipients: # one or more recipients
       - "SECRET"
 
+  - platform: signal_messenger
+    name: signal_adsb
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
+    number: "+10000000000"
+    recipients: # one or more recipients
+      - "SECRET
+
   - name: gsm_message
     platform: rest
     resource: http://127.0.0.1:9999/send_message
+    method: POST_JSON
+    data:
+      priority: "{{ data.priority }}"
+
+  - name: cellular_message
+    platform: rest
+    resource: http://127.0.0.1:9998/send_message
     method: POST_JSON
     data:
       priority: "{{ data.priority }}"

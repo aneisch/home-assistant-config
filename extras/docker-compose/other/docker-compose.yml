@@ -102,19 +102,33 @@ services:
         logging:
             driver: none
         restart: always
-    bitwarden_backup:
-        container_name: bitwarden_backup
-        image: shivpatel/bitwarden_rs_dropbox_backup:latest
-        # Has to run as root or something. Whatever.
-        #user: '99'
-        volumes:
-            - /opt/bw-data:/data
-            - /etc/localtime:/etc/localtime:ro
-            - /opt/bw-backup/:/config
-        environment:
-            - BACKUP_ENCRYPTION_KEY=REDACT
-            - DELETE_AFTER=15
+    #bitwarden_backup:
+    #    container_name: bitwarden_backup
+    #    image: shivpatel/bitwarden_rs_dropbox_backup:latest
+    #    # Has to run as root or something. Whatever.
+    #    #user: '99'
+    #    volumes:
+    #        - /opt/bw-data:/data
+    #        - /etc/localtime:/etc/localtime:ro
+    #        - /opt/bw-backup/:/config
+    #    environment:
+    #        - BACKUP_ENCRYPTION_KEY=REDACT
+    #        - DELETE_AFTER=15
+    #    restart: always
+    vaultwarden-backup:
+        image: ttionya/vaultwarden-backup:latest
+        container_name: vaultwarden-backup
         restart: always
+        environment:
+            CRON: '00 00 * * *'
+            ZIP_ENABLE: 'TRUE'
+            ZIP_PASSWORD: 'PASSWORD'
+            ZIP_TYPE: 'zip'
+            BACKUP_KEEP_DAYS: 30
+            TIMEZONE: 'America/Chicago'
+        volumes:
+            - /opt/bw-data:/bitwarden/data/
+            - /opt/vaultwarden-backup/:/config/
     vscode:
         container_name: vscode
         image: linuxserver/code-server:3.12.0
@@ -288,7 +302,6 @@ services:
           - MODE=json-rpc
         ports:
           - "127.0.0.1:8800:8080" 
-          #- "8800:8080" 
         volumes:
           - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
     apcupsd:
@@ -320,3 +333,15 @@ services:
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always
+    vrs:
+        container_name: vrs
+        restart: 'always'
+        image: mikenye/virtualradarserver
+        # ports:
+        #     - '1234:8080'
+        environment:
+            - USERNAME=aneisch
+            - PASSWORD=PASSWORD
+            - TZ=America/Chicago
+        volumes:
+            - /opt/vrs/config:/config
