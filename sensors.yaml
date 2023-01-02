@@ -230,3 +230,14 @@
         {% else %}
           {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability'] }}
         {% endif %}
+
+    electricity_price:
+      friendly_name: "Electricity Price per kWH"
+      unit_of_measurement: "USD/kWh"
+      icon_template: mdi:currency-usd
+      value_template: >
+        {% if now().month >= 5 and now().month <= 10 %}
+        {{ 0.1187 + 0.0166 }}
+        {% else %}
+        {{ 0.1136 + 0.0166 }}
+        {% endif %}

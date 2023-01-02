@@ -1,6 +1,45 @@
 substitutions:
   name: emporia_view
   friendly_name: "Emporia View"
+  circuit_1: "Dryer"
+  circuit_2: "AC Compressor"
+  circuit_3: "Oven"
+  circuit_4: "Dishwasher"
+  circuit_5: "Kitchen Coffee"
+  circuit_6: "Refrigerator"
+  circuit_7: "Living Room"
+  circuit_8: "Master Bedroom"
+  circuit_9: "Bethany Office"
+  circuit_10: "Office and Guest Bedroom"
+  circuit_11: "Microwave"
+  circuit_12: "Washing Machine"
+  circuit_13: "Kitchen Lights, Garage Light, Backyard Flood"
+  circuit_14: "Garage Freezer"
+  circuit_15: "Master Bathroom"
+  circuit_16: "Attic HVAC"
+
+# phase a = left lug
+# phase b = right lug
+
+# black wire to breaker 33
+# red wire to breaker 35
+
+# Probe 1 = breaker 5+7 (2x mult) - phase a - dryer
+# Probe 2 = breaker 2+4 (2x mult) - phase a - HVAC
+# probe 3 = breaker 9+11 (2x mult) - phase a - Oven
+# probe 4 = breaker 10 - phase a - dishwasher
+# probe 5 = breaker 18 - phase a - kitchen coffee
+# probe 6 = breaker 14 - phase a - refrigerator
+# probe 7 = breaker 15 - phase b - livingroom
+# probe 8 = breaker 19 - phase b - master br
+# probe 9 = breaker 20 - phase b - bethany office
+# probe 10 = breaker 21 - phase a - office + guest bedroom
+# probe 11 = breaker 26 - phase a - microwave
+# probe 12 = breaker 27 - phase b - washing machine
+# probe 13 = breaker 28 - phase b - kitchen, garage lights, backyard flood
+# probe 14 = breaker 30 - phase a - garage outlet (freezer)
+# probe 15 = breaker 33 - phase a - master bath
+# probe 16 = breaker 35 - phase b - attic HVAC 
 
 esphome:
   name: ${name}
@@ -82,22 +121,22 @@ sensor:
           device_class: power
           filters: [*moving_avg, *pos]
       # Pay close attention to set the phase_id for each breaker by matching it to the phase/leg it connects to in the panel
-      - { phase_id: phase_a, input:  "1", power: { name:  "Circuit 1 Power", id:  cir1, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input:  "2", power: { name:  "Circuit 2 Power", id:  cir2, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input:  "3", power: { name:  "Circuit 3 Power", id:  cir3, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input:  "4", power: { name:  "Circuit 4 Power", id:  cir4, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input:  "5", power: { name:  "Circuit 5 Power", id:  cir5, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input:  "6", power: { name:  "Circuit 6 Power", id:  cir6, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input:  "7", power: { name:  "Circuit 7 Power", id:  cir7, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_b, input:  "8", power: { name:  "Circuit 8 Power", id:  cir8, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input:  "9", power: { name:  "Circuit 9 Power", id:  cir9, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input: "10", power: { name: "Circuit 10 Power", id: cir10, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "11", power: { name: "Circuit 11 Power", id: cir11, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input: "12", power: { name: "Circuit 12 Power", id: cir12, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input: "13", power: { name: "Circuit 13 Power", id: cir13, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "14", power: { name: "Circuit 14 Power", id: cir14, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input: "15", power: { name: "Circuit 15 Power", id: cir15, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "16", power: { name: "Circuit 16 Power", id: cir16, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input:  "1", power: { name:  "${circuit_1} Power", id:  cir1, filters: [ *moving_avg, *pos, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "2", power: { name:  "${circuit_2} Power", id:  cir2, filters: [ *moving_avg, *pos, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "3", power: { name:  "${circuit_3} Power", id:  cir3, filters: [ *moving_avg, *pos, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "4", power: { name:  "${circuit_4} Power", id:  cir4, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input:  "5", power: { name:  "${circuit_5} Power", id:  cir5, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input:  "6", power: { name:  "${circuit_6} Power", id:  cir6, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input:  "7", power: { name:  "${circuit_7} Power", id:  cir7, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input:  "8", power: { name:  "${circuit_8} Power", id:  cir8, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input:  "9", power: { name:  "${circuit_9} Power", id:  cir9, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input: "10", power: { name: "${circuit_10} Power", id: cir10, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input: "11", power: { name: "${circuit_11} Power", id: cir11, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input: "12", power: { name: "${circuit_12} Power", id: cir12, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input: "13", power: { name: "${circuit_13} Power", id: cir13, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input: "14", power: { name: "${circuit_14} Power", id: cir14, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input: "15", power: { name: "${circuit_15} Power", id: cir15, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_b, input: "16", power: { name: "${circuit_16} Power", id: cir16, filters: [ *moving_avg, *pos ] } }
   - platform: template
     name: "Total Power"
     lambda: return id(phase_a_power).state + id(phase_b_power).state;
@@ -108,19 +147,19 @@ sensor:
     name: "Total Daily Energy"
     power_id: total_power
     accuracy_decimals: 0
-  - { power_id:  cir1, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 1 Daily Energy" }
-  - { power_id:  cir2, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 2 Daily Energy" }
-  - { power_id:  cir3, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 3 Daily Energy" }
-  - { power_id:  cir4, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 4 Daily Energy" }
-  - { power_id:  cir5, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 5 Daily Energy" }
-  - { power_id:  cir6, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 6 Daily Energy" }
-  - { power_id:  cir7, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 7 Daily Energy" }
-  - { power_id:  cir8, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 8 Daily Energy" }
-  - { power_id:  cir9, platform: total_daily_energy, accuracy_decimals: 0, name:  "Circuit 9 Daily Energy" }
-  - { power_id: cir10, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 10 Daily Energy" }
-  - { power_id: cir11, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 11 Daily Energy" }
-  - { power_id: cir12, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 12 Daily Energy" }
-  - { power_id: cir13, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 13 Daily Energy" }
-  - { power_id: cir14, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 14 Daily Energy" }
-  - { power_id: cir15, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 15 Daily Energy" }
-  - { power_id: cir16, platform: total_daily_energy, accuracy_decimals: 0, name: "Circuit 16 Daily Energy" }
+  - { power_id:  cir1, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_1} Daily Energy" }
+  - { power_id:  cir2, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_2} Daily Energy" }
+  - { power_id:  cir3, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_3} Daily Energy" }
+  - { power_id:  cir4, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_4} Daily Energy" }
+  - { power_id:  cir5, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_5} Daily Energy" }
+  - { power_id:  cir6, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_6} Daily Energy" }
+  - { power_id:  cir7, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_7} Daily Energy" }
+  - { power_id:  cir8, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_8} Daily Energy" }
+  - { power_id:  cir9, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_9} Daily Energy" }
+  - { power_id: cir10, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_10} Daily Energy" }
+  - { power_id: cir11, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_11} Daily Energy" }
+  - { power_id: cir12, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_12} Daily Energy" }
+  - { power_id: cir13, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_13} Daily Energy" }
+  - { power_id: cir14, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_14} Daily Energy" }
+  - { power_id: cir15, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_15} Daily Energy" }
+  - { power_id: cir16, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_16} Daily Energy" }

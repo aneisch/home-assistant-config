@@ -1,0 +1,29 @@
+substitutions:
+  name: cellular_modem
+  friendly_name: "Cellular Modem"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+   
+switch:
+  # GPIO output for relay
+  - platform: gpio
+    id: power_toggle
+    pin:
+      number: D7
+      inverted: False
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
+  services:
+    - service: power_toggle
+      then:
+        - switch.turn_on: power_toggle
+        - delay: 2000ms
+        - switch.turn_off: power_toggle
