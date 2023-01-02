@@ -343,7 +343,7 @@ notify:
     url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: "+10000000000"
     recipients: # one or more recipients
-      - "SECRET
+      - "SECRET"
 
   - name: gsm_message
     platform: rest
