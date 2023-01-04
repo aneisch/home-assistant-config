@@ -9,7 +9,7 @@ substitutions:
   circuit_6: "Refrigerator"
   circuit_7: "Living Room"
   circuit_8: "Master Bedroom"
-  circuit_9: "Bethany Office"
+  circuit_9: "Server Rack"
   circuit_10: "Office and Guest Bedroom"
   circuit_11: "Microwave"
   circuit_12: "Washing Machine"
@@ -31,8 +31,8 @@ substitutions:
 # probe 5 = breaker 18 - phase a - kitchen coffee
 # probe 6 = breaker 14 - phase a - refrigerator
 # probe 7 = breaker 15 - phase b - livingroom
-# probe 8 = breaker 19 - phase b - master br
-# probe 9 = breaker 20 - phase b - bethany office
+# probe 8 = breaker 19 - phase b - master bedroom and bethany office exterior wall outlets
+# probe 9 = breaker 20 - phase b - bethany office room lights and interior wall outlets (server rack)
 # probe 10 = breaker 21 - phase a - office + guest bedroom
 # probe 11 = breaker 26 - phase a - microwave
 # probe 12 = breaker 27 - phase b - washing machine

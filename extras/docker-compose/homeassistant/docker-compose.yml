@@ -183,6 +183,8 @@ services:
             - '127.0.0.1:9998:9999'
         environment:
             - SIM_KEY=SIM_KEY
+            - HOST=HOSTIP
+            - PORT=11111
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always

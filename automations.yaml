@@ -516,7 +516,7 @@
       from: "off"
       to: "on"
   action:
-    - service: notify.gsm_message
+    - service: notify.cellular_message
       data:
         message: >
           {% if trigger.from_state.state == "on" %}
