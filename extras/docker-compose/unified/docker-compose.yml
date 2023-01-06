@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -180,6 +180,7 @@ services:
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
+        #image: cellular_message_relay:sim7080g
         ports:
             - '127.0.0.1:9998:9999'
         environment:

@@ -81,11 +81,11 @@ cards:
             tap_action: 
               action: toggle
 
-          - type: custom:mushroom-entity-card
-            entity: group.christmas
-            icon: mdi:forest
-            tap_action: 
-              action: toggle
+          # - type: custom:mushroom-entity-card
+          #   entity: group.christmas
+          #   icon: mdi:forest
+          #   tap_action: 
+          #     action: toggle
 
           - type: sensor
             entity: sensor.total_power

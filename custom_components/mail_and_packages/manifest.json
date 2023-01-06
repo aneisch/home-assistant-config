@@ -9,10 +9,7 @@
     "@firstof9"
   ],
   "config_flow": true,
-  "requirements": [
-    "imageio>=2.9.0",
-    "python-resize-image>=1.1.19"
-  ],
+  "requirements": ["beautifulsoup4","Pillow>=9.0"],
   "iot_class": "cloud_polling",
-  "version": "0.3.4-2"
+  "version": "0.3.6"
 }

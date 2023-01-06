@@ -345,12 +345,12 @@ notify:
     recipients: # one or more recipients
       - "SECRET"
 
-  - name: gsm_message
-    platform: rest
-    resource: http://127.0.0.1:9999/send_message
-    method: POST_JSON
-    data:
-      priority: "{{ data.priority }}"
+  # - name: gsm_message
+  #   platform: rest
+  #   resource: http://127.0.0.1:9999/send_message
+  #   method: POST_JSON
+  #   data:
+  #     priority: "{{ data.priority }}"
 
   - name: cellular_message
     platform: rest

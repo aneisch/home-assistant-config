@@ -178,26 +178,26 @@ Nexus Screen Follow:
 #############
 # Christmas #
 #############
-Christmas Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.christmas_lights
-  time_on: sunset - 00:20:00
-  time_off: "23:30:00"
-
-Christmas Trees Follow:
-  module: follow_me
-  class: Follow
-  leader: group.christmas_trees
-  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
-  follow_off: False # Only follow state to on
-
-Front House Christmas Trees Timer:
-  module: entity_timer
-  class: Timer
-  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
-  time_on: sunset - 00:20:00
-  time_off: '23:30:00'
+#Christmas Lights:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.christmas_lights
+#  time_on: sunset - 00:20:00
+#  time_off: "23:30:00"
+#
+#Christmas Trees Follow:
+#  module: follow_me
+#  class: Follow
+#  leader: group.christmas_trees
+#  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+#  follow_off: False # Only follow state to on
+#
+#Front House Christmas Trees Timer:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+#  time_on: sunset - 00:20:00
+#  time_off: '23:30:00'
 
 ############
 # Aquarium #
@@ -358,7 +358,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces #group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 # This seems to make zwave network freak out. Disabled 10/2022
@@ -374,8 +374,8 @@ Indoor Light Automation Sunset:
 Front House Lights Sunset:
   module: entity_timer
   class: Timer
-  #entities: light.front_porch_lights,light.front_sconces
-  entities: light.front_porch_lights # Christmas only front porch
+  entities: light.front_porch_lights,light.front_sconces
+  #entities: light.front_porch_lights # Christmas only front porch
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
   brightness: 254
