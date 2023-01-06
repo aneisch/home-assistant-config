@@ -166,16 +166,6 @@ services:
     #        - TZ=America/Chicago
     #    devices:
     #        - /dev/sonoff_zigbee:/dev/sonoff_zigbee
-    cellular_message_relay_sim800c:
-        container_name: cellular_message_relay_sim800c
-        image: ghcr.io/aneisch/cellular_message_relay:sim800c
-        ports:
-            - '127.0.0.1:9999:9999'
-        environment:
-            - SIM_KEY=SIM_KEY
-        devices:
-            - /dev/usb_modem_sim800c:/dev/cellular_modem
-        restart: always
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
