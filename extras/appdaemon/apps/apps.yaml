@@ -326,16 +326,6 @@ Living Room Sconces at Night With Motion:
   # Seconds to turn entity on when triggered
   time_on: '1'
 
-Front House Lights at Night With Doorbell Motion:
-  module: door_open
-  class: DoorLight
-  constrain_end_time: sunrise - 00:30:00
-  constrain_start_time: '23:00:00'
-  trigger_sensor: binary_sensor.front_door_motion
-  toggle_entity: light.front_house_lights
-  # Seconds to turn entity on when triggered
-  time_on: '60'
-
 Garage Lights with Cover and Door:
   module: door_open
   class: DoorLight
@@ -361,17 +351,7 @@ Indoor Light Automation Sunset:
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces #group.christmas_trees #,switch.ir_candles
   brightness: 255
 
-# This seems to make zwave network freak out. Disabled 10/2022
-#Front Porch Switch Sunset:
-#  module: entity_timer
-#  class: Timer
-#  # The switchs might have been manually turned off
-#  # bulbs are ZigBee
-#  entities: switch.front_porch_lights,switch.front_sconces
-#  time_off: sunset - 00:16:00
-#  time_on: sunset - 00:15:00
-
-Front House Lights Sunset:
+Front Porch Lights Sunset:
   module: entity_timer
   class: Timer
   entities: light.front_porch_lights,light.front_sconces
@@ -426,6 +406,7 @@ TV Automation Smallgroup:
   time_on: "22:00:00"
   entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
 
+# Turn on focus mode when desk LED on
 Mac Focus Mode Follow Desk LED:
   module: follow_me
   class: Follow

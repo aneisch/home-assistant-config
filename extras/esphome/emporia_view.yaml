@@ -62,8 +62,10 @@ i2c:
   scan: false
   frequency: 200kHz  # recommended range is 50-200kHz
   id: i2c_a
+
 time:
   - platform: sntp
+    timezone: America/Chicago
     id: my_time
 
 # these are called references in YAML. They allow you to reuse

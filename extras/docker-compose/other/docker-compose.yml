@@ -102,19 +102,6 @@ services:
         logging:
             driver: none
         restart: always
-    #bitwarden_backup:
-    #    container_name: bitwarden_backup
-    #    image: shivpatel/bitwarden_rs_dropbox_backup:latest
-    #    # Has to run as root or something. Whatever.
-    #    #user: '99'
-    #    volumes:
-    #        - /opt/bw-data:/data
-    #        - /etc/localtime:/etc/localtime:ro
-    #        - /opt/bw-backup/:/config
-    #    environment:
-    #        - BACKUP_ENCRYPTION_KEY=REDACT
-    #        - DELETE_AFTER=15
-    #    restart: always
     vaultwarden-backup:
         image: ttionya/vaultwarden-backup:latest
         container_name: vaultwarden-backup
@@ -205,23 +192,6 @@ services:
           - '/opt/recipes:/config'
           - '/etc/localtime:/etc/localtime:ro'
         restart: always
-    #tuya-convert:
-    #    # https://github.com/ct-Open-Source/tuya-convert
-    #    # need to run with docker exec -it tuya-convert /bin/bash first, then issue "start" from bash
-    #    # this is needed to accept EULA
-    #    # then can use docker-compose exec tuya-convert start
-    #    container_name: 'tuya-convert'
-    #    image: tuya-convert:latest
-    #    labels:
-    #      com.centurylinklabs.watchtower.enable: "false"
-    #    privileged: true
-    #    network_mode: "host"
-    #    environment:
-    #      - WLAN=wlp58s0
-    #      - AP=vtrust-flash
-    #      - GATEWAY=10.42.42.1
-    #    volumes:
-    #      - /tmp/tuya:/usr/bin/tuya-convert/backups
     ring-mqtt:
         container_name: ring-mqtt
         #image: tsightler/ring-mqtt

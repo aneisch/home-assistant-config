@@ -105,26 +105,6 @@ services:
         ports:
             - '8888:8888'
         restart: always
-    #apcupsd_950:
-    #    container_name: apcupsd_950
-    #    image: gersilex/apcupsd
-    #    ports:
-    #        - '3551:3551'
-    #    volumes:
-    #        - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-    #    devices:
-    #        - '/dev/ups_monitor_950:/dev/usb/hiddev0'
-    #    restart: always
-    #apcupsd_650:
-    #    container_name: apcupsd_650
-    #    image: gersilex/apcupsd
-    #    ports:
-    #        - '3552:3551'
-    #    volumes:
-    #        - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-    #    devices:
-    #        - '/dev/ups_monitor_650:/dev/usb/hiddev0'
-    #    restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
         image: ghcr.io/aneisch/thermostat_api_server:latest
@@ -153,19 +133,6 @@ services:
         ports:
             - '8091:8091' # port for web interface
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server
-    #zigbee2mqtt:
-    #    container_name: zigbee2mqtt
-    #    image: koenkk/zigbee2mqtt
-    #    restart: unless-stopped
-    #    ports:
-    #        - '8880:8080'
-    #    volumes:
-    #        - /opt/zigbee2mqtt:/app/data
-    #        - /run/udev:/run/udev:ro
-    #    environment:
-    #        - TZ=America/Chicago
-    #    devices:
-    #        - /dev/sonoff_zigbee:/dev/sonoff_zigbee
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
