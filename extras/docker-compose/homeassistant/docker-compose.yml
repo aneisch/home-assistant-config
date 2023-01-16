@@ -143,6 +143,8 @@ services:
             - SIM_KEY=SIM_KEY
             - HOST=HOSTIP
             - PORT=11111
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always

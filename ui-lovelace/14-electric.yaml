@@ -90,7 +90,7 @@ cards:
   - type: gauge
     entity: sensor.total_power
     graph: line
-    min: 500
+    min: 300
     max: 8000
 
   - type: sensor

@@ -17,3 +17,4 @@ SUBSYSTEM=="tty", ATTRS{idVendor}=="0658", ATTRS{idProduct}=="0200", SYMLINK+="z
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1a86", ATTRS{idProduct}=="7523", SYMLINK+="usb_modem_sim800c", MODE="0666"
 # 7080G Modem
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1e0e", ATTRS{idProduct}=="9205", SYMLINK+="usb_modem_sim7080g", MODE="0666"
+# Block network interface, leave tty intact in /etc/modprobe.d/simcom-blacklist.conf
