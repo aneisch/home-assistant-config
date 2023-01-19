@@ -292,6 +292,17 @@
           type: tts
         message: "Help is on the way"
 
+- alias: "Cellular Modem Power Toggle"
+  id: "cellular_modem_power_toggle"
+  initial_state: on
+  trigger:
+    platform: webhook
+    webhook_id: !secret cellular_modem_power_toggle_webhook
+  action:
+    - service: esphome.cellular_modem_power_toggle
+    - delay: 5
+    - service: esphome.cellular_modem_power_toggle
+
 - alias: "Pull Recipes Github Webhook"
   id: "recipes_github_pull"
   initial_state: on
@@ -411,7 +422,7 @@
     platform: state
     entity_id: switch.andrew_monitor
     to: "off"
-    for: '00:05:00'
+    for: '00:00:30'
   action:
     - service: homeassistant.turn_off
       entity_id: switch.nexus_7_screen

@@ -139,12 +139,13 @@ services:
         #image: cellular_message_relay:sim7080g
         ports:
             - '127.0.0.1:9998:9999'
+        privileged: true
         environment:
             - SIM_KEY=SIM_KEY
             - HOST=HOSTIP
             - PORT=11111
+            - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
         volumes:
             - /etc/localtime:/etc/localtime:ro
-        devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always

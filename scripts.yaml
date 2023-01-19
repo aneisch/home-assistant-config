@@ -237,11 +237,12 @@ christmas_wakeup:
 # OTHER #
 #########
 
-# Change notification platform if internet offline, or if a priority is provided
+# Change notification platform if internet offline,
 notify_wrapper:
   sequence:
     - if: '{{ states("binary_sensor.internet_reachability") == "on" }}'
       then:
+        # If internet on and priority set: send via pushover
         - if: '{{ "priority" in data }}'
           then:
             - service: notify.pushover
@@ -251,11 +252,13 @@ notify_wrapper:
                   priority: '{{ data.priority }}'
                   expire: 600
                   retry: 30
+          # If internet and no priority set: send via signal
           else:
             - service: notify.signal_self
               data:
                 message: '{{ message }}'
       else:
+        # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
           then: 
             - service: notify.cellular_message
