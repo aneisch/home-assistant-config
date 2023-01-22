@@ -470,7 +470,9 @@ services:
     macos:
         container_name: macos
         restart: 'always'
-        image: sickcodes/docker-osx:naked
+        #image: sickcodes/docker-osx:naked
+        # Pulled above, made changes, committed to new image below
+        image: aneisch/macos
         labels:
             com.centurylinklabs.watchtower.enable: "false"
         ports:
@@ -489,6 +491,8 @@ services:
             - MAC_ADDRESS=MAC
             - EXTRA=-display none -vnc 0.0.0.0:99,password=on
             # printf "change vnc password\n%s\n" "xx" | exec qemu-system-x86_64 -m ${RAM:-4}000 \
+            # user: user
+            # password: alpine
         devices:
             - /dev/kvm
         user: root

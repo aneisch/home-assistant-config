@@ -319,7 +319,9 @@ services:
     macos:
         container_name: macos
         restart: 'always'
-        image: sickcodes/docker-osx:naked
+        #image: sickcodes/docker-osx:naked
+        # Pulled above, made changes, committed to new image below
+        image: aneisch/macos
         labels:
             com.centurylinklabs.watchtower.enable: "false"
         ports:
@@ -327,7 +329,7 @@ services:
             - 5999:5999 # vnc
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /opt/mac_hdd_ng.img:/image
+            - /opt/mac_hdd_ng.img:/image # Backed up on nas /Backup/home-assistant/
         environment:
             - DISPLAY=${DISPLAY:-:0.0}
             - GENERATE_SPECIFIC=true
