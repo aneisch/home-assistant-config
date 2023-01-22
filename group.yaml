@@ -78,7 +78,7 @@ living_room:
     - switch.living_room_speakers
     - light.living_room_sconces
     - switch.tv
-    - switch.ir_candles
+    #- switch.ir_candles
 
 off_at_bedtime:
   name: Off at Bedtime

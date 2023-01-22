@@ -16,6 +16,7 @@ services:
           - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/zigbee
+            - /dev/usb_modem_sim7080g:/dev/cellular_modem
         environment:
           - TZ=America/Chicago
         healthcheck:
@@ -136,11 +137,10 @@ services:
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
-        #image: ghcr.io/aneisch/cellular_message_relay:sim7080g
-        image: cellular_message_relay:sim7080g
+        image: ghcr.io/aneisch/cellular_message_relay:sim7080g
+        #image: cellular_message_relay:sim7080g
         ports:
             - '127.0.0.1:9998:9999'
-        privileged: true
         environment:
             - SIM_KEY=SIM_KEY
             - HOST=HOSTIP
@@ -148,6 +148,7 @@ services:
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
         volumes:
             - /etc/localtime:/etc/localtime:ro
+        devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always
     plex:
@@ -447,6 +448,13 @@ services:
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always
+    sqliteweb:
+        container_name: sqliteweb
+        image: tomdesinto/sqliteweb
+        restart: "no"
+        volumes:
+            - /opt/secret/secret.db:/db/secret.db
+        command: secret.db
     vrs:
         container_name: vrs
         restart: 'always'
@@ -459,3 +467,28 @@ services:
             - TZ=America/Chicago
         volumes:
             - /opt/vrs/config:/config
+    macos:
+        container_name: macos
+        restart: 'always'
+        image: sickcodes/docker-osx:naked
+        labels:
+            com.centurylinklabs.watchtower.enable: "false"
+        ports:
+            - 50922:10022
+            - 5999:5999 # vnc
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - /opt/mac_hdd_ng.img:/image
+        environment:
+            - DISPLAY=${DISPLAY:-:0.0}
+            - GENERATE_SPECIFIC=true
+            - DEVICE_MODEL=iMacPro1,1
+            - SERIAL=SERIAL
+            - BOARD_SERIAL=BOARD
+            - UUID=UUID
+            - MAC_ADDRESS=MAC
+            - EXTRA=-display none -vnc 0.0.0.0:99,password=on
+            # printf "change vnc password\n%s\n" "xx" | exec qemu-system-x86_64 -m ${RAM:-4}000 \
+        devices:
+            - /dev/kvm
+        user: root

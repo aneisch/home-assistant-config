@@ -294,13 +294,16 @@
 
 - alias: "Cellular Modem Power Toggle"
   id: "cellular_modem_power_toggle"
+  mode: single
   initial_state: on
   trigger:
-    platform: webhook
-    webhook_id: !secret cellular_modem_power_toggle_webhook
+    - platform: webhook
+      webhook_id: !secret cellular_modem_power_toggle_webhook
+    - platform: state
+      entity_id: sensor.cellular_modem_power
+      from: "on"
+      to: "off"
   action:
-    - service: esphome.cellular_modem_power_toggle
-    - delay: 5
     - service: esphome.cellular_modem_power_toggle
 
 - alias: "Pull Recipes Github Webhook"
@@ -535,6 +538,9 @@
           {% else %}
           Home internet has recovered
           {% endif %}
+        data:
+          # Override DND if Daytime, otherwise silent
+          priority: '{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}'
 
 
 # - id: webhook_debugger
@@ -631,6 +637,20 @@
 #         #   priority: 2
 #         #   expire: 3600
 #         #   retry: 30
+
+- alias: "Fingerprint Door Unlock"
+  id: "fingerprint_door_unlock"
+  trigger:
+    platform: state
+    entity_id: sensor.fingerprint_state
+    to: "Authorized finger"
+  condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
+  action:
+    - service: lock.unlock
+      entity_id: lock.front_door
+    - service: script.notify_wrapper
+      data:
+        message: "Front door unlocked by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% else %}Unknown{% endif %}!"
 
 - alias: "Sync Alexa Timers"
   id: "sync_alexa_timers"

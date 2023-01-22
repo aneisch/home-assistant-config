@@ -98,6 +98,10 @@
   unit_of_measurement: "°F"
   value_template: "{{ ((value | int) * 9 / 5) + 32 | round(1) }}"
 
+- platform: command_line
+  name: Cellular Modem Power
+  scan_interval: 5
+  command: "if $(lsusb | grep -q 1e0e); then echo on; else echo off; fi"
 
 #############
 # TEMPLATES #

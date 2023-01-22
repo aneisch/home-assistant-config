@@ -79,6 +79,7 @@ monitor_docker:
     nodered: "Node-RED"
     plex: "Plex"
     portainer: "Portainer"
+    sqliteweb: "SQLite Web"
     thermopro_mqtt: "Grill Monitor"
     thermostat_api_server: "Thermostat API Server"
     vscode: "VSCode"
