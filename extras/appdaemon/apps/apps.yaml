@@ -171,7 +171,8 @@ Bethany Office Hanging Lights:
 Nexus Screen Follow:
   module: follow_me
   class: Follow
-  leader: switch.andrew_monitor
+  #leader: switch.andrew_monitor
+  leader: binary_sensor.weasel_active
   follower: switch.nexus_7_screen
   follow_off: False # Only follow state to on
 
@@ -368,6 +369,13 @@ Entryway Light Sunset:
   time_off: '23:00:00'
   entities: light.entryway_light
   brightness: 255
+
+Plant Light:
+  module: entity_timer
+  class: Timer
+  time_on: '10:30:00'
+  time_off: '17:00:00'
+  entities: switch.plant_light
 
 Living Room Lamp Follow:
   module: follow_me

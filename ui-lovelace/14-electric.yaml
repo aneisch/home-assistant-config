@@ -91,7 +91,7 @@ cards:
     entity: sensor.total_power
     graph: line
     min: 300
-    max: 8000
+    max: 10000
 
   - type: sensor
     entity: sensor.washing_machine_power

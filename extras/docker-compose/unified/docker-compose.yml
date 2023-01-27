@@ -43,11 +43,14 @@ services:
           - MYSQL_USER=homeassistant
           - MYSQL_PASSWORD=homeassistant
           - MYSQL_DATABASE=homeassistant
+          - TZ=America/Chicago
         restart: always
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto:latest
         user: '99'
+        environment:
+            - TZ=America/Chicago
         healthcheck:
             test: "mosquitto_sub -E -t '#'"
             interval: 60s
@@ -76,6 +79,8 @@ services:
         ports:
             - '8086:8086'
         restart: always
+        environment:
+            - TZ=America/Chicago
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
@@ -104,8 +109,10 @@ services:
           # Mount directory of appdaemon apps installed by HACS
           - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
           #- /home/aneisch/dockerStart.sh:/usr/src/app/dockerStart.sh:ro
+        environment:
+          - TZ=America/Chicago
         ports:
-            - '8888:8888'
+          - '8888:8888'
         restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
@@ -117,6 +124,7 @@ services:
         environment:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
+            - TZ=America/Chicago
         depends_on:
           - mosquitto
         restart: always
@@ -135,6 +143,8 @@ services:
         ports:
             - '8091:8091' # port for web interface
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server
+        environment:
+            - TZ=America/Chicago
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
@@ -146,6 +156,7 @@ services:
             - HOST=HOSTIP
             - PORT=11111
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
+            - TZ=America/Chicago
         volumes:
             - /etc/localtime:/etc/localtime:ro
         devices:
@@ -179,6 +190,7 @@ services:
         #ports:
         #    - '9000:9000'
         environment:
+            - TZ=America/Chicago
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
     grafana:
@@ -201,6 +213,8 @@ services:
         #image: esphome-dev
         #image: esphome/esphome:2021.10.3
         image: esphome/esphome
+        environment:
+            - TZ=America/Chicago
         volumes:
             - /opt/esphome/:/config:rw
             # Use local time for logging timestamps
@@ -214,6 +228,8 @@ services:
         labels:
           com.centurylinklabs.watchtower.enable: "false"
         restart: 'no'
+        environment:
+            - TZ=America/Chicago
         devices:
             - '/dev/bus/usb:/dev/bus/usb'
         volumes:
@@ -247,6 +263,7 @@ services:
             - DUO_IKEY=
             - DUO_SKEY=
             - DUO_HOST=
+            - TZ=America/Chicago
         #ports:
         #    - '8777:1024'
         #    - '3012:3012'
@@ -264,6 +281,7 @@ services:
             ZIP_TYPE: 'zip'
             BACKUP_KEEP_DAYS: 30
             TIMEZONE: 'America/Chicago'
+
         volumes:
             - /opt/bw-data:/bitwarden/data/
             - /opt/vaultwarden-backup/:/config/
@@ -272,40 +290,41 @@ services:
         image: linuxserver/code-server:3.12.0
         restart: always
         volumes:
-          - '/opt/vscode:/config'
-          - '/opt/homeassistant/:/ha_config/homeassistant'
-          - '/opt/appdaemon/:/ha_config/appdaemon'
-          - '/opt/docker-compose/:/ha_config/docker-compose'
-          - '/opt/github:/ha_config/github_projects'
-          - '/home/aneisch/.backup:/ha_config/homeassistant-git'
+            - '/opt/vscode:/config'
+            - '/opt/homeassistant/:/ha_config/homeassistant'
+            - '/opt/appdaemon/:/ha_config/appdaemon'
+            - '/opt/docker-compose/:/ha_config/docker-compose'
+            - '/opt/github:/ha_config/github_projects'
+            - '/home/aneisch/.backup:/ha_config/homeassistant-git'
         environment:
-          - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
-          - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
-          - PUID=1000
-          - PGID=1000
-          - HOMEASSISTANT_TOKEN=XXX
+            - TZ=America/Chicago
+            - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
+            - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
+            - PUID=1000
+            - PGID=1000
+            - HOMEASSISTANT_TOKEN=XXX
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower:latest
         volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-          - /etc/localtime:/etc/localtime:ro
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /etc/localtime:/etc/localtime:ro
         #restart: always
         restart: 'no'
         environment:
-          - WATCHTOWER_CLEANUP=true
-          - WATCHTOWER_NO_STARTUP_MESSAGE=true
-          - WATCHTOWER_NOTIFICATIONS_LEVEL=info
-          - WATCHTOWER_INCLUDE_STOPPED=true
-          - WATCHTOWER_NOTIFICATIONS=email
-          - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
-          - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-          - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
+            - WATCHTOWER_CLEANUP=true
+            - WATCHTOWER_NO_STARTUP_MESSAGE=true
+            - WATCHTOWER_NOTIFICATIONS_LEVEL=info
+            - WATCHTOWER_INCLUDE_STOPPED=true
+            - WATCHTOWER_NOTIFICATIONS=email
+            - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
+            - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
+            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
+            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
+            - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+            - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
         #command: --schedule "00 00 12 * * *"
         command: --run-once
     adguard:
@@ -315,22 +334,24 @@ services:
         #logging:
         #    driver: none
         volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - /opt/adguard:/opt/adguardhome/conf
-          - /opt/adguard/work:/opt/adguardhome/work
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/adguard:/opt/adguardhome/conf
+            - /opt/adguard/work:/opt/adguardhome/work
         ports:
-          - 53:5353/tcp
-          - 53:5353/udp
-          - 8088:8080/tcp
+            - 53:5353/tcp
+            - 53:5353/udp
+            - 8088:8080/tcp
+        environment:
+            - TZ=America/Chicago
         restart: 'always'
     librespeed:
         image: linuxserver/librespeed
         container_name: librespeed
         ports:
-          - 8880:80
+            - 8880:80
         environment:
-          - PASSWORD=password
-          - TZ=America/Chicago
+            - PASSWORD=password
+            - TZ=America/Chicago
         restart: 'no'
     recipes:
         # Public consumption at VPS, duplicated locally for home use though
@@ -340,8 +361,10 @@ services:
         #ports:
         #  - "4000:4000"
         volumes:
-          - '/opt/recipes:/config'
-          - '/etc/localtime:/etc/localtime:ro'
+            - '/opt/recipes:/config'
+            - '/etc/localtime:/etc/localtime:ro'
+        environment:
+            - TZ=America/Chicago    
         restart: always
     ring-mqtt:
         container_name: ring-mqtt
@@ -352,6 +375,7 @@ services:
         ports:
             - 8554:8554
         environment:
+            - TZ=America/Chicago
             - S6_READ_ONLY_ROOT=1
             - MQTTHOST=10.0.1.22
             # docker run -it --rm --entrypoint /app/ring-mqtt/node_modules/ring-client-api/ring-auth-cli.js tsightler/ring-mqtt
@@ -377,6 +401,7 @@ services:
         image: jlesage/nginx-proxy-manager
         restart: 'always'
         environment:
+            - TZ=America/Chicago
             - USER_ID=99
             - GROUP_ID=99
         ports:
@@ -391,6 +416,8 @@ services:
         image: cloudflare/cloudflared:latest
         restart: 'always'
         network_mode: host
+        environment:
+            - TZ=America/Chicago
         volumes:
             - /opt/cloudflared/:/home/nonroot/.cloudflared/
         command: tunnel run nuc
@@ -399,26 +426,27 @@ services:
         image: myoung34/github-runner:latest
         restart: 'always'
         environment:
-          RUNNER_NAME: nuc-runner
-          ACCESS_TOKEN: XXXX
-          REPO_URL: https://github.com/aneisch/thermostat_api_server_docker
-          RUNNER_WORKDIR: /tmp/runner/work
-          LABELS: linux,x64,self-hosted
+            RUNNER_NAME: nuc-runner
+            ACCESS_TOKEN: XXXX
+            REPO_URL: https://github.com/aneisch/thermostat_api_server_docker
+            RUNNER_WORKDIR: /tmp/runner/work
+            LABELS: linux,x64,self-hosted
         security_opt:
-          - label:disable
+            - label:disable
         volumes:
-          - '/var/run/docker.sock:/var/run/docker.sock'
-          - '/tmp/runner:/tmp/runner'
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/tmp/runner:/tmp/runner'
     signal-rest-api:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest
         restart: 'always'
         environment:
-          - MODE=json-rpc
+            - MODE=json-rpc
+            - TZ=America/Chicago
         ports:
-          - "127.0.0.1:8800:8080" 
+            - "127.0.0.1:8800:8080" 
         volumes:
-          - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
+            - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
     apcupsd:
         container_name: apcupsd
         image: gersilex/apcupsd
@@ -433,7 +461,7 @@ services:
         container_name: secret
         image: secret_container
         labels:
-          com.centurylinklabs.watchtower.enable: "false"
+            com.centurylinklabs.watchtower.enable: "false"
         #ports: 
         #    - 9999:9999
         environment:
@@ -441,7 +469,9 @@ services:
             - FTP_PASSWORD=MyPAss
             - NOTIFICATIONS_WEBHOOK_URL="N/A"
             - WORKSHEET_NAME=2023
+            - TZ=America/Chicago
         volumes:
+            # - /etc/localtime:/etc/localtime:ro
             - /opt/secret/secret.db:/output_files/secret.db
             - /opt/secret/input_files/:/input_files/
             - /opt/secret/secret.log:/var/log/secret.log
@@ -454,6 +484,8 @@ services:
         restart: "no"
         volumes:
             - /opt/secret/secret.db:/db/secret.db
+        environment:
+            - TZ=America/Chicago
         command: secret.db
     vrs:
         container_name: vrs
@@ -480,7 +512,7 @@ services:
             - 5999:5999 # vnc
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /opt/mac_hdd_ng.img:/image
+            - /opt/mac_hdd_ng.img:/image # Backed up on nas /Backup/home-assistant/
         environment:
             - DISPLAY=${DISPLAY:-:0.0}
             - GENERATE_SPECIFIC=true
@@ -493,6 +525,7 @@ services:
             # printf "change vnc password\n%s\n" "xx" | exec qemu-system-x86_64 -m ${RAM:-4}000 \
             # user: user
             # password: alpine
+            - TZ=America/Chicago
         devices:
             - /dev/kvm
         user: root

@@ -58,8 +58,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2342
-Lines of Home Assistant YAML | 6862
-[Integrations](https://www.home-assistant.io/integrations/) in use | 46
+Lines of Home Assistant YAML | 6859
+[Integrations](https://www.home-assistant.io/integrations/) in use | 44
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
@@ -92,17 +92,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 46
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 22
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 353
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 360
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 148
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 154
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 25
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1136**
+**Total state objects** | **1149**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -127,7 +127,6 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [custom-components/readme](https://github.com/custom-components/readme)<br>
 [dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
-[magico13/ha-emporia-vue](https://github.com/magico13/ha-emporia-vue)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>

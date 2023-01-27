@@ -42,11 +42,14 @@ services:
           - MYSQL_USER=homeassistant
           - MYSQL_PASSWORD=homeassistant
           - MYSQL_DATABASE=homeassistant
+          - TZ=America/Chicago
         restart: always
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto:latest
         user: '99'
+        environment:
+            - TZ=America/Chicago
         healthcheck:
             test: "mosquitto_sub -E -t '#'"
             interval: 60s
@@ -75,6 +78,8 @@ services:
         ports:
             - '8086:8086'
         restart: always
+        environment:
+            - TZ=America/Chicago
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
@@ -103,8 +108,10 @@ services:
           # Mount directory of appdaemon apps installed by HACS
           - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
           #- /home/aneisch/dockerStart.sh:/usr/src/app/dockerStart.sh:ro
+        environment:
+          - TZ=America/Chicago
         ports:
-            - '8888:8888'
+          - '8888:8888'
         restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
@@ -116,6 +123,7 @@ services:
         environment:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
+            - TZ=America/Chicago
         depends_on:
           - mosquitto
         restart: always
@@ -134,6 +142,8 @@ services:
         ports:
             - '8091:8091' # port for web interface
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server
+        environment:
+            - TZ=America/Chicago
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
@@ -145,6 +155,7 @@ services:
             - HOST=HOSTIP
             - PORT=11111
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
+            - TZ=America/Chicago
         volumes:
             - /etc/localtime:/etc/localtime:ro
         devices:

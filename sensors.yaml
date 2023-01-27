@@ -26,15 +26,6 @@
     - connected_users
     - gps_status
 
-# - platform: command_line
-#   name: Electric Utilities Realtime
-#   scan_interval: 600
-#   command: !secret utilities_curl_realtime
-#   value_template: "{{ value_json.Kwh | float }}"
-#   unit_of_measurement: 'kWh'
-#   json_attributes:
-#     - ReadDate
-
 - platform: command_line
   name: Electric Utilities Daily
   scan_interval: 3600

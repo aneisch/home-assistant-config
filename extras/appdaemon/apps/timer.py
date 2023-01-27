@@ -19,46 +19,11 @@ class Timer(hass.Hass):
         else:
             new_stripped = new[:-6]
             datetime_object = datetime.datetime.strptime(new_stripped, '%Y-%m-%dT%H:%M:%S')
-            remaining = datetime_object - datetime.datetime.now()
+            remaining = datetime_object - datetime.datetime.utcnow()
             self.log("New timer set: {} from now, ending at {}".format(remaining,new))
             while True:
                 state = self.get_state(self.args["timer_entity"])
-                remaining = datetime_object - datetime.datetime.now()
-                seconds = remaining.total_seconds()
-                if state != new:
-                    self.log("Timer Changed, Stopping Loop")
-                    break
-                elif seconds <= 0:
-                    state = "Expired"
-                    self.set_state(countdown_destination_entity, state=state)
-                    if self.args["mqtt"]:
-                        self.call_service("mqtt/publish", topic="appdaemon/" + countdown_destination_entity, payload=state)
-                    self.log("Timer Expired")
-                    break
-                state = str(remaining)[:-7]
-                self.set_state(countdown_destination_entity, state=state)
-                if self.args["mqtt"]:
-                    self.call_service("mqtt/publish", topic="appdaemon/" + countdown_destination_entity, payload=state)
-                time.sleep(1)
-
-class Timer2(hass.Hass):
-    def initialize(self):
-        self.listen_state(self.state_change, self.args["timer_entity"])
-
-    def state_change(self, entity, attribute, old, new, kwargs):
-        countdown_destination_entity_prefix = self.args["countdown_destination_entity_prefix"]
-        if new == "unknown" or new == "unavailable" or new == 0:
-            state = "No Timers Set"
-            if self.args["mqtt"]:
-                self.call_service("mqtt/publish", topic="appdaemon/" + countdown_destination_entity, payload=state)
-        else:
-            new_stripped = new[:-6]
-            datetime_object = datetime.datetime.strptime(new_stripped, '%Y-%m-%dT%H:%M:%S')
-            remaining = datetime_object - datetime.datetime.now()
-            self.log("New timer set: {} from now, ending at {}".format(remaining,new))
-            while True:
-                state = self.get_state(self.args["timer_entity"])
-                remaining = datetime_object - datetime.datetime.now()
+                remaining = datetime_object - datetime.datetime.utcnow()
                 seconds = remaining.total_seconds()
                 if state != new:
                     self.log("Timer Changed, Stopping Loop")
