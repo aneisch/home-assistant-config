@@ -1,5 +1,5 @@
 /**
- * (C) 2020-2022 by Jan Schneider (oss@janschneider.net)
+ * (C) 2020-2023 by Jan Schneider (oss@janschneider.net)
  * Released under the GNU General Public License v3.0
  */
 
@@ -108,7 +108,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.6.1";
+const version = "4.7.1";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -131,9 +131,9 @@ const defaultConfig = {
 	image_order: 'sorted', // sorted / random
 	image_excludes: [],
 	show_progress_bar: false,
-	show_exif_info: false,
+	show_image_info: false,
 	fetch_address_data: false,
-	exif_info_template: '${DateTimeOriginal}',
+	image_info_template: '${DateTimeOriginal}',
 	info_animation_duration_x: 0,
 	info_animation_duration_y: 0,
 	info_animation_timing_function_x: 'ease',
@@ -158,7 +158,7 @@ let fullscreen = false;
 let screenWakeLock = new ScreenWakeLock();
 let wallpanel = null;
 let classStyles = {
-	"wallpanel-screensaver-image-info-exif": {
+	"wallpanel-screensaver-image-info": {
 		"position": "absolute",
 		"bottom": "0.5em",
 		"right": "0.5em",
@@ -179,9 +179,9 @@ let classStyles = {
 		"background-color": "white"
 	}
 }
-let exifDataCache = {};
-let exifDataCacheKeys = [];
-const exifDataCacheMaxSize = 1000;
+let imageInfoCache = {};
+let imageInfoCacheKeys = [];
+const imageInfoCacheMaxSize = 1000;
 
 const elHass = document.querySelector("body > home-assistant");
 const elHaMain = elHass.shadowRoot.querySelector("home-assistant-main");
@@ -263,9 +263,21 @@ function updateConfig() {
 		if (config.image_url.startsWith("/")) {
 			config.image_url = `media-source://media_source${config.image_url}`;
 		}
-		if (config.image_url.startsWith("media-source://media_source")) {
+		if (imageSourceType() == "media-source") {
 			config.image_url = config.image_url.replace(/\/+$/, '');
 		}
+		if (imageSourceType() == "unsplash-api" && config.image_list_update_interval > 90) {
+			// Unsplash API currently places a limit of 50 requests per hour
+			config.image_list_update_interval = 90;
+		}
+	}
+	if (config.exif_info_template) {
+		// Old key => new key
+		config.image_info_template = config.exif_info_template;
+	}
+	if (config.show_exif_info) {
+		// Old key => new key
+		config.show_image_info = config.show_exif_info;
 	}
 	if (!config.enabled) {
 		config.debug = false;
@@ -299,6 +311,13 @@ function isActive() {
 		return false;
 	}
 	return true;
+}
+
+
+function imageSourceType() {
+	if (config.image_url.startsWith("media-source://media_source")) return "media-source";
+	if (config.image_url.startsWith("https://api.unsplash")) return "unsplash-api";
+	return "url";
 }
 
 
@@ -353,15 +372,18 @@ function setSidebarHidden(hidden) {
 
 function setToolbarHidden(hidden) {
 	try {
-		let appToolbar = elHaMain.shadowRoot
-		.querySelector("ha-panel-lovelace").shadowRoot
-		.querySelector("hui-root").shadowRoot
-		.querySelector("app-toolbar");
+		let huiRoot = elHaMain.shadowRoot
+			.querySelector("ha-panel-lovelace").shadowRoot
+			.querySelector("hui-root").shadowRoot;
+		let view = huiRoot.querySelector("#view");
+		let appToolbar = huiRoot.querySelector("app-toolbar");
 		if (hidden) {
 			appToolbar.style.setProperty("display", "none");
+			view.style.minHeight = "100vh";
 		}
 		else {
 			appToolbar.style.removeProperty("display");
+			view.style.removeProperty("min-height");
 		}
 		window.dispatchEvent(new Event('resize'));
 	}
@@ -938,8 +960,7 @@ class WallpanelView extends HuiView {
 		const inner = document.createElement('div');
 		inner.className = 'wallpanel-progress-inner';
 		inner.id = 'wallpanel-progress-inner';
-		inner.style.animation =
-		    `horizontalProgress ${config.display_time}s linear`;
+		inner.style.animation = `horizontalProgress ${config.display_time}s linear`;
 		div.appendChild(inner);
 		wrapper.appendChild(div);
 	}
@@ -979,11 +1000,11 @@ class WallpanelView extends HuiView {
 		this.imageOneInfoContainer = document.createElement('div');
 		this.imageOneInfoContainer.id = 'wallpanel-screensaver-image-one-info-container';
 
-		this.imageOneInfoExif = document.createElement('div');
-		this.imageOneInfoExif.className = 'wallpanel-screensaver-image-info-exif';
-		this.imageOneInfoExif.id = 'wallpanel-screensaver-image-one-info-exif';
+		this.imageOneInfo = document.createElement('div');
+		this.imageOneInfo.className = 'wallpanel-screensaver-image-info';
+		this.imageOneInfo.id = 'wallpanel-screensaver-image-one-info';
 
-		this.imageOneInfoContainer.appendChild(this.imageOneInfoExif);
+		this.imageOneInfoContainer.appendChild(this.imageOneInfo);
 		this.imageOneContainer.appendChild(this.imageOne);
 		this.imageOneContainer.appendChild(this.imageOneInfoContainer);
 		this.screensaverContainer.appendChild(this.imageOneContainer);
@@ -998,11 +1019,11 @@ class WallpanelView extends HuiView {
 		this.imageTwoInfoContainer = document.createElement('div');
 		this.imageTwoInfoContainer.id = 'wallpanel-screensaver-image-two-info-container';
 
-		this.imageTwoInfoExif = document.createElement('div');
-		this.imageTwoInfoExif.className = 'wallpanel-screensaver-image-info-exif';
-		this.imageTwoInfoExif.id = 'wallpanel-screensaver-image-two-info-exif';
+		this.imageTwoInfo = document.createElement('div');
+		this.imageTwoInfo.className = 'wallpanel-screensaver-image-info';
+		this.imageTwoInfo.id = 'wallpanel-screensaver-image-two-info';
 
-		this.imageTwoInfoContainer.appendChild(this.imageTwoInfoExif);
+		this.imageTwoInfoContainer.appendChild(this.imageTwoInfo);
 		this.imageTwoContainer.appendChild(this.imageTwo);
 		this.imageTwoContainer.appendChild(this.imageTwoInfoContainer);
 		this.screensaverContainer.appendChild(this.imageTwoContainer);
@@ -1064,11 +1085,11 @@ class WallpanelView extends HuiView {
 		this.updateStyle();
 
 		if (config.idle_time > 0 && config.image_url) {
-			if (config.image_url.startsWith("media-source://media_source")) {
-				this.updateImageList(this.preloadImages.bind(this));
+			if (imageSourceType() == "url") {
+				this.preloadImages();
 			}
 			else {
-				this.preloadImages();
+				this.updateImageList(this.preloadImages.bind(this));
 			}
 		}
 
@@ -1089,7 +1110,7 @@ class WallpanelView extends HuiView {
 			if (!img) return;
 			img.addEventListener('load', function() {
 				img.setAttribute('data-loading', false);
-				if (config.show_exif_info && img.imagePath && /.*\.jpe?g$/i.test(img.imagePath)) {
+				if (config.show_image_info && img.imagePath && /.*\.jpe?g$/i.test(img.imagePath)) {
 					wp.fetchEXIFInfo(img);
 				}
 			});
@@ -1113,24 +1134,25 @@ class WallpanelView extends HuiView {
 
 	fetchEXIFInfo(img) {
 		let wp = this;
-		if (exifDataCache[img.imagePath]) {
+		if (imageInfoCache[img.imageDataKey]) {
 			return;
 		}
-		if (exifDataCacheKeys.length >= exifDataCacheMaxSize) {
-			let oldest = exifDataCacheKeys.shift();
-			if (exifDataCache[oldest]) {
-				delete exifDataCache[oldest];
+		if (imageInfoCacheKeys.length >= imageInfoCacheMaxSize) {
+			let oldest = imageInfoCacheKeys.shift();
+			if (imageInfoCache[oldest]) {
+				delete imageInfoCache[oldest];
 			}
 		}
 
 		const tmpImg = document.createElement("img");
-		tmpImg.imagePath = img.imagePath;
 		tmpImg.src = img.src;
+		tmpImg.imagePath = img.imagePath;
+		tmpImg.imageDataKey = img.imageDataKey;
 		getImageData(tmpImg, function() {
 			if (config.debug) console.debug("EXIF data:", tmpImg.exifdata);
-			exifDataCacheKeys.push(tmpImg.imagePath);
-			exifDataCache[tmpImg.imagePath] = tmpImg.exifdata;
-			wp.setEXIFImageInfo(tmpImg.imagePath);
+			imageInfoCacheKeys.push(tmpImg.imageDataKey);
+			imageInfoCache[tmpImg.imageDataKey] = tmpImg.exifdata;
+			wp.setImageDataInfo(tmpImg);
 
 			let exifLong = tmpImg.exifdata["GPSLongitude"];
 			let exifLat = tmpImg.exifdata["GPSLatitude"];
@@ -1146,22 +1168,22 @@ class WallpanelView extends HuiView {
 						let info = JSON.parse(xhr.responseText);
 						if (config.debug) console.debug("nominatim data:", info);
 						if (info && info.address) {
-							exifDataCache[tmpImg.imagePath].address = info.address;
-							wp.setEXIFImageInfo(tmpImg.imagePath);
+							imageInfoCache[tmpImg.imageDataKey].address = info.address;
+							wp.setImageDataInfo(tmpImg);
 						}
 					}
 					else {
 						console.error("nominatim error:", this.status, xhr.status, xhr.responseText);
-						delete exifDataCache[tmpImg.imagePath];
+						delete imageInfoCache[tmpImg.imageDataKey];
 					}
 				}
 				xhr.onerror = function(event) {
 					console.error("nominatim error:", event);
-					delete exifDataCache[tmpImg.imagePath];
+					delete imageInfoCache[tmpImg.imageDataKey];
 				}
 				xhr.ontimeout = function(event) {
 					console.error("nominatim timeout:", event);
-					delete exifDataCache[tmpImg.imagePath];
+					delete imageInfoCache[tmpImg.imageDataKey];
 				}
 				xhr.open("GET", `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
 				//xhr.setRequestHeader("User-Agent", `lovelace-wallpanel/${version}`);
@@ -1171,7 +1193,7 @@ class WallpanelView extends HuiView {
 		});
 	}
 
-	createImagePathExifObject(imagePath) {
+	createImagePathInfoObject(imagePath) {
 		const imageInfo = {url: imagePath};
 
 		const extractPathComponentToImageInfo = (key, stringToSplitOn) => {
@@ -1186,30 +1208,32 @@ class WallpanelView extends HuiView {
 		return imageInfo;
 	}
 
-	setEXIFImageInfo(imagePath) {
-		let imgExifData = exifDataCache[imagePath];
-		let exifElement = null;
-		if (this.imageOne.imagePath == imagePath) {
-			exifElement = this.imageOneInfoExif;
+	setImageDataInfo(img) {
+		let imageInfo = imageInfoCache[img.imageDataKey];
+		let infoElement = null;
+		if (this.imageOne.imageDataKey == img.imageDataKey) {
+			infoElement = this.imageOneInfo;
 		}
-		else if (this.imageTwo.imagePath == imagePath) {
-			exifElement = this.imageTwoInfoExif;
+		else if (this.imageTwo.imageDataKey == img.imageDataKey) {
+			infoElement = this.imageTwoInfo;
 		}
-		if (!exifElement) {
+		if (!infoElement) {
 			return;
 		}
 
-		if ((!config.show_exif_info) || (!exifDataCache[imagePath])) {
-			exifElement.innerHTML = "";
+		if ((!config.show_image_info) || (!imageInfo)) {
+			infoElement.innerHTML = "";
 			return;
 		}
 
-		let html = config.exif_info_template;
+		let html = config.image_info_template;
 		html = html.replace(/\${([^}]+)}/g, (match, tags, offset, string) => {
-			if (!imgExifData) {
+			if (!imageInfo) {
 				return "";
 			}
-			imgExifData["image"] = this.createImagePathExifObject(imagePath);;
+			if (img.imagePath) {
+				imageInfo["image"] = this.createImagePathInfoObject(img.imagePath);
+			}
 			let prefix = "";
 			let suffix = "";
 			let options = null;
@@ -1242,7 +1266,7 @@ class WallpanelView extends HuiView {
 			for (let i=0; i<tagList.length; i++) {
 				tag = tagList[i];
 				let keys = tag.replace(/\s/g, '').split(".");
-				val = imgExifData;
+				val = imageInfo;
 				keys.forEach(key => {
 					if (val) {
 						val = val[key];
@@ -1264,7 +1288,7 @@ class WallpanelView extends HuiView {
 			}
 			return prefix + val + suffix;
 		});
-		exifElement.innerHTML = html;
+		infoElement.innerHTML = html;
 	}
 
 	reconfigure() {
@@ -1275,18 +1299,25 @@ class WallpanelView extends HuiView {
 	}
 
 	updateImageList(callback) {
-		if (!config.image_url || !config.image_url.startsWith("media-source://media_source")) return;
-		if (this.updatingImageList) return;
-		this.lastImageListUpdate = Date.now();
+		if (!config.image_url || this.updatingImageList) return;
+
+		if (imageSourceType() == "unsplash-api") {
+			this.updateImageListFromUnsplashAPI(callback);
+		}
+		else if (imageSourceType() == "media-source") {
+			this.updateImageListFromMediaSource(callback);
+		}
+	}
+
+	updateImageListFromMediaSource(callback) {
 		this.updatingImageList = true;
+		this.lastImageListUpdate = Date.now();
 		let mediaContentId = config.image_url;
 		let wp = this;
 		findImages(this.hass, mediaContentId).then(
 			result => {
 				this.imageList = result.sort();
-				if (config.debug) {
-					console.debug("Image list is now:", this.imageList);
-				}
+				if (config.debug) console.debug("Image list from media-source is now:", this.imageList);
 				this.updatingImageList = false;
 				if (callback) {
 					callback();
@@ -1301,24 +1332,54 @@ class WallpanelView extends HuiView {
 		)
 	}
 
-	updateImageFromUrl(img) {
+	updateImageListFromUnsplashAPI(callback) {
+		this.updatingImageList = true;
+		this.lastImageListUpdate = Date.now();
+		let wp = this;
+		let urls = [];
+		let data = {};
+		const http = new XMLHttpRequest();
+		http.responseType = "json";
+		// count: The number of photos to return. (Default: 1; max: 30)
+		http.open("GET", `${config.image_url}&count=30`, true);
+		http.onload = function() {
+			if (http.status == 200 || http.status === 0) {
+				if (config.debug) console.debug(`Got unsplash API response`);
+				http.response.forEach(entry => {
+					if (config.debug) console.debug(entry);
+					const url = entry.urls.raw + "&w=${width}&h=${height}&auto=format";
+					urls.push(url);
+					data[url] = entry;
+				});
+			} else {
+				console.warn("Unsplash API error, get random images", http);
+				urls.push("https://source.unsplash.com/random/${width}x${height}?sig=${timestamp}");
+			}
+			wp.imageList = urls;
+			imageInfoCache = data;
+			if (config.debug) console.debug("Image list from unsplash is now:", wp.imageList);
+			if (callback) {
+				callback();
+			}
+		};
+		if (config.debug) console.debug(`Unsplash API request: ${config.image_url}`);
+		http.send();
+	}
+
+	updateImageFromUrl(img, url) {
 		let width = this.screensaverContainer.clientWidth;
 		let height = this.screensaverContainer.clientHeight;
 		let timestamp_ms = Date.now();
 		let timestamp = Math.floor(timestamp_ms / 1000);
-		let imageUrl = config.image_url;
-		imageUrl = imageUrl.replace(/\${width}/g, width);
-		imageUrl = imageUrl.replace(/\${height}/g, height);
-		imageUrl = imageUrl.replace(/\${timestamp_ms}/g, timestamp_ms);
-		imageUrl = imageUrl.replace(/\${timestamp}/g, timestamp);
-		if (config.debug) console.debug(`Updating image '${img.id}' from '${imageUrl}'`);
-		img.src = imageUrl;
+		url = url.replace(/\${width}/g, width);
+		url = url.replace(/\${height}/g, height);
+		url = url.replace(/\${timestamp_ms}/g, timestamp_ms);
+		url = url.replace(/\${timestamp}/g, timestamp);
+		if (config.debug) console.debug(`Updating image '${img.id}' from '${url}'`);
+		img.src = url;
 	}
 
-	updateImageFromMediaSource(img) {
-		if (this.imageList.length == 0) {
-			return;
-		}
+	updateImageIndex() {
 		if (config.image_order == "random") {
 			if (this.imageList.length > 1) {
 				let imageIndex = this.imageIndex;
@@ -1334,10 +1395,18 @@ class WallpanelView extends HuiView {
 		if (this.imageIndex >= this.imageList.length) {
 			this.imageIndex = 0;
 		}
+	}
+
+	updateImageFromMediaSource(img) {
+		if (this.imageList.length == 0) {
+			return;
+		}
+		this.updateImageIndex();
 		let imagePath = this.imageList[this.imageIndex];
 		if (!imagePath) {
 			return;
 		}
+		img.imageDataKey = imagePath;
 		img.imagePath = imagePath;
 		imagePath = imagePath.replace(/^media-source:\/\/media_source/, '/media');
 		this.hass.callWS({
@@ -1354,6 +1423,15 @@ class WallpanelView extends HuiView {
 		);
 	}
 
+	updateImageFromUnsplashAPI(img) {
+		if (this.imageList.length == 0) {
+			return;
+		}
+		this.updateImageIndex();
+		img.imageDataKey = this.imageList[this.imageIndex];
+		this.updateImageFromUrl(img, this.imageList[this.imageIndex]);
+	}
+
 	updateImage(img) {
 		if (!config.image_url) {
 			return;
@@ -1361,20 +1439,23 @@ class WallpanelView extends HuiView {
 		img.setAttribute('data-loading', true);
 		img.imagePath = null;
 
-		if (config.image_url.startsWith("media-source://media_source")) {
+		if (imageSourceType() == "media-source") {
 			this.updateImageFromMediaSource(img);
 		}
-		else {
-			this.updateImageFromUrl(img);
+		else if (imageSourceType() == "unsplash-api") {
+			this.updateImageFromUnsplashAPI(img);
 		}
-
+		else {
+			this.updateImageFromUrl(img, config.image_url);
+		}
 	}
 
 	preloadImages() {
 		if (config.debug) console.debug("Preloading images");
-		this.updateImage(this.imageOne);
 		let wp = this;
+		this.updateImage(wp.imageOne);
 		setTimeout(function() {
+			wp.setImageDataInfo(wp.imageOne);
 			wp.updateImage(wp.imageTwo);
 		}, 1000);
 	}
@@ -1391,21 +1472,16 @@ class WallpanelView extends HuiView {
 
 		let curActive = this.imageOneContainer;
 		let newActive = this.imageTwoContainer;
-		let exifElement = this.imageTwoInfoExif;
+		let infoElement = this.imageTwoInfo;
 		if (this.imageTwoContainer.style.opacity == 1) {
 			curActive = this.imageTwoContainer;
 			newActive = this.imageOneContainer;
-			exifElement = this.imageOneInfoExif;
+			infoElement = this.imageOneInfo;
 		}
 		if (config.debug) console.debug(`Switching active image to '${newActive.id}'`);
 
 		let newImg = newActive.children[0];
-		if (newImg.imagePath) {
-			this.setEXIFImageInfo(newImg.imagePath);
-		}
-		else {
-			exifElement.innerHTML = "";
-		}
+		this.setImageDataInfo(newImg);
 
 		if (newActive.style.opacity != 1) {
 			newActive.style.opacity = 1;
@@ -2192,11 +2268,33 @@ var IptcFieldMap = {
 	0x37 : 'dateCreated',
 	0x50 : 'byline',
 	0x55 : 'bylineTitle',
-	0x7A : 'captionWriter',
+	0x5A : 'city',
+	0x5C : 'sublocation',
+	0x5E : 'state',
+	0x64 : 'countryCode',
+	0x65 : 'countryName',
+	0x67 : 'OriginalTransmissionReference',
 	0x69 : 'headline',
+	0x6D : 'credit',
 	0x74 : 'copyright',
+	0x76 : 'contact',
+	0x78 : 'caption',
+	0x7A : 'captionWriter',
+	0x7D : 'rasterizedCaption',
+	0x82 : 'imageType',
+	0x83 : 'imageOrientation',
+	0x87 : 'languageID',
+	0x96 : 'audioType',
+	0x97 : 'audioSamplingRate',
+	0x98 : 'audioSamplingRes',
+	0x99 : 'audioDuration',
+	0x9A : 'audioOutcue',
+	0xC8 : 'previewFileFormat',
+	0xC9 : 'previewFileFormatVer',
+	0xCA : 'previewData',
 	0x0F : 'category'
 };
+
 function readIPTCData(file, startOffset, sectionLength){
 	var dataView = new DataView(file);
 	var data = {};
@@ -2411,11 +2509,63 @@ function readThumbnailImage(dataView, tiffStart, firstIFDOffset, bigEnd){
 }
 
 function getStringFromDB(buffer, start, length) {
+	// Manage UTF-8 string
+	//use of an Array of bytes convert in hexa (arOut[])
 	var outstr = "";
+	var arOut = [];
+	var j = 0;
 	for (var n = start; n < start+length; n++) {
-		outstr += String.fromCharCode(buffer.getUint8(n));
+		//outstr += String.fromCharCode(buffer.getUint8(n));
+		arOut[j] = '0x' + buffer.getUint8(n).toString(16);
+		j++;
 	}
+	//transform array to UTF-8 String with Utf8ArrayToStr function
+	outstr =  Utf8ArrayToStr(arOut);
 	return outstr;
+}
+
+// adopted from:
+//   http://www.onicos.com/staff/iz/amuse/javascript/expert/utf.txt
+
+/* utf.js - UTF-8 <=> UTF-16 convertion
+ *
+ * Copyright (C) 1999 Masanao Izumo <iz@onicos.co.jp>
+ * Version: 1.0
+ * LastModified: Dec 25 1999
+ * This library is free.  You can redistribute it and/or modify it.
+ */
+
+function Utf8ArrayToStr(array) {
+	var out, i, len, c;
+	var char2, char3;
+
+	out = "";
+	len = array.length;
+	i = 0;
+	while(i < len) {
+		c = array[i++];
+		switch(c >> 4) {
+			case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7:
+			// 0xxxxxxx
+			out += String.fromCharCode(c);
+			break;
+			case 12: case 13:
+			// 110x xxxx   10xx xxxx
+			char2 = array[i++];
+			out += String.fromCharCode(((c & 0x1F) << 6) | (char2 & 0x3F));
+			break;
+			case 14:
+			// 1110 xxxx  10xx xxxx  10xx xxxx
+			char2 = array[i++];
+			char3 = array[i++];
+			out += String.fromCharCode(((c & 0x0F) << 12) |
+							((char2 & 0x3F) << 6) |
+							((char3 & 0x3F) << 0));
+			break;
+		}
+	}
+
+	return out;
 }
 
 function readEXIFData(file, start) {
@@ -2698,6 +2848,20 @@ EXIF.getAllIptcTags = function(img) {
 	}
 	return tags;
 }
+
+//***************************************************************************
+// Written by Stanko Milosev
+// Published: 30 January 2015
+// http://www.milosev.com/425-reading-exif-meta-data-from-jpeg-image-files.html
+// gps conversion for google map use
+EXIF.ConvertDMSToDD = function (degrees, minutes, seconds, direction) {
+	var dd = degrees + minutes/60 + seconds/(60*60);
+	if (direction == "S" || direction == "W") {
+		dd = dd * -1;
+	} // Don't do anything for N or E
+	return dd;
+}
+//*******************************************************************************
 
 EXIF.pretty = function(img) {
 	if (!imageHasData(img)) return "";

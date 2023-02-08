@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.7"
+VERSION = "0.3.9"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -83,6 +83,7 @@ AMAZON_DOMAINS = [
     "amazon.pl",
     "amazon.es",
     "amazon.fr",
+    "amazon.ae",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",

@@ -43,6 +43,9 @@ from .util import days_until, now_strftime, time_to_arlotime, to_b64
 
 # include token and session details
 class ArloBackEnd(object):
+
+    _multi_location = False
+
     def __init__(self, arlo):
 
         self._arlo = arlo
@@ -108,6 +111,14 @@ class ArloBackEnd(object):
         except Exception as e:
             self._arlo.warning("session file not written" + str(e))
 
+    def _transaction_id(self):
+        return 'FE!' + str(uuid.uuid4())
+
+    def _build_url(self, url, tid):
+        sep = "&" if "?" in url else "?"
+        now = time_to_arlotime()
+        return f"{url}{sep}eventId={tid}&time={now}"
+
     def _request(
         self,
         path,
@@ -129,12 +140,12 @@ class ArloBackEnd(object):
             with self._req_lock:
                 if host is None:
                     host = self._arlo.cfg.host
-                url = self._add_extra_params(host + path)
+                tid = self._transaction_id()
+                url = self._build_url(host + path, tid)
+                headers['x-transaction-id'] = tid
                 self._arlo.vdebug("request-url={}".format(url))
                 self._arlo.vdebug("request-params=\n{}".format(pprint.pformat(params)))
-                self._arlo.vdebug(
-                    "request-headers=\n{}".format(pprint.pformat(headers))
-                )
+                self._arlo.vdebug("request-headers=\n{}".format(pprint.pformat(headers)))
                 if method == "GET":
                     r = self._session.get(
                         url,
@@ -162,6 +173,7 @@ class ArloBackEnd(object):
             self._arlo.vdebug("request-body=\n{}".format(pprint.pformat(body)))
         except Exception as e:
             self._arlo.warning("body-error={}".format(type(e).__name__))
+            self._arlo.debug(f"request-text={r.text}")
             return None
 
         self._arlo.vdebug("request-end={}".format(r.status_code))
@@ -192,15 +204,6 @@ class ArloBackEnd(object):
 
     def gen_trans_id(self, trans_type=TRANSID_PREFIX):
         return trans_type + "!" + str(uuid.uuid4())
-
-    def _add_extra_params(self, url):
-        if '?' in url:
-            url = url + '&'
-        else:
-            url = url + '?'
-        eid = str(uuid.uuid4())
-        now = time_to_arlotime()
-        return f"{url}event_id=FE!{eid}&time={now}"
 
     def _event_dispatcher(self, response):
 
@@ -282,20 +285,17 @@ class ArloBackEnd(object):
         # This a list ditch effort to funnel the answer the correct place...
         #  Check for device_id
         #  Check for unique_id
+        #  Check for locationId
         # If none of those then is unhandled
         # Packet number #?.
         else:
-            device_id = response.get("deviceId", None)
+            device_id = response.get("deviceId",
+                                     response.get("uniqueId",
+                                                  response.get("locationId")))
             if device_id is not None:
                 responses.append((device_id, resource, response))
             else:
-                device_id = response.get("uniqueId", None)
-                if device_id is not None:
-                    responses.append((device_id, resource, response))
-                else:
-                    self._arlo.debug(
-                        "unhandled response {} - {}".format(resource, response)
-                    )
+                self._arlo.debug(f"unhandled response {resource} - {response}")
 
         # Now find something waiting for this/these.
         for device_id, resource, response in responses:
@@ -625,11 +625,15 @@ class ArloBackEnd(object):
     def _auth(self):
         headers = {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Origin": ORIGIN_HOST,
             "Referer": REFERER_HOST,
             "Source": "arloCamWeb",
             "User-Agent": self._user_agent,
+            "x-user-device-id": self._user_id,
+            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-type": "BROWSER",
         }
 
         # Handle 1015 error
@@ -758,12 +762,16 @@ class ArloBackEnd(object):
     def _validate(self):
         headers = {
             "Accept": "application/json, text/plain, */*",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Authorization": self._token64,
             "Origin": ORIGIN_HOST,
             "Referer": REFERER_HOST,
             "User-Agent": self._user_agent,
             "Source": "arloCamWeb",
+            "x-user-device-id": self._user_id,
+            "x-user-device-name": "QlJPV1NFUg==",
+            "x-user-device-type": "BROWSER",
         }
 
         # Validate it!
@@ -780,6 +788,8 @@ class ArloBackEnd(object):
         if v2_session is None:
             self._arlo.error("session start failed")
             return False
+        self._multi_location = v2_session.get('supportsMultiLocation', False)
+        self._arlo.debug(f"multilocation is {self._multi_location}")
         return True
 
     def _login(self):
@@ -805,7 +815,8 @@ class ArloBackEnd(object):
         # update sessions headers
         headers = {
             "Accept": "application/json",
-            "Accept-Language": "en-US,en;q=0.9",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
             "Auth-Version": "2",
             "Authorization": self._token,
             "Content-Type": "application/json; charset=utf-8;",
@@ -1022,6 +1033,14 @@ class ArloBackEnd(object):
     @property
     def sub_id(self):
         return self._sub_id
+
+    @property
+    def user_id(self):
+        return self._user_id
+
+    @property
+    def multi_location(self):
+        return self._multi_location
 
     def add_listener(self, device, callback):
         with self._lock:

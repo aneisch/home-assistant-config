@@ -100,9 +100,12 @@ homekit: !include homekit.yaml
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.21.0.0/24 # Nginx Proxy Manager
+    - 172.18.0.0/24 # Nginx Proxy Manager
     - 10.0.1.22/32 # NUC
   server_port: 8123
+
+ifttt:
+  key: !secret IFTTT
 
 influxdb:
   host: 10.0.1.22

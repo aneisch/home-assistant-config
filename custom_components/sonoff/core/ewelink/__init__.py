@@ -1,17 +1,17 @@
 import asyncio
 import logging
 import time
-from typing import Dict, List
 
 from aiohttp import ClientSession
 
-from .base import XRegistryBase, XDevice, SIGNAL_UPDATE, SIGNAL_CONNECTED
+from .base import SIGNAL_CONNECTED, SIGNAL_UPDATE, XDevice, XRegistryBase
 from .cloud import XRegistryCloud
-from .local import XRegistryLocal, decrypt
+from .local import XRegistryLocal
 
 _LOGGER = logging.getLogger(__name__)
 
 SIGNAL_ADD_ENTITIES = "add_entities"
+LOCAL_TTL = 60
 
 
 class XRegistry(XRegistryBase):
@@ -21,16 +21,17 @@ class XRegistry(XRegistryBase):
     def __init__(self, session: ClientSession):
         super().__init__(session)
 
-        self.devices: Dict[str, XDevice] = {}
+        self.devices: dict[str, XDevice] = {}
 
         self.cloud = XRegistryCloud(session)
         self.cloud.dispatcher_connect(SIGNAL_CONNECTED, self.cloud_connected)
         self.cloud.dispatcher_connect(SIGNAL_UPDATE, self.cloud_update)
 
         self.local = XRegistryLocal(session)
+        self.local.dispatcher_connect(SIGNAL_CONNECTED, self.local_connected)
         self.local.dispatcher_connect(SIGNAL_UPDATE, self.local_update)
 
-    def setup_devices(self, devices: List[XDevice]) -> list:
+    def setup_devices(self, devices: list[XDevice]) -> list:
         from ..devices import get_spec
 
         entities = []
@@ -39,13 +40,11 @@ class XRegistry(XRegistryBase):
             did = device["deviceid"]
             try:
                 device.update(self.config["devices"][did])
-                if "host" in device and ":" not in device["host"]:
-                    device["host"] += ":8081"
             except Exception:
                 pass
 
             try:
-                uiid = device['extra']['uiid']
+                uiid = device["extra"]["uiid"]
                 _LOGGER.debug(f"{did} UIID {uiid:04} | %s", device["params"])
 
                 # at this moment entities can catch signals with device_id and
@@ -74,8 +73,11 @@ class XRegistry(XRegistryBase):
             self.task.cancel()
 
     async def send(
-            self, device: XDevice, params: dict = None,
-            params_lan: dict = None, query_cloud: bool = True
+        self,
+        device: XDevice,
+        params: dict = None,
+        params_lan: dict = None,
+        query_cloud: bool = True,
     ):
         """Send command to device with LAN and Cloud. Usual params are same.
 
@@ -89,17 +91,17 @@ class XRegistry(XRegistryBase):
         """
         seq = self.sequence()
 
-        can_local = self.local.online and device.get('host')
-        can_cloud = self.cloud.online and device.get('online')
+        can_local = self.local.online and device.get("host")
+        can_cloud = self.cloud.online and device.get("online")
 
         if can_local and can_cloud:
             # try to send a command locally (wait no more than a second)
             ok = await self.local.send(device, params_lan or params, seq, 1)
 
             # otherwise send a command through the cloud
-            if ok != 'online':
+            if ok != "online":
                 ok = await self.cloud.send(device, params, seq)
-                if ok != 'online':
+                if ok != "online":
                     asyncio.create_task(self.check_offline(device))
                 elif query_cloud and params:
                     # force update device actual status
@@ -107,7 +109,7 @@ class XRegistry(XRegistryBase):
 
         elif can_local:
             ok = await self.local.send(device, params_lan or params, seq, 5)
-            if ok != 'online':
+            if ok != "online":
                 asyncio.create_task(self.check_offline(device))
 
         elif can_cloud:
@@ -144,8 +146,9 @@ class XRegistry(XRegistryBase):
         if not device.get("host"):
             return
 
-        ok = await self.local.send(device, {"cmd": "info"}, timeout=15)
+        ok = await self.local.send(device, {"cmd": "info"}, timeout=10)
         if ok == "online":
+            device["local_ts"] = time.time() + LOCAL_TTL
             return
 
         device.pop("host", None)
@@ -158,8 +161,12 @@ class XRegistry(XRegistryBase):
         for deviceid in self.devices.keys():
             self.dispatcher_send(deviceid)
 
-        if self.cloud.online and (not self.task or self.task.done()):
-            self.task = asyncio.create_task(self.pow_helper())
+        if not self.task:
+            self.task = asyncio.create_task(self.run_forever())
+
+    def local_connected(self):
+        if not self.task:
+            self.task = asyncio.create_task(self.run_forever())
 
     def cloud_update(self, msg: dict):
         did = msg["deviceid"]
@@ -191,26 +198,34 @@ class XRegistry(XRegistryBase):
         did: str = msg["deviceid"]
         device: XDevice = self.devices.get(did)
         params: dict = msg.get("params")
+        # check device in known devices list
         if not device:
+            # check payload already decrypted (DIY devices)
             if not params:
                 try:
+                    # try to decrypt payload if we have right key in config
                     msg["params"] = params = self.local.decrypt_msg(
                         msg, self.config["devices"][did]["devicekey"]
                     )
                 except Exception:
                     _LOGGER.debug(f"{did} !! skip setup for encrypted device")
+                    # save device to known list, so no more decrypt tries
                     self.devices[did] = msg
                     return
 
             from ..devices import setup_diy
+
+            # setup new device as DIY device
             device = setup_diy(msg)
             entities = self.setup_devices([device])
             self.dispatcher_send(SIGNAL_ADD_ENTITIES, entities)
 
         elif not params:
             if "devicekey" not in device:
+                # this is known device with encrypted payload but without devicekey
                 return
             try:
+                # decrypt payload for known device with devicekey
                 params = self.local.decrypt_msg(msg, device["devicekey"])
             except Exception as e:
                 _LOGGER.debug("Can't decrypt message", exc_info=e)
@@ -239,33 +254,37 @@ class XRegistry(XRegistryBase):
             device["host"] = params["host"] = msg["host"]
             device["localtype"] = msg["localtype"]
 
+        device["local_ts"] = time.time() + LOCAL_TTL
+
         self.dispatcher_send(did, params)
 
-    async def pow_helper(self):
+    async def run_forever(self):
         from ..devices import POW_UI_ACTIVE
 
         # collect pow devices
-        devices = [
-            device for device in self.devices.values()
+        pow_devices = [
+            device
+            for device in self.devices.values()
             if "extra" in device and device["extra"]["uiid"] in POW_UI_ACTIVE
         ]
-        if not devices:
-            return
 
         while True:
-            if not self.cloud.online:
-                await asyncio.sleep(60)
-                continue
-
             ts = time.time()
 
-            for device in devices:
-                if not device.get("online") or device.get("pow_ts", 0) > ts:
-                    continue
+            if self.cloud.online:
+                for device in pow_devices:
+                    if not device.get("online") or device.get("pow_ts", 0) > ts:
+                        continue
 
-                dt, params = POW_UI_ACTIVE[device["extra"]["uiid"]]
-                device["pow_ts"] = ts + dt
-                await self.cloud.send(device, params, timeout=0)
+                    dt, params = POW_UI_ACTIVE[device["extra"]["uiid"]]
+                    device["pow_ts"] = ts + dt
+                    asyncio.create_task(self.cloud.send(device, params, timeout=0))
 
-            # sleep for 150 seconds (because minimal uiActive - 180 seconds)
-            await asyncio.sleep(150)
+            if self.local.online:
+                for device in self.devices.values():
+                    if "local_ts" not in device or device["local_ts"] > ts:
+                        continue
+                    device.pop("local_ts")
+                    asyncio.create_task(self.check_offline(device))
+
+            await asyncio.sleep(15)
