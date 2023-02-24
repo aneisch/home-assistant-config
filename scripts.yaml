@@ -27,23 +27,25 @@ home_occupied:
     - service: homeassistant.turn_off
       data:
         entity_id: input_boolean.security_status
-    - service: light.turn_on
-      data:
-        entity_id: 
-          - light.master_bedroom_lamps
-          #- light.living_room_sconces
-        # Not so bright if it's late..
-        brightness: > 
-          {% if now().hour >= 20 %}
-          128
-          {% else %}
-          254
-          {% endif %}
-    - service: homeassistant.turn_on
-      data:
-        entity_id: 
-          - group.under_cabinet_lights
-          - group.christmas # dining, office, master tree follow 'on' via appdaemon
+    - if: "{{ now().hour >= 18 }}"
+      then:
+        - service: light.turn_on
+          data:
+            entity_id: 
+              - light.master_bedroom_lamps
+              #- light.living_room_sconces
+            # Not so bright if it's late..
+            brightness: > 
+              {% if now().hour >= 20 %}
+              128
+              {% else %}
+              254
+              {% endif %}
+        - service: homeassistant.turn_on
+          data:
+            entity_id: 
+              - group.under_cabinet_lights
+              #- group.christmas # dining, office, master tree follow 'on' via appdaemon
 
 ############
 # SECURITY #
@@ -58,8 +60,8 @@ security_disarm:
     - service: ifttt.trigger
       data:
         event: disarm
-    - service: alarm_control_panel.alarm_disarm
-      entity_id: !secret alarm_panel_2
+    #- service: alarm_control_panel.alarm_disarm
+    #  entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
       entity_id: alarm_control_panel.college_station_mode
     - service: script.notify_wrapper
@@ -75,8 +77,8 @@ security_arm:
     - service: ifttt.trigger
       data:
         event: arm
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: !secret alarm_panel_2
+    #- service: alarm_control_panel.alarm_arm_away
+    #  entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_away
       entity_id: alarm_control_panel.college_station_mode
     - service: script.notify_wrapper
@@ -94,10 +96,13 @@ master_bedroom_wakeup:
     #    - service: script.turn_on
     #      entity_id:
     #        - script.christmas_wakeup
-    - service: alarm_control_panel.alarm_disarm
-      entity_id: !secret alarm_panel_2
+    #- service: alarm_control_panel.alarm_disarm
+    #  entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_home
       entity_id: alarm_control_panel.college_station_mode
+    - service: ifttt.trigger
+      data:
+        event: disarm
     - service: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan
@@ -138,10 +143,13 @@ master_bedroom_bedtime:
     - service: homeassistant.turn_off
       data:
         entity_id: group.off_at_bedtime
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: !secret alarm_panel_2
+    #- service: alarm_control_panel.alarm_arm_away
+    #  entity_id: !secret alarm_panel_2
     - service: alarm_control_panel.alarm_arm_away
       entity_id: alarm_control_panel.college_station_mode
+    - service: ifttt.trigger
+      data:
+        event: arm
     - service: homeassistant.turn_on
       entity_id: input_boolean.goodnight
     - service: lock.lock
@@ -156,88 +164,88 @@ master_bedroom_bedtime:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
 
-christmas_goodnight:
-  mode: 'restart'
-  # Play Christmas music, say goodnight, fade music out, and turn off tree
-  sequence:
-    - service: switch.turn_on
-      entity_id: switch.master_bedroom_christmas_tree
-    - service: media_player.select_source
-      data:
-        entity_id: media_player.spotify
-        source: "Master"
-    - delay: '00:00:03'
-    - service: media_player.volume_set
-      data:
-        entity_id: media_player.spotify
-        volume_level: 0.50
-    # - service: media_player.shuffle_set
-    #   data:
-    #     shuffle: true
-    #     entity_id: media_player.spotify
-    - service: media_player.play_media
-      data:
-        media_content_id: spotify:track:3XsaSIPWvM61RIFfeb0BBR
-        media_content_type: music
-        entity_id: media_player.spotify
-    - delay: "00:00:05"
-    - service: media_player.volume_set
-      data:
-        entity_id: media_player.spotify
-        volume_level: 0.50
-    - delay: "00:01:35" # Don't play the whole song
-    - service: notify.alexa_media_master
-      data:
-        data:
-          type: tts
-          method: speak
-        message: "<prosody rate='65%'><amazon:emotion name='excited' intensity='low'>And to all a good night</amazon:emotion></prosody>"
-    - delay: '00:00:05'
-    - service: switch.turn_off
-      entity_id: switch.master_bedroom_christmas_tree
-    # Fade music out
-    - repeat:
-        while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
-        sequence:
-          - service: media_player.volume_set
-            data_template:
-              entity_id: media_player.spotify
-              volume_level: >
-                {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
-          - delay: 
-              seconds: 0.4
-    - service: media_player.media_pause
-      data_template:
-        entity_id: media_player.spotify
+# christmas_goodnight:
+#   mode: 'restart'
+#   # Play Christmas music, say goodnight, fade music out, and turn off tree
+#   sequence:
+#     - service: switch.turn_on
+#       entity_id: switch.master_bedroom_christmas_tree
+#     - service: media_player.select_source
+#       data:
+#         entity_id: media_player.spotify
+#         source: "Master"
+#     - delay: '00:00:03'
+#     - service: media_player.volume_set
+#       data:
+#         entity_id: media_player.spotify
+#         volume_level: 0.50
+#     # - service: media_player.shuffle_set
+#     #   data:
+#     #     shuffle: true
+#     #     entity_id: media_player.spotify
+#     - service: media_player.play_media
+#       data:
+#         media_content_id: spotify:track:3XsaSIPWvM61RIFfeb0BBR
+#         media_content_type: music
+#         entity_id: media_player.spotify
+#     - delay: "00:00:05"
+#     - service: media_player.volume_set
+#       data:
+#         entity_id: media_player.spotify
+#         volume_level: 0.50
+#     - delay: "00:01:35" # Don't play the whole song
+#     - service: notify.alexa_media_master
+#       data:
+#         data:
+#           type: tts
+#           method: speak
+#         message: "<prosody rate='65%'><amazon:emotion name='excited' intensity='low'>And to all a good night</amazon:emotion></prosody>"
+#     - delay: '00:00:05'
+#     - service: switch.turn_off
+#       entity_id: switch.master_bedroom_christmas_tree
+#     # Fade music out
+#     - repeat:
+#         while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
+#         sequence:
+#           - service: media_player.volume_set
+#             data_template:
+#               entity_id: media_player.spotify
+#               volume_level: >
+#                 {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
+#           - delay: 
+#               seconds: 0.4
+#     - service: media_player.media_pause
+#       data_template:
+#         entity_id: media_player.spotify
 
-christmas_wakeup:
-  mode: 'restart'
-  sequence:
-    - service: switch.turn_on
-      entity_id: switch.master_bedroom_christmas_tree
-    - service: media_player.select_source
-      data:
-        entity_id: media_player.spotify
-        source: "Master"
-    - delay: '00:00:03'
-    - service: media_player.volume_set
-      data:
-        entity_id: media_player.spotify
-        volume_level: 0.40    
-    - service: media_player.play_media
-      data:
-        media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
-        media_content_type: music
-        entity_id: media_player.spotify
-    - delay: "00:00:05"
-    - service: media_player.volume_set
-      data:
-        entity_id: media_player.spotify
-        volume_level: 0.40
-    - delay: '00:02:12'
-    - service: media_player.media_pause
-      data_template:
-        entity_id: media_player.spotify
+# christmas_wakeup:
+#   mode: 'restart'
+#   sequence:
+#     - service: switch.turn_on
+#       entity_id: switch.master_bedroom_christmas_tree
+#     - service: media_player.select_source
+#       data:
+#         entity_id: media_player.spotify
+#         source: "Master"
+#     - delay: '00:00:03'
+#     - service: media_player.volume_set
+#       data:
+#         entity_id: media_player.spotify
+#         volume_level: 0.40    
+#     - service: media_player.play_media
+#       data:
+#         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
+#         media_content_type: music
+#         entity_id: media_player.spotify
+#     - delay: "00:00:05"
+#     - service: media_player.volume_set
+#       data:
+#         entity_id: media_player.spotify
+#         volume_level: 0.40
+#     - delay: '00:02:12'
+#     - service: media_player.media_pause
+#       data_template:
+#         entity_id: media_player.spotify
 
 #########
 # OTHER #
