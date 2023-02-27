@@ -13,7 +13,8 @@ on:
 jobs:
   check-ha-config:
     name: Check Configuration
-    runs-on: ubuntu-latest
+    #runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Log Trigger Type
         run: 'echo "Trigger: ${{ github.event_name }}"'

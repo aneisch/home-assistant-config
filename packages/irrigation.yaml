@@ -173,7 +173,7 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
       - wait_template: "{{ is_state(trigger.entity_id, 'off') }}"
         timeout:
-          minutes: 25
+          minutes: 60
         continue_on_timeout: false
       - service: input_datetime.set_datetime
         data:

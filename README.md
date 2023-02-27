@@ -74,7 +74,7 @@ Entities in the [`camera`](https://www.home-assistant.io/components/camera) doma
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 5
-Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 21
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 22
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 13
 Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 23
@@ -92,17 +92,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 46
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 22
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 355
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 357
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 148
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 149
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 25
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1139**
+**Total state objects** | **1143**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
