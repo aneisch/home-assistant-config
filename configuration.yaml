@@ -553,3 +553,4 @@ zone:
     longitude: !secret travis_long
     radius: 500
     icon: mdi:home-variant
+
