@@ -213,8 +213,9 @@ logbook:
 logger:
   #default: debug
   default: warn
-  logs:
-    homeassistant.core: debug
+  #logs:
+    #homeassistant.core: debug
+    #homeassistant.components.python_script: debug
     #custom_components.alexa_media: debug  
     # Start ZHA Debugging
     # asyncio: debug
@@ -238,19 +239,27 @@ logger:
     #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
     #custom_components.mail_and_packages: debug
-    custom_components.aarlo: debug
-    custom_components.aarlo.alarm_control_panel: debug
-    custom_components.aarlo.binary_sensor: debug
-    custom_components.aarlo.camera: debug
-    custom_components.aarlo.light: debug
-    custom_components.aarlo.media_player: debug
-    custom_components.aarlo.sensor: debug
-    custom_components.aarlo.switch: debug
-    pyaarlo: debug
+    # custom_components.aarlo: debug
+    # custom_components.aarlo.alarm_control_panel: debug
+    # custom_components.aarlo.binary_sensor: debug
+    # custom_components.aarlo.camera: debug
+    # custom_components.aarlo.light: debug
+    # custom_components.aarlo.media_player: debug
+    # custom_components.aarlo.sensor: debug
+    # custom_components.aarlo.switch: debug
+    # pyaarlo: debug
+    #custom_components.bhyve: debug
+    #pybhyve: debug
   filters:
     homeassistant.core:
       - ".*share-service-download-bucket.*" # Ring Video Updates
-      - ".*camera.xiaomi_cloud_map_extractor.*" # Ring Video Updates
+      - ".*camera.xiaomi_cloud_map_extractor.*" # Roborock map
+      - "camera.*snapshot.*"
+      - "sensor.*_power"
+      - "sensor.*_daily_energy.*"
+      - "sensor.phase.*_voltage.*"
+      - "sensor.load.*"
+      - "binary_sensor.internet_reachability"
 
 lovelace:
   mode: yaml

@@ -925,7 +925,7 @@ class TuyaProtocol(asyncio.Protocol, ContextualLogger):
                     payload = payload.decode()
                 except Exception as ex:
                     self.debug("payload was not string type and decoding failed")
-                    raise DecodeError("payload was not a string: %s", ex)
+                    raise DecodeError("payload was not a string: %s" % ex)
                     # return self.error_json(ERR_JSON, payload)
 
             if "data unvalid" in payload:

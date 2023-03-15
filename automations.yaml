@@ -266,7 +266,7 @@
       - lock.front_door
       - lock.garage_exterior_door
     to: "unlocked"
-  condition: "{{ states('group.trackers') != 'home'}}"
+  condition: "{{ states('input_boolean.security_status') == 'on'}}"
   action:
     - service: script.notify_wrapper
       data:
@@ -467,6 +467,9 @@
   trigger:
     - platform: numeric_state
       entity_id: 
+        - sensor.1_battery_level
+        - sensor.2_battery_level
+        - sensor.3_battery_level
         - sensor.front_door_battery_level
         - sensor.garage_exterior_door_battery_level
         - sensor.back_bathroom_toilet_water_detector_battery_level

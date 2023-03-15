@@ -8,13 +8,16 @@
 # switch.irrigation_zone_7                     Sprinklers Zone 7                     off      2020-09-29T12:32:44.986757+00:00
 # switch.irrigation_master_valve               Sprinklers Master Valve               off      2020-09-29T12:32:45.118323+00:00
 
+# Also see NodeRED
+# Also see python_scripts/irrigation_custom_water.py
+
 input_boolean:
-  lawn_irrigation_scheduling:
-    name: Lawn Irrigation Auto Run
+  front_bed_irrigation_scheduling:
+    name: Front Bed Irrigation Auto Run
     icon: mdi:clock-time-two-outline
 
-  drip_irrigation_scheduling:
-    name: Drip Irrigation Auto Run
+  lawn_irrigation_scheduling:
+    name: Lawn Irrigation Auto Run
     icon: mdi:clock-time-two-outline
 
   irrigation_force_run:
@@ -22,12 +25,30 @@ input_boolean:
     icon: mdi:sprinkler-variant
 
 input_datetime:
-  irrigation_drip_last_start: 
-    name: Sprinkler Drip Last Start Time 
+  maples_zone_last_start: 
+    name: Irrigation Maples Last Start Time 
     has_date: true
     has_time: true
-  irrigation_drip_last_stop: 
-    name: Sprinkler Drip Last Stop Time 
+  maples_zone_last_stop: 
+    name: Irrigation Maples Last Stop Time 
+    has_date: true
+    has_time: true
+
+  garden_zone_last_start: 
+    name: Irrigation Garden Last Start Time 
+    has_date: true
+    has_time: true
+  garden_zone_last_stop: 
+    name: Irrigation Garden Last Stop Time 
+    has_date: true
+    has_time: true
+
+  bougainvillea_zone_last_start: 
+    name: Irrigation Bougainvillea Last Start Time 
+    has_date: true
+    has_time: true
+  bougainvillea_zone_last_stop: 
+    name: Irrigation Bougainvillea Last Stop Time 
     has_date: true
     has_time: true
 
@@ -148,6 +169,26 @@ mqtt:
       state_topic: "sensor/irrigation_time_remaining"
 
 automation:
+  - alias: B-hyve next watering & rain delay finishing updater
+    trigger:
+      - platform: state
+        entity_id: 
+          - switch.garden_zone
+          - switch.bougainvillea_zone
+          - switch.maples_zone
+      - platform: homeassistant
+        event: start
+    action:
+      - service: python_script.bhyve_next_watering
+        data:
+          entity_id: switch.garden_zone
+      - service: python_script.bhyve_next_watering
+        data:
+          entity_id: switch.bougainvillea_zone
+      - service: python_script.bhyve_next_watering
+        data:
+          entity_id: switch.maples_zone
+
   - alias: Store Sprinkler Start/Stop Times
     id: "store_sprinkler_times"
     initial_state: on
@@ -155,7 +196,9 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - switch.irrigation_drip
+        - switch.maples_zone
+        - switch.garden_zone
+        - switch.bougainvillea_zone
         - switch.irrigation_front_beds
         - switch.irrigation_front_lawn 
         - switch.irrigation_left_and_main_rear_lawn
@@ -180,26 +223,3 @@ automation:
           entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop"
           time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-
-  # - alias: Store Sprinkler Stop Times
-  #   initial_state: on
-  #   mode: parallel
-  #   trigger:
-  #     platform: state
-  #     entity_id:
-  #       - switch.irrigation_drip
-  #       - switch.irrigation_front_beds
-  #       - switch.irrigation_front_lawn 
-  #       - switch.irrigation_left_and_main_rear_lawn
-  #       - switch.irrigation_front_and_right_rear_lawn
-  #       - switch.irrigation_side_lawn
-  #       - switch.irrigation_master_valve
-  #     from: "on"
-  #     to: "off"
-  #     for: "00:00:35"
-  #   action:
-  #     - service: input_datetime.set_datetime
-  #       data:
-  #         entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop"
-  #         time: "{{ ((as_timestamp(now()) - 35) | timestamp_custom('%H:%M:%S', true)) }}"
-  #         date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"

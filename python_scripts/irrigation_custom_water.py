@@ -13,15 +13,13 @@ for i in range(1,6):
 
       # Default front beds to 5 minutes
       if "Front Beds" in state or "Pots" in state:
-        time = 10
+        time = 20
       # elif "Front Lawn" in state:
       #   time = 15
       else:
         time = 15
 
       entry = {"zone": zone_entity_id, "time": time}
-
-
       zones["zones"].append(entry)
 
 # Only call the service if at least one zone is selected

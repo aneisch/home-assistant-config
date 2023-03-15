@@ -235,7 +235,8 @@ services:
         volumes:
             # Config file for setting overrides
             #- '/opt/433_mqtt/433_mqtt_315mhz.conf:/etc/rtl_433/rtl_433.conf'
-            - '/opt/433_mqtt/433_mqtt_916mhz.conf:/etc/rtl_433/rtl_433.conf'
+            #- '/opt/433_mqtt/433_mqtt_916mhz.conf:/etc/rtl_433/rtl_433.conf'
+            - '/opt/433_mqtt/433_mqtt.conf:/etc/rtl_433/rtl_433.conf'
     bitwarden:
         container_name: bitwarden
         image: vaultwarden/server:alpine
@@ -435,7 +436,7 @@ services:
             - label:disable
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/tmp/runner:/tmp/runner'
+            - '/tmp/runner-1:/tmp/runner'
     github-runner-2:
         container_name: github-runner-2
         image: myoung34/github-runner:latest
@@ -450,7 +451,7 @@ services:
             - label:disable
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/tmp/runner:/tmp/runner'
+            - '/tmp/runner-2:/tmp/runner'
     signal-rest-api:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest

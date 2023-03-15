@@ -1,0 +1,50 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Account is already configured",
+      "no_devices_found": "No devices were found for this account",
+      "reauth_successful": "Re-authentication was successful"
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "device": {
+        "data": {
+          "devices": "Devices"
+        },
+        "title": "Select Devices"
+      },
+      "reauth": {
+        "data": {
+          "password": "Password"
+        },
+        "description": "Update password for {username}",
+        "title": "Reauthenticate Integration"
+      },
+      "user": {
+        "data": {
+          "password": "Password",
+          "username": "Username"
+        }
+      }
+    }
+  },
+  "options": {
+    "abort": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication",
+      "unknown": "Unexpected error"
+    },
+    "step": {
+      "init": {
+        "data": {
+          "devices": "Devices"
+        },
+        "title": "Select Devices"
+      }
+    }
+  }
+}
