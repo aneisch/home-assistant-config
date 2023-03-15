@@ -283,13 +283,13 @@ services:
             RUNNER_NAME: nuc-runner-2
             ACCESS_TOKEN: XXXX
             REPO_URL: https://github.com/aneisch/home-assistant-config
-            #RUNNER_WORKDIR: /tmp/runner/work
+            RUNNER_WORKDIR: /tmp/runner/work
             LABELS: linux,x64,self-hosted
         security_opt:
             - label:disable
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/tmp/runner-2:/home/runner/_work'
+            - '/tmp/runner-2:/tmp/runner'
     signal-rest-api:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest
