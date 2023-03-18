@@ -1,32 +1,30 @@
 title: Sprinklers
 icon: mdi:sprinkler
 cards:
-  - type: 'entities'
-    entities:
-      - entity: switch.1_maples_program
-        name: Maple Irrigation Auto Run
-      - entity: switch.2_bougainvillea_2x_week_program
-        name: Bougainvillea Irrigation Auto Run
-      - entity: switch.3_garden_morning_program
-        name: Garden Irrigation Auto Run        
-      - input_boolean.front_bed_irrigation_scheduling
-      - input_boolean.lawn_irrigation_scheduling
-      - input_boolean.irrigation_force_run
-      - entity: sensor.sprinker_interrupt_reason
-        name: Interrupt Reason
-      - sensor.precip_probability
-      - sensor.nws_wind_speed
-      - sensor.netatmo_home_rain_sum_rain_today_inches
+  - type: vertical-stack
+    cards: 
+      - type: 'entities'
+        entities:
+          - entity: switch.1_maples_program
+            name: Maple Irrigation Auto Run
+          - entity: switch.2_bougainvillea_2x_week_program
+            name: Bougainvillea Irrigation Auto Run
+          - entity: switch.3_garden_morning_program
+            name: Garden Irrigation Auto Run        
+          - input_boolean.front_bed_irrigation_scheduling
+          - input_boolean.lawn_irrigation_scheduling
+          - input_boolean.irrigation_force_run
+          - sensor.precip_probability
+          - sensor.nws_wind_speed
+          - sensor.netatmo_home_rain_sum_rain_today_inches
 
-  - type: 'custom:uptime-card'
-    entity: sensor.sprinker_interrupt_reason
-    name: Irrigation History
-    ok: "None"
-    hours_to_show: 168
-    show:
-      footer: false
-    bar:
-      amount: 7
+      - type: markdown
+        content: |
+            Front Beds Override: {% if states('input_text.front_bed_irrigation_reason') not in ['None','Force Run'] %}<font color='red'>{% else %}<font color='green'>{% endif %}{{ states('input_text.front_bed_irrigation_reason') }}</font>
+            Lawn Override: {% if states('input_text.lawn_irrigation_reason') not in ['None','Force Run'] %}<font color='red'>{% else %}<font color='green'>{% endif %}{{ states('input_text.lawn_irrigation_reason') }}</font>
+            Rain Forecast Delay: {% if states('input_boolean.irrigation_rain_forecast_delay') == 'on'%}<font color='red'>{% else %}<font color='green'>{% endif %}{{ states('input_boolean.irrigation_rain_forecast_delay') }}</font>
+            Rainfall Delay: {% if states('input_boolean.irrigation_rainfall_delay') == 'on'%}<font color='red'>{% else %}<font color='green'>{% endif %}{{ states('input_boolean.irrigation_rainfall_delay') }}</font>
+            Wind Delay: {% if states('input_boolean.irrigation_wind_delay') == 'on'%}<font color='red'>{% else %}<font color='green'>{% endif %}{{ states('input_boolean.irrigation_wind_delay') }}</font>
 
   - type: 'custom:auto-entities'
     filter:

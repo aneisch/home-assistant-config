@@ -22,7 +22,19 @@ input_boolean:
 
   irrigation_force_run:
     name: "Force Scheduled Run"
-    icon: mdi:sprinkler-variant
+    icon: "mdi:sprinkler-variant"
+
+  irrigation_rain_forecast_delay:
+    name: "Irrigation Forecasted Rain Delay"
+    icon: "mdi:cloud-percent"
+
+  irrigation_rainfall_delay:
+    name: "Irrigation Rainfall Delay"
+    icon: "mdi:weather-pouring"
+
+  irrigation_wind_delay:
+    name: "Irrigation Wind Delay"
+    icon: "mdi:weather-windy"
 
 input_datetime:
   maples_zone_last_start: 
@@ -162,6 +174,15 @@ input_select:
       - Front and Right Rear Lawn
       - Side Lawn
       - None
+
+input_text:
+  lawn_irrigation_reason:
+    name: Lawn Irrigation Override Reason
+    initial: None
+
+  front_bed_irrigation_reason:
+    name: Front Bed Irrigation Override Reason
+    initial: None
 
 mqtt:
   sensor:

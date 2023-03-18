@@ -758,6 +758,9 @@
   trigger:
     platform: state
     entity_id: cover.garage_door
+    to:
+      - "open"
+      - "closed"
   action:
     - service: >
         {% if trigger.from_state.state == "closed" and trigger.to_state.state == "open" %}
