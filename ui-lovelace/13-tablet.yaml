@@ -93,6 +93,33 @@ cards:
             detail: 2
             hours_to_show: 8
 
+          - type: horizontal-stack
+            cards:
+            - type: custom:mushroom-template-card
+              icon: mdi:blinds-open
+              tap_action:
+                action: call-service
+                service: cover.open_cover
+                target:
+                  entity_id: cover.office_blind
+            - type: custom:mushroom-template-card
+              icon: mdi:blinds
+              tap_action:
+                action: call-service
+                service: cover.set_cover_position
+                data:
+                  position: 42
+                target:
+                  entity_id: cover.office_blind
+            - type: custom:mushroom-template-card
+              icon: mdi:roller-shade-closed
+              tap_action:
+                action: call-service
+                service: cover.close_cover
+                target:
+                  entity_id: cover.office_blind
+
+
       # Column 3
       - type: vertical-stack
         cards:

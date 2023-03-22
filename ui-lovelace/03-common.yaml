@@ -212,23 +212,50 @@ cards:
       - light.dining_room_light
       - switch.coffee_maker
 
-  - type: entities
-    show_header_toggle: false
-    title: Andrew's Office
-    entities:
-      - switch.nexus_7_screen
-      - light.andrew_desk_lamp
-      - sensor.office_temperature
-      - fan.office_ceiling_fan
-      - light.office_ceiling_fan
-      # - sensor.aquarium_temperature
-      # - light.aquarium_light
-      # - switch.aquarium_co2
-      - switch.andrew_monitor
-      - entity: switch.andrew_office_speakers
-        icon: mdi:speaker
-      - switch.office_heater
-      - switch.office_heater_oscillate
+  - type: vertical-stack
+    cards:
+    - type: entities
+      show_header_toggle: false
+      title: Andrew's Office
+      entities:
+        - switch.nexus_7_screen
+        - light.andrew_desk_lamp
+        - sensor.office_temperature
+        - fan.office_ceiling_fan
+        - light.office_ceiling_fan
+        # - sensor.aquarium_temperature
+        # - light.aquarium_light
+        # - switch.aquarium_co2
+        - switch.andrew_monitor
+        - entity: switch.andrew_office_speakers
+          icon: mdi:speaker
+        - switch.office_heater
+        - switch.office_heater_oscillate
+    - type: horizontal-stack
+      cards:
+      - type: custom:mushroom-template-card
+        icon: mdi:blinds-open
+        tap_action:
+          action: call-service
+          service: cover.open_cover
+          target:
+            entity_id: cover.office_blind
+      - type: custom:mushroom-template-card
+        icon: mdi:blinds
+        tap_action:
+          action: call-service
+          service: cover.set_cover_position
+          data:
+            position: 42
+          target:
+            entity_id: cover.office_blind
+      - type: custom:mushroom-template-card
+        icon: mdi:roller-shade-closed
+        tap_action:
+          action: call-service
+          service: cover.close_cover
+          target:
+            entity_id: cover.office_blind
 
   - type: entities
     show_header_toggle: false

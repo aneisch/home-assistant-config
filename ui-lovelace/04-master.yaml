@@ -8,8 +8,6 @@ cards:
     show_header_toggle: false
     title: Master Bedroom
     entities:
-      - cover.andrew_blind_cover
-      - cover.bethany_blind_cover
       - sensor.master_bedroom_temperature
       #- binary_sensor.master_bedroom_bed
       - light.master_bedroom_ceiling_fan

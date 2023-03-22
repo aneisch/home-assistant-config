@@ -62,6 +62,7 @@ services:
             - '/opt/mosquitto/data:/mosquitto/data'
         ports:
             - '1883:1883'
+            - '8883:8883'
         restart: always
     influxdb:
         container_name: influxdb

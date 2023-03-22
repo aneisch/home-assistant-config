@@ -40,7 +40,6 @@
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
 
-
 # Rain
 - trigger:
     - platform: mqtt
@@ -67,6 +66,29 @@
   sensor:
     - name: "Neighbor Rain Total"
       state: "{{ trigger.payload_json.rain_in | float | round(5) }}"
+      unit_of_measurement: 'in'
+
+# Neighbor 5in1 wind / temp
+- trigger:
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: True
+      value_template: "{{ value_json.model == 'Acurite-5n1' and (value_json.subtype == 56 or value_json.subtype == 49) }}"
+  sensor:
+    - name: "Neighbor 5in1 Wind"
+      state: "{{ trigger.payload_json.wind_avg_mi_h | float | round(2) }}"
+      unit_of_measurement: 'mph'
+      device_class: wind_speed
+
+# Neighbor 5in1 rain
+- trigger:
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: True
+      value_template: "{{ value_json.model == 'Acurite-5n1' and value_json.subtype == 49 }}"
+  sensor:
+    - name: "Neighbor 5in1 Rain Total"
+      state: "{{ trigger.payload_json.rain_in }}"
       unit_of_measurement: 'in'
 
 # Outdoor Weather Wittime (back porch on top of column)
