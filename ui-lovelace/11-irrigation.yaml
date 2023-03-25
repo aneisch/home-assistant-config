@@ -17,8 +17,11 @@ cards:
           - sensor.precip_probability
           - sensor.nws_wind_speed
           - sensor.neighbor_5in1_wind
+          - sensor.neighbor_5in1_wind_5_minute_average
           - sensor.netatmo_home_rain_sum_rain_today_inches
           - sensor.neighbor_5in1_rain_total 
+          - sensor.neighbor_5in1_rain_last_1_hour
+          - sensor.neighbor_5in1_rain_last_24_hours
 
       - type: markdown
         content: |

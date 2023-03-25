@@ -9,12 +9,10 @@ esp32:
   board: lolin_s2_mini
   variant: ESP32S2
   framework:
-    type: arduino
-    version: 2.0.3
-    platform_version: 5.0.0
+    type: ESP-IDF
 
 <<: !include common.yaml
-T
+
 binary_sensor:
   - platform: gpio
     pin:

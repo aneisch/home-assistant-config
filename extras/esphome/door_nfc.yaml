@@ -1,0 +1,32 @@
+substitutions:
+  name: door_nfc
+  friendly_name: "Door NFC"
+
+esphome:
+  name: ${name}
+
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: ESP-IDF
+
+<<: !include common.yaml
+
+pn532_i2c:
+  update_interval: 1s
+
+i2c:
+  sda: 39
+  scl: 40
+  scan: true
+  id: bus_a
+
+binary_sensor:
+  - platform: pn532
+    uid: !secret andrew_fitbit_id
+    name: "${friendly_name} Andrew's Fitbit"
+    
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

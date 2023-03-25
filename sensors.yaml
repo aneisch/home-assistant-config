@@ -94,6 +94,30 @@
   scan_interval: 5
   command: "if $(lsusb | grep -q 1e0e); then echo on; else echo off; fi"
 
+- platform: statistics
+  name: "Neighbor 5in1 Rain Last 24 Hours"
+  entity_id: sensor.neighbor_5in1_rain_total
+  state_characteristic: change
+  max_age:
+    hours: 24
+  precision: 3
+
+- platform: statistics
+  name: "Neighbor 5in1 Rain Last 1 Hour"
+  entity_id: sensor.neighbor_5in1_rain_total
+  state_characteristic: change
+  max_age:
+    hours: 1
+  precision: 3
+
+- platform: statistics
+  name: "Neighbor 5in1 Wind 5 Minute Average"
+  entity_id: sensor.neighbor_5in1_wind
+  state_characteristic: mean
+  max_age:
+    minutes: 5
+
+
 #############
 # TEMPLATES #
 #############

@@ -184,9 +184,15 @@ cards:
           - sensor.moon
           # - sensor.rain_total
           # - sensor.rain_rate
+          - sensor.neighbor_5in1_wind
+          - sensor.neighbor_5in1_wind_5_minute_average
+          - sensor.neighbor_5in1_rain_total 
+          - sensor.neighbor_5in1_rain_last_1_hour
+          - sensor.neighbor_5in1_rain_last_24_hours
           - sensor.neighbor_rain_total
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
+
           - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
           - sensor.garage_temperature
