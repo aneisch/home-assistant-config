@@ -126,22 +126,17 @@ services:
             - /opt/vaultwarden-backup/:/config/
     vscode:
         container_name: vscode
-        image: linuxserver/code-server:3.12.0
+        image: ghcr.io/hassio-addons/vscode/amd64:stable
         restart: always
         volumes:
-            - '/opt/vscode:/config'
-            - '/opt/homeassistant/:/ha_config/homeassistant'
-            - '/opt/appdaemon/:/ha_config/appdaemon'
-            - '/opt/docker-compose/:/ha_config/docker-compose'
-            - '/opt/github:/ha_config/github_projects'
-            - '/home/aneisch/.backup:/ha_config/homeassistant-git'
+            - '/opt/vscode/data:/data/vscode'
+            - '/opt/homeassistant/:/config/homeassistant'
+            - '/opt/appdaemon/:/config/appdaemon'
+            - '/opt/docker-compose/:/config/docker-compose'
+            - '/opt/github:/config/github_projects'
+            - '/home/aneisch/.backup:/config/homeassistant-git'
         environment:
             - TZ=America/Chicago
-            - 'DOCKER_MODS=ghcr.io/aneisch/code-server-home-assistant'
-            - 'HOMEASSISTANT_URL=http://10.0.1.22:8123'
-            - PUID=1000
-            - PGID=1000
-            - HOMEASSISTANT_TOKEN=XXX
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower:latest
