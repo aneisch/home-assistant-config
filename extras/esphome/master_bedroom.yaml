@@ -4,8 +4,13 @@ substitutions:
 
 esphome:
   name: ${name}
-  platform: ESP8266
-  board: d1_mini_pro
+  # platform: ESP8266
+  # board: d1_mini_pro
+
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: ESP-IDF  
 
 <<: !include common.yaml
 
@@ -35,7 +40,7 @@ sensor:
 
   - platform: dht
     model: DHT22
-    pin: D4
+    pin: 16
     temperature:
       name: "${friendly_name} Temperature"
       filters:

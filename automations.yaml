@@ -44,7 +44,7 @@
   action:
     service: frontend.set_theme
     data:
-        name: default
+      name: default
 
 - alias: "Security Arm/Disarm"
   id: "arm_disarm"
@@ -80,7 +80,7 @@
     state: "off"
   action:
     - service: script.turn_on
-      data: 
+      data:
         entity_id: >
           {% if trigger.to_state.state == 'home' %}
             script.home_occupied
@@ -96,12 +96,12 @@
   trigger:
     platform: state
     to: "on"
-    entity_id: 
+    entity_id:
       - binary_sensor.andrew_desk_button_single
       - binary_sensor.andrew_desk_button_double
   action:
     service: homeassistant.toggle
-    data: 
+    data:
       entity_id: >
         {% if 'single' in trigger.entity_id %}
           switch.office_heater
@@ -146,17 +146,17 @@
       data:
         message: "The thermostat appears to be offline..."
 
-- alias: "Notify when Verizon Extender Offline"
-  id: "notify_verizon_extender_offline"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: sensor.verizon_network_extender_status
-      from: "In Service"
-  action:
-    - service: notify.signal_self
-      data:
-        message: "The Verizon extender appears to be out of service..."
+# - alias: "Notify when Verizon Extender Offline"
+#   id: "notify_verizon_extender_offline"
+#   initial_state: on
+#   trigger:
+#     - platform: state
+#       entity_id: sensor.verizon_network_extender_status
+#       from: "In Service"
+#   action:
+#     - service: notify.signal_self
+#       data:
+#         message: "The Verizon extender appears to be out of service..."
 
 - alias: "Notify AC Equipment Event Occurs"
   id: "notify_ac_equipment_event"
@@ -217,7 +217,7 @@
   id: "update_door_last_opened"
   trigger:
     - platform: state
-      entity_id: 
+      entity_id:
         - binary_sensor.front_door
         - binary_sensor.back_porch_door
         - binary_sensor.garage_exterior_door
@@ -241,7 +241,7 @@
 #   initial_state: on
 #   trigger:
 #     platform: state
-#     entity_id: 
+#     entity_id:
 #       - sensor.433_mailbox_last_opened
 #   condition: "{{ states('sensor.mail_usps_packages') > 0 }}"
 #   action:
@@ -255,14 +255,14 @@
 #           Mailbox Opened!
 #     - delay: 10
 #     - service: switch.turn_off
-      # entity_id: switch.garage_stream
+# entity_id: switch.garage_stream
 
 - alias: "Door Lock Alerts"
   id: "door_lock_alerts"
   initial_state: on
   trigger:
     platform: state
-    entity_id: 
+    entity_id:
       - lock.front_door
       - lock.garage_exterior_door
     to: "unlocked"
@@ -330,7 +330,7 @@
       - wed
   action:
     service: homeassistant.turn_off
-    entity_id: 
+    entity_id:
       - switch.nas
       - binary_sensor.backups_complete
 
@@ -364,10 +364,10 @@
   condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
   action:
     service: homeassistant.turn_on
-    entity_id: 
+    entity_id:
       - switch.living_room_speakers
       - switch.tv
-      
+
 - alias: "Turn off speakers when tv OR xbox powers off"
   id: "tv_off_with_xbox_off"
   initial_state: on
@@ -381,7 +381,7 @@
   condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
   action:
     service: homeassistant.turn_off
-    entity_id: 
+    entity_id:
       - switch.living_room_speakers
       - switch.tv
 
@@ -410,7 +410,7 @@
     platform: state
     entity_id: binary_sensor.weasel_active
     to: "off"
-    for: '00:30:00'
+    for: "00:30:00"
   # condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
   action:
     - service: homeassistant.turn_off
@@ -425,7 +425,7 @@
     platform: state
     entity_id: switch.andrew_monitor
     to: "off"
-    for: '00:00:30'
+    for: "00:00:30"
   action:
     - service: homeassistant.turn_off
       entity_id: switch.nexus_7_screen
@@ -434,10 +434,10 @@
   id: "water_sensor_alert"
   trigger:
     - platform: state
-      entity_id: 
-        - binary_sensor.washing_machine_water_detector  
-        - binary_sensor.water_heater_water_detector  
-        - binary_sensor.guest_bathroom_toilet_water_detector  
+      entity_id:
+        - binary_sensor.washing_machine_water_detector
+        - binary_sensor.water_heater_water_detector
+        - binary_sensor.guest_bathroom_toilet_water_detector
         - binary_sensor.back_bathroom_toilet_water_detector
         - binary_sensor.kitchen_sink_water_detector
       to: "on"
@@ -466,7 +466,7 @@
   id: "sensor_battery_alert"
   trigger:
     - platform: numeric_state
-      entity_id: 
+      entity_id:
         - sensor.1_battery_level
         - sensor.2_battery_level
         - sensor.3_battery_level
@@ -543,8 +543,7 @@
           {% endif %}
         data:
           # Override DND if Daytime, otherwise silent
-          priority: '{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}'
-
+          priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
 
 # - id: webhook_debugger
 #   alias: "Webhook Debugger"
@@ -580,7 +579,7 @@
           - sun
       - "{{ states('person.andrew') == 'home'}}"
   action:
-      # Watchtower runs once at container start then turns back off
+    # Watchtower runs once at container start then turns back off
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
 
@@ -589,7 +588,7 @@
   mode: parallel
   trigger:
     - platform: state
-      entity_id: 
+      entity_id:
         - sensor.electric_utilities_summary
         - sensor.electric_utilities_daily
         - sensor.electric_utilities_realtime
@@ -668,9 +667,9 @@
   id: "315mhz_remote"
   trigger:
     - platform: mqtt
-      topic: 'sensor/rtl_433_test'
+      topic: "sensor/rtl_433_test"
       value_template: "{{ value_json.model }}"
-      payload: 'Smoke-GS558'
+      payload: "Smoke-GS558"
   action:
     service: >
       {% if trigger.payload_json.code == "87f7b0" %}
@@ -694,8 +693,8 @@
 
 - alias: "Signal Webhook Message BVST"
   id: "signal_webhook_message_bvst"
-  mode: 'queued'
-  initial_state: 'on'
+  mode: "queued"
+  initial_state: on
   trigger:
     - platform: webhook
       webhook_id: !secret signal_bvst_contact_webhook_id
@@ -729,7 +728,7 @@
     platform: time
     at: "01:30:00"
   action:
-    - service: switch.turn_off 
+    - service: switch.turn_off
       entity_id: switch.docker_appdaemon
     - delay: "00:00:30"
     - service: switch.turn_on
@@ -819,7 +818,7 @@
     - service: notify.signal_self
       data:
         message: >
-            Home Assistant v{{ states('sensor.ha_version')}} has started!
+          Home Assistant v{{ states('sensor.ha_version')}} has started!
 
 - alias: "Coffee Maker on With Alarm Clock"
   id: "coffee_maker_alarm_clock"
@@ -863,7 +862,7 @@
   trigger:
     - platform: time
       at: "10:00:00"
-    # also auto turns off after 30 minutes via ESPhome 
+    # also auto turns off after 30 minutes via ESPhome
     # switch config of power_plug_1
   condition: "{{ states('switch.coffee_maker') == 'on' }}"
   action:
@@ -872,4 +871,34 @@
     - service: notify.signal_self
       data:
         message: >
-            Turned coffee maker off!
+          Turned coffee maker off!
+
+- alias: "Front Door NFC"
+  id: "front_door_nfc"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: sensor.rfid_tag
+  condition: '{{ "08" in trigger.to_state.state[:-2] }}'
+  action:
+    - service: script.notify_wrapper
+      data:
+        message: "Front door unlocked by NFC"
+        data:
+          priority: 1
+    - service: lock.unlock
+      entity_id: lock.front_door
+
+- alias: "Attic Pi Health"
+  id: "attic_pi_health"
+  trigger:
+    - platform: state
+      entity_id: binary_sensor.attic_pi
+      from: on
+      to: off
+      for:
+        minutes: 5
+  action:
+    service: script.notify_wrapper
+    data:
+      message: "Attic Pi Offline"

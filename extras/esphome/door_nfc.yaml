@@ -4,27 +4,37 @@ substitutions:
 
 esphome:
   name: ${name}
-
-esp32:
-  board: lolin_s2_mini
-  framework:
-    type: ESP-IDF
+  platform: ESP8266
+  board: d1_mini_pro
 
 <<: !include common.yaml
 
 pn532_i2c:
   update_interval: 1s
+  on_tag:
+    then:
+    - text_sensor.template.publish:
+        id: rfid_tag
+        state: !lambda 'return x;'
+
+text_sensor:
+  - platform: template
+    name: "RFID Tag"
+    id: rfid_tag
+    update_interval: 10s
+    lambda: |-
+      return {""};
 
 i2c:
-  sda: 39
-  scl: 40
+  sda: D2
+  scl: D1
   scan: true
   id: bus_a
 
-binary_sensor:
-  - platform: pn532
-    uid: !secret andrew_fitbit_id
-    name: "${friendly_name} Andrew's Fitbit"
+# binary_sensor:
+#   - platform: pn532
+#     uid: !secret andrew_fitbit_id
+#     name: "${friendly_name} Andrew's Fitbit"
     
 switch:
   - platform: restart
