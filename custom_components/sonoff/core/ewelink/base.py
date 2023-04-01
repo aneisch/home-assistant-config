@@ -20,6 +20,7 @@ class XDevice(TypedDict, total=False):
     online: Optional[bool]  # required for cloud
     apikey: Optional[str]  # required for cloud
 
+    local: Optional[bool]  # required for local
     localtype: Optional[str]  # exist for local DIY device type
     host: Optional[str]  # required for local
     devicekey: Optional[str]  # required for encrypted local devices (not DIY)
@@ -27,6 +28,8 @@ class XDevice(TypedDict, total=False):
     local_ts: Optional[float]  # time of last local msg from device
     params_bulk: Optional[dict]  # helper for send_bulk commands
     pow_ts: Optional[float]  # required for pow devices with cloud connection
+
+    parent: Optional[dict]
 
 
 class XRegistryBase:

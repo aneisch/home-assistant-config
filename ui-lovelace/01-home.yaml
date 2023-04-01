@@ -6,7 +6,7 @@ cards:
   - !include .cards/grill.yaml
   - !include .cards/covid.yaml
   # - !include .cards/desk_led.yaml
-  
+
   - type: custom:vertical-stack-in-card
     cards:
       - !include .cards/thermostat.yaml
@@ -28,60 +28,60 @@ cards:
             entity: alarm_control_panel.aarlo_garage
           - entity: lock.front_door
             style: |
-                :host {
-                  {% if states('lock.front_door') == 'unlocked' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('lock.front_door') == 'unlocked' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: lock.garage_exterior_door
             style: |
-                :host {
-                  {% if states('lock.garage_exterior_door') == 'unlocked' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('lock.garage_exterior_door') == 'unlocked' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: cover.garage_door
             style: |
-                :host {
-                  {% if states('cover.garage_door') == 'open' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('cover.garage_door') == 'open' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: binary_sensor.garage_exterior_door
             style: |
-                :host {
-                  {% if states('binary_sensor.garage_exterior_door') == 'on' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('binary_sensor.garage_exterior_door') == 'on' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: binary_sensor.garage_interior_door
             style: |
-                :host {
-                  {% if states('binary_sensor.garage_interior_door') == 'on' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('binary_sensor.garage_interior_door') == 'on' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: binary_sensor.front_door
             style: |
-                :host {
-                  {% if states('binary_sensor.front_door') == 'on' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('binary_sensor.front_door') == 'on' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: binary_sensor.master_bedroom_exterior_door
             style: |
-                :host {
-                  {% if states('binary_sensor.master_bedroom_exterior_door') == 'on' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('binary_sensor.master_bedroom_exterior_door') == 'on' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: binary_sensor.back_porch_door
             style: |
-                :host {
-                  {% if states('binary_sensor.back_porch_door') == 'on' %}
-                  --paper-item-icon-color: red
-                  {% endif %}
-                }
+              :host {
+                {% if states('binary_sensor.back_porch_door') == 'on' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
 
       - type: markdown
         content: |
@@ -140,20 +140,20 @@ cards:
       - type: entity-filter
         state_filter:
           - operator: ">"
-            value: '0'
+            value: "0"
         entities:
           - entity: sensor.mail_usps_mail
             name: "Today's Mail"
           - entity: sensor.mail_packages_in_transit
             name: "Today's Package Delivery"
           - entity: sensor.mail_usps_delivering
-            icon: 'mdi:package-variant-closed'
+            icon: "mdi:package-variant-closed"
             name: USPS
           - entity: sensor.mail_fedex_delivering
-            icon: 'mdi:package-variant-closed'
+            icon: "mdi:package-variant-closed"
             name: FedEx
           - entity: sensor.mail_ups_delivering
-            icon: 'mdi:package-variant-closed'
+            icon: "mdi:package-variant-closed"
             name: UPS
           - entity: sensor.mail_updated
             state_filter:
@@ -186,16 +186,16 @@ cards:
           # - sensor.rain_rate
           - sensor.neighbor_5in1_wind
           - sensor.neighbor_5in1_wind_5_minute_average
-          - sensor.neighbor_5in1_rain_total 
+          - sensor.neighbor_5in1_rain_total
           - sensor.neighbor_5in1_rain_last_1_hour
           - sensor.neighbor_5in1_rain_last_24_hours
           - sensor.neighbor_rain_total
+          - sensor.neighbor_rain_last_1_hour
+          - sensor.neighbor_rain_last_24_hours
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
-
           - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
-          - sensor.garage_temperature
           - sensor.deep_freeze_temperature
       - type: custom:weather-card
         entity: weather.kcll_daynight
@@ -221,8 +221,6 @@ cards:
       - type: calendar
         entities:
           - calendar.garbage_collection
-
-
 
   # - type: picture-glance
   #   camera_image: camera.outdoor

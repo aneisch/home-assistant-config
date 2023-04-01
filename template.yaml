@@ -2,20 +2,20 @@
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
-      payload: True
+      payload: "True"
       value_template: "{{ value_json.model == 'Acurite-00275rm' and value_json.id == 16725 }}"
   sensor:
     - name: "Compost External Temperature"
       state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
-      unit_of_measurement: '°F'
+      unit_of_measurement: "°F"
       device_class: temperature
     - name: "Compost External Humidity"
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
     - name: "Compost Internal Temperature"
       state: "{{ trigger.payload_json.temperature_1_F | float | round(2) }}"
-      unit_of_measurement: '°F'
+      unit_of_measurement: "°F"
       device_class: temperature
     - name: "Compost Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
@@ -25,86 +25,86 @@
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
-      payload: True
+      payload: "True"
       value_template: "{{ value_json.model == 'Acurite-Tower' and value_json.id == 14574 }}"
   sensor:
     - name: "Deep Freeze Temperature"
       state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
-      unit_of_measurement: '°F'
+      unit_of_measurement: "°F"
       device_class: temperature
     - name: "Deep Freeze Humidity"
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
     - name: "Deep Freeze Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
       device_class: battery
 
 # Rain
-- trigger:
-    - platform: mqtt
-      topic: "sensor/rtl_433_attic"
-      payload: True
-      value_template: "{{ value_json.model == 'Oregon-PCR800a' and value_json.id == 58 }}"
-  sensor:
-    - name: "Rain Rate"
-      state: "{{ trigger.payload_json.rain_rate_in_h | float | round(2) }}"
-      unit_of_measurement: 'in/h'
-    - name: "Rain Total"
-      state: "{{ trigger.payload_json.rain_in | float | round(3) }}"
-      unit_of_measurement: 'in'
-    - name: "Rain Battery OK"
-      state: "{{ trigger.payload_json.battery_ok == 1 }}"
-      device_class: battery
+# - trigger:
+#     - platform: mqtt
+#       topic: "sensor/rtl_433_attic"
+#       payload: "True"
+#       value_template: "{{ value_json.model == 'Oregon-PCR800a' and value_json.id == 58 }}"
+#   sensor:
+#     - name: "Rain Rate"
+#       state: "{{ trigger.payload_json.rain_rate_in_h | float | round(2) }}"
+#       unit_of_measurement: "in/h"
+#     - name: "Rain Total"
+#       state: "{{ trigger.payload_json.rain_in | float | round(3) }}"
+#       unit_of_measurement: "in"
+#     - name: "Rain Battery OK"
+#       state: "{{ trigger.payload_json.battery_ok == 1 }}"
+#       device_class: battery
 
 # Neighbor Rain
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
-      payload: True
-      value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 3324 }}"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 11516 }}"
   sensor:
     - name: "Neighbor Rain Total"
       state: "{{ trigger.payload_json.rain_in | float | round(5) }}"
-      unit_of_measurement: 'in'
+      unit_of_measurement: "in"
 
 # Neighbor 5in1 wind / temp
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
-      payload: True
-      value_template: "{{ value_json.model == 'Acurite-5n1' and (value_json.subtype == 56 or value_json.subtype == 49) }}"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Acurite-5n1' and (value_json.message_type == 56 or value_json.message_type == 49) }}"
   sensor:
     - name: "Neighbor 5in1 Wind"
       state: "{{ trigger.payload_json.wind_avg_mi_h | float | round(2) }}"
-      unit_of_measurement: 'mph'
+      unit_of_measurement: "mph"
       device_class: wind_speed
 
 # Neighbor 5in1 rain
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
-      payload: True
-      value_template: "{{ value_json.model == 'Acurite-5n1' and value_json.subtype == 49 }}"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Acurite-5n1' and value_json.message_type == 49 }}"
   sensor:
     - name: "Neighbor 5in1 Rain Total"
       state: "{{ trigger.payload_json.rain_in }}"
-      unit_of_measurement: 'in'
+      unit_of_measurement: "in"
 
 # Outdoor Weather Wittime (back porch on top of column)
 - trigger:
-  - platform: mqtt
-    topic: "sensor/rtl_433_attic"
-    payload: True
-    value_template: "{{ value_json.model == 'GT-WT03' and value_json.id == 0 and value_json.channel == 1 }}"
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: "True"
+      value_template: "{{ value_json.model == 'GT-WT03' and value_json.id == 0 and value_json.channel == 1 }}"
   sensor:
     - name: "433 Weather Temperature"
       state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
-      unit_of_measurement: '°F'
+      unit_of_measurement: "°F"
       device_class: temperature
     - name: "433 Weather Humidity"
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
-      unit_of_measurement: '%'
+      unit_of_measurement: "%"
       device_class: humidity
     - name: "433 Weather Battery OK"
       state: "{{ trigger.payload_json.battery_ok == 1 }}"
@@ -113,14 +113,14 @@
 # Mailbox
 # Front porch for now
 - trigger:
-  # - platform: mqtt
-  #   topic: "sensor/rtl_433_office"
-  #   payload: True
-  #   value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
-  - platform: mqtt
-    topic: "sensor/rtl_433_attic"
-    payload: True
-    value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
+    # - platform: mqtt
+    #   topic: "sensor/rtl_433_office"
+    #   payload: True
+    #   value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
   sensor:
     # - name: "433 Mailbox Last Opened"
     #   state: "{{ now() }}"

@@ -59,7 +59,7 @@ folder_watcher:
   - folder: /tmp
     use_polling: True
     patterns:
-      - 'database.sqlite'
+      - "database.sqlite"
 
 monitor_docker:
   #scan_interval: 60
@@ -163,7 +163,7 @@ light:
   #       port: 8899
   #       groups:
   #       # big bulbs
-  #       #- number: 1 
+  #       #- number: 1
   #       #  type: rgbw
   #       #  name: Garage
   #       #  fade: on
@@ -214,42 +214,42 @@ logger:
   #default: debug
   default: warn
   #logs:
-    #homeassistant.core: debug
-    #homeassistant.components.python_script: debug
-    #custom_components.alexa_media: debug  
-    # Start ZHA Debugging
-    # asyncio: debug
-    #homeassistant.components.zha: debug
-    #zigpy: debug
-    # bellows: debug
-    # zigpy_xbee: debug
-    # zigpy_deconz: debug
-    # zigpy_zigate: debug
-    # zigpy_cc: debug
-    # bellows.zigbee.application: debug
-    # bellows.ezsp: debug
-    # zigpy_deconz.zigbee.application: debug
-    # zigpy_deconz.api: debug
-    # zigpy_xbee.ap: debug
-    # zigpy_znp: debug
-    # zhaquirks: debug
-    # End ZHA Debugging
-    #custom_components.docker_monitor: debug
-    #custom_components.alexa_media: debug
-    #custom_components.localtuya: debug
-    #homeassistant.components.webhook: debug
-    #custom_components.mail_and_packages: debug
-    # custom_components.aarlo: debug
-    # custom_components.aarlo.alarm_control_panel: debug
-    # custom_components.aarlo.binary_sensor: debug
-    # custom_components.aarlo.camera: debug
-    # custom_components.aarlo.light: debug
-    # custom_components.aarlo.media_player: debug
-    # custom_components.aarlo.sensor: debug
-    # custom_components.aarlo.switch: debug
-    # pyaarlo: debug
-    #custom_components.bhyve: debug
-    #pybhyve: debug
+  #homeassistant.core: debug
+  #homeassistant.components.python_script: debug
+  #custom_components.alexa_media: debug
+  # Start ZHA Debugging
+  # asyncio: debug
+  #homeassistant.components.zha: debug
+  #zigpy: debug
+  # bellows: debug
+  # zigpy_xbee: debug
+  # zigpy_deconz: debug
+  # zigpy_zigate: debug
+  # zigpy_cc: debug
+  # bellows.zigbee.application: debug
+  # bellows.ezsp: debug
+  # zigpy_deconz.zigbee.application: debug
+  # zigpy_deconz.api: debug
+  # zigpy_xbee.ap: debug
+  # zigpy_znp: debug
+  # zhaquirks: debug
+  # End ZHA Debugging
+  #custom_components.docker_monitor: debug
+  #custom_components.alexa_media: debug
+  #custom_components.localtuya: debug
+  #homeassistant.components.webhook: debug
+  #custom_components.mail_and_packages: debug
+  # custom_components.aarlo: debug
+  # custom_components.aarlo.alarm_control_panel: debug
+  # custom_components.aarlo.binary_sensor: debug
+  # custom_components.aarlo.camera: debug
+  # custom_components.aarlo.light: debug
+  # custom_components.aarlo.media_player: debug
+  # custom_components.aarlo.sensor: debug
+  # custom_components.aarlo.switch: debug
+  # pyaarlo: debug
+  #custom_components.bhyve: debug
+  #pybhyve: debug
   filters:
     homeassistant.core:
       - ".*share-service-download-bucket.*" # Ring Video Updates
@@ -267,7 +267,7 @@ lovelace:
     - url: /hacsfiles/weather-card/weather-card.js
       type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
-      type: js
+      type: module
     - url: /hacsfiles/lovelace-hass-aarlo/hass-aarlo.js
       type: module
     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
@@ -279,7 +279,7 @@ lovelace:
     - url: /hacsfiles/favicon-counter/favicon-counter.js
       type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
-      type: js
+      type: module
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
       type: module
     - url: /hacsfiles/lovelace-card-templater/lovelace-card-templater.js
@@ -376,7 +376,7 @@ panel_iframe:
   vscode:
     title: VS Code
     icon: mdi:wrench
-    url: !secret vscode_url 
+    url: !secret vscode_url
   plane_tracking:
     title: "Plane Tracking"
     icon: mdi:airplane
@@ -484,7 +484,7 @@ sonoff:
   password: !secret ewelink_pass
   mode: local
   reload: always
-  
+
 stream:
 
 sun:

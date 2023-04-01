@@ -17,21 +17,12 @@
     - type: load_5m
     - type: load_15m
 
-- platform: rest
-  name: "Verizon Network Extender Status"
-  resource: 'http://10.0.1.47/cgi-bin/femto_status.cgi'
-  value_template: '{% if value_json.data.service_status == 0 %}In Service{% else %}Out of Service{% endif %}'
-  json_attributes_path: "$.data"
-  json_attributes:
-    - connected_users
-    - gps_status
-
 - platform: command_line
   name: Electric Utilities Daily
   scan_interval: 3600
   command: !secret utilities_curl_daily
-  value_template: "{{ value_json.Kwh | float }}"  
-  unit_of_measurement: 'kWh' 
+  value_template: "{{ value_json.Kwh | float }}"
+  unit_of_measurement: "kWh"
   json_attributes:
     - ReadDate
 
@@ -39,8 +30,8 @@
   name: Electric Utilities Summary
   scan_interval: 3600
   command: !secret utilities_curl_summary
-  value_template: "{{ value_json.TotalUsage | float }}"   
-  unit_of_measurement: 'kWh' 
+  value_template: "{{ value_json.TotalUsage | float }}"
+  unit_of_measurement: "kWh"
   json_attributes:
     - TotalCost
     - MinUsage
@@ -117,6 +108,21 @@
   max_age:
     minutes: 5
 
+- platform: statistics
+  name: "Neighbor Rain Last 24 Hours"
+  entity_id: sensor.neighbor_rain_total
+  state_characteristic: change
+  max_age:
+    hours: 24
+  precision: 3
+
+- platform: statistics
+  name: "Neighbor Rain Last 1 Hour"
+  entity_id: sensor.neighbor_rain_total
+  state_characteristic: change
+  max_age:
+    hours: 1
+  precision: 3
 
 #############
 # TEMPLATES #

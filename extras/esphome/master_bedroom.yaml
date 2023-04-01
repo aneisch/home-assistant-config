@@ -4,9 +4,8 @@ substitutions:
 
 esphome:
   name: ${name}
-  # platform: ESP8266
-  # board: d1_mini_pro
 
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
 esp32:
   board: lolin_s2_mini
   framework:

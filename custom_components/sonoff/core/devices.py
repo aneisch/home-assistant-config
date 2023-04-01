@@ -22,7 +22,7 @@ from ..binary_sensor import XBinarySensor, XWiFiDoor, XZigbeeMotion
 from ..climate import XClimateNS, XClimateTH, XThermostat
 from ..core.entity import XEntity
 from ..cover import XCover, XCoverDualR3, XZigbeeCover
-from ..fan import XDiffuserFan, XFan, XToggleFan
+from ..fan import XDiffuserFan, XFan, XToggleFan, XFanDualR3
 from ..light import (
     XDiffuserLight,
     XDimmer,
@@ -34,6 +34,7 @@ from ..light import (
     XLightD1,
     XLightGroup,
     XLightL1,
+    XLightL3,
 )
 from ..number import XPulseWidth
 from ..remote import XRemote
@@ -55,6 +56,7 @@ from ..switch import XSwitch, XSwitches, XSwitchTH, XToggle, XZigbeeSwitches
 DEVICE_CLASS = {
     "binary_sensor": (XEntity, BinarySensorEntity),
     "fan": (XToggleFan,),  # using custom class for overriding is_on function
+    "dualfan": (XFanDualR3,),
     "light": (XEntity, LightEntity),
     "sensor": (XEntity, SensorEntity),
     "switch": (XEntity, SwitchEntity),
@@ -278,7 +280,7 @@ DEVICES = {
     165: [Switch1, Switch2, RSSI],  # DualR3 Lite, without power consumption
     # https://github.com/AlexxIT/SonoffLAN/issues/857
     168: [RSSI],  # new ZBBridge-P
-    173: [XLightL1, RSSI],  # Sonoff L3-5M-P
+    173: [XLightL3, RSSI],  # Sonoff L3-5M-P
     174: [XRemoteButton],  # Sonoff R5 (6-key remote)
     177: [XRemoteButton],  # Sonoff S-Mate
     181: [
@@ -340,21 +342,6 @@ DEVICES = {
     ],
 }
 
-# Pow devices sends sensors data via Cloud only in uiActive mode
-# - Sonoff POW1 fw 2.6.1 UIID5 sends power data even without uiActive
-# - Sonoff S40 fw 1.1.0 UIID182 has very low uiActive maximum
-# - Sonoff DualR3 fw 1.4.0 UIID126 has another uiActive format
-# UUID, refresh time in seconds, params payload
-POW_UI_ACTIVE = {
-    5: (3600, {"uiActive": 7200}),
-    32: (3600, {"uiActive": 7200}),
-    126: (3600, {"uiActive": {"all": 1, "time": 7200}}),
-    130: (3600, {"uiActive": {"all": 1, "time": 7200}}),
-    182: (0, {"uiActive": 180}),  # maximum for this model
-    # https://github.com/AlexxIT/SonoffLAN/issues/978
-    190: (0, {"uiActive": 180}),  # haven't check real maximum
-}
-
 
 def get_spec(device: dict) -> list:
     uiid = device["extra"]["uiid"]
@@ -371,7 +358,7 @@ def get_spec(device: dict) -> list:
     # DualR3 in cover mode
     if uiid in [126, 165] and device["params"].get("workMode") == 2:
         classes = [cls for cls in classes if XSwitches not in cls.__bases__]
-        classes.append(XCoverDualR3)
+        classes.insert(0, XCoverDualR3)
 
     # NSPanel Climate disable without switch configuration
     if uiid in [133] and not device["params"].get("HMI_ATCDevice"):
