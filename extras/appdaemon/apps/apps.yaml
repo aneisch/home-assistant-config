@@ -1,20 +1,24 @@
+suntest:
+  module: suntest
+  class: SunTest
+
 AC Automation:
   module: ac_automation
   class: AutoAdjust
   constrain_input_boolean: input_boolean.ac_automation
   thermostats: climate.thermostat
   device_tracker: group.trackers
-  morning_adjust_weekday: '09:00:00'
-  morning_adjust_weekend: '11:00:00'
-  night_adjust_weekday: '01:00:00'
-  night_adjust_weekend: '01:00:00'
+  morning_adjust_weekday: "09:00:00"
+  morning_adjust_weekend: "11:00:00"
+  night_adjust_weekday: "01:00:00"
+  night_adjust_weekend: "01:00:00"
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: '82'
-  cool_night: '74'
-  cool_unoccupied: '82'
-  heat_day: '63'
-  heat_night: '62'
-  heat_unoccupied: '55'
+  cool_day: "82"
+  cool_night: "72"
+  cool_unoccupied: "82"
+  heat_day: "63"
+  heat_night: "62"
+  heat_unoccupied: "55"
 
 Back Bedroom Zigbee Remote:
   module: zigbee_remote
@@ -91,12 +95,12 @@ Occupancy Simulator:
   class: OccuSim
   enable: input_boolean.occusim
   reset_time: 02:00:00
-  dump_times: '1'
-  log_msg: '1'
+  dump_times: "1"
+  log_msg: "1"
   step_evening_name: Evening
   step_evening_start: sunset - 00:30:00
   step_night_name: Night
-  step_night_start: '23:59:59'
+  step_night_start: "23:59:59"
 
   # Turn on some devices in the evening
   step_evening_on_1: light.master_bedroom_lamps
@@ -147,7 +151,7 @@ Occupancy Simulator:
 
   # Ensure all off late
   step_dark_name: Dark
-  step_dark_start: '23:32:00'
+  step_dark_start: "23:32:00"
   step_dark_off_1: light.master_bedroom_lamps
   step_dark_off_2: light.dining_room_light
   step_dark_off_3: light.kitchen_table_light
@@ -244,17 +248,17 @@ NAS:
   module: entity_timer
   class: Timer
   entities: switch.nas
-  time_on: '03:00:00'
+  time_on: "03:00:00"
   # There is an automation to turn this off automatically after rsync
-  time_off: '05:00:00'
+  time_off: "05:00:00"
   constrain_days: wed
 
 Dyson Charger:
   module: entity_timer
   class: Timer
   entities: switch.garage_dyson
-  time_on: '15:00:00'
-  time_off: '18:00:00'
+  time_on: "15:00:00"
+  time_off: "18:00:00"
   constrain_presence: anyone
 
 AC Filter Change:
@@ -292,7 +296,7 @@ Garage Exterior Light at Night With Door:
   trigger_sensor: binary_sensor.garage_exterior_door
   toggle_entity: switch.garage_exterior_light
   # Seconds to turn entity on when triggered
-  time_on: '5'
+  time_on: "5"
 
 Office Light at Night With Door:
   module: door_open
@@ -303,7 +307,7 @@ Office Light at Night With Door:
   trigger_sensor: binary_sensor.front_door
   toggle_entity: light.andrew_desk_lamp
   # Seconds to turn entity on when triggered
-  time_on: '60'
+  time_on: "60"
 
 Kitchen Light at Night With Door:
   module: door_open
@@ -314,7 +318,7 @@ Kitchen Light at Night With Door:
   trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.back_porch_door
   toggle_entity: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
-  time_on: '60'
+  time_on: "60"
 
 Living Room Sconces at Night With Motion:
   module: door_open
@@ -325,7 +329,7 @@ Living Room Sconces at Night With Motion:
   toggle_entity: light.living_room_sconces
   brightness: 70
   # Seconds to turn entity on when triggered
-  time_on: '1'
+  time_on: "1"
 
 Garage Lights with Cover and Door:
   module: door_open
@@ -366,15 +370,15 @@ Entryway Light Sunset:
   class: Timer
   constrain_days: wed
   time_on: sunset - 00:20:00
-  time_off: '23:00:00'
+  time_off: "23:00:00"
   entities: light.entryway_light
   brightness: 255
 
 Plant Light:
   module: entity_timer
   class: Timer
-  time_on: '09:30:00'
-  time_off: '21:00:00'
+  time_on: "09:30:00"
+  time_off: "21:00:00"
   entities: switch.plant_light
 
 Living Room Lamp Follow:

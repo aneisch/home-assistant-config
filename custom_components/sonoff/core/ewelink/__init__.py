@@ -84,6 +84,7 @@ class XRegistry(XRegistryBase):
         params_lan: dict = None,
         cmd_lan: str = None,
         query_cloud: bool = True,
+        timeout_lan: int = 1,
     ):
         """Send command to device with LAN and Cloud. Usual params are same.
 
@@ -95,6 +96,7 @@ class XRegistry(XRegistryBase):
         :param cmd_lan: optional if LAN command different
         :param query_cloud: optional query Cloud state after update state,
           ignored if params empty
+        :param timeout_lan: optional custom LAN timeout
         """
         seq = self.sequence()
 
@@ -112,7 +114,7 @@ class XRegistry(XRegistryBase):
         if can_local and can_cloud:
             # try to send a command locally (wait no more than a second)
             ok = await self.local.send(
-                main_device, params_lan or params, cmd_lan, seq, 1
+                main_device, params_lan or params, cmd_lan, seq, timeout_lan
             )
 
             # otherwise send a command through the cloud
@@ -126,7 +128,7 @@ class XRegistry(XRegistryBase):
 
         elif can_local:
             ok = await self.local.send(
-                main_device, params_lan or params, cmd_lan, seq, 5
+                main_device, params_lan or params, cmd_lan, seq
             )
             if ok != "online":
                 asyncio.create_task(self.check_offline(main_device))
@@ -222,8 +224,8 @@ class XRegistry(XRegistryBase):
         self.dispatcher_send(did, params)
 
     def local_update(self, msg: dict):
-        did: str = msg["deviceid"]
-        device: XDevice = self.devices.get(did)
+        mainid: str = msg["deviceid"]
+        device: XDevice = self.devices.get(mainid)
         params: dict = msg.get("params")
         # check device in known devices list
         if not device:
@@ -232,12 +234,12 @@ class XRegistry(XRegistryBase):
                 try:
                     # try to decrypt payload if we have right key in config
                     msg["params"] = params = self.local.decrypt_msg(
-                        msg, self.config["devices"][did]["devicekey"]
+                        msg, self.config["devices"][mainid]["devicekey"]
                     )
                 except Exception:
-                    _LOGGER.debug(f"{did} !! skip setup for encrypted device")
+                    _LOGGER.debug(f"{mainid} !! skip setup for encrypted device")
                     # save device to known list, so no more decrypt tries
-                    self.devices[did] = msg
+                    self.devices[mainid] = msg
                     return
 
             from ..devices import setup_diy
@@ -263,11 +265,12 @@ class XRegistry(XRegistryBase):
             # DIY device is still connected to the ewelink account
             device.pop("devicekey")
 
-        did = msg.get("subdevid", did)
+        # realid can be different from mainid for SPM-4RELAY
+        realid = msg.get("subdevid", mainid)
         tag = "Local3" if "host" in msg else "Local0"
 
         _LOGGER.debug(
-            f"{did} <= {tag} | {msg.get('host', '')} | %s | {msg.get('seq', '')}",
+            f"{realid} <= {tag} | {msg.get('host', '')} | %s | {msg.get('seq', '')}",
             params,
         )
 
@@ -283,12 +286,11 @@ class XRegistry(XRegistryBase):
         device["local_ts"] = time.time() + LOCAL_TTL
         device["local"] = True
 
-        if did == msg["deviceid"]:
-            self.dispatcher_send(did, params)
-        else:
-            # SPM-MAIN/SPM-4RELAY
-            self.dispatcher_send(msg["subdevid"], params)
-            self.dispatcher_send(did, None)
+        self.dispatcher_send(realid, params)
+
+        # send empty msg to main device for updating available flag
+        if realid != mainid:
+            self.dispatcher_send(mainid, None)
 
     async def run_forever(self):
         """This daemon function doing two things:
@@ -312,8 +314,9 @@ class XRegistry(XRegistryBase):
 
         uiid = device["extra"]["uiid"]
 
-        # POW, POWR2, S40, POWR3 - one channel, only cloud update
-        if uiid in (5, 32, 182, 190):
+        # [5] POW, [32] POWR2, [182] S40, [190] POWR3 - one channel, only cloud update
+        # [181] THR316D/THR320D
+        if uiid in (5, 32, 182, 190, 181):
             if self.cloud.online and device.get("online"):
                 params = {"uiActive": 60}
                 asyncio.create_task(self.cloud.send(device, params, timeout=0))

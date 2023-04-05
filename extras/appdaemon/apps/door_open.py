@@ -12,6 +12,7 @@ class DoorLight(hass.Hass):
                 self.listen_state(self.state_change, sensor)
 
     def state_change(self, entity, attribute, old, new, kwargs):
+        self.log(self.time())
         if (old in ["off", "closed"]) and (new in ["on", "open"]):
             # Cancel turn_off timer if there is one
             if self.timer != None:

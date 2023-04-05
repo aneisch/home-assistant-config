@@ -461,13 +461,13 @@ recorder:
 
 rest_command: !include rest_command.yaml
 
-samsungtv:
-  - host: 10.0.1.51
-    name: Living Room TV
-    turn_on_action:
-      - service: wake_on_lan.send_magic_packet
-        data:
-          mac: 44:5c:e9:2e:51:0a
+# samsungtv:
+#   - host: 10.0.1.51
+#     name: Living Room TV
+#     turn_on_action:
+#       - service: wake_on_lan.send_magic_packet
+#         data:
+#           mac: 44:5c:e9:2e:51:0a
 
 scene: !include scene.yaml
 
