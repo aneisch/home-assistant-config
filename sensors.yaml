@@ -108,21 +108,21 @@
   max_age:
     minutes: 5
 
-- platform: statistics
-  name: "Neighbor Rain Last 24 Hours"
-  entity_id: sensor.neighbor_rain_total
-  state_characteristic: change
-  max_age:
-    hours: 24
-  precision: 3
+# - platform: statistics
+#   name: "Neighbor Rain Last 24 Hours"
+#   entity_id: sensor.neighbor_rain_total
+#   state_characteristic: change
+#   max_age:
+#     hours: 24
+#   precision: 3
 
-- platform: statistics
-  name: "Neighbor Rain Last 1 Hour"
-  entity_id: sensor.neighbor_rain_total
-  state_characteristic: change
-  max_age:
-    hours: 1
-  precision: 3
+# - platform: statistics
+#   name: "Neighbor Rain Last 1 Hour"
+#   entity_id: sensor.neighbor_rain_total
+#   state_characteristic: change
+#   max_age:
+#     hours: 1
+#   precision: 3
 
 #############
 # TEMPLATES #

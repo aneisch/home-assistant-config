@@ -58,15 +58,15 @@
 #       device_class: battery
 
 # Neighbor Rain
-- trigger:
-    - platform: mqtt
-      topic: "sensor/rtl_433_attic"
-      payload: "True"
-      value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 11516 }}"
-  sensor:
-    - name: "Neighbor Rain Total"
-      state: "{{ trigger.payload_json.rain_in | float | round(5) }}"
-      unit_of_measurement: "in"
+# - trigger:
+#     - platform: mqtt
+#       topic: "sensor/rtl_433_attic"
+#       payload: "True"
+#       value_template: "{{ value_json.model == 'Acurite-Rain899' and value_json.id == 11516 }}"
+#   sensor:
+#     - name: "Neighbor Rain Total"
+#       state: "{{ trigger.payload_json.rain_in | float | round(5) }}"
+#       unit_of_measurement: "in"
 
 # Neighbor 5in1 wind / temp
 - trigger:

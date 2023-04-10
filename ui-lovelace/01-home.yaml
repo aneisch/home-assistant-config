@@ -189,9 +189,9 @@ cards:
           - sensor.neighbor_5in1_rain_total
           - sensor.neighbor_5in1_rain_last_1_hour
           - sensor.neighbor_5in1_rain_last_24_hours
-          - sensor.neighbor_rain_total
-          - sensor.neighbor_rain_last_1_hour
-          - sensor.neighbor_rain_last_24_hours
+          # - sensor.neighbor_rain_total
+          # - sensor.neighbor_rain_last_1_hour
+          # - sensor.neighbor_rain_last_24_hours
           - sensor.netatmo_home_rain_sum_rain_last_hour_inches
           - sensor.netatmo_home_rain_sum_rain_today_inches
           - sensor.compost_external_temperature
