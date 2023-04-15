@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.11"
+VERSION = "0.3.13"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -483,7 +483,21 @@ SENSOR_DATA = {
         "subject": ["delivery is delayed"],
     },
     "walmart_tracking": {"patern": ["#[0-9]{7}-[0-9]{7}"]},
-    "walmart_packages": {},
+    # Post NL
+    "post_nl_delivering": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket is onderweg", "De chauffer is onderweg"],
+    },
+    "post_nl_exception": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["We hebben je gemist"],
+    },
+    "post_nl_delivered": {
+        "email": ["noreply@notificatie.postnl.nl"],
+        "subject": ["Je pakket is bezorgd"],
+    },
+    "post_nl_packages": {},
+    "post_nl_tracking": {"pattern": ["3S?[0-9A-Z]{14}"]},
 }
 
 # Sensor definitions
@@ -874,11 +888,30 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:archive-alert",
         key="walmart_exception",
     ),
-    "walmart_packages": SensorEntityDescription(
-        name="Mail Walmart Packages",
+    # Post NL
+    "post_nl_delivering": SensorEntityDescription(
+        name="Post NL Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="post_nl_delivering",
+    ),
+    "post_nl_exception": SensorEntityDescription(
+        name="Post NL Missed Delivery",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-alert",
+        key="post_nl_exception",
+    ),
+    "post_nl_delivered": SensorEntityDescription(
+        name="Post NL Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="post_nl_delivered",
+    ),
+    "post_nl_packages": SensorEntityDescription(
+        name="Post NL Packages",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
-        key="walmart_packages",
+        key="post_nl_packages",
     ),
     ###
     # !!! Insert new sensors above these two !!!
@@ -954,5 +987,5 @@ SHIPPERS = [
     "bonshaw_distribution_network",
     "purolator",
     "intelcom",
-    "walmart",
+    "post_nl",
 ]

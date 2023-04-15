@@ -352,7 +352,7 @@ Indoor Light Automation Sunset:
   class: Timer
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
-  time_on: sunset #- 00:20:00
+  time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces #group.christmas_trees #,switch.ir_candles
   brightness: 255
 
@@ -361,7 +361,7 @@ Front Porch Lights Sunset:
   class: Timer
   entities: light.front_porch_lights,light.front_sconces
   #entities: light.front_porch_lights # Christmas only front porch
-  time_on: sunset #- 00:20:00
+  time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
   brightness: 254
 
@@ -379,7 +379,7 @@ Plant Light:
   class: Timer
   time_on: "09:30:00"
   time_off: "21:00:00"
-  entities: switch.plant_light
+  entities: switch.plant_light,light.plant_light_corner
 
 Living Room Lamp Follow:
   module: follow_me
@@ -418,6 +418,14 @@ TV Automation Smallgroup:
   time_off: "18:00:00"
   time_on: "22:00:00"
   entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
+
+Globe Lights Smallgroup:
+  module: entity_timer
+  constrain_days: wed
+  class: Timer
+  time_on: "18:30:00"
+  time_off: "21:00:00"
+  entities: switch.globe_lights
 
 # Turn on focus mode when desk LED on
 Mac Focus Mode Follow Desk LED:

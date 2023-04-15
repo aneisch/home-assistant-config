@@ -156,21 +156,21 @@ input_text: !include input_text.yaml
 #             title: "Ignore"
 
 light:
-  # - platform: limitlessled
-  #   bridges:
-  #     - host: 10.0.0.47
-  #       version: 5
-  #       port: 8899
-  #       groups:
-  #       # big bulbs
-  #       #- number: 1
-  #       #  type: rgbw
-  #       #  name: Garage
-  #       #  fade: on
-  #       - number: 2
-  #         type: rgbw
-  #         name: aquarium_light
-  #         fade: on
+  - platform: limitlessled
+    bridges:
+      - host: 10.0.0.47
+        version: 5
+        port: 8899
+        groups:
+          # big bulbs
+          #- number: 1
+          #  type: rgbw
+          #  name: Garage
+          #  fade: on
+          - number: 2
+            type: rgbw
+            name: plant_light_corner
+            fade: on
   - platform: group
     name: Kitchen Lights
     entities:

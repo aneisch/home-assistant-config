@@ -108,7 +108,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.9.0";
+const version = "4.10.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -334,10 +334,15 @@ function getHaPanelLovelace() {
 
 function getHaPanelLovelaceConfig() {
 	let pl = getHaPanelLovelace();
+	let conf = {};
 	if (pl && pl.lovelace && pl.lovelace.config && pl.lovelace.config.wallpanel) {
-		return pl.lovelace.config.wallpanel;
+		for (let key in pl.lovelace.config.wallpanel) {
+			if (key in defaultConfig) {
+				conf[key] = pl.lovelace.config.wallpanel[key];
+			}
+		}
 	}
-	return {}
+	return conf;
 }
 
 
@@ -356,14 +361,27 @@ function getCurrentView() {
 
 function setSidebarHidden(hidden) {
 	try {
-		elHaMain.shadowRoot.querySelector("ha-sidebar").style.visibility = (hidden ? "hidden" : "visible");
+		let sidebar = elHaMain.shadowRoot.querySelector("ha-sidebar");
+		if (sidebar) {
+			sidebar.style.visibility = (hidden ? "hidden" : "visible");
+		}
+		let drawer = elHaMain.shadowRoot.querySelector("ha-drawer");
+		if (drawer) {
+			drawer = drawer.shadowRoot.querySelector(".mdc-drawer");
+		}
 		if (hidden) {
 			elHaMain.style.setProperty("--app-drawer-width", 0);
 			elHaMain.style.setProperty("--mdc-drawer-width", 0);
+			if (drawer) {
+				drawer.style.setProperty("display", "none");
+			}
 		}
 		else {
 			elHaMain.style.removeProperty("--app-drawer-width");
 			elHaMain.style.removeProperty("--mdc-drawer-width");
+			if (drawer) {
+				drawer.style.removeProperty("display");
+			}
 		}
 		window.dispatchEvent(new Event('resize'));
 	}
@@ -535,12 +553,15 @@ class WallpanelView extends HuiView {
 		this.blockEventsUntil = 0;
 		this.screensaverStartedAt;
 		this.screensaverStoppedAt = new Date();
+		this.infoBoxContentCreatedDate;
 		this.idleSince = Date.now();
 		this.bodyOverflowOrig = null;
 		this.lastProfileSet = insertBrowserID(config.profile);
 		this.lastMove = null;
 		this.lastCorner = 0; // 0 - top left, 1 - bottom left, 2 - bottom right, 3 - top right
 		this.translateInterval = null;
+		this.lastClickTime = 0; 
+		this.clickCount = 0;
 
 		this.__hass = elHass.__hass;
 		this.__cards = [];
@@ -652,10 +673,10 @@ class WallpanelView extends HuiView {
 		this.debugBox.removeAttribute('style');
 		this.debugBox.style.position = 'fixed';
 		this.debugBox.style.pointerEvents = "none";
-		this.debugBox.style.top = '40%';
-		this.debugBox.style.left = 0;
+		this.debugBox.style.top = '0%';
+		this.debugBox.style.left = '0%';
 		this.debugBox.style.width = '100%';
-		this.debugBox.style.height = '60%';
+		this.debugBox.style.height = '100%';
 		this.debugBox.style.background = '#00000099';
 		this.debugBox.style.color = '#ffffff';
 		this.debugBox.style.zIndex = 1001;
@@ -902,6 +923,7 @@ class WallpanelView extends HuiView {
 
 	createInfoBoxContent() {
 		if (config.debug) console.debug("Creating info box content");
+		this.infoBoxContentCreatedDate = new Date();
 		this.infoBoxContent.innerHTML = '';
 		this.__badges = [];
 		this.__cards = [];
@@ -1202,21 +1224,6 @@ class WallpanelView extends HuiView {
 		});
 	}
 
-	createImagePathInfoObject(imagePath) {
-		const imageInfo = {url: imagePath};
-
-		const extractPathComponentToImageInfo = (key, stringToSplitOn) => {
-			const components = imagePath.split(stringToSplitOn);
-			if (components.length > 1 && components[1]) {
-				imageInfo[key] = components[1].substring(1);
-			}
-		}
-		extractPathComponentToImageInfo('path', 'media-source://media_source');
-		extractPathComponentToImageInfo('relativePath', config.image_url);
-
-		return imageInfo;
-	}
-
 	setImageDataInfo(img) {
 		let imageInfo = imageInfoCache[img.imageDataKey];
 		let infoElement = null;
@@ -1241,7 +1248,16 @@ class WallpanelView extends HuiView {
 				return "";
 			}
 			if (img.imagePath) {
-				imageInfo["image"] = this.createImagePathInfoObject(img.imagePath);
+				imageInfo.image = {
+					url: img.imagePath,
+					path: img.imagePath.replace("media-source://media_source/", ""),
+					relativePath: img.imagePath.replace(config.image_url, "").replace(/^\/+/, ""),
+					folderName: ""
+				};
+				const parts = img.imagePath.split("/");
+				if (parts.length >= 2) {
+					imageInfo.image.folderName = parts[parts.length - 2]; 
+				}
 			}
 			let prefix = "";
 			let suffix = "";
@@ -1664,7 +1680,13 @@ class WallpanelView extends HuiView {
 	}
 
 	updateScreensaver() {
-		let now = Date.now();
+		let currentDate = new Date();
+		let now = currentDate.getTime();
+		if (this.infoBoxContentCreatedDate && this.infoBoxContentCreatedDate.getDate() != currentDate.getDate()) {
+			// Day changed since creation of info box content.
+			// Recreate to update energy cards / energy collection start / end date.
+			this.createInfoBoxContent();
+		}
 
 		if (config.info_move_interval > 0 && now - this.lastMove >= config.info_move_interval*1000) {
 			if (config.info_move_pattern === 'random') {
@@ -1705,8 +1727,18 @@ class WallpanelView extends HuiView {
 
 		if (config.debug) {
 			let html = '';
+			let conf = {};
+			for (const key in config) {
+				if (["profiles"].includes(key)) {
+					conf[key] = "...";
+				}
+				else {
+					conf[key] = config[key];
+				}
+			}
+			
 			html += `Version: ${version}<br/>`;
-			html += `Config: ${JSON.stringify(config)}<br/>`;
+			html += `Config: ${JSON.stringify(conf)}<br/>`;
 			html += `Fullscreen: ${fullscreen}<br/>`;
 			html += `Screensaver started at: ${wallpanel.screensaverStartedAt}<br/>`;
 			html += `Screen wake lock: enabled=${screenWakeLock.enabled} native=${screenWakeLock.nativeWakeLockSupported} lock=${screenWakeLock._lock} player=${screenWakeLock._player} error=${screenWakeLock.error}<br/>`;
@@ -1728,7 +1760,7 @@ class WallpanelView extends HuiView {
 		}
 	}
 
-	handleInteractionEvent(e, isClick) {
+	handleInteractionEvent(evt, isClick) {
 		let now = Date.now();
 		this.idleSince = now;
 		if (this.messageBoxTimeout) {
@@ -1741,21 +1773,29 @@ class WallpanelView extends HuiView {
 		}
 		if (this.screensaverStartedAt || this.blockEventsUntil > now) {
 			if (isClick) {
-				e.preventDefault();
+				evt.preventDefault();
 			}
-			e.stopImmediatePropagation();
+			evt.stopImmediatePropagation();
 		}
 		if (! this.screensaverStartedAt || this.blockEventsUntil > now) {
 			return;
 		}
-		if (e instanceof MouseEvent || e instanceof TouchEvent) {
-			let x = e.clientX;
-			let right = 0.0
-			if (!x && e.touches && e.touches[0]) {
-				x = e.touches[0].clientX;
+		if (evt instanceof MouseEvent || evt instanceof TouchEvent) {
+			let x = evt.clientX;
+			let y = evt.clientY;
+			let right = 0.0;
+			let bootom = 0.0;
+			if (!x && evt.touches && evt.touches[0]) {
+				x = evt.touches[0].clientX;
+			}
+			if (!y && evt.touches && evt.touches[0]) {
+				y = evt.touches[0].clientY;
 			}
 			if (x) {
 				right = (this.screensaverContainer.clientWidth - x) / this.screensaverContainer.clientWidth;
+			}
+			if (y) {
+				bootom = (this.screensaverContainer.clientHeight - y) / this.screensaverContainer.clientHeight;
 			}
 			if (right <= 0.15) {
 				if (
@@ -1765,6 +1805,21 @@ class WallpanelView extends HuiView {
 				) {
 					this.switchActiveImage(500);
 				}
+				return;
+			}
+			else if (right >= 0.40 && right <= 0.60 && bootom <= 0.10) {
+				let now = new Date();
+				if (isClick && now - this.lastClickTime < 500) {
+					this.clickCount += 1;
+					if (this.clickCount == 3) {
+						config.debug = ! config.debug;
+						this.debugBox.style.visibility = config.debug ? 'visible' : 'hidden';
+					}
+				}
+				else {
+					this.clickCount = 1;
+				}
+				this.lastClickTime = now;
 				return;
 			}
 		}
