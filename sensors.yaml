@@ -86,6 +86,14 @@
   command: "if $(lsusb | grep -q 1e0e); then echo on; else echo off; fi"
 
 - platform: statistics
+  name: "Neighbor 5in1 Rain Last 5 Days"
+  entity_id: sensor.neighbor_5in1_rain_total
+  state_characteristic: change
+  max_age:
+    days: 5
+  precision: 3
+
+- platform: statistics
   name: "Neighbor 5in1 Rain Last 24 Hours"
   entity_id: sensor.neighbor_5in1_rain_total
   state_characteristic: change

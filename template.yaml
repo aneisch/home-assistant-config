@@ -1,4 +1,4 @@
-# Compost
+# Compos
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"

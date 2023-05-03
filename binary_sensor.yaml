@@ -1,17 +1,3 @@
-# Doors moved to ESPHome
-
-# - platform: digital_ocean
-#   droplets:
-#     - !secret DO_host
-
-- platform: workday
-  country: US
-  workdays: [mon, tue, wed, thu, fri]
-  excludes: [sat, sun]
-  # add_holidays:
-  #   - "2020-02-24"
-  #   - "2020-04-25"
-
 - platform: ping
   name: Thermostat Online
   host: 10.0.0.29
@@ -20,11 +6,6 @@
 - platform: ping
   name: Andrew Work Laptop
   host: 10.0.1.27
-  count: 2
-
-- platform: ping
-  name: Attic Pi
-  host: 10.0.1.3
   count: 2
 
 # - platform: ping

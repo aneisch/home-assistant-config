@@ -52,7 +52,6 @@
 #     state_topic: "mom_and_dad/binary_sensor/automation_safety/state"
 #     name: gate_automation_safety
 
-
 automation:
   # - alias: "Gate Heading Comparison Action Notify"
   #   id: "gate_heading_notify"
@@ -68,14 +67,16 @@ automation:
 
   - alias: "IFTTT Webhook Trigger Magnolia"
     id: "ifttt_webhook_trigger_magnolia"
-    mode: 'single'
-    initial_state: 'on'
+    mode: "single"
+    initial_state: "on"
     trigger:
       - platform: webhook
         webhook_id: !secret mom_and_dad_gate_webhook_id
+        local_only: false
         id: gate
       - platform: webhook
         webhook_id: !secret mom_and_dad_garage_webhook_id
+        local_only: false
         id: garage
     action:
       - service: cover.toggle
@@ -86,18 +87,20 @@ automation:
             {% elif trigger.id == 'garage' %}
               cover.mom_and_dad_garage
             {% endif %}
-      - delay: '00:00:10'
+      - delay: "00:00:10"
 
   - alias: "Worker Trigger Magnolia"
     id: "webhook_trigger_magnolia"
-    mode: 'single'
-    initial_state: 'on'
+    mode: "single"
+    initial_state: "on"
     trigger:
       - platform: webhook
         webhook_id: !secret cf_otp_webhook_gate
+        local_only: false
         id: gate
       - platform: webhook
         webhook_id: !secret cf_otp_webhook_garage
+        local_only: false
         id: garage
     action:
       - service: cover.toggle

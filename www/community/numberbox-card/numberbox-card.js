@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.7');
+console.info('NUMBERBOX_CARD 4.8');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -333,6 +333,7 @@ setConfig(config) {
 		param: "value",
 		delay: 1000,
 		speed: 0,
+		refresh: 0,
 		initial: undefined,
 		moreinfo: config.entity,
 		...config
@@ -357,7 +358,7 @@ shouldUpdate(changedProps) {
 	const o = this.old.t;
 	for(const p in o){if(p in this._hass.states && this._hass.states[p].last_updated != o[p]){ return true; }}
 	if( changedProps.has('config') || changedProps.has('stateObj') || changedProps.has('pending') ){
-		if(this.old.state != this.state){ return true; }
+		if(this.old.state != this.state || this.config.refresh){ return true; }
 	}
 }
 

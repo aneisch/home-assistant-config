@@ -1,9 +1,9 @@
 # Get latest stable and beta versions
 # as well as running version. Do things
 # like run our current config against
-# beta and stable releases to check 
-# compatibility and notify of available 
-# upgrade. 
+# beta and stable releases to check
+# compatibility and notify of available
+# upgrade.
 
 input_boolean:
   # Automation when off --> on to call upgrade
@@ -20,7 +20,7 @@ input_text:
 sensor:
   - platform: rest
     name: ha_github_version
-    resource: 'https://api.github.com/repos/home-assistant/core/releases/latest'
+    resource: "https://api.github.com/repos/home-assistant/core/releases/latest"
     headers:
       accept: application/vnd.github.v3+json
       content-type: application/json
@@ -52,7 +52,7 @@ automation:
   - alias: "Auto Update: Trigger Github Action BETA"
     id: "hass_github_action_beta"
     mode: queued
-    initial_state: 'on'
+    initial_state: "on"
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_beta
@@ -63,16 +63,16 @@ automation:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/actions
           # Options are: beta, stable
-          branch: 'beta'
+          branch: "beta"
           release_type: >
             '{% if states('sensor.ha_docker_version_beta').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
-          version: '{{ trigger.to_state.state }}'
+          version: "{{ trigger.to_state.state }}"
 
   # Trigger GitHub action(s) when new stable version is available
   - alias: "Auto Update: Trigger Github Action STABLE"
     id: "hass_github_action_stable"
     mode: queued
-    initial_state: 'on'
+    initial_state: "on"
     trigger:
       - platform: state
         entity_id: sensor.ha_docker_version_stable
@@ -83,18 +83,19 @@ automation:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/actions
           # Options are: beta, stable
-          branch: 'stable'
+          branch: "stable"
           release_type: >
             '{% if states('sensor.ha_docker_version_stable').split(".")[-1:][0].split("b")[0] == "0" %}major{% else %}minor{% endif %}'
-          version: '{{ trigger.to_state.state }}'
+          version: "{{ trigger.to_state.state }}"
 
   # Respond to GitHub action to begin auto-upgrade decision flow
   - alias: "Auto Update: Github Action Callback"
     id: "auto_upgrade_boolean"
-    initial_state: 'on'
+    initial_state: "on"
     trigger:
       platform: webhook
       webhook_id: !secret hass_github_action_webhook
+      local_only: false
     action:
       service: >
         {% if (states("input_text.hass_target_branch") not in ["stable","beta"]) and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) %}
@@ -115,7 +116,7 @@ automation:
   - alias: "Auto Update: Install Update or Notify"
     id: auto_upgrade_upgrade
     mode: single
-    initial_state: 'on'
+    initial_state: "on"
     trigger:
       - platform: state
         entity_id: input_boolean.hass_update_trigger
@@ -126,9 +127,9 @@ automation:
         to: "home"
     condition: '{{ states("input_boolean.hass_update_trigger") == "on"}}'
     action:
-      # Delay if triggered by occupancy 
+      # Delay if triggered by occupancy
       - delay: "{% if trigger.entity_id == 'person.andrew' %}00:10:00{% else %}00:00:01{% endif %}"
-      - service: > 
+      - service: >
           {% if states("person.andrew") == "home" %}
             script.hass_update_install
           {% else %}
@@ -152,7 +153,7 @@ automation:
           - input_boolean.hass_update_trigger
 
 shell_command:
-  github_action_trigger: "curl -v -X POST -u 'aneisch:{{ github_token }}' -H 'Accept: application/vnd.github.everest-preview+json' -H 'Content-Type: application/json' --data '{\"event_type\":\"{{ branch[0]|upper}}{{branch[1:] }}: {{ release_type }} release {{ version }}\", \"client_payload\":{\"branch\":\"{{ branch }}\",\"release_type\":\"{{ release_type }}\",\"version\":\"{{ version }}\"}}' https://api.github.com/repos/aneisch/home-assistant-config/dispatches"
+  github_action_trigger: 'curl -v -X POST -u ''aneisch:{{ github_token }}'' -H ''Accept: application/vnd.github.everest-preview+json'' -H ''Content-Type: application/json'' --data ''{"event_type":"{{ branch[0]|upper}}{{branch[1:] }}: {{ release_type }} release {{ version }}", "client_payload":{"branch":"{{ branch }}","release_type":"{{ release_type }}","version":"{{ version }}"}}'' https://api.github.com/repos/aneisch/home-assistant-config/dispatches'
   update_hass: "nohup /config/scripts/update_hass.sh &"
   pull_hass: "nohup /config/scripts/pull_hass.sh &"
   switch_hass_running_branch: "nohup /config/scripts/switch_hass_running_branch.sh {{ version }} &"

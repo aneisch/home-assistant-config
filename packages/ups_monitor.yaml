@@ -4,7 +4,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        from: 'ONLINE'
+        from: "ONLINE"
     action:
       - service: script.notify_wrapper
         data:
@@ -15,11 +15,11 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        to: 'ONLINE'
+        to: "ONLINE"
     action:
       - service: script.notify_wrapper
         data:
-          message: > 
+          message: >
             {% if trigger.from_state.state == "ONBATT" %}
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
             {% else %}
@@ -37,7 +37,7 @@ automation:
     condition:
       condition: state
       entity_id: switch.nas
-      state: 'on'
+      state: "on"
     action:
       - service: script.notify_wrapper
         data:
@@ -50,13 +50,13 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        from: "ONLINE"
+        #from: "ONLINE"
         to: "ONBATT"
         for:
           minutes: 5
     action:
       - service: homeassistant.turn_off
-        entity_id: 
+        entity_id:
           - switch.docker_zwavejs
           - switch.docker_vscode
           - switch.docker_thermostat_api_server
@@ -68,13 +68,13 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        from: "ONBATT"
+        #from: "ONBATT"
         to: "ONLINE"
         for:
           seconds: 30
     action:
       - service: homeassistant.turn_on
-        entity_id: 
+        entity_id:
           - switch.docker_zwavejs
           - switch.docker_vscode
           - switch.docker_thermostat_api_server
@@ -87,10 +87,7 @@ automation:
       platform: numeric_state
       entity_id: sensor.ups_time_left
       below: 10
-    condition:
-      - condition: state
-        entity_id: sensor.ups_status
-        state: "ONBATT"
+    condition: "{{ statest('sensor.ups_status') != 'ONLINE' }}"
     action:
       - service: script.notify_wrapper
         data:

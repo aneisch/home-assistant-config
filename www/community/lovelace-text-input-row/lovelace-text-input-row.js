@@ -1,16 +1,20 @@
-class TextInputRow extends Polymer.Element {
+const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
+const html = LitElement.prototype.html;
+const css = LitElement.prototype.css;
 
-  static get template() {
-    return Polymer.html`
+class TextInputRow extends LitElement {
+
+  render() {
+    return html`
       <paper-input
-          label="[[label]]"
-          value="[[value]]"
-          minlength="[[minlength]]"
-          maxlength="[[maxlength]]"
-          autoValidate="[[pattern]]"
-          pattern="[[pattern]]"
-          type="[[mode]]"
-          on-change="valueChanged"
+          label="${this.label}"
+          value="${this.value}"
+          minlength="${this.minlength}"
+          maxlength="${this.maxlength}"
+          autoValidate="${this.pattern}"
+          pattern="${this.pattern}"
+          type="${this.mode}"
+          @change="${this.valueChanged}"
           id="textinput"
           placeholder=""
         ></paper-input>
@@ -27,7 +31,7 @@ class TextInputRow extends Polymer.Element {
   }
 
   valueChanged(ev) {
-    const newValue = this.$.textinput.value;
+    const newValue = this.shadowRoot.querySelector("#textinput").value;
     const param = {
       entity_id: this._config.entity,
       value: newValue,

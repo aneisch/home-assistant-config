@@ -211,7 +211,9 @@ services:
             - TZ=America/Chicago
             - S6_READ_ONLY_ROOT=1
             - MQTTHOST=10.0.1.22
-            # docker run -it --rm --entrypoint /app/ring-mqtt/node_modules/ring-client-api/ring-auth-cli.js tsightler/ring-mqtt
+            # docker run -it --rm --entrypoint /bin/bash tsightler/ring-mqtt
+            # /app/ring-mqtt/init-ring-mqtt.js
+            # cat /data/ring-state.json
             - RINGTOKEN=TOKEN
             - ENABLEMODES=true
             - SNAPSHOTMODE=all

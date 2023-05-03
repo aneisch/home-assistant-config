@@ -281,6 +281,7 @@
   trigger:
     platform: webhook
     webhook_id: !secret panic_script_webhook
+    local_only: false
   action:
     - service: media_player.volume_set
       data:
@@ -299,6 +300,7 @@
   trigger:
     - platform: webhook
       webhook_id: !secret cellular_modem_power_toggle_webhook
+      local_only: false
     - platform: state
       entity_id: sensor.cellular_modem_power
       from: "on"
@@ -312,6 +314,7 @@
   trigger:
     platform: webhook
     webhook_id: !secret github_recipes_webhook
+    local_only: false
   action:
     - service: shell_command.pull_recipes
 
@@ -699,23 +702,26 @@
     - platform: webhook
       webhook_id: !secret signal_bvst_contact_webhook_id
       id: contact
-    - platform: webhook
-      webhook_id: !secret signal_bvst_intake_webhook_id
-      id: intake_forms
+      local_only: false
+    # - platform: webhook
+    #   webhook_id: !secret signal_bvst_intake_webhook_id
+    #   id: intake_forms
+    #   local_only: false
     - platform: webhook
       webhook_id: !secret signal_bvst_insurance_webhook_id
       id: insurance
+      local_only: false
   action:
     - if: "{{ trigger.id == 'contact' }}"
       then:
         - service: notify.signal_bvst
           data:
             message: "{{ trigger.json['message'] }}"
-    - if: "{{ trigger.id == 'intake_forms' }}"
-      then:
-        - service: notify.signal_self
-          data:
-            message: "Intake forms sent to {{ trigger.json['email'] }}"
+    # - if: "{{ trigger.id == 'intake_forms' }}"
+    #   then:
+    #     - service: notify.signal_self
+    #       data:
+    #         message: "Intake forms sent to {{ trigger.json['email'] }}"
     - if: "{{ trigger.id == 'insurance' }}"
       then:
         - service: notify.signal_bvst_ins
@@ -889,16 +895,20 @@
     - service: lock.unlock
       entity_id: lock.front_door
 
-- alias: "Attic Pi Health"
-  id: "attic_pi_health"
+- alias: "Turn off AC Fan"
+  # In case I manually turned on the fan to clear stale air
+  id: "turn_off_ac_fan"
   trigger:
     - platform: state
-      entity_id: binary_sensor.attic_pi
-      from: on
-      to: off
+      entity_id: sensor.thermostat_state
+      to: "Idle Fan"
       for:
-        minutes: 5
+        minutes: 30
   action:
-    service: script.notify_wrapper
-    data:
-      message: "Attic Pi Offline"
+    - service: script.notify_wrapper
+      data:
+        message: "AC fan on idle for 30 minutes, setting back to auto"
+    - service: climate.set_fan_mode
+      entity_id: climate.thermostat
+      data:
+        fan_mode: auto

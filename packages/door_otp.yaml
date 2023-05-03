@@ -1,4 +1,4 @@
-# Cloudflare worker calls this autmation via webhook. 
+# Cloudflare worker calls this autmation via webhook.
 # Worker code at extras/door_otp_worker.js
 
 automation:
@@ -8,6 +8,7 @@ automation:
     trigger:
       - platform: webhook
         webhook_id: !secret cf_lock_otp_webhook
+        local_only: false
     action:
       - service: zwave_js.clear_lock_usercode
         entity_id: lock.garage_exterior_door

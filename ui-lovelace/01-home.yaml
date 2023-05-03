@@ -210,14 +210,6 @@ cards:
 
   - type: custom:vertical-stack-in-card
     cards:
-      - type: markdown
-        content: |
-          {% if states("binary_sensor.trashcan") == "off" %}
-            **Trashcan is at street**
-          {% else %}
-            **Trashcan is at house**
-          {% endif %}
-
       - type: calendar
         entities:
           - calendar.garbage_collection

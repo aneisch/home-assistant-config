@@ -10,7 +10,7 @@ home_empty:
         entity_id: input_boolean.security_status
     - service: homeassistant.turn_off
       data:
-        entity_id: 
+        entity_id:
           - group.master_bedroom
           - group.common_areas
     # Before dark, turn off christmas trees in front
@@ -27,23 +27,23 @@ home_occupied:
     - service: homeassistant.turn_off
       data:
         entity_id: input_boolean.security_status
-    - if: "{{ now().hour >= 18 }}"
+    - if: "{{ now().hour <= 7 or now().hour >= 18}}"
       then:
         - service: light.turn_on
           data:
-            entity_id: 
+            entity_id:
               - light.master_bedroom_lamps
               #- light.living_room_sconces
             # Not so bright if it's late..
-            brightness: > 
-              {% if now().hour >= 20 %}
+            brightness: >
+              {% if now().hour <= 7 or now().hour >= 20 %}
               128
               {% else %}
               254
               {% endif %}
         - service: homeassistant.turn_on
           data:
-            entity_id: 
+            entity_id:
               - group.under_cabinet_lights
               #- group.christmas # dining, office, master tree follow 'on' via appdaemon
 
@@ -124,7 +124,7 @@ master_bedroom_wakeup:
 master_bedroom_bedtime:
   sequence:
     #- service: script.turn_on # Calling this way allows the sequence to continue without blocking
-    #  entity_id: script.christmas_goodnight 
+    #  entity_id: script.christmas_goodnight
     - service: script.appdaemon_ac_night
     - service: switch.turn_on
       data:
@@ -154,7 +154,7 @@ master_bedroom_bedtime:
       entity_id: input_boolean.goodnight
     - service: lock.lock
       target:
-        entity_id: 
+        entity_id:
           - lock.front_door
           - lock.garage_exterior_door
     - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
@@ -212,7 +212,7 @@ master_bedroom_bedtime:
 #               entity_id: media_player.spotify
 #               volume_level: >
 #                 {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
-#           - delay: 
+#           - delay:
 #               seconds: 0.4
 #     - service: media_player.media_pause
 #       data_template:
@@ -231,7 +231,7 @@ master_bedroom_bedtime:
 #     - service: media_player.volume_set
 #       data:
 #         entity_id: media_player.spotify
-#         volume_level: 0.40    
+#         volume_level: 0.40
 #     - service: media_player.play_media
 #       data:
 #         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
@@ -261,31 +261,31 @@ notify_wrapper:
           then:
             - service: notify.pushover
               data:
-                message: '{{ message }}'
+                message: "{{ message }}"
                 data:
-                  priority: '{{ data.priority }}'
+                  priority: "{{ data.priority }}"
                   expire: 600
                   retry: 30
           # If internet and no priority set: send via signal
           else:
             - service: notify.signal_self
               data:
-                message: '{{ message }}'
+                message: "{{ message }}"
       else:
         # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
-          then: 
+          then:
             - service: notify.cellular_message
-              data: 
-                message: '{{ message }}'
+              data:
+                message: "{{ message }}"
                 data:
-                  priority: '{{ data.priority }}' # passing priority to the notify_wrapper script is optional
+                  priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional
                   # 1 results in a notification that overrides DnD
                   # 2 results in an emergency level notification (requires ack)
           else:
             - service: notify.cellular_message
-              data: 
-                message: '{{ message }}'
+              data:
+                message: "{{ message }}"
 
 copy:
   sequence:
@@ -296,7 +296,7 @@ appdaemon_ac_night:
     # Also constrained by boolean in appdaemon
     - condition: state
       entity_id: input_boolean.ac_automation
-      state: 'on'
+      state: "on"
     - service: rest_command.adjust_night
 
 appdaemon_ac_morning:
@@ -304,7 +304,7 @@ appdaemon_ac_morning:
     # Also constrained by boolean in appdaemon
     - condition: state
       entity_id: input_boolean.ac_automation
-      state: 'on'
+      state: "on"
     - service: rest_command.adjust_morning
 
 too_cold:
@@ -377,7 +377,7 @@ desk_led_red:
     - service: homeassistant.turn_on
       entity_id: light.desk_led
       data:
-        rgb_color: [255,0,0]
+        rgb_color: [255, 0, 0]
         brightness: 255
         effect: "custom scan"
 desk_led_white:
@@ -385,6 +385,6 @@ desk_led_white:
     - service: homeassistant.turn_on
       entity_id: light.desk_led
       data:
-        rgb_color: [255,255,255]
+        rgb_color: [255, 255, 255]
         brightness: 255
         effect: "custom scan"

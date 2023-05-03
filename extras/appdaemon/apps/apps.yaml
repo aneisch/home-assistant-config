@@ -13,7 +13,7 @@ AC Automation:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: "82"
+  cool_day: "77"
   cool_night: "72"
   cool_unoccupied: "82"
   heat_day: "63"
@@ -379,7 +379,13 @@ Plant Light:
   class: Timer
   time_on: "09:30:00"
   time_off: "21:00:00"
-  entities: switch.plant_light,light.plant_light_corner
+  entities: switch.plant_light
+
+Plant Light Corner:
+  module: follow_me
+  class: Follow
+  leader: switch.plant_light
+  follower: light.plant_light_corner
 
 Living Room Lamp Follow:
   module: follow_me

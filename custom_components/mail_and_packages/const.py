@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.13"
+VERSION = "0.3.14"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -124,6 +124,17 @@ AMAZON_TIME_PATTERN = [
     "Entrega:",
     "A chegar:",
     "Arrivée :",
+]
+AMAZON_TIME_PATTERN_END = [
+    "Previously expected:",
+    "This contains",
+    "Track your",
+    "Per tracciare il tuo pacco",
+    "View or manage order",
+    "Acompanhar",
+    "Sguimiento",
+    "Verfolge deine(n) Artikel",
+    "Suivre",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -241,7 +252,7 @@ SENSOR_DATA = {
         "subject": [
             "DHL On Demand Delivery",
             "Powiadomienie o przesyłce",
-            "Ihr DHL Paket wurde zugestellt",
+            "Paket wurde zugestellt",
         ],
         "body": [
             "has been delivered",
@@ -258,13 +269,15 @@ SENSOR_DATA = {
         ],
         "subject": [
             "DHL On Demand Delivery",
-            "Ihr DHL Paket kommt heute",
+            "Paket kommt heute",
+            "Paket wird gleich zugestellt",
             "Powiadomienie o przesyłce",
         ],
         "body": [
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            "voraussichtlich innerhalb",
         ],
     },
     "dhl_packages": {},
@@ -275,11 +288,20 @@ SENSOR_DATA = {
         "subject": ["Hermes has successfully delivered your"],
     },
     "hermes_delivering": {
-        "email": ["donotreply@myhermes.co.uk"],
-        "subject": ["parcel is now with your local Hermes courier"],
+        "email": [
+            "donotreply@myhermes.co.uk",
+            "noreply@paketankuendigung.myhermes.de",
+        ],
+        "subject": [
+            "parcel is now with your local Hermes courier",
+            "Ihre Hermes Sendung",
+        ],
+        "body": [
+            "Voraussichtliche Zustellung",
+        ],
     },
     "hermes_packages": {},
-    "hermes_tracking": {"pattern": ["\\d{16}"]},
+    "hermes_tracking": {"pattern": ["\\d{11,20}"]},
     # Royal Mail
     "royal_delivered": {
         "email": ["no-reply@royalmail.com"],
@@ -372,7 +394,36 @@ SENSOR_DATA = {
     "dpd_com_pl_packages": {},
     "dpd_com_pl_tracking": {
         # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
-        "pattern": ["\\d{13}[A-Z0-9]{1,2}"],
+        "pattern": [
+            "\\d{13}[A-Z0-9]{1,2}",
+        ],
+    },
+    # DPD
+    "dpd_delivered": {
+        "email": [
+            "noreply@service.dpd.de",
+        ],
+        "subject": [
+            "Ihr Paket ist da!",
+        ],
+    },
+    "dpd_delivering": {
+        "email": [
+            "noreply@service.dpd.de",
+        ],
+        "subject": [
+            "Bald ist ihr DPD Paket da",
+        ],
+        "body": [
+            "Paketnummer",
+        ],
+    },
+    "dpd_packages": {},
+    "dpd_tracking": {
+        # https://tracktrace.dpd.com.pl/parcelDetails?p1=13490015284111
+        "pattern": [
+            "\\d{11,20}",
+        ],
     },
     # GLS
     "gls_delivered": {
@@ -382,21 +433,31 @@ SENSOR_DATA = {
         ],
         "subject": [
             "informacja o dostawie",
+            "wurde durch GLS zugestellt",
         ],
-        "body": ["została dzisiaj dostarczona"],
+        "body": [
+            "została dzisiaj dostarczona",
+            "Adresse erfolgreich zugestellt",
+        ],
     },
     "gls_delivering": {
         "email": [
             "noreply@gls-group.eu",
             "powiadomienia@allegromail.pl",
         ],
-        "subject": ["paczka w drodze"],
-        "body": ["Zespół GLS"],
+        "subject": [
+            "paczka w drodze",
+            "ist unterwegs",
+        ],
+        "body": [
+            "Zespół GLS",
+            "GLS-Team",
+        ],
     },
     "gls_packages": {},
     "gls_tracking": {
         # https://gls-group.eu/GROUP/en/parcel-tracking?match=51687952111
-        "pattern": ["\\d{11}"]
+        "pattern": ["\\d{11,12}"]
     },
     # Australia Post
     "auspost_delivered": {
@@ -482,7 +543,7 @@ SENSOR_DATA = {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
-    "walmart_tracking": {"patern": ["#[0-9]{7}-[0-9]{7}"]},
+    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7}"]},
     # Post NL
     "post_nl_delivering": {
         "email": ["noreply@notificatie.postnl.nl"],
@@ -498,6 +559,18 @@ SENSOR_DATA = {
     },
     "post_nl_packages": {},
     "post_nl_tracking": {"pattern": ["3S?[0-9A-Z]{14}"]},
+    # Post DE
+    "post_de_delivering": {
+        "email": [
+            "ankuendigung@brief.deutschepost.de",
+        ],
+        "subject": [
+            "Ein Brief kommt in Kürze bei Ihnen an",
+        ],
+    },
+    "post_de_delivered": {},
+    "post_de_packages": {},
+    "post_de_tracking": {},
 }
 
 # Sensor definitions
@@ -761,6 +834,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="dpd_com_pl_packages",
     ),
+    # DPD
+    "dpd_delivering": SensorEntityDescription(
+        name="Mail DPD Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_delivering",
+    ),
+    "dpd_delivered": SensorEntityDescription(
+        name="Mail DPD Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_delivered",
+    ),
+    "dpd_packages": SensorEntityDescription(
+        name="Mail DPD Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_packages",
+    ),
     # GLS
     "gls_delivering": SensorEntityDescription(
         name="Mail GLS Delivering",
@@ -772,7 +864,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         name="Mail GLS Delivered",
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant",
-        key="dpd_com_pl_delivered",
+        key="gls_delivered",
     ),
     "gls_packages": SensorEntityDescription(
         name="Mail GLS Packages",
@@ -913,6 +1005,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_nl_packages",
     ),
+    # Post DE
+    "post_de_delivering": SensorEntityDescription(
+        name="Post DE Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="post_de_delivering",
+    ),
+    # "post_de_delivered": SensorEntityDescription(
+    #    name="Post DE Delivered",
+    #    native_unit_of_measurement="package(s)",
+    #    icon="mdi:truck-delivery",
+    #    key="post_de_delivered",
+    # ),
+    "post_de_packages": SensorEntityDescription(
+        name="Post DE Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="post_de_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -979,9 +1090,9 @@ SHIPPERS = [
     "hermes",
     "royal",
     "auspost",
-    "poczta_polska",
     "inpost_pl",
     "dpd_com_pl",
+    "dpd",
     "gls",
     "dhl_parcel_nl",
     "bonshaw_distribution_network",
