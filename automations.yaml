@@ -473,6 +473,7 @@
         - sensor.1_battery_level
         - sensor.2_battery_level
         - sensor.3_battery_level
+        - sensor.back_bedroom_remote_battery_level
         - sensor.front_door_battery_level
         - sensor.garage_exterior_door_battery_level
         - sensor.back_bathroom_toilet_water_detector_battery_level
@@ -481,6 +482,11 @@
         - sensor.kitchen_sink_water_detector_battery_level
         - sensor.garage_interior_motion_battery_level
         - sensor.living_room_motion_battery_level
+        - sensor.office_blind_left_battery
+        - sensor.office_blind_right_battery
+        - sensor.hallway_motion_battery
+        - sensor.master_closet_motion_battery_level
+        - sensor.netatmo_home_attic_battery_percent
       below: 10
   action:
     - service: script.notify_wrapper
@@ -912,3 +918,57 @@
       entity_id: climate.thermostat
       data:
         fan_mode: auto
+
+- alias: "Plant Light Corner Brightness"
+  id: "plant_corner_brightness"
+  trigger:
+    - platform: state
+      entity_id: light.plant_light_corner
+      from: "off"
+      to: "on"
+  action:
+    - repeat:
+        count: 3
+        sequence:
+          - service: light.turn_on
+            entity_id: light.plant_light_corner
+            data:
+              brightness: 255
+          - delay: "00:00:05"
+
+- alias: "Rain Notifications"
+  id: rain_notifications
+  trigger:
+    - platform: state
+      entity_id: sensor.neighbor_5in1_rain_last_1_hour
+      from:
+        - "0.00"
+        - "unknown"
+        - "unavailable"
+  action:
+    - service: notify.signal_self
+      data:
+        message: >
+          Rain started!
+
+- alias: "Lower and Raise Blinds"
+  id: "lower_raise_blinds"
+  initial_state: on
+  trigger:
+    - platform: time
+      at: "09:00:00"
+      id: morning
+    - platform: time
+      at: "22:00:00"
+      id: night
+  action:
+    - service: >
+        {% if trigger.id == 'morning' %}
+          cover.open_cover
+        {% elif trigger.id == 'night' %}
+          cover.close_cover
+        {% endif %}
+      target:
+        entity_id:
+          - cover.office_blind_left
+          - cover.office_blind_right

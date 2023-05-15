@@ -10,39 +10,39 @@ cards:
         cards:
           - type: custom:mushroom-entity-card
             entity: lock.front_door
-            tap_action: 
+            tap_action:
               action: toggle
             style: |
-                @keyframes blink {
-                  50% {
-                    {% if states('lock.front_door') == "unlocked" %}
-                    background: red;
-                    {% endif %}
-                  }
-                }
-                ha-card {
+              @keyframes blink {
+                50% {
                   {% if states('lock.front_door') == "unlocked" %}
-                  animation: blink 1s linear infinite;
+                  background: red;
                   {% endif %}
                 }
+              }
+              ha-card {
+                {% if states('lock.front_door') == "unlocked" %}
+                animation: blink 1s linear infinite;
+                {% endif %}
+              }
 
           - type: custom:mushroom-entity-card
             entity: cover.garage_door
-            tap_action: 
+            tap_action:
               action: toggle
             style: |
-                @keyframes blink {
-                  50% {
-                    {% if states('cover.garage_door') == "open" %}
-                    background: red;
-                    {% endif %}
-                  }
-                }
-                ha-card {
+              @keyframes blink {
+                50% {
                   {% if states('cover.garage_door') == "open" %}
-                  animation: blink 1s linear infinite;
+                  background: red;
                   {% endif %}
                 }
+              }
+              ha-card {
+                {% if states('cover.garage_door') == "open" %}
+                animation: blink 1s linear infinite;
+                {% endif %}
+              }
 
           - type: custom:mushroom-light-card
             entity: light.entryway_light
@@ -55,7 +55,7 @@ cards:
 
           - type: custom:mushroom-entity-card
             entity: switch.office_heater
-            tap_action: 
+            tap_action:
               action: toggle
 
       # Column 2
@@ -66,25 +66,25 @@ cards:
           - type: custom:mushroom-entity-card
             entity: group.kitchen
             icon: mdi:countertop
-            tap_action: 
+            tap_action:
               action: toggle
 
           - type: custom:mushroom-entity-card
             entity: group.living_room
             icon: mdi:sofa-outline
-            tap_action: 
+            tap_action:
               action: toggle
 
           - type: custom:mushroom-entity-card
             entity: group.master_bedroom
             icon: mdi:bed
-            tap_action: 
+            tap_action:
               action: toggle
 
           # - type: custom:mushroom-entity-card
           #   entity: group.christmas
           #   icon: mdi:forest
-          #   tap_action: 
+          #   tap_action:
           #     action: toggle
 
           - type: sensor
@@ -93,118 +93,149 @@ cards:
             detail: 2
             hours_to_show: 8
 
-          - type: horizontal-stack
-            cards:
-            - type: custom:mushroom-template-card
-              icon: mdi:blinds-open
-              tap_action:
-                action: call-service
-                service: cover.open_cover
-                target:
-                  entity_id: cover.office_blind
-            - type: custom:mushroom-template-card
-              icon: mdi:blinds
-              tap_action:
-                action: call-service
-                service: cover.set_cover_position
-                data:
-                  position: 42
-                target:
-                  entity_id: cover.office_blind
-            - type: custom:mushroom-template-card
-              icon: mdi:roller-shade-closed
-              tap_action:
-                action: call-service
-                service: cover.close_cover
-                target:
-                  entity_id: cover.office_blind
-
-
       # Column 3
       - type: vertical-stack
         cards:
           - type: custom:mushroom-entity-card
             entity: switch.andrew_monitor
-            tap_action: 
+            tap_action:
               action: toggle
-
-          - type: custom:mushroom-template-card
-            primary: "Enable Mirroring"
-            icon: mdi:mirror-rectangle
-            tap_action:
-              action: call-service
-              service: shell_command.turn_on_mirroring
-
-          - type: custom:mushroom-template-card
-            primary: "Disable Mirroring"
-            icon: mdi:cancel
-            tap_action:
-              action: call-service
-              service: shell_command.turn_off_mirroring
 
           - type: horizontal-stack
             cards:
-            - type: custom:mushroom-template-card
-              primary: "LED"
-              secondary: "White"
-              style: |
-                @keyframes blink {
-                  50% {
+              - type: custom:mushroom-template-card
+                primary: L
+                icon: mdi:blinds-open
+                tap_action:
+                  action: call-service
+                  service: cover.open_cover
+                  target:
+                    entity_id: cover.office_blind_left
+              - type: custom:mushroom-template-card
+                primary: L
+                icon: mdi:blinds
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_position
+                  data:
+                    position: 42
+                  target:
+                    entity_id: cover.office_blind_left
+              - type: custom:mushroom-template-card
+                primary: L
+                icon: mdi:roller-shade-closed
+                tap_action:
+                  action: call-service
+                  service: cover.close_cover
+                  target:
+                    entity_id: cover.office_blind_left
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: R
+                icon: mdi:blinds-open
+                tap_action:
+                  action: call-service
+                  service: cover.open_cover
+                  target:
+                    entity_id: cover.office_blind_right
+              - type: custom:mushroom-template-card
+                primary: R
+                icon: mdi:blinds
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_position
+                  data:
+                    position: 42
+                  target:
+                    entity_id: cover.office_blind_right
+              - type: custom:mushroom-template-card
+                primary: R
+                icon: mdi:roller-shade-closed
+                tap_action:
+                  action: call-service
+                  service: cover.close_cover
+                  target:
+                    entity_id: cover.office_blind_right
+
+          # - type: custom:mushroom-template-card
+          #   primary: "Enable Mirroring"
+          #   icon: mdi:mirror-rectangle
+          #   tap_action:
+          #     action: call-service
+          #     service: shell_command.turn_on_mirroring
+
+          # - type: custom:mushroom-template-card
+          #   primary: "Disable Mirroring"
+          #   icon: mdi:cancel
+          #   tap_action:
+          #     action: call-service
+          #     service: shell_command.turn_off_mirroring
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "LED"
+                secondary: "White"
+                style: |
+                  @keyframes blink {
+                    50% {
+                      background: white;
+                    }
+                  }
+                  ha-card {
+                    {% if state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
+                    background: black;
+                    animation: blink 1s linear infinite;
+                    {% else %}
                     background: white;
+                    {% endif %}
                   }
-                }
-                ha-card {
-                  {% if state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
-                  background: black;
-                  animation: blink 1s linear infinite;
-                  {% else %}
-                  background: white;
-                  {% endif %}
-                }
-              tap_action:
-                action: call-service
-                service: light.turn_on
-                data:
-                  rgb_color: [255,255,255]
-                  brightness: 255
-                  effect: "custom scan"
-                  entity_id: light.desk_led
+                tap_action:
+                  action: call-service
+                  service: light.turn_on
+                  data:
+                    rgb_color: [255, 255, 255]
+                    brightness: 255
+                    effect: "custom scan"
+                    entity_id: light.desk_led
 
-            - type: custom:mushroom-template-card
-              primary: "LED"
-              secondary: "Off"
-              tap_action:
-                action: call-service
-                service: light.turn_off
-                data:
-                  entity_id: light.desk_led
+              - type: custom:mushroom-template-card
+                primary: "LED"
+                secondary: "Off"
+                tap_action:
+                  action: call-service
+                  service: light.turn_off
+                  data:
+                    entity_id: light.desk_led
 
-            - type: custom:mushroom-template-card
-              primary: "LED"
-              secondary: "Red"
+              - type: custom:mushroom-template-card
+                primary: "LED"
+                secondary: "Red"
 
-              style: |
-                @keyframes blink {
-                  50% {
+                style: |
+                  @keyframes blink {
+                    50% {
+                      background: red;
+                    }
+                  }
+                  ha-card {
+                    {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
+                    background: black;
+                    animation: blink 1s linear infinite;
+                    {% else %}
                     background: red;
+                    {% endif %}
                   }
-                }
-                ha-card {
-                  {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
-                  background: black;
-                  animation: blink 1s linear infinite;
-                  {% else %}
-                  background: red;
-                  {% endif %}
-                }
-              tap_action:
-                action: call-service
-                service: light.turn_on
-                data:
-                  rgb_color: [255,0,0]
-                  brightness: 255
-                  effect: "custom scan"
-                  entity_id: light.desk_led
+                tap_action:
+                  action: call-service
+                  service: light.turn_on
+                  data:
+                    rgb_color: [255, 0, 0]
+                    brightness: 255
+                    effect: "custom scan"
+                    entity_id: light.desk_led
 
           - type: custom:mushroom-media-player-card
             entity: media_player.spotify

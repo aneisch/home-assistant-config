@@ -7,7 +7,7 @@ logger:
   level: DEBUG
 
 api:
-  reboot_timeout: 0s
+  #reboot_timeout: 0s
   encryption:
     key: !secret encryption_key
 

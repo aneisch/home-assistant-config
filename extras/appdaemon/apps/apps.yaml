@@ -1,7 +1,3 @@
-suntest:
-  module: suntest
-  class: SunTest
-
 AC Automation:
   module: ac_automation
   class: AutoAdjust
@@ -13,8 +9,8 @@ AC Automation:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: "77"
-  cool_night: "72"
+  cool_day: "78"
+  cool_night: "75"
   cool_unoccupied: "82"
   heat_day: "63"
   heat_night: "62"
@@ -429,7 +425,7 @@ Globe Lights Smallgroup:
   module: entity_timer
   constrain_days: wed
   class: Timer
-  time_on: "18:30:00"
+  time_on: sunset - 00:20:00
   time_off: "21:00:00"
   entities: switch.globe_lights
 

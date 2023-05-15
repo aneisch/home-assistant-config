@@ -21,7 +21,6 @@ cards:
       #- switch.ir_candles
       #- switch.upright_fan
 
-
   - type: vertical-stack
     cards:
       # - type: "button"
@@ -40,19 +39,19 @@ cards:
             - type: "button"
               name: Xbox
               icon: mdi:microsoft-xbox
-              tap_action: 
+              tap_action:
                 action: call-service
                 service: esphome.living_room_speakers_input_xbox
             - type: "button"
               name: Chromecast
               icon: mdi:google
-              tap_action: 
+              tap_action:
                 action: call-service
                 service: esphome.living_room_speakers_input_chromecast
             - type: "button"
               name: 3.5mm
               icon: mdi:ipod
-              tap_action: 
+              tap_action:
                 action: call-service
                 service: esphome.living_room_speakers_input_3_5mm
       - type: conditional
@@ -214,48 +213,80 @@ cards:
 
   - type: vertical-stack
     cards:
-    - type: entities
-      show_header_toggle: false
-      title: Andrew's Office
-      entities:
-        - switch.nexus_7_screen
-        - light.andrew_desk_lamp
-        - sensor.office_temperature
-        - fan.office_ceiling_fan
-        - light.office_ceiling_fan
-        # - sensor.aquarium_temperature
-        # - light.aquarium_light
-        # - switch.aquarium_co2
-        - switch.andrew_monitor
-        - entity: switch.andrew_office_speakers
-          icon: mdi:speaker
-        - switch.office_heater
-        - switch.office_heater_oscillate
-    - type: horizontal-stack
-      cards:
-      - type: custom:mushroom-template-card
-        icon: mdi:blinds-open
-        tap_action:
-          action: call-service
-          service: cover.open_cover
-          target:
-            entity_id: cover.office_blind
-      - type: custom:mushroom-template-card
-        icon: mdi:blinds
-        tap_action:
-          action: call-service
-          service: cover.set_cover_position
-          data:
-            position: 42
-          target:
-            entity_id: cover.office_blind
-      - type: custom:mushroom-template-card
-        icon: mdi:roller-shade-closed
-        tap_action:
-          action: call-service
-          service: cover.close_cover
-          target:
-            entity_id: cover.office_blind
+      - type: entities
+        show_header_toggle: false
+        title: Andrew's Office
+        entities:
+          - switch.nexus_7_screen
+          - light.andrew_desk_lamp
+          - sensor.office_temperature
+          - fan.office_ceiling_fan
+          - light.office_ceiling_fan
+          # - sensor.aquarium_temperature
+          # - light.aquarium_light
+          # - switch.aquarium_co2
+          - switch.andrew_monitor
+          - entity: switch.andrew_office_speakers
+            icon: mdi:speaker
+          - switch.office_heater
+          - switch.office_heater_oscillate
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: L
+            icon: mdi:blinds-open
+            tap_action:
+              action: call-service
+              service: cover.open_cover
+              target:
+                entity_id: cover.office_blind_left
+          - type: custom:mushroom-template-card
+            primary: L
+            icon: mdi:blinds
+            tap_action:
+              action: call-service
+              service: cover.set_cover_position
+              data:
+                position: 42
+              target:
+                entity_id: cover.office_blind_left
+          - type: custom:mushroom-template-card
+            primary: L
+            icon: mdi:roller-shade-closed
+            tap_action:
+              action: call-service
+              service: cover.close_cover
+              target:
+                entity_id: cover.office_blind_left
+
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: R
+            icon: mdi:blinds-open
+            tap_action:
+              action: call-service
+              service: cover.open_cover
+              target:
+                entity_id: cover.office_blind_right
+          - type: custom:mushroom-template-card
+            primary: R
+            icon: mdi:blinds
+            tap_action:
+              action: call-service
+              service: cover.set_cover_position
+              data:
+                position: 42
+              target:
+                entity_id: cover.office_blind_right
+          - type: custom:mushroom-template-card
+            primary: R
+            icon: mdi:roller-shade-closed
+            tap_action:
+              action: call-service
+              service: cover.close_cover
+              target:
+                entity_id: cover.office_blind_right
 
   - type: entities
     show_header_toggle: false
@@ -266,6 +297,4 @@ cards:
       - light.bethany_office_ceiling_fan
       - switch.bethany_office_ceiling_fan
 
-
   - !include .cards/spotify.yaml
-

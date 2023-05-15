@@ -1,7 +1,7 @@
 aarlo:
   username: !secret arlo_username
   password: !secret arlo_password
-  #backend: sse
+  backend: sse
 
 alarm_control_panel:
   - platform: aarlo
@@ -15,7 +15,7 @@ camera:
 binary_sensor:
   - platform: aarlo
     monitored_conditions:
-    - motion
+      - motion
 
 automation:
   # - alias: "Update Garage Image"
@@ -43,17 +43,17 @@ automation:
     trigger:
       - platform: state
         entity_id: binary_sensor.garage_exterior_door
-        from: 'off'
-        to: 'on'
+        from: "off"
+        to: "on"
     condition: '{{ states("input_boolean.security_status") == "on" }}'
     action:
       - event: take_garage_snapshot
         event_data:
           entity_id: camera.aarlo_garage
-          filename: '/config/www/cameras/garage_latest.jpg'
+          filename: "/config/www/cameras/garage_latest.jpg"
       - wait_for_trigger:
-        - platform: event
-          event_type: aarlo_image_updated
+          - platform: event
+            event_type: aarlo_image_updated
         timeout: "00:01:00"
       - service: notify.mobile_app_andrew_phone
         data:
@@ -72,7 +72,7 @@ automation:
       - platform: event
         event_type: take_garage_snapshot
     action:
-    - service: aarlo.camera_request_snapshot_to_file
-      data:
-        entity_id: "{{ trigger.event.data.entity_id }}"
-        filename: "{{ trigger.event.data.filename }}"
+      - service: aarlo.camera_request_snapshot_to_file
+        data:
+          entity_id: "{{ trigger.event.data.entity_id }}"
+          filename: "{{ trigger.event.data.filename }}"
