@@ -504,10 +504,10 @@
       data:
         old: "{{ trigger.from_state.state }}"
         new: "{{ trigger.to_state.state }}"
-    - service: notify.signal_self
-      data:
-        message: >
-          Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
+    # - service: notify.signal_self
+    #   data:
+    #     message: >
+    #       Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
 
 - alias: "Sync Cloudflare CNAME Records"
   id: "sync_cloudflare_cnames"
@@ -849,15 +849,12 @@
       - condition: time
         after: "05:30:00"
         before: "09:45:00"
+      - "{{ states('sensor.andrew_phone_charger_type') != 'none' }}"
   action:
     - wait_template: "{{ is_state('sensor.andrew_phone_charger_type', 'none') }}"
       timeout: "00:05:00"
     - service: switch.turn_on
       entity_id: switch.coffee_maker
-    # - service: notify.signal_self
-    #   data:
-    #     message: >
-    #         Turned coffee maker on!
     - service: switch.turn_on
       entity_id: switch.under_cabinet_lights_coffee
     - wait_template: "{{ is_state('switch.under_cabinet_lights_coffee', 'off') }}"
@@ -959,16 +956,24 @@
       at: "09:00:00"
       id: morning
     - platform: time
-      at: "22:00:00"
+      at: "21:00:00"
       id: night
   action:
-    - service: >
-        {% if trigger.id == 'morning' %}
-          cover.open_cover
-        {% elif trigger.id == 'night' %}
-          cover.close_cover
-        {% endif %}
-      target:
-        entity_id:
-          - cover.office_blind_left
-          - cover.office_blind_right
+    # only close if we're home
+    - if:
+        - "{{ states('group.trackers') == 'home' and trigger.id == 'night' }}"
+      then:
+        - service: cover.close_cover
+          target:
+            entity_id:
+              - cover.office_blind_left
+              - cover.office_blind_right
+    # always open in the morning regardless of if we're home
+    - if:
+        - "{{ trigger.id == 'morning' }}"
+      then:
+        - service: cover.open_cover
+          target:
+            entity_id:
+              - cover.office_blind_left
+              - cover.office_blind_right

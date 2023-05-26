@@ -30,6 +30,10 @@ light:
     rgb_order: GRB
     name: "${friendly_name}"
     effects:
+      - pulse:
+          name: "Fast Pulse"
+          # transition_length: 1s      # defaults to 1s
+          update_interval: 0.5s
       - addressable_scan:
       - addressable_lambda:
           name: Custom Scan

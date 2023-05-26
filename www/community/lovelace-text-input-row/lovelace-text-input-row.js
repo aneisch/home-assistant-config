@@ -1,9 +1,33 @@
 const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
-
 class TextInputRow extends LitElement {
 
+  static get properties() {
+    return {
+      label: { type: String },
+      value: { type: String },
+      minlength: { type: Number },
+      maxlength: { type: Number },
+      pattern: { type: String },
+      mode: { type: String },
+      stateObj: { type: Object },
+      _config: { type: Object },
+    };
+  }
+  
+  constructor() {
+    super();
+    this.label = '';
+    this.value = '';
+    this.minlength = 0;
+    this.maxlength = Infinity;
+    this.pattern = '';
+    this.mode = '';
+    this.stateObj = null;
+    this._config = null;
+  }
+  
   render() {
     return html`
       <paper-input

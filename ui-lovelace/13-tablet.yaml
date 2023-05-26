@@ -198,7 +198,8 @@ cards:
                   data:
                     rgb_color: [255, 255, 255]
                     brightness: 255
-                    effect: "custom scan"
+                    #effect: "custom scan"
+                    effect: "fast pulse"
                     entity_id: light.desk_led
 
               - type: custom:mushroom-template-card
@@ -234,7 +235,8 @@ cards:
                   data:
                     rgb_color: [255, 0, 0]
                     brightness: 255
-                    effect: "custom scan"
+                    #effect: "custom scan"
+                    effect: "fast pulse"
                     entity_id: light.desk_led
 
           - type: custom:mushroom-media-player-card

@@ -46,6 +46,13 @@ home_occupied:
             entity_id:
               - group.under_cabinet_lights
               #- group.christmas # dining, office, master tree follow 'on' via appdaemon
+    - if: "{{ now().hour <= 7 or now().hour >= 21 }}"
+      then:
+        - service: cover.close_cover
+          target:
+            entity_id:
+              - cover.office_blind_left
+              - cover.office_blind_right
 
 ############
 # SECURITY #
