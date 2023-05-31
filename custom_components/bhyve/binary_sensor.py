@@ -39,7 +39,9 @@ class BHyveFloodSensor(BHyveDeviceEntity):
         """Initialize the sensor."""
         name = "{} flood sensor".format(device.get("name"))
         _LOGGER.info("Creating flood sensor: %s", name)
-        super().__init__(hass, bhyve, device, name, "water", BinarySensorDeviceClass.MOISTURE)
+        super().__init__(
+            hass, bhyve, device, name, "water", BinarySensorDeviceClass.MOISTURE
+        )
 
     def _setup(self, device):
         self._available = device.get("is_connected", False)

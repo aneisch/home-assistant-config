@@ -38,35 +38,34 @@ cards:
             content: |
               Last NUC Backup: {{ relative_time(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
             style: |
-                @keyframes blink {
-                  50% {
-                    {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 604800 %}
-                    background: red;
-                    {% endif %}
-                  }
-                }
-                ha-card {
+              @keyframes blink {
+                50% {
                   {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 604800 %}
-                  animation: blink 3s linear infinite;
+                  background: red;
                   {% endif %}
                 }
+              }
+              ha-card {
+                {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_nuc_backup_completed.state)) > 604800 %}
+                animation: blink 3s linear infinite;
+                {% endif %}
+              }
           - type: markdown
             content: |
               Last VPS Backup: {{ relative_time(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
             style: |
-                @keyframes blink {
-                  50% {
-                    {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 604800 %}
-                    background: red;
-                    {% endif %}
-                  }
-                }
-                ha-card {
+              @keyframes blink {
+                50% {
                   {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 604800 %}
-                  animation: blink 3s linear infinite;
+                  background: red;
                   {% endif %}
                 }
-
+              }
+              ha-card {
+                {% if (as_timestamp(now()) - as_timestamp(states.sensor.last_vps_backup_completed.state)) > 604800 %}
+                animation: blink 3s linear infinite;
+                {% endif %}
+              }
 
       - type: horizontal-stack
         cards:
@@ -108,10 +107,8 @@ cards:
         detail: 2
         hours_to_show: 730
         icon: mdi:flash
-      - type: entities
-        show_header_toggle: false
-        entities:
-          - sensor.electricity_cost_monthly
+      - type: markdown
+        content: "Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}"
 
   - type: entities
     show_header_toggle: false

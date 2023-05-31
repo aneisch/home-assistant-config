@@ -28,8 +28,11 @@ if inputEntity == 'sensor.electric_utilities_summary':
     inputAttributesObject['cost'] = '{:.2f}'.format(7 + (float(inputState) * current_cost))
 
     # Set custom sensor for tracking
-    service_data = {"entity_id": "sensor.electricity_cost_monthly", "state": inputAttributesObject['cost'], "attributes": {"friendly_name": "Utilities Cost", "unit_of_measurement": "$", "icon":"mdi:currency-usd"}}
-    hass.services.call("setter", "set", service_data)
+    # service_data = {"entity_id": "sensor.electricity_cost_monthly", "state": inputAttributesObject['cost'], "attributes": {"friendly_name": "Utilities Cost", "unit_of_measurement": "$", "icon":"mdi:currency-usd"}}
+    # hass.services.call("setter", "set", service_data)
+    service_data = {"entity_id": "input_text.electricity_cost_monthly", "value": inputAttributesObject['cost']}
+    hass.services.call("input_text", "set_value", service_data)
+    
 
 else:
     inputAttributesObject['cost'] = '{:.2f}'.format((float(inputState) * current_cost))

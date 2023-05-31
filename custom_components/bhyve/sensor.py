@@ -2,9 +2,7 @@
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_BATTERY_LEVEL
-)
+from homeassistant.const import ATTR_BATTERY_LEVEL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -89,8 +87,9 @@ class BHyveBatterySensor(BHyveDeviceEntity):
         battery = device.get("battery")
 
         if battery is not None:
-            self._state = battery["percent"]
-            self._attrs[ATTR_BATTERY_LEVEL] = battery["percent"]
+            battery_level = battery.get("percent", 0)
+            self._state = battery_level
+            self._attrs[ATTR_BATTERY_LEVEL] = battery_level
 
     @property
     def state(self):

@@ -7,15 +7,15 @@ automation:
     trigger:
       - platform: state
         entity_id: vacuum.roborock_s4
-        to: 'returning'
+        to: "returning"
     condition:
       condition: state
       entity_id: input_boolean.return_to_trashcan
-      state: 'on'
+      state: "on"
     action:
       - service: vacuum.pause
         entity_id: vacuum.roborock_s4
-      - delay: '00:00:02'
+      - delay: "00:00:02"
       - service: script.vacuum_park_trashcan
       - service: homeassistant.turn_off
         entity_id: input_boolean.return_to_trashcan
@@ -56,7 +56,7 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.kitchen_timer_countdown
-        to: 'Expired'
+        to: "Expired"
     condition: '{{ states("vacuum.roborock_s4") == "cleaning" }}'
     action:
       - service: vacuum.pause
@@ -70,9 +70,9 @@ sensor:
   - platform: template
     sensors:
       roborock_s4_battery:
-        friendly_name: 'Roborock S4 Battery'
+        friendly_name: "Roborock S4 Battery"
         value_template: "{{state_attr('vacuum.roborock_s4', 'battery_level')}}"
-        unit_of_measurement: '%'
+        unit_of_measurement: "%"
         device_class: battery
 
       # roborock_s4_lifetime_cleaned_area:
@@ -111,7 +111,7 @@ sensor:
       #   friendly_name: '% Side Brush Remaining'
       #   unit_of_measurement: '%'
       #   value_template: "{{((state_attr('vacuum.roborock_s4', 'side_brush_left') / 200) * 100) | round | int}}"
-  
+
       # # Used for the Side Brush maintenance card
       # roborock_s4_side_brush_hrs_remaining:
       #   friendly_name: 'Side Brush Remaining Hours'
@@ -143,7 +143,7 @@ sensor:
       #   value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
       roborock_current_room:
-        friendly_name: 'Roborock Current Room'
+        friendly_name: "Roborock Current Room"
         value_template: >
           {% set room = state_attr('camera.xiaomi_cloud_map_extractor', 'vacuum_room') %}
           {% set lookup = {22: 'Dining Room', 24:'Kitchen', 23:'Living Room', 21: 'Office', 26: 'Guest Bedroom', 19: 'Guest Bathroom', 16: 'Hallway', 20: "Bethany's Office", 18: 'Master Bedroom', 27: 'Master Bathroom', 17: 'Back Bathroom', 25: 'Back Bedroom'} %}
@@ -161,7 +161,7 @@ input_boolean:
     name: Roborock Daily Run
   return_to_trashcan:
     name: Roborock Return to Trashcan After Cleaning
-    initial: 'off'
+    initial: "off"
 
 input_select:
   vacuum_mode:
@@ -407,7 +407,7 @@ script:
             - wait_template: "{{ is_state(entity_id, 'idle') or is_state(entity_id, 'paused') }}"
               timeout: 00:05:00
               continue_on_timeout: false
-  
+
   vacuum_locate:
     sequence:
       - service: vacuum.locate
@@ -475,7 +475,7 @@ switch:
   platform: template
   switches:
     # Expose vacuum switch to allow manual turn off via Alexa
-    vacuum: 
+    vacuum:
       friendly_name: "Roxie"
       value_template: '{{ is_state("vacuum.roborock_s4", "on") }}'
       turn_on:
@@ -486,7 +486,7 @@ switch:
         - service: vacuum.stop
           data:
             entity_id: vacuum.roborock_s4
-        - delay: '00:00:01'
+        - delay: "00:00:01"
         - service: vacuum.return_to_base
           data:
             entity_id: vacuum.roborock_s4
@@ -494,10 +494,11 @@ switch:
 camera:
   - platform: xiaomi_cloud_map_extractor
     host: 10.0.0.10
+    # https://github.com/PiotrMachowski/Xiaomi-cloud-tokens-extractor
     token: !secret roborock_token
     username: !secret xiaomi_cloud_username
     password: !secret xiaomi_cloud_password
-    draw: ['all']
+    draw: ["all"]
     attributes:
       - calibration_points
       - charger

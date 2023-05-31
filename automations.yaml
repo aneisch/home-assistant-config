@@ -943,10 +943,14 @@
         - "unknown"
         - "unavailable"
   action:
-    - service: notify.signal_self
-      data:
-        message: >
-          Rain started!
+    - if:
+        # Ensure new state is a float > 0.00
+        - "{{ float(trigger.to_state.state, default=-1) > 0.00 }}"
+      then:
+        - service: notify.signal_self
+          data:
+            message: >
+              Rain started!
 
 - alias: "Lower and Raise Blinds"
   id: "lower_raise_blinds"

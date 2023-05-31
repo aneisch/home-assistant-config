@@ -1,11 +1,11 @@
 {
   "domain": "bhyve",
-  "version": "3.1.2",
   "name": "Orbit B-hyve",
-  "config_flow": true,
-  "documentation": "https://github.com/sebr/bhyve-home-assistant/blob/master/README.md",
-  "dependencies": [],
   "codeowners": ["@sebr"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/sebr/bhyve-home-assistant/blob/master/README.md",
   "iot_class": "cloud_push",
-  "requirements": []
+  "requirements": [],
+  "version": "3.1.3"
 }

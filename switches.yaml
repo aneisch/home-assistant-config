@@ -1,23 +1,23 @@
 - platform: orvibo
   switches:
-     - host: 10.0.0.21
-       name: "Andrew Monitor"
-     - host: 10.0.0.14
-       name: "Garage Fan"
-       #name: "Dining Room Christmas Tree"
+    - host: 10.0.0.21
+      name: "Andrew Monitor"
+    - host: 10.0.0.14
+      name: "Garage Fan"
+      #name: "Dining Room Christmas Tree"
 
 - platform: wake_on_lan
   name: "NAS"
   mac: "e8:fc:af:e6:22:26"
   host: 10.0.1.20
   turn_off:
-      service: shell_command.nas_poweroff
+    service: shell_command.nas_poweroff
 
 - platform: wake_on_lan
   name: TV
   mac: "44:5c:e9:2e:51:0a"
   host: "10.0.1.51"
-  turn_off: 
+  turn_off:
     service: media_player.turn_off
     entity_id: media_player.living_room_tv
 
