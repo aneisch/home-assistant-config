@@ -108,7 +108,10 @@ cards:
         hours_to_show: 730
         icon: mdi:flash
       - type: markdown
-        content: "Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}"
+        content: >
+          Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}
+
+          Cycle Ends: {{ state_attr('sensor.electric_utilities_summary', 'EndDate')[4:-6] }}
 
   - type: entities
     show_header_toggle: false

@@ -14,11 +14,11 @@ wifi:
   ssid: SSID
   password: WPA_KEY
 
-  # Optional manual IP
-  manual_ip:
-    static_ip: 10.0.0.7
-    gateway: 10.0.1.1
-    subnet: 255.255.255.0
+  # # Optional manual IP
+  # manual_ip:
+  #   static_ip: 10.0.0.7
+  #   gateway: 10.0.1.1
+  #   subnet: 255.255.255.0
 
 <<: !include common.yaml
 

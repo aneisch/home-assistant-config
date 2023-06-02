@@ -4,12 +4,8 @@ substitutions:
 
 esphome:
   name: ${name}
-
-# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
-esp32:
-  board: lolin_s2_mini
-  framework:
-    type: ESP-IDF  
+  platform: ESP8266
+  board: d1_mini_pro
 
 <<: !include common.yaml
   
@@ -21,9 +17,9 @@ globals:
 
 sn74hc595:
   - id: 'shift_register'
-    data_pin: 35 #D1
-    clock_pin: 33 #D2
-    latch_pin: 7 #D5
+    data_pin: D1
+    clock_pin: D2
+    latch_pin: D5
 
 script:
   - id: turn_off_other_zones
@@ -73,7 +69,7 @@ switch:
     restore_mode: ALWAYS_OFF
     icon: mdi:flash
     pin:
-      number: 12 #D8
+      number: D8
     on_turn_off:
       then:
         - script.execute: turn_off_other_zones
