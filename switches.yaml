@@ -36,19 +36,9 @@
       friendly_name: Mac Focus Mode
       value_template: "{{ is_state('binary_sensor.weasel_focus', 'on') }}"
       turn_on:
-        service: >
-          {% if is_state('binary_sensor.weasel_focus', 'on') %}
-            script.noop
-          {% else %}
-            shell_command.toggle_weasel_focus
-          {% endif %}
+        service: shell_command.focus_in_a_meeting_on
       turn_off:
-        service: >
-          {% if is_state('binary_sensor.weasel_focus', 'off') %}
-            script.noop
-          {% else %}
-            shell_command.toggle_weasel_focus
-          {% endif %}
+        service: shell_command.focus_in_a_meeting_off
       icon_template: >
         {% if is_state('binary_sensor.weasel_focus', 'off') %}
           mdi:bell

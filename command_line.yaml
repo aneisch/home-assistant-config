@@ -20,6 +20,7 @@
       - AvgUsage
       - StartDate
       - EndDate
+
 - sensor:
     name: CPU Temperature
     command: "echo $(($(cat /sys/class/thermal/thermal_zone0/temp)/1000))"

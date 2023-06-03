@@ -514,7 +514,7 @@ services:
             - /opt/vrs/config:/config
     macos:
         container_name: macos
-        restart: 'always'
+        restart: 'no'
         #image: sickcodes/docker-osx:naked
         # Pulled above, made changes, committed to new image below: docker commit macos aneisch/macos
         image: aneisch/macos
@@ -540,6 +540,39 @@ services:
             # user: user
             # password: alpine
             - TZ=America/Chicago
+        devices:
+            - /dev/kvm
+        user: root
+    macos_new:
+        container_name: macos_new
+        #restart: 'always'
+        restart: 'always'
+        image: sickcodes/docker-osx:naked
+        labels:
+            com.centurylinklabs.watchtower.enable: "false"
+        ports:
+            - 50922:10022 # ssh
+            - 5999:5999 # vnc
+        volumes:
+            - /tmp/.X11-unix:/tmp/.X11-unix
+            - /opt/mac_hdd_image.qcow2:/image
+            - /opt/mac_hdd_boot.qcow2:/bootdisk
+        environment:
+            - DISPLAY=${DISPLAY:-:0.0}
+            - IMAGE_PATH=/image
+            - BOOTDISK=/bootdisk
+            - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
+            - TZ=America/Chicago
+            - NOPICKER=true
+            #- GENERATE_SPECIFIC=true # need to enable this as first run and then export the boot disk for speedy boot
+            # https://docs.bluebubbles.app/server/advanced/macos-virtualization/running-bluebubbles-in-docker-osx
+            - DEVICE_MODEL=iMacPro1,1
+            - SERIAL=SERIAL
+            - BOARD_SERIAL=BOARD
+            - UUID=UUID
+            - MAC_ADDRESS=MAC
+            - WIDTH=1920
+            - HEIGHT=1080
         devices:
             - /dev/kvm
         user: root
