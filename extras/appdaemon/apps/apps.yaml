@@ -31,6 +31,8 @@ Guest Bedroom EcoSmart Zigbee Remote:
   button_1_toggle: light.guest_bedroom_ceiling_fan
   button_2_toggle: switch.guest_bedroom_ceiling_fan
   button_3_toggle: light.guest_bedroom_nightstand_lamp
+  # Button 4 is handled through HA automation
+  # for blinds
 
 Kitchen Sengled Zigbee Remote:
   module: zigbee_remote

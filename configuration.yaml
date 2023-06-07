@@ -18,6 +18,7 @@ homeassistant:
     garage_door: !include packages/garage_door.yaml
     gate: !include packages/mom_and_dad_gate.yaml
     grill: !include packages/grill.yaml
+    guest_bedroom_blinds: !include packages/guest_bedroom_blinds.yaml
     hass_update_check: !include packages/hass_update_check.yaml
     smoke_alarms: !include packages/smoke_alarms.yaml
     magic_cube: !include packages/magic_cube.yaml

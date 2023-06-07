@@ -177,6 +177,7 @@ cards:
       - light.guest_bedroom_ceiling_fan
       - switch.guest_bedroom_ceiling_fan
       - light.guest_bedroom_nightstand_lamp
+      - cover.guest_bedroom_blinds
       - light.back_bedroom_ceiling_fan
       - switch.back_bedroom_ceiling_fan
       - light.back_bedroom_nightstand_lamp

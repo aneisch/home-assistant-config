@@ -1,0 +1,77 @@
+homeassistant:
+  customize:
+    cover_group:
+      assumed_state: true
+
+cover:
+  - platform: template
+    covers:
+      guest_bedroom_blinds:
+        friendly_name: "Guest "
+        open_cover:
+          service: script.guest_bedroom_blinds
+          data:
+            modus: "open"
+        close_cover:
+          service: script.guest_bedroom_blinds
+          data:
+            modus: "close"
+        stop_cover:
+          service: script.guest_bedroom_blinds
+          data:
+            modus: "stop"
+        value_template: "{{is_state('sensor.guest_bedroom_blinds', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.guest_bedroom_blinds', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+
+input_boolean:
+  guest_bedroom_blinds_mode:
+
+sensor:
+  - platform: template
+    sensors:
+      guest_bedroom_blinds:
+        value_template: >-
+          {% if is_state('cover.guest_bedroom_blind_left', 'open') %}
+            open
+          {% elif is_state('cover.guest_bedroom_blind_right', 'open') %}
+            open
+          {% else %}
+            closed
+          {% endif %}
+
+script:
+  guest_bedroom_blinds:
+    sequence:
+      - service: "cover.{{modus}}_cover"
+        target:
+          entity_id:
+            - cover.guest_bedroom_blind_left
+            - cover.guest_bedroom_blind_right
+
+automation:
+  - alias: "Guest Bedroom Blinds with Remote"
+    id: guest_bedroom_blinds_remote
+    mode: single
+    trigger:
+      - platform: event
+        event_type: zwave_js_value_notification
+        event_data:
+          # Guest Bedroom
+          node_id: 43
+          # Hold Down
+          value: "KeyHeldDown"
+    action:
+      - service: cover.stop_cover
+        target:
+          entity_id: cover.guest_bedroom_blinds
+      - service: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
+        target:
+          entity_id: cover.guest_bedroom_blinds
+      - service: input_boolean.toggle
+        entity_id: input_boolean.guest_bedroom_blinds_mode
+      - delay: "00:00:02"
