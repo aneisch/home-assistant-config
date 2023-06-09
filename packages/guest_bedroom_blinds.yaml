@@ -7,7 +7,7 @@ cover:
   - platform: template
     covers:
       guest_bedroom_blinds:
-        friendly_name: "Guest "
+        friendly_name: "Guest Bedroom Blinds"
         open_cover:
           service: script.guest_bedroom_blinds
           data:

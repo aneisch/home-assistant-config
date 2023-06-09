@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:

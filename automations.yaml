@@ -1,39 +1,3 @@
-- alias: vaccum_1
-  id: vacuum_1
-  trigger:
-    platform: time_pattern
-    minutes: /1
-  action:
-    - service: switch.turn_on
-      entity_id: switch.upright_fan
-    - delay: "00:00:05"
-    - service: switch.turn_off
-      entity_id: switch.upright_fan
-
-- alias: vaccum_2
-  id: vacuum_2
-  trigger:
-    platform: time_pattern
-    minutes: /2
-  action:
-    - service: switch.turn_on
-      entity_id: switch.upright_fan
-    - delay: "00:00:05"
-    - service: switch.turn_off
-      entity_id: switch.upright_fan
-
-- alias: vaccum_5
-  id: vacuum_5
-  trigger:
-    platform: time_pattern
-    minutes: /5
-  action:
-    - service: switch.turn_on
-      entity_id: switch.upright_fan
-    - delay: "00:00:05"
-    - service: switch.turn_off
-      entity_id: switch.upright_fan
-
 - alias: "Update README"
   id: "update_Readme"
   initial_state: on
@@ -1021,8 +985,7 @@
             # Only open blinds if guest mode is OFF
             - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
               then:
-                - service: cover.close_cover
+                - service: cover.open_cover
                   target:
                     entity_id:
-                      - cover.office_blind_left
-                      - cover.office_blind_right
+                      - cover.guest_bedroom_blinds

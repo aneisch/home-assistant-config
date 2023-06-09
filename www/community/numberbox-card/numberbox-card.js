@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.8');
+console.info('NUMBERBOX_CARD 4.9');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -233,9 +233,15 @@ niceNum(){
 
 
 moreInfo() {
-	if(!this.config.moreinfo){return;}
-	const e = new Event('hass-more-info', {bubbles: true, cancelable: true, composed: true});
-	e.detail = {entityId: this.config.moreinfo};
+	const i = this.config.moreinfo;
+	if(!i){return;}
+	let v = 'hass-more-info'; let d = {entityId: this.config.moreinfo};
+	if(i[0] == '/'){
+		v = 'location-changed'; d = {replace:false};
+		history.pushState(null, "", i);
+	}
+	const e = new Event(v, {bubbles: true, cancelable: true, composed: true});
+	e.detail = d;
 	this.dispatchEvent(e);
 	return e;
 }
