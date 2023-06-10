@@ -53,7 +53,12 @@ home_occupied:
             entity_id:
               - cover.office_blind_left
               - cover.office_blind_right
-
+        - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
+          then:
+            - service: cover.close_cover
+              target:
+                entity_id:
+                  - cover.guest_bedroom_blinds
 ############
 # SECURITY #
 ############

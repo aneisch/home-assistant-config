@@ -59,19 +59,39 @@ automation:
     mode: single
     trigger:
       - platform: event
+        id: "zwave"
         event_type: zwave_js_value_notification
         event_data:
           # Guest Bedroom
           node_id: 43
           # Hold Down
           value: "KeyHeldDown"
+      - platform: event
+        id: "zigbee"
+        event_type: zha_event
+        event_data:
+          device_ieee: cc:86:ec:ff:fe:aa:bf:4d
+          command: "up_open"
+      - platform: event
+        id: "zigbee"
+        event_type: zha_event
+        event_data:
+          device_ieee: cc:86:ec:ff:fe:aa:bf:4d
+          command: "down_close"
     action:
-      - service: cover.stop_cover
-        target:
-          entity_id: cover.guest_bedroom_blinds
-      - service: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
-        target:
-          entity_id: cover.guest_bedroom_blinds
-      - service: input_boolean.toggle
-        entity_id: input_boolean.guest_bedroom_blinds_mode
-      - delay: "00:00:02"
+      - if: "{{ trigger.id == 'zwave' }}"
+        then:
+          - service: cover.stop_cover
+            target:
+              entity_id: cover.guest_bedroom_blinds
+          - service: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
+            target:
+              entity_id: cover.guest_bedroom_blinds
+          - service: input_boolean.toggle
+            entity_id: input_boolean.guest_bedroom_blinds_mode
+          - delay: "00:00:02"
+      - if: "{{ trigger.id == 'zigbee' }}"
+        then:
+          - service: "cover.{% if trigger.event.data.command == 'down_close' %}close{% elif trigger.event.data.command == 'up_open' %}open{% endif %}_cover"
+            target:
+              entity_id: cover.guest_bedroom_blinds
