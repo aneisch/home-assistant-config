@@ -443,13 +443,23 @@
         - binary_sensor.guest_bathroom_toilet_water_detector
         - binary_sensor.back_bathroom_toilet_water_detector
         - binary_sensor.kitchen_sink_water_detector
+        - binary_sensor.water_shutoff_water_leak_detected
       to: "on"
   action:
+    - service: switch.turn_on
+      entity_id: switch.water_shutoff
     - service: script.notify_wrapper
       data:
-        message: "Water detected by {{ trigger.to_state.name }}"
+        message: "Water detected by {{ trigger.to_state.name }}. Shutting off water!"
         data:
           priority: 2
+    - service: notify.alexa_media
+      data: 
+        message: "Water detected by {{ trigger.to_state.name }}. Shutting off water!"
+        data:
+          method: all
+          type: announce
+        target: ["Office","Kitchen","Master","Living Room"]
 
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"
@@ -484,6 +494,8 @@
         - sensor.living_room_motion_battery_level
         - sensor.office_blind_left_battery
         - sensor.office_blind_right_battery
+        - sensor.guest_bedroom_blind_left_battery
+        - sensor.guest_bedroom_blind_right_battery
         - sensor.hallway_motion_battery
         - sensor.master_closet_motion_battery_level
         - sensor.netatmo_home_attic_battery_percent
