@@ -349,14 +349,41 @@ services:
             - TZ=America/Chicago
         volumes:
             - /opt/vrs/config:/config
+    # macos:
+    #     container_name: macos
+    #     restart: 'always'
+    #     #image: sickcodes/docker-osx:naked
+    #     # Pulled above, made changes, committed to new image below: docker commit macos aneisch/macos
+    #     image: aneisch/macos
+    #     # Edit Launch.sh
+    #     # printf "change vnc password\n%s\n" "xx" | exec qemu-system-x86_64 -m ${RAM:-4}000 \
+    #     labels:
+    #         com.centurylinklabs.watchtower.enable: "false"
+    #     ports:
+    #         - 50922:10022
+    #         - 5999:5999 # vnc
+    #     volumes:
+    #         - /tmp/.X11-unix:/tmp/.X11-unix
+    #         - /opt/mac_hdd_ng.img:/image # Backed up on nas /Backup/home-assistant/
+    #     environment:
+    #         - DISPLAY=${DISPLAY:-:0.0}
+    #         - GENERATE_SPECIFIC=true
+    #         - DEVICE_MODEL=iMacPro1,1
+    #         - SERIAL=SERIAL
+    #         - BOARD_SERIAL=BOARD
+    #         - UUID=UUID
+    #         - MAC_ADDRESS=MAC
+    #         - EXTRA=-display none -vnc 0.0.0.0:99,password=on
+    #         # user: user
+    #         # password: alpine
+    #         - TZ=America/Chicago
+    #     devices:
+    #         - /dev/kvm
+    #     user: root
     macos:
         container_name: macos
         restart: 'always'
-        #image: sickcodes/docker-osx:naked
-        # Pulled above, made changes, committed to new image below: docker commit macos aneisch/macos
-        image: aneisch/macos
-        # Edit Launch.sh
-        # printf "change vnc password\n%s\n" "xx" | exec qemu-system-x86_64 -m ${RAM:-4}000 \
+        image: sickcodes/docker-osx:naked
         labels:
             com.centurylinklabs.watchtower.enable: "false"
         ports:
@@ -364,7 +391,7 @@ services:
             - 5999:5999 # vnc
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /opt/mac_hdd_ng.img:/image # Backed up on nas /Backup/home-assistant/
+            - /opt/mac.qcow2:/image # Backed up on nas /Backup/home-assistant/
         environment:
             - DISPLAY=${DISPLAY:-:0.0}
             - GENERATE_SPECIFIC=true
@@ -373,13 +400,19 @@ services:
             - BOARD_SERIAL=BOARD
             - UUID=UUID
             - MAC_ADDRESS=MAC
-            - EXTRA=-display none -vnc 0.0.0.0:99,password=on
-            # user: user
-            # password: alpine
+            - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
             - TZ=America/Chicago
         devices:
             - /dev/kvm
         user: root
+    claim_builder:
+        container_name: claim_builder
+        image: claim_builder
+        ports:
+            - 9999:9999
+        volumes:
+            - /opt/secret/secret_patient.db:/input_files/secret_patient.db
+        restart: always
     #macos_new:
     #    container_name: macos_new
     #    restart: 'no'

@@ -14,6 +14,19 @@ automation:
         update_once_after_docking: true
         #browser_mod_path: /lovelace/vacuum
 
+  - alias: "Vacuum Map at Restart"
+    id: "vacuum_map_startup"
+    initial_state: on
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - service: camera.turn_on
+        entity_id: camera.xiaomi_cloud_map_extractor
+      - delay: "00:00:30"
+      - service: camera.turn_off
+        entity_id: camera.xiaomi_cloud_map_extractor
+
   - alias: "Roborock Go to Trashcan After Cleaning"
     id: "roborock_to_trashcan"
     trigger:

@@ -1,4 +1,4 @@
-automation: 
+automation:
   - alias: "Smoke Alarm Secondary"
     id: "smoke_alarm_secondary"
     initial_state: on
@@ -26,7 +26,7 @@ automation:
     id: "smoke_alarm_battery_alert"
     trigger:
       - platform: numeric_state
-        entity_id: 
+        entity_id:
           - sensor.hallway_alarm_battery_level
           - sensor.kitchen_alarm_battery_level
         below: 79
@@ -53,9 +53,11 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-              {{ trigger.from_state.attributes.friendly_name }}: triggered
+            {{ trigger.from_state.attributes.friendly_name }}: triggered
           data:
             priority: 2
+      - service: climate.turn_off
+        entity_id: climate.thermostat
 
   - alias: "Smoke Alarm Clear"
     id: "smoke_alarm_clear"
@@ -75,9 +77,11 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-              {{ trigger.from_state.attributes.friendly_name }}: cleared
+            {{ trigger.from_state.attributes.friendly_name }}: cleared
           data:
             priority: 1
+      - service: climate.turn_on
+        entity_id: climate.thermostat
 
   - alias: "Smoke Alarm Home Response"
     id: "smoke_alarm_home_response"
@@ -86,7 +90,7 @@ automation:
       platform: state
       entity_id:
         - input_boolean.smoke_alarm_triggered
-      to: 'on'
+      to: "on"
     action:
       # If sun down, turn on some lights
       - if: "{{ states('sun.sun') == 'below_horizon' }}"
