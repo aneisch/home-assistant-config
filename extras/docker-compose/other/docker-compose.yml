@@ -376,7 +376,6 @@ services:
         devices:
             - /dev/kvm
         user: root
-
 networks:
   macos_network:
     driver: bridge

@@ -539,7 +539,23 @@ services:
         devices:
             - /dev/kvm
         user: root
-
+    tesla:
+        container_name: tesla
+        restart: 'always'
+        image: tesla/fleet-telemetry:v0.0.5
+        ports:
+        #   - '1234:8080'
+            - "4433:4433"
+            - "4269:4269"
+            - "8089:8080"
+            - "9090:9090"
+        volumes:
+            - /tmp/config.json:/etc/tesla/config.json:ro
+            - /tmp/:/etc/tesla/certs/:ro
+            - /tmp/fleet-telemetry/:/tmp/fleet-telemetry:rw
+        command:
+            - "/fleet-telemetry"
+            - "-config=/etc/tesla/config.json"
 networks:
   macos_network:
     driver: bridge

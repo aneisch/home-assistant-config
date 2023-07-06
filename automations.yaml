@@ -443,6 +443,7 @@
         - binary_sensor.guest_bathroom_toilet_water_detector
         - binary_sensor.back_bathroom_toilet_water_detector
         - binary_sensor.kitchen_sink_water_detector
+        - binary_sensor.fridge_water_detector
         - binary_sensor.water_shutoff_water_leak_detected
       to: "on"
   action:
@@ -499,6 +500,7 @@
         - sensor.hallway_motion_battery
         - sensor.master_closet_motion_battery_level
         - sensor.netatmo_home_attic_battery_percent
+        - sensor.fridge_water_detector_battery_level
       below: 10
   action:
     - service: script.notify_wrapper
@@ -765,13 +767,13 @@
     platform: numeric_state
     entity_id:
       - sensor.deep_freeze_temperature
-    above: 20
+    above: 25
     for:
       minutes: 10
   action:
     - service: script.notify_wrapper
       data:
-        message: "The deep freeze has been above 16°F for 10 minutes and is currently {{ trigger.to_state.state }}°F"
+        message: "The deep freeze has been above 25°F for 10 minutes and is currently {{ trigger.to_state.state }}°F"
         data:
           priority: 2
 
@@ -976,7 +978,8 @@
       id: night
   action:
     - choose:
-        - conditions: "{{ states('group.trackers') == 'home' and trigger.id == 'night' }}"
+        - conditions: "{{ trigger.id == 'night' }}"
+          #- conditions: "{{ states('group.trackers') == 'home' and trigger.id == 'night' }}"
           alias: Close Blinds
           sequence:
             - service: cover.close_cover
@@ -985,7 +988,6 @@
                   - cover.office_blind_left
                   - cover.office_blind_right
                   - cover.guest_bedroom_blinds
-        # always open in the morning regardless of if we're home
         - conditions: "{{ trigger.id == 'morning' }}"
           alias: Open Blinds
           sequence:

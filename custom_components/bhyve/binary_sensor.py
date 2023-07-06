@@ -28,6 +28,7 @@ async def async_setup_entry(
     for device in devices:
         if device.get("type") == DEVICE_FLOOD:
             sensors.append(BHyveFloodSensor(hass, bhyve, device))
+            sensors.append(BHyveTemperatureBinarySensor(hass, bhyve, device))
 
     async_add_entities(sensors, True)
 
@@ -86,6 +87,45 @@ class BHyveFloodSensor(BHyveDeviceEntity):
         if event == EVENT_FS_ALARM:
             self._state = self._parse_status(data)
             self._attrs["rssi"] = data.get("rssi")
+
+    def _should_handle_event(self, event_name, data):
+        return event_name in [EVENT_FS_ALARM]
+
+    
+class BHyveTemperatureBinarySensor(BHyveDeviceEntity):
+
+    def __init__(self, hass, bhyve, device):
+        name = "{} temperature alert".format(device.get("name"))
+        super().__init__(hass, bhyve, device, name, "alert")
+
+    def _setup(self, device):
+        self._available = device.get("is_connected", False)
+        self._state = self._parse_status(device.get("status", {}))
+        self._attrs = device.get("temp_alarm_thresholds")
+    
+    def _parse_status(self, status):
+        """Convert BHyve alarm status to entity value."""
+        return "on" if "alarm" in status.get("temp_alarm_status") else "off"
+    
+    @property
+    def state(self):
+        """Return the state of the entity."""
+        return self._state
+
+    @property
+    def unique_id(self):
+        """Return the unique id."""
+        return f"{self._mac_address}:{self._device_id}:tempalert"
+
+    @property
+    def is_on(self):
+        return self._state == "on"
+
+    def _on_ws_data(self, data):
+        _LOGGER.info("Received program data update %s", data)
+        event = data.get("event")
+        if event == EVENT_FS_ALARM:
+            self._state = self._parse_status(data)
 
     def _should_handle_event(self, event_name, data):
         return event_name in [EVENT_FS_ALARM]

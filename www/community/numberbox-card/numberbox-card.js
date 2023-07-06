@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.9');
+console.info('NUMBERBOX_CARD 4.10');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -112,10 +112,11 @@ renderNum(){
 	<section class="body">
 	<div class="main">
 		<div class="cur-box">
-		<ha-icon class="padl" 
+		<ha-icon class="padl" tabindex="0" role="button"
 			icon="${this.config.icon_plus}" 
 			@click="${() => this.setNumb(1)}" 
 			@mousedown="${() => this.Press(1)}"
+			@keydown="${(k) => this.Press(1,k)}"
 			@touchstart="${() => this.Press(1)}"
 			@mouseup="${() => this.Press(2)}"
 			@touchend="${() => this.Press(2)}"
@@ -124,10 +125,11 @@ renderNum(){
 		<div class="cur-num-box" @click="${() => this.moreInfo()}" >
 			<h3 class="cur-num ${(this.pending===false)? '':'upd'}"> ${this.niceNum()} </h3>
 		</div>
-		<ha-icon class="padr"
+		<ha-icon class="padr" tabindex="0" role="button"
 			icon="${this.config.icon_minus}"
 			@click="${() => this.setNumb(0)}"
 			@mousedown="${() => this.Press(0)}"
+			@keydown="${(k) => this.Press(0,k)}"
 			@touchstart="${() => this.Press(0)}"
 			@mouseup="${() => this.Press(2)}"
 			@touchend="${() => this.Press(2)}"
@@ -138,7 +140,12 @@ renderNum(){
 	</section>`;
 }
 
-Press(v) {
+
+
+Press(v,k) {
+	if( k && (k.keyCode == 13 || k.keyCode == 32) ){
+		this.setNumb(v); return;
+	}
 	if( this.config.speed>0 ){
 		clearInterval(this.rolling);
 		if(v<2){this.rolling = setInterval(() => this.setNumb(v), this.config.speed, this);}

@@ -4,8 +4,8 @@
   "codeowners": ["@sebr"],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "https://github.com/sebr/bhyve-home-assistant/blob/master/README.md",
+  "documentation": "https://github.com/sebr/bhyve-home-assistant/blob/main/README.md",
   "iot_class": "cloud_push",
   "requirements": [],
-  "version": "3.1.3"
+  "version": "3.2.0"
 }
