@@ -23,18 +23,22 @@ garage_door_last:
   has_date: true
   has_time: true
 garage_interior_motion_last:
-  name: Last Garage Interior Motion 
+  name: Last Garage Interior Motion
+  has_date: true
+  has_time: true
+kitchen_motion_last:
+  name: Last Kitchen Motion
   has_date: true
   has_time: true
 living_room_motion_last:
-  name: Last Living Room Motion 
+  name: Last Living Room Motion
   has_date: true
   has_time: true
 hallway_motion_last:
-  name: Last Hallway Motion 
+  name: Last Hallway Motion
   has_date: true
   has_time: true
 433_front_porch_motion_last:
-  name: Last Front Porch Motion 
+  name: Last Front Porch Motion
   has_date: true
   has_time: true

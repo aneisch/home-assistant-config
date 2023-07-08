@@ -224,6 +224,7 @@
         - binary_sensor.garage_interior_door
         - binary_sensor.master_bedroom_exterior_door
         - binary_sensor.garage_interior_motion
+        - input_boolean.kitchen_motion
         - binary_sensor.living_room_motion
         - binary_sensor.hallway_motion
       from: "off"
@@ -233,7 +234,7 @@
   action:
     service: input_datetime.set_datetime
     data:
-      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') | regex_replace(find='sensor.', replace='') }}_last"
+      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.', replace='') }}_last"
       datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
 
 # - alias: "Mailbox Alert"
@@ -896,6 +897,20 @@
         message: >
           Turned coffee maker off!
 
+- alias: "Water Shutoff Alert"
+  id: "water_shutoff_alert"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: switch.water_shutoff
+      to: "on"
+  action:
+    - service: script.notify_wrapper
+      data:
+        message: Water supply has been shut off!
+        data:
+          priority: 1
+
 - alias: "Front Door NFC"
   id: "front_door_nfc"
   initial_state: on
@@ -949,13 +964,17 @@
 
 - alias: "Rain Notifications"
   id: rain_notifications
+  mode: "single"
   trigger:
     - platform: state
       entity_id: sensor.neighbor_5in1_rain_last_1_hour
       from:
-        - "0.00"
         - "unknown"
         - "unavailable"
+    - platform: numeric_state
+      entity_id: sensor.neighbor_5in1_rain_last_1_hour
+      above: 0.00
+      below: 0.03
   action:
     - if:
         # Ensure new state is a float > 0.00
@@ -965,6 +984,7 @@
           data:
             message: >
               Rain started!
+    - delay: 300
 
 - alias: "Lower and Raise Blinds"
   id: "lower_raise_blinds"

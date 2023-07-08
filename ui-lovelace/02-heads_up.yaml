@@ -38,6 +38,7 @@ cards:
         - entity_id: "switch.aquarium_heater"
         - entity_id: "switch.aquarium_power_strip_usb"
         - entity_id: "*nexus*"
+        - entity_id: switch.home_water_supply
 
     card:
       type: entities

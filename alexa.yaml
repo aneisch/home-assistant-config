@@ -7,20 +7,37 @@ smart_home:
       - alarm_control_panel
       - alert
       - automation
+      - binary_sensor
+      - button
       - camera
+      - calendar
       - climate
       - cover
+      - counter
+      - device_tracker
       - fan
       - group
       - input_boolean
-      - binary_sensor
+      - input_number
+      - input_text
+      - input_select
+      - input_datetime
       - light
       - media_player
+      - number
+      - person
+      - plant
+      - remote
+      - select
       - scene
       - script
       - sensor
+      - siren
       - switch
-      - input_number
+      - timer
+      - vacuum
+      - update
+      - zone
     include_entities:
       - climate.thermostat
       - cover.garage_door
@@ -67,12 +84,13 @@ smart_home:
       - switch.master_bedroom_ceiling_fan
       - sensor.office_temperature
       - switch.globe_lights
+      - switch.home_water_supply
       - switch.living_room_speakers
       - switch.nas
       - switch.outdoor_zwave_switch
       - switch.tv
-      - switch.vacuum
       - switch.ir_candles
+      - input_boolean.kitchen_motion
       #############
       # Christmas #
       #############
@@ -121,17 +139,17 @@ smart_home:
       name: "Master Bedroom Light"
 
     script.appdaemon_ac_night:
-      name: "AC Night Mode"  
+      name: "AC Night Mode"
       description: "Change AC to nighttime temperature"
       display_categories: SCENE_TRIGGER
 
     script.appdaemon_ac_morning:
-      name: "AC Day Mode"     
+      name: "AC Day Mode"
       description: "Change AC to daytime temperature"
       display_categories: SCENE_TRIGGER
 
     script.too_cold:
-      name: "Too Cold"     
+      name: "Too Cold"
       description: "Raise temperature by a few degrees"
       display_categories: SCENE_TRIGGER
 
@@ -206,13 +224,12 @@ smart_home:
       name: "Master Bedroom Ceiling Fan"
       display_categories: FAN
 
-    switch.vacuum:
-      name: Roxie
-      display_categories: SWITCH
-
     switch.ir_candles:
       name: Pumpkin Patch
       display_categories: LIGHT
+
+    switch.home_water_supply:
+      name: Water
 
     #############
     # Christmas #

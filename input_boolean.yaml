@@ -7,6 +7,9 @@ door_notify:
   name: Door Notifications
   icon: mdi:alert-circle
 
+# Used by Alexa routine to publish motion detection status
+kitchen_motion:
+
 ac_automation:
   name: AC Automation
   icon: mdi:fan
