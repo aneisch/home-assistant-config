@@ -210,6 +210,7 @@ cards:
       - light.kitchen_table_light
       - light.kitchen_table_leds
       - light.dining_room_light
+      - light.curio_cabinet
       - switch.coffee_maker
 
   - type: vertical-stack

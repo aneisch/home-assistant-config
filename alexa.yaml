@@ -51,6 +51,7 @@ smart_home:
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.dining_room_light
+      - light.curio_cabinet
       - light.entryway_light
       - light.guest_bedroom_nightstand_lamp
       - light.kitchen_lights

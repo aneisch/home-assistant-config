@@ -5,6 +5,7 @@ common_areas:
     - group.kitchen
     - group.office
     - group.garage
+    - group.dining_room
     #- group.christmas
 
 office:
@@ -79,6 +80,12 @@ living_room:
     - light.living_room_sconces
     - switch.tv
     #- switch.ir_candles
+
+dining_room:
+  name: Dining Room
+  entities:
+    - light.dining_room_light
+    - light.curio_cabinet
 
 off_at_bedtime:
   name: Off at Bedtime
