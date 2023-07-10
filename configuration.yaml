@@ -14,6 +14,7 @@ homeassistant:
     aarlo: !include packages/aarlo.yaml
     aquarium: !include packages/aquarium.yaml
     # covid: !include packages/covid.yaml
+    cameras: !include packages/cameras.yaml
     door_otp: !include packages/door_otp.yaml
     garage_door: !include packages/garage_door.yaml
     gate: !include packages/mom_and_dad_gate.yaml
@@ -33,6 +34,8 @@ homeassistant:
         - 10.0.1.0/24
   allowlist_external_dirs:
     - "/tmp"
+  allowlist_external_urls:
+    - "http://localhost:8123/api/frigate/notifications"
 
 alexa: !include alexa.yaml
 

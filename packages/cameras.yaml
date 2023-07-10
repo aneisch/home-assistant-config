@@ -1,0 +1,23 @@
+automation:
+  - alias: Frigate Notifications
+    id: "frigate_notifications"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: frigate/events
+        payload: new
+        value_template: "{{ value_json.type }}"
+    action:
+      - service: notify.signal_self
+        data:
+          message: >-
+            A {{trigger.payload_json["after"]["label"]}} was detected.
+
+
+            Clip: https://assist.secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+
+
+            Stream: https://assist.secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+          data:
+            urls:
+              - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg

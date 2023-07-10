@@ -97,7 +97,6 @@ services:
             - SMTP_USERNAME=REDACT
             - SMTP_PASSWORD=REDACT
             - ROCKET_PORT=1024
-            - WEBSOCKET_ENABLED=true
             - DUO_IKEY=
             - DUO_SKEY=
             - DUO_HOST=

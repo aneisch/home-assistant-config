@@ -120,6 +120,7 @@ cards:
       - input_boolean.guest_mode
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
+      - automation.lower_and_raise_blinds
 
   - type: entities
     show_header_toggle: false

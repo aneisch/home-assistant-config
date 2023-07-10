@@ -162,3 +162,23 @@ services:
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always
+    frigate:
+        container_name: frigate
+        privileged: true
+        restart: always
+        image: ghcr.io/blakeblackshear/frigate:stable
+        shm_size: "128mb"
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
+            - /dev/dri/renderD128
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/frigate/config.yml:/config/config.yml
+            - /mnt/frigate:/media/frigate
+        ports:
+            - "5000:5000"
+            - "8553:8554"
+            - "8555:8555/tcp"
+            - "8555:8555/udp"
+        environment:
+            - FRIGATE_RTSP_PASSWORD="password"

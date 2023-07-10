@@ -39,6 +39,11 @@ cards:
         - entity_id: "switch.aquarium_power_strip_usb"
         - entity_id: "*nexus*"
         - entity_id: switch.home_water_supply
+        - entity_id: "*_snapshots"
+        - entity_id: "*_detect"
+        - entity_id: "*_recordings"
+        - entity_id: "*_motion"
+        - entity_id: "*_stream"
 
     card:
       type: entities

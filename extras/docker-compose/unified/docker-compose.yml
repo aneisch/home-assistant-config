@@ -163,6 +163,26 @@ services:
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always
+    frigate:
+        container_name: frigate
+        privileged: true
+        restart: always
+        image: ghcr.io/blakeblackshear/frigate:stable
+        shm_size: "128mb"
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
+            - /dev/dri/renderD128
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/frigate/config.yml:/config/config.yml
+            - /mnt/frigate:/media/frigate
+        ports:
+            - "5000:5000"
+            - "8553:8554"
+            - "8555:8555/tcp"
+            - "8555:8555/udp"
+        environment:
+            - FRIGATE_RTSP_PASSWORD="password"
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -260,7 +280,6 @@ services:
             - SMTP_USERNAME=REDACT
             - SMTP_PASSWORD=REDACT
             - ROCKET_PORT=1024
-            - WEBSOCKET_ENABLED=true
             - DUO_IKEY=
             - DUO_SKEY=
             - DUO_HOST=
@@ -539,23 +558,6 @@ services:
         devices:
             - /dev/kvm
         user: root
-    tesla:
-        container_name: tesla
-        restart: 'always'
-        image: tesla/fleet-telemetry:v0.0.5
-        ports:
-        #   - '1234:8080'
-            - "4433:4433"
-            - "4269:4269"
-            - "8089:8080"
-            - "9090:9090"
-        volumes:
-            - /tmp/config.json:/etc/tesla/config.json:ro
-            - /tmp/:/etc/tesla/certs/:ro
-            - /tmp/fleet-telemetry/:/tmp/fleet-telemetry:rw
-        command:
-            - "/fleet-telemetry"
-            - "-config=/etc/tesla/config.json"
 networks:
   macos_network:
     driver: bridge
