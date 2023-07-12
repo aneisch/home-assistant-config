@@ -8,16 +8,119 @@ automation:
         payload: new
         value_template: "{{ value_json.type }}"
     action:
-      - service: notify.signal_self
-        data:
-          message: >-
-            A {{trigger.payload_json["after"]["label"]}} was detected.
+      # if home and detection at front door then notify
+      - if:
+          - "{{ is_state('group.trackers', 'home') and trigger.payload_json['after']['camera'] == 'front_door' }}"
+        then:
+          - service: notify.signal_frigate
+            data:
+              message: >-
+                A {{trigger.payload_json["after"]["label"]}} was detected.
 
 
-            Clip: https://assist.secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
 
 
-            Stream: https://assist.secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-          data:
-            urls:
-              - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg
+                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+              data:
+                urls:
+                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+
+      # if not home and detection anywhere then notify
+      - if:
+          - "{{ is_state('group.trackers', 'not_home')}}"
+        then:
+          - service: notify.signal_frigate
+            data:
+              message: >-
+                A {{trigger.payload_json["after"]["label"]}} was detected.
+
+
+                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+
+
+                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+              data:
+                urls:
+                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+
+  - alias: Frigate Notification Snooze
+    id: "frigate_notification_snooze"
+    mode: single
+    trigger:
+      - platform: event
+        id: start
+        event_type:
+          - timer.started
+          - timer.restarted
+        event_data:
+          entity_id: timer.frigate_notification_snooze
+      - platform: event
+        id: finish
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.frigate_notification_snooze
+      - platform: state
+        entity_id: automation.frigate_notifications
+        to:
+          - "on"
+          - "off"
+        id: manual
+      - platform: state
+        entity_id: group.trackers
+        to: not_home
+        id: presence
+    action:
+      - if: "{{ trigger.id == 'start' }}"
+        then:
+          - service: homeassistant.turn_off
+            entity_id: automation.frigate_notifications
+          - delay: "00:00:01"
+
+      - if: "{{ trigger.id in ['finish','presence'] }}"
+        then:
+          - service: homeassistant.turn_on
+            entity_id: automation.frigate_notifications
+          - delay: "00:00:01"
+
+      - if: "{{ trigger.id == 'manual' }}"
+        then:
+          - service: timer.cancel
+            entity_id: timer.frigate_notification_snooze
+
+  - alias: Frigate Notification Snooze Front Door
+    id: "frigate_notification_snooze_front_door"
+    mode: single
+    trigger:
+      - platform: state
+        id: door
+        entity_id: binary_sensor.front_door
+        to: "on"
+      - platform: event
+        id: unlock
+        event_type: call_service
+        event_data:
+          domain: lock
+          service: unlock
+          service_data:
+            entity_id: lock.front_door
+    action:
+      - if: "{{ trigger.id == 'door' }}"
+        then:
+          - service: timer.start
+            data:
+              duration: "00:05:00"
+            target:
+              entity_id: timer.frigate_notification_snooze
+      - if: "{{ trigger.id == 'unlock' }}"
+        then:
+          - service: timer.start
+            data:
+              duration: "00:02:00"
+            target:
+              entity_id: timer.frigate_notification_snooze
+
+timer:
+  frigate_notification_snooze:
+    duration: "00:00:00"
+    restore: True

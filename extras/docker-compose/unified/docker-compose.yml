@@ -181,8 +181,6 @@ services:
             - "8553:8554"
             - "8555:8555/tcp"
             - "8555:8555/udp"
-        environment:
-            - FRIGATE_RTSP_PASSWORD="password"
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest

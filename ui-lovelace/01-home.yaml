@@ -26,6 +26,7 @@ cards:
             entity: alarm_control_panel.alexa_guard_7f9e9
           - name: Aarlo Mode
             entity: alarm_control_panel.aarlo_garage
+          - entity: automation.frigate_notifications
           - entity: lock.front_door
             style: |
               :host {

@@ -1,42 +1,110 @@
 title: Cameras
 icon: mdi:camera
 cards:
-
   # - type: picture-glance
   #   camera_image: camera.outdoor
   #   entities: []
+
+  - type: vertical-stack
+    cards:
+      - type: entities
+        entities:
+          - name: Notifications
+            entity: automation.frigate_notifications
+          - name: Notifications Snooze
+            entity: timer.frigate_notification_snooze
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "15m"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "00:15:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "30m"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "00:30:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "1h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "01:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "2h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "02:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "3h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "03:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
 
   - type: picture-entity
     entity: camera.aarlo_garage
     name: Last Capture
     show_state: false
 
-  - type: picture-entity
-    entity: camera.back_porch
-    name: Last Capture
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.back_porch
+  #   name: Last Capture
+  #   show_state: false
 
-  - type: picture-entity
-    entity: camera.front_door
-    name: Last Capture
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.front_door
+  #   name: Last Capture
+  #   show_state: false
 
-  - type: picture-entity
-    entity: camera.garage
-    name: Last Capture
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.garage
+  #   name: Last Capture
+  #   show_state: false
 
-  - type: picture-entity
-    entity: camera.back_porch_live
-    name: Stream
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.back_porch_live
+  #   name: Stream
+  #   show_state: false
 
-  - type: picture-entity
-    entity: camera.front_door_live
-    name: Stream
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.front_door_live
+  #   name: Stream
+  #   show_state: false
 
-  - type: picture-entity
-    entity: camera.garage_live
-    name: Stream
-    show_state: false
+  # - type: picture-entity
+  #   entity: camera.garage_live
+  #   name: Stream
+  #   show_state: false
+
+  - type: custom:frigate-card
+    cameras:
+      - camera_entity: camera.driveway
+        live_provider: ha
+      - camera_entity: camera.front_door
+        live_provider: ha
+      - camera_entity: camera.back_porch
+        live_provider: ha
