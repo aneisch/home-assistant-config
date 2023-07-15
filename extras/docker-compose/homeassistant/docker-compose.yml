@@ -174,9 +174,11 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/config.yml:/config/config.yml
-            - /mnt/frigate:/media/frigate
+            - /frigate/frigate:/media/frigate
         ports:
             - "5000:5000"
             - "8553:8554"
             - "8555:8555/tcp"
             - "8555:8555/udp"
+        environment:
+            - PLUS_API_KEY=secret

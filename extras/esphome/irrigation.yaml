@@ -12,18 +12,12 @@ esp32:
     type: ESP-IDF  
 
 <<: !include common.yaml
-  
+
 globals:
   - id: current_zone
     type: int
     restore_value: no
     initial_value: '0'
-
-sn74hc595:
-  - id: 'shift_register'
-    data_pin: 35 #D1
-    clock_pin: 33 #D2
-    latch_pin: 7 #D5
 
 script:
   - id: turn_off_other_zones
@@ -37,8 +31,6 @@ script:
             id(zone3).turn_off();
             id(zone4).turn_off();
             id(zone5).turn_off();
-            id(zone6).turn_off();
-            id(zone7).turn_off();
           }
           // Implement interlock so only one zone can be active
           else {
@@ -57,43 +49,33 @@ script:
             else if (id(current_zone) != 5 && id(zone5).state) {
               id(zone5).turn_off();
             }
-            else if (id(current_zone) != 6 && id(zone6).state) {
-              id(zone6).turn_off();
-            }
-            else if (id(current_zone) != 7 && id(zone7).state) {
-              id(zone7).turn_off();
-            }
           }
 
 switch:
-  # 24v supply on separate relay to prevent issues with boot spike
+  # 24v supply on separate relay to prevent issues with boot spike, etc
   - platform: gpio
     id: relay_24v_power
     name: "${friendly_name} 24v Power"
     restore_mode: ALWAYS_OFF
     icon: mdi:flash
-    pin:
-      number: 12 #D8
+    pin: 12
     on_turn_off:
       then:
-        - script.execute: turn_off_other_zones
         - switch.turn_off: master_valve
 
   - platform: gpio
     name: "${friendly_name} Front Beds"
     id: zone1
     icon: mdi:sprinkler
-    pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 0
+    pin: 
+      number: 16
       inverted: true
     on_turn_on:
       - globals.set: 
           id: current_zone
           value: '1'
       - script.execute: turn_off_other_zones
-      - delay: 25min
+      - delay: 25min # Set max time in case of automation failure
       - switch.turn_off: zone1
 
   - platform: gpio
@@ -101,16 +83,14 @@ switch:
     id: zone2
     icon: mdi:sprinkler
     pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 1
+      number: 18
       inverted: true
     on_turn_on:
       - globals.set: 
           id: current_zone
           value: '2'
       - script.execute: turn_off_other_zones
-      - delay: 25min
+      - delay: 25min # Set max time in case of automation failure
       - switch.turn_off: zone2
 
   - platform: gpio
@@ -118,16 +98,14 @@ switch:
     id: zone3
     icon: mdi:sprinkler
     pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 2
+      number: 33
       inverted: true
     on_turn_on:
       - globals.set: 
           id: current_zone
           value: '3'
       - script.execute: turn_off_other_zones
-      - delay: 25min
+      - delay: 25min # Set max time in case of automation failure
       - switch.turn_off: zone3
 
   - platform: gpio
@@ -135,16 +113,14 @@ switch:
     id: zone4
     icon: mdi:sprinkler
     pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 3
+      number: 35
       inverted: true
     on_turn_on:
       - globals.set: 
           id: current_zone
           value: '4'
       - script.execute: turn_off_other_zones
-      - delay: 25min
+      - delay: 25min # Set max time in case of automation failure
       - switch.turn_off: zone4
 
   - platform: gpio
@@ -152,60 +128,22 @@ switch:
     id: zone5
     icon: mdi:sprinkler
     pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 4
+      number: 37
       inverted: true
     on_turn_on:
       - globals.set: 
           id: current_zone
           value: '5'
       - script.execute: turn_off_other_zones
-      - delay: 25min
+      - delay: 25min # Set max time in case of automation failure
       - switch.turn_off: zone5
-
-  - platform: gpio
-    name: "${friendly_name} Zone 6 - Unused"
-    id: zone6
-    icon: mdi:sprinkler
-    pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 5
-      inverted: true
-    on_turn_on:
-      - globals.set: 
-          id: current_zone
-          value: '6'
-      - script.execute: turn_off_other_zones
-      - delay: 25min
-      - switch.turn_off: zone6
-
-  - platform: gpio
-    name: "${friendly_name} Zone 7 - Unused"
-    id: zone7
-    icon: mdi:sprinkler
-    pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 6
-      inverted: true
-    on_turn_on:
-      - globals.set: 
-          id: current_zone
-          value: '7'
-      - script.execute: turn_off_other_zones
-      - delay: 25min
-      - switch.turn_off: zone7
 
   - platform: gpio
     name: "${friendly_name} Master Valve"
     id: master_valve
     icon: mdi:valve
     pin:
-      sn74hc595: shift_register
-      # Corresponds to relay # (starts at 0)
-      number: 7
+      number: 39
       inverted: true
     on_turn_on:
       then:

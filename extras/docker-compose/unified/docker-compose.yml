@@ -175,12 +175,14 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/config.yml:/config/config.yml
-            - /mnt/frigate:/media/frigate
+            - /frigate/frigate:/media/frigate
         ports:
             - "5000:5000"
             - "8553:8554"
             - "8555:8555/tcp"
             - "8555:8555/udp"
+        environment:
+            - PLUS_API_KEY=secret
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -556,6 +558,17 @@ services:
         devices:
             - /dev/kvm
         user: root
+    deepstack:
+        container_name: deepstack
+        restart: 'always'
+        image: deepquestai/deepstack
+        volumes:
+            - /opt/deepstack:/modelstore/detection:ro
+        environment:
+            - TZ=America/Chicago
+        ports:
+            - 8110:5000
+
 networks:
   macos_network:
     driver: bridge

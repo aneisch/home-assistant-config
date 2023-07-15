@@ -1,0 +1,47 @@
+{
+    "config": {
+        "step": {
+            "user": {
+                "title": "Dahua Camera toevoegen",
+                "description": "Voorbeeld adres: 192.168.1.108",
+                "data": {
+                    "username": "Gebruikersnaam",
+                    "password": "Wachtwoord",
+                    "address": "Adres",
+                    "port": "Poort",
+                    "rtsp_port": "RTSP Poort",
+                    "streams": "RTSP Streams",
+                    "events": "Events",
+                    "channel": "Channel (Usually 0 unless you use an nvr)"
+                }
+            },
+            "name": {
+                "title": "Configureer Apparaatnaam",
+                "data": {
+                    "name": "Apparaatnaam"
+                }
+            }
+        },
+        "error": {
+            "auth": "Gebruikersnaam, Wachtwoord, of Adres is verkeerd."
+        },
+        "abort": {
+            "single_instance_allowed": "Er is maar 1 integratie toegestaan.",
+            "already_configured": "Er is al een integratie geconfigureerd."
+        }
+    },
+    "options": {
+        "step": {
+            "user": {
+                "data": {
+                    "binary_sensor": "Binary sensor actief",
+                    "sensor": "Sensor actief",
+                    "switch": "Schakelaar actief",
+                    "light": "Lamp actief",
+                    "select": "Select enabled",
+                    "camera": "Camera actief"
+                }
+            }
+        }
+    }
+}

@@ -18,7 +18,7 @@
       unit_of_measurement: "°F"
       device_class: temperature
     - name: "Compost Battery OK"
-      state: "{{ trigger.payload_json.battery_ok == 1 }}"
+      state: "{{ trigger.payload_json.battery_ok }}"
       device_class: battery
 
 # Deep Freeze
@@ -37,7 +37,7 @@
       unit_of_measurement: "%"
       device_class: humidity
     - name: "Deep Freeze Battery OK"
-      state: "{{ trigger.payload_json.battery_ok == 1 }}"
+      state: "{{ trigger.payload_json.battery_ok }}"
       device_class: battery
 
 # Rain
@@ -107,7 +107,7 @@
       unit_of_measurement: "%"
       device_class: humidity
     - name: "433 Weather Battery OK"
-      state: "{{ trigger.payload_json.battery_ok == 1 }}"
+      state: "{{ trigger.payload_json.battery_ok }}"
       device_class: battery
 
 # Mailbox

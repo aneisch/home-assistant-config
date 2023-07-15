@@ -375,6 +375,17 @@ services:
         devices:
             - /dev/kvm
         user: root
+    deepstack:
+        container_name: deepstack
+        restart: 'always'
+        image: deepquestai/deepstack
+        volumes:
+            - /opt/deepstack:/modelstore/detection:ro
+        environment:
+            - TZ=America/Chicago
+        #ports:
+        #    - 8110:5000
+
 networks:
   macos_network:
     driver: bridge

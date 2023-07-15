@@ -1,0 +1,413 @@
+# Describes the format for available Dahua services
+# https://developers.home-assistant.io/docs/dev_101_services/
+
+set_infrared_mode:
+  name: Set Infrared Mode on Dahua Camera
+  description: Set the infrared light settings on a Dahua camera
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    mode:
+      description: "The infrared mode: Auto, On, Off"
+      example: "Auto"
+      default: "Auto"
+      selector:
+        select:
+          options:
+            - "Auto"
+            - "On"
+            - "Off"
+    brightness:
+      description: The infrared brightness, from 0 to 100 inclusive. 100 is the brightest
+      example: 100
+      default: 100
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          mode: slider
+
+
+set_video_profile_mode:
+  name: Set Dahua Video Profile Mode To Day or Night
+  description: Sets the video profile mode to day or night
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    mode:
+      description: "The profile: Day, Night"
+      example: "Day"
+      selector:
+        select:
+          options:
+            - "Day"
+            - "Night"
+
+
+enable_channel_title:
+  name: Enable Channel Title Overlay
+  description: Enables or disable the channel title video overaly
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    enabled:
+      name: Enabled
+      description: "If the overlay is enabled or not"
+      example: true
+      required: true
+      default: true
+      selector:
+        boolean:
+
+
+enable_time_overlay:
+  name: Enable Channel Time Overlay
+  description: Enables or disable the channel time video overaly
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    enabled:
+      name: Enabled
+      description: "If the overlay is enabled or not"
+      example: true
+      required: true
+      default: true
+      selector:
+        boolean:
+
+
+enable_text_overlay:
+  name: Enable Channel Text Overlay
+  description: Enables or disable the channel text video overaly
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    group:
+      name: Group
+      description: "Multiple text overlay groups can exist. The default 1 should be used in most cases"
+      example: 1
+      required: true
+      default: 1
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+    enabled:
+      name: Enabled
+      description: "If the overlay is enabled or not"
+      example: true
+      required: true
+      default: false
+      selector:
+        boolean:
+
+
+enable_custom_overlay:
+  name: Enable Channel Custom Text Overlay
+  description: Enables or disable the channel custom text video overaly
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    group:
+      name: Group
+      description: "Multiple custom text groups can exist. The default 0 should be used in most cases"
+      example: 0
+      required: true
+      default: 0
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+    enabled:
+      name: Enabled
+      description: "If the overlay is enabled or not"
+      example: true
+      required: true
+      default: false
+      selector:
+        boolean:
+
+set_custom_overlay:
+  name: Set Custom Text Overlay
+  description: Sets a custom text overlay on the video
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    group:
+      name: Group
+      description: "Multiple custom text groups can exist. The default 0 should be used in most cases"
+      example: 0
+      required: true
+      default: 0
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+    text1:
+      name: Text 1
+      description: "Custom overlay 1"
+      example: "Text 1"
+      required: false
+      default: ""
+      selector:
+        text:
+    text2:
+      name: Text 2
+      description: "Custom overlay 2"
+      example: "Text 2"
+      required: false
+      default: ""
+      selector:
+        text:
+
+
+set_channel_title:
+  name: Sets Channel Title
+  description: Sets a title on the video
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    text1:
+      name: Text 1
+      description: "The first title"
+      example: "Front Porch"
+      required: false
+      default: ""
+      selector:
+        text:
+    text2:
+      name: Text 2
+      description: "The second title"
+      example: "House"
+      required: false
+      default: ""
+      selector:
+        text:
+
+
+set_text_overlay:
+  name: Set text overlay
+  description: Sets a text overlay on the video
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    group:
+      name: Group
+      description: "Multiple custom text groups can exist. The default 1 should be used in most cases"
+      example: 1
+      required: true
+      default: 1
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+    text1:
+      name: Text 1
+      description: "Text overlay 1"
+      example: "Text 1"
+      required: false
+      default: ""
+      selector:
+        text:
+    text2:
+      name: Text 2
+      description: "Text overlay 2"
+      example: "Text 2"
+      required: false
+      default: ""
+      selector:
+        text:
+    text3:
+      name: Text 3
+      description: "Text overlay 3"
+      example: "Text 3"
+      required: false
+      default: ""
+      selector:
+        text:
+    text4:
+      name: Text 4
+      description: "Text overlay 4"
+      example: "Text 4"
+      required: false
+      default: ""
+      selector:
+        text:
+
+set_video_in_day_night_mode:
+  name: Set the Day or Night Color Mode
+  description: "Set the camera's Day/Night Mode. For example, Color, BlackWhite, or Auto"
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    config_type:
+      description: "The config type: general, day, night"
+      example: "general"
+      default: "general"
+      selector:
+        select:
+          options:
+            - "general"
+            - "day"
+            - "night"
+    mode:
+      description: "The mode: Auto, Color, BlackWhite. Note Auto is also known as Brightness by Dahua"
+      example: "Auto"
+      default: "Auto"
+      selector:
+        select:
+          options:
+            - "Auto"
+            - "Color"
+            - "BlackWhite"
+
+reboot:
+  name: Reboots the device
+  description: "Reboots the device"
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+
+set_record_mode:
+  name: Set Record Mode on Dahua Camera
+  description: Sets the record mode (on/off or auto). On is always on recording. Off is always off. Auto based on motion settings, etc.
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    mode:
+      description: "The mode: Auto, On, Off"
+      example: "Auto"
+      default: "Auto"
+      selector:
+        select:
+          options:
+            - "Auto"
+            - "On"
+            - "Off"
+
+enable_all_ivs_rules:
+  name: Enable or Disable All IVS rules
+  description: Enables of disables all IVS rules based on the supplied 'enabled' param
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    enabled:
+      name: Enabled
+      description: "If true all IVS rules are enabled. If false, all are disabled"
+      example: true
+      required: true
+      default: true
+      selector:
+        boolean:
+
+enable_ivs_rule:
+  name: Enable or Disable IVS rule
+  description: Enables of disable a single IVS rule based on the supplied 'enabled' param
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    index:
+      name: Index
+      description: "The rule index. 0 is a hidden rule, so usually the first rule is rule 1"
+      example: 1
+      required: true
+      default: 1
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+    enabled:
+      name: Enabled
+      description: "If true enables the IVS rule, otherwise disables it"
+      example: true
+      required: true
+      default: true
+      selector:
+        boolean:
+
+vto_open_door:
+  name: Open a door via a VTO
+  description: Open a door via a VTO (Doorbell) for supported devices
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    door_id:
+      name: Door ID
+      description: "The door ID. Default is 1"
+      example: 1
+      required: true
+      default: 1
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+
+vto_cancel_call:
+  name: Cancel VTO call
+  description: Cancels a VTO call
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+
+set_focus_zoom:
+  name: Set the Dahua Focus and Zoom
+  description: Sets the camera's focus and zoom
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    focus:
+      name: focus
+      description: "Decimal Value for Focus"
+      example: "0.758333"
+      required: true
+      default: "0.758333"
+      selector:
+        text:
+    zoom:
+      name: zoom
+      description: "Decimal value for zoom"
+      example: "0.898502"
+      required: true
+      default: "0.898502"
+      selector:
+        text:
+

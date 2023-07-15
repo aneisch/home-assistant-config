@@ -28,7 +28,7 @@ automation:
 
       # if not home and detection anywhere then notify
       - if:
-          - "{{ is_state('group.trackers', 'not_home')}}"
+          - "{{ is_state('group.trackers', 'not_home') or is_state('input_boolean.goodnight', 'on') }}"
         then:
           - service: notify.signal_frigate
             data:
@@ -81,6 +81,8 @@ automation:
         then:
           - service: homeassistant.turn_on
             entity_id: automation.frigate_notifications
+          - service: timer.cancel
+            entity_id: timer.frigate_notification_snooze
           - delay: "00:00:01"
 
       - if: "{{ trigger.id == 'manual' }}"
@@ -119,6 +121,16 @@ automation:
               duration: "00:02:00"
             target:
               entity_id: timer.frigate_notification_snooze
+
+command_line:
+  - switch:
+      name: Back Porch Camera White Light
+      command_on: >
+        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=1"
+      command_off: >
+        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=0"
+      command_state: >
+        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=getStatus&channel=0" | grep -q "status.status.WhiteLight=On"
 
 timer:
   frigate_notification_snooze:

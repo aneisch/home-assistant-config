@@ -266,6 +266,7 @@ logger:
       - "sensor.phase.*_voltage.*"
       - "sensor.load.*"
       - "binary_sensor.internet_reachability"
+      - ".*mqtt_automation_listener.*"
 
 lovelace:
   mode: yaml

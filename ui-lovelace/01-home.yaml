@@ -109,6 +109,98 @@ cards:
       #   image_click: play
       #   play_direct: true
 
+  - type: vertical-stack
+    cards:
+      - type: entities
+        entities:
+          - name: Frigate Notifications
+            entity: automation.frigate_notifications
+          - name: Notifications Snooze
+            entity: timer.frigate_notification_snooze
+          - name: Back Porch Light
+            entity: switch.back_porch_camera_white_light
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: "15m"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "00:15:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "30m"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "00:30:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "1h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "01:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "2h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "02:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+          - type: custom:mushroom-template-card
+            primary: "3h"
+            tap_action:
+              action: call-service
+              service: timer.start
+              data:
+                duration: "03:00:00"
+              target:
+                entity_id: timer.frigate_notification_snooze
+
+      - type: custom:frigate-card
+        cameras_global:
+          live_provider: go2rtc
+          engine: frigate
+        cameras:
+          - camera_entity: camera.driveway
+          - camera_entity: camera.front_door_2
+            go2rtc:
+              stream: front_door
+          - camera_entity: camera.back_porch
+            go2rtc:
+              stream: back_porch
+        menu:
+          style: hidden
+          position: top
+          alignment: left
+          buttons:
+            cameras:
+              enabled: false
+            timeline:
+              enabled: false
+            download:
+              enabled: false
+            media_player:
+              enabled: false
+            microphone:
+              enabled: false
+        live:
+          auto_play: never
+
   - type: entities
     show_header_toggle: false
     title: Automation Control
