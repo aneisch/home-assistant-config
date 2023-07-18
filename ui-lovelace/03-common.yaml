@@ -189,9 +189,9 @@ cards:
     entities:
       - light.front_porch_lights
       - light.front_sconces
-      - light.back_porch_light
-      - entity: light.garage_exterior_light #ring
-        name: Driveway Light
+      # - light.back_porch_light # ring
+      # - entity: light.garage_exterior_light #ring
+      #   name: Driveway Light
       - switch.garage_exterior_light
       - switch.garage_lights
       - switch.workbench_shelf_leds

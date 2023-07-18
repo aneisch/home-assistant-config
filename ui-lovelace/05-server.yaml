@@ -170,7 +170,6 @@ cards:
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_sqliteweb
-      - switch.docker_frigate
       # - switch.docker_adguard
       # - switch.docker_appdaemon
       # - switch.docker_influxdb

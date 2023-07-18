@@ -20,8 +20,6 @@ cards:
         title: Security
         entities:
           - input_boolean.security_status
-          - name: Ring Alarm Mode
-            entity: alarm_control_panel.college_station_mode
           - name: Alexa Guard Mode
             entity: alarm_control_panel.alexa_guard_7f9e9
           - name: Aarlo Mode
@@ -117,8 +115,8 @@ cards:
             entity: automation.frigate_notifications
           - name: Notifications Snooze
             entity: timer.frigate_notification_snooze
-          - name: Back Porch Light
-            entity: switch.back_porch_camera_white_light
+          # - name: Back Porch Light
+          #   entity: switch.back_porch_camera_white_light
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
@@ -171,35 +169,29 @@ cards:
               target:
                 entity_id: timer.frigate_notification_snooze
 
-      - type: custom:frigate-card
-        cameras_global:
-          live_provider: go2rtc
-          engine: frigate
-        cameras:
-          - camera_entity: camera.driveway
-          - camera_entity: camera.front_door_2
-            go2rtc:
-              stream: front_door
-          - camera_entity: camera.back_porch
-            go2rtc:
-              stream: back_porch
-        menu:
-          style: hidden
-          position: top
-          alignment: left
-          buttons:
-            cameras:
-              enabled: false
-            timeline:
-              enabled: false
-            download:
-              enabled: false
-            media_player:
-              enabled: false
-            microphone:
-              enabled: false
-        live:
-          auto_play: never
+      # - type: custom:frigate-card
+      #   cameras_global:
+      #     live_provider: go2rtc
+      #     engine: frigate
+      #   cameras:
+      #     - camera_entity: camera.driveway
+      #     - camera_entity: camera.back_porch
+      #     - camera_entity: camera.front_door
+      #   menu:
+      #     style: overlay
+      #     position: top
+      #     alignment: left
+      #     buttons:
+      #       cameras:
+      #         enabled: false
+      #       timeline:
+      #         enabled: false
+      #       download:
+      #         enabled: false
+      #       media_player:
+      #         enabled: false
+      #       microphone:
+      #         enabled: false
 
   - type: entities
     show_header_toggle: false

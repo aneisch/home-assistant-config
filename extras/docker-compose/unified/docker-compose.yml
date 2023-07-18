@@ -163,26 +163,6 @@ services:
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         restart: always
-    frigate:
-        container_name: frigate
-        privileged: true
-        restart: always
-        image: ghcr.io/blakeblackshear/frigate:stable
-        shm_size: "128mb"
-        devices:
-            - /dev/bus/usb:/dev/bus/usb
-            - /dev/dri/renderD128
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - /opt/frigate/config.yml:/config/config.yml
-            - /frigate/frigate:/media/frigate
-        ports:
-            - "5000:5000"
-            - "8553:8554"
-            - "8555:8555/tcp"
-            - "8555:8555/udp"
-        environment:
-            - PLUS_API_KEY=secret
     plex:
         container_name: plex
         image: plexinc/pms-docker:latest
@@ -381,29 +361,6 @@ services:
         environment:
             - TZ=America/Chicago    
         restart: always
-    ring-mqtt:
-        container_name: ring-mqtt
-        #image: tsightler/ring-mqtt
-        image: tsightler/ring-mqtt:5.0.2
-        restart: 'always'
-        user: '99'
-        ports:
-            - 8554:8554
-        environment:
-            - TZ=America/Chicago
-            - S6_READ_ONLY_ROOT=1
-            - MQTTHOST=10.0.1.22
-            # docker run -it --rm --entrypoint /bin/bash tsightler/ring-mqtt
-            # /app/ring-mqtt/init-ring-mqtt.js
-            # cat /data/ring-state.json
-            - RINGTOKEN=TOKEN
-            - ENABLEMODES=true
-            - SNAPSHOTMODE=all
-            - ENABLECAMERAS=true
-        volumes:
-            - '/opt/ring-mqtt:/data'
-            #- type: tmpfs
-            #  target: /run
     tailscale:
         container_name: tailscale
         volumes:
@@ -566,8 +523,28 @@ services:
             - /opt/deepstack:/modelstore/detection:ro
         environment:
             - TZ=America/Chicago
+        #ports:
+        #    - 8110:5000
+    frigate:
+        container_name: frigate
+        privileged: true
+        restart: always
+        image: ghcr.io/blakeblackshear/frigate:stable
+        shm_size: "128mb"
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
+            - /dev/dri/renderD128
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/frigate/config.yml:/config/config.yml
+            - /frigate/frigate:/media/frigate
         ports:
-            - 8110:5000
+            - "5000:5000"
+            - "8554:8554"
+            - "8555:8555/tcp"
+            - "8555:8555/udp"
+        environment:
+            - PLUS_API_KEY=secret
 
 networks:
   macos_network:

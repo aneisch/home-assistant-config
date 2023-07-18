@@ -444,7 +444,9 @@
         - binary_sensor.guest_bathroom_toilet_water_detector
         - binary_sensor.back_bathroom_toilet_water_detector
         - binary_sensor.kitchen_sink_water_detector
-        - binary_sensor.fridge_water_detector
+        - binary_sensor.kitchen_water_detector
+        - binary_sensor.master_bathroom_water_detector
+        - binary_sensor.laundry_room_water_detector
         - binary_sensor.water_shutoff_water_leak_detected
       to: "on"
   action:
@@ -490,6 +492,7 @@
         - sensor.garage_exterior_door_battery_level
         - sensor.back_bathroom_toilet_water_detector_battery_level
         - sensor.guest_bathroom_toilet_water_detector_battery_level
+        - sensor.master_bathroom_water_detector_battery_level
         - sensor.washing_machine_water_detector_battery_level
         - sensor.kitchen_sink_water_detector_battery_level
         - sensor.garage_interior_motion_battery_level
@@ -988,7 +991,6 @@
 
 - alias: "Lower and Raise Blinds"
   id: "lower_raise_blinds"
-  initial_state: on
   trigger:
     - platform: time
       at: "10:30:00"

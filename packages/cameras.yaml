@@ -10,7 +10,7 @@ automation:
     action:
       # if home and detection at front door then notify
       - if:
-          - "{{ is_state('group.trackers', 'home') and trigger.payload_json['after']['camera'] == 'front_door' }}"
+          - "{{ (is_state('group.trackers', 'home') and trigger.payload_json['after']['camera'] == 'front_door') and trigger.payload_json['after']['label'] == 'person' }}"
         then:
           - service: notify.signal_frigate
             data:
@@ -28,7 +28,7 @@ automation:
 
       # if not home and detection anywhere then notify
       - if:
-          - "{{ is_state('group.trackers', 'not_home') or is_state('input_boolean.goodnight', 'on') }}"
+          - "{{ (is_state('group.trackers', 'not_home') or is_state('input_boolean.goodnight', 'on')) and trigger.payload_json['after']['label'] == 'person' }}"
         then:
           - service: notify.signal_frigate
             data:
@@ -43,6 +43,32 @@ automation:
               data:
                 urls:
                   - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+
+  - alias: Doorbell Ring
+    id: "frigate_doorbell_ring"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.front_door_button_pressed
+        to: "on"
+    action:
+      - service: camera.snapshot
+        data:
+          filename: /tmp/doorbell.jpg
+        target:
+          entity_id: camera.front_door
+      - service: notify.signal_frigate
+        data:
+          message: >-
+            Doorbell ring!
+
+
+            Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway
+          data:
+            attachments:
+              - /tmp/doorbell.jpg
+      - service: siren.toggle
+        entity_id: siren.garage_chime_siren
 
   - alias: Frigate Notification Snooze
     id: "frigate_notification_snooze"
@@ -121,6 +147,19 @@ automation:
               duration: "00:02:00"
             target:
               entity_id: timer.frigate_notification_snooze
+
+  - alias: Front Door Security Light
+    id: "frigate_front_door_security_light"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.front_door_person_occupancy
+    action:
+      service: select.select_option
+      data:
+        option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
+      target:
+        entity_id: select.front_door_security_light
 
 command_line:
   - switch:

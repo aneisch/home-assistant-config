@@ -74,8 +74,6 @@ security_disarm:
         event: disarm
     #- service: alarm_control_panel.alarm_disarm
     #  entity_id: !secret alarm_panel_2
-    - service: alarm_control_panel.alarm_arm_home
-      entity_id: alarm_control_panel.college_station_mode
     - service: script.notify_wrapper
       data:
         message: Disarmed!
@@ -91,8 +89,6 @@ security_arm:
         event: arm
     #- service: alarm_control_panel.alarm_arm_away
     #  entity_id: !secret alarm_panel_2
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: alarm_control_panel.college_station_mode
     - service: script.notify_wrapper
       data:
         message: Armed!
@@ -110,8 +106,6 @@ master_bedroom_wakeup:
     #        - script.christmas_wakeup
     #- service: alarm_control_panel.alarm_disarm
     #  entity_id: !secret alarm_panel_2
-    - service: alarm_control_panel.alarm_arm_home
-      entity_id: alarm_control_panel.college_station_mode
     - service: ifttt.trigger
       data:
         event: disarm
@@ -157,8 +151,6 @@ master_bedroom_bedtime:
         entity_id: group.off_at_bedtime
     #- service: alarm_control_panel.alarm_arm_away
     #  entity_id: !secret alarm_panel_2
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: alarm_control_panel.college_station_mode
     - service: ifttt.trigger
       data:
         event: arm
