@@ -166,11 +166,11 @@ command_line:
   - switch:
       name: Back Porch Camera White Light
       command_on: >
-        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=1"
+        curl --silent --digest -g "http://USERNAME:PASSWORD@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=1"
       command_off: >
-        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=0"
+        curl --silent --digest -g "http://USERNAME:PASSWORD@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=control&channel=1&info[0].Type=1&info[0].IO=0"
       command_state: >
-        curl --silent --digest -g "http://admin:asn650116@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=getStatus&channel=0" | grep -q "status.status.WhiteLight=On"
+        curl --silent --digest -g "http://USERNAME:PASSWORD@10.0.0.32/cgi-bin/coaxialControlIO.cgi?action=getStatus&channel=0" | grep -q "status.status.WhiteLight=On"
 
 timer:
   frigate_notification_snooze:
