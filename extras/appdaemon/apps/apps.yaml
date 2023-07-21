@@ -374,7 +374,7 @@ Entryway Light Sunset Smallgroup:
 Front Porch Lights Sunset:
   module: entity_timer
   class: Timer
-  entities: light.front_porch_lights,light.front_sconces
+  entities: light.front_porch_lights,light.front_sconces # See also NodeRed
   #entities: light.front_porch_lights # Christmas only front porch
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00

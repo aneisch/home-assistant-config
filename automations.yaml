@@ -438,32 +438,38 @@
   id: "water_sensor_alert"
   trigger:
     - platform: state
+      id: non_esphome
       entity_id:
-        - binary_sensor.washing_machine_water_detector
-        - binary_sensor.water_heater_water_detector
         - binary_sensor.guest_bathroom_toilet_water_detector
         - binary_sensor.back_bathroom_toilet_water_detector
         - binary_sensor.kitchen_sink_water_detector
-        - binary_sensor.kitchen_water_detector
         - binary_sensor.master_bathroom_water_detector
-        - binary_sensor.laundry_room_water_detector
         - binary_sensor.water_shutoff_water_leak_detected
       to: "on"
+    - platform: state
+      id: esphome
+      entity_id:
+        - binary_sensor.laundry_room_water_detector
+        - binary_sensor.water_heater_water_detector
+        - binary_sensor.kitchen_water_detector
+      to: "on"
   action:
-    - service: switch.turn_on
-      entity_id: switch.water_shutoff
+    - if: "{{ trigger.id == 'non_esphome' }}"
+      then:
+        - service: switch.turn_on
+          entity_id: switch.water_shutoff
     - service: script.notify_wrapper
       data:
-        message: "Water detected by {{ trigger.to_state.name }}. Shutting off water!"
+        message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
         data:
           priority: 2
-    - service: notify.alexa_media
-      data:
-        message: "Water detected by {{ trigger.to_state.name }}. Shutting off water!"
-        data:
-          method: all
-          type: announce
-        target: ["Office", "Kitchen", "Master", "Living Room"]
+    # - service: notify.alexa_media
+    #   data:
+    #     message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
+    #     data:
+    #       method: all
+    #       type: announce
+    #     target: ["Office", "Kitchen", "Master", "Living Room"]
 
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"

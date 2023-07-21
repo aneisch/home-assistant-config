@@ -1,0 +1,30 @@
+substitutions:
+  name: water_heater_water_detector
+  friendly_name: "Water Heater Water Detector"
+
+esphome:
+  name: ${name}
+
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: ESP-IDF  
+
+<<: !include common.yaml
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      mode: INPUT_PULLUP
+      inverted: True
+      number: 33 # 33 - GND
+    name: "${friendly_name}"
+    device_class: moisture
+    filters:
+      - delayed_on_off: 0.5s
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

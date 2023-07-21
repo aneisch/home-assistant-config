@@ -22,8 +22,6 @@ cards:
           - input_boolean.security_status
           - name: Alexa Guard Mode
             entity: alarm_control_panel.alexa_guard_7f9e9
-          - name: Aarlo Mode
-            entity: alarm_control_panel.aarlo_garage
           - entity: automation.frigate_notifications
           - entity: lock.front_door
             style: |
@@ -92,20 +90,6 @@ cards:
           {%- set days = (hours // 24) | int -%}
           {{ state_attr('input_datetime.' + door, 'friendly_name') | capitalize }}: {% if seconds < 60 %}<font color='red'>{% elif seconds < 300 %}<font color='orange'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font>
           {% endfor %}
-      # - type: 'custom:aarlo-glance'
-      #   entity: camera.aarlo_garage
-      #   name: Garage
-      #   show:
-      #     - motion
-      #     - sound
-      #     - snapshot
-      #     - captured_today
-      #     - image_date
-      #   top_title: false
-      #   top_status: false
-      #   top_date: false
-      #   image_click: play
-      #   play_direct: true
 
   - type: vertical-stack
     cards:

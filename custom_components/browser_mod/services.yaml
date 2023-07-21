@@ -1,0 +1,261 @@
+sequence:
+  description: "Run a sequence of services"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    sequence:
+      name: Actions
+      description: List of services to run
+      selector:
+        object:
+
+delay:
+  description: "Wait for a time"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    time:
+      name: Time
+      description: Time to wait (ms)
+      selector:
+        number:
+          mode: box
+
+popup:
+  description: "Display a popup"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    title:
+      name: Title
+      description: "Popup title"
+      selector:
+        text:
+    content:
+      name: Content
+      required: true
+      description: "Popup content (Test or lovelace card configuration)"
+      selector:
+        object:
+    size:
+      name: Size
+      description: ""
+      selector:
+        select:
+          mode: dropdown
+          options:
+            - normal
+            - wide
+            - fullscreen
+    right_button:
+      name: Right button
+      description: Text of the right button
+      selector:
+        text:
+    right_button_action:
+      name: Right button action
+      description: Action to perform when the right button is pressed
+      selector:
+        object:
+    left_button:
+      name: Left button
+      description: Text of the left button
+      selector:
+        text:
+    left_button_action:
+      name: Left button action
+      description: Action to perform when left button is pressed
+      selector:
+        object:
+    dismissable:
+      name: User dismissable
+      description: Whether the popup can be closed by the user without action
+      default: true
+      selector:
+        boolean:
+    dismiss_action:
+      name: Dismiss action
+      description: Action to perform when popup is dismissed
+      selector:
+        object:
+    autoclose:
+      name: Auto close
+      description: Close the popup automatically on mouse, pointer or keyboard activity
+      default: false
+      selector:
+        boolean:
+    timeout:
+      name: Auto close timeout
+      description: Time before closing (ms)
+      selector:
+        number:
+          mode: box
+    timeout_action:
+      name: Timeout action
+      description: Action to perform when popup is closed by timeout
+      selector:
+        object:
+    style:
+      name: Styles
+      description: CSS code to apply to the popup window
+      selector:
+        text:
+          multiline: true
+
+more_info:
+  description: "Show more-info dialog"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    entity:
+      name: Entity ID
+      description: ""
+      required: true
+      selector:
+        text:
+    large:
+      name: Large size
+      description: ""
+      default: false
+      selector:
+        boolean:
+    ignore_popup_card:
+      name: Ignore any active popup-card overrides
+      description: ""
+      default: false
+      selector:
+        boolean:
+
+close_popup:
+  description: "Close a popup"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+
+notification:
+  description: "Display a short notification"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    message:
+      name: Message
+      description: "Message to display"
+      required: true
+      selector:
+        text:
+    duration:
+      name: Auto close timeout
+      description: Time before closing (ms)
+      selector:
+        number:
+          mode: box
+    action_text:
+      name: Action button text
+      description: Text of optional action button
+      selector:
+        text:
+    action:
+      name: Button action
+      description: Action to perform when the action button is pressed
+      selector:
+        object:
+
+navigate:
+  description: "Navigate browser to a different page"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    path:
+      name: Path
+      description: "Target path"
+      selector:
+        text:
+
+refresh:
+  description: "Refresh page"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+
+set_theme:
+  description: "Change the current theme"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    theme:
+      name: Theme
+      description: "Name of theme or 'auto'"
+      selector:
+        text:
+    dark:
+      name: Mode
+      description: "Dark/light mode"
+      selector:
+        select:
+          options:
+            - auto
+            - light
+            - dark
+    primaryColor:
+      name: Primary Color
+      description: "Primary theme color"
+      selector:
+        color_rgb:
+    accentColor:
+      name: Accent Color
+      description: "Accent theme color"
+      selector:
+        color_rgb:
+
+console:
+  description: "Print text to browser console"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    message:
+      name: Message
+      description: "Text to print"
+      selector:
+        text:
+
+javascript:
+  description: "Run arbitrary JavaScript code"
+  target:
+    device:
+      integration: "browser_mod"
+    entity:
+      integration: "browser_mod"
+  fields:
+    code:
+      name: Code
+      description: "JavaScript code to run"
+      selector:
+        object:

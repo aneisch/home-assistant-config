@@ -11,10 +11,10 @@ homeassistant:
   customize: !include customize.yaml
   packages:
     alexa: !include packages/alexa.yaml
-    aarlo: !include packages/aarlo.yaml
+    #aarlo: !include packages/aarlo.yaml
     aquarium: !include packages/aquarium.yaml
     # covid: !include packages/covid.yaml
-    cameras: !include packages/cameras.yaml
+    frigate: !include packages/frigate.yaml
     door_otp: !include packages/door_otp.yaml
     garage_door: !include packages/garage_door.yaml
     gate: !include packages/mom_and_dad_gate.yaml
@@ -119,7 +119,6 @@ influxdb:
     entities:
       - binary_sensor.internet_reachability
       - binary_sensor.iss
-      - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
       - sensor.irrigation_time_remaining
       - sensor.last_boot

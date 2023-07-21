@@ -12,15 +12,12 @@ My Home Assistant installation contains many different components and runs on a 
 
 - Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
-- [Raspberry Pi](https://amzn.to/3oAyKrp) hosted USB Camera with M-JPEG streamer
-- [ESP32](https://amzn.to/3gocrT9) with camera running [ESPHome](https://esphome.io/)
-- Numerous Wemos [D1 Mini](https://amzn.to/39XyIps) sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
+- [Frigate](https://frigate.video/) for security camera recording and object detection
+- A plethora of Lolin D1 Mini and S2 Mini sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
 - Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
-- Wemo wall plugs
-- ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware with various devices
-- [Lustreon E27](https://www.banggood.com/LUSTREON-E27-Smart-WiFi-Bulb-Adapter-Socket-Lamp-Holder-Work-With-Alexa-Google-Home-IFTTT-AC85-265V-p-1285550.html) bulb holders for lamp control using ~~Tasmota/MQTT~~ ESPHome (1MB flash)
-  - Check out [my blog post](http://blog.aneis.ch/2019/01/tuya-convert-for-lustreon.html) for alternative firmware flashing instructions
-- Z-Wave JS using [Aeon Labs USB stick](https://amzn.to/39cmb1b) with various devices
+- Zwave, Zigbee, and Wifi (ESPHome) smart plugs
+- ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware
+- Z-Wave JS using Aeon Labs USB stick with:
   - 1 AEON Labs DSA03XXX-ZW
   - 1 AEON Labs ZW090
   - 2 First Alert (BRK Brands Inc) ZCOMBO
@@ -39,17 +36,18 @@ My Home Assistant installation contains many different components and runs on a 
   - 1 Zooz ZEN71
   - 1 Zooz ZEN77
   - 5 Zooz ZSE42
-- MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). Using remote with SSL for Owntracks (on a box through Digital Ocean with static public IP), and local MQTT to communicate with various sensors/switches around the house. The remote MQTT shares messages with the local via a MQTT bridge.
+- MQTT remote and local server (via [Docker](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose))
 - Various MQTT Sensors (some in [extras/scripts](https://github.com/aneisch/home-assistant-config/tree/master/extras/scripts))
-- [Arlo Cameras](https://amzn.to/2VOXXlM) (controlled through [aarlo custom component](https://github.com/twrecked/hass-aarlo))
-- [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a handful of automations and intelligent AC control. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
-- [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for a few others (see screenshot below)
+- RTL_433 to capture data from various off-the-shelf sensors
+- [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a large number of automations and intelligent AC control. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
+- [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for irrigation and other automations (see screenshot below)
 - [Amazon Echos](https://amzn.to/2VLPPm0)
   - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda 
   - Custom routines configured in the Alexa App.
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - UPS monitoring using [apcupsd](https://github.com/gersilex/apcupsd-docker)
-- Github actions to test beta and stable builds against config.
+- Home power monitoring with ESPHome-flashed Emporia View
+- Github actions to test beta and stable builds against config
 
 Also using Grafana/Influx for graphing, both running in Docker containers on NUC, see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list. Home Assistant, along with a few other web apps, are proxied through my firewall and fronted and secured by Cloudflare.
  
@@ -57,51 +55,51 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2396
-Lines of Home Assistant YAML | 7715
-[Integrations](https://www.home-assistant.io/integrations/) in use | 48
+Lines of ESPHome YAML | 2420
+Lines of Home Assistant YAML | 7674
+[Integrations](https://www.home-assistant.io/integrations/) in use | 49
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
 Description | value
 -- | --
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
-Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
+Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 14
+Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 4
-Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 26
-Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 5
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 32
-Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
+Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 5
+Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 26
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 103
-Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 8
-Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 2
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 105
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 38
+Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 8
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 8
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 117
-Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
-Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 37
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 136
-Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 16
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 139
+Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 19
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 132
+Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 1
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 361
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 11
-Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 380
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 13
+Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 4
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 4
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 1
-Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 1
+Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 2
-Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 4
-**Total state objects** | **974**
+Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
+Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 2
+**Total state objects** | **1020**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -131,7 +129,7 @@ Entities in the [`number`](https://www.home-assistant.io/components/number) doma
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [rroller/dahua](https://github.com/rroller/dahua)<br>
 [sebr/bhyve-home-assistant](https://github.com/sebr/bhyve-home-assistant)<br>
-[twrecked/hass-aarlo](https://github.com/twrecked/hass-aarlo)<br>
+[thomasloven/hass-browser_mod](https://github.com/thomasloven/hass-browser_mod)<br>
 [ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
 
 **Plugin**:<br>
@@ -155,18 +153,14 @@ Entities in the [`number`](https://www.home-assistant.io/components/number) doma
 [thomasloven/lovelace-card-tools](https://github.com/thomasloven/lovelace-card-tools)<br>
 [thomasloven/lovelace-fold-entity-row](https://github.com/thomasloven/lovelace-fold-entity-row)<br>
 [thomasloven/lovelace-slider-entity-row](https://github.com/thomasloven/lovelace-slider-entity-row)<br>
-[twrecked/lovelace-hass-aarlo](https://github.com/twrecked/lovelace-hass-aarlo)<br>
 
 
 # Interface
-![UI](images/screenshot1.png)  
-![UI](images/screenshot2.png)  
-![UI](images/screenshot3.png)
-![UI](images/screenshot4.png)
-![UI](images/screenshot5.png)
-![UI](images/screenshot6.png)
-![UI](images/screenshot7.png)
-![UI](images/screenshot8.png)
+![UI](images/1.png)  
+![UI](images/2.png)  
+![UI](images/3.png)
+![UI](images/4.png)
+![UI](images/5.png)
 ![Grafana](images/grafana.png)
 ![Node-Red](images/nodered_1.png)
 ![Node-Red](images/nodered_2.png)

@@ -24,6 +24,3 @@
     # On if both backups < 10 minutes ago
     backups_complete:
       value_template: "{{ (as_timestamp(now()) - as_timestamp(states('sensor.last_vps_backup_completed'))) < 600 and (as_timestamp(now()) - as_timestamp(states('sensor.last_nuc_backup_completed'))) < 600 }}"
-    water_heater_water_detector:
-      device_class: moisture
-      value_template: "{{ states('sensor.water_heater_water_detector_alarm_level') == '254' }}"
