@@ -455,3 +455,10 @@ Mac Focus Mode Follow Desk LED:
   class: Follow
   leader: light.desk_led
   follower: switch.weasel_focus
+
+VRS Docker:
+  module: entity_timer
+  class: Timer
+  time_on: "08:00:00"
+  time_off: "21:00:00"
+  entities: switch.docker_vrs
