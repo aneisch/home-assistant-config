@@ -94,6 +94,7 @@ monitor_docker:
     vrs: "Virtual Radar Server"
     github-runner-1: "Github Runner 1"
     github-runner-2: "Github Runner 2"
+    codeproject: "CodeProject.AI"
 
 frontend:
   themes: !include_dir_merge_named themes

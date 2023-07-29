@@ -462,3 +462,17 @@ VRS Docker:
   time_on: "08:00:00"
   time_off: "21:00:00"
   entities: switch.docker_vrs
+
+Code Project Docker:
+  module: entity_timer
+  class: Timer
+  time_on: "08:00:00"
+  time_off: "00:00:00"
+  entities: switch.docker_codeproject
+
+BVST Docker:
+  module: entity_timer
+  class: Timer
+  time_on: "08:00:00"
+  time_off: "00:00:00"
+  entities: switch.docker_bvst
