@@ -112,7 +112,7 @@ services:
         container_name: vaultwarden-backup
         restart: always
         environment:
-            CRON: '00 00 * * *'
+            CRON: '00 03 * * *'
             ZIP_ENABLE: 'TRUE'
             ZIP_PASSWORD: 'PASSWORD'
             ZIP_TYPE: 'zip'
@@ -354,7 +354,7 @@ services:
         user: root
     deepstack:
         container_name: deepstack
-        restart: 'always'
+        restart: 'unless-stopped'
         image: deepquestai/deepstack
         volumes:
             - /opt/deepstack:/modelstore/detection:ro
@@ -382,6 +382,17 @@ services:
             - "8555:8555/udp"
         environment:
             - PLUS_API_KEY=secret
+
+    codeproject:
+        container_name: codeproject
+        restart: 'always'
+        image: codeproject/ai-server
+        ports:
+            - 32168:32168
+        volumes:
+            - /opt/codeproject/config:/etc/codeproject/ai
+            - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+
 
 networks:
   macos_network:

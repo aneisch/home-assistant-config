@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.12');
+console.info('NUMBERBOX_CARD 4.14');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -90,7 +90,14 @@ secondaryInfo(){
 				for (let d=0; d<t.length; d++){
 					if(lu.indexOf(t[d])>1){t[d]=t[d].replace('-','_');}
 					const id = t[d];
-					if(id[0]=='~'){f=Number(id.substring(1));break;}
+					if(id[0]=='~'){
+						f=Number(id.substring(1));
+						if(!isNaN(f)){
+							let g=parseFloat(b);
+							if(isNaN(g)){f=NaN;}else{b=g;}
+						}
+						break;
+					}
 					if(b.hasOwnProperty(id)){
 						b=b[id];
 						if(!d){
@@ -218,7 +225,7 @@ publishNum(dhis){
 	if(dhis.pending===false){return;}
 	const s=dhis.config.service.split('.');
 	if(s[0]=='input_datetime'){dhis.pending=dhis.numTime(dhis.pending,1);}
-	const v={entity_id: dhis.config.entity, [dhis.config.param]: dhis.pending};
+	const v = { ...dhis.config.service_params, [dhis.config.param]: dhis.pending };
 	dhis.pending=false;
 	dhis.old.state=dhis.state;
 	dhis._hass.callService(s[0], s[1], v);
@@ -367,6 +374,7 @@ setConfig(config) {
 		refresh: 0,
 		initial: undefined,
 		moreinfo: config.entity,
+		service_params: {entity_id: config.entity},
 		...config
 	};
 	if(this.config.service.split('.').length < 2){

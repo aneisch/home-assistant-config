@@ -22,7 +22,7 @@ cards:
           - input_boolean.security_status
           - name: Alexa Guard Mode
             entity: alarm_control_panel.alexa_guard_7f9e9
-          - entity: automation.frigate_notifications
+          - entity: automation.frigate_notification_person
           - entity: lock.front_door
             style: |
               :host {
@@ -96,7 +96,7 @@ cards:
       - type: entities
         entities:
           - name: Frigate Notifications
-            entity: automation.frigate_notifications
+            entity: automation.frigate_notification_person
           - name: Notifications Snooze
             entity: timer.frigate_notification_snooze
           # - name: Back Porch Light

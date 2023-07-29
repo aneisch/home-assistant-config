@@ -294,6 +294,16 @@ Garage Exterior Light at Night With Door:
   # Seconds to turn entity on when triggered
   time_on: "5"
 
+Backyard Flood Lights with Person Detection:
+  module: door_open
+  class: DoorLight
+  constrain_end_time: sunrise - 01:00:00
+  constrain_start_time: "22:00:00"
+  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy
+  toggle_entity: switch.backyard_flood_lights
+  # Seconds to turn entity on when triggered
+  time_on: "30"
+
 Office Light at Night With Door:
   module: door_open
   class: DoorLight

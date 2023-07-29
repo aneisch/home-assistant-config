@@ -197,6 +197,7 @@ cards:
       - switch.workbench_shelf_leds
       #- switch.christmas_lights
       - switch.globe_lights
+      - switch.backyard_flood_lights
       #- light.garage
 
   - type: entities

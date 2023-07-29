@@ -1,5 +1,16 @@
 # Concat 'homeassistant' and 'other' docker-compose files
 version: '3.2'
+
+volumes:
+  # https://rclone.org/docker/
+  frigate-drive:
+    driver: rclone:latest
+    driver_opts:
+      remote: 'frigate-drive:homeassistant'
+      allow_other: 'true'
+      vfs_cache_mode: full
+      poll_interval: 0
+
 services:
     homeassistant:
         container_name: hass
@@ -14,6 +25,7 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
           - /etc/localtime:/etc/localtime:ro
+          - frigate-drive:/frigate
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
@@ -275,7 +287,7 @@ services:
         container_name: vaultwarden-backup
         restart: always
         environment:
-            CRON: '00 00 * * *'
+            CRON: '00 03 * * *'
             ZIP_ENABLE: 'TRUE'
             ZIP_PASSWORD: 'PASSWORD'
             ZIP_TYPE: 'zip'
@@ -517,7 +529,7 @@ services:
         user: root
     deepstack:
         container_name: deepstack
-        restart: 'always'
+        restart: 'unless-stopped'
         image: deepquestai/deepstack
         volumes:
             - /opt/deepstack:/modelstore/detection:ro
@@ -545,6 +557,17 @@ services:
             - "8555:8555/udp"
         environment:
             - PLUS_API_KEY=secret
+
+    codeproject:
+        container_name: codeproject
+        restart: 'always'
+        image: codeproject/ai-server
+        ports:
+            - 32168:32168
+        volumes:
+            - /opt/codeproject/config:/etc/codeproject/ai
+            - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+
 
 networks:
   macos_network:
