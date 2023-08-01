@@ -13,7 +13,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:

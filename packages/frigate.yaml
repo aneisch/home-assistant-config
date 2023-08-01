@@ -14,6 +14,13 @@ automation:
       - service: shell_command.frigate_clips_drive
         data:
           clip_id: "{{trigger.payload_json['after']['id']}}"
+      # Play audio clip
+      # - if:
+      #     - "{{ trigger.payload_json['after']['camera'] == 'front_door' }}"
+      #   then:
+      #     - service: shell_command.front_door_play_audio_file
+      #       data:
+      #         filename: audio.mp3
       # if home and person detection at front door then notify
       - if:
           - "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' }}"
@@ -71,6 +78,7 @@ automation:
           data:
             attachments:
               - /config/images/logo.jpg
+      - delay: "00:01:00"
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"
@@ -202,6 +210,10 @@ input_datetime:
     name: Last USPS Detection
     has_date: true
     has_time: true
+
+shell_command:
+  # "filename" must be present in frigate's /config directory
+  front_door_play_audio_file: curl -X POST "http://localhost:5000/live/webrtc/api/streams?dst=front_door_twoway&src=ffmpeg%3A%2Fconfig%2F{{ filename }}%23audio%3Dpcma%23input%3Dfile"
 
 timer:
   frigate_notification_snooze:

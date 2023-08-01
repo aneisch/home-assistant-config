@@ -14,7 +14,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -548,10 +548,10 @@ services:
             - /dev/dri/renderD128
         volumes:
             - /etc/localtime:/etc/localtime:ro
-            - /opt/frigate/config.yml:/config/config.yml
+            - /opt/frigate/:/config
             - /frigate/frigate:/media/frigate
         ports:
-            - "5000:5000"
+            - "127.0.0.1:5000:5000"
             - "8554:8554"
             - "8555:8555/tcp"
             - "8555:8555/udp"

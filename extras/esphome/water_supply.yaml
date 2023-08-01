@@ -11,8 +11,8 @@ esphome:
 <<: !include common.yaml
 
 dallas:
-  - pin: D4
-    update_interval: 10s
+  pin: D4
+  update_interval: 5s
 
 switch:
   - platform: restart
