@@ -212,10 +212,36 @@ input_datetime:
     has_time: true
 
 shell_command:
-  # "filename" must be present in frigate's /config directory
-  front_door_play_audio_file: curl -X POST "http://localhost:5000/live/webrtc/api/streams?dst=front_door_twoway&src=ffmpeg%3A%2Fconfig%2F{{ filename }}%23audio%3Dpcma%23input%3Dfile"
+  frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
+# Use media player below instead
+#   # "filename" must be present in frigate's /config directory
+#   front_door_play_audio_file: curl -X POST "http://localhost:5000/live/webrtc/api/streams?dst=front_door_twoway&src=ffmpeg%3A%2Fconfig%2F{{ filename }}%23audio%3Dpcma%23input%3Dfile"
 
 timer:
   frigate_notification_snooze:
     duration: "00:00:00"
     restore: True
+
+media_player:
+  - platform: webrtc
+    name: Doorbell
+    stream: front_door_twoway
+    audio: pcma
+
+# - service: media_player.play_media
+#   target:
+#     entity_id: media_player.doorbell
+#   data:
+#     media_content_id: media-source://media_source/media/audio.mp3
+#     media_content_type: audio/mpeg
+
+script:
+  doorbell_not_interested:
+    sequence:
+      - service: media_player.play_media
+        target:
+          entity_id: media_player.doorbell
+        data:
+          media_content_id: media-source://tts/picotts?message=Hello.+we+are+not+interested.+Have+a+nice+day.+%0A&language=en-US
+          media_content_type: provider
+          announce: True

@@ -1,7 +1,8 @@
 homeassistant:
   name: Home
   external_url: !secret external_url
-  internal_url: http://assistlocal
+  #internal_url: http://assistlocal
+  internal_url: http://10.0.1.22:8123
   country: US
   elevation: !secret elevation
   unit_system: imperial
@@ -36,6 +37,8 @@ homeassistant:
     - "/tmp"
   allowlist_external_urls:
     - "http://localhost:8123/api/frigate/notifications"
+  media_dirs:
+    media: "audio/"
 
 alexa: !include alexa.yaml
 
@@ -223,12 +226,14 @@ logger:
   #default: debug
   default: warn
   logs:
-    #homeassistant.core: debug
-    #homeassistant.components.python_script: debug
+    #homeassistant.core: warn
+    #homeassistant.components.media_player: debug
     #custom_components.alexa_media: debug
     # Start ZHA Debugging
     # asyncio: debug
-    #homeassistant.components.zha: debug
+    homeassistant.components.tts: debug
+    homeassistant.components.pico_tts: debug
+
     #zigpy: debug
     # bellows: debug
     # zigpy_xbee: debug
@@ -243,7 +248,7 @@ logger:
     # zigpy_znp: debug
     # zhaquirks: debug
     # End ZHA Debugging
-    custom_components.xiaomi_cloud_map_extractor: debug
+    # custom_components.xiaomi_cloud_map_extractor: debug
     #custom_components.alexa_media: debug
     #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
@@ -255,13 +260,12 @@ logger:
     # custom_components.aarlo.light: debug
     # custom_components.aarlo.media_player: debug
     # custom_components.aarlo.sensor: debug
-    # custom_components.aarlo.switch: debug
+    custom_components.webrtc: debug
     # pyaarlo: debug
     #custom_components.bhyve: debug
     #pybhyve: debug
   filters:
     homeassistant.core:
-      - ".*share-service-download-bucket.*" # Ring Video Updates
       - ".*camera.xiaomi_cloud_map_extractor.*" # Roborock map
       - "camera.*snapshot.*"
       - "sensor.*_power"

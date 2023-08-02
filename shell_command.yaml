@@ -29,5 +29,3 @@ focus_in_a_meeting_off: ssh weasel 'shortcuts run "focus-in-a-meeting-off"'
 focus_in_a_meeting_on: ssh weasel 'shortcuts run "focus-in-a-meeting-on"'
 
 sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
-
-frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}

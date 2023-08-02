@@ -175,6 +175,8 @@ script:
     # Turn on boolean to trigger upgrade automation if we meet criteria
     sequence:
       - service: shell_command.pull_hass
+      # Run twice because sometimes it times out /shrug
+      - service: shell_command.pull_hass
       - service: homeassistant.turn_on
         entity_id: input_boolean.hass_update_trigger
       - service: homeassistant.turn_on

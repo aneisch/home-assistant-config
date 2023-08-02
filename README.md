@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2023.8.0b2%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2023.8.0b4%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -56,8 +56,8 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2420
-Lines of Home Assistant YAML | 7725
-[Integrations](https://www.home-assistant.io/integrations/) in use | 49
+Lines of Home Assistant YAML | 7756
+[Integrations](https://www.home-assistant.io/integrations/) in use | 50
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
@@ -82,13 +82,13 @@ Entities in the [`input_select`](https://www.home-assistant.io/components/input_
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 5
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 37
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 2
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 11
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 12
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 5
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 1
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
-Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 38
+Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 1
 Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 362
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
@@ -99,7 +99,7 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **983**
+**Total state objects** | **985**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -117,6 +117,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 
 **Integration**:<br>
 [AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
+[AlexxIT/WebRTC](https://github.com/AlexxIT/WebRTC)<br>
 [PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor](https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor)<br>
 [blakeblackshear/frigate-hass-integration](https://github.com/blakeblackshear/frigate-hass-integration)<br>
 [bruxy70/Garbage-Collection](https://github.com/bruxy70/Garbage-Collection)<br>
