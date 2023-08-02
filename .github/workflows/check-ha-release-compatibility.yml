@@ -40,6 +40,8 @@ jobs:
           docker pull -q "homeassistant/home-assistant:${{ env.DOCKER_TAG }}"
           mv github_action_secrets.yaml secrets.yaml
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
+          # See media_dirs in configuration.yaml
+          mkdir audio
 
           docker run --rm --entrypoint "" \
           homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
