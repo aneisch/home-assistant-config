@@ -38,7 +38,7 @@ homeassistant:
   allowlist_external_urls:
     - "http://localhost:8123/api/frigate/notifications"
   media_dirs:
-    media: "audio/"
+    audio: audio/
 
 alexa: !include alexa.yaml
 
