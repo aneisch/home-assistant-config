@@ -21,5 +21,5 @@ switch:
 
 sensor:
   - platform: dallas
-    address: 0x38000006C7F38D28
+    address: 0xe73de1e38099b628
     name: "${friendly_name} Temperature"

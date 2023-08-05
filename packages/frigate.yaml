@@ -57,27 +57,30 @@ automation:
                 urls:
                   - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
 
-  - alias: Frigate Notification Deepstack
-    id: "frigate_notification_deepstack"
+  - alias: Frigate Notification USPS
+    id: "frigate_notification_usps"
     mode: single
     trigger:
       - platform: mqtt
         topic: frigate/events
         payload: update
         value_template: "{{ value_json.type }}"
-    condition: "{{ trigger.payload_json['after']['sub_label'] in ['usps'] }}"
+    condition: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}" # Frigate 13 beta
     action:
       - service: input_datetime.set_datetime
         data:
-          entity_id: "input_datetime.{{ trigger.payload_json['after']['sub_label'] | lower() }}_last"
+          entity_id: "input_datetime.usps_last"
           time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
       - service: notify.signal_self
         data:
-          message: "{{ trigger.payload_json['after']['sub_label'] }} detected"
+          message: "USPS detected"
           data:
             attachments:
               - /config/images/logo.jpg
+      # No need for container to run after detection made, appdaemon will turn on in the morning
+      - service: switch.turn_off
+        entity_id: switch.docker_codeproject
       - delay: "00:01:00"
 
   - alias: Doorbell Ring

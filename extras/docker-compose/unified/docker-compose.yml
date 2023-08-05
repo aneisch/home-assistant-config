@@ -14,7 +14,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -472,9 +472,8 @@ services:
             - WORKSHEET_NAME=2023
             - TZ=America/Chicago
         volumes:
-            # - /etc/localtime:/etc/localtime:ro
-            - /opt/secret/secret.db:/output_files/secret.db
-            - /opt/secret/input_files/:/input_files/
+            # db and previously_processed_files.txt
+            - /opt/secret/data/:/data/
             - /opt/secret/secret.log:/var/log/secret.log
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
@@ -541,7 +540,8 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:stable
+        #image: ghcr.io/blakeblackshear/frigate:stable
+        image: ghcr.io/blakeblackshear/frigate:dev-9857641
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb

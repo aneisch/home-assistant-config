@@ -44,6 +44,7 @@ cards:
         - entity_id: "*_recordings"
         - entity_id: "*_motion"
         - entity_id: "*_stream"
+        - entity_id: "*contrast"
 
     card:
       type: entities
