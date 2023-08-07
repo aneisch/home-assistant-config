@@ -467,7 +467,7 @@ Code Project Docker:
   module: entity_timer
   class: Timer
   time_on: "08:00:00"
-  time_off: "00:00:00"
+  time_off: sunset + 00:30:00
   entities: switch.docker_codeproject
 
 BVST Docker:

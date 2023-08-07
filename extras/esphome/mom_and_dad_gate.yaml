@@ -5,8 +5,8 @@ esphome:
   platformio_options:
     platform: espressif8266@2.6.3
     platform_packages: 
-      - platformio/toolchain-xtensa@2.40802.200502
-      - platformio/framework-arduinoespressif8266@3.20704.0
+      - platformio/toolchain-xtensa
+      - platformio/framework-arduinoespressif8266
 
 web_server:
   port: 80

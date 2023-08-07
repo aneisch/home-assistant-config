@@ -213,8 +213,8 @@
   action:
     - service: alexa_media.clear_history
 
-- alias: "Update door last opened"
-  id: "update_door_last_opened"
+- alias: "Update 'Last' Datetimes"
+  id: "update_last_datetimes"
   trigger:
     - platform: state
       entity_id:
@@ -223,14 +223,12 @@
         - binary_sensor.garage_exterior_door
         - binary_sensor.garage_interior_door
         - binary_sensor.master_bedroom_exterior_door
-        - binary_sensor.garage_interior_motion
+        - binary_sensor.garage_motion # Camera Based
         - input_boolean.kitchen_motion
         - binary_sensor.living_room_motion
         - binary_sensor.hallway_motion
       from: "off"
       to: "on"
-    - platform: state
-      entity_id: sensor.433_front_porch_motion
   action:
     service: input_datetime.set_datetime
     data:

@@ -11,9 +11,9 @@ automation:
     condition: "{{ trigger.payload_json['after']['label'] == 'person' }}"
     action:
       # Always backup clip to offsite
-      - service: shell_command.frigate_clips_drive
-        data:
-          clip_id: "{{trigger.payload_json['after']['id']}}"
+      # - service: shell_command.frigate_clips_drive
+      #   data:
+      #     clip_id: "{{trigger.payload_json['after']['id']}}"
       # Play audio clip
       # - if:
       #     - "{{ trigger.payload_json['after']['camera'] == 'front_door' }}"
@@ -192,6 +192,12 @@ automation:
         entity_id: binary_sensor.front_door_person_occupancy
     condition: "{{ is_state('sun.sun', 'below_horizon')}}"
     action:
+      - service: select.select_option
+        data:
+          option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
+        target:
+          entity_id: select.front_door_security_light
+      - delay: "00:00:05"
       - service: select.select_option
         data:
           option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
