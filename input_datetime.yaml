@@ -22,7 +22,7 @@ garage_door_last:
   name: Garage Door Last Opened
   has_date: true
   has_time: true
-garage_interior_motion_last:
+garage_motion_last:
   name: Last Garage Interior Motion
   has_date: true
   has_time: true

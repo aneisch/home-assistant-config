@@ -65,6 +65,10 @@ automation:
         topic: frigate/events
         payload: update
         value_template: "{{ value_json.type }}"
+      - platform: mqtt
+        topic: frigate/events
+        payload: end
+        value_template: "{{ value_json.type }}"
     condition: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}" # Frigate 13 beta
     action:
       - service: input_datetime.set_datetime
