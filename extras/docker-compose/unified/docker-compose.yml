@@ -1,15 +1,15 @@
 # Concat 'homeassistant' and 'other' docker-compose files
 version: '3.2'
 
-#volumes:
-#  # https://rclone.org/docker/
-#  frigate-drive:
-#    driver: rclone:latest
-#    driver_opts:
-#      remote: 'frigate-drive:homeassistant'
-#      allow_other: 'true'
-#      vfs_cache_mode: full
-#      poll_interval: 0
+volumes:
+  # https://rclone.org/docker/
+  frigate-drive:
+    driver: rclone:latest
+    driver_opts:
+      remote: 'frigate-drive:Frigate Offsite'
+      allow_other: 'true'
+      vfs_cache_mode: full
+      poll_interval: 0
 
 services:
     homeassistant:
@@ -25,7 +25,7 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
           - /etc/localtime:/etc/localtime:ro
-          #- frigate-drive:/frigate
+          - frigate-drive:/frigate
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
@@ -541,7 +541,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-fbed3fb
+        image: ghcr.io/blakeblackshear/frigate:dev-3921a7f
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -560,7 +560,6 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
-
     codeproject:
         container_name: codeproject
         restart: 'always'

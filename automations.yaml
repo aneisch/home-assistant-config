@@ -499,7 +499,7 @@
         - sensor.master_bathroom_water_detector_battery_level
         - sensor.washing_machine_water_detector_battery_level
         - sensor.kitchen_sink_water_detector_battery_level
-        - sensor.garage_interior_motion_battery_level
+        - sensor.motion_1_battery_level
         - sensor.living_room_motion_battery_level
         - sensor.office_blind_left_battery
         - sensor.office_blind_right_battery

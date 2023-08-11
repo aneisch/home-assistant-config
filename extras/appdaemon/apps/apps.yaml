@@ -362,6 +362,14 @@ Indoor Light Automation Sunset:
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #group.christmas_trees #,switch.ir_candles
   brightness: 255
 
+Cameras Smallgroup:
+  module: entity_timer
+  class: Timer
+  constrain_presence: anyone
+  time_off: "17:50:00"
+  time_on: "21:00:00"
+  entities: switch.driveway_detect,switch.front_door_detect
+
 Indoor Light Automation Sunset Smallgroup:
   module: entity_timer
   class: Timer

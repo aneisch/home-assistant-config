@@ -101,7 +101,8 @@ cards:
           {# Print Outputs #}
           **{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False)  }}**: 
             Last started: {{ 'less than 1 minute' if time < 60 else days + hours + minutes }} ago.
-            Last stopped: {{ 'less than 1 minute' if time_stop < 60 else days_stop + hours_stop + minutes_stop }} ago.
+            {{ time_stop }}
+            Last stopped: {% if time_stop < 86400 %}<font color='green'>{% elif 172800 > time_stop > 86400 %}<font color='orange'>{% elif time_stop > 172800 %}<font color='red'>{% endif %}{{ 'less than 1 minute' if time_stop < 60 else days_stop + hours_stop + minutes_stop }} ago.</font>
             Ran for {{ 'less than 1 minute' if time_run < 60 else days_run + hours_run + minutes_run }}.
           {% endif %}
           {%- endfor %}

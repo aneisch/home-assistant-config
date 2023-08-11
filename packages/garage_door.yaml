@@ -31,7 +31,7 @@ automation:
     id: "garge_lights_off"
     trigger:
       platform: state
-      entity_id: binary_sensor.garage_interior_motion
+      entity_id: binary_sensor.garage_motion
       from: "on"
       to: "off"
       for: "00:10:00"
@@ -55,25 +55,25 @@ automation:
       service: homeassistant.turn_on
       entity_id: switch.garage_lights
 
-  - alias: 'Change entry switch LEDs based on garage door state'
+  - alias: "Change entry switch LEDs based on garage door state"
     id: "garage_opened_switch_leds"
     trigger:
       - platform: state
         entity_id: cover.garage_door
-        from: 'closed'
-        to: 'open'
+        from: "closed"
+        to: "open"
     action:
       # Run command that for some reason doesn't always work
       - service: script.zen30_led_color_change
         data:
-          color: 'Red'
+          color: "Red"
       - wait_for_trigger:
-        - platform: state
-          entity_id: cover.garage_door
-          to: 'closed'
+          - platform: state
+            entity_id: cover.garage_door
+            to: "closed"
       - service: script.zen30_led_color_change
         data:
-          color: 'Green'
+          color: "Green"
 
   - alias: "Garage still open reminder night"
     id: "garage_night_reminder"
@@ -87,17 +87,17 @@ automation:
       conditions:
         - condition: state
           entity_id: cover.garage_door
-          state: 'open'
+          state: "open"
         - condition: state
           entity_id: person.andrew
-          state: 'home'    
+          state: "home"
     action:
       - service: notify.alexa_media_master
         data:
           data:
             type: tts
           message: "The garage door is still open. You can say 'Alexa, close the garage door.'"
-  
+
   - alias: "Garage door still opened when no one home"
     id: "garage_open_noone_home"
     trigger:
@@ -107,7 +107,7 @@ automation:
     condition:
       - condition: state
         entity_id: cover.garage_door
-        state: 'open'
+        state: "open"
     action:
       - service: notify.mobile_app_andrew_phone
         data:
@@ -122,11 +122,12 @@ automation:
                 title: "Ignore"
 
   - alias: "Close garage after confirmation"
-    id: "garage_confirmation"
+    id:
+      "garage_confirmation"
       # Android
     trigger:
       - platform: event
-        event_type: mobile_app_notification_action 
+        event_type: mobile_app_notification_action
         event_data:
           action: confirm_close_garage
     action:
@@ -142,7 +143,7 @@ automation:
     condition:
       condition: state
       entity_id: group.trackers
-      state: 'not_home'
+      state: "not_home"
     action:
       - service: script.notify_wrapper
         data:
@@ -161,13 +162,13 @@ script:
           entity_id: light.entryway_light
         data:
           parameter: LED Indicator Color for Dimmer
-          value: '{{ color }}'
+          value: "{{ color }}"
       - service: zwave_js.set_config_parameter
         target:
           entity_id: light.entryway_light
         data:
           parameter: LED Indicator Color for Relay
-          value: '{{ color }}'
+          value: "{{ color }}"
 
       # Kitchen Sink
       - service: zwave_js.set_config_parameter
@@ -175,13 +176,13 @@ script:
           entity_id: light.kitchen_sink_light
         data:
           parameter: LED Indicator Color for Dimmer
-          value: '{{ color }}'
+          value: "{{ color }}"
       - service: zwave_js.set_config_parameter
         target:
           entity_id: light.kitchen_sink_light
         data:
           parameter: LED Indicator Color for Relay
-          value: '{{ color }}'
+          value: "{{ color }}"
 
       # Entryway
       - service: zwave_js.set_config_parameter
@@ -189,13 +190,13 @@ script:
           entity_id: light.master_bedroom_ceiling_fan
         data:
           parameter: LED Indicator Color for Dimmer
-          value: '{{ color }}'
+          value: "{{ color }}"
       - service: zwave_js.set_config_parameter
         target:
           entity_id: light.master_bedroom_ceiling_fan
         data:
           parameter: LED Indicator Color for Relay
-          value: '{{ color }}'
+          value: "{{ color }}"
 
       # Bethany's Office
       - service: zwave_js.set_config_parameter
@@ -203,10 +204,10 @@ script:
           entity_id: light.bethany_office_ceiling_fan
         data:
           parameter: LED Indicator Color for Dimmer
-          value: '{{ color }}'
+          value: "{{ color }}"
       - service: zwave_js.set_config_parameter
         target:
           entity_id: light.bethany_office_ceiling_fan
         data:
           parameter: LED Indicator Color for Relay
-          value: '{{ color }}'
+          value: "{{ color }}"

@@ -11,9 +11,9 @@ automation:
     condition: "{{ trigger.payload_json['after']['label'] == 'person' }}"
     action:
       # Always backup clip to offsite
-      # - service: shell_command.frigate_clips_drive
-      #   data:
-      #     clip_id: "{{trigger.payload_json['after']['id']}}"
+      - service: shell_command.frigate_clips_drive
+        data:
+          clip_id: "{{trigger.payload_json['after']['id']}}"
       # Play audio clip
       # - if:
       #     - "{{ trigger.payload_json['after']['camera'] == 'front_door' }}"
@@ -83,8 +83,8 @@ automation:
             attachments:
               - /config/images/logo.jpg
       # No need for container to run after detection made, appdaemon will turn on in the morning
-      - service: switch.turn_off
-        entity_id: switch.docker_codeproject
+      # - service: switch.turn_off
+      #   entity_id: switch.docker_codeproject
       - delay: "00:01:00"
 
   - alias: Doorbell Ring
@@ -201,12 +201,6 @@ automation:
           option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
         target:
           entity_id: select.front_door_security_light
-      - delay: "00:00:05"
-      - service: select.select_option
-        data:
-          option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
-        target:
-          entity_id: select.front_door_security_light
 
 command_line:
   - switch:
@@ -251,10 +245,10 @@ media_player:
 script:
   doorbell_not_interested:
     sequence:
-      - service: media_player.play_media
+      - service: tts.speak
         target:
-          entity_id: media_player.doorbell
+          entity_id: tts.google_en_com
         data:
-          media_content_id: media-source://tts/picotts?message=Hello.+we+are+not+interested.+Have+a+nice+day.+%0A&language=en-US
-          media_content_type: provider
-          announce: True
+          cache: false
+          media_player_entity_id: media_player.doorbell
+          message: "Hello. We Are not interested. Have a nice day!"

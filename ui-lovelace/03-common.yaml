@@ -233,6 +233,7 @@ cards:
             icon: mdi:speaker
           - switch.office_heater
           - switch.office_heater_oscillate
+          - cover.office_blind_left
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card

@@ -366,7 +366,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-fbed3fb
+        image: ghcr.io/blakeblackshear/frigate:dev-3921a7f
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -385,7 +385,6 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
-
     codeproject:
         container_name: codeproject
         restart: 'always'
