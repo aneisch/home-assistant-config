@@ -170,8 +170,8 @@ cards:
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_sqliteweb
-      - switch.docker_github_runner_1
-      - switch.docker_github_runner_2
+      # - switch.docker_github_runner_1
+      # - switch.docker_github_runner_2
       - switch.docker_vrs
       - switch.docker_codeproject
       # - switch.docker_adguard

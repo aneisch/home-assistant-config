@@ -37,6 +37,13 @@ cards:
                 --paper-item-icon-color: red
                 {% endif %}
               }
+          - entity: lock.back_door
+            style: |
+              :host {
+                {% if states('lock.back_door') == 'unlocked' %}
+                --paper-item-icon-color: red
+                {% endif %}
+              }
           - entity: cover.garage_door
             style: |
               :host {

@@ -16,6 +16,8 @@ sensors:
     name: Humidity
   - entity: sensor.thermostat_temperature
     name: Thermostat
+  - entity: sensor.front_door_temperature
+    name: Entryway
   - entity: sensor.netatmo_home_indoor_temperature
     name: Living Room
   - entity: sensor.kitchen_temperature

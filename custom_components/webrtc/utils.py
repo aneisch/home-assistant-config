@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "webrtc"
 
-BINARY_VERSION = "1.6.0"
+BINARY_VERSION = "1.6.2"
 
 SYSTEM = {
     "Windows": {"AMD64": "go2rtc_win64.zip", "ARM64": "go2rtc_win_arm64.zip"},
@@ -169,7 +169,7 @@ async def init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
 
 
 # noinspection PyProtectedMember
-def dash_cast(hass: HomeAssistant, cast_entities: list, url: str):
+def dash_cast(hass: HomeAssistant, cast_entities: list, url: str, force=False):
     """Cast webpage to chromecast device via DashCast application."""
     try:
         entities = [
@@ -188,7 +188,7 @@ def dash_cast(hass: HomeAssistant, cast_entities: list, url: str):
                 entity._chromecast.register_handler(entity.dashcast)
 
             _LOGGER.debug(f"DashCast to {entity.entity_id}")
-            entity.dashcast.load_url(url)
+            entity.dashcast.load_url(url, force)
 
     except Exception:
         _LOGGER.exception(f"Can't DashCast to {cast_entities}")

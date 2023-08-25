@@ -492,7 +492,8 @@
         - sensor.2_battery_level
         - sensor.3_battery_level
         - sensor.back_bedroom_remote_battery_level
-        - sensor.front_door_battery_level
+        - sensor.front_door_battery
+        - sensor.back_door_battery
         - sensor.garage_exterior_door_battery_level
         - sensor.back_bathroom_toilet_water_detector_battery_level
         - sensor.guest_bathroom_toilet_water_detector_battery_level
@@ -677,7 +678,7 @@
   condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
   action:
     - service: lock.unlock
-      entity_id: lock.front_door
+      entity_id: lock.back_door
     - service: script.notify_wrapper
       data:
         message: "Front door unlocked by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% else %}Unknown{% endif %}!"

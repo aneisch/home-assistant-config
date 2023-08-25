@@ -7,55 +7,55 @@ automation:
         topic: frigate/events
         payload: new
         value_template: "{{ value_json.type }}"
-    # Only alert on person
+        id: new
+      - platform: mqtt
+        topic: frigate/events
+        payload: end
+        value_template: "{{ value_json.type }}"
+        id: end
     condition: "{{ trigger.payload_json['after']['label'] == 'person' }}"
     action:
-      # Always backup clip to offsite
-      - service: shell_command.frigate_clips_drive
-        data:
-          clip_id: "{{trigger.payload_json['after']['id']}}"
-      # Play audio clip
-      # - if:
-      #     - "{{ trigger.payload_json['after']['camera'] == 'front_door' }}"
-      #   then:
-      #     - service: shell_command.front_door_play_audio_file
-      #       data:
-      #         filename: audio.mp3
-      # if home and person detection at front door then notify
-      - if:
-          - "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' }}"
-        then:
-          - service: notify.signal_frigate
-            data:
-              message: >-
-                A {{trigger.payload_json["after"]["label"]}} was detected.
+      - choose:
+          - conditions: "{{ trigger.id == 'end' }}"
+            sequence:
+              - service: shell_command.frigate_clips_drive
+                data:
+                  clip_id: "{{trigger.payload_json['after']['id']}}"
+
+          - conditions: "{{ trigger.id == 'new' }}"
+            sequence:
+              - if: "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' }}"
+                then:
+                  - service: notify.signal_frigate
+                    data:
+                      message: >-
+                        A {{trigger.payload_json["after"]["label"]}} was detected.
 
 
-                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+                        Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
 
 
-                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-              data:
-                urls:
-                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                        Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+                      data:
+                        urls:
+                          - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
 
-      # if not home or sleeping time and person detection anywhere then notify
-      - if:
-          - "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
-        then:
-          - service: notify.signal_frigate
-            data:
-              message: >-
-                A {{trigger.payload_json["after"]["label"]}} was detected.
-
-
-                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+              # if not home or sleeping time and person detection anywhere then notify
+              - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
+                then:
+                  - service: notify.signal_frigate
+                    data:
+                      message: >-
+                        A {{trigger.payload_json["after"]["label"]}} was detected.
 
 
-                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-              data:
-                urls:
-                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                        Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+
+
+                        Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+                      data:
+                        urls:
+                          - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
 
   - alias: Frigate Notification USPS
     id: "frigate_notification_usps"
@@ -85,7 +85,7 @@ automation:
       # No need for container to run after detection made, appdaemon will turn on in the morning
       # - service: switch.turn_off
       #   entity_id: switch.docker_codeproject
-      - delay: "00:01:00"
+      - delay: "00:02:00"
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"
@@ -105,11 +105,15 @@ automation:
           message: >-
             Doorbell ring!
 
-
             Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway
           data:
             attachments:
               - /tmp/doorbell.jpg
+      - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
+        then:
+          - service: shell_command.weasel_shortcut
+            data:
+              shortcut: open-front-door-cam-weasel
       - service: siren.toggle
         entity_id: siren.garage_chime_siren
 
@@ -172,7 +176,7 @@ automation:
           service_data:
             entity_id: lock.front_door
     action:
-      - if: "{{ trigger.id == 'front_door' }}"
+      - if: "{{ trigger.id == 'front_door' and is_state('group.trackers', 'home') }}"
         then:
           - service: timer.start
             data:
@@ -220,9 +224,6 @@ input_datetime:
 
 shell_command:
   frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
-# Use media player below instead
-#   # "filename" must be present in frigate's /config directory
-#   front_door_play_audio_file: curl -X POST "http://localhost:5000/live/webrtc/api/streams?dst=front_door_twoway&src=ffmpeg%3A%2Fconfig%2F{{ filename }}%23audio%3Dpcma%23input%3Dfile"
 
 timer:
   frigate_notification_snooze:
@@ -235,6 +236,7 @@ media_player:
     stream: front_door_twoway
     audio: pcma
 
+# Eg:
 # - service: media_player.play_media
 #   target:
 #     entity_id: media_player.doorbell
@@ -245,10 +247,17 @@ media_player:
 script:
   doorbell_not_interested:
     sequence:
-      - service: tts.speak
+      # - service: tts.speak
+      #   target:
+      #     entity_id: tts.google_en_com
+      #   data:
+      #     cache: false
+      #     media_player_entity_id: media_player.doorbell
+      #     message: "Hello. We are not interested. We hope you have a nice day!"
+      - service: media_player.play_media
         target:
-          entity_id: tts.google_en_com
+          entity_id: media_player.doorbell
         data:
-          cache: false
-          media_player_entity_id: media_player.doorbell
-          message: "Hello. We Are not interested. Have a nice day!"
+          media_content_id: media-source://tts/microsoft?message=Hello.+We+are+not+interested.+We+hope+you+have+a+nice+day!
+          media_content_type: provider
+          announce: True

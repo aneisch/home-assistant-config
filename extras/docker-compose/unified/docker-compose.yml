@@ -14,7 +14,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -407,36 +407,21 @@ services:
         volumes:
             - /opt/cloudflared/:/home/nonroot/.cloudflared/
         command: tunnel run nuc
-    github-runner-1:
-        container_name: github-runner-1
-        image: myoung34/github-runner:latest
-        restart: 'always'
-        environment:
-            RUNNER_NAME: nuc-runner
-            ACCESS_TOKEN: XXXX
-            REPO_URL: https://github.com/aneisch/thermostat_api_server_docker
-            RUNNER_WORKDIR: /tmp/runner/work
-            LABELS: linux,x64,self-hosted
-        security_opt:
-            - label:disable
-        volumes:
-            - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/tmp/runner-1:/tmp/runner'
-    github-runner-2:
-        container_name: github-runner-2
-        image: myoung34/github-runner:latest
-        restart: 'always'
-        environment:
-            RUNNER_NAME: nuc-runner-2
-            ACCESS_TOKEN: XXXX
-            REPO_URL: https://github.com/aneisch/home-assistant-config
-            RUNNER_WORKDIR: /tmp/runner/work
-            LABELS: linux,x64,self-hosted
-        security_opt:
-            - label:disable
-        volumes:
-            - '/var/run/docker.sock:/var/run/docker.sock'
-            - '/tmp/runner-2:/tmp/runner'
+    #github-runner-1:
+    #    container_name: github-runner-1
+    #    image: myoung34/github-runner:latest
+    #    restart: 'always'
+    #    environment:
+    #        RUNNER_NAME: nuc-runner
+    #        ACCESS_TOKEN: XXXX
+    #        REPO_URL: https://github.com/aneisch/thermostat_api_server_docker
+    #        RUNNER_WORKDIR: /tmp/runner/work
+    #        LABELS: linux,x64,self-hosted
+    #    security_opt:
+    #        - label:disable
+    #    volumes:
+    #        - '/var/run/docker.sock:/var/run/docker.sock'
+    #        - '/tmp/runner-1:/tmp/runner'
     signal-rest-api:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest
@@ -541,7 +526,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-3921a7f
+        image: ghcr.io/blakeblackshear/frigate:dev-7c629c1
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb

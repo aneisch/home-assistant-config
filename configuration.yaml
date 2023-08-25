@@ -524,6 +524,11 @@ timer:
 
 tts:
   - platform: picotts
+  - platform: microsoft
+    api_key: !secret AzureSpeechKey
+    region: centralus
+    gender: Male
+    type: GuyNeural
 
 wemo:
   discovery: false
@@ -537,7 +542,7 @@ utility_meter:
     cron: "0 22 L * *"
 
 zha:
-  enable_quirks: true
+  #enable_quirks: true
   #custom_quirks_path: /config/custom_zha_quirks/
   zigpy_config:
     network:
