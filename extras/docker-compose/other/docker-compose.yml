@@ -370,6 +370,17 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
+    whosatmyfeeder:
+        container_name: whosatmyfeeder
+        restart: unless-stopped
+        image: mmcc73/whosatmyfeeder:latest
+        volumes:
+        - /opt/whos/config:/config
+        - /opt/whos/data:/data
+        ports:
+        - 7766:7766 #port used by the webserver in the container is defined in config.
+        environment:
+        - TZ=America/Chicago
     codeproject:
         container_name: codeproject
         restart: 'always'

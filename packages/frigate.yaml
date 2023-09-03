@@ -24,8 +24,14 @@ automation:
 
           - conditions: "{{ trigger.id == 'new' }}"
             sequence:
+              # if home and person detection front door then notify
               - if: "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' }}"
                 then:
+                  - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
+                    then:
+                      - service: shell_command.weasel_shortcut
+                        data:
+                          shortcut: open-front-door-cam-weasel
                   - service: notify.signal_frigate
                     data:
                       message: >-
@@ -176,7 +182,7 @@ automation:
           service_data:
             entity_id: lock.front_door
     action:
-      - if: "{{ trigger.id == 'front_door' and is_state('group.trackers', 'home') }}"
+      - if: "{{ trigger.id == 'front_door' and is_state('group.trackers', 'home') and is_state('automation.frigate_notification_person', 'on') }}"
         then:
           - service: timer.start
             data:

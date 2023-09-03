@@ -54,6 +54,12 @@ cards:
               tap_action:
                 action: call-service
                 service: esphome.living_room_speakers_input_3_5mm
+            - type: "button"
+              name: Mac Mini
+              icon: mdi:apple
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_input_hdp
       - type: conditional
         conditions:
           - entity: switch.living_room_speakers
