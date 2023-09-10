@@ -5,20 +5,24 @@ substitutions:
 
 esphome:
   name: ${name}
-  platform: ESP8266
-  board: d1_mini
+
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: ESP-IDF  
 
 <<: !include common.yaml
 
 remote_transmitter:
   pin:
-    number: D3
+    number: 18 #D3
     inverted: False
   carrier_duty_percent: 50%
   
 remote_receiver:
   pin: 
-    number: D4
+    number: 16 #D4
     inverted: yes
     mode: INPUT_PULLUP
   dump: nec

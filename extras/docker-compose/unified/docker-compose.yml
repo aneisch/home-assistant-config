@@ -14,7 +14,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -431,6 +431,7 @@ services:
             - TZ=America/Chicago
         ports:
             - "127.0.0.1:8800:8080" 
+            - "8808:8080" 
         volumes:
             - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
     apcupsd:
@@ -526,7 +527,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-7c629c1
+        image: ghcr.io/blakeblackshear/frigate:dev-5658e5a
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -545,17 +546,6 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
-    whosatmyfeeder:
-        container_name: whosatmyfeeder
-        restart: unless-stopped
-        image: mmcc73/whosatmyfeeder:latest
-        volumes:
-        - /opt/whos/config:/config
-        - /opt/whos/data:/data
-        ports:
-        - 7766:7766 #port used by the webserver in the container is defined in config.
-        environment:
-        - TZ=America/Chicago
     codeproject:
         container_name: codeproject
         restart: 'always'

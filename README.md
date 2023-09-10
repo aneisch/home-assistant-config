@@ -2,7 +2,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2023.8.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2023.9.1%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 
@@ -27,10 +27,11 @@ My Home Assistant installation contains many different components and runs on a 
   - 2 GE 12730 / ZW4002
   - 1 Kwikset 910
   - 1 Leviton DZPA1
+  - 1 None None
   - 1 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 1 Zooz ZAC36
-  - 5 Zooz ZEN21
+  - 4 Zooz ZEN21
   - 6 Zooz ZEN27
   - 6 Zooz ZEN30
   - 2 Zooz ZEN71
@@ -55,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2353
+Lines of ESPHome YAML | 2467
 Lines of Home Assistant YAML | 7799
 [Integrations](https://www.home-assistant.io/integrations/) in use | 50
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
@@ -65,10 +66,10 @@ Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 1
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 98
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 117
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 120
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 12
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
-Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 17
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 18
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 8
@@ -90,17 +91,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 2
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 363
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 370
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 148
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 151
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 2
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **996**
+**Total state objects** | **1010**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
