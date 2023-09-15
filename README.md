@@ -27,11 +27,10 @@ My Home Assistant installation contains many different components and runs on a 
   - 2 GE 12730 / ZW4002
   - 1 Kwikset 910
   - 1 Leviton DZPA1
-  - 1 None None
   - 1 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 1 Zooz ZAC36
-  - 4 Zooz ZEN21
+  - 5 Zooz ZEN21
   - 6 Zooz ZEN27
   - 6 Zooz ZEN30
   - 2 Zooz ZEN71
@@ -57,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2467
-Lines of Home Assistant YAML | 7821
+Lines of Home Assistant YAML | 7878
 [Integrations](https://www.home-assistant.io/integrations/) in use | 51
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -66,7 +65,7 @@ Description | value
 -- | --
 Entities in the [`alarm_control_panel`](https://www.home-assistant.io/components/alarm_control_panel) domain | 1
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 99
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 126
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 132
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 12
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 18
@@ -91,17 +90,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 39
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 2
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 377
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 378
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 151
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 152
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 2
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1024**
+**Total state objects** | **1032**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -131,6 +130,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>
 [rospogrigio/localtuya](https://github.com/rospogrigio/localtuya)<br>
 [rroller/dahua](https://github.com/rroller/dahua)<br>
+[sdrapha/home-assistant-custom-components-pfsense-gateways](https://github.com/sdrapha/home-assistant-custom-components-pfsense-gateways)<br>
 [sebr/bhyve-home-assistant](https://github.com/sebr/bhyve-home-assistant)<br>
 [ualex73/monitor_docker](https://github.com/ualex73/monitor_docker)<br>
 

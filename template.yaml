@@ -17,8 +17,9 @@
       state: "{{ trigger.payload_json.temperature_1_F | float | round(2) }}"
       unit_of_measurement: "°F"
       device_class: temperature
-    - name: "Compost Battery OK"
-      state: "{{ trigger.payload_json.battery_ok }}"
+  binary_sensor:
+    - name: "Compost Battery"
+      state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 
 # Deep Freeze
@@ -36,8 +37,9 @@
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
       unit_of_measurement: "%"
       device_class: humidity
-    - name: "Deep Freeze Battery OK"
-      state: "{{ trigger.payload_json.battery_ok }}"
+  binary_sensor:
+    - name: "Deep Freeze Battery"
+      state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 
 # Rain
@@ -106,8 +108,9 @@
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
       unit_of_measurement: "%"
       device_class: humidity
-    - name: "433 Weather Battery OK"
-      state: "{{ trigger.payload_json.battery_ok }}"
+  binary_sensor:
+    - name: "433 Weather Battery"
+      state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 # Unused
 # - trigger:

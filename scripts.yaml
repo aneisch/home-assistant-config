@@ -139,6 +139,7 @@ master_bedroom_bedtime:
         entity_id:
           - lock.front_door
           - lock.garage_exterior_door
+          - lock.back_door
     - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
       then:
         - service: light.turn_off

@@ -17,6 +17,14 @@
     - type: load_5m
     - type: load_15m
 
+- platform: pfsense_gateways
+  host: 10.0.1.1
+  name: pfSense gateway
+  # https://github.com/alexpmorris/pfsense-status-gateways-json
+  key: !secret pfsense_json_key
+  monitored_gateway_interfaces:
+    - wan
+
 # - platform: command_line
 #   name: Electric Utilities Daily
 #   scan_interval: 3600

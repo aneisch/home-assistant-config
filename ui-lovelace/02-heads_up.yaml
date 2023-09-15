@@ -41,6 +41,7 @@ cards:
         - entity_id: switch.home_water_supply
         - entity_id: "*_snapshots"
         - entity_id: "*_detect"
+        - entity_id: "*_audio_detection"
         - entity_id: "*_recordings"
         - entity_id: "*_motion"
         - entity_id: "*_stream"

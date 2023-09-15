@@ -12,12 +12,13 @@ automation:
         entity_id: binary_sensor.flume_flow_status
         from: "off"
         to: "on"
+        for: "00:02:00"
     # irrigation master off AND trackers away AND guest mode off
-    condition: "{{ is_state('switch.irrigation_master_valve', 'off') and is_state('group.trackers', 'not_home' ) and is_state('input_boolean.guest_mode', 'off') }}"
+    condition: "{{ is_state('switch.irrigation_master_valve', 'off') and is_state('switch.garden_zone', 'off') and is_state('switch.bougainvillea_zone', 'off') and is_state('switch.maples_zone', 'off') and is_state('group.trackers', 'not_home' ) and is_state('input_boolean.guest_mode', 'off') }}"
     action:
       - service: script.notify_wrapper
         data:
-          message: Unexpected water flow!
+          message: Unexpected water flow! {{ states('sensor.flume_sensor_home_60_minutes')}}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m )
           data:
             priority: 1
 

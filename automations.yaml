@@ -432,7 +432,6 @@
     - service: homeassistant.turn_off
       entity_id: switch.nexus_7_screen
 
-
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"
   trigger:
@@ -450,35 +449,60 @@
 - alias: "Sensor Battery Alerts"
   id: "sensor_battery_alert"
   trigger:
-    - platform: numeric_state
+    - platform: state
+      id: binary
+      from: "off"
+      to: "on"
       entity_id:
+        - binary_sensor.flume_sensor_home_battery
+        - binary_sensor.compost_battery
+        - binary_sensor.433_weather_battery
+        - binary_sensor.deep_freeze_battery
+    - platform: numeric_state
+      id: value
+      entity_id:
+        # smoke alarm batteries handled in smoke_alarms.yaml
+        # b-hyve
         - sensor.1_battery_level
         - sensor.2_battery_level
         - sensor.3_battery_level
+        # remotes
         - sensor.back_bedroom_remote_battery_level
+        - sensor.guest_bedroom_remote_battery_level
+        # doors
         - sensor.front_door_battery
         - sensor.back_door_battery
         - sensor.garage_exterior_door_battery_level
+        # water detectors
         - sensor.back_bathroom_toilet_water_detector_battery_level
         - sensor.guest_bathroom_toilet_water_detector_battery_level
         - sensor.master_bathroom_water_detector_battery_level
         - sensor.washing_machine_water_detector_battery_level
         - sensor.kitchen_sink_water_detector_battery_level
+        - sensor.fridge_water_detector_battery_level
+        # motion sensors
         - sensor.motion_1_battery_level
         - sensor.living_room_motion_battery_level
+        - sensor.hallway_motion_battery
+        - sensor.master_closet_motion_battery_level
+        # blinds
         - sensor.office_blind_left_battery
         - sensor.office_blind_right_battery
         - sensor.guest_bedroom_blind_left_battery
         - sensor.guest_bedroom_blind_right_battery
-        - sensor.hallway_motion_battery
-        - sensor.master_closet_motion_battery_level
+        # temperature sensors
         - sensor.netatmo_home_attic_battery_percent
-        - sensor.fridge_water_detector_battery_level
+        - sensor.netatmo_home_home_rain_battery_percent
       below: 10
   action:
     - service: script.notify_wrapper
       data:
-        message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%"
+        message: >
+          {% if trigger.id == "value" %}
+            {{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%
+          {% elif trigger.id == "binary" %}
+            {{ trigger.to_state.name }} battery level low!
+          {% endif %}
 
 - alias: "Update CloudFlare Firewall Rule"
   id: "update_cloudflare_firewall_rule"
@@ -524,22 +548,40 @@
       entity_id: binary_sensor.internet_reachability
       from: "on"
       to: "off"
+      id: binary
     - platform: state
       entity_id: binary_sensor.internet_reachability
       from: "off"
       to: "on"
+      id: binary
+    - platform: state
+      id: gateway
+      entity_id: sensor.pfsense_gateway_wan_dhcp
+      from: "True"
+      to: "False"
   action:
-    - service: notify.cellular_message
-      data:
-        message: >
-          {% if trigger.from_state.state == "on" %}
-          Home internet is down
-          {% else %}
-          Home internet has recovered
-          {% endif %}
-        data:
-          # Override DND if Daytime, otherwise silent
-          priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
+    - if: "{{ trigger.id == 'binary' }}"
+      then:
+        - service: notify.cellular_message
+          data:
+            message: >
+              {% if trigger.from_state.state == "on" %}
+              Home internet is down
+              {% else %}
+              Home internet has recovered
+              {% endif %}
+            data:
+              # Override DND if Daytime, otherwise silent
+              priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
+    - if: "{{ trigger.id == 'gateway' }}"
+      then:
+        - service: notify.cellular_message
+          data:
+            message: >
+              PFSense gateway down!
+            data:
+              # Override DND if Daytime, otherwise silent
+              priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
 
 # - id: webhook_debugger
 #   alias: "Webhook Debugger"
