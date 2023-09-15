@@ -366,6 +366,7 @@ Cameras Smallgroup:
   module: entity_timer
   class: Timer
   constrain_presence: anyone
+  constrain_days: wed
   time_off: "17:50:00"
   time_on: "21:00:00"
   entities: switch.driveway_detect,switch.front_door_detect

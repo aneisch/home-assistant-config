@@ -25,6 +25,7 @@ homeassistant:
     smoke_alarms: !include packages/smoke_alarms.yaml
     magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
+    leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml

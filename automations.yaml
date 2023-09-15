@@ -432,42 +432,6 @@
     - service: homeassistant.turn_off
       entity_id: switch.nexus_7_screen
 
-- alias: "Water Sensor Alerts"
-  id: "water_sensor_alert"
-  trigger:
-    - platform: state
-      id: non_esphome
-      entity_id:
-        - binary_sensor.guest_bathroom_toilet_water_detector
-        - binary_sensor.back_bathroom_toilet_water_detector
-        - binary_sensor.kitchen_sink_water_detector
-        - binary_sensor.master_bathroom_water_detector
-        - binary_sensor.water_shutoff_water_leak_detected
-      to: "on"
-    - platform: state
-      id: esphome
-      entity_id:
-        - binary_sensor.laundry_room_water_detector
-        - binary_sensor.water_heater_water_detector
-        - binary_sensor.kitchen_water_detector
-      to: "on"
-  action:
-    - if: "{{ trigger.id == 'non_esphome' }}"
-      then:
-        - service: switch.turn_on
-          entity_id: switch.water_shutoff
-    - service: script.notify_wrapper
-      data:
-        message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
-        data:
-          priority: 2
-    # - service: notify.alexa_media
-    #   data:
-    #     message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
-    #     data:
-    #       method: all
-    #       type: announce
-    #     target: ["Office", "Kitchen", "Master", "Living Room"]
 
 - alias: "Master Closet Light with Motion"
   id: "closet_motion_light"
@@ -904,20 +868,6 @@
       data:
         message: >
           Turned coffee maker off!
-
-- alias: "Water Shutoff Alert"
-  id: "water_shutoff_alert"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: switch.water_shutoff
-      to: "on"
-  action:
-    - service: script.notify_wrapper
-      data:
-        message: Water supply has been shut off!
-        data:
-          priority: 1
 
 - alias: "Front Door NFC"
   id: "front_door_nfc"
