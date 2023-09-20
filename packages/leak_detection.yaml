@@ -5,17 +5,23 @@ template:
           {{ states('sensor.flume_sensor_home_current') != "0" }}
 
 automation:
-  - alias: "Flume Disconnected"
-    id: "flume_disconnected"
+  - alias: "Flume Connection"
+    id: "flume_connection"
     trigger:
       - platform: state
         entity_id: binary_sensor.flume_sensor_home_connectivity
+        id: disconnected
         from: "on"
         to: "off"
+      - platform: state
+        entity_id: binary_sensor.flume_sensor_home_connectivity
+        id: connected
+        from: "off"
+        to: "on"
     action:
       - service: script.notify_wrapper
         data:
-          message: Flume sensor disconnected
+          message: "Flume sensor {% if trigger.id == 'disconnected' %}disconnected{% else %}connected{% endif %}"
 
   - alias: "Water Flow Alert"
     id: "water_flow_alert"

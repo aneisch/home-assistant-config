@@ -621,8 +621,31 @@
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
 
-- alias: "Update Utilities Cost"
-  id: "update_utilities_cost"
+- alias: "Update Water Utilities"
+  id: "update_water_utilities"
+  trigger:
+    - platform: time
+      id: midnight
+      at: "00:00:00"
+    - platform: state
+      id: water_change
+      entity_id:
+        - sensor.water_usage
+  action:
+    - if: "{{ trigger.id == 'water_change' }}"
+      then:
+        - service: python_script.add_water_cost_attribute
+          data:
+            meter_entity: sensor.water_usage
+    - if: "{{ trigger.id == 'midnight' }}"
+      then:
+        - service: python_script.water_meter_reset
+          data:
+            meter_entity: sensor.water_usage
+            cycle_reset_entity_id: sensor.electric_utilities_summary
+
+- alias: "Update Electric Utilities Cost"
+  id: "update_electric_utilities_cost"
   mode: parallel
   trigger:
     - platform: state

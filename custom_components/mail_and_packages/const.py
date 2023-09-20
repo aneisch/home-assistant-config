@@ -12,7 +12,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.17"
+VERSION = "0.3.18"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -91,6 +91,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Dostarczono:",
     "Geliefert:",
     "Livré",
+    "Entregado:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -132,7 +133,7 @@ AMAZON_TIME_PATTERN_END = [
     "Per tracciare il tuo pacco",
     "View or manage order",
     "Acompanhar",
-    "Sguimiento",
+    "Seguimiento",
     "Verfolge deine(n) Artikel",
     "Lieferung verfolgen",
     "Ihr Paket verfolgen",

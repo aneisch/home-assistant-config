@@ -1,2 +1,5 @@
 electricity_cost_monthly:
-  name: "Utilities Cost"
+  name: "Electricity Cost"
+
+water_cost_monthly:
+  name: "Water Cost"

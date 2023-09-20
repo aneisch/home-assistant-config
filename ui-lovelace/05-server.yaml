@@ -107,9 +107,18 @@ cards:
         detail: 2
         hours_to_show: 730
         icon: mdi:flash
+      - type: sensor
+        entity: sensor.water_usage
+        graph: line
+        name: Cycle Water
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:water
       - type: markdown
         content: >
           Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}
+
+          Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
 
           Cycle Ends: {{ state_attr('sensor.electric_utilities_summary', 'EndDate')[4:-6] }}
 
