@@ -1,5 +1,8 @@
 electricity_cost_monthly:
   name: "Electricity Cost"
 
+electricity_cost_monthly_emporia:
+  name: "Electricity Cost"
+
 water_cost_monthly:
   name: "Water Cost"

@@ -639,9 +639,15 @@
             meter_entity: sensor.water_usage
     - if: "{{ trigger.id == 'midnight' }}"
       then:
-        - service: python_script.water_meter_reset
+        - service: python_script.utility_meter_reset
           data:
             meter_entity: sensor.water_usage
+            cycle_reset_entity_id: sensor.electric_utilities_summary
+    - if: "{{ trigger.id == 'midnight' }}"
+      then:
+        - service: python_script.utility_meter_reset
+          data:
+            meter_entity: sensor.electric_usage
             cycle_reset_entity_id: sensor.electric_utilities_summary
 
 - alias: "Update Electric Utilities Cost"
@@ -652,7 +658,6 @@
       entity_id:
         - sensor.electric_utilities_summary
         - sensor.electric_utilities_daily
-        - sensor.electric_utilities_realtime
     - platform: homeassistant
       event: start
   action:
@@ -664,7 +669,7 @@
         entity_id: sensor.electric_utilities_daily
     - service: python_script.add_elecrtric_cost_attribute
       data:
-        entity_id: sensor.electric_utilities_realtime
+        entity_id: sensor.electricity_usage
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   id: "usps_mail_path_update"

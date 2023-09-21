@@ -114,9 +114,18 @@ cards:
         detail: 2
         hours_to_show: 730
         icon: mdi:water
+      - type: sensor
+        entity: sensor.electricity_usage
+        graph: line
+        name: Cycle Electricity Emporia
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:flash
       - type: markdown
         content: >
           Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}
+
+          Monthly Electric Cost Emporia: ${{ states('input_text.electricity_cost_monthly_emporia') }}
 
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
 

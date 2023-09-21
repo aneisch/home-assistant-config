@@ -22,7 +22,7 @@ if  month >= 5 and month <= 10:
 else:
     current_cost = winter_cost
 
-
+# Utilities API fed sensor
 if inputEntity == 'sensor.electric_utilities_summary':
     # Add $7 monthly charge to summary total
     inputAttributesObject['cost'] = '{:.2f}'.format(7 + (float(inputState) * current_cost))
@@ -32,7 +32,13 @@ if inputEntity == 'sensor.electric_utilities_summary':
     # hass.services.call("setter", "set", service_data)
     service_data = {"entity_id": "input_text.electricity_cost_monthly", "value": inputAttributesObject['cost']}
     hass.services.call("input_text", "set_value", service_data)
-    
+
+# Emporia vue fed sensor
+elif inputEntity == 'sensor.electricity_usage':
+    # Add $7 monthly charge to summary total
+    inputAttributesObject['cost'] = '{:.2f}'.format(7 + ((float(inputState)) * current_cost))
+    service_data = {"entity_id": "input_text.electricity_cost_monthly_emporia", "value": inputAttributesObject['cost']}
+    hass.services.call("input_text", "set_value", service_data)
 
 else:
     inputAttributesObject['cost'] = '{:.2f}'.format((float(inputState) * current_cost))
