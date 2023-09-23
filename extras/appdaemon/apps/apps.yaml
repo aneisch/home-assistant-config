@@ -304,6 +304,13 @@ Backyard Flood Lights with Person Detection:
   # Seconds to turn entity on when triggered
   time_on: "30"
 
+Doorbell Ring Light:
+  module: entity_timer
+  class: Timer
+  entities: light.front_door_ring_light
+  time_on: sunrise - 00:30:00
+  # Off is handled by NodeRed with Porch Lights
+
 Office Light at Night With Door:
   module: door_open
   class: DoorLight

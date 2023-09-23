@@ -122,12 +122,16 @@ cards:
         hours_to_show: 730
         icon: mdi:flash
       - type: markdown
+        #           Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}
         content: >
-          Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}
 
           Monthly Electric Cost Emporia: ${{ states('input_text.electricity_cost_monthly_emporia') }}
 
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
+
+          Monthly Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
+
+          Monthly Water + Sewer + Electric: ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly_emporia') | float)) | round(2) }}
 
           Cycle Ends: {{ state_attr('sensor.electric_utilities_summary', 'EndDate')[4:-6] }}
 

@@ -546,6 +546,7 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
+            - TZ=America/Chicago
     codeproject:
         container_name: codeproject
         restart: 'always'

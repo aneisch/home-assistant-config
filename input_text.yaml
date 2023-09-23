@@ -6,3 +6,6 @@ electricity_cost_monthly_emporia:
 
 water_cost_monthly:
   name: "Water Cost"
+
+sewer_cost_monthly:
+  name: "Sewer Cost"

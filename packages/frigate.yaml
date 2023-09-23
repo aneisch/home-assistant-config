@@ -75,23 +75,25 @@ automation:
         topic: frigate/events
         payload: end
         value_template: "{{ value_json.type }}"
-    condition: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}" # Frigate 13 beta
+    condition: "{{ trigger.payload_json['after']['sub_label'] != 'Undefined'  }}"
     action:
-      - service: input_datetime.set_datetime
-        data:
-          entity_id: "input_datetime.usps_last"
-          time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
-          date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-      - service: notify.signal_self
-        data:
-          message: "USPS detected"
-          data:
-            attachments:
-              - /config/images/logo.jpg
-      # No need for container to run after detection made, appdaemon will turn on in the morning
-      # - service: switch.turn_off
-      #   entity_id: switch.docker_codeproject
-      - delay: "00:02:00"
+      - if: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}"
+        then: 
+          - service: input_datetime.set_datetime
+            data:
+              entity_id: "input_datetime.usps_last"
+              time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
+              date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
+          - service: notify.signal_self
+            data:
+              message: "USPS detected"
+              data:
+                attachments:
+                  - /config/images/logo.jpg
+          # No need for container to run after detection made, appdaemon will turn on in the morning
+          # - service: switch.turn_off
+          #   entity_id: switch.docker_codeproject
+          - delay: "00:02:00"
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"

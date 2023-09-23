@@ -25,29 +25,6 @@
   monitored_gateway_interfaces:
     - wan
 
-# - platform: command_line
-#   name: Electric Utilities Daily
-#   scan_interval: 3600
-#   command: !secret utilities_curl_daily
-#   value_template: "{{ value_json.Kwh | float }}"
-#   unit_of_measurement: "kWh"
-#   json_attributes:
-#     - ReadDate
-
-# - platform: command_line
-#   name: Electric Utilities Summary
-#   scan_interval: 3600
-#   command: !secret utilities_curl_summary
-#   value_template: "{{ value_json.TotalUsage | float }}"
-#   unit_of_measurement: "kWh"
-#   json_attributes:
-#     - TotalCost
-#     - MinUsage
-#     - MaxUsage
-#     - AvgUsage
-#     - StartDate
-#     - EndDate
-
 - platform: history_stats
   name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state

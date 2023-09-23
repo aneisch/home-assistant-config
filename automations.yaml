@@ -621,6 +621,7 @@
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
 
+
 - alias: "Update Water Utilities"
   id: "update_water_utilities"
   trigger:
@@ -647,9 +648,40 @@
       then:
         - service: python_script.utility_meter_reset
           data:
-            meter_entity: sensor.electric_usage
+            meter_entity: sensor.electricity_usage
             cycle_reset_entity_id: sensor.electric_utilities_summary
 
+- alias: "Update Utility Costs"
+  id: "update_utility_costs"
+  mode: single
+  trigger:
+    - platform: time_pattern
+      hours: "/1"
+  action:
+    - service: python_script.add_elecrtric_cost_attribute
+      data:
+        entity_id: sensor.electricity_usage
+    - service: python_script.add_water_cost_attribute
+      data:
+        meter_entity: sensor.water_usage
+
+- alias: "Reset Utility Meters"
+  id: "reset_utility_meters"
+  trigger:
+    - platform: time
+      id: midnight
+      at: "00:00:00"
+  action:
+    - service: python_script.utility_meter_reset
+      data:
+        meter_entity: sensor.water_usage
+        cycle_reset_entity_id: sensor.electric_utilities_summary
+    - service: python_script.utility_meter_reset
+      data:
+        meter_entity: sensor.electricity_usage
+        cycle_reset_entity_id: sensor.electric_utilities_summary
+
+# Legacy, remove later
 - alias: "Update Electric Utilities Cost"
   id: "update_electric_utilities_cost"
   mode: parallel
@@ -667,9 +699,6 @@
     - service: python_script.add_elecrtric_cost_attribute
       data:
         entity_id: sensor.electric_utilities_daily
-    - service: python_script.add_elecrtric_cost_attribute
-      data:
-        entity_id: sensor.electricity_usage
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   id: "usps_mail_path_update"

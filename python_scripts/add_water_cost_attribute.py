@@ -3,24 +3,60 @@ inputStateObject = hass.states.get(MeterEntity)
 inputState = inputStateObject.state
 inputAttributesObject = inputStateObject.attributes.copy()
 
-usage = inputState
-usage = 5000
+unaccountedusage = int(float(inputState))
+computed_water_cost = 12.40 # meter charge
+computed_sewer_cost = 21.29 # base sewer up 4k gallons water usage
 
-# 0 < usage < 10,000 = 2.40/1000gal
-# 11,000 < usage < 15,000 = 3.12/1000gal
-# 16,000 < usage < 20,000 = 3.83/1000gal
-computed_cost = 0
+# Sewer based on water consumption
+tier2sewer = 4.26
 
-if usage <= 11000:
-    computed_cost =  (usage / 1000) * 2.40
+if unaccountedusage >= 10000:
+    computed_sewer_cost = 46.87
+elif unaccountedusage <= 4000:
+    pass
+else:
+    tier2sewerusage = min(6000, unaccountedusage - 4000)
+    computed_sewer_cost = computed_sewer_cost + (tier2sewerusage / 1000) * tier2sewer
 
-debug = computed_cost
+# Water consumption
+tier1rate = 2.75
+tier2rate = 3.60
+tier3rate = 4.40
+tier4rate = 5.20
+tier5rate = 6.05
 
-# Add $10.80 monthly meter charge to summary total
-inputAttributesObject['cost'] = '{:.2f}'.format(10.80 + computed_cost)
+tier1usage = min(10000, unaccountedusage)
+unaccountedusage = unaccountedusage - tier1usage
 
-hass.bus.fire("debug", {"debug": debug, "result": '{:.2f}'.format(10.80 + computed_cost)})
+tier2usage = min(5000, unaccountedusage)
+unaccountedusage = unaccountedusage - tier2usage
 
-# hass.states.set(MeterEntity, inputState, inputAttributesObject)
-# service_data = {"entity_id": "input_text.water_cost_monthly", "value": inputAttributesObject['cost']}
-# hass.services.call("input_text", "set_value", service_data)
+tier3usage = min(5000, unaccountedusage)
+unaccountedusage = unaccountedusage - tier3usage
+
+tier4usage = min(5000, unaccountedusage)
+unaccountedusage = unaccountedusage - tier4usage
+
+tier5usage = unaccountedusage
+
+computed_water_cost = computed_water_cost \
+    + (tier1usage / 1000) * tier1rate \
+    + (tier2usage / 1000) * tier2rate \
+    + (tier3usage / 1000) * tier3rate \
+    + (tier4usage / 1000) * tier4rate \
+    + (tier5usage / 1000) * tier5rate
+
+
+# Add water and sewer
+computed_water_cost = round(computed_water_cost, 2)
+computed_sewer_cost = round(computed_sewer_cost, 2)
+
+# Set states
+inputAttributesObject['cost'] = computed_water_cost
+hass.states.set(MeterEntity, inputState, inputAttributesObject)
+
+service_data = {"entity_id": "input_text.water_cost_monthly", "value": computed_water_cost}
+hass.services.call("input_text", "set_value", service_data)
+
+service_data = {"entity_id": "input_text.sewer_cost_monthly", "value": computed_sewer_cost}
+hass.services.call("input_text", "set_value", service_data)
