@@ -122,7 +122,7 @@ automation:
           - service: shell_command.weasel_shortcut
             data:
               shortcut: open-front-door-cam-weasel
-      - service: siren.toggle
+      - service: siren.turn_on
         entity_id: siren.garage_chime_siren
 
   - alias: Frigate Notification Snooze
@@ -214,6 +214,38 @@ automation:
         target:
           entity_id: select.front_door_security_light
 
+  - alias: Frigate Event Creation
+    id: "frigate_event_creation"
+    mode: single
+    trigger:
+      - platform: state
+        id: garage_door
+        entity_id: cover.garage_door
+        from: 'closed'
+        to: 'open'
+      - platform: state
+        id: doorbell
+        entity_id: binary_sensor.front_door_button_pressed
+        from: 'off'
+        to: 'on'
+    action:
+      - if: "{{ trigger.id == 'garage_door' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: garage
+              label: GarageDoorOpened
+          - service: shell_command.frigate_create_event
+            data:
+              camera: driveway
+              label: GarageDoorOpened
+      - if: "{{ trigger.id == 'doorbell' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: front_door
+              label: Doorbell
+
 command_line:
   - switch:
       name: Back Porch Camera White Light
@@ -232,6 +264,7 @@ input_datetime:
 
 shell_command:
   frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
+  frigate_create_event: "curl -X POST --data '''{ 'duration': 30, 'include_recording': true }''' 127.0.0.1:5000/api/events/{{camera}}/{{label}}/create"
 
 timer:
   frigate_notification_snooze:

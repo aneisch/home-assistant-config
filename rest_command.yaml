@@ -24,5 +24,3 @@ surround_vol_down:
 surround_vol_mute:
   url: "http://10.0.0.18/?btnAction=MUTE"
   method: get
-
-  
