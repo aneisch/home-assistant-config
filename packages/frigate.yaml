@@ -246,6 +246,22 @@ automation:
               camera: front_door
               label: Doorbell
 
+  - alias: Frigate Timelapse Snapshots
+    id: "frigate_timelapse_snapshots"
+    mode: single
+    trigger:
+      - platform: time
+        at: "00:12:00"
+    action:
+      - service: camera.snapshot
+        data:
+          filename: /config/timelapse/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+        target:
+          entity_id:
+            - camera.front_door
+            - camera.driveway
+            - camera.back_porch
+
 command_line:
   - switch:
       name: Back Porch Camera White Light
