@@ -118,8 +118,9 @@ cards:
         entity: sensor.electricity_usage
         graph: line
         name: Cycle Electricity Emporia
-        detail: 2
-        hours_to_show: 730
+        detail: 1
+        hours_to_show: 24
+        unit: kWh
         icon: mdi:flash
       - type: markdown
         #           Monthly Electric Cost: ${{ states('input_text.electricity_cost_monthly') }}

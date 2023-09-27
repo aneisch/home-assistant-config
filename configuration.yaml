@@ -284,16 +284,14 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
       type: module
-    - url: /hacsfiles/lovelace-hass-aarlo/hass-aarlo.js
-      type: module
     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
       type: module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
       type: module
     #- url: /hacsfiles/custom-header/custom-header.js
     #  type: module
-    - url: /hacsfiles/favicon-counter/favicon-counter.js
-      type: module
+    # - url: /hacsfiles/favicon-counter/favicon-counter.js
+    #   type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
       type: module
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
@@ -304,8 +302,8 @@ lovelace:
       type: module
     - url: /hacsfiles/bignumber-card/bignumber-card.js
       type: module
-    - url: /hacsfiles/ozw-network-visualization-card/ozw-network-visualization-card.js
-      type: module
+    # - url: /hacsfiles/ozw-network-visualization-card/ozw-network-visualization-card.js
+    #   type: module
     - url: /hacsfiles/lovelace-text-input-row/lovelace-text-input-row.js
       type: module
     - url: /hacsfiles/uptime-card/uptime-card.js

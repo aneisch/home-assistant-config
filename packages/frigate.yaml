@@ -1,67 +1,68 @@
 automation:
+  - alias: Frigate Person Offsite
+    id: "frigate_person_offsite"
+    mode: queued
+    trigger:
+      - platform: mqtt
+        topic: frigate/events
+        payload: true
+        value_template: "{{ value_json.type == 'end' and value_json.after.label == 'person' }}"
+    action:
+      - delay: '00:00:05'
+      - service: shell_command.frigate_clips_drive
+        data:
+          clip_id: "{{trigger.payload_json['after']['id']}}"
+
   - alias: Frigate Notification Person
     id: "frigate_notification_person"
     mode: single
     trigger:
       - platform: mqtt
         topic: frigate/events
-        payload: new
-        value_template: "{{ value_json.type }}"
-        id: new
-      - platform: mqtt
-        topic: frigate/events
-        payload: end
-        value_template: "{{ value_json.type }}"
-        id: end
-    condition: "{{ trigger.payload_json['after']['label'] == 'person' }}"
+        payload: true
+        value_template: "{{ value_json.type == 'new' and value_json.after.label == 'person' }}"
+    #condition: "{{ trigger.payload_json['after']['label'] == 'person' }}"
     action:
-      - choose:
-          - conditions: "{{ trigger.id == 'end' }}"
-            sequence:
-              - service: shell_command.frigate_clips_drive
+      # if home and person detection front door during the day then notify
+      - if: "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' and is_state('input_boolean.goodnight', 'off') }}"
+        then:
+          - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
+            then:
+              - service: shell_command.weasel_shortcut
                 data:
-                  clip_id: "{{trigger.payload_json['after']['id']}}"
-
-          - conditions: "{{ trigger.id == 'new' }}"
-            sequence:
-              # if home and person detection front door then notify
-              - if: "{{ is_state('input_boolean.security_status', 'off') and trigger.payload_json['after']['camera'] == 'front_door' }}"
-                then:
-                  - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
-                    then:
-                      - service: shell_command.weasel_shortcut
-                        data:
-                          shortcut: open-front-door-cam-weasel
-                  - service: notify.signal_frigate
-                    data:
-                      message: >-
-                        A {{trigger.payload_json["after"]["label"]}} was detected.
+                  shortcut: open-front-door-cam-weasel
+          - service: notify.signal_frigate
+            data:
+              message: >-
+                A {{trigger.payload_json["after"]["label"]}} was detected.
 
 
-                        Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
 
 
-                        Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-                      data:
-                        urls:
-                          - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+              data:
+                urls:
+                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+          - delay: '00:00:10'
 
-              # if not home or sleeping time and person detection anywhere then notify
-              - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
-                then:
-                  - service: notify.signal_frigate
-                    data:
-                      message: >-
-                        A {{trigger.payload_json["after"]["label"]}} was detected.
-
-
-                        Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+      # if not home or sleeping time and person detection anywhere then notify
+      - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
+        then:
+          - service: notify.signal_frigate
+            data:
+              message: >-
+                A {{trigger.payload_json["after"]["label"]}} was detected.
 
 
-                        Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-                      data:
-                        urls:
-                          - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+
+
+                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+              data:
+                urls:
+                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+          - delay: '00:00:10'
 
   - alias: Frigate Notification USPS
     id: "frigate_notification_usps"
@@ -251,7 +252,11 @@ automation:
     mode: single
     trigger:
       - platform: time
-        at: "00:12:00"
+        at: "10:00:00"
+      - platform: time
+        at: "14:00:00"
+      - platform: time
+        at: "18:00:00"
     action:
       - service: camera.snapshot
         data:

@@ -22,6 +22,18 @@
       - EndDate
 
 - sensor:
+    name: Utilities Cycle Start
+    scan_interval: 60
+    command: !secret utilities_curl_start
+    value_template: "{{ value }}"
+
+- sensor:
+    name: Utilities Cycle End
+    scan_interval: 60
+    command: !secret utilities_curl_end
+    value_template: "{{ value }}"
+
+- sensor:
     name: CPU Temperature
     command: "echo $(($(cat /sys/class/thermal/thermal_zone0/temp)/1000))"
     unit_of_measurement: "°F"

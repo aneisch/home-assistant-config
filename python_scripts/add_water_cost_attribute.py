@@ -1,7 +1,5 @@
 MeterEntity = data.get('meter_entity')
-inputStateObject = hass.states.get(MeterEntity)
-inputState = inputStateObject.state
-inputAttributesObject = inputStateObject.attributes.copy()
+inputState = hass.states.get(MeterEntity).state
 
 unaccountedusage = int(float(inputState))
 computed_water_cost = 12.40 # meter charge
@@ -52,9 +50,6 @@ computed_water_cost = round(computed_water_cost, 2)
 computed_sewer_cost = round(computed_sewer_cost, 2)
 
 # Set states
-inputAttributesObject['cost'] = computed_water_cost
-hass.states.set(MeterEntity, inputState, inputAttributesObject)
-
 service_data = {"entity_id": "input_text.water_cost_monthly", "value": computed_water_cost}
 hass.services.call("input_text", "set_value", service_data)
 

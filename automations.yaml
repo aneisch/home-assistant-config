@@ -1043,6 +1043,19 @@
               Rain started!
     - delay: 300
 
+- alias: "Frozen Refrigerator"
+  id: frozen_refrigerator
+  trigger:
+    - platform: numeric_state
+      entity_id: sensor.refrigerator_power
+      above: 50
+      for: "03:00:00"
+  action:
+    - service: notify.signal_self
+      data:
+        message: >
+          Refrigerator power consumption >50W for three hours. Is it frozen up?
+
 - alias: "Lower and Raise Blinds"
   id: "lower_raise_blinds"
   trigger:

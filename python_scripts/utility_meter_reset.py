@@ -2,16 +2,19 @@ ResetEntity = data.get('cycle_reset_entity_id')
 MeterEntity = data.get('meter_entity')
 
 # Handle Meter Reset -- Run daily at midnight via automation
-inputStateObject = hass.states.get(ResetEntity)
-inputAttributesObject = inputStateObject.attributes.copy()
+
+# Get state of reset entity (probably sensor.utilities_cycle_start)
+cycleStateObject = hass.states.get(ResetEntity).state
+# Get current datetime
 now = datetime.datetime.now()
-start = datetime.datetime.strptime(inputAttributesObject['StartDate'], "%a %b %d, %Y")
-#start = datetime.datetime.strptime('Tue Aug 19, 2023', "%a %b %d, %Y") # test
+
+# Convert reset entity state to datetime object
+start = datetime.datetime.strptime(cycleStateObject, "%Y-%m-%d")
 
 # Ensure we only reset at midnight on the start date
-if start.day == now.day and now.hour == 0:
-    hass.bus.fire("warn", {'StartDate': start, 'Now': now, 'Action': "Reset", "ah": MeterEntity})
+if start.day == now.day and start.month == now.month and now.hour == 0:
+    hass.bus.fire("warn", {'StartDate': start, 'Now': now, 'Action': "Reset", "Meter": MeterEntity})
     hass.services.call("utility_meter", "calibrate", {'value': '0', 'entity_id': MeterEntity})
 
 else:
-    hass.bus.fire("warn", {'StartDate': start, 'Now': now, 'Action': "None"})
+    hass.bus.fire("warn", {'StartDate': start, 'Now': now, 'Action': "None", "Meter": MeterEntity})
