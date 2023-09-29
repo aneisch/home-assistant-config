@@ -64,8 +64,8 @@ automation:
                   - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
           - delay: '00:00:10'
 
-  - alias: Frigate Notification USPS
-    id: "frigate_notification_usps"
+  - alias: Frigate Notification Deliveries
+    id: "frigate_notification_deliveries"
     mode: single
     trigger:
       - platform: mqtt
@@ -76,7 +76,7 @@ automation:
         topic: frigate/events
         payload: end
         value_template: "{{ value_json.type }}"
-    condition: "{{ trigger.payload_json['after']['sub_label'] != 'Undefined'  }}"
+    condition: "{{ trigger.payload_json['after']['sub_label'] != 'Undefined' or trigger.payload_json['after']['label'] == 'PrimeAir'  }}"
     action:
       - if: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}"
         then: 
@@ -91,9 +91,16 @@ automation:
               data:
                 attachments:
                   - /config/images/logo.jpg
-          # No need for container to run after detection made, appdaemon will turn on in the morning
-          # - service: switch.turn_off
-          #   entity_id: switch.docker_codeproject
+          - delay: "00:02:00"
+
+      - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
+        then: 
+          - service: notify.signal_self
+            data:
+              message: "Prime Air Drone detected"
+              data:
+                attachments:
+                  - /config/images/logo.jpg
           - delay: "00:02:00"
 
   - alias: Doorbell Ring
@@ -263,6 +270,7 @@ automation:
           filename: /config/timelapse/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
         target:
           entity_id:
+            - camera.ptz
             - camera.front_door
             - camera.driveway
             - camera.back_porch

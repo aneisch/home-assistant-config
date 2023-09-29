@@ -61,7 +61,7 @@ template:
           {% if trigger.payload_json.temperature_1_F != 608.0 and trigger.payload_json.temperature_1_F != "unknown" %}
             {{ trigger.payload_json.temperature_1_F | float | round(2) }}
           {% else %}
-            unknown
+            -1
           {% endif %}        
         unit_of_measurement: '°F'
         device_class: temperature
@@ -70,7 +70,7 @@ template:
           {% if trigger.payload_json.temperature_2_F != 608.0 and trigger.payload_json.temperature_2_F != "unknown" %}
             {{ trigger.payload_json.temperature_2_F | float | round(2) }}
           {% else %}
-            unknown
+            -1
           {% endif %}
         unit_of_measurement: '°F'
         device_class: temperature
@@ -161,14 +161,14 @@ automation:
     mode: restart
     trigger:
       - platform: mqtt
-        topic: sensor/rtl_433
-        value_template: "{{ value_json.model == 'Thermopro-TP12' and value_json.temperature_1_F != 'unknown' and value_json.temperature_2_F != 'unknown' }}"
+        topic: sensor/rtl_433_attic
+        value_template: "{{ value_json.model == 'Thermopro-TP12' and value_json.temperature_1_F != -1 and value_json.temperature_2_F != -1 }}"
         payload: True
     action:
       - delay: 20
       - service: mqtt.publish
         data:
-          topic: sensor/rtl_433
+          topic: sensor/rtl_433_attic
           payload: >-
             {"time":"2022-02-17
-            02:26:13","model":"Thermopro-TP12","id":77,"temperature_1_F":"unknown","temperature_2_F":"unknown","mic":"CRC"}
+            02:26:13","model":"Thermopro-TP12","id":77,"temperature_1_F":-1,"temperature_2_F":-1,"mic":"CRC"}
