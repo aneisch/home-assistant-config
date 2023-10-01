@@ -360,7 +360,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/:/config
-            - /frigate/frigate:/media/frigate
+            - /frigate:/media/frigate
         ports:
             # Two below needed for Home Assistant
             - "127.0.0.1:5000:5000"

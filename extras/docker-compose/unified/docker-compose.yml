@@ -14,7 +14,7 @@ volumes:
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -535,7 +535,7 @@ services:
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/:/config
-            - /frigate/frigate:/media/frigate
+            - /frigate:/media/frigate
         ports:
             # Two below needed for Home Assistant
             - "127.0.0.1:5000:5000"

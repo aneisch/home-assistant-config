@@ -57,5 +57,41 @@
         }
       }
     }
+  },
+  "services": {
+    "clear_history": {
+      "description": "Elimina gli ultimi elementi dalla cronologia voce Alexa per ogni account.",
+      "fields": {
+        "email": {
+          "description": "Account da eliminare. Se vuoto, verranno cancellati tutti.",
+          "name": "Indirizzo email"
+        },
+        "entries": {
+          "description": "Numero di elementi da eliminare da 1 a 50. Se vuoto, ne verranno eliminati 50.",
+          "name": "Numero di Elementi"
+        }
+      },
+      "name": "Cancella cronologia voce Amazon"
+    },
+    "force_logout": {
+      "description": "Forza logout dell'account. Usato principalmente per il debugging.",
+      "fields": {
+        "email": {
+          "description": "Account da eliminare. Se vuoto, verranno cancellati tutti.",
+          "name": "Indirizzo email"
+        }
+      },
+      "name": "Forza Logout"
+    },
+    "update_last_called": {
+      "description": "Forza l'aggiornamento del dispositivo echo last_called per ogni account Alexa.",
+      "fields": {
+        "email": {
+          "description": "Lista di account Alexa da aggiornare. Se vuoto, verranno aggiornati tutti.",
+          "name": "Indirizzo email"
+        }
+      },
+      "name": "Aggiorna sensore last_called"
+    }
   }
 }

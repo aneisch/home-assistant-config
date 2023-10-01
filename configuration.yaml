@@ -329,6 +329,8 @@ map:
 
 media_source:
 
+media_extractor:
+
 mobile_app:
 
 mqtt: !include mqtt.yaml

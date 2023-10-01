@@ -336,6 +336,8 @@ class AirQualitySensor(SensorEntity, CoordinatorEntity):
 class AlexaMediaNotificationSensor(SensorEntity):
     """Representation of Alexa Media sensors."""
 
+    _unrecorded_attributes = frozenset({"sorted_active", "sorted_all"})
+
     def __init__(
         self,
         client,
@@ -555,14 +557,21 @@ class AlexaMediaNotificationSensor(SensorEntity):
     def _handle_event(self, event):
         """Handle events.
 
-        This will update PUSH_ACTIVITY events to see if the sensor
-        should be updated.
+        This will update PUSH_ACTIVITY or NOTIFICATION_UPDATE events to see if
+        the sensor should be updated.
         """
         try:
             if not self.enabled:
                 return
         except AttributeError:
             pass
+        if "notification_update" in event:
+            if (
+                event["notification_update"]["dopplerId"]["deviceSerialNumber"]
+                == self._client.device_serial_number
+            ):
+                _LOGGER.debug("Updating sensor %s", self)
+                self.schedule_update_ha_state(True)
         if "push_activity" in event:
             if (
                 event["push_activity"]["key"]["serialNumber"]
@@ -579,9 +588,7 @@ class AlexaMediaNotificationSensor(SensorEntity):
     @property
     def should_poll(self):
         """Return the polling state."""
-        return not (
-            self.hass.data[DATA_ALEXAMEDIA]["accounts"][self._account]["websocket"]
-        )
+        return not (self.hass.data[DATA_ALEXAMEDIA]["accounts"][self._account]["http2"])
 
     def _process_state(self, value) -> Optional[datetime.datetime]:
         return dt.as_local(value[self._sensor_property]) if value else None

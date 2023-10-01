@@ -57,5 +57,41 @@
         }
       }
     }
+  },
+  "services": {
+    "clear_history": {
+      "description": "Limpe as últimas entradas do histórico de voz da Alexa para cada conta Alexa.",
+      "fields": {
+        "email": {
+          "description": "Contas para limpar. Deixar vazio limpará tudo.",
+          "name": "Endereço de email"
+        },
+        "entries": {
+          "description": "\nNúmero de entradas para limpar de 1 a 50. Se deixar vazio, vai limpar as 50.",
+          "name": "Número de entradas"
+        }
+      },
+      "name": "Limpar histórico de voz da Amazon"
+    },
+    "force_logout": {
+      "description": "Forçar o logout da conta. Usado principalmente para depuração.",
+      "fields": {
+        "email": {
+          "description": "Contas para limpar. Deixar vazio limpará tudo.",
+          "name": "Endereço de email"
+        }
+      },
+      "name": "Forçar o logout"
+    },
+    "update_last_called": {
+      "description": "Força a atualização do último dispositivo eco chamado para cada conta Alexa.",
+      "fields": {
+        "email": {
+          "description": "Lista de contas Alexa para atualizar. Se deixar vazio, atualizará todas as contas conhecidas.",
+          "name": "Endereço de email"
+        }
+      },
+      "name": "Atualizar último sensor chamado"
+    }
   }
 }

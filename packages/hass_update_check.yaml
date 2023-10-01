@@ -159,6 +159,11 @@ shell_command:
   switch_hass_running_branch: "nohup /config/scripts/switch_hass_running_branch.sh {{ version }} &"
 
 script:
+  # allows shell command to fail without failing whole set of actions
+  update_hass_wrapper:
+    sequence:
+      - service: shell_command.update_hass
+
   hass_switch_to_version:
     alias: Switch to Version
     sequence:
@@ -174,9 +179,9 @@ script:
   hass_update_stage:
     # Turn on boolean to trigger upgrade automation if we meet criteria
     sequence:
-      - service: shell_command.pull_hass
-      # Run twice because sometimes it times out /shrug
-      - service: shell_command.pull_hass
+      # - service: shell_command.pull_hass
+      # # Run twice because sometimes it times out /shrug
+      # - service: shell_command.pull_hass
       - service: homeassistant.turn_on
         entity_id: input_boolean.hass_update_trigger
       - service: homeassistant.turn_on
@@ -226,7 +231,7 @@ script:
         entity_id: input_boolean.hass_update_trigger
       - service: homeassistant.turn_off
         entity_id: input_boolean.hass_update_available
-      - service: shell_command.update_hass
+      - service: script.update_hass_wrapper
       # To force sync of input_text state
       - service: homeassistant.restart
 

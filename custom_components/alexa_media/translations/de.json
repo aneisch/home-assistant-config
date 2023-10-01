@@ -57,5 +57,41 @@
         }
       }
     }
+  },
+  "services": {
+    "clear_history": {
+      "description": "Lösche letzte Einträge der Alexa Stimmbefehl-Historie für jeden Alexa Account.",
+      "fields": {
+        "email": {
+          "description": "Zu löschende Accounts. Falls leer, werden alle gelöscht.",
+          "name": "E-Mail Adresse"
+        },
+        "entries": {
+          "description": "Zu löschende Einträge von 1 bis 50. Falls leer, lösche 50.",
+          "name": "Anzahl der Einträge"
+        }
+      },
+      "name": "Lösche Alexa Stimmbefehl-Historie."
+    },
+    "force_logout": {
+      "description": "Logout erzwingen. Primär für Debugging notwendig.",
+      "fields": {
+        "email": {
+          "description": "Zu löschende Accounts.  Falls leer werden alle gelöscht.",
+          "name": "E-Mail Adresse"
+        }
+      },
+      "name": "Logout erzwingen"
+    },
+    "update_last_called": {
+      "description": "Erzwinge Updates der zuletzt aufgerufenen Echo Geräte für jeden Alexa Account  ",
+      "fields": {
+        "email": {
+          "description": "Liste der zu aktualisierenden Alexa-Konten. Wenn leer, werden alle bekannten Konten aktualisiert.",
+          "name": "E-Mail Adresse"
+        }
+      },
+      "name": "Aktualisiere letzten aufgerufenen Sensor"
+    }
   }
 }

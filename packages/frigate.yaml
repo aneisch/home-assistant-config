@@ -101,7 +101,7 @@ automation:
               data:
                 attachments:
                   - /config/images/logo.jpg
-          - delay: "00:02:00"
+          - delay: "00:00:30"
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"
@@ -121,7 +121,7 @@ automation:
           message: >-
             Doorbell ring!
 
-            Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway
+            Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway&media=video+audio+microphone
           data:
             attachments:
               - /tmp/doorbell.jpg
