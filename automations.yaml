@@ -10,7 +10,7 @@
       event: start
   action:
     - delay: "00:05:00"
-    - service: readme.generate
+    - service: readme.generat
 
 - alias: "Set dark theme for night"
   id: "dark_theme"
@@ -291,6 +291,45 @@
         data:
           type: tts
         message: "Help is on the way"
+
+- alias: "Cellular Message Health"
+  id: cellular_message_health
+  trigger:
+    - platform: time
+      id: reset
+      at: "00:00:00"
+    - platform: time
+      id: send_test_message
+      at: "09:00:00"
+    - platform: webhook
+      id: mark_healthy
+      webhook_id: !secret cellular_message_test_webook
+      local_only: false
+    - platform: time
+      id: evaluate_status
+      at: "09:05:00"
+  action:
+    - if: "{{ trigger.id == 'reset' }}"
+      then:
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.cellular_message_test_pending
+    - if: "{{ trigger.id == 'send_test_message' }}"
+      then:
+        - service: notify.cellular_message
+          data:
+            message: "t"
+    - if: "{{ trigger.id == 'mark_healthy' }}"
+      then:
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.cellular_message_test_pending
+    - if: "{{ trigger.id == 'evaluate_status' }}"
+      then:
+        - if: "{{ is_state('input_boolean.cellular_message_test_pending', 'on') }}"
+          then:
+            - service: notify.signal_self
+              data:
+                message: "Modem Healtcheck Failed, Power Cycling"
+            - service: esphome.cellular_modem_power_toggle
 
 - alias: "Cellular Modem Power Toggle"
   id: "cellular_modem_power_toggle"
@@ -588,6 +627,7 @@
 #   trigger:
 #     - platform: webhook
 #       webhook_id: hihihi
+#       local_only: false
 #   action:
 #     - service: persistent_notification.create
 #       data:
