@@ -96,8 +96,8 @@ binary_sensor:
     id: garage_status
     device_class: door
     filters:
-      - delayed_on: 0.2s
-      - delayed_off: 0.2s
+      - delayed_on: 0.5s
+      - delayed_off: 0.5s
     # on_press:
     #   then:
     #     - text_sensor.template.publish:
