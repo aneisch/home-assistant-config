@@ -460,6 +460,7 @@ TV Automation Smallgroup:
 Pumkin Patch Smallgroup:
   module: entity_timer
   constrain_days: wed
+  constrain_presence: anyone
   class: Timer
   time_off: "18:00:00"
   time_on: "22:00:00"

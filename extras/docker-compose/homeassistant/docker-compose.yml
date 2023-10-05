@@ -1,19 +1,19 @@
 version: '3.2'
 
-volumes:
-  # https://rclone.org/docker/
-  frigate-drive:
-    driver: rclone:latest
-    driver_opts:
-      remote: 'frigate-drive:Frigate Offsite'
-      allow_other: 'true'
-      vfs_cache_mode: full
-      poll_interval: 0
+#volumes:
+#  # https://rclone.org/docker/
+#  frigate-drive:
+#    driver: rclone
+#    driver_opts:
+#      remote: 'frigate-drive:Frigate Offsite'
+#      allow_other: 'true'
+#      vfs_cache_mode: full
+#      poll_interval: 0
 
 services:
     homeassistant:
         container_name: hass
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
           com.centurylinklabs.watchtower.monitor-only: "true"
         volumes:
@@ -24,7 +24,8 @@ services:
           - /tmp/radar.gif:/tmp/radar.gif
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
           - /etc/localtime:/etc/localtime:ro
-          - frigate-drive:/frigate
+          - /frigate-drive:/frigate
+          - /opt/frigate:/frigate_config:ro
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem

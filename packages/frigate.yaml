@@ -101,7 +101,6 @@ automation:
               data:
                 attachments:
                   - /config/images/logo.jpg
-          - delay: "00:00:30"
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"

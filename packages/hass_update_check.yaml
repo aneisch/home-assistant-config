@@ -190,7 +190,7 @@ script:
   hass_update_notify:
     # Notify and enable update button on frontend
     sequence:
-      - service: shell_command.pull_hass
+      #- service: shell_command.pull_hass
       - service: notify.signal_self
         data:
           message: >

@@ -566,8 +566,20 @@
     event_type: folder_watcher
     event_data:
       event_type: modified
+      file: 'database.sqlite'
   action:
     - service: shell_command.sync_cloudflare_records
+
+- alias: "Commit Frigate Config"
+  id: "commit_frigate_config"
+  trigger:
+    platform: event
+    event_type: folder_watcher
+    event_data:
+      event_type: modified
+      file: 'config.yml'
+  action:
+    - service: shell_command.commit_frigate_changes
 
 - alias: "Compost Turn Reset"
   id: "compost_turn_reset"
