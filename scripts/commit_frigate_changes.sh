@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Run on NUC via SSH
+
 cd /opt/frigate
 
 git add config.yml

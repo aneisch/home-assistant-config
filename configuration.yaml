@@ -37,7 +37,7 @@ homeassistant:
   allowlist_external_dirs:
     - "/tmp"
     - "/config"
-    - "/frigate_config"
+    #- "/frigate_config"
   allowlist_external_urls:
     - "http://localhost:8123/api/frigate/notifications"
   media_dirs:
