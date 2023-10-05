@@ -25,7 +25,7 @@ services:
           - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
           - /etc/localtime:/etc/localtime:ro
           - /frigate-drive:/frigate
-          - /opt/frigate:/frigate_config:ro
+          - /opt/frigate/config.yml:/tmp/config.yml:ro
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
