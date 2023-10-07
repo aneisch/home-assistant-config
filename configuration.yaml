@@ -37,6 +37,7 @@ homeassistant:
   allowlist_external_dirs:
     - "/tmp"
     - "/config"
+    - "/tmp"
   allowlist_external_urls:
     - "http://localhost:8123/api/frigate/notifications"
   media_dirs:
@@ -69,6 +70,8 @@ folder_watcher:
   - folder: '/tmp'
     patterns:
       - "database.sqlite"
+  - folder: '/tmp'
+    patterns:
       - "config.yml"
 
 monitor_docker:
