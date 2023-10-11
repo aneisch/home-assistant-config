@@ -10,7 +10,7 @@
       event: start
   action:
     - delay: "00:05:00"
-    - service: readme.generat
+    - service: readme.generate
 
 - alias: "Set dark theme for night"
   id: "dark_theme"
@@ -1073,7 +1073,7 @@
 
 - alias: "Rain Notifications"
   id: rain_notifications
-  mode: "single"
+  mode: "restart"
   trigger:
     - platform: state
       entity_id: sensor.neighbor_5in1_rain_last_1_hour
