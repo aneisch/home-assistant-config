@@ -274,6 +274,40 @@ automation:
             - camera.driveway
             - camera.back_porch
 
+  - alias: Frigate Timelapse Creation
+    id: "frigate_timelapse_creation"
+    mode: single
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      - service: shell_command.create_timelapse
+        data:
+          camera: back_porch
+      - service: shell_command.create_timelapse
+        data:
+          camera: front_door
+      - service: shell_command.create_timelapse
+        data:
+          camera: driveway
+      - service: shell_command.create_timelapse
+        data:
+          camera: ptz
+
+camera:
+  - platform: local_file
+    file_path: /config/timelapse/front_door.mp4
+    name: Front Porch Timelapse
+  - platform: local_file
+    file_path: /config/timelapse/back_porch.mp4
+    name: Back Porch Timelapse
+  - platform: local_file
+    file_path: /config/timelapse/driveway.mp4
+    name: Driveway Timelapse
+  - platform: local_file
+    file_path: /config/timelapse/ptz.mp4
+    name: PTZ Timelapse
+
 command_line:
   - switch:
       name: Back Porch Camera White Light
@@ -293,6 +327,8 @@ input_datetime:
 shell_command:
   frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
   frigate_create_event: "curl -X POST --data '''{ 'duration': 30, 'include_recording': true }''' 127.0.0.1:5000/api/events/{{camera}}/{{label}}/create"
+  create_timelapse: /config/scripts/frigate_timelapse.sh {{ camera }}
+  commit_frigate_changes: ssh nuc '/opt/homeassistant/scripts/commit_frigate_changes.sh'
 
 timer:
   frigate_notification_snooze:

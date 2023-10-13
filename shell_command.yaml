@@ -27,5 +27,3 @@ turn_off_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Servic
 weasel_shortcut: ssh weasel 'shortcuts run "{{ shortcut }}"'
 
 sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
-
-commit_frigate_changes: ssh nuc '/opt/homeassistant/scripts/commit_frigate_changes.sh'
