@@ -85,13 +85,13 @@ automation:
               entity_id: "input_datetime.usps_last"
               time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
               date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-          # - service: notify.signal_self
-          #   data:
-          #     message: "USPS detected"
-          #     data:
-          #       attachments:
-          #         - /config/images/logo.jpg
-          # - delay: "00:02:00"
+          - service: notify.signal_self
+            data:
+              message: "USPS detected"
+              data:
+                attachments:
+                  - /config/images/logo.jpg
+          - delay: "00:02:00"
 
       - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
         then: 
