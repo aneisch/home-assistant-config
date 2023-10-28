@@ -36,6 +36,7 @@ class WebRTCCamera extends VideoRTC {
          *     intersection: number,
          *     ui: boolean,
          *     style: string,
+         *     background: boolean,
          *
          *     server: string,
          *
@@ -144,16 +145,25 @@ class WebRTCCamera extends VideoRTC {
         this.hass.callWS({
             type: 'auth/sign_path', path: '/api/webrtc/ws'
         }).then(data => {
-            this.wsURL = 'ws' + this.hass.hassUrl(data.path).substring(4);
-            if (this.config.url) {
-                this.wsURL += '&url=' + encodeURIComponent(this.config.url);
+            if (this.config.poster && this.config.poster.indexOf('://') < 0) {
+                this.video.poster = this.hass.hassUrl(data.path) + '&poster=' + encodeURIComponent(this.config.poster);
             }
+
+            this.wsURL = 'ws' + this.hass.hassUrl(data.path).substring(4);
+
+            if (this.config.entity) {
+                this.wsURL += '&entity=' + this.config.entity;
+            } else if (this.config.url) {
+                this.wsURL += '&url=' + encodeURIComponent(this.config.url);
+            } else {
+                this.setStatus('IMG');
+                return;
+            }
+
             if (this.config.server) {
                 this.wsURL += '&server=' + encodeURIComponent(this.config.server);
             }
-            if (this.config.entity) {
-                this.wsURL += '&entity=' + this.config.entity;
-            }
+
             if (super.onconnect()) {
                 this.setStatus('Loading...');
             } else {
@@ -252,7 +262,7 @@ class WebRTCCamera extends VideoRTC {
         mode.addEventListener('click', () => this.nextStream(true));
 
         if (this.config.muted) this.video.muted = true;
-        if (this.config.poster) this.video.poster = this.config.poster;
+        if (this.config.poster && this.config.poster.indexOf('://') > 0) this.video.poster = this.config.poster;
     }
 
     renderDigitalPTZ() {
@@ -470,6 +480,7 @@ class WebRTCCamera extends VideoRTC {
                 <div class="controls">
                     <ha-icon class="fullscreen" icon="mdi:fullscreen"></ha-icon>
                     <ha-icon class="screenshot" icon="mdi:floppy"></ha-icon>
+                    <ha-icon class="pictureinpicture" icon="mdi:picture-in-picture-bottom-right"></ha-icon>
                     <span class="stream">${this.streamName}</span>
                     <span class="space"></span>
                     <ha-icon class="play" icon="mdi:play"></ha-icon>
@@ -480,17 +491,33 @@ class WebRTCCamera extends VideoRTC {
 
         const video = this.video;
 
+        const fullscreen = this.querySelector('.fullscreen');
         if (this.requestFullscreen) {
-            this.exitFullscreen = () => document.exitFullscreen();
-            this.fullscreenElement = () => document.fullscreenElement;
-            this.fullscreenEvent = 'fullscreenchange';
-        } else if (this.webkitRequestFullscreen) {
-            this.requestFullscreen = () => this.webkitRequestFullscreen();
-            this.exitFullscreen = () => document.webkitExitFullscreen();
-            this.fullscreenElement = () => document.webkitFullscreenElement;
-            this.fullscreenEvent = 'webkitfullscreenchange';
+            this.addEventListener('fullscreenchange', () => {
+                fullscreen.icon = document.fullscreenElement ? 'mdi:fullscreen-exit' : 'mdi:fullscreen';
+            });
+        } else if (video.webkitEnterFullscreen) {
+            this.requestFullscreen = () => video.webkitEnterFullscreen();
+            video.addEventListener('webkitendfullscreen', () => {
+                setTimeout(() => this.play(), 1000); // fix bug in iOS
+            });
         } else {
-            this.querySelector('.fullscreen').style.display = 'none';
+            fullscreen.style.display = 'none';
+        }
+
+        const pip = this.querySelector('.pictureinpicture');
+        if (video.requestPictureInPicture) {
+            video.addEventListener('enterpictureinpicture', () => {
+                pip.icon = 'mdi:rectangle';
+                this.background = true;
+            });
+            video.addEventListener('leavepictureinpicture', () => {
+                pip.icon = 'mdi:picture-in-picture-bottom-right';
+                this.background = this.config.background;
+                this.play();
+            });
+        } else {
+            pip.style.display = 'none';
         }
 
         const ui = this.querySelector('.ui');
@@ -503,13 +530,15 @@ class WebRTCCamera extends VideoRTC {
             } else if (icon === 'mdi:volume-high') {
                 video.muted = true;
             } else if (icon === 'mdi:fullscreen') {
-                this.requestFullscreen().catch(reason => {
-                    console.warn(reason);
-                }); // Chrome 71
+                this.requestFullscreen().catch(console.warn);
             } else if (icon === 'mdi:fullscreen-exit') {
-                this.exitFullscreen();
+                document.exitFullscreen().catch(console.warn);
             } else if (icon === 'mdi:floppy') {
                 this.saveScreenshot();
+            } else if (icon === 'mdi:picture-in-picture-bottom-right') {
+                video.requestPictureInPicture().catch(console.warn);
+            } else if (icon === 'mdi:rectangle') {
+                document.exitPictureInPicture().catch(console.warn);
             } else if (ev.target.className === 'stream') {
                 this.nextStream(true);
                 ev.target.innerText = this.streamName;
@@ -535,17 +564,11 @@ class WebRTCCamera extends VideoRTC {
         const volume = this.querySelector('.volume');
         video.addEventListener('loadeddata', () => {
             volume.style.display = this.hasAudio ? 'block' : 'none';
-            // volume.icon = video.muted ? 'mdi:volume-mute' : 'mdi:volume-high';
         });
         video.addEventListener('volumechange', () => {
             volume.icon = video.muted ? 'mdi:volume-mute' : 'mdi:volume-high';
         });
 
-        const fullscreen = this.querySelector('.fullscreen');
-        this.addEventListener(this.fullscreenEvent, () => {
-            fullscreen.icon = this.fullscreenElement()
-                ? 'mdi:fullscreen-exit' : 'mdi:fullscreen';
-        });
         const stream = this.querySelector('.stream');
         stream.style.display = this.config.streams.length > 1 ? 'block' : 'none';
     }
@@ -593,7 +616,7 @@ class WebRTCCamera extends VideoRTC {
 
     get hasAudio() {
         return (
-            (this.video.srcObject && this.video.srcObject.getAudioTracks().length) ||
+            (this.video.srcObject && this.video.srcObject.getAudioTracks && this.video.srcObject.getAudioTracks().length) ||
             (this.video.mozHasAudio || this.video.webkitAudioDecodedByteCount) ||
             (this.video.audioTracks && this.video.audioTracks.length)
         );
