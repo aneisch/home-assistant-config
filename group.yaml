@@ -11,7 +11,7 @@ common_areas:
 office:
   name: Office
   entities:
-    - switch.office_ceiling_fan
+    - fan.office_ceiling_fan
     - light.office_ceiling_fan
     - light.bethany_desk_lamp
     - switch.andrew_office_speakers

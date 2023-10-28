@@ -34,7 +34,7 @@ async def async_setup_entry(
 
 
 class BHyveFloodSensor(BHyveDeviceEntity):
-    """Define a BHyve sensor."""
+    """Define a BHyve flood sensor."""
 
     def __init__(self, hass, bhyve, device):
         """Initialize the sensor."""
@@ -91,8 +91,9 @@ class BHyveFloodSensor(BHyveDeviceEntity):
     def _should_handle_event(self, event_name, data):
         return event_name in [EVENT_FS_ALARM]
 
-    
+
 class BHyveTemperatureBinarySensor(BHyveDeviceEntity):
+    """Define a BHyve temperature sensor."""
 
     def __init__(self, hass, bhyve, device):
         name = "{} temperature alert".format(device.get("name"))
@@ -102,11 +103,11 @@ class BHyveTemperatureBinarySensor(BHyveDeviceEntity):
         self._available = device.get("is_connected", False)
         self._state = self._parse_status(device.get("status", {}))
         self._attrs = device.get("temp_alarm_thresholds")
-    
+
     def _parse_status(self, status):
         """Convert BHyve alarm status to entity value."""
         return "on" if "alarm" in status.get("temp_alarm_status") else "off"
-    
+
     @property
     def state(self):
         """Return the state of the entity."""
@@ -119,6 +120,7 @@ class BHyveTemperatureBinarySensor(BHyveDeviceEntity):
 
     @property
     def is_on(self):
+        """Reports state of the temperature sensor."""
         return self._state == "on"
 
     def _on_ws_data(self, data):

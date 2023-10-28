@@ -165,8 +165,8 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             devices = [str(d["id"]) for d in self.devices if d["type"] != DEVICE_BRIDGE]
 
             return await self.async_step_device(user_input={CONF_DEVICES: devices})
-        else:
-            return self.async_abort(reason="cannot_connect")
+
+        return self.async_abort(reason="cannot_connect")
 
     @staticmethod
     @callback

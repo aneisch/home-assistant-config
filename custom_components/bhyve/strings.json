@@ -46,5 +46,93 @@
       "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
       "unknown": "[%key:common::config_flow::error::unknown%]"
     }
+  },
+  "services": {
+    "enable_rain_delay": {
+      "name": "Enable rain delay",
+      "description": "Enable rain delay for a zone",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to enable rain delay for"
+        },
+        "hours": {
+          "name": "Hours",
+          "description": "The number of hours to enable rain delay for"
+        }
+      }
+    },
+    "disable_rain_delay": {
+      "name": "Disable rain delay",
+      "description": "Disable rain delay for a zone",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to disable rain delay for"
+        }
+      }
+    },
+    "start_watering": {
+      "name": "Start watering",
+      "description": "Start watering a zone",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to start watering"
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "The number of minutes to water for"
+        }
+      }
+    },
+    "stop_watering": {
+      "name": "Stop watering",
+      "description": "Stop watering a zone",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to stop watering"
+        }
+      }
+    },
+    "set_manual_preset_runtime": {
+      "name": "Set manual preset runtime",
+      "description": "Set the manual preset runtime for a device entity",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to set the manual preset runtime for"
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "The number of minutes to set the manual preset runtime to"
+        }
+      }
+    },
+    "set_smart_watering_soil_moisture": {
+      "name": "Set smart watering soil moisture",
+      "description": "Set the smart watering soil moisture level for a zone",
+      "fields": {
+        "entity_id": {
+          "name": "Zone switch",
+          "description": "The switch to set the smart watering soil moisture for"
+        },
+        "percentage": {
+          "name": "Percentage",
+          "description": "Moisture level between 0 - 100 (percent)"
+        }
+      }
+    },
+    "start_program": {
+      "name": "Start program",
+      "description": "Begin watering a program",
+      "fields": {
+        "entity_id": {
+          "name": "Program switch",
+          "description": "The program to start"
+        }
+      }
+    }
   }
 }

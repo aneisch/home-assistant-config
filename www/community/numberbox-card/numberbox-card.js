@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.14');
+console.info('NUMBERBOX_CARD 4.15');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -253,6 +253,11 @@ niceNum(){
 		return html`${t}`;
 	}
 	if(isNaN(Number(fix))){return fix;}
+	if(typeof u == 'string' && u.startsWith('(')){
+		let value = fix; value = eval(u);
+		return html`${value}`;
+	}
+
 	const lang={language:this._hass.language, comma_decimal:['en-US','en'], decimal_comma:['de','es','it'], space_comma:['fr','sv','cs'], system:undefined};
 	let g=this._hass.locale.number_format || 'language';
 	if(g!='none'){

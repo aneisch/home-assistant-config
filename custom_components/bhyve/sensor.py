@@ -1,5 +1,6 @@
 """Support for Orbit BHyve sensors."""
 import logging
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_BATTERY_LEVEL
@@ -16,6 +17,7 @@ from .const import (
     DEVICE_FLOOD,
     DEVICE_SPRINKLER,
     DOMAIN,
+    EVENT_BATTERY_STATUS,
     EVENT_CHANGE_MODE,
     EVENT_DEVICE_IDLE,
     EVENT_FS_ALARM,
@@ -34,6 +36,8 @@ ATTR_PROGRAM_NAME = "program_name"
 ATTR_RUN_TIME = "run_time"
 ATTR_START_TIME = "start_time"
 ATTR_STATUS = "status"
+
+SCAN_INTERVAL = timedelta(minutes=5)
 
 
 async def async_setup_entry(
@@ -86,8 +90,11 @@ class BHyveBatterySensor(BHyveDeviceEntity):
 
         battery = device.get("battery")
 
+        _LOGGER.debug("%s battery: %s", self._device_name, battery)
+
         if battery is not None:
-            battery_level = battery.get("percent", 0)
+            battery_level = self.parse_battery_level(battery)
+
             self._state = battery_level
             self._attrs[ATTR_BATTERY_LEVEL] = battery_level
 
@@ -116,6 +123,11 @@ class BHyveBatterySensor(BHyveDeviceEntity):
         return True
 
     @property
+    def scan_interval(self):
+        """Return the scan interval."""
+        return SCAN_INTERVAL
+
+    @property
     def unique_id(self):
         """Return a unique, unchanging string that represents this sensor."""
         return f"{self._mac_address}:{self._device_id}:battery"
@@ -126,13 +138,44 @@ class BHyveBatterySensor(BHyveDeviceEntity):
         return EntityCategory.DIAGNOSTIC
 
     def _should_handle_event(self, event_name, data):
-        return event_name in [EVENT_CHANGE_MODE]
+        return event_name in [EVENT_BATTERY_STATUS, EVENT_CHANGE_MODE]
+
+    def _on_ws_data(self, data):
+        # {'event': 'battery_status', 'mv': 3311, 'charging': false ... }
+        #
+        event = data.get("event")
+        if event in (EVENT_BATTERY_STATUS):
+            battery_level = self.parse_battery_level(event)
+
+            self._state = battery_level
+            self._attrs[ATTR_BATTERY_LEVEL] = battery_level
 
     async def async_update(self):
         """Retrieve latest state."""
-        self._ws_unprocessed_events[:] = []  # We don't care about these
-
+        super().async_update()
         await self._refetch_device()
+
+    @staticmethod
+    def parse_battery_level(battery_data):
+        """
+        Parses the battery level data and returns the battery level as a percentage.
+
+        If the 'percent' attribute is present in the battery data, it is used as the battery level.
+        Otherwise, if the 'mv' attribute is present, the battery level is calculated as a percentage
+        based on the millivolts, assuming that 2x1.5V AA batteries are used. Note that AA batteries can
+        range from 1.2V to 1.7V depending on their chemistry, so the calculation may not be accurate
+        for all types of batteries. YMMV ¯\_(ツ)_/¯
+
+        Args:
+        battery_data (dict): A dictionary containing the battery data.
+
+        Returns:
+        float: The battery level as a percentage.
+        """
+        battery_level = battery_data.get("percent", 0)
+        if "mv" in battery_data:
+            battery_level = min(battery_data.get("mv", 0) / 3000 * 100, 100)
+        return battery_level
 
 
 class BHyveZoneHistorySensor(BHyveDeviceEntity):

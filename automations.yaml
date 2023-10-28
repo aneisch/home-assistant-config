@@ -673,7 +673,6 @@
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
 
-
 - alias: "Update Water Utilities"
   id: "update_water_utilities"
   trigger:
@@ -690,18 +689,6 @@
         - service: python_script.add_water_cost_attribute
           data:
             meter_entity: sensor.water_usage
-    - if: "{{ trigger.id == 'midnight' }}"
-      then:
-        - service: python_script.utility_meter_reset
-          data:
-            meter_entity: sensor.water_usage
-            cycle_reset_entity_id: sensor.electric_utilities_summary
-    - if: "{{ trigger.id == 'midnight' }}"
-      then:
-        - service: python_script.utility_meter_reset
-          data:
-            meter_entity: sensor.electricity_usage
-            cycle_reset_entity_id: sensor.electric_utilities_summary
 
 - alias: "Update Utility Costs"
   id: "update_utility_costs"
@@ -721,17 +708,16 @@
   id: "reset_utility_meters"
   trigger:
     - platform: time
-      id: midnight
       at: "00:00:00"
   action:
     - service: python_script.utility_meter_reset
       data:
         meter_entity: sensor.water_usage
-        cycle_reset_entity_id: sensor.electric_utilities_summary
+        cycle_reset_entity_id: sensor.utilities_cycle_end
     - service: python_script.utility_meter_reset
       data:
         meter_entity: sensor.electricity_usage
-        cycle_reset_entity_id: sensor.electric_utilities_summary
+        cycle_reset_entity_id: sensor.utilities_cycle_end
 
 # Legacy, remove later
 - alias: "Update Electric Utilities Cost"
@@ -1080,10 +1066,13 @@
       from:
         - "unknown"
         - "unavailable"
-    - platform: numeric_state
-      entity_id: sensor.neighbor_5in1_rain_last_1_hour
-      above: 0.00
-      below: 0.03
+        - "0.0"
+        - "0.00"
+        - "0"
+    # - platform: numeric_state
+    #   entity_id: sensor.neighbor_5in1_rain_last_1_hour
+    #   above: 0.00
+    #   below: 0.03
   action:
     - if:
         # Ensure new state is a float > 0.00

@@ -112,7 +112,7 @@ automation:
     action:
       - service: camera.snapshot
         data:
-          filename: /tmp/doorbell.jpg
+          filename: /media/images/doorbell.jpg
         target:
           entity_id: camera.front_door
       - service: notify.signal_frigate
@@ -123,7 +123,7 @@ automation:
             Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway&media=video+audio+microphone
           data:
             attachments:
-              - /tmp/doorbell.jpg
+              - /media/images/doorbell.jpg
       - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
         then:
           - service: shell_command.weasel_shortcut
@@ -266,7 +266,7 @@ automation:
     action:
       - service: camera.snapshot
         data:
-          filename: /config/timelapse/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+          filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
         target:
           entity_id:
             - camera.ptz
