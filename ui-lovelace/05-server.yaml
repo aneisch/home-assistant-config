@@ -70,6 +70,9 @@ cards:
       - type: horizontal-stack
         cards:
           - type: gauge
+            entity: sensor.disk_use_percent_frigate_disk
+            name: Frigate
+          - type: gauge
             entity: sensor.disk_use_percent
             name: Disk
           - type: gauge
@@ -86,13 +89,13 @@ cards:
 
   - type: vertical-stack
     cards:
-      - type: sensor
-        entity: sensor.electric_utilities_daily
-        graph: line
-        name: Daily Electricity
-        detail: 2
-        hours_to_show: 730
-        icon: mdi:flash
+      # - type: sensor
+      #   entity: sensor.electric_utilities_daily
+      #   graph: line
+      #   name: Daily Electricity
+      #   detail: 2
+      #   hours_to_show: 730
+      #   icon: mdi:flash
       # - type: sensor
       #   entity: sensor.electric_utilities_realtime
       #   graph: line
@@ -100,13 +103,13 @@ cards:
       #   detail: 2
       #   hours_to_show: 24
       #   icon: mdi:flash
-      - type: sensor
-        entity: sensor.electric_utilities_summary
-        graph: line
-        name: Cycle Electricity
-        detail: 2
-        hours_to_show: 730
-        icon: mdi:flash
+      # - type: sensor
+      #   entity: sensor.electric_utilities_summary
+      #   graph: line
+      #   name: Cycle Electricity
+      #   detail: 2
+      #   hours_to_show: 730
+      #   icon: mdi:flash
       - type: sensor
         entity: sensor.water_usage
         graph: line

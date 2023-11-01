@@ -30,6 +30,10 @@ sensors:
     name: Office
   - entity: sensor.garage_temperature
     name: Garage
+  - entity: sensor.water_supply_temperature
+    name: Water Supply
+  - entity: sensor.netatmo_home_attic_temperature
+    name: Attic
   - entity: sensor.ac_runtime_today
     name: Today
   - entity: sensor.ac_runtime_yesterday

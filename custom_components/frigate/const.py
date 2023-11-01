@@ -2,7 +2,7 @@
 # Base component constants
 NAME = "Frigate"
 DOMAIN = "frigate"
-FRIGATE_VERSION_ERROR_CUTOFF = "0.8.4"
+FRIGATE_VERSION_ERROR_CUTOFF = "0.12.1"
 FRIGATE_RELEASES_URL = "https://github.com/blakeblackshear/frigate/releases"
 FRIGATE_RELEASE_TAG_URL = f"{FRIGATE_RELEASES_URL}/tag"
 
@@ -51,6 +51,7 @@ CONF_PASSWORD = "password"
 CONF_PATH = "path"
 CONF_RTMP_URL_TEMPLATE = "rtmp_url_template"
 CONF_RTSP_URL_TEMPLATE = "rtsp_url_template"
+CONF_ENABLE_WEBRTC = "enable_webrtc"
 CONF_NOTIFICATION_PROXY_EXPIRE_AFTER_SECONDS = "notification_proxy_expire_after_seconds"
 
 # Defaults
@@ -60,8 +61,8 @@ DEFAULT_HOST = "http://ccab4aaf-frigate:5000"
 
 STARTUP_MESSAGE = """
 -------------------------------------------------------------------
-{title}
-Integration Version: {integration_version}
+%s
+Integration Version: %s
 This is a custom integration!
 If you have any issues with this you need to open an issue here:
 https://github.com/blakeblackshear/frigate-hass-integration/issues

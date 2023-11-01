@@ -112,7 +112,7 @@ automation:
     action:
       - service: camera.snapshot
         data:
-          filename: /media/images/doorbell.jpg
+          filename: /config/media/images/doorbell.jpg
         target:
           entity_id: camera.front_door
       - service: notify.signal_frigate
@@ -123,7 +123,7 @@ automation:
             Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway&media=video+audio+microphone
           data:
             attachments:
-              - /media/images/doorbell.jpg
+              - /config/media/images/doorbell.jpg
       - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
         then:
           - service: shell_command.weasel_shortcut
@@ -294,19 +294,19 @@ automation:
         data:
           camera: ptz
 
-camera:
-  - platform: local_file
-    file_path: /config/timelapse/front_door.mp4
-    name: Front Porch Timelapse
-  - platform: local_file
-    file_path: /config/timelapse/back_porch.mp4
-    name: Back Porch Timelapse
-  - platform: local_file
-    file_path: /config/timelapse/driveway.mp4
-    name: Driveway Timelapse
-  - platform: local_file
-    file_path: /config/timelapse/ptz.mp4
-    name: PTZ Timelapse
+# camera:
+#   - platform: local_file
+#     file_path: /config/timelapse/front_door.mp4
+#     name: Front Porch Timelapse
+#   - platform: local_file
+#     file_path: /config/timelapse/back_porch.mp4
+#     name: Back Porch Timelapse
+#   - platform: local_file
+#     file_path: /config/timelapse/driveway.mp4
+#     name: Driveway Timelapse
+#   - platform: local_file
+#     file_path: /config/timelapse/ptz.mp4
+#     name: PTZ Timelapse
 
 command_line:
   - switch:

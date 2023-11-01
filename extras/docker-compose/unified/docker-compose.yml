@@ -27,6 +27,7 @@ services:
           - /etc/localtime:/etc/localtime:ro
           - /frigate-drive:/frigate
           - /opt/frigate:/etc/frigate:ro
+          - /frigate:/frigate_disk:ro
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
@@ -529,7 +530,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta2
+        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta3
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -548,6 +549,23 @@ services:
             - "127.0.0.1:1984:1984"
         environment:
             - PLUS_API_KEY=secret
+            - TZ=America/Chicago
+    frigatedev:
+        container_name: frigatedev
+        privileged: true
+        restart: always
+        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta3
+        shm_size: "128mb"
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/frigatedev/:/config
+        #ports:
+            # Two below needed for Home Assistant
+            # # Two below needed for 2way stream
+            # - "8555:8555/tcp"
+            # - "8555:8555/udp"
+            # - "127.0.0.1:1984:1984"
+        environment:
             - TZ=America/Chicago
     codeproject:
         container_name: codeproject

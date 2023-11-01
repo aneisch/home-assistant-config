@@ -1082,7 +1082,6 @@
           data:
             message: >
               Rain started!
-    - delay: 300
 
 - alias: "Frozen Refrigerator"
   id: frozen_refrigerator
