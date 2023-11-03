@@ -108,7 +108,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.19.0";
+const version = "4.20.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -135,6 +135,7 @@ const defaultConfig = {
 	image_order: 'sorted', // sorted / random
 	image_excludes: [],
 	image_background: 'color', // color / image
+	touch_zone_size_next_image: 15,
 	show_progress_bar: false,
 	show_image_info: false,
 	fetch_address_data: false,
@@ -1034,17 +1035,22 @@ class WallpanelView extends HuiView {
 	moveInfoBox(x, y) {
 		this.lastMove = Date.now();
 		if (config.info_move_fade_duration > 0) {
-			let keyframes = [
-				{ opacity: 1 },
-				{ opacity: 0, offset: 0.5 },
-				{ opacity: 1 }
-			];
-			this.infoBox.animate(
-				keyframes, {
-					duration: Math.round(config.info_move_fade_duration * 1000),
-					iterations: 1
-				}
-			);
+			if (this.infoBox.animate) {
+				let keyframes = [
+					{ opacity: 1 },
+					{ opacity: 0, offset: 0.5 },
+					{ opacity: 1 }
+				];
+				this.infoBox.animate(
+					keyframes, {
+						duration: Math.round(config.info_move_fade_duration * 1000),
+						iterations: 1
+					}
+				);
+			}
+			else {
+				console.warn("This browser does not support the animate() method, please set info_move_fade_duration to 0");
+			}
 		}
 		let wp = this;
 		let ms = Math.round(config.info_move_fade_duration * 500);
@@ -1140,7 +1146,7 @@ class WallpanelView extends HuiView {
 		}
 		// Restart CSS animation.
 		const progressBarContainer = this.progressBarContainer.cloneNode(true);
-		this.progressBarContainer.parentNode.replaceChild(progressBarContainer, this.progressBarContainer);
+		this.screensaverContainer.replaceChild(progressBarContainer, this.progressBarContainer);
 		this.progressBarContainer = progressBarContainer;
 	}
 
@@ -2093,7 +2099,7 @@ class WallpanelView extends HuiView {
 			if (y) {
 				bottom = (this.screensaverContainer.clientHeight - y) / this.screensaverContainer.clientHeight;
 			}
-			if (right <= 0.15) {
+			if ((config.touch_zone_size_next_image > 0) && (right <= config.touch_zone_size_next_image / 100)) {
 				if (
 					isClick && (now - this.lastImageUpdate > 500) &&
 					(this.imageOne.getAttribute('data-loading') == "false") &&

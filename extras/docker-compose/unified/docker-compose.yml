@@ -430,7 +430,7 @@ services:
         image: bbernhard/signal-cli-rest-api:latest
         restart: 'always'
         environment:
-            - MODE=json-rpc
+            - MODE=native
             - TZ=America/Chicago
         ports:
             - "127.0.0.1:8800:8080" 

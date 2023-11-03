@@ -634,25 +634,25 @@
               # Override DND if Daytime, otherwise silent
               priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
 
-# - id: webhook_debugger
-#   alias: "Webhook Debugger"
-#   trigger:
-#     - platform: webhook
-#       webhook_id: hihihi
-#       local_only: false
-#   action:
-#     - service: persistent_notification.create
-#       data:
-#         message: >-
-#           {% if 'data' in trigger %}
-#             Data: {{ dict(trigger.data)|tojson }}
-#           {% elif 'json' in trigger %}
-#             JSON: {{ dict(trigger.json)|tojson }}
-#           {% else %}
-#           {% endif %}
-#           {% if 'query' in trigger and trigger.query|length > 0 %}
-#             Query: {{ dict(trigger.query)|tojson }}
-#           {% endif %}
+- id: webhook_debugger
+  alias: "Webhook Debugger"
+  trigger:
+    - platform: webhook
+      webhook_id: hihihi
+      local_only: false
+  action:
+    - service: persistent_notification.create
+      data:
+        message: >-
+          {% if 'data' in trigger %}
+            Data: {{ dict(trigger.data)|tojson }}
+          {% elif 'json' in trigger %}
+            JSON: {{ dict(trigger.json)|tojson }}
+          {% else %}
+          {% endif %}
+          {% if 'query' in trigger and trigger.query|length > 0 %}
+            Query: {{ dict(trigger.query)|tojson }}
+          {% endif %}
 
 - alias: "Watchtower Updates"
   id: "watchertower_run_update"

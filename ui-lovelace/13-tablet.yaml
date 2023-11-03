@@ -93,6 +93,9 @@ cards:
             detail: 2
             hours_to_show: 8
 
+          - !include .cards/water_flow.yaml
+
+
       # Column 3
       - type: vertical-stack
         cards:
