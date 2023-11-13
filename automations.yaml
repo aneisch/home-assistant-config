@@ -673,29 +673,15 @@
     - service: homeassistant.turn_on
       entity_id: switch.docker_watchtower
 
-- alias: "Update Water Utilities"
-  id: "update_water_utilities"
-  trigger:
-    - platform: time
-      id: midnight
-      at: "00:00:00"
-    - platform: state
-      id: water_change
-      entity_id:
-        - sensor.water_usage
-  action:
-    - if: "{{ trigger.id == 'water_change' }}"
-      then:
-        - service: python_script.add_water_cost_attribute
-          data:
-            meter_entity: sensor.water_usage
-
 - alias: "Update Utility Costs"
   id: "update_utility_costs"
   mode: single
   trigger:
     - platform: time_pattern
-      hours: "/1"
+      hours: "/12"
+    # Ensure we update before reset at end of cycle
+    - platform: time
+      at: "23:59:30"
   action:
     - service: python_script.add_elecrtric_cost_attribute
       data:
@@ -720,23 +706,23 @@
         cycle_reset_entity_id: sensor.utilities_cycle_end
 
 # Legacy, remove later
-- alias: "Update Electric Utilities Cost"
-  id: "update_electric_utilities_cost"
-  mode: parallel
-  trigger:
-    - platform: state
-      entity_id:
-        - sensor.electric_utilities_summary
-        - sensor.electric_utilities_daily
-    - platform: homeassistant
-      event: start
-  action:
-    - service: python_script.add_elecrtric_cost_attribute
-      data:
-        entity_id: sensor.electric_utilities_summary
-    - service: python_script.add_elecrtric_cost_attribute
-      data:
-        entity_id: sensor.electric_utilities_daily
+# - alias: "Update Electric Utilities Cost"
+#   id: "update_electric_utilities_cost"
+#   mode: parallel
+#   trigger:
+#     - platform: state
+#       entity_id:
+#         - sensor.electric_utilities_summary
+#         - sensor.electric_utilities_daily
+#     - platform: homeassistant
+#       event: start
+#   action:
+#     - service: python_script.add_elecrtric_cost_attribute
+#       data:
+#         entity_id: sensor.electric_utilities_summary
+#     - service: python_script.add_elecrtric_cost_attribute
+#       data:
+#         entity_id: sensor.electric_utilities_daily
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   id: "usps_mail_path_update"

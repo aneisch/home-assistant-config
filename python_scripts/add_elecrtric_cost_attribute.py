@@ -5,22 +5,11 @@ inputAttributesObject = inputStateObject.attributes.copy()
 
 '''
 1. Service charge: $7.00 per month; plus
-2. Energy charge: $0.1187 per kWh for all kWh, except $0.1136 per
-kWh for all kWh in the billing months of November through April;
-plus
-3. Transmission Delivery Adjustment: $0.0166 per kWh.
+2. Energy charge: $0.1187 per kWh for all kWh; plus
+3. Transmission Delivery Adjustment: $0.0175 per kWh.
 '''
 
-summer_cost = 0.1187 + 0.0166
-winter_cost = 0.1136 + 0.0166
-
-month = datetime.datetime.now().date().month
-
-# Between May and October
-if  month >= 5 and month <= 10:
-    current_cost = summer_cost
-else:
-    current_cost = winter_cost
+current_cost = 0.1187 + 0.0175
 
 # Utilities API fed sensor
 if inputEntity == 'sensor.electric_utilities_summary':

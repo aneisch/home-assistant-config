@@ -1,11 +1,11 @@
-- sensor:
-    name: Electric Utilities Daily
-    scan_interval: 3600
-    command: !secret utilities_curl_daily
-    value_template: "{{ value_json.Kwh | float }}"
-    unit_of_measurement: "kWh"
-    json_attributes:
-      - ReadDate
+# - sensor:
+#     name: Electric Utilities Daily
+#     scan_interval: 3600
+#     command: !secret utilities_curl_daily
+#     value_template: "{{ value_json.Kwh | float }}"
+#     unit_of_measurement: "kWh"
+#     json_attributes:
+#       - ReadDate
 
 - sensor:
     name: Electric Utilities Summary

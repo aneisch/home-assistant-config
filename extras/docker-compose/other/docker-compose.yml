@@ -353,7 +353,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta3
+        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta4
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -399,7 +399,18 @@ services:
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
-
+    auto-southwest:
+        image: jdholtz/auto-southwest-check-in
+        container_name: auto-southwest
+        restart: 'unless-stopped'
+        privileged: true
+        volumes:
+          - /opt/southwest/config.json:/app/config.json
+        entrypoint:
+          - "python3"
+          - "-u"
+          - "southwest.py"
+          - "--verbose"
 
 networks:
   macos_network:

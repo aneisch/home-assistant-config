@@ -198,6 +198,8 @@ cards:
       - switch.docker_sqliteweb
       # - switch.docker_github_runner_1
       # - switch.docker_github_runner_2
+      - entity: switch.docker_auto_southwest
+        name: Southwest CLI
       - switch.docker_vrs
       - switch.docker_codeproject
       # - switch.docker_adguard

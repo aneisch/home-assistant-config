@@ -5,6 +5,7 @@ cards:
   - !include .cards/kitchen_timer_2.yaml
   - !include .cards/grill.yaml
   - !include .cards/water_flow.yaml
+  - !include .cards/camera_detect.yaml
 
   - type: custom:vertical-stack-in-card
     cards:
@@ -289,12 +290,6 @@ cards:
   - type: picture-glance
     camera_image: camera.weather_radar
     entities: []
-
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: calendar
-        entities:
-          - calendar.garbage_collection
 
   # - type: picture-glance
   #   camera_image: camera.outdoor

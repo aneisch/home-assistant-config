@@ -3,13 +3,13 @@ inputState = hass.states.get(MeterEntity).state
 
 unaccountedusage = int(float(inputState))
 computed_water_cost = 12.40 # meter charge
-computed_sewer_cost = 21.29 # base sewer up 4k gallons water usage
+computed_sewer_cost = 22.55 # base sewer up 4k gallons water usage
 
 # Sewer based on water consumption
-tier2sewer = 4.26
+tier2sewer = 4.50
 
 if unaccountedusage >= 10000:
-    computed_sewer_cost = 46.87
+    computed_sewer_cost = 49.70
 elif unaccountedusage <= 4000:
     pass
 else:

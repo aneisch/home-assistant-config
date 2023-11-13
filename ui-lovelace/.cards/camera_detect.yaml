@@ -1,0 +1,12 @@
+type: conditional
+conditions:
+  - entity: binary_sensor.any_object_detection_disabled
+    state: 'on'
+card:
+  type: markdown
+  content: |
+    {% for camera in ["front_door","garage","driveway","back_porch"] %}
+    {% if is_state('switch.' + camera + "_detect", "off") %}  
+      <font color='red'>{{ state_attr('camera.' + camera, 'friendly_name') }} Object Detection is Off</font>
+    {% endif %}
+    {% endfor %}

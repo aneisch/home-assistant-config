@@ -194,7 +194,7 @@ cards:
     title: Outside
     entities:
       - light.front_porch_lights
-      - light.front_porch_halloween
+      #- light.front_porch_halloween
       - light.front_sconces
       # - light.back_porch_light # ring
       # - entity: light.garage_exterior_light #ring
