@@ -55,7 +55,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2467
+Lines of ESPHome YAML | 2689
 Lines of Home Assistant YAML | 8172
 [Integrations](https://www.home-assistant.io/integrations/) in use | 51
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
@@ -90,17 +90,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 40
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 2
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 383
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 387
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 157
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 160
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 3
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1116**
+**Total state objects** | **1123**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
