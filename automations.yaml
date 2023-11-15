@@ -292,6 +292,20 @@
           type: tts
         message: "Help is on the way"
 
+- alias: "Bluebubbles Server Webhook"
+  id: "bluebubbles_server_webhook"
+  initial_state: on
+  trigger:
+    platform: webhook
+    webhook_id: !secret bluebubbles_server_update_webhook
+    local_only: false
+  action:
+    - service: input_text.set_value
+      target:
+        entity_id: input_text.bluebubbles_url
+      data:
+        value: "{{ trigger.json.data }}"
+
 - alias: "Cellular Message Health"
   id: cellular_message_health
   trigger:

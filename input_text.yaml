@@ -9,3 +9,6 @@ water_cost_monthly:
 
 sewer_cost_monthly:
   name: "Sewer Cost"
+
+bluebubbles_url:
+  name: BlueBubbles URL
