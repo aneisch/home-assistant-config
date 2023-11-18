@@ -22,8 +22,10 @@ switch:
     id: relay1
     on_turn_on:
       - light.turn_on: relay1_led
+      - switch.turn_on: relay2 # For ground Christmas Lights
     on_turn_off:
       - light.turn_off: relay1_led
+      - switch.turn_off: relay2 # For ground Christmas Lights
   - platform: gpio
     name: ${friendly_name} Relay2
     pin:

@@ -192,7 +192,7 @@ cards:
     entities:
       - switch.docker_esphome
       - switch.docker_grafana
-      - switch.docker_librespeed
+      #- switch.docker_librespeed
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_sqliteweb

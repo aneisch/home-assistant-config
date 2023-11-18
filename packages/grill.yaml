@@ -165,7 +165,7 @@ automation:
         value_template: "{{ value_json.model == 'Thermopro-TP12' and value_json.temperature_1_F != -1 and value_json.temperature_2_F != -1 }}"
         payload: True
     action:
-      - delay: 20
+      - delay: 120
       - service: mqtt.publish
         data:
           topic: sensor/rtl_433_attic

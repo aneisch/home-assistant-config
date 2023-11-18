@@ -573,16 +573,16 @@
     #     message: >
     #       Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
 
-- alias: "Sync Cloudflare CNAME Records"
-  id: "sync_cloudflare_cnames"
-  trigger:
-    platform: event
-    event_type: folder_watcher
-    event_data:
-      event_type: modified
-      file: 'database.sqlite'
-  action:
-    - service: shell_command.sync_cloudflare_records
+# - alias: "Sync Cloudflare CNAME Records"
+#   id: "sync_cloudflare_cnames"
+#   trigger:
+#     platform: event
+#     event_type: folder_watcher
+#     event_data:
+#       event_type: modified
+#       file: 'database.sqlite'
+#   action:
+#     - service: shell_command.sync_cloudflare_records
 
 - alias: "Commit Frigate Config"
   id: "commit_frigate_config"
