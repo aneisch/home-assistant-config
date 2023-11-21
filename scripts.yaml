@@ -13,7 +13,7 @@ home_empty:
         entity_id:
           - group.master_bedroom
           - group.common_areas
-    # Before dark, turn off christmas trees in front
+    # If before dark, turn off christmas trees in front
     - if: "{{ now().hour < 16 }}"
       then:
         - service: switch.turn_off
@@ -45,7 +45,7 @@ home_occupied:
           data:
             entity_id:
               - group.under_cabinet_lights
-              #- group.christmas # dining, office, master tree follow 'on' via appdaemon
+              - group.christmas # dining, office, master tree follow 'on' via appdaemon
     - if: "{{ now().hour <= 7 or now().hour >= 21 }}"
       then:
         - service: cover.close_cover
@@ -107,8 +107,8 @@ master_bedroom_wakeup:
           {% endif %}
     - service: homeassistant.turn_off
       entity_id: input_boolean.goodnight
-    #- service: homeassistant.turn_on
-    #  entity_id: group.christmas
+    - service: homeassistant.turn_on
+      entity_id: group.christmas
 
 master_bedroom_bedtime:
   sequence:
@@ -146,89 +146,6 @@ master_bedroom_bedtime:
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
-
-# christmas_goodnight:
-#   mode: 'restart'
-#   # Play Christmas music, say goodnight, fade music out, and turn off tree
-#   sequence:
-#     - service: switch.turn_on
-#       entity_id: switch.master_bedroom_christmas_tree
-#     - service: media_player.select_source
-#       data:
-#         entity_id: media_player.spotify
-#         source: "Master"
-#     - delay: '00:00:03'
-#     - service: media_player.volume_set
-#       data:
-#         entity_id: media_player.spotify
-#         volume_level: 0.50
-#     # - service: media_player.shuffle_set
-#     #   data:
-#     #     shuffle: true
-#     #     entity_id: media_player.spotify
-#     - service: media_player.play_media
-#       data:
-#         media_content_id: spotify:track:3XsaSIPWvM61RIFfeb0BBR
-#         media_content_type: music
-#         entity_id: media_player.spotify
-#     - delay: "00:00:05"
-#     - service: media_player.volume_set
-#       data:
-#         entity_id: media_player.spotify
-#         volume_level: 0.50
-#     - delay: "00:01:35" # Don't play the whole song
-#     - service: notify.alexa_media_master
-#       data:
-#         data:
-#           type: tts
-#           method: speak
-#         message: "<prosody rate='65%'><amazon:emotion name='excited' intensity='low'>And to all a good night</amazon:emotion></prosody>"
-#     - delay: '00:00:05'
-#     - service: switch.turn_off
-#       entity_id: switch.master_bedroom_christmas_tree
-#     # Fade music out
-#     - repeat:
-#         while: "{{ state_attr('media_player.spotify', 'volume_level') > 0 }}"
-#         sequence:
-#           - service: media_player.volume_set
-#             data_template:
-#               entity_id: media_player.spotify
-#               volume_level: >
-#                 {{ state_attr('media_player.spotify', 'volume_level') - 0.02 }}
-#           - delay:
-#               seconds: 0.4
-#     - service: media_player.media_pause
-#       data_template:
-#         entity_id: media_player.spotify
-
-# christmas_wakeup:
-#   mode: 'restart'
-#   sequence:
-#     - service: switch.turn_on
-#       entity_id: switch.master_bedroom_christmas_tree
-#     - service: media_player.select_source
-#       data:
-#         entity_id: media_player.spotify
-#         source: "Master"
-#     - delay: '00:00:03'
-#     - service: media_player.volume_set
-#       data:
-#         entity_id: media_player.spotify
-#         volume_level: 0.40
-#     - service: media_player.play_media
-#       data:
-#         media_content_id: spotify:track:6cgDUe244IMHFGLqg9A2hD
-#         media_content_type: music
-#         entity_id: media_player.spotify
-#     - delay: "00:00:05"
-#     - service: media_player.volume_set
-#       data:
-#         entity_id: media_player.spotify
-#         volume_level: 0.40
-#     - delay: '00:02:12'
-#     - service: media_player.media_pause
-#       data_template:
-#         entity_id: media_player.spotify
 
 #########
 # OTHER #

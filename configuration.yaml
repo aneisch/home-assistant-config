@@ -14,6 +14,7 @@ homeassistant:
     alexa: !include packages/alexa.yaml
     #aarlo: !include packages/aarlo.yaml
     aquarium: !include packages/aquarium.yaml
+    christmas: !include packages/christmas.yaml
     # covid: !include packages/covid.yaml
     frigate: !include packages/frigate.yaml
     door_otp: !include packages/door_otp.yaml

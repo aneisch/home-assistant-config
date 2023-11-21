@@ -24,6 +24,8 @@ automation:
           message: "Flume sensor {% if trigger.id == 'disconnected' %}disconnected{% else %}connected{% endif %}"
 
   - alias: "Water Flow Alert"
+    # Alert if water flowing for minutes and we're not home
+    # Alert if water flowing for hours regardless
     id: "water_flow_alert"
     trigger:
       - platform: state

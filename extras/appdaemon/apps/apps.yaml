@@ -182,23 +182,23 @@ Nexus Screen Follow:
 #Christmas Lights:
 #  module: entity_timer
 #  class: Timer
-#  entities: switch.christmas_lights
+#  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
 #  time_on: sunset - 00:20:00
 #  time_off: "23:30:00"
-#
-#Christmas Trees Follow:
-#  module: follow_me
-#  class: Follow
-#  leader: group.christmas_trees
-#  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
-#  follow_off: False # Only follow state to on
-#
-#Front House Christmas Trees Timer:
-#  module: entity_timer
-#  class: Timer
-#  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
-#  time_on: sunset - 00:20:00
-#  time_off: '23:30:00'
+
+Christmas Trees Follow:
+ module: follow_me
+ class: Follow
+ leader: group.christmas_trees
+ follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+ follow_off: False # Only follow state to on
+
+Front House Christmas Trees Timer:
+ module: entity_timer
+ class: Timer
+ entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+ time_on: sunset - 00:20:00
+ time_off: '23:30:00'
 
 ############
 # Aquarium #

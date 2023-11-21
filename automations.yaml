@@ -796,22 +796,6 @@
         duration: '{{ as_timestamp(states("sensor.kitchen_next_timer")) - as_timestamp(now()) }}'
         entity_id: timer.kitchen_alexa
 
-- alias: "315Mhz Remote"
-  id: "315mhz_remote"
-  trigger:
-    - platform: mqtt
-      topic: "sensor/rtl_433_test"
-      value_template: "{{ value_json.model }}"
-      payload: "Smoke-GS558"
-  action:
-    service: >
-      {% if trigger.payload_json.code == "87f7b0" %}
-        homeassistant.turn_on
-      {% elif trigger.payload_json.code == "67f7b0" %}
-        homeassistant.turn_off
-      {% endif %}
-    entity_id: group.christmas_trees
-
 # - alias: "Covid Booking"
 #   id: "covid_booking"
 #   trigger:
