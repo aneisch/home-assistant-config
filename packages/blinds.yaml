@@ -113,6 +113,7 @@ automation:
       - platform: state
         entity_id: sun.sun
         state: below_horizon
+        id: night
     action:
       - choose:
           - conditions: "{{ trigger.id == 'night' }}"
