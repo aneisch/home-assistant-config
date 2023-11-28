@@ -87,11 +87,11 @@ security_arm:
 
 master_bedroom_wakeup:
   sequence:
-    #- if: "{{ now().hour < 11 }}"
-    #  then:
-    #    - service: script.turn_on
-    #      entity_id:
-    #        - script.christmas_wakeup
+    - if: "{{ now().hour < 11 }}"
+      then:
+        - service: script.turn_on
+          entity_id:
+            - script.christmas_wakeup
     - service: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan
@@ -109,11 +109,16 @@ master_bedroom_wakeup:
       entity_id: input_boolean.goodnight
     - service: homeassistant.turn_on
       entity_id: group.christmas
+    - if: "{{ now().hour < 11 }}"
+      then:
+        - service: script.turn_on
+          entity_id:
+            - script.christmas_wakeup
 
 master_bedroom_bedtime:
   sequence:
-    #- service: script.turn_on # Calling this way allows the sequence to continue without blocking
-    #  entity_id: script.christmas_goodnight
+    - service: script.turn_on # Calling this way allows the sequence to continue without blocking
+      entity_id: script.christmas_goodnight
     - service: script.appdaemon_ac_night
     - service: switch.turn_on
       data:
@@ -146,6 +151,13 @@ master_bedroom_bedtime:
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
+    - service: cover.close_cover
+      target:
+        entity_id:
+          - cover.office_blind_left # Christmas
+          - cover.dining_room_blinds
+    - service: script.turn_on # Calling this way allows the sequence to continue without blocking
+      entity_id: script.christmas_goodnight
 
 #########
 # OTHER #

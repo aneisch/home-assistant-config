@@ -842,17 +842,17 @@
           data:
             message: "{{ trigger.json['message'] }}"
 
-# - alias: "Restart AppDaemon"
-#   id: "restart_appdaemon"
-#   trigger:
-#     platform: time
-#     at: "01:30:00"
-#   action:
-#     - service: switch.turn_off
-#       entity_id: switch.docker_appdaemon
-#     - delay: "00:00:30"
-#     - service: switch.turn_on
-#       entity_id: switch.docker_appdaemon
+- alias: "Restart AppDaemon"
+  id: "restart_appdaemon"
+  trigger:
+    platform: time
+    at: "01:30:00"
+  action:
+    - service: switch.turn_off
+      entity_id: switch.docker_appdaemon
+    - delay: "00:00:30"
+    - service: switch.turn_on
+      entity_id: switch.docker_appdaemon
 
 - alias: "Deep Freeze Temperature"
   id: "deep_freeze_temperature"
@@ -1079,41 +1079,3 @@
       data:
         message: >
           Refrigerator power consumption >50W for three hours. Is it frozen up?
-
-- alias: "Lower and Raise Blinds"
-  id: "lower_raise_blinds"
-  trigger:
-    - platform: time
-      at: "10:30:00"
-      id: morning
-    - platform: time
-      at: "21:00:00"
-      id: night
-  action:
-    - choose:
-        - conditions: "{{ trigger.id == 'night' }}"
-          #- conditions: "{{ states('group.trackers') == 'home' and trigger.id == 'night' }}"
-          alias: Close Blinds
-          sequence:
-            - service: cover.close_cover
-              target:
-                entity_id:
-                  - cover.office_blind_left
-                  - cover.office_blind_right
-                  - cover.guest_bedroom_blinds
-        - conditions: "{{ trigger.id == 'morning' }}"
-          alias: Open Blinds
-          sequence:
-            - service: cover.open_cover
-              target:
-                entity_id:
-                  - cover.office_blind_left
-                  - cover.office_blind_right
-            ## Only Automate Office For Now
-            # Only open blinds if guest mode is OFF
-            # - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
-            #   then:
-            #     - service: cover.open_cover
-            #       target:
-            #         entity_id:
-            #           - cover.guest_bedroom_blinds

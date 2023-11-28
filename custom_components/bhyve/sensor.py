@@ -152,7 +152,7 @@ class BHyveBatterySensor(BHyveDeviceEntity):
 
     async def async_update(self):
         """Retrieve latest state."""
-        super().async_update()
+        await super().async_update()
         await self._refetch_device()
 
     @staticmethod

@@ -179,12 +179,12 @@ Nexus Screen Follow:
 #############
 # Christmas #
 #############
-#Christmas Lights:
-#  module: entity_timer
-#  class: Timer
-#  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
-#  time_on: sunset - 00:20:00
-#  time_off: "23:30:00"
+Christmas Lights:
+ module: entity_timer
+ class: Timer
+ entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
+ time_on: sunset - 00:20:00
+ time_off: "23:30:00"
 
 Christmas Trees Follow:
  module: follow_me
@@ -366,7 +366,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Cameras Smallgroup:
@@ -385,7 +385,7 @@ Indoor Light Automation Sunset Smallgroup:
   constrain_presence: anyone
   constrain_days: wed
   time_on: "17:45:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Entryway Light Sunset Smallgroup:
@@ -401,12 +401,13 @@ Entryway Light Sunset Smallgroup:
 Front Porch Lights Sunset:
   module: entity_timer
   class: Timer
-  entities: light.front_porch_lights,light.front_sconces # See also NodeRed
+  #entities: light.front_porch_lights,light.front_sconces # See also NodeRed
+  entities: light.front_porch_lights # Christmas only front porch
   #entities: light.front_porch_halloween #,light.front_sconces # Halloween LimitlessLED See also NodeRed
-  #entities: light.front_porch_lights # Christmas only front porch
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
-  brightness: 254
+  #brightness: 254
+  brightness: 25 # Christmas
 
 Plant Light:
   module: entity_timer

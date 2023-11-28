@@ -1,0 +1,184 @@
+homeassistant:
+  customize:
+    guest_bedroom_blinds:
+      assumed_state: true
+    dining_room_blinds:
+      assumed_state: true
+
+cover:
+  - platform: template
+    covers:
+      guest_bedroom_blinds:
+        friendly_name: "Guest Bedroom Blinds"
+        open_cover:
+          service: script.blinds_group
+          data:
+            modus: "open"
+            group: guest_bedroom
+        close_cover:
+          service: script.blinds_group
+          data:
+            modus: "close"
+            group: guest_bedroom
+        stop_cover:
+          service: script.blinds_group
+          data:
+            modus: "stop"
+            group: guest_bedroom
+        value_template: "{{is_state('sensor.guest_bedroom_blinds', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.guest_bedroom_blinds', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+
+      dining_room_blinds:
+        friendly_name: "Dining Room Blinds"
+        open_cover:
+          service: script.blinds_group
+          data:
+            modus: "open"
+            group: dining_room
+        close_cover:
+          service: script.blinds_group
+          data:
+            modus: "close"
+            group: dining_room
+        stop_cover:
+          service: script.blinds_group
+          data:
+            modus: "stop"
+            group: dining_room
+        value_template: "{{is_state('sensor.dining_room_blinds', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.dining_room_blinds', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+
+input_boolean:
+  # This is for the Zwave remote only
+  guest_bedroom_blinds_mode:
+
+sensor:
+  - platform: template
+    sensors:
+      guest_bedroom_blinds:
+        value_template: >-
+          {% if is_state('cover.guest_bedroom_blind_left', 'open') %}
+            open
+          {% elif is_state('cover.guest_bedroom_blind_right', 'open') %}
+            open
+          {% else %}
+            closed
+          {% endif %}
+
+      dining_room_blinds:
+        value_template: >-
+          {% if is_state('cover.dining_room_blind_left', 'open') %}
+            open
+          {% elif is_state('cover.dining_room_blind_center', 'open') %}
+            open
+          {% elif is_state('cover.dining_room_blind_right', 'open') %}
+            open
+          {% else %}
+            closed
+          {% endif %}
+
+
+script:
+  blinds_group:
+    sequence:
+      - service: "cover.{{modus}}_cover"
+        target:
+          entity_id: >
+            {% if group == "guest_bedroom" %}
+            - cover.guest_bedroom_blind_left
+            - cover.guest_bedroom_blind_right
+            {% elif group == "dining_room" %}
+            - cover.dining_room_blind_left
+            - dining_room_blind_center
+            - cover.dining_room_blind_right
+            {% endif %}
+
+automation:
+  - alias: "Lower and Raise Blinds"
+    id: "lower_raise_blinds"
+    trigger:
+      - platform: time
+        at: "09:00:00"
+        id: morning
+      - platform: state
+        entity_id: sun.sun
+        state: below_horizon
+    action:
+      - choose:
+          - conditions: "{{ trigger.id == 'night' }}"
+            alias: Close Blinds
+            sequence:
+              - service: cover.close_cover
+                target:
+                  entity_id:
+                    #- cover.office_blind_left # Christmas
+                    - cover.office_blind_right
+                    - cover.guest_bedroom_blinds
+          - conditions: "{{ trigger.id == 'morning' }}"
+            alias: Open Blinds
+            sequence:
+              - service: cover.open_cover
+                target:
+                  entity_id:
+                    - cover.office_blind_left
+                    - cover.office_blind_right
+              ## Only automate office auto-open for now
+              # Only open blinds if guest mode is OFF
+              # - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
+              #   then:
+              #     - service: cover.open_cover
+              #       target:
+              #         entity_id:
+              #           - cover.guest_bedroom_blinds
+
+  - alias: "Guest Bedroom Blinds with Remote"
+    id: guest_bedroom_blinds_remote
+    mode: single
+    trigger:
+      - platform: event
+        id: "zwave"
+        event_type: zwave_js_value_notification
+        event_data:
+          # Guest Bedroom
+          node_id: 43
+          # Hold Down
+          value: "KeyHeldDown"
+      - platform: event
+        id: "zigbee"
+        event_type: zha_event
+        event_data:
+          device_ieee: cc:86:ec:ff:fe:aa:bf:4d
+          command: "up_open"
+      - platform: event
+        id: "zigbee"
+        event_type: zha_event
+        event_data:
+          device_ieee: cc:86:ec:ff:fe:aa:bf:4d
+          command: "down_close"
+    action:
+      - if: "{{ trigger.id == 'zwave' }}"
+        then:
+          - service: cover.stop_cover
+            target:
+              entity_id: cover.guest_bedroom_blinds
+          - service: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
+            target:
+              entity_id: cover.guest_bedroom_blinds
+          - service: input_boolean.toggle
+            entity_id: input_boolean.guest_bedroom_blinds_mode
+          - delay: "00:00:02"
+      - if: "{{ trigger.id == 'zigbee' }}"
+        then:
+          - service: "cover.{% if trigger.event.data.command == 'down_close' %}close{% elif trigger.event.data.command == 'up_open' %}open{% endif %}_cover"
+            target:
+              entity_id: cover.guest_bedroom_blinds
