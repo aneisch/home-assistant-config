@@ -4,6 +4,26 @@ homeassistant:
       assumed_state: true
     dining_room_blinds:
       assumed_state: true
+    office_blinds:
+      assumed_state: true
+
+group:
+  dining_room_blinds:
+    name: Dining Room Blinds
+    entities:
+      - cover.dining_room_blind_left
+      - cover.dining_room_blind_center
+      - cover.dining_room_blind_right
+  guest_bedroom_blinds:
+    name: Guest Bedroom Blinds
+    entities:
+      - cover.guest_bedroom_blind_left
+      - cover.guest_bedroom_blind_right
+  office_blinds:
+    name: Office Blinds
+    entities:
+      - cover.office_blind_left
+      - cover.office_blind_right
 
 cover:
   - platform: template
@@ -28,6 +48,33 @@ cover:
         value_template: "{{is_state('sensor.guest_bedroom_blinds', 'open')}}"
         icon_template: >-
           {% if is_state('sensor.guest_bedroom_blinds', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+
+  - platform: template
+    covers:
+      office_blinds:
+        friendly_name: "Office Blinds"
+        open_cover:
+          service: script.blinds_group
+          data:
+            modus: "open"
+            group: office
+        close_cover:
+          service: script.blinds_group
+          data:
+            modus: "close"
+            group: office
+        stop_cover:
+          service: script.blinds_group
+          data:
+            modus: "stop"
+            group: office
+        value_template: "{{is_state('sensor.office_blinds', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.office_blinds', 'open') %}
             mdi:window-open
           {% else %}
             mdi:window-closed
@@ -75,6 +122,16 @@ sensor:
             closed
           {% endif %}
 
+      office_blinds:
+        value_template: >-
+          {% if is_state('cover.office_blind_left', 'open') %}
+            open
+          {% elif is_state('cover.office_blind_right', 'open') %}
+            open
+          {% else %}
+            closed
+          {% endif %}
+
       dining_room_blinds:
         value_template: >-
           {% if is_state('cover.dining_room_blind_left', 'open') %}
@@ -87,7 +144,6 @@ sensor:
             closed
           {% endif %}
 
-
 script:
   blinds_group:
     sequence:
@@ -95,12 +151,11 @@ script:
         target:
           entity_id: >
             {% if group == "guest_bedroom" %}
-            - cover.guest_bedroom_blind_left
-            - cover.guest_bedroom_blind_right
+            {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "dining_room" %}
-            - cover.dining_room_blind_left
-            - dining_room_blind_center
-            - cover.dining_room_blind_right
+            {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "office" %}
+            {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
 
 automation:
@@ -113,26 +168,39 @@ automation:
       - platform: state
         entity_id: sun.sun
         state: below_horizon
-        id: night
+        id: sunset
+      - platform: time
+        at: "21:00:00"
+        id: late
     action:
       - choose:
-          - conditions: "{{ trigger.id == 'night' }}"
-            alias: Close Blinds
+          - conditions: "{{ trigger.id == 'sunset' }}"
+            alias: Close Blinds at Sunset
             sequence:
               - service: cover.close_cover
                 target:
                   entity_id:
-                    #- cover.office_blind_left # Christmas
-                    - cover.office_blind_right
+                    #- cover.office_blinds # Christmas
+                    - cover.office_blind_right # Christmas
                     - cover.guest_bedroom_blinds
+                    - cover.dining_room_blind_left
+                    - cover.dining_room_blind_right
+          - conditions: "{{ trigger.id == 'late' }}"
+            alias: Close Blinds Late
+            sequence:
+              - service: cover.close_cover
+                target:
+                  entity_id:
+                    - cover.office_blinds
+                    - cover.dining_room_blinds
           - conditions: "{{ trigger.id == 'morning' }}"
             alias: Open Blinds
             sequence:
               - service: cover.open_cover
                 target:
                   entity_id:
-                    - cover.office_blind_left
-                    - cover.office_blind_right
+                    - cover.office_blinds
+                    - cover.dining_room_blinds
               ## Only automate office auto-open for now
               # Only open blinds if guest mode is OFF
               # - if: "{{ states('input_boolean.guest_mode') == 'off' }}"

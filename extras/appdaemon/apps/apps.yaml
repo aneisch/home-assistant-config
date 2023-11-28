@@ -12,8 +12,8 @@ AC Automation:
   cool_day: "78"
   cool_night: "72"
   cool_unoccupied: "82"
-  heat_day: "63"
-  heat_night: "62"
+  heat_day: "68"
+  heat_night: "64"
   heat_unoccupied: "55"
 
 Back Bedroom Zigbee Remote:
@@ -309,6 +309,7 @@ Doorbell Ring Light:
   class: Timer
   entities: light.front_door_ring_light
   time_on: sunrise - 00:30:00
+  time_off: sunset + 00:45:00
   # Off is handled by NodeRed with Porch Lights
 
 Office Light at Night With Door:
@@ -429,14 +430,6 @@ Living Room Lamp Follow:
   leader: light.master_bedroom_lamps
   follower: light.living_room_lamps
 
-# Candles Follow:
-#   module: follow_me
-#   class: Follow
-#   constrain_presence: anyone
-#   constrain_input_boolean: input_boolean.house_lamps_automation
-#   leader: light.master_bedroom_lamps
-#   follower: switch.ir_candles
-
 Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
@@ -460,14 +453,22 @@ TV Automation Smallgroup:
   time_on: "22:00:00"
   entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
 
-Pumkin Patch Smallgroup:
-  module: entity_timer
-  constrain_days: wed
-  constrain_presence: anyone
-  class: Timer
-  time_off: "17:45:00"
-  time_on: "22:00:00"
-  entities: switch.ir_candles
+# Candles Follow:
+#   module: follow_me
+#   class: Follow
+#   constrain_presence: anyone
+#   constrain_input_boolean: input_boolean.house_lamps_automation
+#   leader: light.master_bedroom_lamps
+#   follower: switch.ir_candles
+
+# Pumkin Patch Smallgroup:
+#   module: entity_timer
+#   constrain_days: wed
+#   constrain_presence: anyone
+#   class: Timer
+#   time_off: "17:45:00"
+#   time_on: "22:00:00"
+#   entities: switch.ir_candles
 
 Globe Lights Smallgroup:
   module: entity_timer
@@ -485,18 +486,18 @@ Mac Focus Mode Follow Desk LED:
   leader: light.desk_led
   follower: switch.weasel_focus
 
-VRS Docker:
-  module: entity_timer
-  class: Timer
-  time_on: "08:00:00"
-  time_off: "21:00:00"
-  entities: switch.docker_vrs
+# VRS Docker:
+#   module: entity_timer
+#   class: Timer
+#   time_on: "08:00:00"
+#   time_off: sunset + 00:01:00
+#   entities: switch.docker_vrs
 
 Code Project Docker:
   module: entity_timer
   class: Timer
   time_on: "08:00:00"
-  time_off: sunset + 00:30:00
+  time_off: sunset
   entities: switch.docker_codeproject
 
 BVST Docker:
