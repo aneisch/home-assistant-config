@@ -146,6 +146,7 @@ sensor:
 
 script:
   blinds_group:
+    mode: parallel
     sequence:
       - service: "cover.{{modus}}_cover"
         target:

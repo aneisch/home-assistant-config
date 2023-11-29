@@ -168,6 +168,7 @@ master_bedroom_bedtime:
 
 # Change notification platform if internet offline,
 notify_wrapper:
+  mode: parallel
   sequence:
     - if: '{{ states("binary_sensor.internet_reachability") == "on" }}'
       then:
