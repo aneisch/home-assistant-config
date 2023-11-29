@@ -218,6 +218,9 @@ cards:
       - light.kitchen_table_light
       - light.kitchen_table_leds
       - light.dining_room_light
+      - cover.dining_room_blind_left
+      - cover.dining_room_blind_center
+      - cover.dining_room_blind_right
       - light.curio_cabinet
       - switch.coffee_maker
 
@@ -240,11 +243,10 @@ cards:
             icon: mdi:speaker
           - switch.office_heater
           - switch.office_heater_oscillate
-          - cover.office_blind_left
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
-            primary: L
+            primary: Office L
             icon: mdi:blinds-open
             tap_action:
               action: call-service
@@ -252,7 +254,7 @@ cards:
               target:
                 entity_id: cover.office_blind_left
           - type: custom:mushroom-template-card
-            primary: L
+            primary: Office L
             icon: mdi:blinds
             tap_action:
               action: call-service
@@ -262,7 +264,7 @@ cards:
               target:
                 entity_id: cover.office_blind_left
           - type: custom:mushroom-template-card
-            primary: L
+            primary: Office L
             icon: mdi:roller-shade-closed
             tap_action:
               action: call-service
@@ -273,7 +275,7 @@ cards:
       - type: horizontal-stack
         cards:
           - type: custom:mushroom-template-card
-            primary: R
+            primary: Office R
             icon: mdi:blinds-open
             tap_action:
               action: call-service
@@ -281,7 +283,7 @@ cards:
               target:
                 entity_id: cover.office_blind_right
           - type: custom:mushroom-template-card
-            primary: R
+            primary: Office R
             icon: mdi:blinds
             tap_action:
               action: call-service
@@ -291,7 +293,7 @@ cards:
               target:
                 entity_id: cover.office_blind_right
           - type: custom:mushroom-template-card
-            primary: R
+            primary: Office R
             icon: mdi:roller-shade-closed
             tap_action:
               action: call-service

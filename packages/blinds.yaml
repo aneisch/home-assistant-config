@@ -157,6 +157,21 @@ script:
             {% elif group == "office" %}
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
+      # Prevent stuck "opening" or "closing"
+      # - repeat:
+      #   count: "13"
+      #   sequence:
+      #     - delay: 5
+      #     - service: homeassistant.update_entity
+      #       target:
+      #         entity_id: >
+      #           {% if group == "guest_bedroom" %}
+      #           {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+      #           {% elif group == "dining_room" %}
+      #           {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
+      #           {% elif group == "office" %}
+      #           {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
+      #           {% endif %}
 
 automation:
   - alias: "Lower and Raise Blinds"
@@ -167,7 +182,8 @@ automation:
         id: morning
       - platform: state
         entity_id: sun.sun
-        state: below_horizon
+        to: below_horizon
+        for: "00:30:00"
         id: sunset
       - platform: time
         at: "21:00:00"
@@ -181,10 +197,7 @@ automation:
                 target:
                   entity_id:
                     #- cover.office_blinds # Christmas
-                    - cover.office_blind_right # Christmas
                     - cover.guest_bedroom_blinds
-                    - cover.dining_room_blind_left
-                    - cover.dining_room_blind_right
           - conditions: "{{ trigger.id == 'late' }}"
             alias: Close Blinds Late
             sequence:
@@ -209,6 +222,37 @@ automation:
               #       target:
               #         entity_id:
               #           - cover.guest_bedroom_blinds
+          # Prevent stuck "opening" or "closing"
+          # - repeat:
+          #   count: "13"
+          #   sequence:
+          #     - delay: 5
+          #     - service: homeassistant.update_entity
+          #       target:
+          #         entity_id: >
+          #           {{ expand(['group.guest_bedroom_blinds','group.dining_room_blinds', 'group.office_blinds']) | map(attribute='entity_id') | list}}
+
+  - alias: "Manually Update Blind State"
+    id: manually_update_blind_state
+    mode: parallel
+    trigger:
+      - platform: state
+        entity_id: 
+          - cover.dining_room_blind_left
+          - cover.dining_room_blind_center
+          - cover.dining_room_blind_right
+          - cover.guest_bedroom_blind_left
+          - cover.guest_bedroom_blind_right
+          - cover.office_blind_left
+          - cover.office_blind_right
+        to:
+          - opening
+          - closing
+        for: "00:01:00"
+    action:
+      - service: homeassistant.update_entity
+        target:
+          entity_id: "{{ trigger.entity_id }}"
 
   - alias: "Guest Bedroom Blinds with Remote"
     id: guest_bedroom_blinds_remote

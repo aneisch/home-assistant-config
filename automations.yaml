@@ -543,6 +543,9 @@
         - sensor.office_blind_right_battery
         - sensor.guest_bedroom_blind_left_battery
         - sensor.guest_bedroom_blind_right_battery
+        - sensor.dining_room_blind_left_battery
+        - sensor.dining_room_blind_center_battery
+        - sensor.dining_room_blind_right_battery
         # temperature sensors
         - sensor.netatmo_home_attic_battery_percent
         - sensor.netatmo_home_home_rain_battery_percent
