@@ -49,19 +49,7 @@ home_occupied:
               - group.under_cabinet_lights
               - group.christmas # dining, office, master tree follow 'on' via appdaemon
               - switch.master_bedroom_christmas_tree # manually turn on because of goodnight script
-    - if: "{{ now().hour <= 7 or now().hour >= 21 }}"
-      then:
-        - service: cover.close_cover
-          target:
-            entity_id:
-              - cover.office_blind_left
-              - cover.office_blind_right
-        - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
-          then:
-            - service: cover.close_cover
-              target:
-                entity_id:
-                  - cover.guest_bedroom_blinds
+
 ############
 # SECURITY #
 ############
@@ -157,8 +145,6 @@ master_bedroom_bedtime:
     - service: cover.close_cover
       target:
         entity_id:
-          - cover.office_blind_left # Christmas
-          - cover.dining_room_blinds
     - service: script.turn_on # Calling this way allows the sequence to continue without blocking
       entity_id: script.christmas_goodnight
 

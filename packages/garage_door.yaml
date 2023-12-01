@@ -40,21 +40,6 @@ automation:
       service: homeassistant.turn_off
       entity_id: switch.garage_lights
 
-  - alias: "Turn on garage light when motor light switches"
-    id: "garage_laser_trip"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.garage_motor_light_status
-        from: "off"
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: switch.garage_lights
-        state: "off"
-    action:
-      service: homeassistant.turn_on
-      entity_id: switch.garage_lights
-
   - alias: "Change entry switch LEDs based on garage door state"
     id: "garage_opened_switch_leds"
     trigger:

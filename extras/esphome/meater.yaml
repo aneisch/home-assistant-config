@@ -1,0 +1,92 @@
+substitutions:
+  name: meater
+  friendly_name: "Meater"
+
+esphome:
+  name: ${name}
+  platform: ESP32
+  board: esp32dev
+
+<<: !include common.yaml
+
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
+
+# Example configuration entry for finding
+# Service UUIDs and iBeacon UUIDs and identifiers
+#esp32_ble_tracker:
+
+wifi:
+  ssid: SSID
+  password: WPA_KEY
+  # Optional manual IP
+  manual_ip:
+    static_ip: 10.0.0.20
+    gateway: 10.0.1.1
+    subnet: 255.255.254.0
+ 
+ble_client:
+  - mac_address: B8:1F:5E:1C:42:95
+    id: meater
+
+text_sensor:
+  - platform: template
+    name: "MEATER firmware"
+    id: meater_firmware
+ 
+sensor:
+  - platform: ble_client
+    type: characteristic
+    ble_client_id: meater
+    name: "MEATER tip temperature"
+    service_uuid: 'a75cc7fc-c956-488f-ac2a-2dbc08b63a04'
+    characteristic_uuid: '7edda774-045e-4bbf-909b-45d1991a2876'
+    icon: 'mdi:thermometer'
+    unit_of_measurement: '°C'
+    accuracy_decimals: 2
+    notify: true
+    lambda: |-
+      uint16_t tip_temp = (x[0] + (x[1] << 8) + 8.0) / 16.0;
+      return (float)tip_temp;
+  - platform: ble_client
+    type: characteristic
+    ble_client_id: meater
+    name: "MEATER ambient temperature"
+    service_uuid: 'a75cc7fc-c956-488f-ac2a-2dbc08b63a04'
+    characteristic_uuid: '7edda774-045e-4bbf-909b-45d1991a2876'
+    icon: 'mdi:thermometer'
+    unit_of_measurement: '°C'
+    accuracy_decimals: 2
+    notify: true
+    lambda: |-
+      uint16_t tip = x[0] + (x[1] << 8);
+      uint16_t ra = x[2] + (x[3] << 8);
+      uint16_t oa = x[4] + (x[5] << 8);
+      uint16_t min_val = 48;
+      uint16_t ambient = (tip + std::max(0, (((ra - std::min(min_val, oa)) * 16 * 589) / 1487)) + 8.0) / 16;
+      return (float)ambient;
+  - platform: ble_client
+    type: characteristic
+    ble_client_id: meater
+    name: "MEATER battery level"
+    service_uuid: 'a75cc7fc-c956-488f-ac2a-2dbc08b63a04'
+    characteristic_uuid: '2adb4877-68d8-4884-bd3c-d83853bf27b8'
+    icon: 'mdi:battery'
+    unit_of_measurement: '%'
+    notify: true
+    lambda: |-
+      uint16_t battery = (x[0] + x[1]) * 10;
+      return (float)battery;
+  - platform: ble_client
+    type: characteristic
+    ble_client_id: meater
+    id: firmware
+    service_uuid: '180A'
+    characteristic_uuid: '00002a26-0000-1000-8000-00805f9b34fb'
+    lambda: |-
+      std::string data_string(x.begin(), x.end());
+      id(meater_firmware).publish_state(data_string.c_str());
+      return (float)x.size();
+  - platform: ble_client
+    type: rssi
+    ble_client_id: meater
+    name: "MEATER RSSI"

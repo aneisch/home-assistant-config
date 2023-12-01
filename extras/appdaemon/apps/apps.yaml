@@ -345,10 +345,10 @@ Living Room Sconces at Night With Motion:
   # Seconds to turn entity on when triggered
   time_on: "1"
 
-Garage Lights with Cover and Door:
+Garage Lights with Cover, Door, Motor, Person:
   module: door_open
   class: DoorLight
-  trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door
+  trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door,binary_sensor.garage_motor_light_status,binary_sensor.garage_person_occupancy
   toggle_entity: switch.garage_lights
   # Turn_off is handled by automation
   #time_on: '10'
