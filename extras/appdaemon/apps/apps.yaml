@@ -413,8 +413,8 @@ Front Porch Lights Sunset:
 Plant Light:
   module: entity_timer
   class: Timer
-  time_on: "09:30:00"
-  time_off: "21:00:00"
+  time_on: sunrise
+  time_off: sunset
   entities: switch.plant_light
 
 Plant Light Corner:

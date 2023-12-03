@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.15');
+console.info('NUMBERBOX_CARD 4.17');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -11,7 +11,7 @@ constructor() {
 	this.pending = false;
 	this.rolling = false;
 	this.state = 0;
-	this.old = {state: undefined, t:{}, h:''};
+	this.old = {state: NaN, t:{}, h:''};
 }
 
 render() {
@@ -116,7 +116,7 @@ secondaryInfo(){
 						}
 					}
 				}
-				ret += (typeof b !== 'object')? (isNaN(f)?b:b.toFixed(f)) : t;
+				ret += (typeof b !== 'object')? (isNaN(f)?b:b.toFixed(f)) : '?';
 			}else{
 				ret += t;
 			}
@@ -252,7 +252,7 @@ niceNum(){
 		let t = this.numTime(fix,0,u);
 		return html`${t}`;
 	}
-	if(isNaN(Number(fix))){return fix;}
+	if(isNaN(Number(fix))){return '?';}
 	if(typeof u == 'string' && u.startsWith('(')){
 		let value = fix; value = eval(u);
 		return html`${value}`;

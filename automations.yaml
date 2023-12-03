@@ -1032,8 +1032,8 @@
   trigger:
     - platform: state
       entity_id: light.plant_light_corner
-      from: "off"
       to: "on"
+      for: "00:00:10"
   action:
     - repeat:
         count: 3

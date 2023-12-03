@@ -158,21 +158,6 @@ script:
             {% elif group == "office" %}
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
-      # Prevent stuck "opening" or "closing"
-      # - repeat:
-      #   count: "13"
-      #   sequence:
-      #     - delay: 5
-      #     - service: homeassistant.update_entity
-      #       target:
-      #         entity_id: >
-      #           {% if group == "guest_bedroom" %}
-      #           {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
-      #           {% elif group == "dining_room" %}
-      #           {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
-      #           {% elif group == "office" %}
-      #           {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
-      #           {% endif %}
 
 automation:
   - alias: "Lower and Raise Blinds"
@@ -251,6 +236,10 @@ automation:
           - closing
         for: "00:01:00"
     action:
+      - service: homeassistant.update_entity
+        target:
+          entity_id: "{{ trigger.entity_id }}"
+      - delay: "00:00:30"
       - service: homeassistant.update_entity
         target:
           entity_id: "{{ trigger.entity_id }}"
