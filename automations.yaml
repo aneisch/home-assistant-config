@@ -549,6 +549,7 @@
         # temperature sensors
         - sensor.netatmo_home_attic_battery_percent
         - sensor.netatmo_home_home_rain_battery_percent
+        - sensor.meater_battery_level
       below: 10
   action:
     - service: script.notify_wrapper

@@ -25,7 +25,7 @@ wifi:
     subnet: 255.255.254.0
  
 ble_client:
-  - mac_address: B8:1F:5E:1C:42:95
+  - mac_address: B8:1F:5E:90:91:91
     id: meater
 
 text_sensor:
@@ -37,24 +37,24 @@ sensor:
   - platform: ble_client
     type: characteristic
     ble_client_id: meater
-    name: "MEATER tip temperature"
+    name: "MEATER Tip"
     service_uuid: 'a75cc7fc-c956-488f-ac2a-2dbc08b63a04'
     characteristic_uuid: '7edda774-045e-4bbf-909b-45d1991a2876'
     icon: 'mdi:thermometer'
-    unit_of_measurement: '°C'
+    unit_of_measurement: '°F'
     accuracy_decimals: 2
     notify: true
     lambda: |-
       uint16_t tip_temp = (x[0] + (x[1] << 8) + 8.0) / 16.0;
-      return (float)tip_temp;
+      return tip_temp * (9.0/5.0) + 32.0;
   - platform: ble_client
     type: characteristic
     ble_client_id: meater
-    name: "MEATER ambient temperature"
+    name: "MEATER Ambient"
     service_uuid: 'a75cc7fc-c956-488f-ac2a-2dbc08b63a04'
     characteristic_uuid: '7edda774-045e-4bbf-909b-45d1991a2876'
     icon: 'mdi:thermometer'
-    unit_of_measurement: '°C'
+    unit_of_measurement: '°F'
     accuracy_decimals: 2
     notify: true
     lambda: |-
@@ -63,7 +63,7 @@ sensor:
       uint16_t oa = x[4] + (x[5] << 8);
       uint16_t min_val = 48;
       uint16_t ambient = (tip + std::max(0, (((ra - std::min(min_val, oa)) * 16 * 589) / 1487)) + 8.0) / 16;
-      return (float)ambient;
+      return ambient * (9.0/5.0) + 32.0;
   - platform: ble_client
     type: characteristic
     ble_client_id: meater

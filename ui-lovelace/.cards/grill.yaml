@@ -1,7 +1,7 @@
 type: conditional
 conditions:
-  - entity: sensor.thermopro_probe_1
-    state_not: "-1.0"
+  - entity: binary_sensor.grill_probe_active
+    state: "on"
 card:
   type: custom:vertical-stack-in-card
   cards:
@@ -44,6 +44,27 @@ card:
             }
             ha-card {
               {% if states('binary_sensor.thermopro_probe_2_in_range') == "off" %}
+              animation: blink 1s linear infinite;
+              {% endif %}
+            }
+    - type: conditional
+      conditions:
+        - entity: sensor.meater_tip
+          state_not: "unknown"
+      card:
+        type: custom:bignumber-card
+        entity: sensor.meater_tip
+        title: Meater Tip
+        style: |
+            @keyframes blink {
+              50% {
+                {% if states('binary_sensor.meater_tip_in_range') == "off" %}
+                background: red;
+                {% endif %}
+              }
+            }
+            ha-card {
+              {% if states('binary_sensor.meater_tip_in_range') == "off" %}
               animation: blink 1s linear infinite;
               {% endif %}
             }

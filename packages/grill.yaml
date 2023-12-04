@@ -32,6 +32,11 @@ sensor:
     unit_time: min
     time_window: "00:10:00"
 
+  - platform: derivative
+    source: sensor.meater_tip
+    unit_time: min
+    time_window: "00:10:00"
+
   - platform: template
     sensors:
       thermopro_probe_1_high_estimated_length:
@@ -47,6 +52,13 @@ sensor:
         attribute_templates:
           timestamp: >
             {% set time = '%.2f'%((states('input_number.thermopro_probe_2_set_high')|int - states('sensor.thermopro_probe_2')|int) / states('sensor.sensor_thermopro_probe_2_derivative')|float) %}
+            {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
+      meater_tip_high_estimated_length:
+        unit_of_measurement: Minutes
+        value_template: "{{ '%.2f'%((states('input_number.meater_tip_set_high')|int - states('sensor.meater_tip')|int) / states('sensor.sensor_meater_tip_derivative')|float) }}"
+        attribute_templates:
+          timestamp: >
+            {% set time = '%.2f'%((states('input_number.meater_tip_set_high')|int - states('sensor.meater_tip')|int) / states('sensor.sensor_meater_tip_derivative')|float) %}
             {{ (as_timestamp(now()) + time|float*60) | timestamp_local }}
 
 template:
@@ -84,6 +96,12 @@ binary_sensor:
       thermopro_probe_2_in_range:
         value_template: >-
           {{ (states('sensor.thermopro_probe_2')|float >= states('input_number.thermopro_probe_2_set_low')|float) and (states('sensor.thermopro_probe_2')|float <= states('input_number.thermopro_probe_2_set_high')|float) }}
+      meater_tip_in_range:
+        value_template: >-
+          {{ (states('sensor.meater_tip')|float >= states('input_number.meater_tip_set_low')|float) and (states('sensor.meater_tip')|float <= states('input_number.meater_tip_set_high')|float) }}
+      grill_probe_active:
+        value_template: >-
+          {{ states('sensor.meater_tip') != "unknown" or states('sensor.thermopro_probe_1') != "-1.0" or states('sensor.thermopro_probe_2') != "-1.0" }}
 
 input_number:
   thermopro_probe_1_set_low:
@@ -98,6 +116,12 @@ input_number:
     name: Probe 2 Low
     mode: box
     unit_of_measurement: '°F'
+  meater_tip_set_low:
+    min: -100
+    max: 600
+    name: Meater Low
+    mode: box
+    unit_of_measurement: '°F'
   thermopro_probe_1_set_high:
     min: -100
     max: 600
@@ -105,6 +129,12 @@ input_number:
     mode: box
     unit_of_measurement: '°F'
   thermopro_probe_2_set_high:
+    min: -100
+    max: 600
+    name: Probe 2 High
+    mode: box
+    unit_of_measurement: '°F'
+  meater_tip_set_high:
     min: -100
     max: 600
     name: Probe 2 High
@@ -121,6 +151,9 @@ automation:
       - platform: state
         entity_id: binary_sensor.thermopro_probe_2_in_range
         to: 'off'
+      - platform: state
+        entity_id: binary_sensor.meater_tip_in_range
+        to: 'off'
     action:
       - service: script.notify_wrapper
         data:
@@ -133,6 +166,10 @@ automation:
             Probe 2 out of range: {{ states('sensor.thermopro_probe_2') }}
             Low Set: {{ states('input_number.thermopro_probe_2_set_low') }}
             High Set: {{ states('input_number.thermopro_probe_2_set_high') }}
+            {% elif trigger.entity_id == 'binary_sensor.meater_tip_in_range' %}
+            Meater Tip out of range: {{ states('sensor.meater_tip') }}
+            Low Set: {{ states('input_number.meater_tip_set_low') }}
+            High Set: {{ states('input_number.meater_tip_set_high') }}
             {% endif %}
           data:
             priority: 2
