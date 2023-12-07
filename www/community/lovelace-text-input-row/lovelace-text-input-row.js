@@ -1,6 +1,7 @@
-const LitElement = Object.getPrototypeOf(customElements.get("ha-panel-lovelace"));
+const LitElement = customElements.get('home-assistant-main') ? Object.getPrototypeOf(customElements.get('home-assistant-main')) : Object.getPrototypeOf(customElements.get('hui-view'));
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
+
 class TextInputRow extends LitElement {
 
   static get properties() {
@@ -30,8 +31,9 @@ class TextInputRow extends LitElement {
   
   render() {
     return html`
-      <paper-input
+      <ha-textfield
           label="${this.label}"
+          style="width: 100%"
           value="${this.value}"
           minlength="${this.minlength}"
           maxlength="${this.maxlength}"
@@ -41,7 +43,7 @@ class TextInputRow extends LitElement {
           @change="${this.valueChanged}"
           id="textinput"
           placeholder=""
-        ></paper-input>
+        ></ha-textfield>
     `;
   }
 

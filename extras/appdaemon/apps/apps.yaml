@@ -184,7 +184,7 @@ Christmas Lights:
  class: Timer
  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
  time_on: sunset - 00:20:00
- time_off: "23:30:00"
+ time_off: "23:00:00"
 
 Christmas Trees Follow:
  module: follow_me
