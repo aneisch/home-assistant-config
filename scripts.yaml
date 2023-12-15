@@ -173,6 +173,8 @@ notify_wrapper:
             - service: notify.signal_self
               data:
                 message: "{{ message }}"
+                data:
+                  priority: 0
       else:
         # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
@@ -182,8 +184,7 @@ notify_wrapper:
                 message: "{{ message }}"
                 data:
                   priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional
-                  # 1 results in a notification that overrides DnD
-                  # 2 results in an emergency level notification (requires ack)
+                  # https://pushover.net/api#priority
           else:
             - service: notify.cellular_message
               data:

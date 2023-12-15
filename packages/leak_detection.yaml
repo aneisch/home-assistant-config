@@ -88,7 +88,7 @@ automation:
           - binary_sensor.back_bathroom_toilet_water_detector
           - binary_sensor.kitchen_sink_water_detector
           - binary_sensor.master_bathroom_water_detector
-          - binary_sensor.water_shutoff_water_leak_detected
+          - binary_sensor.water_shutoff_water_detector
         to: "on"
       - platform: state
         id: esphome

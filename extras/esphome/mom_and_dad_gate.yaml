@@ -2,11 +2,13 @@ esphome:
   name: mom_and_dad_gate
   platform: ESP8266
   board: d1_mini
-  platformio_options:
-    platform: espressif8266@2.6.3
-    platform_packages: 
-      - platformio/toolchain-xtensa
-      - platformio/framework-arduinoespressif8266
+  # platformio_options:
+  #   platform: espressif8266@2.6.3
+  #   platform_packages: 
+  #     - platformio/toolchain-xtensa
+  #     - platformio/framework-arduinoespressif8266
+
+<<: !include midnight_reboot.yaml
 
 web_server:
   port: 80
@@ -61,9 +63,9 @@ ota:
 
 mqtt:
   broker: MQTT_BROKER
-  port: 8883
-  ssl_fingerprints:
-    - 3f3077cf1c6becb8fa6dbc497ac6d9dc2a51bd42
+  port: 1883
+  # ssl_fingerprints:
+  #   - 3f3077cf1c6becb8fa6dbc497ac6d9dc2a51bd42
   username: owntracks
   password: totallyowned
   log_topic: 
@@ -159,7 +161,7 @@ binary_sensor:
 
 switch:
   - platform: restart
-    id: Reboot
+    id: reboot
     
   # Actual GPIO output
   - platform: gpio

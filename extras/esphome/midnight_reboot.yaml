@@ -1,7 +1,8 @@
 time:
-  - platform: homeassistant
-    id: homeassistant_time
+  - platform: sntp
+    id: sntp_time
+    timezone: America/Chicago
     on_time:
       - cron: '00 05 * * * *'
         then:
-          - switch.toggle: restart_device
+          - switch.toggle: reboot

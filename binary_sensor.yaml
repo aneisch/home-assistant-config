@@ -1,28 +1,28 @@
-- platform: ping
-  name: Thermostat Online
-  host: 10.0.0.29
-  count: 2
+# - platform: ping
+#   name: Thermostat Online
+#   host: 10.0.0.29
+#   count: 2
 
-- platform: ping
-  name: Andrew Work Laptop
-  host: 10.0.1.27
-  count: 2
+# - platform: ping
+#   name: Andrew Work Laptop
+#   host: 10.0.1.27
+#   count: 2
 
-- platform: ping
-  name: Andrew Work Test Laptop
-  host: 10.0.1.100
-  count: 2
+# - platform: ping
+#   name: Andrew Work Test Laptop
+#   host: 10.0.1.100
+#   count: 2
 
 # - platform: ping
 #   name: Kurt Tunnel
 #   host: 192.168.88.1
 #   count: 2
 
-- platform: ping
-  name: internet_reachability
-  host: 1.1.1.1
-  count: 3
-  scan_interval: 10
+# - platform: ping
+#   name: internet_reachability
+#   host: 1.1.1.1
+#   count: 3
+#   scan_interval: 10
 
 - platform: template
   sensors:

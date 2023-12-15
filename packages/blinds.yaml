@@ -200,14 +200,13 @@ automation:
                   entity_id:
                     - cover.office_blinds
                     - cover.dining_room_blinds
-              ## Only automate office auto-open for now
               # Only open blinds if guest mode is OFF
-              # - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
-              #   then:
-              #     - service: cover.open_cover
-              #       target:
-              #         entity_id:
-              #           - cover.guest_bedroom_blinds
+              - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
+                then:
+                  - service: cover.open_cover
+                    target:
+                      entity_id:
+                        - cover.guest_bedroom_blinds
           # Prevent stuck "opening" or "closing"
           # - repeat:
           #   count: "13"

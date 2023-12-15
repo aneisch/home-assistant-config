@@ -198,7 +198,7 @@ Front House Christmas Trees Timer:
  class: Timer
  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
  time_on: sunset - 00:20:00
- time_off: '23:30:00'
+ time_off: '23:00:00'
 
 ############
 # Aquarium #
