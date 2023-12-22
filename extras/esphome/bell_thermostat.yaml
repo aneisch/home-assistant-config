@@ -1,0 +1,106 @@
+substitutions:
+  friendly_name: "Bell Thermostat"  
+
+esphome:
+  name: bell_thermostat
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include midnight_reboot.yaml
+
+web_server:
+  port: 80
+
+logger:
+  level: DEBUG
+  
+wifi:
+  networks:
+  - ssid: SSID
+    password: WPA_KEY
+  - ssid: SSID
+    password: WPA_KEY
+  - ssid: SSID
+    password: WPA_KEY
+
+ota:
+  safe_mode: True
+  password: esphome_recovery
+
+mqtt:
+  broker: MQTT_BROKER
+  port: 1883
+  # ssl_fingerprints:
+  #   - 3f3077cf1c6becb8fa6dbc497ac6d9dc2a51bd42
+  username: owntracks
+  password: totallyowned
+  log_topic: 
+    topic: ${mqtt_prefix}/logs
+    level: NONE
+
+button:
+  - platform: template
+    name: "${friendly_name} Fan On"
+    id: fan_on
+    on_press:
+      - logger.log: Fan On Button Pressed
+
+  - platform: template
+    name: ${friendly_name} Fan Off
+    id: fan_off
+    on_press:
+      - logger.log: Fan Off Button Pressed
+
+  - platform: template
+    name: ${friendly_name} Fan Auto
+    id: fan_auto
+    on_press:
+      - logger.log: Fan Auto Button Pressed
+
+  - platform: template
+    name: ${friendly_name} Mode Heat
+    id: heat
+    on_press:
+      - logger.log: Heat Button Pressed
+
+  - platform: template
+    name: ${friendly_name} Mode Cool
+    id: cool
+    on_press:
+      - logger.log: Cool Button Pressed
+
+  - platform: template
+    name: ${friendly_name} Mode Off
+    id: off_button
+    on_press:
+      - logger.log: Off Button Pressed
+
+number:
+  - platform: template
+    name: ${friendly_name} Setpoint
+    optimistic: true
+    min_value: 65
+    max_value: 82
+    step: 1
+
+switch:
+  - platform: restart
+    id: reboot
+
+sensor:
+  - platform: uptime
+    name: ${friendly_name} Bridge Uptime
+    id: uptime_sensor
+    update_interval: 600s
+
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      id: ip_address
+      name: ${friendly_name} Bridge IP Address
+  - platform: template # This is where we need to http-get the json from thermostat http://$THERMOSTAT_IP/tstat
+    name: ${friendly_name} Thermostat Data
+    id: thermostat_data
+    lambda: |-
+      return {"Hello World"};

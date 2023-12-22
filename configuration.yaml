@@ -113,6 +113,8 @@ frontend:
 
 group: !include group.yaml
 
+google_assistant: !include google_home.yaml
+
 history:
 
 homekit: !include homekit.yaml

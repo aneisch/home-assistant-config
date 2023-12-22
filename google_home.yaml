@@ -1,0 +1,13 @@
+project_id: home-assistant-76522
+service_account: !include SERVICE_ACCOUNT.JSON
+report_state: true
+expose_by_default: false
+entity_config:
+  cover.garage_door:
+    expose: true
+  lock.front_door:
+    expose: true
+  lock.back_door:
+    expose: true
+  lock.garage_exterior_door:
+    expose: true
