@@ -101,6 +101,9 @@ services:
             - DUO_SKEY=
             - DUO_HOST=
             - TZ=America/Chicago
+            - PUSH_ENABLED=true
+            - PUSH_INSTALLATION_ID=
+            - PUSH_INSTALLATION_KEY=
         #ports:
         #    - '8777:1024'
         #    - '3012:3012'

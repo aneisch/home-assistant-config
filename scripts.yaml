@@ -173,8 +173,6 @@ notify_wrapper:
             - service: notify.signal_self
               data:
                 message: "{{ message }}"
-                data:
-                  priority: 0
       else:
         # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
