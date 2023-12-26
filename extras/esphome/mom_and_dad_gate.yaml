@@ -10,11 +10,17 @@ esphome:
 
 <<: !include midnight_reboot.yaml
 
+external_components:
+  - source: github://pr#5586
+    components: [ ota_http ]
+
+ota_http:
+
 web_server:
   port: 80
 
 logger:
-  level: NONE
+  level: DEBUG
   
 wifi:
   networks:
@@ -122,7 +128,7 @@ sensor:
 
   - platform: uptime
     id: uptime_sensor
-    #name: "Mom and Dad Gate Uptime"
+    name: "Mom and Dad Gate Uptime"
     update_interval: 600s
 
 binary_sensor:
@@ -158,6 +164,16 @@ binary_sensor:
   #   filters:
   #     - delayed_on: 1s
   #     - delayed_off: 1s
+
+button:
+  - platform: template
+    name: "Mom and Dad Gate Firmware update"
+    on_press:
+      then:
+        - ota_http.flash:
+            verify_ssl: false
+            url: !secret mom_and_dad_gate_ota
+        - logger.log: "This message should be not displayed(reboot)"
 
 switch:
   - platform: restart

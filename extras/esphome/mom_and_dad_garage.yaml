@@ -1,15 +1,20 @@
 esphome:
   name: mom_and_dad_garage
   platform: ESP8266
-  board: d1_mini_pro
+  board: d1_mini
   # platformio_options:
   #   platform: espressif8266@2.6.3
   #   platform_packages: 
   #     - platformio/toolchain-xtensa@2.40802.200502
   #     - platformio/framework-arduinoespressif8266@3.20704.0
 
-<<: !include midnight_reboot.yaml
+external_components:
+  - source: github://pr#5586
+    components: [ ota_http ]
 
+ota_http:
+
+<<: !include midnight_reboot.yaml
 
 web_server:
   port: 80
@@ -40,6 +45,16 @@ binary_sensor:
     filters:
       - delayed_on: 1s
       - delayed_off: 1s
+
+button:
+  - platform: template
+    name: "Mom and Dad Garage Firmware update"
+    on_press:
+      then:
+        - ota_http.flash:
+            verify_ssl: false
+            url: !secret mom_and_dad_garage_ota
+        - logger.log: "This message should be not displayed(reboot)"
 
 cover:
   - platform: template
@@ -102,5 +117,5 @@ text_sensor:
 sensor:
   - platform: uptime
     id: uptime_sensor
-    #name: "Mom and Dad Garage Uptime"
+    name: "Mom and Dad Garage Uptime"
     update_interval: 600s

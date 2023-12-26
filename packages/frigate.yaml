@@ -295,6 +295,31 @@ automation:
         data:
           camera: ptz
 
+  - alias: Frigate Daily Restart
+    id: "frigate_restart"
+    trigger:
+      platform: time
+      at: "09:00:00"
+    action:
+      - service: mqtt.publish
+        data:
+          qos: 0
+          retain: false
+          topic: frigate/restart
+
+  - alias: Frigate Healthcheck
+    id: "frigate_healthcheck"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: sensor.frigate_status
+        from: running
+        for: 00:05:00
+    action:
+      - service: script.notify_wrapper
+        data:
+          message: "Frigate has been unavailable for more than five minutes"
+
 # camera:
 #   - platform: local_file
 #     file_path: /config/timelapse/front_door.mp4

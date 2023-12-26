@@ -3,6 +3,6 @@ time:
     id: sntp_time
     timezone: America/Chicago
     on_time:
-      - cron: '00 05 * * * *'
+      - cron: '00 00 00 * * *'
         then:
           - switch.toggle: reboot

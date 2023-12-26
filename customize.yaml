@@ -53,43 +53,35 @@ sensor.sonoff_pow_yesterday_cost:
   icon: mdi:square-inc-cash
 
 ### THERMOSTAT ###
-climate.thermostat:
-  friendly_name: Adjust
+# climate.thermostat:
+#   friendly_name: Adjust
 
-sensor.thermostat_fan_status:
-  friendly_name: Fan Status
-  icon: mdi:fan
+# sensor.thermostat_fan_status:
+#   friendly_name: Fan Status
+#   icon: mdi:fan
 
-sensor.thermostat_state:
-  friendly_name: State
-  icon: mdi:fan
+# sensor.thermostat_state:
+#   friendly_name: State
+#   icon: mdi:fan
 
-sensor.thermostat_temperature:
-  icon: mdi:thermometer-lines
-  friendly_name: Temperature Readout
+# sensor.thermostat_temperature:
+#   icon: mdi:thermometer-lines
+#   friendly_name: Temperature Readout
 
-sensor.thermostat_setpoint:
-  friendly_name: Setpoint
-  icon: mdi:thermometer
+# sensor.thermostat_setpoint:
+#   friendly_name: Setpoint
+#   icon: mdi:thermometer
 
-sensor.ac_runtime_today:
-  friendly_name: Runtime Today
+# sensor.ac_runtime_today:
+#   friendly_name: Runtime Today
 
-sensor.ac_runtime_yesterday:
-  friendly_name: Runtime Yesterday
+# sensor.ac_runtime_yesterday:
+#   friendly_name: Runtime Yesterday
 
 ### SCRIPTS ###
 script.copy:
   friendly_name: Plex Copy
   icon: mdi:content-copy
-
-### PEOPLE ###
-# person.andrew:
-#   entity_picture: /local/icons/tracker_icons/andrew.jpg
-#   user_id: dd85e42ea84e4f4c87a6fa93ab87a870
-
-# person.bethany:
-#   entity_picture: /local/icons/tracker_icons/bethany.jpg
 
 ### OTHER ###
 zone.home:

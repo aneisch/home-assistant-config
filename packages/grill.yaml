@@ -137,7 +137,7 @@ input_number:
   meater_tip_set_high:
     min: -100
     max: 600
-    name: Probe 2 High
+    name: Meater High
     mode: box
     unit_of_measurement: '°F'
 

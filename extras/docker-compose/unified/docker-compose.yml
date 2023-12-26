@@ -566,6 +566,18 @@ services:
           - "southwest.py"
           - "--verbose"
 
+    ha-fusion:
+        container_name: ha-fusion
+        image: ghcr.io/matt8707/ha-fusion
+        volumes:
+            - /opt/ha-fusion/data:/app/data
+        ports:
+            - 5050:5050
+        environment:
+            TZ: America/Chicago
+            HASS_URL: http://10.0.1.22:8123
+        restart: always
+
 networks:
   macos_network:
     driver: bridge

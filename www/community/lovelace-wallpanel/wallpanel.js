@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.23.0";
+const version = "4.23.1";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -490,10 +490,8 @@ function setSidebarHidden(hidden) {
 	}
 	
 	try {
-		const sidebar = elHaMain.shadowRoot.querySelector("ha-sidebar");
-		if (sidebar) {
-			sidebar.style.display = (hidden ? "none" : "");
-		}
+		const aside = elHaMain.shadowRoot.querySelector("ha-drawer").shadowRoot.querySelector("aside");
+		aside.style.display = (hidden ? "none" : "");
 		if (hidden) {
 			elHaMain.style.setProperty("--mdc-drawer-width", "env(safe-area-inset-left)");
 		}
@@ -1569,6 +1567,7 @@ class WallpanelView extends HuiView {
 					url: img.imagePath,
 					path: img.imagePath.replace(/^media-source:\/\/[^/]+/, ""),
 					relativePath: img.imagePath.replace(config.image_url, "").replace(/^\/+/, ""),
+					filename: img.imagePath.replace(/^.*[\\/]/, ""),
 					folderName: ""
 				};
 				const parts = img.imagePath.split("/");
