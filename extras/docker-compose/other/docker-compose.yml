@@ -176,7 +176,7 @@ services:
         ports:
             - 53:5353/tcp
             - 53:5353/udp
-            - 8088:8080/tcp
+            - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
         restart: 'always'
@@ -250,15 +250,15 @@ services:
             - MODE=native
             - TZ=America/Chicago
         ports:
-            - "127.0.0.1:8800:8080" 
-            - "8808:8080" 
+            - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
+            #- "8808:8080" 
         volumes:
             - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
     apcupsd:
         container_name: apcupsd
         image: gersilex/apcupsd
         ports:
-            - '3551:3551'
+            - '127.0.0.1:3551:3551' # Expose localhost only for Home Assistant
         volumes:
             - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
         devices:
@@ -358,12 +358,12 @@ services:
             - /frigate:/media/frigate
         ports:
             # Two below needed for Home Assistant
-            - "127.0.0.1:5000:5000"
-            - "127.0.0.1:8554:8554"
+            - "127.0.0.1:5000:5000" # Expose localhost only for Home Assistant
+            - "127.0.0.1:8554:8554" # Expose localhost only for Home Assistant
             # Two below needed for 2way stream
             - "8555:8555/tcp"
             - "8555:8555/udp"
-            - "127.0.0.1:1984:1984"
+            - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
@@ -371,8 +371,8 @@ services:
         container_name: codeproject
         restart: 'always'
         image: codeproject/ai-server
-        ports:
-            - 32168:32168
+        # ports:
+        #     - 32168:32168
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
@@ -388,7 +388,6 @@ services:
           - "-u"
           - "southwest.py"
           - "--verbose"
-
     ha-fusion:
         container_name: ha-fusion
         image: ghcr.io/matt8707/ha-fusion

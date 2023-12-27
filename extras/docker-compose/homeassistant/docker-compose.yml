@@ -45,10 +45,8 @@ services:
         container_name: mariadb
         image: 'mariadb:latest'
         user: '99'
-        environment:
-          - TZ=America/Chicago
         ports:
-          - '127.0.0.1:3306:3306'
+          - '127.0.0.1:3306:3306' # Expose localhost only for Home Assistant
         volumes:
           - /opt/mariadb:/var/lib/mysql
         environment:
@@ -91,7 +89,7 @@ services:
             - '/opt/influxdb:/var/lib/influxdb'
             - '/opt/influxdb/conf:/etc/influxdb'
         ports:
-            - '8086:8086'
+            - '127.0.0.1:8086:8086' # Expose localhost only for Home Assistant
         restart: always
         environment:
             - TZ=America/Chicago
@@ -102,8 +100,8 @@ services:
         volumes:
           - /opt/nodered:/data
           - /etc/localtime:/etc/localtime:ro
-        ports:
-          - "1880:1880"
+        # ports:
+        #   - "1880:1880"
         environment:
           - TZ=America/Chicago
         restart: always
@@ -126,7 +124,7 @@ services:
         environment:
           - TZ=America/Chicago
         ports:
-          - '8888:8888'
+          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant
         restart: always
     thermostat_api_server:
         container_name: thermostat_api_server
@@ -155,8 +153,8 @@ services:
         volumes:
             - /opt/zwavejs:/usr/src/app/store
         ports:
-            - '8091:8091' # port for web interface
-            - '127.0.0.1:3000:3000' # port for zwave-js websocket server
+            #- '8091:8091' # port for web interface
+            - '127.0.0.1:3000:3000' # port for zwave-js websocket server expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
     cellular_message_relay_sim7080g:
@@ -164,7 +162,7 @@ services:
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
         #image: cellular_message_relay:sim7080g
         ports:
-            - '127.0.0.1:9998:9999'
+            - '127.0.0.1:9998:9999' # Expose localhost only for Home Assistant
         environment:
             - SIM_KEY=SIM_KEY
             - HOST=HOSTIP

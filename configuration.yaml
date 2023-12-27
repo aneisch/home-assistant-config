@@ -130,7 +130,7 @@ ifttt:
   key: !secret IFTTT
 
 influxdb:
-  host: 10.0.1.22
+  host: 127.0.0.1
   exclude:
     entities:
       - binary_sensor.internet_reachability
