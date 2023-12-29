@@ -501,30 +501,45 @@ services:
         privileged: true
         image: tailscale/tailscale
         entrypoint: tailscaled
-    nginx-proxy-manager:
-        container_name: nginx-proxy-manager
-        image: jlesage/nginx-proxy-manager
+    # nginx-proxy-manager:
+    #     container_name: nginx-proxy-manager
+    #     image: jlesage/nginx-proxy-manager
+    #     restart: 'unless-stopped'
+    #     environment:
+    #         - TZ=America/Chicago
+    #         - USER_ID=99
+    #         - GROUP_ID=99
+    #     ports:
+    #         #- "8181:8181"
+    #         - "800:8080"
+    #         - "4430:4443"
+    #     volumes:
+    #         - "/opt/nginx-proxy-manager:/config:rw"
+    #         - /etc/localtime:/etc/localtime:ro
+    #     labels:
+    #       # HTTPS for CF
+    #       - traefik.enable=true
+    #       - traefik.http.routers.nginx.entrypoints=websecure
+    #       - traefik.http.routers.nginx.tls=true
+    #       - traefik.http.routers.nginx.rule=Host(`nginx.domain.com`)
+    #       - traefik.http.services.nginx.loadbalancer.server.port=8181
+    #       - traefik.http.routers.nginx.service=nginx
+    nginx:
+        #image: nginx:latest
+        image: trafex/php-nginx
+        container_name: nginx
         restart: 'always'
-        environment:
-            - TZ=America/Chicago
-            - USER_ID=99
-            - GROUP_ID=99
-        ports:
-            #- "8181:8181"
-            - "800:8080"
-            - "4430:4443"
         volumes:
-            - "/opt/nginx-proxy-manager:/config:rw"
-            - /etc/localtime:/etc/localtime:ro
+            #- /opt/nginx:/usr/share/nginx/html:ro
+            - /opt/nginx:/var/www/html:ro #php version
         labels:
           # HTTPS for CF
           - traefik.enable=true
           - traefik.http.routers.nginx.entrypoints=websecure
           - traefik.http.routers.nginx.tls=true
-          - traefik.http.routers.nginx.rule=Host(`nginx.domain.com`)
-          - traefik.http.services.nginx.loadbalancer.server.port=8181
+          - traefik.http.routers.nginx.rule=Host(`heatmap.domain.com`)
+          - traefik.http.services.nginx.loadbalancer.server.port=8080
           - traefik.http.routers.nginx.service=nginx
-
     traefik:
         container_name: traefik
         image: traefik
@@ -534,7 +549,7 @@ services:
             - /opt/traefik/:/etc/traefik/
             - /opt/traefik/certs:/opt/certs:ro
         ports:
-            - 8889:8080 # dashboard
+            #- 8889:8080 # dashboard
             - 80:80
             - 443:443
         extra_hosts:
