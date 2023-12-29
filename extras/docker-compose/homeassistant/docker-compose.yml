@@ -12,10 +12,21 @@ version: '3.2'
 
 services:
     homeassistant:
-        container_name: hass
+        container_name: homeassistant
         image: ghcr.io/home-assistant/home-assistant:stable
         labels:
-          com.centurylinklabs.watchtower.monitor-only: "true"
+          - com.centurylinklabs.watchtower.monitor-only=true
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.assist.entrypoints=websecure
+          - traefik.http.routers.assist.tls=true
+          - traefik.http.routers.assist.rule=Host(`assist.domain.com`)
+          - traefik.http.services.assist.loadbalancer.server.port=8123
+          - traefik.http.routers.assist.service=assist
+          # HTTP Local Only
+          - traefik.http.routers.assist_local.entrypoints=web
+          - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
+          - traefik.http.routers.assist_local.service=assist
         volumes:
           - /opt/homeassistant:/config
           - /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
@@ -105,6 +116,18 @@ services:
         environment:
           - TZ=America/Chicago
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.nodered.entrypoints=websecure
+          - traefik.http.routers.nodered.tls=true
+          - traefik.http.routers.nodered.rule=Host(`nodered.domain.com`)
+          - traefik.http.services.nodered.loadbalancer.server.port=1880
+          - traefik.http.routers.nodered.service=nodered
+          # HTTP Local Only
+          - traefik.http.routers.nodered_local.entrypoints=web
+          - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
+          - traefik.http.routers.nodered_local.service=nodered
     appdaemon:
         container_name: appdaemon
         #image: acockburn/appdaemon:4.0.5
@@ -124,8 +147,20 @@ services:
         environment:
           - TZ=America/Chicago
         ports:
-          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant
+          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant rest_command
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.appdaemon.entrypoints=websecure
+          - traefik.http.routers.appdaemon.tls=true
+          - traefik.http.routers.appdaemon.rule=Host(`appdaemon.domain.com`)
+          - traefik.http.services.appdaemon.loadbalancer.server.port=8888
+          - traefik.http.routers.appdaemon.service=appdaemon
+          # HTTP Local Only
+          - traefik.http.routers.appdaemon_local.entrypoints=web
+          - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
+          - traefik.http.routers.appdaemon_local.service=appdaemon
     thermostat_api_server:
         container_name: thermostat_api_server
         image: ghcr.io/aneisch/thermostat_api_server:latest
@@ -145,8 +180,6 @@ services:
         image: zwavejs/zwavejs2mqtt:latest
         #image: zwavejs/zwavejs2mqtt:sha-0a723f9 # 2.4.1
         restart: always
-        #labels:
-        #  com.centurylinklabs.watchtower.monitor-only: "true"
         stop_signal: SIGINT
         devices:
             - '/dev/zwave:/dev/zwave'
@@ -157,6 +190,18 @@ services:
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.zwavejs.entrypoints=websecure
+          - traefik.http.routers.zwavejs.tls=true
+          - traefik.http.routers.zwavejs.rule=Host(`zwavejs.domain.com`)
+          - traefik.http.services.zwavejs.loadbalancer.server.port=8091
+          - traefik.http.routers.zwavejs.service=zwavejs
+          # HTTP Local Only
+          - traefik.http.routers.zwavejs_local.entrypoints=web
+          - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
+          - traefik.http.routers.zwavejs_local.service=zwavejs    
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g

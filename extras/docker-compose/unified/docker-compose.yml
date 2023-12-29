@@ -13,10 +13,21 @@ version: '3.2'
 
 services:
     homeassistant:
-        container_name: hass
+        container_name: homeassistant
         image: ghcr.io/home-assistant/home-assistant:stable
         labels:
-          com.centurylinklabs.watchtower.monitor-only: "true"
+          - com.centurylinklabs.watchtower.monitor-only=true
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.assist.entrypoints=websecure
+          - traefik.http.routers.assist.tls=true
+          - traefik.http.routers.assist.rule=Host(`assist.domain.com`)
+          - traefik.http.services.assist.loadbalancer.server.port=8123
+          - traefik.http.routers.assist.service=assist
+          # HTTP Local Only
+          - traefik.http.routers.assist_local.entrypoints=web
+          - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
+          - traefik.http.routers.assist_local.service=assist
         volumes:
           - /opt/homeassistant:/config
           - /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
@@ -106,6 +117,18 @@ services:
         environment:
           - TZ=America/Chicago
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.nodered.entrypoints=websecure
+          - traefik.http.routers.nodered.tls=true
+          - traefik.http.routers.nodered.rule=Host(`nodered.domain.com`)
+          - traefik.http.services.nodered.loadbalancer.server.port=1880
+          - traefik.http.routers.nodered.service=nodered
+          # HTTP Local Only
+          - traefik.http.routers.nodered_local.entrypoints=web
+          - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
+          - traefik.http.routers.nodered_local.service=nodered
     appdaemon:
         container_name: appdaemon
         #image: acockburn/appdaemon:4.0.5
@@ -125,8 +148,20 @@ services:
         environment:
           - TZ=America/Chicago
         ports:
-          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant
+          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant rest_command
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.appdaemon.entrypoints=websecure
+          - traefik.http.routers.appdaemon.tls=true
+          - traefik.http.routers.appdaemon.rule=Host(`appdaemon.domain.com`)
+          - traefik.http.services.appdaemon.loadbalancer.server.port=8888
+          - traefik.http.routers.appdaemon.service=appdaemon
+          # HTTP Local Only
+          - traefik.http.routers.appdaemon_local.entrypoints=web
+          - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
+          - traefik.http.routers.appdaemon_local.service=appdaemon
     thermostat_api_server:
         container_name: thermostat_api_server
         image: ghcr.io/aneisch/thermostat_api_server:latest
@@ -146,8 +181,6 @@ services:
         image: zwavejs/zwavejs2mqtt:latest
         #image: zwavejs/zwavejs2mqtt:sha-0a723f9 # 2.4.1
         restart: always
-        #labels:
-        #  com.centurylinklabs.watchtower.monitor-only: "true"
         stop_signal: SIGINT
         devices:
             - '/dev/zwave:/dev/zwave'
@@ -158,6 +191,18 @@ services:
             - '127.0.0.1:3000:3000' # port for zwave-js websocket server expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.zwavejs.entrypoints=websecure
+          - traefik.http.routers.zwavejs.tls=true
+          - traefik.http.routers.zwavejs.rule=Host(`zwavejs.domain.com`)
+          - traefik.http.services.zwavejs.loadbalancer.server.port=8091
+          - traefik.http.routers.zwavejs.service=zwavejs
+          # HTTP Local Only
+          - traefik.http.routers.zwavejs_local.entrypoints=web
+          - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
+          - traefik.http.routers.zwavejs_local.service=zwavejs    
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
@@ -193,6 +238,13 @@ services:
             - HOME=/config
         network_mode: host
         restart: "no"
+        labels:
+          # HTTP Local Only
+          - traefik.enable=true
+          - traefik.http.routers.plex_local.entrypoints=web
+          - traefik.http.routers.plex_local.rule=Host(`plex.home.domain.com`)
+          - traefik.http.services.plex_local.loadbalancer.server.port=32400
+          - traefik.http.routers.plex_local.service=plex_local
     portainer:
         container_name: portainer
         #image: portainer/portainer
@@ -206,6 +258,18 @@ services:
             - TZ=America/Chicago
             - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
         restart: "no"
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.portainer.entrypoints=websecure
+          - traefik.http.routers.portainer.tls=true
+          - traefik.http.routers.portainer.rule=Host(`portainer.domain.com`)
+          - traefik.http.services.portainer.loadbalancer.server.port=9000
+          - traefik.http.routers.portainer.service=portainer
+          # HTTP Local Only
+          - traefik.http.routers.portainer_local.entrypoints=web
+          - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
+          - traefik.http.routers.portainer_local.service=portainer
     grafana:
         container_name: grafana
         #image: grafana/grafana:6.4.5
@@ -220,6 +284,14 @@ services:
             #- GF_SECURITY_COOKIE_SAMESITE=none
             - GF_INSTALL_PLUGINS=neocat-cal-heatmap-panel
         restart: "no"
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.grafana.entrypoints=websecure
+          - traefik.http.routers.grafana.tls=true
+          - traefik.http.routers.grafana.rule=Host(`grafana.domain.com`)
+          - traefik.http.services.grafana.loadbalancer.server.port=3000
+          - traefik.http.routers.grafana.service=grafana
     esphome:
         container_name: esphome
         # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
@@ -234,6 +306,18 @@ services:
             #- /etc/localtime:/etc/localtime:ro
         network_mode: host
         restart: "no"
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.esphome.entrypoints=websecure
+          - traefik.http.routers.esphome.tls=true
+          - traefik.http.routers.esphome.rule=Host(`esphome.domain.com`)
+          - traefik.http.services.esphome.loadbalancer.server.port=6052
+          - traefik.http.routers.esphome.service=esphome
+          # HTTP Local Only
+          - traefik.http.routers.esphome_local.entrypoints=web
+          - traefik.http.routers.esphome_local.rule=Host(`esphome.home.domain.com`)
+          - traefik.http.routers.esphome_local.service=esphome
     433_mqtt:
         # Connected to NUC, antenna in attic
         container_name: 433_mqtt
@@ -285,6 +369,14 @@ services:
         logging:
             driver: none
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.vault.entrypoints=websecure
+          - traefik.http.routers.vault.tls=true
+          - traefik.http.routers.vault.rule=Host(`vault.domain.com`)
+          - traefik.http.services.vault.loadbalancer.server.port=1024
+          - traefik.http.routers.vault.service=vault
     vaultwarden-backup:
         image: ttionya/vaultwarden-backup:latest
         container_name: vaultwarden-backup
@@ -296,7 +388,6 @@ services:
             ZIP_TYPE: 'zip'
             BACKUP_KEEP_DAYS: 30
             TIMEZONE: 'America/Chicago'
-
         volumes:
             - /opt/bw-data:/bitwarden/data/
             - /opt/vaultwarden-backup/:/config/
@@ -312,8 +403,21 @@ services:
             - '/opt/github:/config/github_projects'
             - '/opt/frigate:/config/frigate'
             - '/home/aneisch/.backup:/config/homeassistant-git'
+            - '/opt/terraform:/config/terraform'
+            - '/opt/traefik:/config/traefik'
         environment:
             - TZ=America/Chicago
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.vscode.entrypoints=websecure
+          - traefik.http.routers.vscode.tls=true
+          - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
+          - traefik.http.services.vscode.loadbalancer.server.port=1337
+          # HTTP Local Only
+          - traefik.http.routers.vscode_local.entrypoints=web
+          - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
+          - traefik.http.routers.vscode_local.service=vscode
     watchtower:
         container_name: watchtower
         image: containrrr/watchtower:latest
@@ -355,6 +459,18 @@ services:
         environment:
             - TZ=America/Chicago
         restart: 'always'
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.adguard.entrypoints=websecure
+          - traefik.http.routers.adguard.tls=true
+          - traefik.http.routers.adguard.rule=Host(`adguard.domain.com`)
+          - traefik.http.services.adguard.loadbalancer.server.port=8080
+          - traefik.http.routers.adguard.service=adguard
+          # HTTP Local Only
+          - traefik.http.routers.adguard_local.entrypoints=web
+          - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
+          - traefik.http.routers.adguard_local.service=adguard
     recipes:
         # Public consumption at VPS, duplicated locally for home use though
         container_name: recipes
@@ -368,6 +484,14 @@ services:
         environment:
             - TZ=America/Chicago    
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.recipes.entrypoints=websecure
+          - traefik.http.routers.recipes.tls=true
+          - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
+          - traefik.http.services.recipes.loadbalancer.server.port=4000
+          - traefik.http.routers.recipes.service=recipes
     tailscale:
         container_name: tailscale
         volumes:
@@ -387,11 +511,40 @@ services:
             - GROUP_ID=99
         ports:
             #- "8181:8181"
-            - "80:8080"
-            - "443:4443"
+            - "800:8080"
+            - "4430:4443"
         volumes:
             - "/opt/nginx-proxy-manager:/config:rw"
             - /etc/localtime:/etc/localtime:ro
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.nginx.entrypoints=websecure
+          - traefik.http.routers.nginx.tls=true
+          - traefik.http.routers.nginx.rule=Host(`nginx.domain.com`)
+          - traefik.http.services.nginx.loadbalancer.server.port=8181
+          - traefik.http.routers.nginx.service=nginx
+
+    traefik:
+        container_name: traefik
+        image: traefik
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /opt/traefik/:/etc/traefik/
+            - /opt/traefik/certs:/opt/certs:ro
+        ports:
+            - 8889:8080 # dashboard
+            - 80:80
+            - 443:443
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        labels:
+          - traefik.enable=true
+          - traefik.http.routers.traefik_https.rule=Host(`traefik.domain.com`)
+          - traefik.http.routers.traefik_https.entrypoints=websecure
+          - traefik.http.routers.traefik_https.tls=true
+          - traefik.http.routers.traefik_https.service=api@internal
     cloudflared:
         container_name: cloudflared
         image: cloudflare/cloudflared:latest
@@ -443,9 +596,14 @@ services:
         container_name: secret
         image: secret_container
         labels:
-            com.centurylinklabs.watchtower.enable: "false"
-        #ports: 
-        #    - 9999:9999
+          - com.centurylinklabs.watchtower.enable=false
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.container.entrypoints=websecure
+          - traefik.http.routers.container.tls=true
+          - traefik.http.routers.container.rule=Host(`container.domain.com`)
+          - traefik.http.services.container.loadbalancer.server.port=9999
+          - traefik.http.routers.container.service=container
         environment:
             - FTP_USERNAME=MyUser
             - FTP_PASSWORD=MyPAss
@@ -464,10 +622,19 @@ services:
         image: tomdesinto/sqliteweb
         restart: "no"
         volumes:
-            - /opt/secret/secret.db:/db/secret.db
+            - /opt/secret/data/secret.db:/db/secret.db
         environment:
             - TZ=America/Chicago
         command: secret.db
+        labels:
+          - com.centurylinklabs.watchtower.enable=false
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.sqliteweb.entrypoints=websecure
+          - traefik.http.routers.sqliteweb.tls=true
+          - traefik.http.routers.sqliteweb.rule=Host(`sqliteweb.domain.com`)
+          - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
+          - traefik.http.routers.sqliteweb.service=sqliteweb
     vrs:
         container_name: vrs
         restart: 'always'
@@ -480,6 +647,20 @@ services:
             - TZ=America/Chicago
         volumes:
             - /opt/vrs/config:/config
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.vrs.entrypoints=websecure
+          - traefik.http.middlewares.vrs-redirect.redirectregex.regex=^https://vrs.domain.com/$$
+          - traefik.http.middlewares.vrs-redirect.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/desktop.html
+          - traefik.http.middlewares.vrs-redirect-admin.redirectregex.regex=^https://vrs.domain.com/admin$$
+          - traefik.http.middlewares.vrs-redirect-admin.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/WebAdmin/DatabaseWriterPluginOptions.html
+          - "traefik.http.middlewares.vrs.chain.middlewares=vrs-redirect@docker,vrs-redirect-admin@docker" # combine the two in a chain
+          - "traefik.http.routers.vrs.middlewares=vrs@docker" # apply the chain
+          - traefik.http.routers.vrs.tls=true
+          - traefik.http.routers.vrs.rule=Host(`vrs.domain.com`)
+          - traefik.http.services.vrs.loadbalancer.server.port=8080
+          - traefik.http.routers.vrs.service=vrs
     macos:
         container_name: macos
         restart: 'always'
@@ -507,16 +688,6 @@ services:
         devices:
             - /dev/kvm
         user: root
-    deepstack:
-        container_name: deepstack
-        restart: 'unless-stopped'
-        image: deepquestai/deepstack
-        volumes:
-            - /opt/deepstack:/modelstore/detection:ro
-        environment:
-            - TZ=America/Chicago
-        #ports:
-        #    - 8110:5000
     frigate:
         container_name: frigate
         privileged: true
@@ -539,6 +710,21 @@ services:
             - "8555:8555/tcp"
             - "8555:8555/udp"
             - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.routers.frigate.entrypoints=websecure
+          - traefik.http.routers.frigate.tls=true
+          - traefik.http.routers.frigate.rule=Host(`frigate.domain.com`)
+          - traefik.http.services.frigate.loadbalancer.server.port=5000
+          - traefik.http.routers.frigate.service=frigate
+          # HTTP Local Only
+          - traefik.http.routers.frigate_local.entrypoints=web
+          - traefik.http.routers.frigate_local.rule=Host(`nodered.home.domain.com`)
+          - traefik.http.routers.frigate_local.service=frigate
+          - traefik.http.routers.frigatelocal.entrypoints=web
+          - traefik.http.routers.frigatelocal.rule=Host(`frigatelocal`)
+          - traefik.http.routers.frigatelocal.service=frigate
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
@@ -551,6 +737,13 @@ services:
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+        labels:
+          # HTTP Local Only
+          - traefik.enable=true
+          - traefik.http.routers.codeproject_local.entrypoints=web
+          - traefik.http.services.codeproject_local.loadbalancer.server.port=32168
+          - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
+          - traefik.http.routers.codeproject_local.service=codeproject_local
     auto-southwest:
         image: jdholtz/auto-southwest-check-in
         container_name: auto-southwest
@@ -568,12 +761,20 @@ services:
         image: ghcr.io/matt8707/ha-fusion
         volumes:
             - /opt/ha-fusion/data:/app/data
-        ports:
-            - 5050:5050
+        #ports:
+        #    - 5050:5050
         environment:
             TZ: America/Chicago
             HASS_URL: http://10.0.1.22:8123
         restart: always
+        labels:
+          # HTTPS for CF
+          - traefik.enable=true
+          - traefik.http.services.ha_fusion_local.loadbalancer.server.port=5050
+          # HTTP Local Only
+          - traefik.http.routers.ha_fusion_local.entrypoints=web
+          - traefik.http.routers.ha_fusion_local.rule=Host(`ha-fusion.home.domain.com`)
+          - traefik.http.routers.ha_fusion_local.service=ha_fusion_local
 
 networks:
   macos_network:
