@@ -540,11 +540,16 @@ services:
         extra_hosts:
             - "host.docker.internal:host-gateway"
         labels:
+          # HTTPS for CF
           - traefik.enable=true
           - traefik.http.routers.traefik_https.rule=Host(`traefik.domain.com`)
           - traefik.http.routers.traefik_https.entrypoints=websecure
           - traefik.http.routers.traefik_https.tls=true
           - traefik.http.routers.traefik_https.service=api@internal
+          # HTTP Local Only
+          - traefik.http.routers.traefik_local.entrypoints=web
+          - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
+          - traefik.http.routers.traefik_local.service=frigate
     cloudflared:
         container_name: cloudflared
         image: cloudflare/cloudflared:latest
@@ -720,7 +725,7 @@ services:
           - traefik.http.routers.frigate.service=frigate
           # HTTP Local Only
           - traefik.http.routers.frigate_local.entrypoints=web
-          - traefik.http.routers.frigate_local.rule=Host(`nodered.home.domain.com`)
+          - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
           - traefik.http.routers.frigate_local.service=frigate
           - traefik.http.routers.frigatelocal.entrypoints=web
           - traefik.http.routers.frigatelocal.rule=Host(`frigatelocal`)
