@@ -1,0 +1,54 @@
+http:
+  middlewares:
+    secureHeaders:
+      headers:
+        sslRedirect: true
+        forceSTSHeader: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 31536000
+  serversTransports:
+    skipVerify:
+      insecureSkipVerify: true
+  routers:
+    pfsense:
+      entryPoints:
+      - websecure
+      service: pfsense
+      rule: host(`pfsense.domain.com`)
+      tls: true
+    plane:
+      entryPoints:
+      - websecure
+      service: plane
+      rule: host(`plane.domain.com`)
+      tls: true
+  services:
+    plane:
+      loadBalancer:
+        servers:
+          - url: http://10.0.1.8
+        passHostHeader: true
+    pfsense:
+      loadBalancer:
+        servers:
+          - url: https://10.0.1.1
+        passHostHeader: true
+        serversTransport: skipVerify
+
+tls:
+  options:
+    default:
+      cipherSuites:
+        - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+        - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+        - TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305
+        - TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305
+      minVersion: VersionTLS12
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /opt/certs/cert.crt
+        keyFile: /opt/certs/cert.key
