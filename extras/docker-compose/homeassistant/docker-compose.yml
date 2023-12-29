@@ -1,72 +1,58 @@
 version: '3.2'
-
-#volumes:
-#  # https://rclone.org/docker/
-#  frigate-drive:
-#    driver: rclone
-#    driver_opts:
-#      remote: 'frigate-drive:Frigate Offsite'
-#      allow_other: 'true'
-#      vfs_cache_mode: full
-#      poll_interval: 0
-
 services:
     homeassistant:
         container_name: homeassistant
         image: ghcr.io/home-assistant/home-assistant:stable
         labels:
-          - com.centurylinklabs.watchtower.monitor-only=true
-          # HTTPS for CF
-          - traefik.enable=true
-          - traefik.http.routers.assist.entrypoints=websecure
-          - traefik.http.routers.assist.tls=true
-          - traefik.http.routers.assist.rule=Host(`assist.domain.com`)
-          - traefik.http.services.assist.loadbalancer.server.port=8123
-          - traefik.http.routers.assist.service=assist
-          # HTTP Local Only
-          - traefik.http.routers.assist_local.entrypoints=web
-          - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
-          - traefik.http.routers.assist_local.service=assist
+            - com.centurylinklabs.watchtower.monitor-only=true
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.assist.entrypoints=websecure
+            - traefik.http.routers.assist.tls=true
+            - traefik.http.routers.assist.rule=Host(`assist.domain.com`)
+            - traefik.http.services.assist.loadbalancer.server.port=8123
+            - traefik.http.routers.assist.service=assist
+            # HTTP Local Only
+            - traefik.http.routers.assist_local.entrypoints=web
+            - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
+            - traefik.http.routers.assist_local.service=assist
         volumes:
-          - /opt/homeassistant:/config
-          - /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
-          - /var/run/docker.sock:/var/run/docker.sock
-          - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
-          - /tmp/radar.gif:/tmp/radar.gif
-          - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
-          - /etc/localtime:/etc/localtime:ro
-          - /frigate-drive:/frigate
-          - /opt/frigate:/etc/frigate:ro
-          - /frigate:/frigate_disk:ro
+            - /opt/homeassistant:/config
+            #- /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
+            - /tmp/radar.gif:/tmp/radar.gif
+            - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro
+            - /etc/localtime:/etc/localtime:ro
+            - /frigate-drive:/frigate
+            - /opt/frigate:/etc/frigate:ro
+            - /frigate:/frigate_disk:ro
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
         environment:
-          - TZ=America/Chicago
-        healthcheck:
-          test: 'curl -m 90 -sLf http://localhost:8123 || date >> /config/healthcheck' #| pkill -9 python3'
-          interval: 90s
-          timeout: 60s
-          retries: 2
+            - TZ=America/Chicago
         network_mode: host
         restart: always
         logging:
-          driver: none
+            driver: none
+
     mariadb:
         container_name: mariadb
         image: 'mariadb:latest'
         user: '99'
         ports:
-          - '127.0.0.1:3306:3306' # Expose localhost only for Home Assistant
+            - '127.0.0.1:3306:3306' # Expose localhost only for Home Assistant
         volumes:
-          - /opt/mariadb:/var/lib/mysql
+            - /opt/mariadb:/var/lib/mysql
         environment:
-          - MYSQL_ROOT_PASSWORD=PASSWORD
-          - MYSQL_USER=homeassistant
-          - MYSQL_PASSWORD=homeassistant
-          - MYSQL_DATABASE=homeassistant
-          - TZ=America/Chicago
+            - MYSQL_ROOT_PASSWORD=PASSWORD
+            - MYSQL_USER=homeassistant
+            - MYSQL_PASSWORD=homeassistant
+            - MYSQL_DATABASE=homeassistant
+            - TZ=America/Chicago
         restart: always
+
     mosquitto:
         container_name: mosquitto
         image: eclipse-mosquitto:latest
@@ -86,16 +72,12 @@ services:
             - '1883:1883'
             - '8883:8883'
         restart: always
+
     influxdb:
         container_name: influxdb
         #image: influxdb
         image: influxdb:1.8.4-alpine
         user: '99'
-        #healthcheck:
-        #  test: "curl -sf http://localhost:8086/ping"
-        #  interval: 60s
-        #  timeout: 10s
-        #  retries: 5
         volumes:
             - '/opt/influxdb:/var/lib/influxdb'
             - '/opt/influxdb/conf:/etc/influxdb'
@@ -104,68 +86,67 @@ services:
         restart: always
         environment:
             - TZ=America/Chicago
+
     nodered:
         container_name: nodered
         image: nodered/node-red:latest
         user: '99'
         volumes:
-          - /opt/nodered:/data
-          - /etc/localtime:/etc/localtime:ro
-        # ports:
-        #   - "1880:1880"
+            - /opt/nodered:/data
+            - /etc/localtime:/etc/localtime:ro
         environment:
-          - TZ=America/Chicago
+            - TZ=America/Chicago
         restart: always
         labels:
-          # HTTPS for CF
-          - traefik.enable=true
-          - traefik.http.routers.nodered.entrypoints=websecure
-          - traefik.http.routers.nodered.tls=true
-          - traefik.http.routers.nodered.rule=Host(`nodered.domain.com`)
-          - traefik.http.services.nodered.loadbalancer.server.port=1880
-          - traefik.http.routers.nodered.service=nodered
-          # HTTP Local Only
-          - traefik.http.routers.nodered_local.entrypoints=web
-          - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
-          - traefik.http.routers.nodered_local.service=nodered
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.nodered.entrypoints=websecure
+            - traefik.http.routers.nodered.tls=true
+            - traefik.http.routers.nodered.rule=Host(`nodered.domain.com`)
+            - traefik.http.services.nodered.loadbalancer.server.port=1880
+            - traefik.http.routers.nodered.service=nodered
+            # HTTP Local Only
+            - traefik.http.routers.nodered_local.entrypoints=web
+            - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
+            - traefik.http.routers.nodered_local.service=nodered
+
     appdaemon:
         container_name: appdaemon
-        #image: acockburn/appdaemon:4.0.5
         image: acockburn/appdaemon:dev
-        #user: '99'
         healthcheck:
-          test: "curl -sf http://localhost:8888"
-          interval: 60s
-          timeout: 10s
-          retries: 5
+            test: "curl -sf http://localhost:8888"
+            interval: 60s
+            timeout: 10s
+            retries: 5
         volumes:
-          - /etc/localtime:/etc/localtime:ro
-          - /opt/appdaemon:/conf
-          # Mount directory of appdaemon apps installed by HACS
-          - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
-          #- /home/aneisch/dockerStart.sh:/usr/src/app/dockerStart.sh:ro
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/appdaemon:/conf
+            # Mount directory of appdaemon apps installed by HACS
+            - /opt/homeassistant/appdaemon/apps:/conf/apps/hacs
         environment:
-          - TZ=America/Chicago
+            - TZ=America/Chicago
         ports:
-          - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant rest_command
+            - '127.0.0.1:8888:8888' # Expose localhost only for Home Assistant rest_command
         restart: always
         labels:
-          # HTTPS for CF
-          - traefik.enable=true
-          - traefik.http.routers.appdaemon.entrypoints=websecure
-          - traefik.http.routers.appdaemon.tls=true
-          - traefik.http.routers.appdaemon.rule=Host(`appdaemon.domain.com`)
-          - traefik.http.services.appdaemon.loadbalancer.server.port=8888
-          - traefik.http.routers.appdaemon.service=appdaemon
-          # HTTP Local Only
-          - traefik.http.routers.appdaemon_local.entrypoints=web
-          - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
-          - traefik.http.routers.appdaemon_local.service=appdaemon
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.appdaemon.entrypoints=websecure
+            - traefik.http.routers.appdaemon.tls=true
+            - traefik.http.routers.appdaemon.rule=Host(`appdaemon.domain.com`)
+            - traefik.http.services.appdaemon.loadbalancer.server.port=8888
+            - traefik.http.routers.appdaemon.service=appdaemon
+            # HTTP Local Only
+            - traefik.http.routers.appdaemon_local.entrypoints=web
+            - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
+            - traefik.http.routers.appdaemon_local.service=appdaemon
+
     thermostat_api_server:
         container_name: thermostat_api_server
+        restart: always
         image: ghcr.io/aneisch/thermostat_api_server:latest
         volumes:
-          - /etc/localtime:/etc/localtime:ro
+            - /etc/localtime:/etc/localtime:ro
         ports:
             - '8080:8080'
         environment:
@@ -173,8 +154,8 @@ services:
             - MQTT_SERVER=10.0.1.22
             - TZ=America/Chicago
         depends_on:
-          - mosquitto
-        restart: always
+            - mosquitto
+
     zwavejs:
         container_name: zwavejs
         image: zwavejs/zwavejs2mqtt:latest
@@ -191,19 +172,21 @@ services:
         environment:
             - TZ=America/Chicago
         labels:
-          # HTTPS for CF
-          - traefik.enable=true
-          - traefik.http.routers.zwavejs.entrypoints=websecure
-          - traefik.http.routers.zwavejs.tls=true
-          - traefik.http.routers.zwavejs.rule=Host(`zwavejs.domain.com`)
-          - traefik.http.services.zwavejs.loadbalancer.server.port=8091
-          - traefik.http.routers.zwavejs.service=zwavejs
-          # HTTP Local Only
-          - traefik.http.routers.zwavejs_local.entrypoints=web
-          - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
-          - traefik.http.routers.zwavejs_local.service=zwavejs    
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.zwavejs.entrypoints=websecure
+            - traefik.http.routers.zwavejs.tls=true
+            - traefik.http.routers.zwavejs.rule=Host(`zwavejs.domain.com`)
+            - traefik.http.services.zwavejs.loadbalancer.server.port=8091
+            - traefik.http.routers.zwavejs.service=zwavejs
+            # HTTP Local Only
+            - traefik.http.routers.zwavejs_local.entrypoints=web
+            - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
+            - traefik.http.routers.zwavejs_local.service=zwavejs  
+
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
+        restart: always
         image: ghcr.io/aneisch/cellular_message_relay:sim7080g
         #image: cellular_message_relay:sim7080g
         ports:
@@ -218,4 +201,4 @@ services:
             - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
-        restart: always
+
