@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -614,7 +614,7 @@ services:
             - FTP_USERNAME=MyUser
             - FTP_PASSWORD=MyPAss
             - NOTIFICATIONS_WEBHOOK_URL="N/A"
-            - WORKSHEET_NAME=2023
+            - WORKSHEET_NAME=2024
             - TZ=America/Chicago
         volumes:
             # db and previously_processed_files.txt

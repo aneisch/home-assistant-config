@@ -15,6 +15,7 @@ automation:
         - binary_sensor.hallway_alarm_co_alarm_replacement_required_end_of_life
         - binary_sensor.hallway_alarm_smoke_alarm_alarm_silenced
         - binary_sensor.hallway_alarm_system_system_hardware_failure
+        - binary_sensor.hardwired_smoke_alarms_carbon_monoxide_detected
       from: "off"
       to: "on"
     action:
@@ -45,6 +46,7 @@ automation:
         - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.hardwired_smoke_alarms_smoke_detected
       from: "off"
       to: "on"
     action:
@@ -53,7 +55,7 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-            {{ trigger.from_state.attributes.friendly_name }}: triggered
+            {{ trigger.from_state.attributes.friendly_name }}: Triggered
           data:
             priority: 2
       - service: climate.turn_off
@@ -69,6 +71,7 @@ automation:
         - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.hardwired_smoke_alarms_smoke_detected
       from: "on"
       to: "off"
     action:
@@ -77,7 +80,7 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-            {{ trigger.from_state.attributes.friendly_name }}: cleared
+            {{ trigger.from_state.attributes.friendly_name }}: Cleared
           data:
             priority: 1
       - service: climate.turn_on

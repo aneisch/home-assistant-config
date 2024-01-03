@@ -1,23 +1,24 @@
-- platform: systemmonitor
-  scan_interval:
-    seconds: 60
-  resources:
-    - type: disk_use_percent
-      arg: /home
-    - type: disk_use_percent
-      arg: /
-    - type: disk_use_percent
-      arg: /frigate_disk
-    - type: memory_use_percent
-    - type: network_in
-      arg: eno1
-    - type: network_out
-      arg: eno1
-    - type: last_boot
-    - type: processor_use
-    - type: load_1m
-    - type: load_5m
-    - type: load_15m
+# Now in UI
+# - platform: systemmonitor
+#   scan_interval:
+#     seconds: 60
+#   resources:
+#     - type: disk_use_percent
+#       arg: /home
+#     - type: disk_use_percent
+#       arg: /
+#     - type: disk_use_percent
+#       arg: /frigate_disk
+#     - type: memory_use_percent
+#     - type: network_in
+#       arg: eno1
+#     - type: network_out
+#       arg: eno1
+#     - type: last_boot
+#     - type: processor_use
+#     - type: load_1m
+#     - type: load_5m
+#     - type: load_15m
 
 - platform: pfsense_gateways
   host: 10.0.1.1
