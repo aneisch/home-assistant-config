@@ -12,37 +12,39 @@ cards:
             entity: lock.front_door
             tap_action:
               action: toggle
-            style: |
-              @keyframes blink {
-                50% {
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('lock.front_door') == "unlocked" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
                   {% if states('lock.front_door') == "unlocked" %}
-                  background: red;
+                  animation: blink 1s linear infinite;
                   {% endif %}
                 }
-              }
-              ha-card {
-                {% if states('lock.front_door') == "unlocked" %}
-                animation: blink 1s linear infinite;
-                {% endif %}
-              }
 
           - type: custom:mushroom-entity-card
             entity: cover.garage_door
             tap_action:
               action: toggle
-            style: |
-              @keyframes blink {
-                50% {
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('cover.garage_door') == "open" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
                   {% if states('cover.garage_door') == "open" %}
-                  background: red;
+                  animation: blink 1s linear infinite;
                   {% endif %}
                 }
-              }
-              ha-card {
-                {% if states('cover.garage_door') == "open" %}
-                animation: blink 1s linear infinite;
-                {% endif %}
-              }
 
           - type: custom:mushroom-light-card
             entity: light.entryway_light
@@ -181,20 +183,21 @@ cards:
               - type: custom:mushroom-template-card
                 primary: "LED"
                 secondary: "White"
-                style: |
-                  @keyframes blink {
-                    50% {
-                      background: white;
+                card_mod:
+                  style: |
+                    @keyframes blink {
+                      50% {
+                        background: white;
+                      }
                     }
-                  }
-                  ha-card {
-                    {% if state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
-                    background: black;
-                    animation: blink 1s linear infinite;
-                    {% else %}
-                    background: white;
-                    {% endif %}
-                  }
+                    ha-card {
+                      {% if state_attr('light.desk_led','rgb_color') == (255, 255, 255) %}
+                      background: black;
+                      animation: blink 1s linear infinite;
+                      {% else %}
+                      background: white;
+                      {% endif %}
+                    }
                 tap_action:
                   action: call-service
                   service: light.turn_on
@@ -217,21 +220,21 @@ cards:
               - type: custom:mushroom-template-card
                 primary: "LED"
                 secondary: "Red"
-
-                style: |
-                  @keyframes blink {
-                    50% {
-                      background: red;
+                card_mod:
+                  style: |
+                    @keyframes blink {
+                      50% {
+                        background: red;
+                      }
                     }
-                  }
-                  ha-card {
-                    {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
-                    background: black;
-                    animation: blink 1s linear infinite;
-                    {% else %}
-                    background: red;
-                    {% endif %}
-                  }
+                    ha-card {
+                      {% if state_attr('light.desk_led','rgb_color') == (255, 0, 0) %}
+                      background: black;
+                      animation: blink 1s linear infinite;
+                      {% else %}
+                      background: red;
+                      {% endif %}
+                    }
                 tap_action:
                   action: call-service
                   service: light.turn_on

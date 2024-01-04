@@ -8,13 +8,14 @@ card:
     - type: custom:mushroom-template-card
       primary: "{{ states('sensor.flume_sensor_home_current') | round(2) }} gal/m"
       icon: mdi:water
-      style: |
-        @keyframes blink {
-          50% {
-            background: white;
+      card_mod:
+        style: |
+          @keyframes blink {
+            50% {
+              background: white;
+            }
           }
-        }
-        ha-card {
-          background: blue;
-          animation: blink 3s linear infinite;
-        }
+          ha-card {
+            background: blue;
+            animation: blink 3s linear infinite;
+          }

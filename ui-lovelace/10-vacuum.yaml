@@ -167,10 +167,11 @@ cards:
   #       icon: "mdi:crosshairs"
 
   - type: custom:xiaomi-vacuum-map-card
-    style: |
-      .room-wrapper {
-        --map-card-internal-room-outline-fill-color-selected: rgba(255, 0, 0, 1)
-      }
+    card_mod:
+      style: |
+        .room-wrapper {
+          --map-card-internal-room-outline-fill-color-selected: rgba(255, 0, 0, 1)
+        }
     entity: vacuum.roborock_s4
     map_source:
       camera: camera.xiaomi_cloud_map_extractor

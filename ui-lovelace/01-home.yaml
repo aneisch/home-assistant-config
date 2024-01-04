@@ -24,68 +24,77 @@ cards:
             entity: alarm_control_panel.alexa_guard_7f9e9
           - entity: automation.frigate_notification_person
           - entity: lock.front_door
-            style: |
-              :host {
-                {% if states('lock.front_door') == 'unlocked' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('lock.front_door') == 'unlocked' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: lock.garage_exterior_door
-            style: |
-              :host {
-                {% if states('lock.garage_exterior_door') == 'unlocked' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('lock.garage_exterior_door') == 'unlocked' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: lock.back_door
-            style: |
-              :host {
-                {% if states('lock.back_door') == 'unlocked' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('lock.back_door') == 'unlocked' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: cover.garage_door
-            style: |
-              :host {
-                {% if states('cover.garage_door') == 'open' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('cover.garage_door') == 'open' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: binary_sensor.garage_exterior_door
-            style: |
-              :host {
-                {% if states('binary_sensor.garage_exterior_door') == 'on' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('binary_sensor.garage_exterior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: binary_sensor.garage_interior_door
-            style: |
-              :host {
-                {% if states('binary_sensor.garage_interior_door') == 'on' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('binary_sensor.garage_interior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: binary_sensor.front_door
-            style: |
-              :host {
-                {% if states('binary_sensor.front_door') == 'on' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('binary_sensor.front_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: binary_sensor.master_bedroom_exterior_door
-            style: |
-              :host {
-                {% if states('binary_sensor.master_bedroom_exterior_door') == 'on' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('binary_sensor.master_bedroom_exterior_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
           - entity: binary_sensor.back_porch_door
-            style: |
-              :host {
-                {% if states('binary_sensor.back_porch_door') == 'on' %}
-                --paper-item-icon-color: red
-                {% endif %}
-              }
+            card_mod:
+              style: |
+                :host {
+                  {% if states('binary_sensor.back_porch_door') == 'on' %}
+                  --paper-item-icon-color: red
+                  {% endif %}
+                }
 
       - type: markdown
         content: |

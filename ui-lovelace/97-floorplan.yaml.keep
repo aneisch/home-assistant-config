@@ -6,15 +6,16 @@ cards:
   - type: picture-elements
     image: /local/floorplan/master/master_base.png
     # Requires card-mod plugin, allows fan to rotate with animation
-    style: |
-      @keyframes rotation {
-        from {
-          transform: rotate(0deg);
+    card_mod:
+      style: |
+        @keyframes rotation {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(359deg);
+          }
         }
-        to {
-          transform: rotate(359deg);
-        }
-      }
     elements:
       - type: image
         entity: light.andrew_nightstand_lamp

@@ -117,7 +117,7 @@ cards:
           - entity: sensor.thermopro_probe_2_high_estimated_length
             name: Probe 2 Time Remaining
             icon: 'mdi:clock'
-          - entity: sensor.thermopro_probe_2_high_estimated_length
+          - entity: sensor.meater_tip_high_estimated_length
             name: Meater Time Remaining
             icon: 'mdi:clock'
           - sensor.sensor_thermopro_probe_1_derivative

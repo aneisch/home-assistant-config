@@ -994,21 +994,21 @@
         message: >
           Turned coffee maker off!
 
-- alias: "Front Door NFC"
-  id: "front_door_nfc"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: sensor.rfid_tag
-  condition: '{{ "08" in trigger.to_state.state[:-2] }}'
-  action:
-    - service: script.notify_wrapper
-      data:
-        message: "Front door unlocked by NFC"
-        data:
-          priority: 1
-    - service: lock.unlock
-      entity_id: lock.front_door
+# - alias: "Front Door NFC"
+#   id: "front_door_nfc"
+#   initial_state: on
+#   trigger:
+#     - platform: state
+#       entity_id: sensor.rfid_tag
+#   condition: '{{ "08" in trigger.to_state.state[:-2] }}'
+#   action:
+#     - service: script.notify_wrapper
+#       data:
+#         message: "Front door unlocked by NFC"
+#         data:
+#           priority: 1
+#     - service: lock.unlock
+#       entity_id: lock.front_door
 
 - alias: "Turn off AC Fan"
   # In case I manually turned on the fan to clear stale air

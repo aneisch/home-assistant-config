@@ -11,19 +11,20 @@ card:
   cards:
     - type: custom:bignumber-card
       entity: sensor.kitchen_timer_countdown
-      style: |
-          @keyframes blink {
-            50% {
+      card_mod:
+        style: |
+            @keyframes blink {
+              50% {
+                {% if states('sensor.kitchen_timer_countdown') == "Expired" %}
+                background: red;
+                {% endif %}
+              }
+            }
+            ha-card {
               {% if states('sensor.kitchen_timer_countdown') == "Expired" %}
-              background: red;
+              animation: blink 1s linear infinite;
               {% endif %}
             }
-          }
-          ha-card {
-            {% if states('sensor.kitchen_timer_countdown') == "Expired" %}
-            animation: blink 1s linear infinite;
-            {% endif %}
-          }
     - type: conditional
       conditions:
         - entity: sensor.kitchen_timer_countdown
