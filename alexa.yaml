@@ -119,6 +119,10 @@ smart_home:
       name: "Under Cabinet Lights"
       display_categories: LIGHT
 
+    lock.all_doors:
+      name: Doors
+      display_categories: SMARTLOCK
+
     light.andrew_nightstand_lamp:
       name: "Andrew's Lamp"
       description: "Andrew's nightstand lamp"

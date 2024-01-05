@@ -1,0 +1,519 @@
+title: Vacuum
+icon: mdi:robot-vacuum
+panel: false
+cards:
+  # - type: 'custom:card-templater'
+  #   entities:
+  #     - vacuum.roborock_s4
+  #   card:
+  #     type: picture-elements
+  #     image: "/local/images/roborock/roborock_s4.jpg"
+  #     elements:
+  #       - type: state-label
+  #         entity: vacuum.roborock_s4
+  #         prefix: "Roxie is "
+  #         style:
+  #           left: 0
+  #           right: 0
+  #           bottom: 0
+  #           background-color: "rgba(0, 0, 0, 0.3)"
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: icon
+  #         title: Battery
+  #         icon_template: '{{ state_attr("vacuum.roborock_s4", "battery_icon") }}'
+  #         style:
+  #           right: 210px
+  #           bottom: 0
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: state-label
+  #         title: Battery Level
+  #         entity: sensor.roborock_s4_battery
+  #         style:
+  #           right: 150px
+  #           bottom: -5px
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: icon
+  #         title: Locate Vacuum
+  #         icon: 'mdi:map-marker'
+  #         tap_action:
+  #           action: call-service
+  #           service: vacuum.locate
+  #           service_data:
+  #             entity_id: vacuum.roborock_s4
+  #         style:
+  #           right: 120px
+  #           bottom: 0
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: icon
+  #         title: Clean Whole House
+  #         icon: 'mdi:broom'
+  #         tap_action:
+  #           action: call-service
+  #           service: mqtt.publish
+  #           service_data:
+  #             payload: 1
+  #             topic: /nodered/vacuum_whole_house
+  #         style:
+  #           right: 80px
+  #           bottom: 0
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: icon
+  #         title: Return To Base
+  #         icon: 'mdi:home-map-marker'
+  #         tap_action:
+  #           action: call-service
+  #           service: vacuum.return_to_base
+  #           service_data:
+  #             entity_id: vacuum.roborock_s4
+  #         style:
+  #           right: 40px
+  #           bottom: 0
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: icon
+  #         title: Go to Trash
+  #         icon: 'mdi:trash-can'
+  #         tap_action:
+  #           action: call-service
+  #           service: script.vacuum_park_trashcan
+  #         style:
+  #           right: 0px
+  #           bottom: 0
+  #           padding: 10px
+  #           font-size: 16px
+  #           line-height: 16px
+  #           color: white
+  #           transform: translate(0%,0%)
+  #       - type: state-label
+  #         entity: sensor.roborock_s4_last_cleaned
+  #         prefix: 'Last ran '
+  #         suffix: ' ago'
+  #         style:
+  #           background-color: "rgba(0, 0, 0, 0.3)"
+  #           bottom: 85%
+  #           padding: 8px
+  #           font-size: 16px
+  #           line-height: 2px
+  #           color: white
+  #           transform: translate(0%,0%)
+        # - type: state-label
+        #   prefix: "Ran "
+        #   suffix: "x"
+        #   entity: sensor.roborock_s4_lifetime_cleaning_count
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 85%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
+        # - type: state-label
+        #   prefix: "Ran for "
+        #   suffix: " hrs"
+        #   entity: sensor.roborock_s4_lifetime_cleaning_time
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 72%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
+        # - type: state-label
+        #   entity: sensor.roborock_s4_lifetime_cleaned_area
+        #   prefix: "Cleaned "
+        #   style:
+        #     background-color: "rgba(0, 0, 0, 0.3)"
+        #     bottom: 59%
+        #     right: 0px
+        #     padding: 8px
+        #     font-size: 16px
+        #     line-height: 2px
+        #     color: white
+        #     transform: translate(0%,0%)
+        #     width: 25%
+
+  # - type: entities
+  #   entities:
+  #     - entity: sensor.roborock_current_room
+  #       icon: "mdi:crosshairs"
+
+  - type: custom:xiaomi-vacuum-map-card
+    card_mod:
+      style: |
+        .room-wrapper {
+          --map-card-internal-room-outline-fill-color-selected: rgba(255, 0, 0, 1)
+        }
+    entity: vacuum.roborock_s4
+    map_source:
+      camera: camera.xiaomi_cloud_map_extractor
+    calibration_source:
+      camera: true
+    map_locked: true
+    icons:
+      - icon: "mdi:play"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "cleaning"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "returning"
+        tap_action:
+          action: call-service
+          service: vacuum.start
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:pause"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "idle"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "paused"
+        tap_action: 
+          action: call-service
+          service: vacuum.pause
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:stop"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "idle"
+          - entity: vacuum.roborock_s4
+            value_not: "error"
+          - entity: vacuum.roborock_s4
+            value_not: "paused"
+        tap_action:
+          action: call-service
+          service: vacuum.stop
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: "mdi:home-map-marker"
+        conditions: 
+          - entity: vacuum.roborock_s4
+            value_not: "docked"
+          - entity: vacuum.roborock_s4
+            value_not: "returning"
+        tap_action:
+          action: call-service
+          service: vacuum.return_to_base
+          service_data:
+            entity_id: vacuum.roborock_s4
+      - icon: mdi:trash-can
+        tap_action:
+          action: call-service
+          service: script.vacuum_park_trashcan
+    tiles:
+      - label: "Status"
+        entity: vacuum.roborock_s4
+        attribute: "status"
+        icon: "mdi:robot-vacuum"
+      - label: "Battery"
+        entity: vacuum.roborock_s4
+        attribute: "battery_level"
+        icon: mdi:battery
+        unit: "%"
+      - label: "Fan Speed"
+        entity: vacuum.roborock_s4
+        attribute: "fan_speed"
+        icon: mdi:fan
+      - label: "Location"
+        entity: sensor.roborock_current_room
+        icon: mdi:crosshairs
+        # conditions:
+        #   - entity: sensor.roborock_current_room
+        #     value_not: Unavailable
+      - label: "Go To Trashcan When Done"
+        icon: mdi:delete
+        entity: input_boolean.return_to_trashcan
+        tap_action:
+          action: call-service
+          service: homeassistant.toggle
+          service_data:
+            entity_id: input_boolean.return_to_trashcan
+    map_modes:
+      - template: vacuum_clean_segment
+        max_selections: 20
+        predefined_selections:
+          - id: 16 # Hallway
+            outline: [[22011,24995],[22144,18914],[23113,18876],[22942,25014]]
+          - id: 17 # Back Bathroom
+            outline: [[9230,15623],[9230,12657],[10145,12616],[10104,13734],[11059,13815],[11018,14567],[10490,14567],[10490,15623]]
+          - id: 18 # Master Bedroom
+            outline: [[22070,18853],[22029,14221],[27433,14262],[27392,18873]]
+          - id: 19 # Guest Bathroom
+            outline: [[23045,23912],[25726,23851],[25645,24277],[27291,24257],[27230,25496],[26173,25435],[26153,25070],[22984,24948]]
+          - id: 20 # Bethany's Office
+            outline: [[23512,23079],[23532,19970],[27392,19910],[27311,23262]]
+          - id: 21 # Office
+            outline: [[18254,28674],[18268,24978],[21810,24964],[21740,28702]]
+          - id: 22 # Dining Room
+            outline: [[11954,30382],[12010,25468],[15930,25622],[15832,30508]]
+          - id: 23 # Living Room
+            outline: [[16126,27946],[16000,18202],[16784,19056],[20536,19196],[21978,20736],[21852,24782],[18114,24824],[18072,27932]]
+          - id: 24 # Kitchen
+            outline: [[15916,20414],[15818,15836],[10722,15724],[10680,16662],[12248,16746],[12206,19644],[12808,19672],[12822,23746],[13466,24348],[13480,24796],[13900,24810],[13900,25468],[14992,25496],[14992,24516],[15146,24516],[15160,20414]]
+          - id: 25 # Back Bedroom
+            outline: [[9098,16550],[9210,12630],[5696,12392],[5416,16270]]
+          - id: 26 # Guest Bedroom
+            outline: [[22006,28632],[22104,25048],[25982,25118],[25912,28702]]
+          - id: 27 # Master Bathroom
+            outline: [[22720,13946],[22692,13484],[22566,13456],[22566,12756],[22076,12714],[22090,12182],[22580,12126],[22608,11104],[24162,11034],[24176,10824],[23798,10768],[23826,10124],[25464,10110],[27424,9956],[27354,10852],[26976,10908],[26920,12238],[27396,12294],[27424,13862],[25688,13890],[25632,11734],[24960,11748],[24960,12840],[24652,12798],[24554,13946]]
+      - template: vacuum_clean_zone
+      - template: vacuum_goto
+      - template: vacuum_follow_path
+      # - name: Rooms
+      #   icon: mdi:select-drag
+      #   selection_type: ROOM
+      #   max_selections: 6
+      #   service_call_schema:
+      #     service: vacuum.do_rooms
+      #     service_data:
+      #       rooms: "[[selection]]"
+      #       predefined: "true"
+      #     target:
+      #       entity_id: "[[entity_id]]"      
+  # - type: vertical-stack
+  #   cards:
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: picture-elements
+  #           image: /local/images/roborock/side_brush.png
+  #           elements:
+  #             - type: state-label
+  #               entity: sensor.roborock_s4_side_brush_remaining
+  #               title: '% Remaining Until Side Brush Should Be Replaced'
+  #               style:
+  #                 font-size: 30px
+  #                 color: orange
+  #                 left: 0px
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 background-color: "rgba(0, 0, 0, 0.3)"
+  #                 transform: translate(0%,0%)
+  #             - type: state-label
+  #               title: Hours Remaining Until Side Brush Should Be Replaced
+  #               entity: sensor.roborock_s4_side_brush_hrs_remaining
+  #               suffix: ' left'
+  #               style:
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 padding: 10px
+  #                 font-size: 16px
+  #                 line-height: 16px
+  #                 color: white
+  #                 transform: translate(0%,0%)
+  #             - type: icon
+  #               icon: mdi:restart
+  #               title: Reset Hours
+  #               tap_action:
+  #                 action: call-service
+  #                 service: vacuum.send_command
+  #                 service_data:
+  #                   entity_id: vacuum.roborock_s4
+  #                   command: reset_consumable
+  #                   params: ['side_brush_work_time']
+  #                 confirmation:
+  #                   text: Are you sure you want to reset the hours remaining counter for replacing the side brush?
+  #               style:
+  #                 top: 0px
+  #                 right: 0px
+  #                 padding: 7px
+  #                 transform: translate(0%,0%)
+  #                 color: white
+
+  #         - type: picture-elements
+  #           image: /local/images/roborock/sensors.png
+  #           elements:
+  #             - type: state-label
+  #               entity: sensor.roborock_s4_sensors_remaining
+  #               title:  "% Remaining Until Sensors Should Be Cleaned"
+  #               style:
+  #                 font-size: 30px
+  #                 color: orange
+  #                 left: 0px
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 background-color: "rgba(0, 0, 0, 0.3)"
+  #                 transform: translate(0%,0%)
+  #             - type: state-label
+  #               title:  "Hours Remaining Until Sensors Should Be Cleaned"
+  #               entity: sensor.roborock_s4_sensors_hrs_remaining
+  #               suffix: ' left'
+  #               style:
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 padding: 10px
+  #                 font-size: 16px
+  #                 line-height: 16px
+  #                 color: white
+  #                 transform: translate(0%,0%)
+  #             - type: icon
+  #               icon: mdi:restart
+  #               title: Reset Hours
+  #               tap_action:
+  #                 action: call-service
+  #                 service: vacuum.send_command
+  #                 service_data:
+  #                   entity_id: vacuum.roborock_s4
+  #                   command: reset_consumable
+  #                   params: ['sensor_dirty_time']
+  #                 confirmation:
+  #                   text: Are you sure you want to reset the hours remaining counter for cleaning the sensors?
+  #               style:
+  #                 top: 0px
+  #                 right: 0px
+  #                 padding: 7px
+  #                 transform: translate(0%,0%)
+  #                 color: white
+  
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: picture-elements
+  #           image: /local/images/roborock/filter.png
+  #           elements:
+  #             - type: state-label
+  #               title: '% Remaining Until Filter Should Be Replaced'
+  #               entity: sensor.roborock_s4_filter_remaining
+  #               style:
+  #                 font-size: 30px
+  #                 color: orange
+  #                 left: 0px
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 background-color: "rgba(0, 0, 0, 0.3)"
+  #                 transform: translate(0%,0%)
+  #             - type: state-label
+  #               title: 'Hours Remaining Until Filter Should Be Replaced'
+  #               entity: sensor.roborock_s4_filter_hrs_remaining
+  #               suffix: ' left'
+  #               style:
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 padding: 10px
+  #                 font-size: 16px
+  #                 line-height: 16px
+  #                 color: white
+  #                 transform: translate(0%,0%)
+  #             - type: icon
+  #               icon: mdi:restart
+  #               title: Reset Hours
+  #               tap_action:
+  #                 action: call-service
+  #                 service: vacuum.send_command
+  #                 service_data:
+  #                   entity_id: vacuum.roborock_s4
+  #                   command: reset_consumable
+  #                   params: ['filter_work_time']
+  #                 confirmation:
+  #                   text: Are you sure you want to reset the hours remaining counter for replacing the filter?
+  #               style:
+  #                 top: 0px
+  #                 right: 0px
+  #                 padding: 7px
+  #                 transform: translate(0%,0%)
+  #                 color: white
+
+  #         - type: picture-elements
+  #           image: /local/images/roborock/main_brush.png
+  #           elements:
+  #             - type: state-label
+  #               title: '% Remaining Until Main Brush Should Be Replaced'
+  #               entity: sensor.roborock_s4_main_brush_remaining
+  #               style:
+  #                 font-size: 30px
+  #                 color: orange
+  #                 left: 0px
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 background-color: "rgba(0, 0, 0, 0.3)"
+  #                 transform: translate(0%,0%)
+  #             - type: state-label
+  #               title: 'Hours Remaining Until Main Brush Should Be Replaced'
+  #               entity: sensor.roborock_s4_main_brush_hrs_remaining
+  #               suffix: ' left'
+  #               style:
+  #                 right: 0px
+  #                 bottom: 0px
+  #                 padding: 10px
+  #                 font-size: 16px
+  #                 line-height: 16px
+  #                 color: white
+  #                 transform: translate(0%,0%)
+  #             - type: icon
+  #               icon: mdi:restart
+  #               title: Reset Hours
+  #               tap_action:
+  #                 action: call-service
+  #                 service: vacuum.send_command
+  #                 service_data:
+  #                   entity_id: vacuum.roborock_s4
+  #                   command: reset_consumable
+  #                   params: ['main_brush_work_time']
+  #                 confirmation:
+  #                   text: Are you sure you want to reset the hours remaining counter for replacing the main brush?
+  #               style:
+  #                 top: 0px
+  #                 right: 0px
+  #                 padding: 7px
+  #                 transform: translate(0%,0%)
+  #                 color: white
+
+
+  - type: entities
+    title: Custom Clean
+    show_header_toggle: false
+    entities:
+      - entity: automation.vacuum_when_house_unoccupied
+        icon: "mdi:robot-vacuum"
+      - input_select.vacuum_custom_clean_1
+      - input_select.vacuum_custom_clean_2
+      - input_select.vacuum_custom_clean_3
+      - input_select.vacuum_custom_clean_4
+      - input_select.vacuum_custom_clean_5
+      - input_select.vacuum_custom_clean_6
+      - input_select.vacuum_custom_clean_7
+      - input_select.vacuum_custom_clean_8
+      - input_select.vacuum_custom_clean_9
+      - input_select.vacuum_custom_clean_10
+      # - entity: input_boolean.return_to_trashcan
+      #   name: Go to Trashcan When Done
+      - type: call-service
+        service: python_script.vacuum_custom_clean
+        name: " "
+        icon: " "
+

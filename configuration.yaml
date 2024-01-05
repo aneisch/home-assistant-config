@@ -229,6 +229,23 @@ light:
       - light.front_sconces
       - light.front_porch_lights
 
+lock:
+  - platform: template
+    name: All Doors
+    value_template: "{{ is_state('lock.front_door','locked') and is_state('lock.back_door','locked') and is_state('lock.garage_exterior_door','locked') }}"
+    lock:
+      - service: lock.lock
+        entity_id: 
+          - lock.front_door
+          - lock.back_door
+          - lock.garage_exterior_door
+    unlock:
+      - service: lock.unlock
+        entity_id: 
+          - lock.front_door
+          - lock.back_door
+          - lock.garage_exterior_door
+
 logbook:
 
 logger:

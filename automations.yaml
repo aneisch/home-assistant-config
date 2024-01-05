@@ -264,6 +264,7 @@
     entity_id:
       - lock.front_door
       - lock.garage_exterior_door
+      - lock.back_door
     to: "unlocked"
   condition: "{{ states('input_boolean.security_status') == 'on'}}"
   action:
@@ -1083,3 +1084,27 @@
       data:
         message: >
           Refrigerator power consumption >50W for three hours. Is it frozen up?
+
+- alias: "House secure at night reminder"
+  id: "house_secure_night_reminder"
+  trigger:
+    - platform: event
+      event_type: script_started
+      event_data:
+        entity_id: script.master_bedroom_bedtime
+  variables:
+    doors_locked: "{{ is_state('lock.front_door','locked') and is_state('lock.back_door','locked') and is_state('lock.garage_exterior_door','locked') }}"
+  condition: "{{ is_state('cover.garage_door','open') or not doors_locked }}"
+  action:
+    - service: notify.alexa_media_master
+      data:
+        data:
+          type: tts
+        message: >
+          {% if is_state('cover.garage_door','open') and doors_locked %}
+          "The garage door is still open. You can say 'Alexa, close the garage door.'"
+          {% elif is_state('cover.garage_door','open') and not doors_locked %}
+          "The garage door is still open and some doors are unlocked. You can say 'Alexa, close the garage door' and then 'Alexa, lock the doors.'"
+          {% elif is_state('cover.garage_door','closed') and not doors_locked %}
+          "Some doors are unlocked. You can say 'Alexa, lock the doors.'"
+          {% endif %}

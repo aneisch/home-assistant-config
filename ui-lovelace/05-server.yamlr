@@ -251,14 +251,14 @@ cards:
             {% for url in state_attr('sensor.traefik_urls', "urls") -%}
               {%- if is_state('binary_sensor.internet_reachability', 'on') -%}
 
-                {%- if "home.my.domain" not in url and "frigatelocal" not in url %}
+                {%- if "home.aneis.ch" not in url and "frigatelocal" not in url %}
             {{ url }}
                 {%- endif -%}
               {%- endif -%}
             {%- endfor %}
 
             {% for url in state_attr('sensor.traefik_urls', "urls") -%}
-              {%- if "home.my.domain" in url or "frigatelocal" in url %}
+              {%- if "home.aneis.ch" in url or "frigatelocal" in url %}
             {{ url }}
               {%- endif -%}
             {%- endfor %}

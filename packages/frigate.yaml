@@ -124,6 +124,14 @@ automation:
           data:
             attachments:
               - /config/media/images/doorbell.jpg
+      # Mirror to WearOS
+      - service: notify.mobile_app_galaxy_watch6_kqbw
+        data:
+          message: >-
+            Doorbell ring!
+          data:
+            ttl: 0
+            priority: high
       - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
         then:
           - service: shell_command.weasel_shortcut

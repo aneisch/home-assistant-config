@@ -60,29 +60,6 @@ automation:
         data:
           color: "Green"
 
-  - alias: "Garage still open reminder night"
-    id: "garage_night_reminder"
-    trigger:
-      - platform: event
-        event_type: script_started
-        event_data:
-          entity_id: script.master_bedroom_bedtime
-    condition:
-      condition: and
-      conditions:
-        - condition: state
-          entity_id: cover.garage_door
-          state: "open"
-        - condition: state
-          entity_id: person.andrew
-          state: "home"
-    action:
-      - service: notify.alexa_media_master
-        data:
-          data:
-            type: tts
-          message: "The garage door is still open. You can say 'Alexa, close the garage door.'"
-
   - alias: "Garage door still opened when no one home"
     id: "garage_open_noone_home"
     trigger:

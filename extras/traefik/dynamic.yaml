@@ -15,7 +15,13 @@ http:
       entryPoints:
       - websecure
       service: pfsense
-      rule: host(`pfsense.domain.com`) || host(`pfsense-terraform.aneis.ch`)
+      rule: host(`pfsense.domain.com`)
+      tls: true
+    pfsense-terraform:
+      entryPoints:
+      - websecure
+      service: pfsense
+      rule: host(`pfsense-terraform.domain.com`)
       tls: true
     plane:
       entryPoints:

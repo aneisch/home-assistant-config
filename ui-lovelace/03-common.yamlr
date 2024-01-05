@@ -1,0 +1,313 @@
+title: Common Areas
+icon: mdi:sofa
+cards:
+  - !include .cards/kitchen_timer.yaml
+  - !include .cards/grill.yaml
+
+  - type: entities
+    show_header_toggle: false
+    title: Living Room
+    entities:
+      - binary_sensor.living_room_motion
+      - light.living_room_lamp
+      - light.living_room_lamp_2
+      - type: custom:slider-entity-row
+        entity: light.living_room_lamps
+      - light.living_room_can_lights
+      - light.living_room_sconces
+      - light.entryway_light
+      - switch.living_room_ceiling_fan_light
+      - fan.living_room_ceiling_fan
+      #- switch.ir_candles
+      #- switch.upright_fan
+
+  - type: vertical-stack
+    cards:
+      # - type: "button"
+      #   entity: switch.tv
+      #   show_state: true
+      - type: entities
+        entities:
+          - switch.living_room_speakers
+      - type: conditional
+        conditions:
+          - entity: switch.living_room_speakers
+            state: "on"
+        card:
+          type: horizontal-stack
+          cards:
+            - type: "button"
+              name: Xbox
+              icon: mdi:microsoft-xbox
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_input_xbox
+            - type: "button"
+              name: Chromecast
+              icon: mdi:google
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_input_chromecast
+            - type: "button"
+              name: 3.5mm
+              icon: mdi:ipod
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_input_3_5mm
+            - type: "button"
+              name: Mac Mini
+              icon: mdi:apple
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_input_hdp
+      - type: conditional
+        conditions:
+          - entity: switch.living_room_speakers
+            state: "on"
+        card:
+          type: horizontal-stack
+          cards:
+            - type: "button"
+              icon: "mdi:volume-minus"
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_volume_down
+            - type: "button"
+              icon: "mdi:volume-mute"
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_mute
+            - type: "button"
+              icon: "mdi:volume-plus"
+              tap_action:
+                action: call-service
+                service: esphome.living_room_speakers_volume_up
+
+  # Raz Christmas Cluster Lights remote
+  # - type: vertical-stack
+  #   cards:
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:power-on"
+  #           name: "On"
+  #           tap_action:
+  #             action: call-service
+  #             service: switch.turn_on
+  #             target:
+  #               entity_id: switch.rf_power_button
+  #         - type: "button"
+  #           icon: "mdi:power-off"
+  #           name: "Off"
+  #           tap_action:
+  #             action: call-service
+  #             service: switch.turn_off
+  #             target:
+  #               entity_id: switch.rf_power_button
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           name: Combo
+  #           icon: "mdi:numeric-1-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_1_combo
+  #         - type: "button"
+  #           name: Medium Twinkle
+  #           icon: "mdi:numeric-2-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_2_medium_twinkle
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           name: Sequential
+  #           icon: "mdi:numeric-3-box"
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_3_sequential
+  #         - type: "button"
+  #           icon: "mdi:numeric-4-box"
+  #           name: Slow Twinkle
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_4_slow_twinkle
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:numeric-5-box"
+  #           name: Chasing Flash
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_5_chasing_flash
+  #         - type: "button"
+  #           icon: "mdi:numeric-6-box"
+  #           name: Slow Fade
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_6_slow_fade
+  #     - type: horizontal-stack
+  #       cards:
+  #         - type: "button"
+  #           icon: "mdi:numeric-7-box"
+  #           name: Twinkle Flash
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_7_twinkle_flash
+  #         - type: "button"
+  #           icon: "mdi:numeric-8-box"
+  #           name: Steady On
+  #           tap_action:
+  #             action: call-service
+  #             service: esphome.twinkle_lights_string_8_steady_on
+
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "light.*christmas*"
+        - entity_id: "switch.*christmas*"
+        - entity_id: switch.santa_tree
+        - entity_id: switch.ferris_wheel
+        - entity_id: switch.nativity
+    card:
+      type: entities
+      title: Christmas
+      # show_header_toggle: false
+    sort:
+      method: name
+
+  - type: entities
+    show_header_toggle: false
+    title: Guest Bedrooms
+    entities:
+      - light.guest_bedroom_ceiling_fan
+      - switch.guest_bedroom_ceiling_fan
+      - light.guest_bedroom_nightstand_lamp
+      - cover.guest_bedroom_blinds
+      - light.back_bedroom_ceiling_fan
+      - switch.back_bedroom_ceiling_fan
+      - light.back_bedroom_nightstand_lamp
+      - light.back_bedroom_dresser_lamp
+
+  - type: entities
+    show_header_toggle: false
+    title: Outside
+    entities:
+      - light.front_porch_lights
+      #- light.front_porch_halloween
+      - light.front_sconces
+      # - light.back_porch_light # ring
+      # - entity: light.garage_exterior_light #ring
+      #   name: Driveway Light
+      - switch.garage_exterior_light
+      - switch.garage_lights
+      - switch.workbench_shelf_leds
+      #- switch.christmas_lights
+      - switch.globe_lights
+      - switch.backyard_flood_lights
+      #- light.garage
+
+  - type: entities
+    show_header_toggle: false
+    title: Kitchen
+    entities:
+      - light.kitchen_can_lights
+      - light.kitchen_sink_light
+      - entity: group.under_cabinet_lights
+        icon: mdi:lightbulb
+      - light.kitchen_table_light
+      - light.kitchen_table_leds
+      - light.dining_room_light
+      - cover.dining_room_blind_left
+      - cover.dining_room_blind_center
+      - cover.dining_room_blind_right
+      - light.curio_cabinet
+      - switch.coffee_maker
+
+  - type: vertical-stack
+    cards:
+      - type: entities
+        show_header_toggle: false
+        title: Andrew's Office
+        entities:
+          - switch.nexus_7_screen
+          - light.andrew_desk_lamp
+          - sensor.office_temperature
+          - fan.office_ceiling_fan
+          - light.office_ceiling_fan
+          # - sensor.aquarium_temperature
+          # - light.aquarium_light
+          # - switch.aquarium_co2
+          - switch.andrew_monitor
+          - entity: switch.andrew_office_speakers
+            icon: mdi:speaker
+          - switch.office_heater
+          - switch.office_heater_oscillate
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Office L
+            icon: mdi:blinds-open
+            tap_action:
+              action: call-service
+              service: cover.open_cover
+              target:
+                entity_id: cover.office_blind_left
+          - type: custom:mushroom-template-card
+            primary: Office L
+            icon: mdi:blinds
+            tap_action:
+              action: call-service
+              service: cover.set_cover_position
+              data:
+                position: 42
+              target:
+                entity_id: cover.office_blind_left
+          - type: custom:mushroom-template-card
+            primary: Office L
+            icon: mdi:roller-shade-closed
+            tap_action:
+              action: call-service
+              service: cover.close_cover
+              target:
+                entity_id: cover.office_blind_left
+
+      - type: horizontal-stack
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Office R
+            icon: mdi:blinds-open
+            tap_action:
+              action: call-service
+              service: cover.open_cover
+              target:
+                entity_id: cover.office_blind_right
+          - type: custom:mushroom-template-card
+            primary: Office R
+            icon: mdi:blinds
+            tap_action:
+              action: call-service
+              service: cover.set_cover_position
+              data:
+                position: 42
+              target:
+                entity_id: cover.office_blind_right
+          - type: custom:mushroom-template-card
+            primary: Office R
+            icon: mdi:roller-shade-closed
+            tap_action:
+              action: call-service
+              service: cover.close_cover
+              target:
+                entity_id: cover.office_blind_right
+
+  - type: entities
+    show_header_toggle: false
+    title: Bethany's Office
+    entities:
+      - light.bethany_desk_lamp
+      - light.bethany_office_hanging
+      - light.bethany_office_ceiling_fan
+      - switch.bethany_office_ceiling_fan
+
+  - !include .cards/spotify.yaml

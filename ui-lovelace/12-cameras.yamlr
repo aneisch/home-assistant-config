@@ -1,0 +1,11 @@
+title: Cameras
+icon: mdi:camera
+type: panel
+cards:
+  - type: custom:frigate-card
+    cameras:
+      - frigate:
+          camera_name: birdseye
+        live_provider: jsmpeg
+    controls:
+      nextprev: none

@@ -57,7 +57,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2891
-Lines of Home Assistant YAML | 8508
+Lines of Home Assistant YAML | 8552
 [Integrations](https://www.home-assistant.io/integrations/) in use | 54
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -72,7 +72,7 @@ Entities in the [`camera`](https://www.home-assistant.io/components/camera) doma
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
 Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 13
-Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 5
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 4
 Entities in the [`event`](https://www.home-assistant.io/components/event) domain | 50
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 19
@@ -82,7 +82,7 @@ Entities in the [`input_number`](https://www.home-assistant.io/components/input_
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 9
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 41
-Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 3
+Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 4
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 14
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 5
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
@@ -91,17 +91,17 @@ Entities in the [`remote`](https://www.home-assistant.io/components/remote) doma
 Entities in the [`scene`](https://www.home-assistant.io/components/scene) domain | 2
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 42
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 3
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 386
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 390
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 151
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 152
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 2
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 1
 Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 3
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1140**
+**Total state objects** | **1145**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

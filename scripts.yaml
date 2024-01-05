@@ -58,9 +58,9 @@ security_disarm:
   sequence:
     - service: alarm_control_panel.alarm_disarm
       entity_id: alarm_control_panel.alexa_guard_7f9e9
-    - service: script.notify_wrapper
-      data:
-        message: Disarmed!
+    # - service: script.notify_wrapper
+    #   data:
+    #     message: Disarmed!
 
 security_arm:
   sequence:
@@ -68,9 +68,9 @@ security_arm:
       entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: homeassistant.turn_on
       entity_id: automation.frigate_notifications
-    - service: script.notify_wrapper
-      data:
-        message: Armed!
+    # - service: script.notify_wrapper
+    #   data:
+    #     message: Armed!
 
 ##########
 # SCENES #
@@ -142,9 +142,6 @@ master_bedroom_bedtime:
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
-    - service: cover.close_cover
-      target:
-        entity_id:
     - service: script.turn_on # Calling this way allows the sequence to continue without blocking
       entity_id: script.christmas_goodnight
 
@@ -173,6 +170,15 @@ notify_wrapper:
             - service: notify.signal_self
               data:
                 message: "{{ message }}"
+
+        # Mirror to WearOS
+        - service: notify.mobile_app_galaxy_watch6_kqbw
+          data:
+            message: "{{ message }}"
+            data:
+              ttl: 0
+              priority: high
+
       else:
         # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
@@ -281,6 +287,7 @@ desk_led_red:
         rgb_color: [255, 0, 0]
         brightness: 255
         effect: "custom scan"
+
 desk_led_white:
   sequence:
     - service: homeassistant.turn_on

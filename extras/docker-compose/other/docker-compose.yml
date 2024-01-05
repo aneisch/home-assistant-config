@@ -358,7 +358,7 @@ services:
             # HTTP Local Only
             - traefik.http.routers.traefik_local.entrypoints=web
             - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
-            - traefik.http.routers.traefik_local.service=frigate
+            - traefik.http.routers.traefik_local.service=api@internal
 
     cloudflared:
         container_name: cloudflared

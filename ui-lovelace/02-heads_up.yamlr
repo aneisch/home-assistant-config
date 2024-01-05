@@ -1,0 +1,57 @@
+title: Heads Up
+icon: mdi:head-cog-outline
+cards:
+  - !include .cards/kitchen_timer.yaml
+  - !include .cards/grill.yaml
+
+  - type: "custom:auto-entities"
+    filter:
+      include:
+        - entity_id: "light.*"
+          state: "on"
+        - entity_id: "switch.*"
+          state: "on"
+        - entity_id: "fan.*"
+          state: "on"
+        - entity_id: "group.under_cabinet_lights"
+          state: "on"
+      exclude:
+        - entity_id: light.front_door_ring_light
+        - entity_id: light.plant_light_corner
+        - entity_id: switch.nfc_reader
+        - entity_id: switch.sonoff_usb_1
+        - entity_id: "*_rain_delay"
+        - entity_id: "switch.plant_light"
+        - entity_id: "*_program"
+        - entity_id: "switch.adguard_protection"
+        - entity_id: "switch.docker*"
+        - entity_id: "switch.under*"
+        - entity_id: "*.aquarium_*"
+        - entity_id: "switch.irrigation*"
+        - entity_id: "light.garage"
+        - entity_id: "light.front_porch_*"
+        - entity_id: "switch.front_porch_lights"
+        - entity_id: "switch.circadian_lighting_aquarium_circadian"
+        - entity_id: "switch.front_sconces"
+        - entity_id: "light.front_sconce_*"
+        - entity_id: "light.*_fan_fan"
+        - entity_id: "switch.office_heater_oscillate"
+        - entity_id: "switch.aquarium_heater"
+        - entity_id: "switch.aquarium_power_strip_usb"
+        - entity_id: "*nexus*"
+        - entity_id: switch.home_water_supply
+        - entity_id: "*_snapshots"
+        - entity_id: "*_detect"
+        - entity_id: "*_audio_detection"
+        - entity_id: "*_recordings"
+        - entity_id: "*_motion"
+        - entity_id: "*_stream"
+        - entity_id: "*contrast"
+
+    card:
+      type: entities
+      show_header_toggle: false
+    sort:
+      method: name
+
+  - !include .cards/spotify.yaml

@@ -1,0 +1,99 @@
+icon: mdi:flash
+cards:
+
+  - type: sensor
+    entity: sensor.ac_compressor_power
+    graph: line
+    detail: 2
+  - type: sensor
+    entity: sensor.attic_hvac_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.dishwasher_power
+    graph: line
+    detail: 2
+
+
+
+  - type: sensor
+    entity: sensor.dryer_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.garage_freezer_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.kitchen_coffee_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.kitchen_lights_garage_light_backyard_flood_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.living_room_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.master_bathroom_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.master_bedroom_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.microwave_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.office_and_guest_bedroom_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.oven_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.phase_a_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.phase_b_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.refrigerator_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.server_rack_power
+    graph: line
+    detail: 2
+
+  - type: gauge
+    entity: sensor.total_power
+    graph: line
+    min: 300
+    max: 10000
+
+  - type: sensor
+    entity: sensor.washing_machine_power
+    graph: line
+    detail: 2
