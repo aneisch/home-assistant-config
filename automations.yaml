@@ -589,6 +589,21 @@
 #   action:
 #     - service: shell_command.sync_cloudflare_records
 
+- alias: "Disarm When Opening Garage"
+  id: "disarm_when_garage_opened"
+  trigger:
+    - platform: event
+      event_type: call_service
+      event_data:
+        domain: cover
+        service: open_cover
+        service_data:
+          entity_id: cover.garage_door
+  action:
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.security_status
+    - service: script.andrew_phone_update_location
+
 - alias: "Commit Frigate Config"
   id: "commit_frigate_config"
   trigger:
