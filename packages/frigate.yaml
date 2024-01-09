@@ -64,6 +64,23 @@ automation:
                   - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
           - delay: '00:00:10'
 
+  - alias: Front Door on Photo Frame
+    id: "front_door_on_photo_frame"
+    mode: single
+    trigger:
+      - platform: mqtt
+        topic: frigate/events
+        payload: true
+        value_template: "{{ value_json.type == 'new' and value_json.after.label == 'person' and value_json.after.camera == 'front_door' }}"
+      - platform: state
+        entity_id: binary_sensor.front_door_button_pressed
+        to: "on"
+    condition: "{{ states('media_player.kitchen_photo_frame') != 'off' }}"
+    action:
+      - service: script.kitchen_launch_front_door_stream
+      - delay: '00:00:10'
+      - service: script.kitchen_launch_fotoo
+
   - alias: Frigate Notification Deliveries
     id: "frigate_notification_deliveries"
     mode: single

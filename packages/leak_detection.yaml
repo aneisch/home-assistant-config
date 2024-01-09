@@ -67,6 +67,7 @@ automation:
   - alias: "Water Shutoff Alert"
     id: "water_shutoff_alert"
     initial_state: on
+    mode: 'single'
     trigger:
       - platform: state
         entity_id: switch.water_shutoff
@@ -77,6 +78,7 @@ automation:
           message: Water supply has been shut off!
           data:
             priority: 1
+      - delay: "00:00:15"
 
   - alias: "Water Sensor Alerts"
     id: "water_sensor_alert"

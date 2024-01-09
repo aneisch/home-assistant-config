@@ -457,16 +457,21 @@
         - service: homeassistant.turn_on
           entity_id: light.andrew_desk_lamp
     - service: homeassistant.turn_on
-      entity_id: switch.andrew_monitor
+      entity_id:
+      - switch.andrew_monitor
+      - media_player.kitchen_photo_frame
 
-- alias: "Desk Lamp off when MacBook Inactive"
-  id: "desk_lamp_macbook_inactive"
+- alias: "Desk Lamp and Monitor off"
+  id: "desk_lamp_and_monitor_off"
   initial_state: on
   trigger:
-    platform: state
-    entity_id: binary_sensor.weasel_active
-    to: "off"
-    for: "00:30:00"
+    - platform: state
+      entity_id: binary_sensor.weasel_active
+      to: "off"
+      for: "00:30:00"
+    - platform: state
+      entity_id: binary_sensor.andrew_phone_car_connected
+      to: "on"
   # condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
   action:
     - service: homeassistant.turn_off

@@ -719,7 +719,9 @@ services:
             # Two below needed for 2way stream
             - "8555:8555/tcp"
             - "8555:8555/udp"
-            - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant
+            - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
+            #- "1984:1984" # Expose localhost only for Home Assistant (go2rtc)
+
         labels:
             # HTTPS for CF
             - traefik.enable=true
