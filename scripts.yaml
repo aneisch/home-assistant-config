@@ -59,16 +59,17 @@ home_occupied:
 
 security_disarm:
   sequence:
-    - service: alarm_control_panel.alarm_disarm
-      entity_id: alarm_control_panel.alexa_guard_7f9e9
+    - script.noop
+    # - service: alarm_control_panel.alarm_disarm
+    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
     # - service: script.notify_wrapper
     #   data:
     #     message: Disarmed!
 
 security_arm:
   sequence:
-    - service: alarm_control_panel.alarm_arm_away
-      entity_id: alarm_control_panel.alexa_guard_7f9e9
+    # - service: alarm_control_panel.alarm_arm_away
+    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: homeassistant.turn_on
       entity_id: automation.frigate_notifications
     # - service: script.notify_wrapper
@@ -322,6 +323,16 @@ kitchen_launch_ha_dashboard:
     - delay: "00:30:00"
     - service: script.kitchen_launch_fotoo
 
+kitchen_launch_spotify:
+  mode: 'restart'
+  sequence:
+    - service: androidtv.adb_command
+      entity_id: media_player.kitchen_photo_frame
+      data:
+        command: "am start com.spotify.music"
+    - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
+    - service: script.kitchen_launch_fotoo
+
 kitchen_launch_front_door_stream:
   mode: 'restart'
   sequence:
@@ -331,5 +342,5 @@ kitchen_launch_front_door_stream:
       entity_id: media_player.kitchen_photo_frame
       data:
         command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ token }}'"
-    - delay: "00:30:00"
+    - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
     - service: script.kitchen_launch_fotoo

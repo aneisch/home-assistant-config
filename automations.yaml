@@ -390,8 +390,8 @@
       - switch.nas
       - binary_sensor.backups_complete
 
-- alias: "Turn on office speakers when spotify begins playing including this source"
-  id: "office_speakers_spotify"
+- alias: "React to Spotify Starting to Play"
+  id: "spotify_reaction"
   initial_state: on
   trigger:
     - platform: state
@@ -405,10 +405,21 @@
     - platform: state
       entity_id: media_player.spotify
       to: "playing"
-  condition: "{{ states('media_player.spotify') == 'playing' and states('switch.andrew_office_speakers') == 'off' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Office'] }}"
+    - platform: state
+      entity_id: media_player.spotify
+      attribute: source
+      to: "Kitchen"
+  condition: "{{ states('media_player.spotify') == 'playing'}}"
   action:
-    - service: homeassistant.turn_on
-      entity_id: switch.andrew_office_speakers
+    - if: "{{ states('media_player.spotify') == 'playing' and states('switch.andrew_office_speakers') == 'off' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Office'] }}"
+      then:
+        - service: homeassistant.turn_on
+          entity_id: switch.andrew_office_speakers
+    - if: "{{ states('media_player.spotify') == 'playing' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Kitchen'] }}"
+      then:
+        - service: script.kitchen_launch_spotify
+          data:
+            delay: "00:01:00"
 
 - alias: "Turn on speakers and tv when XBOX powers on"
   id: "speakers_with_xbox"

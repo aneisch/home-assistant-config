@@ -66,7 +66,7 @@ automation:
 
   - alias: Front Door on Photo Frame
     id: "front_door_on_photo_frame"
-    mode: single
+    mode: restart
     trigger:
       - platform: mqtt
         topic: frigate/events
@@ -78,7 +78,8 @@ automation:
     condition: "{{ states('media_player.kitchen_photo_frame') != 'off' }}"
     action:
       - service: script.kitchen_launch_front_door_stream
-      - delay: '00:00:10'
+        data:
+          delay: "00:00:10" # This has to finish before we proceed here
       - service: script.kitchen_launch_fotoo
 
   - alias: Frigate Notification Deliveries
