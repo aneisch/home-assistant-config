@@ -260,6 +260,17 @@ cards:
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml
 
+  - type: entities
+    entities:
+      - entity: input_text.kitchen_frame_url
+        name: 'Enter URL Here:'
+        type: 'custom:text-input-row'
+      - action_name: Launch URL
+        icon: 'mdi:voice'
+        name: ' '
+        service: script.kitchen_launch_url
+        type: call-service
+
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities

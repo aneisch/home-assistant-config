@@ -6,7 +6,7 @@ common_areas:
     - group.office
     - group.garage
     - group.dining_room
-    - group.christmas
+    #- group.christmas
 
 office:
   name: Office
@@ -94,8 +94,8 @@ off_at_bedtime:
     - light.living_room_sconces
     - switch.master_closet_light
     - group.common_areas # contains christmas group
-    - switch.dining_room_christmas_tree
-    - switch.office_christmas_tree
+    #- switch.dining_room_christmas_tree
+    #- switch.office_christmas_tree
     #- switch.ir_candles
     - media_player.kitchen_photo_frame
 

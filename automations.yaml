@@ -618,7 +618,6 @@
   action:
     - service: input_boolean.turn_off
       entity_id: input_boolean.security_status
-    - service: script.andrew_phone_update_location
 
 - alias: "Commit Frigate Config"
   id: "commit_frigate_config"

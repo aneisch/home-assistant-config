@@ -6,8 +6,8 @@ esphome:
   name: ${name}
 
 esp8266:
-  framework:
-    version: 2.7.4
+  # framework:
+  #   version: 2.7.4
   board: d1_mini
 
 wifi:
@@ -23,11 +23,11 @@ wifi:
 <<: !include common.yaml
 
 light:
-  - platform: fastled_clockless
-    chipset: WS2812B
+  - platform: neopixelbus
+    variant: WS2812
     pin: D4
     num_leds: 7
-    rgb_order: GRB
+    type: GRB
     name: "${friendly_name}"
     effects:
       - pulse:

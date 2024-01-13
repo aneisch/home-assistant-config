@@ -32,6 +32,8 @@ sensors:
     name: Garage
   - entity: sensor.water_supply_temperature
     name: Water Supply
+  - entity: sensor.water_shutoff_air_temperature
+    name: Water Supply Closet
   - entity: sensor.netatmo_home_attic_temperature
     name: Attic
   - entity: sensor.ac_runtime_today

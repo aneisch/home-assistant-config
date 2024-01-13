@@ -158,6 +158,28 @@ script:
             {% elif group == "office" %}
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
+      - delay: "00:01:00"
+      - service: "cover.{{modus}}_cover"
+        target:
+          entity_id: >
+            {% if group == "guest_bedroom" %}
+            {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "dining_room" %}
+            {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "office" %}
+            {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
+            {% endif %}
+      - delay: "00:00:10"
+      - service: homeassistant.update_entity
+        target:
+          entity_id: >
+            {% if group == "guest_bedroom" %}
+            {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "dining_room" %}
+            {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "office" %}
+            {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
+            {% endif %}
 
 automation:
   - alias: "Lower and Raise Blinds"

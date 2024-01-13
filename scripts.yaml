@@ -13,16 +13,16 @@ home_empty:
         entity_id:
           - group.master_bedroom
           - group.common_areas
-          - switch.master_bedroom_christmas_tree # manually turn off because of goodnight script
+          #- switch.master_bedroom_christmas_tree # manually turn off because of goodnight script
           - media_player.kitchen_photo_frame
     # If before dark, turn off christmas trees in front
       
-    - if: "{{ now().hour < 16 }}"
-      then:
-        - service: switch.turn_off
-          entity_id:
-            - switch.office_christmas_tree
-            - switch.dining_room_christmas_tree
+    # - if: "{{ now().hour < 16 }}"
+    #   then:
+    #     - service: switch.turn_off
+    #       entity_id:
+    #         - switch.office_christmas_tree
+    #         - switch.dining_room_christmas_tree
 
 # Turn on lights and disarm security
 home_occupied:
@@ -48,8 +48,8 @@ home_occupied:
           data:
             entity_id:
               - group.under_cabinet_lights
-              - group.christmas # dining, office, master tree follow 'on' via appdaemon
-              - switch.master_bedroom_christmas_tree # manually turn on because of goodnight script
+              #- group.christmas # dining, office, master tree follow 'on' via appdaemon
+              #- switch.master_bedroom_christmas_tree # manually turn on because of goodnight script
     - service: media_player.turn_on
       entity_id: media_player.kitchen_photo_frame
 
@@ -70,8 +70,8 @@ security_arm:
   sequence:
     # - service: alarm_control_panel.alarm_arm_away
     #   entity_id: alarm_control_panel.alexa_guard_7f9e9
-    # - service: homeassistant.turn_on
-    #   entity_id: automation.frigate_notifications
+    - service: homeassistant.turn_on
+      entity_id: automation.frigate_notifications
     - service: timer.cancel
       entity_id: timer.frigate_notification_snooze
     # - service: script.notify_wrapper
@@ -106,7 +106,7 @@ master_bedroom_wakeup:
       entity_id: input_boolean.goodnight
     - service: homeassistant.turn_on
       entity_id: 
-        - group.christmas
+        #- group.christmas
         - media_player.kitchen_photo_frame
 
 master_bedroom_bedtime:
@@ -345,4 +345,14 @@ kitchen_launch_front_door_stream:
       data:
         command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ token }}'"
     - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
+    - service: script.kitchen_launch_fotoo
+
+kitchen_launch_url:
+  mode: 'restart'
+  sequence:
+    - service: androidtv.adb_command
+      entity_id: media_player.kitchen_photo_frame
+      data:
+        command: "am start -a android.intent.action.VIEW -d '{{ states('input_text.kitchen_frame_url') }}'"
+    - delay: "{{ delay | default('00:30:00')}}" # Time out after 30 minutes by default. Override by passing delay to this service
     - service: script.kitchen_launch_fotoo

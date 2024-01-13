@@ -186,19 +186,19 @@ Nexus Screen Follow:
 #  time_on: sunset - 00:20:00
 #  time_off: "23:00:00"
 
-Christmas Trees Follow:
- module: follow_me
- class: Follow
- leader: group.christmas_trees
- follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
- follow_off: False # Only follow state to on
+# Christmas Trees Follow:
+#  module: follow_me
+#  class: Follow
+#  leader: group.christmas_trees
+#  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+#  follow_off: False # Only follow state to on
 
-Front House Christmas Trees Timer:
- module: entity_timer
- class: Timer
- entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
- time_on: sunset - 00:20:00
- time_off: '23:00:00'
+# Front House Christmas Trees Timer:
+#  module: entity_timer
+#  class: Timer
+#  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+#  time_on: sunset - 00:20:00
+#  time_off: '23:00:00'
 
 ############
 # Aquarium #
@@ -367,7 +367,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
   brightness: 255
 
 Cameras Smallgroup:
@@ -386,7 +386,7 @@ Indoor Light Automation Sunset Smallgroup:
   constrain_presence: anyone
   constrain_days: wed
   time_on: "17:45:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Entryway Light Sunset Smallgroup:
