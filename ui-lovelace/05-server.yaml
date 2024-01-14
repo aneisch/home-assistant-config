@@ -1,7 +1,7 @@
 title: Server Status
 icon: mdi:server
 cards:
-  - !include .cards/kitchen_timer.yaml
+  # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
   - type: vertical-stack

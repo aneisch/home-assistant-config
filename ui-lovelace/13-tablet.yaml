@@ -63,7 +63,7 @@ cards:
       # Column 2
       - type: vertical-stack
         cards:
-          - !include .cards/kitchen_timer.yaml
+          #- !include .cards/kitchen_timer.yaml
 
           - type: custom:mushroom-entity-card
             entity: group.kitchen

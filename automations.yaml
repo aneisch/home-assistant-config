@@ -12,6 +12,30 @@
     - delay: "00:05:00"
     - service: readme.generate
 
+# - alias: "Auto drip faucet"
+#   id: "auto_drip_faucet"
+#   initial_state: on
+#   trigger:
+#     - platform: numeric_state
+#       entity_id: sensor.netatmo_home_attic_temperature
+#       below: 55
+#       id: attic_below
+#     - platform: numeric_state
+#       entity_id: sensor.compost_external_temperature
+#       below: 55
+#       id: outdoor_below
+#     - platform: numeric_state
+#       entity_id: sensor.netatmo_home_attic_temperature
+#       above: 65
+#       id: attic_above
+#     - platform: numeric_state
+#       entity_id: sensor.compost_external_temperature
+#       above: 65
+#       id: outdoor_above
+#   action:
+#     - service: "homeassistant.turn_{% if trigger.id in ['attic_below', 'outdoor_below'] %}on{% else %}off{% endif %}"
+#       entity_id: switch.bhyve_1
+
 - alias: "Set dark theme for night"
   id: "dark_theme"
   initial_state: on
@@ -415,11 +439,11 @@
       then:
         - service: homeassistant.turn_on
           entity_id: switch.andrew_office_speakers
-    - if: "{{ states('media_player.spotify') == 'playing' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Kitchen'] }}"
-      then:
-        - service: script.kitchen_launch_spotify
-          data:
-            delay: "00:01:00"
+    # - if: "{{ states('media_player.spotify') == 'playing' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Kitchen'] }}"
+    #   then:
+    #     - service: script.kitchen_launch_spotify
+    #       data:
+    #         delay: "00:01:00"
 
 - alias: "Turn on speakers and tv when XBOX powers on"
   id: "speakers_with_xbox"
@@ -818,18 +842,6 @@
     - service: script.notify_wrapper
       data:
         message: "Front door unlocked by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% else %}Unknown{% endif %}!"
-
-- alias: "Sync Alexa Timers"
-  id: "sync_alexa_timers"
-  trigger:
-    - platform: state
-      entity_id: sensor.kitchen_next_timer
-      to: "active"
-  action:
-    - service: '{% if trigger.to_state.state == "unavailable" %}timer.cancel{% else %}timer.start{% endif %}'
-      data:
-        duration: '{{ as_timestamp(states("sensor.kitchen_next_timer")) - as_timestamp(now()) }}'
-        entity_id: timer.kitchen_alexa
 
 # - alias: "Covid Booking"
 #   id: "covid_booking"

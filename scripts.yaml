@@ -166,7 +166,7 @@ notify_wrapper:
                   priority: "{{ data.priority }}"
                   expire: 600
                   retry: 30
-          # If internet and no priority set: send via signal
+          # If internet on and no priority set: send via signal
           else:
             - service: notify.signal_self
               data:
@@ -356,3 +356,11 @@ kitchen_launch_url:
         command: "am start -a android.intent.action.VIEW -d '{{ states('input_text.kitchen_frame_url') }}'"
     - delay: "{{ delay | default('00:30:00')}}" # Time out after 30 minutes by default. Override by passing delay to this service
     - service: script.kitchen_launch_fotoo
+
+kitchen_launch_timers:
+  mode: 'restart'
+  sequence:
+    - service: androidtv.adb_command
+      entity_id: media_player.kitchen_photo_frame
+      data:
+        command: "adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/lovelace/timers?wp_enabled=true'"

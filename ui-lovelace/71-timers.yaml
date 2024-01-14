@@ -1,0 +1,156 @@
+title: Timers
+visible: true
+type: panel
+path: timers
+cards:
+  - type: vertical-stack
+    cards:
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_1
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              card_mod:
+                  style: |
+                    ha-card {
+                      font-size: 65px !important;
+                      text-align: center;
+                    }
+              content: |
+                {{ states('input_text.kitchen_alexa_1_name')}} Timer
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_1
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                rotor:
+                  width: 100px
+                  height: 150px
+                  fontsize: 10rem
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_2
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              card_mod:
+                  style: |
+                    ha-card {
+                      font-size: 65px !important;
+                      text-align: center;
+                    }
+              content: |
+                {{ states('input_text.kitchen_alexa_2_name')}} Timer
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_2
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                rotor:
+                  width: 100px
+                  height: 150px
+                  fontsize: 10rem
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_3
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              card_mod:
+                  style: |
+                    ha-card {
+                      font-size: 65px !important;
+                      text-align: center;
+                    }
+              content: |
+                {{ states('input_text.kitchen_alexa_3_name')}} Timer
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_3
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                rotor:
+                  width: 100px
+                  height: 150px
+                  fontsize: 10rem
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_4
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              card_mod:
+                  style: |
+                    ha-card {
+                      font-size: 65px !important;
+                      text-align: center;
+                    }
+              content: |
+                {{ states('input_text.kitchen_alexa_4_name')}} Timer
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_4
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                rotor:
+                  width: 100px
+                  height: 150px
+                  fontsize: 10rem
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_5
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              card_mod:
+                  style: |
+                    ha-card {
+                      font-size: 65px !important;
+                      text-align: center;
+                    }
+              content: |
+                {{ states('input_text.kitchen_alexa_5_name')}} Timer
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_5
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                rotor:
+                  width: 100px
+                  height: 150px
+                  fontsize: 10rem
+                button:
+                  location: hide

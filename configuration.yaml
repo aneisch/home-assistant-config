@@ -28,6 +28,7 @@ homeassistant:
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
+    timers: !include packages/timers.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
   auth_providers:
@@ -543,10 +544,6 @@ switch: !include switches.yaml
 system_health:
 
 template: !include template.yaml
-
-timer:
-  kitchen_alexa:
-    duration: "00:00:00"
 
 tts:
   - platform: picotts

@@ -1,7 +1,7 @@
 title: Common Areas
 icon: mdi:sofa
 cards:
-  - !include .cards/kitchen_timer.yaml
+  # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
   - type: entities

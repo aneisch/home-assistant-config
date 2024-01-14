@@ -16,6 +16,23 @@ AC Automation:
   heat_night: "64"
   heat_unoccupied: "55"
 
+Kitchen Timer Sync:
+  module: alexa_timer_sync
+  class: TimerSync
+  alexa_timer: sensor.kitchen_next_timer
+  timer_prefix: kitchen_alexa
+  # how many timer. entities are on home assistant?
+  timer_count: 5
+
+# Timer:
+#   module: timer
+#   class: Timer
+#   timer_entity: sensor.kitchen_next_timer
+#   # what entity will hold the countdown state?
+#   countdown_destination_entity: sensor.kitchen_timer_countdown
+#   # Publish to MQTT (remove mqtt entry if you don't want..)
+#   mqtt: True
+
 Back Bedroom Zigbee Remote:
   module: zigbee_remote
   class: EcoSmartZigbeeRemote
@@ -435,15 +452,6 @@ Door Notification and Occusim Security Follow:
   class: Follow
   leader: input_boolean.security_status
   follower: input_boolean.door_notify,input_boolean.occusim
-
-Timer:
-  module: timer
-  class: Timer
-  timer_entity: sensor.kitchen_next_timer
-  # what entity will hold the countdown state?
-  countdown_destination_entity: sensor.kitchen_timer_countdown
-  # Publish to MQTT (remove mqtt entry if you don't want..)
-  mqtt: True
 
 TV Automation Smallgroup:
   module: entity_timer

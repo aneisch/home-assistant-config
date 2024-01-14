@@ -1,7 +1,7 @@
 title: Heads Up
 icon: mdi:head-cog-outline
 cards:
-  - !include .cards/kitchen_timer.yaml
+  # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
 
   - type: "custom:auto-entities"

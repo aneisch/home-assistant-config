@@ -1,8 +1,7 @@
 title: Home
 icon: mdi:home-circle
 cards:
-  - !include .cards/kitchen_timer.yaml
-  - !include .cards/kitchen_timer_2.yaml
+  # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
   - !include .cards/water_flow.yaml
   - !include .cards/camera_detect.yaml

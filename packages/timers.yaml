@@ -1,0 +1,63 @@
+timer:
+  kitchen_alexa_1:
+    name: Kitchen Timer 1
+    duration: "00:00:00"
+  kitchen_alexa_2:
+    name: Kitchen Timer 2
+    duration: "00:00:00"
+  kitchen_alexa_3:
+    name: Kitchen Timer 3
+    duration: "00:00:00"
+  kitchen_alexa_4:
+    name: Kitchen Timer 4
+    duration: "00:00:00"
+  kitchen_alexa_5:
+    name: Kitchen Timer 5
+    duration: "00:00:00"
+
+input_text:
+  kitchen_alexa_1_name:
+    name: Kitchen Timer 1 Name
+  kitchen_alexa_2_name:
+    name: Kitchen Timer 2 Name
+  kitchen_alexa_3_name:
+    name: Kitchen Timer 3 Name
+  kitchen_alexa_4_name:
+    name: Kitchen Timer 4 Name
+  kitchen_alexa_5_name:
+    name: Kitchen Timer 5 Name
+
+input_boolean:
+  kitchen_timers_showing:
+
+automation:
+- alias: "Kitchen Show Timers"
+  id: "kitchen_show_timers"
+  initial_state: on
+  trigger:
+    - platform: state
+      entity_id: timer.kitchen_alexa_1
+      to: "active"
+      id: start
+    - platform: state
+      entity_id: timer.kitchen_alexa_1
+      to: "idle"
+      for: "00:00:30"
+      id: stop 
+  action:
+    - if: "{{ trigger.id == 'start' and is_state('input_boolean.kitchen_timers_showing', 'off') }}"
+      then:
+        - service: script.kitchen_launch_timers
+        - service: input_boolean.turn_on
+          entity_id: input_boolean.kitchen_timers_showing
+    - if: "{{ trigger.id == 'stop' and states('timer.kitchen_alexa_1') == 'idle' }}"
+      then:
+        - service: androidtv.adb_command
+          entity_id: media_player.kitchen_photo_frame
+          data:
+            # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
+            command: "adb shell am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
+        - delay: "00:00:02"
+        - service: script.kitchen_launch_fotoo
+        - service: input_boolean.turn_off
+          entity_id: input_boolean.kitchen_timers_showing
