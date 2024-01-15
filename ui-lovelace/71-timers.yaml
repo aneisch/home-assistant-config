@@ -20,7 +20,7 @@ cards:
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_1_name')}} Timer
+                {{ states('input_text.kitchen_alexa_1_name')}}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_1
@@ -50,7 +50,7 @@ cards:
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_2_name')}} Timer
+                {{ states('input_text.kitchen_alexa_2_name')}}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_2
@@ -80,7 +80,7 @@ cards:
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_3_name')}} Timer
+                {{ states('input_text.kitchen_alexa_3_name')}}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_3
@@ -110,7 +110,7 @@ cards:
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_4_name')}} Timer
+                {{ states('input_text.kitchen_alexa_4_name')}}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_4
@@ -140,7 +140,7 @@ cards:
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_5_name')}} Timer
+                {{ states('input_text.kitchen_alexa_5_name')}}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_5
