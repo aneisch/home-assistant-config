@@ -1,5 +1,6 @@
-electricity_cost_monthly:
-  name: "Electricity Cost"
+# 01/24/2024
+# electricity_cost_monthly:
+#   name: "Electricity Cost"
 
 electricity_cost_monthly_emporia:
   name: "Electricity Cost"

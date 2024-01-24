@@ -3,6 +3,32 @@ import json
 import time
 from datetime import datetime
 
+"""
+Requires Home Assistant Config like the following:
+
+timer:
+  kitchen_alexa_1:
+    name: Kitchen Timer 1
+    duration: "00:00:00"
+    restore: true
+...
+...
+...
+  kitchen_alexa_5:
+    name: Kitchen Timer 5
+    duration: "00:00:00"
+    restore: true
+
+input_text:
+  kitchen_alexa_1_name:
+    name: Kitchen Timer 1 Name
+...
+...
+...
+  kitchen_alexa_5_name:
+    name: Kitchen Timer 5 Name
+"""
+
 class TimerSync(hass.Hass):
     def initialize(self):
 

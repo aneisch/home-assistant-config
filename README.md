@@ -57,7 +57,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2891
-Lines of Home Assistant YAML | 8858
+Lines of Home Assistant YAML | 8820
 [Integrations](https://www.home-assistant.io/integrations/) in use | 55
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -79,7 +79,7 @@ Entities in the [`input_boolean`](https://www.home-assistant.io/components/input
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 34
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 6
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
-Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 15
+Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 14
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 41
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 4
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 15
@@ -100,7 +100,7 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1191**
+**Total state objects** | **1190**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>

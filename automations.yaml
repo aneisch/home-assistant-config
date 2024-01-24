@@ -756,10 +756,10 @@
     - platform: time
       at: "23:59:30"
   action:
-    - service: python_script.add_elecrtric_cost_attribute
+    - service: python_script.compute_utility_costs
       data:
-        entity_id: sensor.electricity_usage
-    - service: python_script.add_water_cost_attribute
+        meter_entity: sensor.electricity_usage
+    - service: python_script.compute_utility_costs
       data:
         meter_entity: sensor.water_usage
 
@@ -777,25 +777,6 @@
       data:
         meter_entity: sensor.electricity_usage
         cycle_reset_entity_id: sensor.utilities_cycle_end
-
-# Legacy, remove later
-# - alias: "Update Electric Utilities Cost"
-#   id: "update_electric_utilities_cost"
-#   mode: parallel
-#   trigger:
-#     - platform: state
-#       entity_id:
-#         - sensor.electric_utilities_summary
-#         - sensor.electric_utilities_daily
-#     - platform: homeassistant
-#       event: start
-#   action:
-#     - service: python_script.add_elecrtric_cost_attribute
-#       data:
-#         entity_id: sensor.electric_utilities_summary
-#     - service: python_script.add_elecrtric_cost_attribute
-#       data:
-#         entity_id: sensor.electric_utilities_daily
 
 - alias: "Update USPS Mail Camera Path on Hass Restart"
   id: "usps_mail_path_update"
