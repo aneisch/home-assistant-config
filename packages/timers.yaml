@@ -2,18 +2,23 @@ timer:
   kitchen_alexa_1:
     name: Kitchen Timer 1
     duration: "00:00:00"
+    restore: true
   kitchen_alexa_2:
     name: Kitchen Timer 2
     duration: "00:00:00"
+    restore: true
   kitchen_alexa_3:
     name: Kitchen Timer 3
     duration: "00:00:00"
+    restore: true
   kitchen_alexa_4:
     name: Kitchen Timer 4
     duration: "00:00:00"
+    restore: true
   kitchen_alexa_5:
     name: Kitchen Timer 5
     duration: "00:00:00"
+    restore: true
 
 input_text:
   kitchen_alexa_1_name:

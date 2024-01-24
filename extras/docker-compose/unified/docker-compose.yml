@@ -720,7 +720,6 @@ services:
             - "8555:8555/tcp"
             - "8555:8555/udp"
             - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
-            #- "1984:1984" # Expose localhost only for Home Assistant (go2rtc)
 
         labels:
             # HTTPS for CF
@@ -759,7 +758,7 @@ services:
             - traefik.http.routers.codeproject_local.service=codeproject_local
 
     auto-southwest:
-        image: jdholtz/auto-southwest-check-in
+        image: jdholtz/auto-southwest-check-in:develop
         container_name: auto-southwest
         restart: 'unless-stopped'
         privileged: true

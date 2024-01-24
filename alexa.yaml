@@ -84,6 +84,7 @@ smart_home:
       - script.kitchen_launch_spotify
       - script.kitchen_launch_front_door_stream
       - script.kitchen_launch_fotoo
+      - script.kitchen_launch_timers
       - sensor.master_bedroom_temperature
       - switch.bethany_office_ceiling_fan
       - switch.master_bedroom_ceiling_fan

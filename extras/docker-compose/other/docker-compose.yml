@@ -555,7 +555,7 @@ services:
             - traefik.http.routers.codeproject_local.service=codeproject_local
 
     auto-southwest:
-        image: jdholtz/auto-southwest-check-in
+        image: jdholtz/auto-southwest-check-in:develop
         container_name: auto-southwest
         restart: 'unless-stopped'
         privileged: true
