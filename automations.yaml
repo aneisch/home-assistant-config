@@ -495,6 +495,7 @@
       entity_id:
       - switch.andrew_monitor
       - media_player.kitchen_photo_frame
+      - media_plater.office_photo_frame
 
 - alias: "Desk Lamp and Monitor off"
   id: "desk_lamp_and_monitor_off"
@@ -683,6 +684,11 @@
       entity_id: sensor.pfsense_gateway_wan_dhcp
       from: "True"
       to: "False"
+    - platform: state
+      id: gateway
+      entity_id: sensor.pfsense_gateway_wan_dhcp
+      from: "False"
+      to: "True"
   action:
     - if: "{{ trigger.id == 'binary' }}"
       then:
@@ -696,16 +702,20 @@
               {% endif %}
             data:
               # Override DND if Daytime, otherwise silent
-              priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
+              priority: "{% if now().hour > 9 and now().hour < 22 and is_state('person.andrew', 'home') %}1{% else %}0{% endif %}"
     - if: "{{ trigger.id == 'gateway' }}"
       then:
         - service: notify.cellular_message
           data:
             message: >
-              PFSense gateway down!
+              {% if trigger.from_state.state == "True" %}
+              PFSense gateway down
+              {% else %}
+              PFSense gateway has recovered
+              {% endif %}
             data:
               # Override DND if Daytime, otherwise silent
-              priority: "{% if now().hour > 9 and now().hour < 22 %}1{% else %}0{% endif %}"
+              priority: "{% if now().hour > 9 and now().hour < 22  and is_state('person.andrew', 'home') %}1{% else %}0{% endif %}"
 
 - id: webhook_debugger
   alias: "Webhook Debugger"

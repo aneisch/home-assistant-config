@@ -15,6 +15,7 @@ home_empty:
           - group.common_areas
           #- switch.master_bedroom_christmas_tree # manually turn off because of goodnight script
           - media_player.kitchen_photo_frame
+          - media_player.office_photo_frame
     # If before dark, turn off christmas trees in front
       
     # - if: "{{ now().hour < 16 }}"
@@ -51,7 +52,9 @@ home_occupied:
               #- group.christmas # dining, office, master tree follow 'on' via appdaemon
               #- switch.master_bedroom_christmas_tree # manually turn on because of goodnight script
     - service: media_player.turn_on
-      entity_id: media_player.kitchen_photo_frame
+      entity_id: 
+        - media_player.kitchen_photo_frame
+        - media_player.office_photo_frame
 
 ############
 # SECURITY #
@@ -108,6 +111,7 @@ master_bedroom_wakeup:
       entity_id: 
         #- group.christmas
         - media_player.kitchen_photo_frame
+        - media_player.office_photo_frame
 
 master_bedroom_bedtime:
   sequence:
@@ -188,7 +192,7 @@ notify_wrapper:
               data:
                 message: "{{ message }}"
                 data:
-                  priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional
+                  priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional default 0
                   # https://pushover.net/api#priority
           else:
             - service: notify.cellular_message
@@ -308,59 +312,73 @@ desk_led_white:
 # ./adb shell am start com.bo.fotoo/com.bo.fotoo.ui.home.FTHomeActivity
 # #Kill Fully
 # ./adb shell am kill de.ozerov.fully
-kitchen_launch_fotoo:
+photo_frame_launch_fotoo:
   sequence:
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "am start com.bo.fotoo/com.bo.fotoo.ui.home.FTHomeActivity"
 
-kitchen_launch_ha_dashboard:
+photo_frame_launch_ha_dashboard:
   mode: 'restart'
   sequence:
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123'"
     - delay: "00:30:00"
-    - service: script.kitchen_launch_fotoo
+    - service: script.photo_frame_launch_fotoo
+      data:
+        entity_id: "{{ entity_id }}"
 
-kitchen_launch_spotify:
+photo_frame_launch_spotify:
   mode: 'restart'
   sequence:
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "am start com.spotify.music"
     - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
-    - service: script.kitchen_launch_fotoo
+    - service: script.photo_frame_launch_fotoo
+      data:
+        entity_id: "{{ entity_id }}"
 
-kitchen_launch_front_door_stream:
+photo_frame_launch_front_door_stream:
   mode: 'restart'
   sequence:
     - variables:
         token: "{{ state_attr('camera.front_door_test','access_token')}}"
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ token }}'"
     - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
-    - service: script.kitchen_launch_fotoo
+    - service: script.photo_frame_launch_fotoo
+      data:
+        entity_id: "{{ entity_id }}"
 
-kitchen_launch_url:
+photo_frame_launch_url:
   mode: 'restart'
   sequence:
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "am start -a android.intent.action.VIEW -d '{{ states('input_text.kitchen_frame_url') }}'"
     - delay: "{{ delay | default('00:30:00')}}" # Time out after 30 minutes by default. Override by passing delay to this service
-    - service: script.kitchen_launch_fotoo
+    - service: script.photo_frame_launch_fotoo
+      data:
+        entity_id: "{{ entity_id }}"
 
-kitchen_launch_timers:
+photo_frame_launch_timers:
   mode: 'restart'
   sequence:
     - service: androidtv.adb_command
-      entity_id: media_player.kitchen_photo_frame
+      target:
+        entity_id: "{{ entity_id }}"
       data:
         command: "adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/lovelace/timers?wp_enabled=true'"

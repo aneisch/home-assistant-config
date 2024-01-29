@@ -52,7 +52,9 @@ automation:
   action:
     - if: "{{ trigger.id == 'start' and is_state('input_boolean.kitchen_timers_showing', 'off') }}"
       then:
-        - service: script.kitchen_launch_timers
+        - service: script.photo_frame_launch_timers
+          data:
+            entity_id: media_player.kitchen_photo_frame
         - service: input_boolean.turn_on
           entity_id: input_boolean.kitchen_timers_showing
     - if: "{{ trigger.id == 'stop' and states('timer.kitchen_alexa_1') == 'idle' }}"
@@ -63,6 +65,8 @@ automation:
             # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
             command: "adb shell am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
         - delay: "00:00:02"
-        - service: script.kitchen_launch_fotoo
+        - service: script.photo_frame_launch_fotoo
+          data:
+            entity_id: media_player.kitchen_photo_frame
         - service: input_boolean.turn_off
           entity_id: input_boolean.kitchen_timers_showing

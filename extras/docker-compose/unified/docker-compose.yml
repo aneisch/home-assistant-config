@@ -97,6 +97,8 @@ services:
             - /etc/localtime:/etc/localtime:ro
         environment:
             - TZ=America/Chicago
+        ports:
+            - '25:25'
         restart: always
         labels:
             # HTTPS for CF

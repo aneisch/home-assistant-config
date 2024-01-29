@@ -209,3 +209,18 @@ automation:
           payload: >-
             {"time":"2022-02-17
             02:26:13","model":"Thermopro-TP12","id":77,"temperature_1_F":-1,"temperature_2_F":-1,"mic":"CRC"}
+
+  - alias: Temp Probe Offline Alert
+    id: "temp_probe_offline"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.grill_probe_active
+        to: "off"
+        for: "00:01:00"
+    action: 
+      - service: notify.pushover
+        data:
+          message: "Temperature Probe Disconnected 1 Minute Ago"
+          data:
+            priority: 2
+            retry: 600

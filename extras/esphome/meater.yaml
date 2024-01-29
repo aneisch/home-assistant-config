@@ -25,7 +25,8 @@ wifi:
     subnet: 255.255.254.0
  
 ble_client:
-  - mac_address: B8:1F:5E:90:91:91
+  - mac_address: B8:1F:5E:90:91:91 # Repeater Block
+  #- mac_address: B8:1F:5E:7B:54:E9 # Probe
     id: meater
 
 text_sensor:

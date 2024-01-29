@@ -267,8 +267,10 @@ cards:
       - action_name: Launch URL
         icon: 'mdi:voice'
         name: ' '
-        service: script.kitchen_launch_url
+        service: script.photo_frame_launch_url
         type: call-service
+        data:
+          entity_id: media_player.kitchen_photo_frame
 
   - type: custom:vertical-stack-in-card
     cards:

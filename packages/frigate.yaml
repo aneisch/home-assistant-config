@@ -77,10 +77,13 @@ automation:
         to: "on"
     condition: "{{ states('media_player.kitchen_photo_frame') != 'off' }}"
     action:
-      - service: script.kitchen_launch_front_door_stream
+      - service: script.photo_frame_front_door_stream
         data:
           delay: "00:00:10" # This has to finish before we proceed here
-      - service: script.kitchen_launch_fotoo
+          entity_id: media_player.kitchen_photo_frame
+      - service: script.photo_frame_launch_fotoo
+        data:
+          entity_id: media_player.kitchen_photo_frame
 
   - alias: Frigate Notification Deliveries
     id: "frigate_notification_deliveries"
@@ -108,7 +111,7 @@ automation:
               message: "USPS detected"
               data:
                 attachments:
-                  - /config/images/logo.jpg
+                  - /config/media/images/logo.jpg
           - delay: "00:02:00"
 
       - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"

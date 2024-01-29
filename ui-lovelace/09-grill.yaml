@@ -151,4 +151,104 @@ cards:
           content: |
             Meater Tip @ {{ state_attr('sensor.meater_tip_high_estimated_length','timestamp') | as_timestamp | timestamp_custom("%I:%M %p", "Error") }}
 
+  - type: vertical-stack
+    cards:
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_1
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                {{ states('input_text.kitchen_alexa_1_name')}}
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_1
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                button:
+                  location: hide
 
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_2
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                {{ states('input_text.kitchen_alexa_2_name')}}
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_2
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_3
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                {{ states('input_text.kitchen_alexa_3_name')}}
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_3
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_4
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                {{ states('input_text.kitchen_alexa_4_name')}}
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_4
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                button:
+                  location: hide
+
+      - type: conditional
+        conditions:
+          - entity: timer.kitchen_alexa_5
+            state: active
+        card:
+          type: vertical-stack
+          cards:
+            - type: markdown
+              content: |
+                {{ states('input_text.kitchen_alexa_5_name')}}
+            - title: hi
+              type: custom:flipdown-timer-card
+              entity: timer.kitchen_alexa_5
+              show_hour: true
+              show_title: false
+              theme: dark
+              styles:
+                button:
+                  location: hide
