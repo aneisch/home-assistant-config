@@ -269,7 +269,7 @@ cards:
         name: ' '
         service: script.photo_frame_launch_url
         type: call-service
-        data:
+        service_data:
           entity_id: media_player.kitchen_photo_frame
 
   - type: custom:vertical-stack-in-card

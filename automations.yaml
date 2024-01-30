@@ -495,7 +495,7 @@
       entity_id:
       - switch.andrew_monitor
       - media_player.kitchen_photo_frame
-      - media_plater.office_photo_frame
+      - media_player.office_photo_frame
 
 - alias: "Desk Lamp and Monitor off"
   id: "desk_lamp_and_monitor_off"

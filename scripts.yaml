@@ -323,6 +323,12 @@ photo_frame_launch_fotoo:
 photo_frame_launch_ha_dashboard:
   mode: 'restart'
   sequence:
+    # - service: androidtv.adb_command
+    #   target:
+    #     entity_id: "{{ entity_id }}"
+    #   data:
+    #     # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
+    #     command: "adb shell am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
     - service: androidtv.adb_command
       target:
         entity_id: "{{ entity_id }}"
