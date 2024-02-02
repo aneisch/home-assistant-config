@@ -28,6 +28,7 @@ homeassistant:
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
+    photo_frames: !include packages/photo_frames.yaml
     timers: !include packages/timers.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml

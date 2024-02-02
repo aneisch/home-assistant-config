@@ -99,6 +99,7 @@ off_at_bedtime:
     #- switch.ir_candles
     - media_player.kitchen_photo_frame
     - media_player.office_photo_frame
+    - media_player.misc_photo_frame
 
 andrew_desk:
   entities:
