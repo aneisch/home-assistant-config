@@ -994,9 +994,9 @@ const sr="important",lr=" !"+sr,cr=He(class extends Ye{constructor(t){var e;if(s
                 .shape.disabled ::slotted(*) {
                     color: var(--icon-color-disabled);
                 }
-            `]}};n([_t({type:Boolean})],ws.prototype,"disabled",void 0),ws=n([pt("mushroom-shape-icon")],ws);let ks=class extends ht{constructor(){super(...arguments),this.primary="",this.multiline_secondary=!1}render(){return Y`
+            `]}};n([_t({type:Boolean})],ws.prototype,"disabled",void 0),ws=n([pt("mushroom-shape-icon")],ws);let ks=class extends ht{constructor(){super(...arguments),this.multiline_secondary=!1}render(){var t;return Y`
             <div class="container">
-                <span class="primary">${this.primary}</span>
+                <span class="primary">${null!==(t=this.primary)&&void 0!==t?t:""}</span>
                 ${this.secondary?Y`<span
                           class="secondary${this.multiline_secondary?" multiline_secondary":""}"
                           >${this.secondary}</span
@@ -1032,7 +1032,7 @@ const sr="important",lr=" !"+sr,cr=He(class extends Ye{constructor(t){var e;if(s
             .multiline_secondary {
                 white-space: pre-wrap;
             }
-        `}};n([_t()],ks.prototype,"primary",void 0),n([_t()],ks.prototype,"secondary",void 0),n([_t()],ks.prototype,"multiline_secondary",void 0),ks=n([pt("mushroom-state-info")],ks);let Cs=class extends ht{render(){var t,e,i,o;return Y`
+        `}};n([_t({attribute:!1})],ks.prototype,"primary",void 0),n([_t({attribute:!1})],ks.prototype,"secondary",void 0),n([_t({type:Boolean})],ks.prototype,"multiline_secondary",void 0),ks=n([pt("mushroom-state-info")],ks);let Cs=class extends ht{render(){var t,e,i,o;return Y`
             <div
                 class=${Za({container:!0,vertical:"vertical"===(null===(t=this.appearance)||void 0===t?void 0:t.layout)})}
             >
@@ -1125,14 +1125,18 @@ const sr="important",lr=" !"+sr,cr=He(class extends Ye{constructor(t){var e;if(s
     --spacing: var(--mush-spacing, 12px);
 
     /* Title */
-    --title-padding: var(--mush-title-padding, 24px 12px 16px);
-    --title-spacing: var(--mush-title-spacing, 12px);
+    --title-padding: var(--mush-title-padding, 24px 12px 8px);
+    --title-spacing: var(--mush-title-spacing, 8px);
     --title-font-size: var(--mush-title-font-size, 24px);
     --title-font-weight: var(--mush-title-font-weight, normal);
-    --title-line-height: var(--mush-title-line-height, 1.2);
+    --title-line-height: var(--mush-title-line-height, 32px);
+    --title-color: var(--mush-title-color, var(--primary-text-color));
+    --title-letter-spacing: var(--mush-title-letter-spacing, -0.288px);
     --subtitle-font-size: var(--mush-subtitle-font-size, 16px);
     --subtitle-font-weight: var(--mush-subtitle-font-weight, normal);
-    --subtitle-line-height: var(--mush-subtitle-line-height, 1.2);
+    --subtitle-line-height: var(--mush-subtitle-line-height, 24px);
+    --subtitle-color: var(--mush-subtitle-color, var(--secondary-text-color));
+    --subtitle-letter-spacing: var(--mush-subtitle-letter-spacing, 0px);
 
     /* Card */
     --card-primary-font-size: var(--mush-card-primary-font-size, 14px);
@@ -1143,8 +1147,8 @@ const sr="important",lr=" !"+sr,cr=He(class extends Ye{constructor(t){var e;if(s
     --card-secondary-line-height: var(--mush-card-secondary-line-height, 16px);
     --card-primary-color: var(--mush-card-primary-color, var(--primary-text-color));
     --card-secondary-color: var(--mush-card-secondary-color, var(--primary-text-color));
-    --card-primary-letter-spacing: var(--mush-card-secondary-color, 0.1px);
-    --card-secondary-letter-spacing: var(--mush-card-secondary-color, 0.4px);
+    --card-primary-letter-spacing: var(--mush-card-primary-letter-spacing, 0.1px);
+    --card-secondary-letter-spacing: var(--mush-card-secondary-letter-spacing, 0.4px);
 
     /* Chips */
     --chip-spacing: var(--mush-chip-spacing, 8px);
@@ -1299,7 +1303,7 @@ const sr="important",lr=" !"+sr,cr=He(class extends Ye{constructor(t){var e;if(s
                         <mushroom-state-info
                             slot="info"
                             .primary=${t.entity}
-                            secondary=${o("card.not_found")}
+                            .secondary=${o("card.not_found")}
                         ></mushroom-state-info>
                     </mushroom-state-item>
                 </mushroom-card>
@@ -3468,7 +3472,7 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                     margin: 0;
                     white-space: pre-wrap;
                 }
-                .header div:not(:last-child) {
+                .header div:not(:last-of-type) {
                     margin-bottom: var(--title-spacing);
                 }
                 .actionable {
@@ -3493,17 +3497,19 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                     transform: translateX(-4px);
                 }
                 .title {
-                    color: var(--primary-text-color);
+                    color: var(--title-color);
                     font-size: var(--title-font-size);
                     font-weight: var(--title-font-weight);
                     line-height: var(--title-line-height);
+                    letter-spacing: var(--title-letter-spacing);
                     --mdc-icon-size: var(--title-font-size);
                 }
                 .subtitle {
-                    color: var(--secondary-text-color);
+                    color: var(--subtitle-color);
                     font-size: var(--subtitle-font-size);
                     font-weight: var(--subtitle-font-weight);
                     line-height: var(--subtitle-line-height);
+                    letter-spacing: var(--subtitle-letter-spacing);
                     --mdc-icon-size: var(--subtitle-font-size);
                 }
                 .align-start {
@@ -3648,7 +3654,7 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                 mushroom-vacuum-commands-control {
                     flex: 1;
                 }
-            `]}};n([vt()],Vm.prototype,"_config",void 0),Vm=n([pt(jm)],Vm),console.info("%c🍄 Mushroom 🍄 - 3.4.0","color: #ef5350; font-weight: 700;");const Bm=Ce({tap_action:$e(ni),hold_action:$e(ni),double_tap_action:$e(ni)}),Um=t=>[{name:"tap_action",selector:{"ui-action":{actions:t}}},{name:"hold_action",selector:{"ui-action":{actions:t}}},{name:"double_tap_action",selector:{"ui-action":{actions:t}}}],Hm=Ce({layout:$e(Se([we("horizontal"),we("vertical"),we("default")])),fill_container:$e(ye()),primary_info:$e(xe(os)),secondary_info:$e(xe(os)),icon_type:$e(xe(ns))}),Ym=[{type:"grid",name:"",schema:[{name:"layout",selector:{mush_layout:{}}},{name:"fill_container",selector:{boolean:{}}}]},{type:"grid",name:"",schema:[{name:"primary_info",selector:{mush_info:{}}},{name:"secondary_info",selector:{mush_info:{}}},{name:"icon_type",selector:{mush_icon_type:{}}}]}],Wm=["icon_color","layout","fill_container","primary_info","secondary_info","icon_type","content_info","use_entity_picture","collapsible_controls","icon_animation"],Xm=Ce({entity:$e(Ee()),name:$e(Ee()),icon:$e(Ee())}),Km=Ce({index:$e(ke()),view_index:$e(ke()),view_layout:ve(),type:Ee()}),Gm=fe(Km,fe(Xm,Hm,Bm),Ce({states:$e(be()),show_keypad:$e(ye())})),qm=["more-info","navigate","url","call-service","assist","none"],Zm=["armed_home","armed_away","armed_night","armed_vacation","armed_custom_bypass"],Jm=["show_keypad"],Qm=Tt((t=>[{name:"entity",selector:{entity:{domain:Vs}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}},context:{icon_entity:"entity"}},...Ym,{type:"multi_select",name:"states",options:Zm.map((e=>[e,t(`ui.card.alarm_control_panel.${e.replace("armed","arm")}`)]))},{name:"show_keypad",selector:{boolean:{}}},...Um(qm)]));let tp=class extends js{constructor(){super(...arguments),this._computeLabel=t=>{const e=zo(this.hass);return Wm.includes(t.name)?e(`editor.card.generic.${t.name}`):Jm.includes(t.name)?e(`editor.card.alarm_control_panel.${t.name}`):"states"===t.name?this.hass.localize("ui.panel.lovelace.editor.card.alarm-panel.available_states"):this.hass.localize(`ui.panel.lovelace.editor.card.generic.${t.name}`)}}connectedCallback(){super.connectedCallback(),vl()}setConfig(t){me(t,Gm),this._config=t}render(){if(!this.hass||!this._config)return K;const t=Qm(this.hass.localize);return Y`
+            `]}};n([vt()],Vm.prototype,"_config",void 0),Vm=n([pt(jm)],Vm),console.info("%c🍄 Mushroom 🍄 - 3.4.1","color: #ef5350; font-weight: 700;");const Bm=Ce({tap_action:$e(ni),hold_action:$e(ni),double_tap_action:$e(ni)}),Um=t=>[{name:"tap_action",selector:{"ui-action":{actions:t}}},{name:"hold_action",selector:{"ui-action":{actions:t}}},{name:"double_tap_action",selector:{"ui-action":{actions:t}}}],Hm=Ce({layout:$e(Se([we("horizontal"),we("vertical"),we("default")])),fill_container:$e(ye()),primary_info:$e(xe(os)),secondary_info:$e(xe(os)),icon_type:$e(xe(ns))}),Ym=[{type:"grid",name:"",schema:[{name:"layout",selector:{mush_layout:{}}},{name:"fill_container",selector:{boolean:{}}}]},{type:"grid",name:"",schema:[{name:"primary_info",selector:{mush_info:{}}},{name:"secondary_info",selector:{mush_info:{}}},{name:"icon_type",selector:{mush_icon_type:{}}}]}],Wm=["icon_color","layout","fill_container","primary_info","secondary_info","icon_type","content_info","use_entity_picture","collapsible_controls","icon_animation"],Xm=Ce({entity:$e(Ee()),name:$e(Ee()),icon:$e(Ee())}),Km=Ce({index:$e(ke()),view_index:$e(ke()),view_layout:ve(),type:Ee()}),Gm=fe(Km,fe(Xm,Hm,Bm),Ce({states:$e(be()),show_keypad:$e(ye())})),qm=["more-info","navigate","url","call-service","assist","none"],Zm=["armed_home","armed_away","armed_night","armed_vacation","armed_custom_bypass"],Jm=["show_keypad"],Qm=Tt((t=>[{name:"entity",selector:{entity:{domain:Vs}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}},context:{icon_entity:"entity"}},...Ym,{type:"multi_select",name:"states",options:Zm.map((e=>[e,t(`ui.card.alarm_control_panel.${e.replace("armed","arm")}`)]))},{name:"show_keypad",selector:{boolean:{}}},...Um(qm)]));let tp=class extends js{constructor(){super(...arguments),this._computeLabel=t=>{const e=zo(this.hass);return Wm.includes(t.name)?e(`editor.card.generic.${t.name}`):Jm.includes(t.name)?e(`editor.card.alarm_control_panel.${t.name}`):"states"===t.name?this.hass.localize("ui.panel.lovelace.editor.card.alarm-panel.available_states"):this.hass.localize(`ui.panel.lovelace.editor.card.generic.${t.name}`)}}connectedCallback(){super.connectedCallback(),vl()}setConfig(t){me(t,Gm),this._config=t}render(){if(!this.hass||!this._config)return K;const t=Qm(this.hass.localize);return Y`
             <ha-form
                 .hass=${this.hass}
                 .data=${this._config}

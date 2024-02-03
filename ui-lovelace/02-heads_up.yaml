@@ -47,6 +47,7 @@ cards:
         - entity_id: "*_motion"
         - entity_id: "*_stream"
         - entity_id: "*contrast"
+        - entity_id: "switch.kmc_multi_plug_1*"
 
     card:
       type: entities

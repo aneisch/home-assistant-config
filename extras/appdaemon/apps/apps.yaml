@@ -266,13 +266,13 @@ NAS:
   time_off: "05:00:00"
   constrain_days: wed
 
-Dyson Charger:
-  module: entity_timer
-  class: Timer
-  entities: switch.garage_dyson
-  time_on: "15:00:00"
-  time_off: "18:00:00"
-  constrain_presence: anyone
+# Dyson Charger:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.garage_dyson
+#   time_on: "15:00:00"
+#   time_off: "18:00:00"
+#   constrain_presence: anyone
 
 AC Filter Change:
   module: countdown_notify
@@ -432,12 +432,12 @@ Plant Light:
   class: Timer
   time_on: sunrise
   time_off: sunset
-  entities: switch.plant_light
+  entities: switch.kmc_multi_plug_1_1
 
 Plant Light Corner:
   module: follow_me
   class: Follow
-  leader: switch.plant_light
+  leader: switch.kmc_multi_plug_1_1
   follower: light.plant_light_corner
 
 Living Room Lamp Follow:

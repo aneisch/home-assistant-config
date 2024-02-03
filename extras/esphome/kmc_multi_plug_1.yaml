@@ -1,0 +1,71 @@
+substitutions:
+  name: kmc_multi_plug_1
+  friendly_name: "KMC Multi Plug 1"
+  
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: esp01_1m
+  esp8266_restore_from_flash: true
+
+<<: !include common.yaml
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: 'America/Chicago'
+
+# sensor:
+#   - platform: hlw8012
+#     sel_pin: GPIO12
+#     cf_pin: GPIO4
+#     cf1_pin: GPIO5
+#     current:
+#       name: "${friendly_name} Current"
+#     voltage:
+#       name: "${friendly_name} Voltage"
+#     power:
+#       name: "${friendly_name} Power"
+#     update_interval: 5s
+
+switch:
+  - platform: gpio
+    name: "${friendly_name} 1"
+    pin: GPIO15
+    # inverted: yes
+    id: relay1
+  - platform: gpio
+    name: "${friendly_name} 2"
+    pin: GPIO13
+    # inverted: yes
+    id: relay2
+  - platform: gpio
+    name: "${friendly_name} 3"
+    pin: GPIO14
+    # inverted: yes
+    id: relay3
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO16
+      mode: INPUT
+      inverted: False
+    name: "${friendly_name} Button"
+    on_press:
+      - switch.toggle: relay2
+    # on_double_click:
+    #   min_length: 50ms
+    #   max_length: 350ms
+    #   then:
+    #   - switch.turn_off: relay1
+    #   - switch.turn_off: relay2
+    #   - switch.turn_off: relay3
+
+status_led:
+  pin:
+    number: GPIO1
+    inverted: yes

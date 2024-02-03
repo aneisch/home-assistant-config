@@ -56,7 +56,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 2805
+Lines of ESPHome YAML | 2801
 Lines of Home Assistant YAML | 9003
 [Integrations](https://www.home-assistant.io/integrations/) in use | 56
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
