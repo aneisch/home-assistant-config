@@ -323,6 +323,9 @@ automation:
       - service: shell_command.create_timelapse
         data:
           camera: ptz
+      - service: shell_command.create_timelapse
+        data:
+          camera: bullet
 
   - alias: Frigate Daily Restart
     id: "frigate_restart"
