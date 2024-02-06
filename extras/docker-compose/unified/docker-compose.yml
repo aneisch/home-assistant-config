@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -584,6 +584,7 @@ services:
         environment:
             - MODE=native
             - TZ=America/Chicago
+            - AUTO_RECEIVE_SCHEDULE=0 22 * * *
         ports:
             - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
             #- "8808:8080" 
@@ -705,8 +706,8 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.13.0-beta7
+        image: ghcr.io/blakeblackshear/frigate:stable
+        #image: ghcr.io/blakeblackshear/frigate:0.13.0-beta7
         shm_size: "128mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb

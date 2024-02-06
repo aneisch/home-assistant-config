@@ -66,7 +66,7 @@ automation:
 
   - alias: Front Door on Photo Frame
     id: "front_door_on_photo_frame"
-    mode: restart
+    mode: 'single'
     trigger:
       - platform: mqtt
         topic: frigate/events
@@ -79,11 +79,10 @@ automation:
     action:
       - service: script.photo_frame_launch_front_door_stream
         data:
-          delay: "00:00:10" # This has to finish before we proceed here
-          entity_id: media_player.kitchen_photo_frame
-      - service: script.photo_frame_launch_fotoo
-        data:
-          entity_id: media_player.kitchen_photo_frame
+          delay: "00:00:30" # How long to show video
+          entity_id: 
+            - media_player.kitchen_photo_frame
+            - media_player.office_photo_frame
 
   - alias: Frigate Notification Deliveries
     id: "frigate_notification_deliveries"

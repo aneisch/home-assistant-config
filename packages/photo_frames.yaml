@@ -6,14 +6,13 @@ automation:
     mode: "parallel"
     trigger:
       - platform: state
-        entity_id: media_player.office_photo_frame
-        from: "unavailable"
-      - platform: state
-        entity_id: media_player.kitchen_photo_frame
-        from: "unavailable"
-      - platform: state
         entity_id: 
-        from: "unavailable"
+          - media_player.office_photo_frame
+          - media_player.kitchen_photo_frame
+          - media_player.misc_photo_frame
+        from: 
+          - "unavailable"
+          - "unknown"
     action:
       - service: script.photo_frame_launch_fotoo
         data:
@@ -71,19 +70,54 @@ script:
           entity_id: "{{ entity_id }}"
 
   photo_frame_launch_front_door_stream:
-    mode: 'restart'
+    mode: 'single'
     sequence:
-      - variables:
-          token: "{{ state_attr('camera.front_door_test','access_token')}}"
       - service: androidtv.adb_command
         target:
           entity_id: "{{ entity_id }}"
         data:
-          command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ token }}'"
-      - delay: "{{ delay | default('00:30:00')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
-      - service: script.photo_frame_launch_fotoo
-        data:
+          # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
+          command: "am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
+      - service: androidtv.adb_command
+        target:
           entity_id: "{{ entity_id }}"
+        data:
+          #command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ state_attr('camera.front_door_test','access_token')}}'"
+          command: "am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://frigatelocal/live/webrtc/webrtc.html?src=front_door_twoway'"
+      - delay: "00:00:05"
+      - service: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "input tap 200 200" # Random Tap
+      - service: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "input tap 1850 1033" # Full Screen
+      # - service: androidtv.adb_command
+      #   target:
+      #     entity_id: "{{ entity_id }}"
+      #   data:
+      #     command: "input tap 1760 1033" # Unmute
+      # - service: androidtv.adb_command
+      #   target:
+      #     entity_id: "{{ entity_id }}"
+      #   data:
+      #     command: "input tap 1760 1033" # Unmute
+      - delay: "{{ delay | default('00:00:30')}}" # If we launch it manually, time out after 30 minutes by default. Override by passing delay to this service
+      # In case we were showing timers before..
+      - if: "{{ is_state('input_boolean.kitchen_timers_showing','on') }}"
+        then:
+          - service: script.photo_frame_launch_timers
+            data:
+              entity_id: 
+                - media_player.kitchen_photo_frame
+                - media_player.office_photo_frame
+        else:
+          - service: script.photo_frame_launch_fotoo
+            data:
+              entity_id: "{{ entity_id }}"
 
   photo_frame_launch_url:
     mode: 'restart'
@@ -105,4 +139,16 @@ script:
         target:
           entity_id: "{{ entity_id }}"
         data:
-          command: "adb shell am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/lovelace/timers?wp_enabled=true'"
+          # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
+          command: "am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
+      - service: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/lovelace/timers?wp_enabled=true'"
+      - delay: "00:00:15"
+      - service: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "input tap 50 200" # tap on screen to make fullscreen

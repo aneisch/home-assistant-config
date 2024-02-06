@@ -1,5 +1,4 @@
 import logging
-import asyncio
 
 from homeassistant.core import Context
 from homeassistant.helpers.restore_state import RestoreEntity
@@ -78,13 +77,12 @@ class SaverEntity(RestoreEntity):
     def state(self):
         return len(self._entities_db)
 
-    @asyncio.coroutine
-    def async_added_to_hass(self):
-        state = yield from self.async_get_last_state()
-        if (
-            state is not None
-            and state.attributes is not None
-            and not isinstance(state.attributes["entities"], list)
-            and "entities" in state.attributes
-        ):
+
+    async def async_added_to_hass(self):
+        state = await self.async_get_last_state()
+        if state is not None \
+                and state.attributes is not None \
+                and "variables" in state.attributes and not isinstance(state.attributes["entities"], list) \
+                and "entities" in state.attributes and not isinstance(state.attributes["variables"], list):
+            self._variables_db = state.attributes["variables"]
             self._entities_db = state.attributes["entities"]
