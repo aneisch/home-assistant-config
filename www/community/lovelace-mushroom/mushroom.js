@@ -2340,11 +2340,12 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
         `}renderModeButton(t){const e={},i="off"===t?"var(--rgb-grey)":Gu(t);return t===this.entity.state&&(e["--icon-color"]=`rgb(${i})`,e["--bg-color"]=`rgba(${i}, 0.2)`),Y`
             <mushroom-button
                 style=${cr(e)}
-                .icon=${function(t){var e;return null!==(e=Xu[t])&&void 0!==e?e:"mdi:thermostat"}(t)}
                 .mode=${t}
                 .disabled=${!Ut(this.entity)}
                 @click=${this.callService}
-            ></mushroom-button>
+            >
+                <ha-icon .icon=${function(t){var e;return null!==(e=Xu[t])&&void 0!==e?e:"mdi:thermostat"}(t)}></ha-icon>
+            </mushroom-button>
         `}};n([_t({attribute:!1})],qu.prototype,"hass",void 0),n([_t({attribute:!1})],qu.prototype,"entity",void 0),n([_t({attribute:!1})],qu.prototype,"modes",void 0),n([_t()],qu.prototype,"fill",void 0),qu=n([pt("mushroom-climate-hvac-modes-control")],qu);let Zu=class extends ht{constructor(){super(...arguments),this.disabled=!1,this.formatOptions={},this.pending=!1,this.dispatchValue=t=>{this.pending=!1,this.dispatchEvent(new CustomEvent("change",{detail:{value:t}}))},this.debounceDispatchValue=this.dispatchValue}get _precision(){return Math.ceil(Math.log10(1/this._step))}get _step(){var t;return null!==(t=this.step)&&void 0!==t?t:1}_incrementValue(t){if(t.stopPropagation(),null==this.value)return;const e=Qt(this.value+this._step,this._precision);this._processNewValue(e)}_decrementValue(t){if(t.stopPropagation(),null==this.value)return;const e=Qt(this.value-this._step,this._precision);this._processNewValue(e)}firstUpdated(t){super.firstUpdated(t);const e=(t=>{const e=window.getComputedStyle(t).getPropertyValue("--input-number-debounce"),i=parseFloat(e);return isNaN(i)?2e3:i})(this.container);e&&(this.debounceDispatchValue=Te(this.dispatchValue,e))}_processNewValue(t){const e=((t,e,i)=>{let o;return o=e?Math.max(t,e):t,o=i?Math.min(o,i):o,o})(t,this.min,this.max);this.value!==e&&(this.value=e,this.pending=!0),this.debounceDispatchValue(e)}render(){const t=null!=this.value?te(this.value,this.locale,this.formatOptions):"-";return Y`
             <div class="container" id="container">
                 <button
@@ -2553,7 +2554,6 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                       `:void 0}
                 ${Wt(this.entity,8)?Y`
                           <mushroom-button
-                              icon="mdi:stop"
                               .disabled=${!Ut(this.entity)}
                               @click=${this._onStopTap}
                           >
@@ -2732,10 +2732,7 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                 ></ha-state-icon
             ></mushroom-shape-icon>
         `}renderNextControlButton(){return this._nextControl&&this._nextControl!=this._activeControl?Y`
-            <mushroom-button
-                .icon=${mh[this._nextControl]}
-                @click=${this._onNextControlTap}
-            >
+            <mushroom-button @click=${this._onNextControlTap}>
                 <ha-icon .icon=${mh[this._nextControl]}></ha-icon>
             </mushroom-button>
         `:K}renderActiveControl(t,e){switch(this._activeControl){case"buttons_control":return Y`
@@ -3227,7 +3224,6 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                 ${s?Y`
                           <mushroom-button
                               .action=${"volume_up"}
-                              icon="mdi:volume-plus"
                               .disabled=${!Ut(this.entity)||Ht(this.entity)}
                               @click=${this.handleClick}
                           >
@@ -3654,7 +3650,7 @@ const Tl={},zl=He(class extends Ye{constructor(t){if(super(t),t.type!==Be&&t.typ
                 mushroom-vacuum-commands-control {
                     flex: 1;
                 }
-            `]}};n([vt()],Vm.prototype,"_config",void 0),Vm=n([pt(jm)],Vm),console.info("%c🍄 Mushroom 🍄 - 3.4.1","color: #ef5350; font-weight: 700;");const Bm=Ce({tap_action:$e(ni),hold_action:$e(ni),double_tap_action:$e(ni)}),Um=t=>[{name:"tap_action",selector:{"ui-action":{actions:t}}},{name:"hold_action",selector:{"ui-action":{actions:t}}},{name:"double_tap_action",selector:{"ui-action":{actions:t}}}],Hm=Ce({layout:$e(Se([we("horizontal"),we("vertical"),we("default")])),fill_container:$e(ye()),primary_info:$e(xe(os)),secondary_info:$e(xe(os)),icon_type:$e(xe(ns))}),Ym=[{type:"grid",name:"",schema:[{name:"layout",selector:{mush_layout:{}}},{name:"fill_container",selector:{boolean:{}}}]},{type:"grid",name:"",schema:[{name:"primary_info",selector:{mush_info:{}}},{name:"secondary_info",selector:{mush_info:{}}},{name:"icon_type",selector:{mush_icon_type:{}}}]}],Wm=["icon_color","layout","fill_container","primary_info","secondary_info","icon_type","content_info","use_entity_picture","collapsible_controls","icon_animation"],Xm=Ce({entity:$e(Ee()),name:$e(Ee()),icon:$e(Ee())}),Km=Ce({index:$e(ke()),view_index:$e(ke()),view_layout:ve(),type:Ee()}),Gm=fe(Km,fe(Xm,Hm,Bm),Ce({states:$e(be()),show_keypad:$e(ye())})),qm=["more-info","navigate","url","call-service","assist","none"],Zm=["armed_home","armed_away","armed_night","armed_vacation","armed_custom_bypass"],Jm=["show_keypad"],Qm=Tt((t=>[{name:"entity",selector:{entity:{domain:Vs}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}},context:{icon_entity:"entity"}},...Ym,{type:"multi_select",name:"states",options:Zm.map((e=>[e,t(`ui.card.alarm_control_panel.${e.replace("armed","arm")}`)]))},{name:"show_keypad",selector:{boolean:{}}},...Um(qm)]));let tp=class extends js{constructor(){super(...arguments),this._computeLabel=t=>{const e=zo(this.hass);return Wm.includes(t.name)?e(`editor.card.generic.${t.name}`):Jm.includes(t.name)?e(`editor.card.alarm_control_panel.${t.name}`):"states"===t.name?this.hass.localize("ui.panel.lovelace.editor.card.alarm-panel.available_states"):this.hass.localize(`ui.panel.lovelace.editor.card.generic.${t.name}`)}}connectedCallback(){super.connectedCallback(),vl()}setConfig(t){me(t,Gm),this._config=t}render(){if(!this.hass||!this._config)return K;const t=Qm(this.hass.localize);return Y`
+            `]}};n([vt()],Vm.prototype,"_config",void 0),Vm=n([pt(jm)],Vm),console.info("%c🍄 Mushroom 🍄 - 3.4.2","color: #ef5350; font-weight: 700;");const Bm=Ce({tap_action:$e(ni),hold_action:$e(ni),double_tap_action:$e(ni)}),Um=t=>[{name:"tap_action",selector:{"ui-action":{actions:t}}},{name:"hold_action",selector:{"ui-action":{actions:t}}},{name:"double_tap_action",selector:{"ui-action":{actions:t}}}],Hm=Ce({layout:$e(Se([we("horizontal"),we("vertical"),we("default")])),fill_container:$e(ye()),primary_info:$e(xe(os)),secondary_info:$e(xe(os)),icon_type:$e(xe(ns))}),Ym=[{type:"grid",name:"",schema:[{name:"layout",selector:{mush_layout:{}}},{name:"fill_container",selector:{boolean:{}}}]},{type:"grid",name:"",schema:[{name:"primary_info",selector:{mush_info:{}}},{name:"secondary_info",selector:{mush_info:{}}},{name:"icon_type",selector:{mush_icon_type:{}}}]}],Wm=["icon_color","layout","fill_container","primary_info","secondary_info","icon_type","content_info","use_entity_picture","collapsible_controls","icon_animation"],Xm=Ce({entity:$e(Ee()),name:$e(Ee()),icon:$e(Ee())}),Km=Ce({index:$e(ke()),view_index:$e(ke()),view_layout:ve(),type:Ee()}),Gm=fe(Km,fe(Xm,Hm,Bm),Ce({states:$e(be()),show_keypad:$e(ye())})),qm=["more-info","navigate","url","call-service","assist","none"],Zm=["armed_home","armed_away","armed_night","armed_vacation","armed_custom_bypass"],Jm=["show_keypad"],Qm=Tt((t=>[{name:"entity",selector:{entity:{domain:Vs}}},{name:"name",selector:{text:{}}},{name:"icon",selector:{icon:{}},context:{icon_entity:"entity"}},...Ym,{type:"multi_select",name:"states",options:Zm.map((e=>[e,t(`ui.card.alarm_control_panel.${e.replace("armed","arm")}`)]))},{name:"show_keypad",selector:{boolean:{}}},...Um(qm)]));let tp=class extends js{constructor(){super(...arguments),this._computeLabel=t=>{const e=zo(this.hass);return Wm.includes(t.name)?e(`editor.card.generic.${t.name}`):Jm.includes(t.name)?e(`editor.card.alarm_control_panel.${t.name}`):"states"===t.name?this.hass.localize("ui.panel.lovelace.editor.card.alarm-panel.available_states"):this.hass.localize(`ui.panel.lovelace.editor.card.generic.${t.name}`)}}connectedCallback(){super.connectedCallback(),vl()}setConfig(t){me(t,Gm),this._config=t}render(){if(!this.hass||!this._config)return K;const t=Qm(this.hass.localize);return Y`
             <ha-form
                 .hass=${this.hass}
                 .data=${this._config}

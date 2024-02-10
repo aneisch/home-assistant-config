@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -467,27 +467,27 @@ services:
             - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
             - traefik.http.routers.adguard_local.service=adguard
 
-    recipes:
-        # Public consumption at VPS, duplicated locally for home use though
-        container_name: recipes
-        image: ghcr.io/aneisch/chowdown:latest
-        user: '99'
-        #ports:
-        #  - "4000:4000"
-        volumes:
-            - '/opt/recipes:/config'
-            - '/etc/localtime:/etc/localtime:ro'
-        environment:
-            - TZ=America/Chicago    
-        restart: always
-        labels:
-            # HTTPS for CF
-            - traefik.enable=true
-            - traefik.http.routers.recipes.entrypoints=websecure
-            - traefik.http.routers.recipes.tls=true
-            - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
-            - traefik.http.services.recipes.loadbalancer.server.port=4000
-            - traefik.http.routers.recipes.service=recipes
+    # recipes:
+    #     # Public consumption at VPS, duplicated locally for home use though
+    #     container_name: recipes
+    #     image: ghcr.io/aneisch/chowdown:latest
+    #     user: '99'
+    #     #ports:
+    #     #  - "4000:4000"
+    #     volumes:
+    #         - '/opt/recipes:/config'
+    #         - '/etc/localtime:/etc/localtime:ro'
+    #     environment:
+    #         - TZ=America/Chicago    
+    #     restart: always
+    #     labels:
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.routers.recipes.entrypoints=websecure
+    #         - traefik.http.routers.recipes.tls=true
+    #         - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
+    #         - traefik.http.services.recipes.loadbalancer.server.port=4000
+    #         - traefik.http.routers.recipes.service=recipes
 
     tailscale:
         container_name: tailscale
@@ -724,7 +724,6 @@ services:
             - "8555:8555/tcp"
             - "8555:8555/udp"
             - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
-
         labels:
             # HTTPS for CF
             - traefik.enable=true
@@ -766,6 +765,7 @@ services:
         container_name: auto-southwest
         restart: 'unless-stopped'
         privileged: true
+        network_mode: host
         volumes:
             - /opt/southwest/config.json:/app/config.json
         entrypoint:
@@ -793,6 +793,31 @@ services:
             - traefik.http.routers.ha_fusion_local.entrypoints=web
             - traefik.http.routers.ha_fusion_local.rule=Host(`ha-fusion.home.domain.com`)
             - traefik.http.routers.ha_fusion_local.service=ha_fusion_local
+
+    mealie:
+        image: ghcr.io/mealie-recipes/mealie:latest
+        container_name: mealie
+        # ports:
+        #     - "9925:9000" # 
+        volumes:
+            - /opt/mealie:/app/data/
+        environment:
+            #- ALLOW_SIGNUP=true
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Anchorage
+            - MAX_WORKERS=1
+            - WEB_CONCURRENCY=1
+            - BASE_URL=https://mealie.domain.com
+        restart: always
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.recipes.entrypoints=websecure
+            - traefik.http.routers.recipes.tls=true
+            - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
+            - traefik.http.services.recipes.loadbalancer.server.port=9000
+            - traefik.http.routers.recipes.service=recipes
 
 networks:
     macos_network:

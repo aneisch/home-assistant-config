@@ -254,6 +254,8 @@ logger:
   #default: debug
   default: warn
   logs:
+    homeassistant.components.homekit: debug
+    pyhap: debug
     #homeassistant.core: warn
     #homeassistant.components.media_player: debug
     #custom_components.alexa_media: debug

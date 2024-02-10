@@ -135,10 +135,19 @@ automation:
           filename: /config/media/images/doorbell.jpg
         target:
           entity_id: camera.front_door
+      - service: google_generative_ai_conversation.generate_content
+        data:
+          prompt: >-
+            Very briefly describe what you see in this image from my doorbell camera.
+            Your message needs to be short to fit in a phone notification. Don't
+            describe stationary objects or buildings.
+          image_filename: /config/media/images/doorbell.jpg
+        response_variable: generated_content
       - service: notify.signal_frigate
         data:
           message: >-
-            Doorbell ring!
+            Doorbell ring! {{ generated_content.text }}
+
 
             Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway&media=video+audio+microphone
           data:
@@ -148,7 +157,7 @@ automation:
       - service: notify.mobile_app_galaxy_watch6_kqbw
         data:
           message: >-
-            Doorbell ring!
+            Doorbell ring! {{ generated_content.text[] }}
           data:
             ttl: 0
             priority: high

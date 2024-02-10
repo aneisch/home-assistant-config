@@ -1,48 +1,55 @@
-  filter:
-    exclude_domains:
-      - alarm_control_panel
-      - alert
-      - automation
-      - binary_sensor
-      - button
-      - camera
-      - calendar
-      - climate
-      - cover
-      - counter
-      - device_tracker
-      - fan
-      - group
-      - input_boolean
-      - input_number
-      - input_text
-      - input_select
-      - input_datetime
-      - light
-      - media_player
-      - number
-      - person
-      - plant
-      - remote
-      - select
-      - scene
-      - script
-      - sensor
-      - siren
-      - switch
-      - timer
-      - vacuum
-      - update
-      - zone
-    include_entities:
-      - light.andrew_nightstand_lamp
-      - light.bethany_nightstand_lamp
-      - light.bethany_desk_lamp
-      - light.guest_bedroom_nightstand_lamp
-      - light.master_bedroom_lamps
-      - light.master_bedroom_ceiling_fan
-      - light.living_room_lamps
-      - climate.thermostat
-      - switch.master_bedroom_ceiling_fan
-      - script.too_cold
-      - script.too_hot
+  - filter:
+      exclude_domains:
+        - alarm_control_panel
+        - alert
+        - automation
+        - binary_sensor
+        - button
+        - camera
+        - calendar
+        - climate
+        - cover
+        - counter
+        - device_tracker
+        - fan
+        - group
+        - input_boolean
+        - input_number
+        - input_text
+        - input_select
+        - input_datetime
+        - light
+        - media_player
+        - number
+        - person
+        - plant
+        - remote
+        - select
+        - scene
+        - script
+        - sensor
+        - siren
+        - switch
+        - timer
+        - vacuum
+        - update
+        - zone
+      include_entities:
+        - light.andrew_nightstand_lamp
+        - light.bethany_nightstand_lamp
+        - light.bethany_desk_lamp
+        - light.guest_bedroom_nightstand_lamp
+        - light.master_bedroom_lamps
+        - light.master_bedroom_ceiling_fan
+        - light.living_room_lamps
+        - climate.thermostat
+        - switch.master_bedroom_ceiling_fan
+        - script.too_cold
+        - script.too_hot
+
+  - name: Mom and Dad House
+    port: 21064
+    filter:
+      include_entities:
+        - cover.mom_and_dad_garage_mom_and_dad_garage
+        - cover.mom_and_dad_gate_mom_and_dad_gate
