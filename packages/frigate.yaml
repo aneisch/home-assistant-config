@@ -31,10 +31,24 @@ automation:
               - service: shell_command.weasel_shortcut
                 data:
                   shortcut: open-front-door-cam-weasel
+          - service: camera.snapshot
+            data:
+              filename: /config/media/images/front_door.jpg
+            target:
+              entity_id: camera.front_door
+          - service: google_generative_ai_conversation.generate_content
+            continue_on_error: true
+            data:
+              prompt: >-
+                Very briefly describe what you see in this image from my doorbell camera.
+                Your message needs to be short to fit in a phone notification. Don't
+                describe stationary objects or buildings.
+              image_filename: /config/media/images/front_door.jpg
+            response_variable: generated_content
           - service: notify.signal_frigate
             data:
               message: >-
-                A {{trigger.payload_json["after"]["label"]}} was detected.
+                {{ generated_content.text }}
 
 
                 Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
@@ -42,8 +56,8 @@ automation:
 
                 Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
               data:
-                urls:
-                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                attachments:
+                  - /config/media/images/front_door.jpg
           - delay: '00:00:10'
 
       # if not home or sleeping time and person detection anywhere then notify
@@ -52,7 +66,7 @@ automation:
           - service: notify.signal_frigate
             data:
               message: >-
-                A {{trigger.payload_json["after"]["label"]}} was detected.
+                {{ generated_content.text }}
 
 
                 Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
@@ -60,8 +74,8 @@ automation:
 
                 Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
               data:
-                urls:
-                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+                attachments:
+                  - /config/media/images/front_door.jpg
           - delay: '00:00:10'
 
   - alias: Front Door on Photo Frame
@@ -120,7 +134,7 @@ automation:
               message: "Prime Air Drone detected"
               data:
                 attachments:
-                  - /config/images/logo.jpg
+                  - /config/media/images/logo.jpg
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"
@@ -136,6 +150,7 @@ automation:
         target:
           entity_id: camera.front_door
       - service: google_generative_ai_conversation.generate_content
+        continue_on_error: true
         data:
           prompt: >-
             Very briefly describe what you see in this image from my doorbell camera.
@@ -157,7 +172,7 @@ automation:
       - service: notify.mobile_app_galaxy_watch6_kqbw
         data:
           message: >-
-            Doorbell ring! {{ generated_content.text[] }}
+            Doorbell! {{ generated_content.text }}
           data:
             ttl: 0
             priority: high
@@ -328,9 +343,9 @@ automation:
       - service: shell_command.create_timelapse
         data:
           camera: driveway
-      - service: shell_command.create_timelapse
-        data:
-          camera: ptz
+      # - service: shell_command.create_timelapse
+      #   data:
+      #     camera: ptz
       - service: shell_command.create_timelapse
         data:
           camera: bullet

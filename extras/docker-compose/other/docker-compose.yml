@@ -336,7 +336,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik
+        image: traefik:v3.0
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
@@ -344,8 +344,9 @@ services:
             - /opt/traefik/certs:/opt/certs:ro
         ports:
             #- 8889:8080 # dashboard
-            - 80:80
-            - 443:443
+            - 80:80/tcp
+            - 443:443/udp
+            - 443:443/tcp
         extra_hosts:
             - "host.docker.internal:host-gateway"
         labels:
@@ -541,11 +542,12 @@ services:
         container_name: codeproject
         restart: 'always'
         image: codeproject/ai-server
-        # ports:
-        #     - 32168:32168
+        ports:
+            - 32168:32168
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+            - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYOLOv5-6.2/custom-models/
         labels:
             # HTTP Local Only
             - traefik.enable=true
@@ -599,9 +601,9 @@ services:
             #- ALLOW_SIGNUP=true
             - PUID=1000
             - PGID=1000
-            - TZ=America/Anchorage
-            - MAX_WORKERS=1
-            - WEB_CONCURRENCY=1
+            - TZ=America/Chicago
+            #- MAX_WORKERS=1
+            #- WEB_CONCURRENCY=1
             - BASE_URL=https://mealie.domain.com
         restart: always
         labels:
@@ -612,6 +614,10 @@ services:
             - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
             - traefik.http.services.recipes.loadbalancer.server.port=9000
             - traefik.http.routers.recipes.service=recipes
+            # HTTP Local Only
+            - traefik.http.routers.recipes_local.entrypoints=web
+            - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
+            - traefik.http.routers.recipes_local.service=recipes
 
 networks:
     macos_network:

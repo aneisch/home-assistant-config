@@ -1,4 +1,5 @@
 """Constants for Mail and Packages."""
+
 from __future__ import annotations
 
 from typing import Final
@@ -12,7 +13,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.19"
+VERSION = "0.3.20"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -251,16 +252,20 @@ SENSOR_DATA = {
             "NoReply.ODD@dhl.com",
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
+            "support@dhl.com",
         ],
         "subject": [
             "DHL On Demand Delivery",
             "Powiadomienie o przesyłce",
             "Paket wurde zugestellt",
+            "DHL Shipment Notification",
         ],
         "body": [
             "has been delivered",
             "została doręczona",
             "ist angekommen",
+            'Notification for shipment event group "Delivered',
+            " - Delivered - ",
         ],
     },
     "dhl_delivering": {
@@ -269,17 +274,21 @@ SENSOR_DATA = {
             "NoReply.ODD@dhl.com",
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
+            "support@dhl.com",
         ],
         "subject": [
             "DHL On Demand Delivery",
             "Paket kommt heute",
             "Paket wird gleich zugestellt",
             "Powiadomienie o przesyłce",
+            "DHL Shipment Notification",
         ],
         "body": [
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            " - Shipment is out with courier for delivery - ",
+            "Shipment is scheduled for delivery",
             "voraussichtlich innerhalb",
         ],
     },

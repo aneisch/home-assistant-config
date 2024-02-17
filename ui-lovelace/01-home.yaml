@@ -271,6 +271,11 @@ cards:
         type: call-service
         service_data:
           entity_id: media_player.kitchen_photo_frame
+      - action_name: Launch Mealie
+        icon: 'mdi:voice'
+        name: ' '
+        service: script.photo_frame_launch_mealie
+        type: call-service
 
   - type: custom:vertical-stack-in-card
     cards:

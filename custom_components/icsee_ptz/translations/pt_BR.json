@@ -1,0 +1,35 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "O dispositivo ja está configurado"
+    },
+    "error": {
+      "cannot_connect": "Falha ao conectar"
+    },
+    "step": {
+      "user": {
+        "title": "Preencha com as informações do seu DVRIP",
+        "data": {
+          "name": "Nome",
+          "host": "Host ou IP",
+          "username": "Usuário",
+          "password": "Senha"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Defaults",
+        "description": "Configurações padrão do PTZ. Passos é a velocidade do movimento. Predefinição é apenas importante para SetPreset/GotoPreset/ClearPreset. Canal geralmente é 0.",
+        "data": {
+          "channel": "Canal",
+          "step": "Passos",
+          "preset": "Predefinição",
+          "experimental_entities": "Ative entidades experimetais"
+        }
+      }
+    }
+  }
+}

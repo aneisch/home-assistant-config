@@ -1,0 +1,60 @@
+move:
+  description: "Move an ICSee/DVR-IP/NetSurveillance/Sofia camera"
+  target:
+    device:
+      integration: icsee_ptz
+  fields:
+    cmd:
+      description: "Command"
+      example: "DirectionUp"
+      default: "DirectionUp"
+      required: true
+      selector:
+        select:
+          options:
+            - Stop
+            - DirectionUp
+            - DirectionDown
+            - DirectionLeft
+            - DirectionRight
+            - DirectionLeftUp
+            - DirectionLeftDown
+            - DirectionRightUp
+            - DirectionRightDown
+            - ZoomTile
+            - ZoomWide
+            - FocusNear
+            - FocusFar
+            - IrisSmall
+            - IrisLarge
+            - SetPreset
+            - GotoPreset
+            - ClearPreset
+            - StartTour
+            - StopTour
+    step:
+      description: "Movement speed"
+      default: 2
+      selector:
+        number:
+          min: 0
+          max: 10
+    preset:
+      description: Only applicable to SetPreset and GotoPreset
+      default: 0
+      selector:
+        number:
+          mode: box
+          min: 0
+          max: 100
+
+synchronize_clock:
+  description: "Synchronize camera clock"
+  target:
+    device:
+      integration: icsee_ptz
+force_frame:
+  target:
+    device:
+      integration: icsee_ptz
+  description: "Force the camera to send a new frame. Useful to speed up video start"
