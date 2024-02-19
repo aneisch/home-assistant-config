@@ -33,6 +33,14 @@ Kitchen Timer Sync:
 #   # Publish to MQTT (remove mqtt entry if you don't want..)
 #   mqtt: True
 
+Set Smallgroup Boolean:
+  module: entity_timer
+  class: Timer
+  constrain_days: wed
+  time_off: "17:00:00"
+  time_on: "23:59:00"
+  entities: input_boolean.is_smallgroup
+
 Back Bedroom Zigbee Remote:
   module: zigbee_remote
   class: EcoSmartZigbeeRemote
@@ -390,8 +398,7 @@ Indoor Light Automation Sunset:
 Cameras Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_presence: anyone
-  constrain_days: wed
+  constrain_input_boolean: input_boolean.is_smallgroup
   time_off: "17:30:00"
   time_on: "21:00:00"
   entities: switch.driveway_detect,switch.front_door_detect
@@ -399,19 +406,16 @@ Cameras Smallgroup:
 Indoor Light Automation Sunset Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.house_lamps_automation
-  constrain_presence: anyone
-  constrain_days: wed
-  time_on: "17:45:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas_trees #,switch.ir_candles
+  constrain_input_boolean: input_boolean.is_smallgroup
+  time_on: "17:30:00"
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Entryway Light Sunset Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_days: wed
-  constrain_presence: anyone
-  time_on: "17:45:00"
+  constrain_input_boolean: input_boolean.is_smallgroup
+  time_on: "17:30:00"
   time_off: "23:00:00"
   entities: light.entryway_light
   brightness: 255
@@ -455,7 +459,7 @@ Door Notification and Occusim Security Follow:
 
 TV Automation Smallgroup:
   module: entity_timer
-  constrain_days: wed
+  constrain_input_boolean: input_boolean.is_smallgroup
   class: Timer
   time_off: "18:00:00"
   time_on: "22:00:00"
@@ -471,8 +475,7 @@ TV Automation Smallgroup:
 
 # Pumkin Patch Smallgroup:
 #   module: entity_timer
-#   constrain_days: wed
-#   constrain_presence: anyone
+#   constrain_input_boolean: input_boolean.is_smallgroup
 #   class: Timer
 #   time_off: "17:45:00"
 #   time_on: "22:00:00"
@@ -480,8 +483,7 @@ TV Automation Smallgroup:
 
 Globe Lights Smallgroup:
   module: entity_timer
-  constrain_days: wed
-  constrain_presence: anyone
+  constrain_input_boolean: input_boolean.is_smallgroup
   class: Timer
   time_on: sunset - 00:20:00
   time_off: "21:00:00"
@@ -506,6 +508,13 @@ Code Project Docker:
   class: Timer
   time_on: "08:00:00"
   time_off: sunset
+  entities: switch.docker_codeproject
+
+RTL433 Docker:
+  module: entity_timer
+  class: Timer
+  time_off: "01:00:00"
+  time_on: "01:02:00"
   entities: switch.docker_codeproject
 
 BVST Docker:

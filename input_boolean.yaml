@@ -32,6 +32,8 @@ guest_mode:
   name: Guest Mode
   icon: mdi:account-plus
 
+is_smallgroup:
+
 house_lamps_automation:
   name: House-Wide Lamps Automation
   icon: mdi:lamp

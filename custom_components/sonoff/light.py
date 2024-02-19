@@ -916,6 +916,69 @@ class XLightB05B(XLightB02):
             return {"ltype": effect, effect: B05_MODE_PAYLOADS[effect]}
 
 
+class XZigbeeLight(XLight):
+    param = "switch"
+
+    _attr_supported_color_modes = {ColorMode.COLOR_TEMP, ColorMode.HS}
+
+    def set_state(self, params: dict):
+        XLight.set_state(self, params)
+
+        mode = params.get("colorMode")
+
+        if mode == "cct":
+            self._attr_color_mode = ColorMode.COLOR_TEMP
+        elif mode == "rgb":
+            self._attr_color_mode = ColorMode.HS
+
+        if "colorTemp" in params:
+            self._attr_color_temp = conv(
+                params["colorTemp"],
+                0,
+                100,
+                self._attr_max_mireds,  # yellow
+                self._attr_min_mireds,  # blue
+            )
+
+        if br := params.get(f"{mode}Brightness"):
+            self._attr_brightness = conv(br, 1, 100, 0, 255)
+
+        if "hue" in params and "saturation" in params:
+            self._attr_hs_color = (params["hue"], params["saturation"])
+
+    async def async_turn_on(
+        self,
+        brightness: int = None,
+        color_temp: int = None,
+        hs_color: tuple = None,
+        **kwargs,
+    ) -> None:
+        params = {self.param: "on"}
+
+        if color_temp is not None:
+            params["colorMode"] = "cct"
+            params["colorTemp"] = conv(
+                color_temp, self._attr_max_mireds, self._attr_min_mireds, 0, 100
+            )
+
+        if hs_color is not None:
+            params["colorMode"] = "rgb"
+            params["hue"] = hs_color[0]
+            params["saturation"] = hs_color[1]
+
+        if brightness is not None:
+            if "colorMode" not in params:
+                if self._attr_color_mode == ColorMode.COLOR_TEMP:
+                    params["colorMode"] = "cct"
+                elif self._attr_color_mode == ColorMode.HS:
+                    params["colorMode"] = "rgb"
+
+            k = params["colorMode"] + "Brightness"  # cctBrightness or rgbBrightness
+            params[k] = conv(brightness, 0, 255, 1, 100)
+
+        await self.ewelink.send(self.device, params)
+
+
 ###############################################################################
 # Category 3. Other
 ###############################################################################
@@ -1072,7 +1135,16 @@ class XDiffuserLight(XEntity, LightEntity):
 class XT5Light(XEntity, LightEntity):
     params = {"lightSwitch", "lightMode"}
 
-    _attr_effect_list = ["0", "1", "2", "3", "4", "5", "6", "7"]
+    _attr_effect_list = [
+        "Night Light",
+        "Party",
+        "Leisure",
+        "Color",
+        "Childhood",
+        "Wiper",
+        "Fairy",
+        "Starburst",
+    ]
     _attr_supported_features = LightEntityFeature.EFFECT
 
     def set_state(self, params: dict):
@@ -1080,15 +1152,15 @@ class XT5Light(XEntity, LightEntity):
             self._attr_is_on = params["lightSwitch"] == "on"
 
         if "lightMode" in params:
-            self._attr_effect = str(params["lightMode"])
+            self._attr_effect = self._attr_effect_list[int(params["lightMode"])]
 
     async def async_turn_on(
         self, brightness: int = None, effect: str = None, **kwargs
     ) -> None:
         params = {}
 
-        if effect and effect != "0":
-            params["lightMode"] = int(effect)
+        if effect:
+            params["lightMode"] = self._attr_effect_list.index(effect)
 
         if not params:
             params["lightSwitch"] = "on"

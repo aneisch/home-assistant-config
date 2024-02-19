@@ -34,7 +34,12 @@ automation:
         - switch.andrew_monitor
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
-        - media_player.misc_photo_frame
+      # Only turn on guest bathroom frame if guest mode
+      - if: "{{ is_state('input_boolean.guest_mode', 'on') }}"
+        then:
+          - service: media_player.turn_on
+            entity_id: 
+              - media_player.misc_photo_frame
 
 script:
   photo_frame_launch_fotoo:

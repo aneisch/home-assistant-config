@@ -57,7 +57,7 @@ Also using Grafana/Influx for graphing, both running in Docker containers on NUC
 Description | value
 -- | --
 Lines of ESPHome YAML | 2801
-Lines of Home Assistant YAML | 9102
+Lines of Home Assistant YAML | 9113
 [Integrations](https://www.home-assistant.io/integrations/) in use | 57
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -76,7 +76,7 @@ Entities in the [`event`](https://www.home-assistant.io/components/event) domain
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 17
 Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 8
-Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 28
+Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 29
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 34
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 6
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
@@ -101,7 +101,7 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 2
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1283**
+**Total state objects** | **1284**
 ## The HACS integrations/plugins that I use:
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
@@ -125,7 +125,6 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [blakeblackshear/frigate-hass-integration](https://github.com/blakeblackshear/frigate-hass-integration)<br>
 [claytonjn/hass-circadian_lighting](https://github.com/claytonjn/hass-circadian_lighting)<br>
 [custom-components/readme](https://github.com/custom-components/readme)<br>
-[dbuezas/icsee-ptz](https://github.com/dbuezas/icsee-ptz)<br>
 [dlashua/hass-setter](https://github.com/dlashua/hass-setter)<br>
 [hacs/integration](https://github.com/hacs/integration)<br>
 [moralmunky/Home-Assistant-Mail-And-Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages)<br>

@@ -48,9 +48,12 @@ class XRegistry(XRegistryBase):
                 _LOGGER.debug(f"{did} UIID {uiid:04} | %s", device["params"])
 
                 if parentid := device["params"].get("parentid"):
-                    device["parent"] = next(
-                        d for d in devices if d["deviceid"] == parentid
-                    )
+                    try:
+                        device["parent"] = next(
+                            d for d in devices if d["deviceid"] == parentid
+                        )
+                    except StopIteration:
+                        pass
 
                 # at this moment entities can catch signals with device_id and
                 # update their states, but they can be added to hass later
@@ -98,13 +101,14 @@ class XRegistry(XRegistryBase):
           ignored if params empty
         :param timeout_lan: optional custom LAN timeout
         """
-        seq = self.sequence()
+        seq = await self.sequence()
 
         if "parent" in device:
             main_device = device["parent"]
-            if not params_lan:
+            if params_lan is None and params is not None:
                 params_lan = params.copy()
-            params_lan["subDevId"] = device["deviceid"]
+            if params_lan:
+                params_lan["subDevId"] = device["deviceid"]
         else:
             main_device = device
 
