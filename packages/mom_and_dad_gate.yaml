@@ -74,10 +74,14 @@ automation:
         webhook_id: !secret mom_and_dad_gate_webhook_id
         local_only: false
         id: gate
+        allowed_meethods: 
+          - GET
       - platform: webhook
         webhook_id: !secret mom_and_dad_garage_webhook_id
         local_only: false
         id: garage
+        allowed_meethods: 
+          - GET
     action:
       - service: cover.toggle
         data:
@@ -87,30 +91,30 @@ automation:
             {% elif trigger.id == 'garage' %}
               cover.mom_and_dad_garage_mom_and_dad_garage
             {% endif %}
-      - delay: "00:00:10"
+      - delay: "00:00:05"
 
-  - alias: "Worker Trigger Magnolia"
-    id: "webhook_trigger_magnolia"
-    mode: "single"
-    initial_state: "on"
-    trigger:
-      - platform: webhook
-        webhook_id: !secret cf_otp_webhook_gate
-        local_only: false
-        id: gate
-      - platform: webhook
-        webhook_id: !secret cf_otp_webhook_garage
-        local_only: false
-        id: garage
-    action:
-      - service: cover.toggle
-        data:
-          entity_id: >
-            {% if trigger.id == 'gate' %}
-              cover.mom_and_dad_gate_mom_and_dad_gate
-            {% elif trigger.id == 'garage' %}
-              cover.mom_and_dad_garage_mom_and_dad_garage
-            {% endif %}
-      - service: notify.signal_self
-        data:
-          message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"
+  # - alias: "Worker Trigger Magnolia"
+  #   id: "webhook_trigger_magnolia"
+  #   mode: "single"
+  #   initial_state: "on"
+  #   trigger:
+  #     - platform: webhook
+  #       webhook_id: !secret cf_otp_webhook_gate
+  #       local_only: false
+  #       id: gate
+  #     - platform: webhook
+  #       webhook_id: !secret cf_otp_webhook_garage
+  #       local_only: false
+  #       id: garage
+  #   action:
+  #     - service: cover.toggle
+  #       data:
+  #         entity_id: >
+  #           {% if trigger.id == 'gate' %}
+  #             cover.mom_and_dad_gate_mom_and_dad_gate
+  #           {% elif trigger.id == 'garage' %}
+  #             cover.mom_and_dad_garage_mom_and_dad_garage
+  #           {% endif %}
+  #     - service: notify.signal_self
+  #       data:
+  #         message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"

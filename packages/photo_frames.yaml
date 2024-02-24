@@ -130,6 +130,7 @@ script:
           # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
           command: "am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
       # In case we were showing timers before..
+      - delay: "00:00:01"
       - if: "{{ is_state('input_boolean.kitchen_timers_showing','on') }}"
         then:
           - service: script.photo_frame_launch_timers

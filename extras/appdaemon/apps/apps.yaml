@@ -37,8 +37,8 @@ Set Smallgroup Boolean:
   module: entity_timer
   class: Timer
   constrain_days: wed
-  time_off: "17:00:00"
-  time_on: "23:59:00"
+  time_on: "17:00:00"
+  time_off: "23:59:00"
   entities: input_boolean.is_smallgroup
 
 Back Bedroom Zigbee Remote:

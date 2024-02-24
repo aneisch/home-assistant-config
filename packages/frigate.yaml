@@ -36,19 +36,19 @@ automation:
               filename: /config/media/images/front_door.jpg
             target:
               entity_id: camera.front_door
-          - service: google_generative_ai_conversation.generate_content
-            continue_on_error: true
-            data:
-              prompt: >-
-                Very briefly describe what you see in this image from my doorbell camera.
-                Your message needs to be short to fit in a phone notification. Don't
-                describe stationary objects or buildings.
-              image_filename: /config/media/images/front_door.jpg
-            response_variable: generated_content
+          # - service: google_generative_ai_conversation.generate_content
+          #   continue_on_error: true
+          #   data:
+          #     prompt: >-
+          #       Very briefly describe what you see in this image from my doorbell camera.
+          #       Your message needs to be short to fit in a phone notification. Don't
+          #       describe stationary objects or buildings.
+          #     image_filename: /config/media/images/front_door.jpg
+          #   response_variable: generated_content
           - service: notify.signal_frigate
             data:
               message: >-
-                {{ generated_content.text }}
+                A person was detected
 
 
                 Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
@@ -197,7 +197,9 @@ automation:
           entity_id: timer.frigate_notification_snooze
       - platform: event
         id: finish
-        event_type: timer.finished
+        event_type: 
+          - timer.finished
+          - timer.cancelled
         event_data:
           entity_id: timer.frigate_notification_snooze
       - platform: state

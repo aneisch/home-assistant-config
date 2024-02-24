@@ -1,5 +1,5 @@
 /**
- * (C) 2020-2023 by Jan Schneider (oss@janschneider.net)
+ * (C) 2020-2024 by Jan Schneider (oss@janschneider.net)
  * Released under the GNU General Public License v3.0
  */
 
@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.24.0";
+const version = "4.24.1";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -127,6 +127,8 @@ const defaultConfig = {
 	screensaver_stop_navigation_path: '',
 	screensaver_entity: '',
 	stop_screensaver_on_mouse_move: true,
+	stop_screensaver_on_mouse_click: true,
+	stop_screensaver_on_key_down: true,
 	stop_screensaver_on_location_change: true,
 	show_images: true,
 	image_url: "https://picsum.photos/${width}/${height}?random=${timestamp}",
@@ -418,7 +420,7 @@ function updateConfig() {
 		if (isActive()) {
 			wallpanel.reconfigure(oldConfig);
 		}
-		else if (wallpanel.screensaverStartedAt > 0) {
+		else if (wallpanel.screensaverRunning()) {
 			wallpanel.stopScreensaver();
 		}
 	}
@@ -757,7 +759,7 @@ class WallpanelView extends HuiView {
 			}
 		}
 
-		if (this.screensaverStartedAt) {
+		if (this.screensaverRunning()) {
 			this.__cards.forEach(card => {
 				card.hass = this.hass;
 			});
@@ -774,10 +776,10 @@ class WallpanelView extends HuiView {
 	setScreensaverEntityState() {
 		const screensaver_entity = insertBrowserID(config.screensaver_entity);
 		if (!screensaver_entity || !this.__hass.states[screensaver_entity]) return;
-		if (this.screensaverStartedAt && this.__hass.states[screensaver_entity].state == 'on') return;
-		if (!this.screensaverStartedAt && this.__hass.states[screensaver_entity].state == 'off') return;
+		if (this.screensaverRunning() && this.__hass.states[screensaver_entity].state == 'on') return;
+		if (!this.screensaverRunning() && this.__hass.states[screensaver_entity].state == 'off') return;
 
-		this.__hass.callService('input_boolean', this.screensaverStartedAt ? "turn_on" : "turn_off", {
+		this.__hass.callService('input_boolean', this.screensaverRunning() ? "turn_on" : "turn_off", {
 			entity_id: screensaver_entity
 		}).then(
 			result => {
@@ -807,7 +809,7 @@ class WallpanelView extends HuiView {
 		if (!config.enabled || !activePanel) {
 			return;
 		}
-		if (this.screensaverStartedAt) {
+		if (this.screensaverRunning()) {
 			this.updateScreensaver();
 		}
 		else {
@@ -826,7 +828,7 @@ class WallpanelView extends HuiView {
 		this.messageBox.style.width = '100%';
 		this.messageBox.style.height = '10%';
 		this.messageBox.style.zIndex = this.style.zIndex + 1;
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.messageBox.style.visibility = 'hidden';
 		}
 		//this.messageBox.style.margin = '5vh auto auto auto';
@@ -845,7 +847,7 @@ class WallpanelView extends HuiView {
 		this.debugBox.style.background = '#00000099';
 		this.debugBox.style.color = '#ffffff';
 		this.debugBox.style.zIndex = this.style.zIndex + 2;
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.debugBox.style.visibility = 'hidden';
 		}
 		this.debugBox.style.fontFamily = 'monospace';
@@ -861,7 +863,7 @@ class WallpanelView extends HuiView {
 		this.screensaverContainer.style.height = '100vh';
 		this.screensaverContainer.style.background = '#000000';
 
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.imageOneContainer.removeAttribute('style');
 			this.imageOneContainer.style.opacity = 1;
 		}
@@ -879,7 +881,7 @@ class WallpanelView extends HuiView {
 		this.imageOneBackground.style.width = '100%';
 		this.imageOneBackground.style.height = '100%';
 
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.imageOne.removeAttribute('style');
 		}
 		this.imageOne.style.position = 'relative';
@@ -896,7 +898,7 @@ class WallpanelView extends HuiView {
 		this.imageOneInfoContainer.style.width = '100%';
 		this.imageOneInfoContainer.style.height = '100%';
 
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.imageTwoContainer.removeAttribute('style');
 			this.imageTwoContainer.style.opacity = 0;
 		}
@@ -914,7 +916,7 @@ class WallpanelView extends HuiView {
 		this.imageTwoBackground.style.width = '100%';
 		this.imageTwoBackground.style.height = '100%';
 
-		if (!this.screensaverStartedAt) {
+		if (!this.screensaverRunning()) {
 			this.imageTwo.removeAttribute('style');
 		}
 		this.imageTwo.style.position = 'relative';
@@ -1395,7 +1397,10 @@ class WallpanelView extends HuiView {
 		shadow.appendChild(this.debugBox);
 
 		const wp = this;
-		let eventNames = ['click', 'touchstart', 'wheel', 'keydown'];
+		let eventNames = ['click', 'touchstart', 'wheel'];
+		if (config.stop_screensaver_on_key_down) {
+			eventNames.push('keydown');
+		}
 		if (config.stop_screensaver_on_mouse_move) {
 			eventNames.push('mousemove');
 		}
@@ -1406,12 +1411,12 @@ class WallpanelView extends HuiView {
 			}, { capture: true, passive: !click });
 		});
 		window.addEventListener("resize", event => {
-			if (wp.screensaverStartedAt) {
+			if (wp.screensaverRunning()) {
 				wp.updateShadowStyle();
 			}
 		});
 		window.addEventListener("hass-more-info", event => {
-			if (wp.screensaverStartedAt) {
+			if (wp.screensaverRunning()) {
 				wp.moreInfoDialogToForeground();
 			}
 		});
@@ -1453,7 +1458,7 @@ class WallpanelView extends HuiView {
 	reconfigure(oldConfig) {
 		this.setDefaultStyle();
 		this.updateStyle();
-		if (this.screensaverStartedAt) {
+		if (this.screensaverRunning()) {
 			this.createInfoBoxContent();
 		}
 
@@ -1575,8 +1580,10 @@ class WallpanelView extends HuiView {
 
 		if ((!config.show_image_info) || (!imageInfo)) {
 			infoElement.innerHTML = "";
+			infoElement.style.display = "none";
 			return;
 		}
+		infoElement.style.display = "block";
 
 		let html = config.image_info_template;
 		html = html.replace(/\${([^}]+)}/g, (match, tags, offset, string) => {
@@ -1841,7 +1848,7 @@ class WallpanelView extends HuiView {
 	}
 
 	preloadImage(img) {
-		if ((this.updatingImageList) || (img.getAttribute('data-loading') == "true") || (this.screensaverStartedAt && img.parentNode.style.opacity == 1)) {
+		if ((this.updatingImageList) || (img.getAttribute('data-loading') == "true") || (this.screensaverRunning() && img.parentNode.style.opacity == 1)) {
 			return;
 		}
 		this.updateImage(img);
@@ -1977,7 +1984,7 @@ class WallpanelView extends HuiView {
 		if (config.keep_screen_on_time > 0) {
 			let wp = this;
 			setTimeout(function() {
-				if (wp.screensaverStartedAt && !screenWakeLock.enabled) {
+				if (wp.screensaverRunning() && !screenWakeLock.enabled) {
 					logger.error("Keep screen on will not work because the user didn't interact with the document first. https://goo.gl/xX8pDD");
 					wp.displayMessage("Please interact with the screen for a moment to request wake lock.", 15000)
 				}
@@ -2009,7 +2016,10 @@ class WallpanelView extends HuiView {
 				}, 250);
 			}, (config.fade_in_time + 1) * 1000);
 		}
+	}
 
+	screensaverRunning() {
+		return this.screensaverStartedAt && this.screensaverStartedAt > 0;
 	}
 
 	stopScreensaver() {
@@ -2167,7 +2177,7 @@ class WallpanelView extends HuiView {
 		let now = Date.now();
 		this.idleSince = now;
 
-		if (! this.screensaverStartedAt) {
+		if (! this.screensaverRunning()) {
 			if (this.blockEventsUntil > now) {
 				if (isClick) {
 					evt.preventDefault();
@@ -2283,9 +2293,11 @@ class WallpanelView extends HuiView {
 				return;
 			}
 		}
-		// Prevent interaction with the dashboards after screensaver was stopped
-		this.blockEventsUntil = now + config.control_reactivation_time * 1000;
-		this.stopScreensaver();
+		if (!isClick || config.stop_screensaver_on_mouse_click) {
+			// Prevent interaction with the dashboards after screensaver was stopped
+			this.blockEventsUntil = now + config.control_reactivation_time * 1000;
+			this.stopScreensaver();
+		}
 	}
 }
 
@@ -2296,7 +2308,7 @@ function activateWallpanel() {
 
 
 function deactivateWallpanel() {
-	if (wallpanel.screensaverStartedAt > 0) {
+	if (wallpanel.screensaverRunning()) {
 		wallpanel.stopScreensaver();
 	}
 	setToolbarHidden(false);
@@ -2321,9 +2333,13 @@ function reconfigure() {
 
 
 function locationChanged() {
-	if (config.stop_screensaver_on_location_change && !skipDisableScreensaverOnLocationChanged) {
+	if (wallpanel.screensaverRunning()) {
+		if (!config.stop_screensaver_on_location_change || skipDisableScreensaverOnLocationChanged) {
+			return;
+		}
 		wallpanel.stopScreensaver();
 	}
+
 	let panel = null;
 	let tab = null;
 	let path = window.location.pathname.split("/");
@@ -2363,7 +2379,8 @@ function startup() {
 	elHass.__hass.connection.subscribeEvents(
 		function(event) {
 			logger.debug("lovelace_updated", event);
-			if ((!event.data.url_path) || (event.data.url_path == activePanel)) {
+			const dashboard = event.data.url_path ? event.data.url_path : "lovelace";
+			if (dashboard == activePanel) {
 				elHass.__hass.connection.sendMessagePromise({
 					type: "lovelace/config",
 					url_path: event.data.url_path
