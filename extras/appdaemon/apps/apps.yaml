@@ -33,11 +33,16 @@ Kitchen Timer Sync:
 #   # Publish to MQTT (remove mqtt entry if you don't want..)
 #   mqtt: True
 
-Set Smallgroup Boolean:
+Set Smallgroup Boolean On:
   module: entity_timer
   class: Timer
   constrain_days: wed
-  time_on: "17:00:00"
+  time_on: "13:13:00"
+  entities: input_boolean.is_smallgroup
+
+Set Smallgroup Boolean Off:
+  module: entity_timer
+  class: Timer
   time_off: "23:59:00"
   entities: input_boolean.is_smallgroup
 
@@ -486,7 +491,7 @@ Globe Lights Smallgroup:
   constrain_input_boolean: input_boolean.is_smallgroup
   class: Timer
   time_on: sunset - 00:20:00
-  time_off: "21:00:00"
+  time_off: "21:30:00"
   entities: switch.globe_lights
 
 # Turn on focus mode when desk LED on

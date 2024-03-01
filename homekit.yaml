@@ -46,10 +46,12 @@
         - switch.master_bedroom_ceiling_fan
         - script.too_cold
         - script.too_hot
+      exclude_entities:
+        - lock.all_doors
 
-  - name: Mom and Dad House
-    port: 21064
-    filter:
-      include_entities:
-        - cover.mom_and_dad_garage_mom_and_dad_garage
-        - cover.mom_and_dad_gate_mom_and_dad_gate
+  # - name: Mom and Dad House
+  #   port: 21064
+  #   filter:
+  #     include_entities:
+  #       - cover.mom_and_dad_garage_mom_and_dad_garage
+  #       - cover.mom_and_dad_gate_mom_and_dad_gate

@@ -74,13 +74,13 @@ automation:
         webhook_id: !secret mom_and_dad_gate_webhook_id
         local_only: false
         id: gate
-        allowed_meethods: 
+        allowed_methods: 
           - GET
       - platform: webhook
         webhook_id: !secret mom_and_dad_garage_webhook_id
         local_only: false
         id: garage
-        allowed_meethods: 
+        allowed_methods: 
           - GET
     action:
       - service: cover.toggle
