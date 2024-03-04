@@ -64,6 +64,7 @@ automation:
     id: "garage_open_noone_home"
     trigger:
       - platform: state
+        id: alert
         entity_id: group.trackers
         to: not_home
     condition:
@@ -71,30 +72,23 @@ automation:
         entity_id: cover.garage_door
         state: "open"
     action:
-      - service: notify.mobile_app_andrew_phone
-        data:
-          message: "No one home, close garage door?"
-          data:
-            persistent: true # Set to true to create a persistent notification
-            tag: persistent # Tag is required for the persistent notification
-            actions:
-              - action: "confirm_close_garage"
-                title: "Confirm"
-              - action: "ignore_close_garage"
-                title: "Ignore"
-
-  - alias: "Close garage after confirmation"
-    id:
-      "garage_confirmation"
-      # Android
-    trigger:
-      - platform: event
-        event_type: mobile_app_notification_action
-        event_data:
-          action: confirm_close_garage
-    action:
-      service: cover.close_cover
-      entity_id: cover.garage_door
+      - if: "{{ trigger.id == 'alert' }}"
+        then:
+          - service: notify.mobile_app_andrew_phone
+            data:
+              message: "No one home, close garage door?"
+              data:
+                persistent: true # Set to true to create a persistent notification
+                tag: persistent # Tag is required for the persistent notification
+                actions:
+                  - action: "confirm_close_garage"
+                    title: "Confirm"
+                  - action: "ignore_close_garage"
+                    title: "Ignore"
+      - if: "{{ trigger.id == 'respond' }}"
+        then:
+          - service: cover.close_cover
+            entity_id: cover.garage_door
 
   - alias: "Garage changed to open when no one home"
     id: "garage_opened_noone_home"

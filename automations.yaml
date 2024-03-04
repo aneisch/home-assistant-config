@@ -298,6 +298,20 @@
         data:
           priority: 1
 
+- alias: "Terraform Cloud Webhook"
+  id: "terraform_cloud_webhook"
+  initial_state: on
+  trigger:
+    platform: webhook
+    webhook_id: !secret terraform_cloud_webhook
+    local_only: false
+    allowed_methods:
+      - POST
+  action:
+    - service: notify.signal_self
+      data:
+        message: "{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url }}"
+
 # Blink a light when the panic pushover alert is acknowledged
 - alias: "Panic Script Webhook Trigger"
   id: "panic_script_webhook"
@@ -1141,3 +1155,38 @@
           {% elif is_state('cover.garage_door','closed') and not doors_locked %}
           "Some doors are unlocked. You can say 'Alexa, lock the doors.'"
           {% endif %}
+
+- alias: "Doors still unlocked when no one home"
+  id: "doors_unlocked_noone_home"
+  trigger:
+    - platform: state
+      id: alert
+      entity_id: group.trackers
+      to: not_home
+    - platform: event
+      id: respond
+      event_type: mobile_app_notification_action
+      event_data:
+        action: confirm_lock_doors
+  condition:
+    - condition: state
+      entity_id: lock.all_doors
+      state: "open"
+  action:
+    - if: "{{ trigger.id == 'alert' }}"
+      then:
+        - service: notify.mobile_app_andrew_phone
+          data:
+            message: "No one home, lock doors?"
+            data:
+              persistent: true # Set to true to create a persistent notification
+              tag: persistent # Tag is required for the persistent notification
+              actions:
+                - action: "confirm_lock_doors"
+                  title: "Confirm"
+                - action: "ignore_lock_doors"
+                  title: "Ignore"
+    - if: "{{ trigger.id == 'respond' }}"
+      then:
+        - service: lock.lock
+          entity_id: lock.all_doors

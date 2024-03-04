@@ -60,7 +60,7 @@ automation:
                 priority: 1
       # high flow when not home and irrigation off AND not during a scheduled timer AND bhyve off
       - if: "{{ trigger.id == 'minutes' 
-            and states('sensor.flume_sensor_home_current') | float > 2 
+            and states('sensor.flume_sensor_home_current') | float > 2.5 
             and is_state('switch.irrigation_master_valve', 'off') 
             and not (now().hour == 12 and now().minute in [0,1,2,3,4,5])
             and not (now().hour == 9 and now().minute in [16,17,18,19,20,21])
