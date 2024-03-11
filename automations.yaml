@@ -399,15 +399,15 @@
   action:
     - service: esphome.cellular_modem_power_toggle
 
-- alias: "Pull Recipes Github Webhook"
-  id: "recipes_github_pull"
-  initial_state: on
-  trigger:
-    platform: webhook
-    webhook_id: !secret github_recipes_webhook
-    local_only: false
-  action:
-    - service: shell_command.pull_recipes
+# - alias: "Pull Recipes Github Webhook"
+#   id: "recipes_github_pull"
+#   initial_state: on
+#   trigger:
+#     platform: webhook
+#     webhook_id: !secret github_recipes_webhook
+#     local_only: false
+#   action:
+#     - service: shell_command.pull_recipes
 
 - alias: "Power off NAS after backup"
   id: "nas_poweroff_post_backup"
@@ -750,6 +750,21 @@
           {% if 'query' in trigger and trigger.query|length > 0 %}
             Query: {{ dict(trigger.query)|tojson }}
           {% endif %}
+
+- id: bluebubbles_to_sms
+  alias: "BlueBubbles to SMS"
+  trigger:
+    - platform: webhook
+      webhook_id: hihihi
+      local_only: false
+  action:
+    - if: "{{ trigger.json.data.isFromMe == false and trigger.json.data.handle.address != '+PHONE_NUMBER' }}"
+      then:
+        - service: notify.donotreply_secret
+          data:
+            target: 5128798125@msg.fi.google.com
+            message: "{{ trigger.json.data.handle.address }}: {{ trigger.json.data.text }}"
+            title: BlueBubbles FWD
 
 - alias: "Watchtower Updates"
   id: "watchertower_run_update"

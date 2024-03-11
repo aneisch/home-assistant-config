@@ -67,6 +67,11 @@ automation:
         id: alert
         entity_id: group.trackers
         to: not_home
+      - platform: event
+        id: respond
+        event_type: mobile_app_notification_action
+        event_data:
+          action: confirm_close_garage
     condition:
       - condition: state
         entity_id: cover.garage_door
