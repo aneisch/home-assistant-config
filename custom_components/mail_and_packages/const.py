@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.22"
+VERSION = "0.3.23"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -62,11 +62,11 @@ DEFAULT_PORT = "993"
 DEFAULT_FOLDER = '"INBOX"'
 DEFAULT_PATH = "custom_components/mail_and_packages/images/"
 DEFAULT_IMAGE_SECURITY = True
-DEFAULT_IMAP_TIMEOUT = 30
+DEFAULT_IMAP_TIMEOUT = 60
 DEFAULT_GIF_DURATION = 5
-DEFAULT_SCAN_INTERVAL = 5
+DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
-DEFAULT_AMAZON_FWDS = "(none)"
+DEFAULT_AMAZON_FWDS = []
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
@@ -110,9 +110,13 @@ AMAZON_IMG_PATTERN = (
 )
 AMAZON_HUB = "amazon_hub"
 AMAZON_HUB_CODE = "amazon_hub_code"
-AMAZON_HUB_EMAIL = ["thehub@amazon.com", "order-update@amazon.com"]
+AMAZON_HUB_EMAIL = [
+    "thehub@amazon.com",
+    "order-update@amazon.com",
+    "amazonlockers@amazon.com",
+]
 AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
-AMAZON_HUB_SUBJECT_SEARCH = "(You have a package to pick up)(.*)(\\d{6})"
+AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
 AMAZON_TIME_PATTERN = [
     "will arrive:",
