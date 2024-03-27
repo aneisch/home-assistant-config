@@ -6,9 +6,9 @@ entryPoints:
   web:
     address: ":80"
     http:
-      # redirections:
-      #   entryPoint:
-      #     to: websecure
+      redirections:
+        entryPoint:
+          to: websecure
 
   websecure:
     address: ":443"
@@ -24,3 +24,14 @@ providers:
   file:
     directory: "/etc/traefik"
     watch: true
+
+certificatesResolvers:
+  le-home:
+    acme:
+      dnsChallenge:
+        provider: cloudflare
+      email: "EMAIL"
+      storage: "/etc/traefik/acme.json"
+
+log:
+  level: DEBUG

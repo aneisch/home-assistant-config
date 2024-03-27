@@ -10,6 +10,7 @@ http:
   serversTransports:
     skipVerify:
       insecureSkipVerify: true
+
   routers:
     pfsense:
       entryPoints:
@@ -29,6 +30,7 @@ http:
       service: plane
       rule: host(`plane.domain.com`)
       tls: true
+
   services:
     plane:
       loadBalancer:

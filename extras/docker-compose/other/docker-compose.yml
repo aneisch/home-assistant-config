@@ -21,10 +21,15 @@ services:
         labels:
             # HTTP Local Only
             - traefik.enable=true
-            - traefik.http.routers.plex_local.entrypoints=web
+            - traefik.http.services.plex.loadbalancer.server.port=32400
+            # - traefik.http.routers.plex_local.entrypoints=web
+            # - traefik.http.routers.plex_local.rule=Host(`plex.home.domain.com`)
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.plex_local.tls=true
+            - traefik.http.routers.plex_local.tls.certResolver=le-home
+            - traefik.http.routers.plex_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.plex_local.rule=Host(`plex.home.domain.com`)
-            - traefik.http.services.plex_local.loadbalancer.server.port=32400
-            - traefik.http.routers.plex_local.service=plex_local
+            - traefik.http.routers.plex_local.service=plex
 
     portainer:
         container_name: portainer
@@ -48,7 +53,13 @@ services:
             - traefik.http.services.portainer.loadbalancer.server.port=9000
             - traefik.http.routers.portainer.service=portainer
             # HTTP Local Only
-            - traefik.http.routers.portainer_local.entrypoints=web
+            # - traefik.http.routers.portainer_local.entrypoints=web
+            # - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
+            # - traefik.http.routers.portainer_local.service=portainer
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.portainer_local.tls=true
+            - traefik.http.routers.portainer_local.tls.certResolver=le-home
+            - traefik.http.routers.portainer_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
             - traefik.http.routers.portainer_local.service=portainer
 
@@ -98,7 +109,13 @@ services:
             - traefik.http.services.esphome.loadbalancer.server.port=6052
             - traefik.http.routers.esphome.service=esphome
             # HTTP Local Only
-            - traefik.http.routers.esphome_local.entrypoints=web
+            # - traefik.http.routers.esphome_local.entrypoints=web
+            # - traefik.http.routers.esphome_local.rule=Host(`esphome.home.domain.com`)
+            # - traefik.http.routers.esphome_local.service=esphome
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.esphome_local.tls=true
+            - traefik.http.routers.esphome_local.tls.certResolver=le-home
+            - traefik.http.routers.esphome_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.esphome_local.rule=Host(`esphome.home.domain.com`)
             - traefik.http.routers.esphome_local.service=esphome
 
@@ -202,7 +219,13 @@ services:
             - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
             - traefik.http.services.vscode.loadbalancer.server.port=1337
             # HTTP Local Only
-            - traefik.http.routers.vscode_local.entrypoints=web
+            # - traefik.http.routers.vscode_local.entrypoints=web
+            # - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
+            # - traefik.http.routers.vscode_local.service=vscode
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.vscode_local.tls=true
+            - traefik.http.routers.vscode_local.tls.certResolver=le-home
+            - traefik.http.routers.vscode_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
             - traefik.http.routers.vscode_local.service=vscode
 
@@ -257,9 +280,16 @@ services:
             - traefik.http.services.adguard.loadbalancer.server.port=8080
             - traefik.http.routers.adguard.service=adguard
             # HTTP Local Only
-            - traefik.http.routers.adguard_local.entrypoints=web
+            # - traefik.http.routers.adguard_local.entrypoints=web
+            # - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
+            # - traefik.http.routers.adguard_local.service=adguard
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.adguard_local.tls=true
+            - traefik.http.routers.adguard_local.tls.certResolver=le-home
+            - traefik.http.routers.adguard_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
             - traefik.http.routers.adguard_local.service=adguard
+
 
     # recipes:
     #     # Public consumption at VPS, duplicated locally for home use though
@@ -357,9 +387,17 @@ services:
             - traefik.http.routers.traefik_https.tls=true
             - traefik.http.routers.traefik_https.service=api@internal
             # HTTP Local Only
-            - traefik.http.routers.traefik_local.entrypoints=web
+            # - traefik.http.routers.traefik_local.entrypoints=web
+            # - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
+            # - traefik.http.routers.traefik_local.service=api@internal
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.traefik_local.tls=true
+            - traefik.http.routers.traefik_local.tls.certResolver=le-home
+            - traefik.http.routers.traefik_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
             - traefik.http.routers.traefik_local.service=api@internal
+        environment:
+            - CF_DNS_API_TOKEN=SECRET
 
     cloudflared:
         container_name: cloudflared
@@ -528,12 +566,19 @@ services:
             - traefik.http.services.frigate.loadbalancer.server.port=5000
             - traefik.http.routers.frigate.service=frigate
             # HTTP Local Only
-            - traefik.http.routers.frigate_local.entrypoints=web
-            - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
-            - traefik.http.routers.frigate_local.service=frigate
+            # - traefik.http.routers.frigate_local.entrypoints=web
+            # - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
+            # - traefik.http.routers.frigate_local.service=frigate
             - traefik.http.routers.frigatelocal.entrypoints=web
             - traefik.http.routers.frigatelocal.rule=Host(`frigatelocal`)
             - traefik.http.routers.frigatelocal.service=frigate
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.frigate_local.tls=true
+            - traefik.http.routers.frigate_local.tls.certResolver=le-home
+            - traefik.http.routers.frigate_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
+            - traefik.http.routers.frigate_local.service=frigate
+
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
@@ -551,10 +596,16 @@ services:
         labels:
             # HTTP Local Only
             - traefik.enable=true
-            - traefik.http.routers.codeproject_local.entrypoints=web
-            - traefik.http.services.codeproject_local.loadbalancer.server.port=32168
+            - traefik.http.services.codeproject.loadbalancer.server.port=32168
+            # - traefik.http.routers.codeproject_local.entrypoints=web
+            # - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
+            # - traefik.http.routers.codeproject_local.service=codeproject_local
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.codeproject_local.tls=true
+            - traefik.http.routers.codeproject_local.tls.certResolver=le-home
+            - traefik.http.routers.codeproject_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
-            - traefik.http.routers.codeproject_local.service=codeproject_local
+            - traefik.http.routers.codeproject_local.service=codeproject
 
     auto-southwest:
         image: jdholtz/auto-southwest-check-in:develop
@@ -570,25 +621,25 @@ services:
             - "southwest.py"
             - "--verbose"
 
-    ha-fusion:
-        container_name: ha-fusion
-        image: ghcr.io/matt8707/ha-fusion
-        volumes:
-            - /opt/ha-fusion/data:/app/data
-        #ports:
-        #    - 5050:5050
-        environment:
-            - TZ=America/Chicago
-            - HASS_URL=http://10.0.1.22:8123
-        restart: always
-        labels:
-            # HTTPS for CF
-            - traefik.enable=true
-            - traefik.http.services.ha_fusion_local.loadbalancer.server.port=5050
-            # HTTP Local Only
-            - traefik.http.routers.ha_fusion_local.entrypoints=web
-            - traefik.http.routers.ha_fusion_local.rule=Host(`ha-fusion.home.domain.com`)
-            - traefik.http.routers.ha_fusion_local.service=ha_fusion_local
+    # ha-fusion:
+    #     container_name: ha-fusion
+    #     image: ghcr.io/matt8707/ha-fusion
+    #     volumes:
+    #         - /opt/ha-fusion/data:/app/data
+    #     #ports:
+    #     #    - 5050:5050
+    #     environment:
+    #         - TZ=America/Chicago
+    #         - HASS_URL=http://10.0.1.22:8123
+    #     restart: always
+    #     labels:
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.services.ha_fusion_local.loadbalancer.server.port=5050
+    #         # HTTP Local Only
+    #         - traefik.http.routers.ha_fusion_local.entrypoints=web
+    #         - traefik.http.routers.ha_fusion_local.rule=Host(`ha-fusion.home.domain.com`)
+    #         - traefik.http.routers.ha_fusion_local.service=ha_fusion_local
 
     mealie:
         image: ghcr.io/mealie-recipes/mealie:latest
@@ -615,7 +666,13 @@ services:
             - traefik.http.services.recipes.loadbalancer.server.port=9000
             - traefik.http.routers.recipes.service=recipes
             # HTTP Local Only
-            - traefik.http.routers.recipes_local.entrypoints=web
+            # - traefik.http.routers.recipes_local.entrypoints=web
+            # - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
+            # - traefik.http.routers.recipes_local.service=recipes
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.recipes_local.tls=true
+            - traefik.http.routers.recipes_local.tls.certResolver=le-home
+            - traefik.http.routers.recipes_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
             - traefik.http.routers.recipes_local.service=recipes
 

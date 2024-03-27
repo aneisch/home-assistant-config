@@ -13,7 +13,13 @@ services:
             - traefik.http.services.assist.loadbalancer.server.port=8123
             - traefik.http.routers.assist.service=assist
             # HTTP Local Only
-            - traefik.http.routers.assist_local.entrypoints=web
+            # - traefik.http.routers.assist_local.entrypoints=web
+            # - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
+            # - traefik.http.routers.assist_local.service=assist
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.assist_local.tls=true
+            - traefik.http.routers.assist_local.tls.certResolver=le-home
+            - traefik.http.routers.assist_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
             - traefik.http.routers.assist_local.service=assist
         volumes:
@@ -108,7 +114,13 @@ services:
             - traefik.http.services.nodered.loadbalancer.server.port=1880
             - traefik.http.routers.nodered.service=nodered
             # HTTP Local Only
-            - traefik.http.routers.nodered_local.entrypoints=web
+            # - traefik.http.routers.nodered_local.entrypoints=web
+            # - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
+            # - traefik.http.routers.nodered_local.service=nodered
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.nodered_local.tls=true
+            - traefik.http.routers.nodered_local.tls.certResolver=le-home
+            - traefik.http.routers.nodered_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
             - traefik.http.routers.nodered_local.service=nodered
 
@@ -139,7 +151,13 @@ services:
             - traefik.http.services.appdaemon.loadbalancer.server.port=8888
             - traefik.http.routers.appdaemon.service=appdaemon
             # HTTP Local Only
-            - traefik.http.routers.appdaemon_local.entrypoints=web
+            # - traefik.http.routers.appdaemon_local.entrypoints=web
+            # - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
+            # - traefik.http.routers.appdaemon_local.service=appdaemon
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.appdaemon_local.tls=true
+            - traefik.http.routers.appdaemon_local.tls.certResolver=le-home
+            - traefik.http.routers.appdaemon_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
             - traefik.http.routers.appdaemon_local.service=appdaemon
 
@@ -183,9 +201,15 @@ services:
             - traefik.http.services.zwavejs.loadbalancer.server.port=8091
             - traefik.http.routers.zwavejs.service=zwavejs
             # HTTP Local Only
-            - traefik.http.routers.zwavejs_local.entrypoints=web
+            # - traefik.http.routers.zwavejs_local.entrypoints=web
+            # - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
+            # - traefik.http.routers.zwavejs_local.service=zwavejs  
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.zwavejs_local.tls=true
+            - traefik.http.routers.zwavejs_local.tls.certResolver=le-home
+            - traefik.http.routers.zwavejs_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
-            - traefik.http.routers.zwavejs_local.service=zwavejs  
+            - traefik.http.routers.zwavejs_local.service=zwavejs
 
     cellular_message_relay_sim7080g:
         container_name: cellular_message_relay_sim7080g
