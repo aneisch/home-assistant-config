@@ -202,6 +202,7 @@ automation:
             alias: Close Blinds at Sunset
             sequence:
               - service: cover.close_cover
+                continue_on_error: true
                 target:
                   entity_id:
                     #- cover.office_blinds # Christmas
@@ -210,6 +211,7 @@ automation:
             alias: Close Blinds Late
             sequence:
               - service: cover.close_cover
+                continue_on_error: true
                 target:
                   entity_id:
                     - cover.office_blinds
@@ -218,6 +220,7 @@ automation:
             alias: Open Blinds
             sequence:
               - service: cover.open_cover
+                continue_on_error: true
                 target:
                   entity_id:
                     - cover.office_blinds
@@ -226,6 +229,7 @@ automation:
               - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
                 then:
                   - service: cover.open_cover
+                    continue_on_error: true
                     target:
                       entity_id:
                         - cover.guest_bedroom_blinds
