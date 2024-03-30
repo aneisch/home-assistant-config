@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -799,9 +799,9 @@ services:
             # - traefik.http.routers.frigate_local.entrypoints=web
             # - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
             # - traefik.http.routers.frigate_local.service=frigate
-            - traefik.http.routers.frigatelocal.entrypoints=web
-            - traefik.http.routers.frigatelocal.rule=Host(`frigatelocal`)
-            - traefik.http.routers.frigatelocal.service=frigate
+            # - traefik.http.routers.frigatelocal.entrypoints=web
+            # - traefik.http.routers.frigatelocal.rule=Host(`frigatelocal`)
+            # - traefik.http.routers.frigatelocal.service=frigate
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.frigate_local.tls=true
             - traefik.http.routers.frigate_local.tls.certResolver=le-home

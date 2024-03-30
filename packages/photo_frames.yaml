@@ -100,7 +100,7 @@ script:
           entity_id: "{{ entity_id }}"
         data:
           #command: "am start -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/api/camera_proxy_stream/camera.front_door_test?token={{ state_attr('camera.front_door_test','access_token')}}'"
-          command: "am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://frigatelocal/live/webrtc/webrtc.html?src=front_door'"
+          command: "am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'https://frigate.home.secret/live/webrtc/webrtc.html?src=front_door'"
       - delay: "00:00:05"
       - service: androidtv.adb_command
         target:

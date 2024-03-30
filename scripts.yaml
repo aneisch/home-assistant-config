@@ -104,14 +104,11 @@ master_bedroom_wakeup:
         entity_id: switch.master_bedroom_ceiling_fan
     - delay: "00:00:02"
     - service: script.appdaemon_ac_morning
-    - service: scene.turn_on
+    - service: light.turn_on
+      target:
+        entity_id: light.master_bedroom_lamps
       data:
-        entity_id: >
-          {% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}
-            scene.master_lamps_slow_on
-          {% else %}
-            scene.master_lamps_fast_on
-          {% endif %}
+        transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
     - service: homeassistant.turn_off
       entity_id: input_boolean.goodnight
     - service: homeassistant.turn_on

@@ -16,6 +16,8 @@ automation:
   - alias: Frigate Notification Person
     id: "frigate_notification_person"
     mode: single
+    variables:
+      generated_content: " "
     trigger:
       - platform: mqtt
         topic: frigate/events
@@ -139,6 +141,8 @@ automation:
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"
     mode: single
+    variables:
+      generated_content: " "
     trigger:
       - platform: state
         entity_id: binary_sensor.front_door_button_pressed
@@ -149,15 +153,20 @@ automation:
           filename: /config/media/images/doorbell.jpg
         target:
           entity_id: camera.front_door
-      - service: google_generative_ai_conversation.generate_content
         continue_on_error: true
-        data:
-          prompt: >-
-            Very briefly describe what you see in this image from my doorbell camera.
-            Your message needs to be short to fit in a phone notification. Don't
-            describe stationary objects or buildings.
-          image_filename: /config/media/images/doorbell.jpg
-        response_variable: generated_content
+      - service: siren.turn_on
+        entity_id: siren.garage_chime_siren
+        continue_on_error: true
+      # Broken temporarily?
+      # - service: google_generative_ai_conversation.generate_content
+      #   continue_on_error: true
+      #   data:
+      #     prompt: >-
+      #       Very briefly describe what you see in this image from my doorbell camera.
+      #       Your message needs to be short to fit in a phone notification. Don't
+      #       describe stationary objects or buildings.
+      #     image_filename: /config/media/images/doorbell.jpg
+      #   response_variable: generated_content
       - service: notify.signal_frigate
         data:
           message: >-
@@ -181,8 +190,6 @@ automation:
           - service: shell_command.weasel_shortcut
             data:
               shortcut: open-front-door-cam-weasel
-      - service: siren.turn_on
-        entity_id: siren.garage_chime_siren
 
   - alias: Frigate Notification Snooze
     id: "frigate_notification_snooze"
