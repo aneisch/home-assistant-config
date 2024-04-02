@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.24.1";
+const version = "4.25.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -533,7 +533,11 @@ function setToolbarHidden(hidden) {
 		if (!panelLovelace) {
 			return;
 		}
-		const huiRoot = panelLovelace.shadowRoot.querySelector("hui-root").shadowRoot;
+		let huiRoot = panelLovelace.shadowRoot.querySelector("hui-root");
+		if (!huiRoot) {
+			return;
+		}
+		huiRoot = huiRoot.shadowRoot;
 		const view = huiRoot.querySelector("#view");
 		let appToolbar = huiRoot.querySelector("app-toolbar");
 		if (!appToolbar) {
@@ -580,58 +584,6 @@ function navigate(path, keepSearch=true) {
 				composed: true,
 			}
 		)
-	);
-}
-
-
-function findImages(hass, mediaContentId) {
-	logger.debug(`findImages: ${mediaContentId}`);
-	let excludeRegExp = [];
-	if (config.image_excludes) {
-		for (let imageExclude of config.image_excludes) {
-			excludeRegExp.push(new RegExp(imageExclude));
-		}
-	}
-
-	return new Promise(
-		function(resolve, reject) {
-			hass.callWS({
-				type: "media_source/browse_media",
-				media_content_id: mediaContentId
-			}).then(
-				mediaEntry => {
-					logger.debug("Found media entry", mediaEntry);
-					var promises = mediaEntry.children.map(child => {
-						let filename = child.media_content_id.replace(/^media-source:\/\/[^/]+/, '');
-						for (let exclude of excludeRegExp) {
-							if (exclude.test(filename)) {
-								return;
-							}
-						}
-						if (child.media_class == "image") {
-							//logger.debug(child);
-							return child.media_content_id;
-						}
-						if (child.media_class == "directory") {
-							return findImages(hass, child.media_content_id);
-						}
-					});
-					Promise.all(promises).then(results => {
-						let result = [];
-						for (let res of results) {
-							if (res) {
-								result = result.concat(res);
-							}
-						}
-						resolve(result);
-					})
-				},
-				error => {
-					//logger.warn(error);
-					reject(error);
-				}
-			);
-		}
 	);
 }
 
@@ -696,6 +648,7 @@ class WallpanelView extends HuiView {
 		this.imageListDirection = "forwards"; // forwards, backwards
 		this.lastImageListUpdate;
 		this.updatingImageList = false;
+		this.cancelUpdatingImageList = false;
 		this.lastImageUpdate = 0;
 		this.messageBoxTimeout = null;
 		this.blockEventsUntil = 0;
@@ -713,7 +666,6 @@ class WallpanelView extends HuiView {
 		this.energyCollectionUpdateInterval = 60;
 		this.lastEnergyCollectionUpdate = 0;
 		this.screensaverStopNavigationPathTimeout = null;
-		this.currentImageUrl = config.image_url;
 
 		this.__hass = elHass.__hass;
 		this.__cards = [];
@@ -1431,17 +1383,17 @@ class WallpanelView extends HuiView {
 					}
 					cont.style.backgroundImage = "url(" + img.src + ")";
 				}
-				if (config.show_image_info && img.imagePath && /.*\.jpe?g$/i.test(img.imagePath)) {
+				if (config.show_image_info && /.*\.jpe?g$/i.test(img.imageUrl)) {
 					wp.fetchEXIFInfo(img);
 				}
 			});
 			img.addEventListener('error', function() {
 				img.setAttribute('data-loading', false);
 				logger.error(`Failed to load image: ${img.src}`);
-				if (img.imagePath) {
-					const idx = wp.imageList.indexOf(img.imagePath);
+				if (img.imageUrl) {
+					const idx = wp.imageList.indexOf(img.imageUrl);
 					if (idx > -1) {
-						logger.debug(`Removing image from list: ${img.imagePath}`);
+						logger.debug(`Removing image from list: ${img.imageUrl}`);
 						wp.imageList.splice(idx, 1);
 					}
 					wp.updateImage(img);
@@ -1466,13 +1418,24 @@ class WallpanelView extends HuiView {
 			wallpanel.moveInfoBox(0, 0);
 		}
 
-		if (config.show_images && (!oldConfig || !oldConfig.show_images || this.currentImageUrl != config.image_url)) {
-			const wp = this;
-			if (imageSourceType() == "url" || imageSourceType() == "media-entity") {
-				this.preloadImages();
+		if (config.show_images && (!oldConfig || !oldConfig.show_images || oldConfig.image_url != config.image_url)) {
+			let switchImages = false;
+			if (oldConfig) {
+				switchImages = true;
+			}
+
+			function preloadCallback(wp) {
+				if (switchImages) {
+					wp.switchActiveImage();
+				}
+			}
+
+			if (imageSourceType() == "unsplash-api" || imageSourceType() == "media-source") {
+				this.updateImageList(true, preloadCallback);
 			}
 			else {
-				this.updateImageList(true);
+				this.imageList = [];
+				this.preloadImages(preloadCallback);
 			}
 		}
 	}
@@ -1506,7 +1469,7 @@ class WallpanelView extends HuiView {
 
 	fetchEXIFInfo(img) {
 		let wp = this;
-		if (imageInfoCache[img.imageDataKey]) {
+		if (imageInfoCache[img.imageUrl]) {
 			return;
 		}
 		if (imageInfoCacheKeys.length >= imageInfoCacheMaxSize) {
@@ -1518,12 +1481,11 @@ class WallpanelView extends HuiView {
 
 		const tmpImg = document.createElement("img");
 		tmpImg.src = img.src;
-		tmpImg.imagePath = img.imagePath;
-		tmpImg.imageDataKey = img.imageDataKey;
+		tmpImg.imageUrl = img.imageUrl;
 		getImageData(tmpImg, function() {
 			logger.debug("EXIF data:", tmpImg.exifdata);
-			imageInfoCacheKeys.push(tmpImg.imageDataKey);
-			imageInfoCache[tmpImg.imageDataKey] = tmpImg.exifdata;
+			imageInfoCacheKeys.push(tmpImg.imageUrl);
+			imageInfoCache[tmpImg.imageUrl] = tmpImg.exifdata;
 			wp.setImageDataInfo(tmpImg);
 
 			let exifLong = tmpImg.exifdata["GPSLongitude"];
@@ -1540,22 +1502,22 @@ class WallpanelView extends HuiView {
 						let info = JSON.parse(xhr.responseText);
 						logger.debug("nominatim data:", info);
 						if (info && info.address) {
-							imageInfoCache[tmpImg.imageDataKey].address = info.address;
+							imageInfoCache[tmpImg.imageUrl].address = info.address;
 							wp.setImageDataInfo(tmpImg);
 						}
 					}
 					else {
 						logger.error("nominatim error:", this.status, xhr.status, xhr.responseText);
-						delete imageInfoCache[tmpImg.imageDataKey];
+						delete imageInfoCache[tmpImg.imageUrl];
 					}
 				}
 				xhr.onerror = function(event) {
 					logger.error("nominatim error:", event);
-					delete imageInfoCache[tmpImg.imageDataKey];
+					delete imageInfoCache[tmpImg.imageUrl];
 				}
 				xhr.ontimeout = function(event) {
 					logger.error("nominatim timeout:", event);
-					delete imageInfoCache[tmpImg.imageDataKey];
+					delete imageInfoCache[tmpImg.imageUrl];
 				}
 				xhr.open("GET", `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`);
 				//xhr.setRequestHeader("User-Agent", `lovelace-wallpanel/${version}`);
@@ -1566,42 +1528,41 @@ class WallpanelView extends HuiView {
 	}
 
 	setImageDataInfo(img) {
-		let imageInfo = imageInfoCache[img.imageDataKey];
 		let infoElement = null;
-		if (this.imageOne.imageDataKey == img.imageDataKey) {
+		if (this.imageOne.imageUrl == img.imageUrl) {
 			infoElement = this.imageOneInfo;
 		}
-		else if (this.imageTwo.imageDataKey == img.imageDataKey) {
+		else if (this.imageTwo.imageUrl == img.imageUrl) {
 			infoElement = this.imageTwoInfo;
 		}
 		if (!infoElement) {
 			return;
 		}
 
-		if ((!config.show_image_info) || (!imageInfo)) {
+		if (!config.show_image_info) {
 			infoElement.innerHTML = "";
 			infoElement.style.display = "none";
 			return;
 		}
+
 		infoElement.style.display = "block";
 
+		let imageInfo = imageInfoCache[img.imageUrl];
+		if (!imageInfo) {
+			imageInfo = {};
+		}
 		let html = config.image_info_template;
 		html = html.replace(/\${([^}]+)}/g, (match, tags, offset, string) => {
-			if (!imageInfo) {
-				return "";
-			}
-			if (img.imagePath) {
-				imageInfo.image = {
-					url: img.imagePath,
-					path: img.imagePath.replace(/^media-source:\/\/[^/]+/, ""),
-					relativePath: img.imagePath.replace(config.image_url, "").replace(/^\/+/, ""),
-					filename: img.imagePath.replace(/^.*[\\/]/, ""),
-					folderName: ""
-				};
-				const parts = img.imagePath.split("/");
-				if (parts.length >= 2) {
-					imageInfo.image.folderName = parts[parts.length - 2];
-				}
+			imageInfo.image = {
+				url: img.imageUrl,
+				path: img.imageUrl.replace(/^[^:]+:\/\/[^/]+/, ""),
+				relativePath: img.imageUrl.replace(config.image_url, "").replace(/^\/+/, ""),
+				filename: img.imageUrl.replace(/^.*[\\/]/, ""),
+				folderName: ""
+			};
+			const parts = img.imageUrl.split("/");
+			if (parts.length >= 2) {
+				imageInfo.image.folderName = parts[parts.length - 2];
 			}
 			let prefix = "";
 			let suffix = "";
@@ -1660,38 +1621,119 @@ class WallpanelView extends HuiView {
 		infoElement.innerHTML = html;
 	}
 
-	updateImageList(preload = false) {
-		if (!config.image_url || this.updatingImageList) return;
+	updateImageList(preload = false, preloadCallback = null) {
+		if (!config.image_url) return;
 
+		let updateFunction = null;
 		if (imageSourceType() == "unsplash-api") {
-			this.updateImageListFromUnsplashAPI(preload);
+			updateFunction = this.updateImageListFromUnsplashAPI;
 		}
 		else if (imageSourceType() == "media-source") {
-			this.updateImageListFromMediaSource(preload);
+			updateFunction = this.updateImageListFromMediaSource;
+		}
+		else {
+			return;
+		}
+
+		const wp = this;
+		if (this.updatingImageList) {
+			this.cancelUpdatingImageList = true;
+			const start = Date.now();
+			function _checkUpdating() {
+				if ((!this.updatingImageList) || Date.now() - start >= 5000) {
+					this.cancelUpdatingImageList = false;
+					updateFunction.bind(wp)(preload, preloadCallback);
+				}
+				else {
+					setTimeout(_checkUpdating, 50);
+				}
+			}
+			setTimeout(_checkUpdating, 1);
+		}
+		else {
+			this.cancelUpdatingImageList = false;
+			updateFunction.bind(wp)(preload, preloadCallback);
 		}
 	}
 
-	updateImageListFromMediaSource(preload) {
+	findImages(mediaContentId) {
+		const wp = this;
+		logger.debug(`findImages: ${mediaContentId}`);
+		let excludeRegExp = [];
+		if (config.image_excludes) {
+			for (let imageExclude of config.image_excludes) {
+				excludeRegExp.push(new RegExp(imageExclude));
+			}
+		}
+
+		return new Promise(
+			function(resolve, reject) {
+				wp.hass.callWS({
+					type: "media_source/browse_media",
+					media_content_id: mediaContentId
+				}).then(
+					mediaEntry => {
+						logger.debug("Found media entry", mediaEntry);
+						var promises = mediaEntry.children.map(child => {
+							let filename = child.media_content_id.replace(/^media-source:\/\/[^/]+/, '');
+							for (let exclude of excludeRegExp) {
+								if (exclude.test(filename)) {
+									return;
+								}
+							}
+							if (child.media_class == "image") {
+								//logger.debug(child);
+								return child.media_content_id;
+							}
+							if (child.media_class == "directory") {
+								if (wp.cancelUpdatingImageList) {
+									return;
+								}
+								return wp.findImages(child.media_content_id);
+							}
+						});
+						Promise.all(promises).then(results => {
+							let result = [];
+							for (let res of results) {
+								if (res) {
+									result = result.concat(res);
+								}
+							}
+							resolve(result);
+						})
+					},
+					error => {
+						//logger.warn(error);
+						reject(error);
+					}
+				);
+			}
+		);
+	}
+
+	updateImageListFromMediaSource(preload, preloadCallback = null) {
 		this.updatingImageList = true;
 		this.lastImageListUpdate = Date.now();
-		let mediaContentId = config.image_url;
-		let wp = this;
-		findImages(this.hass, mediaContentId).then(
+		const mediaContentId = config.image_url;
+		const wp = this;
+		wp.findImages(mediaContentId).then(
 			result => {
-				if (config.image_order == "random") {
-					this.imageList = result.sort((a, b) => 0.5 - Math.random());
-				}
-				else {
-					this.imageList = result.sort();
-				}
-				logger.debug("Image list from media-source is now:", this.imageList);
-				this.updatingImageList = false;
-				if (preload) {
-					wp.preloadImages();
+				wp.updatingImageList = false;
+				if (!wp.cancelUpdatingImageList) {
+					if (config.image_order == "random") {
+						wp.imageList = result.sort((a, b) => 0.5 - Math.random());
+					}
+					else {
+						wp.imageList = result.sort();
+					}
+					logger.debug("Image list from media-source is now:", wp.imageList);
+					if (preload) {
+						wp.preloadImages(preloadCallback);
+					}
 				}
 			},
 			error => {
-				this.updatingImageList = false;
+				wp.updatingImageList = false;
 				error = `Failed to update image list from ${config.image_url}: ${JSON.stringify(error)}`;
 				logger.error(error);
 				wp.displayMessage(error, 10000)
@@ -1699,7 +1741,7 @@ class WallpanelView extends HuiView {
 		)
 	}
 
-	updateImageListFromUnsplashAPI(preload) {
+	updateImageListFromUnsplashAPI(preload, preloadCallback = null) {
 		this.updatingImageList = true;
 		this.lastImageListUpdate = Date.now();
 		let wp = this;
@@ -1723,11 +1765,13 @@ class WallpanelView extends HuiView {
 				urls.push("https://source.unsplash.com/random/${width}x${height}?sig=${timestamp}");
 			}
 			wp.updatingImageList = false;
-			wp.imageList = urls;
-			imageInfoCache = data;
-			logger.debug("Image list from unsplash is now:", wp.imageList);
-			if (preload) {
-				wp.preloadImages();
+			if (!wp.cancelUpdatingImageList) {
+				wp.imageList = urls;
+				imageInfoCache = data;
+				logger.debug("Image list from unsplash is now:", wp.imageList);
+				if (preload) {
+					wp.preloadImages(preloadCallback);
+				}
 			}
 		};
 		logger.debug(`Unsplash API request: ${config.image_url}`);
@@ -1743,6 +1787,7 @@ class WallpanelView extends HuiView {
 		url = url.replace(/\${height}/g, height);
 		url = url.replace(/\${timestamp_ms}/g, timestamp_ms);
 		url = url.replace(/\${timestamp}/g, timestamp);
+		img.imageUrl = url;
 		logger.debug(`Updating image '${img.id}' from '${url}'`);
 		if (imageSourceType() == "media-entity") {
 			this.updateImageUrlWithHttpFetch(img, url);
@@ -1784,23 +1829,21 @@ class WallpanelView extends HuiView {
 			return;
 		}
 		this.updateImageIndex();
-		let imagePath = this.imageList[this.imageIndex];
-		if (!imagePath) {
-			return;
-		}
-		img.imageDataKey = imagePath;
-		img.imagePath = imagePath;
+		img.imageUrl = this.imageList[this.imageIndex];
 		this.hass.callWS({
 			type: "media_source/resolve_media",
-			media_content_id: imagePath
+			media_content_id: img.imageUrl
 		}).then(
 			result => {
-				let src = `${document.location.origin}${result.url}`;
+				let src = result.url;
+				if ((!src.startsWith("http://")) && (!src.startsWith("https://"))) {
+					src = `${document.location.origin}${src}`;
+				}
 				logger.debug(`Setting image src: ${src}`);
 				img.src = src;
 			},
 			error => {
-				logger.error(`media_source/resolve_media error for ${imagePath}:`, error);
+				logger.error(`media_source/resolve_media error for ${imageUrl}:`, error);
 			}
 		);
 	}
@@ -1810,7 +1853,6 @@ class WallpanelView extends HuiView {
 			return;
 		}
 		this.updateImageIndex();
-		img.imageDataKey = this.imageList[this.imageIndex];
 		this.updateImageFromUrl(img, this.imageList[this.imageIndex]);
 	}
 
@@ -1826,12 +1868,12 @@ class WallpanelView extends HuiView {
 		this.updateImageFromUrl(img, entityPicture + querySuffix);
 	}
 
-	updateImage(img) {
+	updateImage(img, callback = null) {
 		if (!config.show_images) {
 			return;
 		}
 		img.setAttribute('data-loading', true);
-		img.imagePath = null;
+		img.imageUrl = null;
 
 		if (imageSourceType() == "media-source") {
 			this.updateImageFromMediaSource(img);
@@ -1845,28 +1887,64 @@ class WallpanelView extends HuiView {
 		else {
 			this.updateImageFromUrl(img, config.image_url);
 		}
+
+		if (callback) {
+			const wp = this;
+			const start = Date.now();
+
+			function _checkLoading() {
+				if (img.getAttribute('data-loading') == "false" || Date.now() - start >= 2000) {
+					callback(wp, img);
+				}
+				else {
+					setTimeout(_checkLoading, 50);
+				}
+			}
+			setTimeout(_checkLoading, 1);
+		}
 	}
 
-	preloadImage(img) {
+	preloadImage(img, callback = null) {
+		const wp = this;
 		if ((this.updatingImageList) || (img.getAttribute('data-loading') == "true") || (this.screensaverRunning() && img.parentNode.style.opacity == 1)) {
+			if (callback) {
+				callback(wp, img);
+			}
 			return;
 		}
-		this.updateImage(img);
-		const wp = this;
-		setTimeout(function() {
-			wp.setImageDataInfo(img);
-		}, 1000);
+		this.updateImage(img,
+			function(wp, updatedImg) {
+				wp.setImageDataInfo(updatedImg);
+				if (callback) {
+					callback(wp, updatedImg);
+				}
+			}
+		);
 	}
 
-	preloadImages() {
+	preloadImages(callback = null) {
 		logger.debug("Preloading images");
-		this.preloadImage(this.imageOne);
-
-		if (imageSourceType() !== "media-entity") {
-			const wp = this;
-			setTimeout(function() {
-				wp.preloadImage(wp.imageTwo);
-			}, 1000);
+		if (imageSourceType() === "media-entity") {
+			this.preloadImage(this.imageOne,
+				function(wp, updatedImg) {
+					if (callback) {
+						callback(wp);
+					}
+				}
+			);
+		}
+		else {
+			this.preloadImage(this.imageOne,
+				function(wp, updatedImg) {
+					wp.preloadImage(wp.imageTwo,
+						function(wp, updatedImg) {
+							if (callback) {
+								callback(wp);
+							}
+						}
+					);
+				}
+			);
 		}
 	}
 
@@ -2131,9 +2209,9 @@ class WallpanelView extends HuiView {
 				let p = screenWakeLock._player;
 				html += `Screen wake lock video: readyState=${p.readyState} currentTime=${p.currentTime} paused=${p.paused} ended=${p.ended}<br/>`;
 			}
-			let imagePath = wallpanel.imageList[wallpanel.imageIndex];
-			if (imagePath) {
-				html += `Current image: ${imagePath}`;
+			const activeImage = this.getActiveImageElement();
+			if (activeImage) {
+				html += `Current image: ${activeImage.imageUrl}`;
 			}
 			this.debugBox.innerHTML = html;
 			this.debugBox.querySelector("#download_log").addEventListener(
@@ -2158,19 +2236,11 @@ class WallpanelView extends HuiView {
 		}
 		this.updateImageIndex();
 		const inactiveImage = this.getInactiveImageElement();
-		this.updateImage(inactiveImage);
-
-		const wp = this;
-		const start = Date.now();
-		function switchActiveImageAfterLoad() {
-			if (inactiveImage.getAttribute('data-loading') == "false" || Date.now() - start >= 2000) {
+		this.updateImage(inactiveImage,
+			function(wp, img) {
 				wp.switchActiveImage(500);
 			}
-			else {
-				setTimeout(switchActiveImageAfterLoad, 50);
-			}
-		}
-		setTimeout(switchActiveImageAfterLoad, 50);
+		);
 	}
 
 	handleInteractionEvent(evt, isClick) {

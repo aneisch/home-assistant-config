@@ -353,8 +353,6 @@ lovelace:
     - url: /hacsfiles/frigate-hass-card/frigate-hass-card.js
       type: module
 
-map:
-
 media_source:
 
 media_extractor:
@@ -424,32 +422,6 @@ notify:
     method: POST_JSON
     data:
       priority: "{{ data.priority }}"
-
-panel_iframe:
-  vscode:
-    title: VS Code
-    icon: mdi:wrench
-    url: !secret vscode_url
-  plane_tracking:
-    title: "Plane Tracking"
-    icon: mdi:airplane
-    url: !secret plane
-  grafana:
-    title: "Grafana"
-    icon: mdi:chart-areaspline
-    url: !secret grafana
-  esphome:
-    title: "ESPHome"
-    icon: mdi:memory
-    url: !secret esphome
-  portainer:
-    title: "Portainer"
-    icon: mdi:ferry
-    url: !secret portainer
-  nodered:
-    title: "Node-Red"
-    icon: mdi:sitemap
-    url: !secret nodered
 
 plant:
   garden:
