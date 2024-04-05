@@ -1,1207 +1,945 @@
-- alias: "Update README"
-  id: "update_Readme"
-  initial_state: on
+- id: update_Readme
+  alias: Update README
   trigger:
-    - platform: time
-      at: "11:00:00"
-    - platform: time
-      at: "21:00:00"
-    - platform: homeassistant
-      event: start
+  - platform: time
+    at: '11:00:00'
+  - platform: time
+    at: '21:00:00'
+  - platform: homeassistant
+    event: start
   action:
-    - delay: "00:05:00"
-    - service: readme.generate
-
-# - alias: "Auto drip faucet"
-#   id: "auto_drip_faucet"
-#   initial_state: on
-#   trigger:
-#     - platform: numeric_state
-#       entity_id: sensor.netatmo_home_attic_temperature
-#       below: 55
-#       id: attic_below
-#     - platform: numeric_state
-#       entity_id: sensor.compost_external_temperature
-#       below: 55
-#       id: outdoor_below
-#     - platform: numeric_state
-#       entity_id: sensor.netatmo_home_attic_temperature
-#       above: 65
-#       id: attic_above
-#     - platform: numeric_state
-#       entity_id: sensor.compost_external_temperature
-#       above: 65
-#       id: outdoor_above
-#   action:
-#     - service: "homeassistant.turn_{% if trigger.id in ['attic_below', 'outdoor_below'] %}on{% else %}off{% endif %}"
-#       entity_id: switch.bhyve_1
-
-- alias: "Set dark theme for night"
-  id: "dark_theme"
-  initial_state: on
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  - service: readme.generate
+    data: {}
+  initial_state: true
+- alias: Set dark theme for night
+  id: dark_theme
+  initial_state: true
   trigger:
-    - platform: time
-      at: "21:00:00"
-    - platform: homeassistant
-      event: start
+  - platform: time
+    at: '21:00:00'
+  - platform: homeassistant
+    event: start
   condition:
     condition: time
-    after: "20:59:00"
-    before: "08:59:00"
+    after: '20:59:00'
+    before: 08:59:00
   action:
-    - service: frontend.set_theme
-      data:
-        name: "Google Dark Theme"
-
-- alias: "Set light theme for day"
-  id: "light_theme"
-  initial_state: on
+  - service: frontend.set_theme
+    data:
+      name: Google Dark Theme
+- alias: Set light theme for day
+  id: light_theme
+  initial_state: true
   trigger:
-    - platform: time
-      at: "08:00:00"
-    - platform: homeassistant
-      event: start
+  - platform: time
+    at: 08:00:00
+  - platform: homeassistant
+    event: start
   condition:
     condition: time
-    after: "07:59:00"
-    before: "20:59:00"
+    after: 07:59:00
+    before: '20:59:00'
   action:
     service: frontend.set_theme
     data:
       name: default
-
-- alias: "Security Arm/Disarm"
-  id: "arm_disarm"
-  initial_state: on
+- alias: Security Arm/Disarm
+  id: arm_disarm
+  initial_state: true
   trigger:
     platform: state
     entity_id: input_boolean.security_status
   action:
-    - service: script.turn_on
-      data:
-        entity_id: >
-          {% if trigger.to_state.state == 'on' %}
-            script.security_arm
-          {% elif trigger.to_state.state == 'off' %}
-            script.security_disarm
-          {% endif %}
-
-- alias: "House Occupied/Empty"
-  id: "occupied_empty"
-  initial_state: on
+  - service: script.turn_on
+    data:
+      entity_id: "{% if trigger.to_state.state == 'on' %}\n  script.security_arm\n{%
+        elif trigger.to_state.state == 'off' %}\n  script.security_disarm\n{% endif
+        %}\n"
+- alias: House Occupied/Empty
+  id: occupied_empty
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: group.trackers
-      to: not_home
-      for:
-        minutes: 1
-    - platform: state
-      entity_id: group.trackers
-      to: home
+  - platform: state
+    entity_id: group.trackers
+    to: not_home
+    for:
+      minutes: 1
+  - platform: state
+    entity_id: group.trackers
+    to: home
   condition:
     condition: state
     entity_id: input_boolean.guest_mode
-    state: "off"
+    state: 'off'
   action:
-    - service: script.turn_on
-      data:
-        entity_id: >
-          {% if trigger.to_state.state == 'home' %}
-            script.home_occupied
-          {% elif trigger.to_state.state == 'not_home' %}
-            script.home_empty
-          {% endif %}
-    # Prevent trigger for 2 minutes
-    - delay: "00:02:00"
-
-- alias: "Andrew Desk Button"
-  id: "desk_button"
-  initial_state: on
-  trigger:
-    platform: state
-    to: "on"
-    entity_id:
-      - binary_sensor.andrew_desk_button_single
-      - binary_sensor.andrew_desk_button_double
-  action:
-    service: homeassistant.toggle
+  - service: script.turn_on
     data:
-      entity_id: >
-        {% if 'single' in trigger.entity_id %}
-          switch.office_heater
-        {% elif 'double' in trigger.entity_id %}
-          fan.office_ceiling_fan
-        {% endif %}
-
-- alias: "Mount/Umount /Plex"
-  id: "mount_unmount_plex"
-  initial_state: on
+      entity_id: "{% if trigger.to_state.state == 'home' %}\n  script.home_occupied\n{%
+        elif trigger.to_state.state == 'not_home' %}\n  script.home_empty\n{% endif
+        %}\n"
+  - delay: 00:02:00
+- alias: Mount/Umount /Plex
+  id: mount_unmount_plex
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: switch.nas
-      from: "off"
-      to: "on"
-      for:
-        seconds: 30
-    - platform: state
-      entity_id: switch.nas
-      from: "on"
-      to: "off"
-      for:
-        seconds: 30
+  - platform: state
+    entity_id: switch.nas
+    from: 'off'
+    to: 'on'
+    for:
+      seconds: 30
+  - platform: state
+    entity_id: switch.nas
+    from: 'on'
+    to: 'off'
+    for:
+      seconds: 30
   action:
-    service: >
-      {% if trigger.to_state.state == 'on' %}
-        shell_command.mount_plex
-      {% elif trigger.to_state.state == 'off' %}
-        shell_command.umount_plex
-      {% endif %}
-
-- alias: "Notify when AC Offline"
-  id: "notify_ac_offline"
-  initial_state: on
+    service: "{% if trigger.to_state.state == 'on' %}\n  shell_command.mount_plex\n{%
+      elif trigger.to_state.state == 'off' %}\n  shell_command.umount_plex\n{% endif
+      %}\n"
+- alias: Notify when AC Offline
+  id: notify_ac_offline
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: binary_sensor.thermostat_online
-      to: "off"
-      for: "00:30:00"
+  - platform: state
+    entity_id: binary_sensor.thermostat_online
+    to: 'off'
+    for: 00:30:00
   action:
-    - service: script.notify_wrapper
-      data:
-        message: "The thermostat appears to be offline..."
-
-# - alias: "Notify when Verizon Extender Offline"
-#   id: "notify_verizon_extender_offline"
-#   initial_state: on
-#   trigger:
-#     - platform: state
-#       entity_id: sensor.verizon_network_extender_status
-#       from: "In Service"
-#   action:
-#     - service: notify.signal_self
-#       data:
-#         message: "The Verizon extender appears to be out of service..."
-
-- alias: "Notify AC Equipment Event Occurs"
-  id: "notify_ac_equipment_event"
-  initial_state: on
+  - service: script.notify_wrapper
+    data:
+      message: The thermostat appears to be offline...
+- alias: Notify AC Equipment Event Occurs
+  id: notify_ac_equipment_event
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: sensor.thermostat_latest_equipment_event
-  condition: "{{ trigger.to_state.state not in [ 'unavailable', '' ] and trigger.from_state.state not in [ 'unavailable', '' ] }}"
+  - platform: state
+    entity_id: sensor.thermostat_latest_equipment_event
+  condition: '{{ trigger.to_state.state not in [ ''unavailable'', '''' ] and trigger.from_state.state
+    not in [ ''unavailable'', '''' ] }}'
   action:
-    - service: script.notify_wrapper
-      data:
-        message: "AC Equipment Event: {{ trigger.to_state.state }}"
-
-- alias: "Notify when AC setting changes"
-  id: "ac_notify_change"
-  initial_state: on
+  - service: script.notify_wrapper
+    data:
+      message: 'AC Equipment Event: {{ trigger.to_state.state }}'
+- alias: Notify when AC setting changes
+  id: ac_notify_change
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: sensor.thermostat_setpoint
-    - platform: state
-      entity_id: sensor.thermostat_operating_mode
+  - platform: state
+    entity_id: sensor.thermostat_setpoint
+  - platform: state
+    entity_id: sensor.thermostat_operating_mode
   condition:
     condition: and
     conditions:
-      - condition: state
-        entity_id: input_boolean.ac_change_notification
-        state: "on"
-      - "{{ trigger.from_state.state != trigger.to_state.state }}"
+    - condition: state
+      entity_id: input_boolean.ac_change_notification
+      state: 'on'
+    - '{{ trigger.from_state.state != trigger.to_state.state }}'
   action:
-    - service: script.notify_wrapper
-      data:
-        message: "{% if trigger.entity_id == 'sensor.thermostat_setpoint' %}Setpoint{% elif trigger.entity_id == 'sensor.thermostat_mode' %}Mode{% endif %}: {{ states('sensor.thermostat_setpoint') }}. Mode: {{ states('sensor.thermostat_operating_mode') }}"
-
-# Working as of 2/12/2020
-# Handle all actions for html5 and android push notifications
+  - service: script.notify_wrapper
+    data:
+      message: '{% if trigger.entity_id == ''sensor.thermostat_setpoint'' %}Setpoint{%
+        elif trigger.entity_id == ''sensor.thermostat_mode'' %}Mode{% endif %}: {{
+        states(''sensor.thermostat_setpoint'') }}. Mode: {{ states(''sensor.thermostat_operating_mode'')
+        }}'
 - alias: HTML5 or Android push notification action button clicked
-  id: "html5_android_push"
+  id: html5_android_push
   trigger:
-    - platform: event
-      event_type: html5_notification.clicked
-    - platform: event
-      event_type: mobile_app_notification_action
+  - platform: event
+    event_type: html5_notification.clicked
+  - platform: event
+    event_type: mobile_app_notification_action
   action:
-    service: >
-      {% if trigger.event.data.action == 'turn_ac_off' %}
-        script.turn_ac_off
-      {% endif %}
-
+    service: "{% if trigger.event.data.action == 'turn_ac_off' %}\n  script.turn_ac_off\n{%
+      endif %}\n"
 - alias: Clear Alexa Recording History
-  id: "alexa_history"
+  id: alexa_history
   trigger:
     platform: time_pattern
-    hours: "/12"
+    hours: /12
   action:
-    - service: alexa_media.clear_history
-
-- alias: "Update 'Last' Datetimes"
-  id: "update_last_datetimes"
+  - service: alexa_media.clear_history
+- alias: Update 'Last' Datetimes
+  id: update_last_datetimes
   trigger:
-    - platform: state
-      entity_id:
-        - binary_sensor.front_door
-        - binary_sensor.back_porch_door
-        - binary_sensor.garage_exterior_door
-        - binary_sensor.garage_interior_door
-        - binary_sensor.master_bedroom_exterior_door
-        - binary_sensor.garage_motion # Camera Based
-        - input_boolean.kitchen_motion
-        - binary_sensor.living_room_motion
-        - binary_sensor.hallway_motion
-      from: "off"
-      to: "on"
+  - platform: state
+    entity_id:
+    - binary_sensor.front_door
+    - binary_sensor.back_porch_door
+    - binary_sensor.garage_exterior_door
+    - binary_sensor.garage_interior_door
+    - binary_sensor.master_bedroom_exterior_door
+    - binary_sensor.garage_motion
+    - input_boolean.kitchen_motion
+    - binary_sensor.living_room_motion
+    - binary_sensor.hallway_motion
+    from: 'off'
+    to: 'on'
   action:
     service: input_datetime.set_datetime
     data:
-      entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.', replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.', replace='') }}_last"
-      datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-
-# - alias: "Mailbox Alert"
-#   id: "mailbox_alert"
-#   initial_state: on
-#   trigger:
-#     platform: state
-#     entity_id:
-#       - sensor.433_mailbox_last_opened
-#   condition: "{{ states('sensor.mail_usps_packages') > 0 }}"
-#   action:
-#     # Force capture of clip
-#     - service: switch.turn_on
-#       entity_id: switch.garage_stream
-#     #- service: notify.pushover
-#     - service: notify.signal_self
-#       data:
-#         message: >
-#           Mailbox Opened!
-#     - delay: 10
-#     - service: switch.turn_off
-# entity_id: switch.garage_stream
-
-- alias: "Door Lock Alerts"
-  id: "door_lock_alerts"
-  initial_state: on
+      entity_id: input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.',
+        replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.',
+        replace='') }}_last
+      datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+- alias: Door Lock Alerts
+  id: door_lock_alerts
+  initial_state: true
   trigger:
     platform: state
     entity_id:
-      - lock.front_door
-      - lock.garage_exterior_door
-      - lock.back_door
-    to: "unlocked"
-  condition: "{{ states('input_boolean.security_status') == 'on'}}"
+    - lock.front_door
+    - lock.garage_exterior_door
+    - lock.back_door
+    to: unlocked
+  condition: '{{ states(''input_boolean.security_status'') == ''on''}}'
   action:
-    - service: script.notify_wrapper
+  - service: script.notify_wrapper
+    data:
+      message: '{{ trigger.to_state.name }} Unlocked'
       data:
-        message: "{{ trigger.to_state.name }} Unlocked"
-        data:
-          priority: 1
-
-- alias: "Terraform Cloud Webhook"
-  id: "terraform_cloud_webhook"
-  initial_state: on
+        priority: 1
+- id: terraform_cloud_webhook
+  alias: Terraform Cloud Webhook
   trigger:
-    platform: webhook
-    webhook_id: !secret terraform_cloud_webhook
+  - platform: webhook
+    webhook_id: SECRET
     local_only: false
     allowed_methods:
-      - POST
+    - POST
   action:
-    - service: notify.signal_self
-      data:
-        message: "{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url }}"
-
-# Blink a light when the panic pushover alert is acknowledged
-- alias: "Panic Script Webhook Trigger"
-  id: "panic_script_webhook"
-  initial_state: on
+  - service: notify.signal_self
+    data:
+      message: '{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url
+        }}'
+  initial_state: true
+- alias: Panic Script Webhook Trigger
+  id: panic_script_webhook
+  initial_state: true
   trigger:
     platform: webhook
-    webhook_id: !secret panic_script_webhook
+    webhook_id: SECRET
     local_only: false
   action:
-    - service: media_player.volume_set
+  - service: media_player.volume_set
+    data:
+      entity_id: media_player.master
+      volume_level: 0.3
+  - service: notify.alexa_media_master
+    data:
       data:
-        entity_id: media_player.master
-        volume_level: 0.3
-    - service: notify.alexa_media_master
-      data:
-        data:
-          type: tts
-        message: "Help is on the way"
-
-- alias: "Bluebubbles Server Webhook"
-  id: "bluebubbles_server_webhook"
-  initial_state: on
+        type: tts
+      message: Help is on the way
+- alias: Bluebubbles Server Webhook
+  id: bluebubbles_server_webhook
+  initial_state: true
   trigger:
     platform: webhook
-    webhook_id: !secret bluebubbles_server_update_webhook
+    webhook_id: SECRET
     local_only: false
   action:
-    - service: input_text.set_value
-      target:
-        entity_id: input_text.bluebubbles_url
-      data:
-        value: "{{ trigger.json.data }}"
-
-- alias: "Cellular Message Health"
+  - service: input_text.set_value
+    target:
+      entity_id: input_text.bluebubbles_url
+    data:
+      value: '{{ trigger.json.data }}'
+- alias: Cellular Message Health
   id: cellular_message_health
   trigger:
-    - platform: time
-      id: reset
-      at: "00:00:00"
-    - platform: time
-      id: send_test_message
-      at: "09:00:00"
-    - platform: webhook
-      id: mark_healthy
-      webhook_id: !secret cellular_message_test_webook
-      local_only: false
-    - platform: time
-      id: evaluate_status
-      at: "09:05:00"
+  - platform: time
+    id: reset
+    at: 00:00:00
+  - platform: time
+    id: send_test_message
+    at: 09:00:00
+  - platform: webhook
+    id: mark_healthy
+    webhook_id: SECRET
+    local_only: false
+  - platform: time
+    id: evaluate_status
+    at: 09:05:00
   action:
-    - if: "{{ trigger.id == 'reset' }}"
+  - if: '{{ trigger.id == ''reset'' }}'
+    then:
+    - service: input_boolean.turn_on
+      entity_id: input_boolean.cellular_message_test_pending
+  - if: '{{ trigger.id == ''send_test_message'' }}'
+    then:
+    - service: notify.cellular_message
+      data:
+        message: t
+  - if: '{{ trigger.id == ''mark_healthy'' }}'
+    then:
+    - service: input_boolean.turn_off
+      entity_id: input_boolean.cellular_message_test_pending
+  - if: '{{ trigger.id == ''evaluate_status'' }}'
+    then:
+    - if: '{{ is_state(''input_boolean.cellular_message_test_pending'', ''on'') }}'
       then:
-        - service: input_boolean.turn_on
-          entity_id: input_boolean.cellular_message_test_pending
-    - if: "{{ trigger.id == 'send_test_message' }}"
-      then:
-        - service: notify.cellular_message
-          data:
-            message: "t"
-    - if: "{{ trigger.id == 'mark_healthy' }}"
-      then:
-        - service: input_boolean.turn_off
-          entity_id: input_boolean.cellular_message_test_pending
-    - if: "{{ trigger.id == 'evaluate_status' }}"
-      then:
-        - if: "{{ is_state('input_boolean.cellular_message_test_pending', 'on') }}"
-          then:
-            - service: notify.signal_self
-              data:
-                message: "Modem Healtcheck Failed, Power Cycling"
-            - service: esphome.cellular_modem_power_toggle
-
-- alias: "Cellular Modem Power Toggle"
-  id: "cellular_modem_power_toggle"
+      - service: notify.signal_self
+        data:
+          message: Modem Healtcheck Failed, Power Cycling
+      - service: esphome.cellular_modem_power_toggle
+- alias: Cellular Modem Power Toggle
+  id: cellular_modem_power_toggle
   mode: single
-  initial_state: on
+  initial_state: true
   trigger:
-    - platform: webhook
-      webhook_id: !secret cellular_modem_power_toggle_webhook
-      local_only: false
-    - platform: state
-      entity_id: sensor.cellular_modem_power
-      from: "on"
-      to: "off"
+  - platform: webhook
+    webhook_id: SECRET
+    local_only: false
+  - platform: state
+    entity_id: sensor.cellular_modem_power
+    from: 'on'
+    to: 'off'
   action:
-    - service: esphome.cellular_modem_power_toggle
-
-# - alias: "Pull Recipes Github Webhook"
-#   id: "recipes_github_pull"
-#   initial_state: on
-#   trigger:
-#     platform: webhook
-#     webhook_id: !secret github_recipes_webhook
-#     local_only: false
-#   action:
-#     - service: shell_command.pull_recipes
-
-- alias: "Power off NAS after backup"
-  id: "nas_poweroff_post_backup"
-  initial_state: on
+  - service: esphome.cellular_modem_power_toggle
+- alias: Power off NAS after backup
+  id: nas_poweroff_post_backup
+  initial_state: true
   trigger:
     platform: state
     entity_id: binary_sensor.backups_complete
-    to: "on"
+    to: 'on'
   condition:
     condition: time
-    after: "03:00:00"
-    before: "05:00:00"
+    after: 03:00:00
+    before: 05:00:00
     weekday:
-      - wed
+    - wed
   action:
     service: homeassistant.turn_off
     entity_id:
-      - switch.nas
-      - binary_sensor.backups_complete
-
-- alias: "React to Spotify Starting to Play"
-  id: "spotify_reaction"
-  initial_state: on
+    - switch.nas
+    - binary_sensor.backups_complete
+- alias: React to Spotify Starting to Play
+  id: spotify_reaction
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: media_player.spotify
-      attribute: source
-      to: "Office"
-    - platform: state
-      entity_id: media_player.spotify
-      attribute: source
-      to: "Everywhere"
-    - platform: state
-      entity_id: media_player.spotify
-      to: "playing"
-    - platform: state
-      entity_id: media_player.spotify
-      attribute: source
-      to: "Kitchen"
-  condition: "{{ states('media_player.spotify') == 'playing'}}"
+  - platform: state
+    entity_id: media_player.spotify
+    attribute: source
+    to: Office
+  - platform: state
+    entity_id: media_player.spotify
+    attribute: source
+    to: Everywhere
+  - platform: state
+    entity_id: media_player.spotify
+    to: playing
+  - platform: state
+    entity_id: media_player.spotify
+    attribute: source
+    to: Kitchen
+  condition: '{{ states(''media_player.spotify'') == ''playing''}}'
   action:
-    - if: "{{ states('media_player.spotify') == 'playing' and states('switch.andrew_office_speakers') == 'off' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Office'] }}"
-      then:
-        - service: homeassistant.turn_on
-          entity_id: switch.andrew_office_speakers
-    # - if: "{{ states('media_player.spotify') == 'playing' and state_attr('media_player.spotify', 'source') in ['Everywhere', 'Kitchen'] }}"
-    #   then:
-    #     - service: script.kitchen_launch_spotify
-    #       data:
-    #         delay: "00:01:00"
-
-- alias: "Turn on speakers and tv when XBOX powers on"
-  id: "speakers_with_xbox"
-  initial_state: on
+  - if: '{{ states(''media_player.spotify'') == ''playing'' and states(''switch.andrew_office_speakers'')
+      == ''off'' and state_attr(''media_player.spotify'', ''source'') in [''Everywhere'',
+      ''Office''] }}'
+    then:
+    - service: homeassistant.turn_on
+      entity_id: switch.andrew_office_speakers
+- alias: Turn on speakers and tv when XBOX powers on
+  id: speakers_with_xbox
+  initial_state: true
   trigger:
     platform: state
     entity_id: binary_sensor.xbox_power
-    to: "on"
-  condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
+    to: 'on'
+  condition: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
+    == ''home'' }}'
   action:
     service: homeassistant.turn_on
     entity_id:
-      - switch.living_room_speakers
-      - switch.tv
-
-- alias: "Turn off speakers when tv OR xbox powers off"
-  id: "tv_off_with_xbox_off"
-  initial_state: on
+    - switch.living_room_speakers
+    - switch.tv
+- alias: Turn off speakers when tv OR xbox powers off
+  id: tv_off_with_xbox_off
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id: switch.tv
-      to: "off"
-    - platform: state
-      entity_id: binary_sensor.xbox_power
-      to: "off"
-  condition: "{{ states('input_boolean.goodnight') == 'off' and states('group.trackers') == 'home' }}"
+  - platform: state
+    entity_id: switch.tv
+    to: 'off'
+  - platform: state
+    entity_id: binary_sensor.xbox_power
+    to: 'off'
+  condition: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
+    == ''home'' }}'
   action:
     service: homeassistant.turn_off
     entity_id:
-      - switch.living_room_speakers
-      - switch.tv
-
-# Monitor follows via appdaemon
-- alias: "Desk Lamp on when MacBook Active"
-  id: "desk_lamp_macbook_active"
-  initial_state: on
+    - switch.living_room_speakers
+    - switch.tv
+- alias: Desk Lamp on when MacBook Active
+  id: desk_lamp_macbook_active
+  initial_state: true
   trigger:
     platform: state
     entity_id: binary_sensor.weasel_active
-    to: "on"
-  # condition: "{{ states('sensor.weasel_ssid') == 'Penny' }}"
-  condition: "{{ states('person.andrew') == 'home' }}"
+    to: 'on'
+  condition: '{{ states(''person.andrew'') == ''home'' }}'
   action:
-    - if: "{{ states('sun.sun') == 'below_horizon' or (states('cover.office_blind_left') == 'closed' and states('cover.office_blind_right') == 'closed') }}"
-      then:
-        - service: homeassistant.turn_on
-          entity_id: light.andrew_desk_lamp
+  - if: '{{ states(''sun.sun'') == ''below_horizon'' or (states(''cover.office_blind_left'')
+      == ''closed'' and states(''cover.office_blind_right'') == ''closed'') }}'
+    then:
     - service: homeassistant.turn_on
-      entity_id:
-      - switch.andrew_monitor
-      - media_player.kitchen_photo_frame
-      - media_player.office_photo_frame
-
-- alias: "Desk Lamp and Monitor off"
-  id: "desk_lamp_and_monitor_off"
-  initial_state: on
-  trigger:
-    - platform: state
-      entity_id: binary_sensor.weasel_active
-      to: "off"
-      for: "00:30:00"
-    - platform: state
-      entity_id: binary_sensor.andrew_phone_car_connected
-      to: "on"
-  # condition: "{{ states('sensor.weasel_ssid') == 'Penny'}}"
-  action:
-    - service: homeassistant.turn_off
       entity_id: light.andrew_desk_lamp
-    - service: homeassistant.turn_off
-      entity_id: switch.andrew_monitor
-
-- alias: "Nexus off After Monitor"
-  id: "nexus_7_off_after_monitor"
-  initial_state: on
+  - service: homeassistant.turn_on
+    entity_id:
+    - switch.andrew_monitor
+    - media_player.kitchen_photo_frame
+    - media_player.office_photo_frame
+- alias: Desk Lamp and Monitor off
+  id: desk_lamp_and_monitor_off
+  initial_state: true
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.weasel_active
+    to: 'off'
+    for: 00:30:00
+  - platform: state
+    entity_id: binary_sensor.andrew_phone_car_connected
+    to: 'on'
+  action:
+  - service: homeassistant.turn_off
+    entity_id: light.andrew_desk_lamp
+  - service: homeassistant.turn_off
+    entity_id: switch.andrew_monitor
+- alias: Nexus off After Monitor
+  id: nexus_7_off_after_monitor
+  initial_state: true
   trigger:
     platform: state
     entity_id: switch.andrew_monitor
-    to: "off"
-    for: "00:00:30"
+    to: 'off'
+    for: 00:00:30
   action:
-    - service: homeassistant.turn_off
-      entity_id: switch.nexus_7_screen
-
-- alias: "Master Closet Light with Motion"
-  id: "closet_motion_light"
+  - service: homeassistant.turn_off
+    entity_id: switch.nexus_7_screen
+- alias: Master Closet Light with Motion
+  id: closet_motion_light
   trigger:
-    - platform: state
-      entity_id: "binary_sensor.master_closet_motion_sensor"
-      to: "on"
+  - platform: state
+    entity_id: binary_sensor.master_closet_motion_sensor
+    to: 'on'
   mode: restart
   action:
-    - service: homeassistant.turn_on
-      entity_id: switch.master_closet_light
-    - delay: "00:05:00"
-    - service: homeassistant.turn_off
-      entity_id: switch.master_closet_light
-
-- alias: "Sensor Battery Alerts"
-  id: "sensor_battery_alert"
+  - service: homeassistant.turn_on
+    entity_id: switch.master_closet_light
+  - delay: 00:05:00
+  - service: homeassistant.turn_off
+    entity_id: switch.master_closet_light
+- alias: Sensor Battery Alerts
+  id: sensor_battery_alert
   trigger:
-    - platform: state
-      id: binary
-      from: "off"
-      to: "on"
-      entity_id:
-        - binary_sensor.flume_sensor_home_battery
-        - binary_sensor.compost_battery
-        - binary_sensor.433_weather_battery
-        - binary_sensor.deep_freeze_battery
-    - platform: numeric_state
-      id: value
-      entity_id:
-        # smoke alarm batteries handled in smoke_alarms.yaml
-        # b-hyve
-        - sensor.1_battery_level
-        - sensor.2_battery_level
-        - sensor.3_battery_level
-        # remotes
-        - sensor.back_bedroom_remote_battery_level
-        - sensor.guest_bedroom_remote_battery_level
-        # doors
-        - sensor.front_door_battery
-        - sensor.back_door_battery
-        - sensor.garage_exterior_door_battery_level
-        # water detectors
-        - sensor.back_bathroom_toilet_water_detector_battery_level
-        - sensor.guest_bathroom_toilet_water_detector_battery_level
-        - sensor.master_bathroom_water_detector_battery_level
-        - sensor.washing_machine_water_detector_battery_level
-        - sensor.kitchen_sink_water_detector_battery_level
-        - sensor.fridge_water_detector_battery_level
-        # motion sensors
-        - sensor.motion_1_battery_level
-        - sensor.living_room_motion_battery_level
-        - sensor.hallway_motion_battery
-        - sensor.master_closet_motion_battery_level
-        # blinds
-        - sensor.office_blind_left_battery
-        - sensor.office_blind_right_battery
-        - sensor.guest_bedroom_blind_left_battery
-        - sensor.guest_bedroom_blind_right_battery
-        - sensor.dining_room_blind_left_battery
-        - sensor.dining_room_blind_center_battery
-        - sensor.dining_room_blind_right_battery
-        # temperature sensors
-        - sensor.netatmo_home_attic_battery_percent
-        - sensor.netatmo_home_home_rain_battery_percent
-        - sensor.meater_battery_level
-      below: 10
+  - platform: state
+    id: binary
+    from: 'off'
+    to: 'on'
+    entity_id:
+    - binary_sensor.flume_sensor_home_battery
+    - binary_sensor.compost_battery
+    - binary_sensor.433_weather_battery
+    - binary_sensor.deep_freeze_battery
+  - platform: numeric_state
+    id: value
+    entity_id:
+    - sensor.1_battery_level
+    - sensor.2_battery_level
+    - sensor.3_battery_level
+    - sensor.back_bedroom_remote_battery_level
+    - sensor.guest_bedroom_remote_battery_level
+    - sensor.front_door_battery
+    - sensor.back_door_battery
+    - sensor.garage_exterior_door_battery_level
+    - sensor.back_bathroom_toilet_water_detector_battery_level
+    - sensor.guest_bathroom_toilet_water_detector_battery_level
+    - sensor.master_bathroom_water_detector_battery_level
+    - sensor.kitchen_sink_water_detector_battery_level
+    - sensor.motion_1_battery_level
+    - sensor.living_room_motion_battery_level
+    - sensor.hallway_motion_battery
+    - sensor.master_closet_motion_battery_level
+    - sensor.office_blind_left_battery
+    - sensor.office_blind_right_battery
+    - sensor.guest_bedroom_blind_left_battery
+    - sensor.guest_bedroom_blind_right_battery
+    - sensor.dining_room_blind_left_battery
+    - sensor.dining_room_blind_center_battery
+    - sensor.dining_room_blind_right_battery
+    - sensor.netatmo_home_attic_battery_percent
+    - sensor.meater_battery_level
+    below: 10
   action:
-    - service: script.notify_wrapper
-      data:
-        message: >
-          {% if trigger.id == "value" %}
-            {{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%
-          {% elif trigger.id == "binary" %}
-            {{ trigger.to_state.name }} battery level low!
-          {% endif %}
-
-- alias: "Update CloudFlare Firewall Rule"
-  id: "update_cloudflare_firewall_rule"
+  - service: script.notify_wrapper
+    data:
+      message: "{% if trigger.id == \"value\" %}\n  {{ trigger.to_state.name }} battery
+        level at {{ trigger.to_state.state }}%\n{% elif trigger.id == \"binary\" %}\n
+        \ {{ trigger.to_state.name }} battery level low!\n{% endif %}\n"
+- alias: Update CloudFlare Firewall Rule
+  id: update_cloudflare_firewall_rule
   trigger:
-    - platform: state
-      entity_id: sensor.myip
+  - platform: state
+    entity_id: sensor.myip
   condition: '{{ trigger.to_state.state not in ["unknown","unavailable"] }}'
   action:
-    - service: shell_command.update_cloudflare_firewall
-      data:
-        old: "{{ trigger.from_state.state }}"
-        new: "{{ trigger.to_state.state }}"
-    # - service: notify.signal_self
-    #   data:
-    #     message: >
-    #       Cloudflare Firewall Updated {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}
-
-# - alias: "Sync Cloudflare CNAME Records"
-#   id: "sync_cloudflare_cnames"
-#   trigger:
-#     platform: event
-#     event_type: folder_watcher
-#     event_data:
-#       event_type: modified
-#       file: 'database.sqlite'
-#   action:
-#     - service: shell_command.sync_cloudflare_records
-
-- alias: "Disarm When Opening Garage"
-  id: "disarm_when_garage_opened"
+  - service: shell_command.update_cloudflare_firewall
+    data:
+      old: '{{ trigger.from_state.state }}'
+      new: '{{ trigger.to_state.state }}'
+- alias: Disarm When Opening Garage
+  id: disarm_when_garage_opened
   trigger:
-    - platform: event
-      event_type: call_service
-      event_data:
-        domain: cover
-        service: open_cover
-        service_data:
-          entity_id: cover.garage_door
+  - platform: event
+    event_type: call_service
+    event_data:
+      domain: cover
+      service: open_cover
+      service_data:
+        entity_id: cover.garage_door
   action:
-    - service: input_boolean.turn_off
-      entity_id: input_boolean.security_status
-
-- alias: "Commit Frigate Config"
-  id: "commit_frigate_config"
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.security_status
+- alias: Commit Frigate Config
+  id: commit_frigate_config
   trigger:
     platform: event
     event_type: folder_watcher
     event_data:
       event_type: modified
-      file: 'config.yml'
+      file: config.yml
   action:
-    - service: shell_command.commit_frigate_changes
-
-- alias: "Compost Turn Reset"
-  id: "compost_turn_reset"
+  - service: shell_command.commit_frigate_changes
+- alias: Compost Turn Reset
+  id: compost_turn_reset
   trigger:
-    - platform: state
-      entity_id: input_boolean.compost_turn
-      to: "on"
+  - platform: state
+    entity_id: input_boolean.compost_turn
+    to: 'on'
   action:
-    - delay: "00:01:00"
-    - service: homeassistant.turn_off
-      entity_id: input_boolean.compost_turn
-
-- alias: "Internet Reachability GSM Alert"
-  id: "internet_gsm_alert"
+  - delay: 00:01:00
+  - service: homeassistant.turn_off
+    entity_id: input_boolean.compost_turn
+- alias: Internet Reachability GSM Alert
+  id: internet_gsm_alert
   trigger:
-    - platform: state
-      entity_id: binary_sensor.internet_reachability
-      from: "on"
-      to: "off"
-      id: binary
-    - platform: state
-      entity_id: binary_sensor.internet_reachability
-      from: "off"
-      to: "on"
-      id: binary
-    - platform: state
-      id: gateway
-      entity_id: sensor.pfsense_gateway_wan_dhcp
-      from: "True"
-      to: "False"
-    - platform: state
-      id: gateway
-      entity_id: sensor.pfsense_gateway_wan_dhcp
-      from: "False"
-      to: "True"
+  - platform: state
+    entity_id: binary_sensor.internet_reachability
+    from: 'on'
+    to: 'off'
+    id: binary
+  - platform: state
+    entity_id: binary_sensor.internet_reachability
+    from: 'off'
+    to: 'on'
+    id: binary
+  - platform: state
+    id: gateway
+    entity_id: sensor.pfsense_gateway_wan_dhcp
+    from: 'True'
+    to: 'False'
+  - platform: state
+    id: gateway
+    entity_id: sensor.pfsense_gateway_wan_dhcp
+    from: 'False'
+    to: 'True'
   action:
-    - if: "{{ trigger.id == 'binary' }}"
-      then:
-        - service: notify.cellular_message
-          data:
-            message: >
-              {% if trigger.from_state.state == "on" %}
-              Home internet is down
-              {% else %}
-              Home internet has recovered
-              {% endif %}
-            data:
-              # Override DND if Daytime, otherwise silent
-              priority: "{% if now().hour > 9 and now().hour < 22 and is_state('person.andrew', 'home') %}1{% else %}0{% endif %}"
-    - if: "{{ trigger.id == 'gateway' }}"
-      then:
-        - service: notify.cellular_message
-          data:
-            message: >
-              {% if trigger.from_state.state == "True" %}
-              PFSense gateway down
-              {% else %}
-              PFSense gateway has recovered
-              {% endif %}
-            data:
-              # Override DND if Daytime, otherwise silent
-              priority: "{% if now().hour > 9 and now().hour < 22  and is_state('person.andrew', 'home') %}1{% else %}0{% endif %}"
-
-- id: webhook_debugger
-  alias: "Webhook Debugger"
-  trigger:
-    - platform: webhook
-      webhook_id: hihihi
-      local_only: false
-  action:
-    - service: persistent_notification.create
+  - if: '{{ trigger.id == ''binary'' }}'
+    then:
+    - service: notify.cellular_message
       data:
-        message: >-
-          {% if 'data' in trigger %}
-            Data: {{ dict(trigger.data)|tojson }}
-          {% elif 'json' in trigger %}
-            JSON: {{ dict(trigger.json)|tojson }}
-          {% else %}
-          {% endif %}
-          {% if 'query' in trigger and trigger.query|length > 0 %}
-            Query: {{ dict(trigger.query)|tojson }}
-          {% endif %}
+        message: '{% if trigger.from_state.state == "on" %} Home internet is down
+          {% else %} Home internet has recovered {% endif %}
 
-- id: bluebubbles_to_sms
-  alias: "BlueBubbles to SMS"
+          '
+        data:
+          priority: '{% if now().hour > 9 and now().hour < 22 and is_state(''person.andrew'',
+            ''home'') %}1{% else %}0{% endif %}'
+  - if: '{{ trigger.id == ''gateway'' }}'
+    then:
+    - service: notify.cellular_message
+      data:
+        message: '{% if trigger.from_state.state == "True" %} PFSense gateway down
+          {% else %} PFSense gateway has recovered {% endif %}
+
+          '
+        data:
+          priority: '{% if now().hour > 9 and now().hour < 22  and is_state(''person.andrew'',
+            ''home'') %}1{% else %}0{% endif %}'
+- id: webhook_debugger
+  alias: Webhook Debugger
   trigger:
-    - platform: webhook
-      webhook_id: hihihi
-      local_only: false
+  - platform: webhook
+    webhook_id: hihihi
+    local_only: false
   action:
-    - if: "{{ trigger.json.data.isFromMe == false and trigger.json.data.handle.address != '+PHONE_NUMBER' }}"
-      then:
-        - service: notify.donotreply_secret
-          data:
-            target: 5128798125@msg.fi.google.com
-            message: "{{ trigger.json.data.handle.address }}: {{ trigger.json.data.text }}"
-            title: BlueBubbles FWD
-
-- alias: "Watchtower Updates"
-  id: "watchertower_run_update"
+  - service: persistent_notification.create
+    data:
+      message: "{% if 'data' in trigger %}\n  Data: {{ dict(trigger.data)|tojson }}\n{%
+        elif 'json' in trigger %}\n  JSON: {{ dict(trigger.json)|tojson }}\n{% else
+        %} {% endif %} {% if 'query' in trigger and trigger.query|length > 0 %}\n
+        \ Query: {{ dict(trigger.query)|tojson }}\n{% endif %}"
+- id: bluebubbles_to_sms
+  alias: BlueBubbles to SMS
   trigger:
-    - platform: time
-      at: "15:00:00"
-    - platform: time
-      at: "20:00:00"
+  - platform: webhook
+    webhook_id: hihihi
+    local_only: false
+  action:
+  - if: '{{ trigger.json.data.isFromMe == false and trigger.json.data.handle.address
+      != ''+PHONE_NUMBER'' }}'
+    then:
+    - service: notify.donotreply_SECRET
+      data:
+        target: 5128798125@msg.fi.google.com
+        message: '{{ trigger.json.data.handle.address }}: {{ trigger.json.data.text
+          }}'
+        title: BlueBubbles FWD
+- alias: Watchtower Updates
+  id: watchertower_run_update
+  trigger:
+  - platform: time
+    at: '15:00:00'
+  - platform: time
+    at: '20:00:00'
   condition:
     condition: and
     conditions:
-      - condition: time
-        weekday:
-          - sun
-      - "{{ states('person.andrew') == 'home'}}"
+    - condition: time
+      weekday:
+      - sun
+    - '{{ states(''person.andrew'') == ''home''}}'
   action:
-    # Watchtower runs once at container start then turns back off
-    - service: homeassistant.turn_on
-      entity_id: switch.docker_watchtower
-
-- alias: "Update Utility Costs"
-  id: "update_utility_costs"
+  - service: homeassistant.turn_on
+    entity_id: switch.docker_watchtower
+- alias: Update Utility Costs
+  id: update_utility_costs
   mode: single
   trigger:
-    - platform: time_pattern
-      hours: "/12"
-    # Ensure we update before reset at end of cycle
-    - platform: time
-      at: "23:59:30"
+  - platform: time_pattern
+    hours: /12
+  - platform: time
+    at: '23:59:30'
   action:
-    - service: python_script.compute_utility_costs
-      data:
-        meter_entity: sensor.electricity_usage
-    - service: python_script.compute_utility_costs
-      data:
-        meter_entity: sensor.water_usage
-
-- alias: "Reset Utility Meters"
-  id: "reset_utility_meters"
+  - service: python_script.compute_utility_costs
+    data:
+      meter_entity: sensor.electricity_usage
+  - service: python_script.compute_utility_costs
+    data:
+      meter_entity: sensor.water_usage
+- alias: Reset Utility Meters
+  id: reset_utility_meters
   trigger:
-    - platform: time
-      at: "00:00:00"
+  - platform: time
+    at: 00:00:00
   action:
-    - service: python_script.utility_meter_reset
-      data:
-        meter_entity: sensor.water_usage
-        cycle_reset_entity_id: sensor.utilities_cycle_end
-    - service: python_script.utility_meter_reset
-      data:
-        meter_entity: sensor.electricity_usage
-        cycle_reset_entity_id: sensor.utilities_cycle_end
-
-- alias: "Update USPS Mail Camera Path on Hass Restart"
-  id: "usps_mail_path_update"
+  - service: python_script.utility_meter_reset
+    data:
+      meter_entity: sensor.water_usage
+      cycle_reset_entity_id: sensor.utilities_cycle_end
+  - service: python_script.utility_meter_reset
+    data:
+      meter_entity: sensor.electricity_usage
+      cycle_reset_entity_id: sensor.utilities_cycle_end
+- alias: Update USPS Mail Camera Path on Hass Restart
+  id: usps_mail_path_update
   trigger:
-    - platform: state
-      entity_id: sensor.mail_updated
-    - platform: homeassistant
-      event: start
+  - platform: state
+    entity_id: sensor.mail_updated
+  - platform: homeassistant
+    event: start
   action:
-    - service: local_file.update_file_path
-      data_template:
-        entity_id: camera.mail_usps
-        file_path: "{{ states('sensor.mail_image_system_path') }}"
-
-# - alias: "Fingerprint Safe Open"
-#   id: "fingerprint_safe"
-#   trigger:
-#     platform: state
-#     entity_id: sensor.fingerprint_state
-#     to: "Authorized finger"
-#   condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
-#   action:
-#     - service: homeassistant.turn_on
-#       entity_id: switch.safe
-#     #- service: notify.pushover
-#     - service: notify.signal_self
-#       data:
-#         message: "Safe opened by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% endif %}!"
-#         # data:
-#         #   priority: 2
-#         #   expire: 3600
-#         #   retry: 30
-
-- alias: "Fingerprint Door Unlock"
-  id: "fingerprint_door_unlock"
+  - service: local_file.update_file_path
+    data_template:
+      entity_id: camera.mail_usps
+      file_path: '{{ states(''sensor.mail_image_system_path'') }}'
+- alias: Fingerprint Door Unlock
+  id: fingerprint_door_unlock
   trigger:
     platform: state
     entity_id: sensor.fingerprint_state
-    to: "Authorized finger"
-  condition: "{{ states('sensor.fingerprint_last_finger_id') in ['1','2'] }}"
+    to: Authorized finger
+  condition: '{{ states(''sensor.fingerprint_last_finger_id'') in [''1'',''2''] }}'
   action:
-    - service: lock.unlock
-      entity_id: lock.back_door
-    - service: script.notify_wrapper
-      data:
-        message: "Front door unlocked by {% if states('sensor.fingerprint_last_finger_id') == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id') == '2' %}Andrew left index{% else %}Unknown{% endif %}!"
-
-# - alias: "Covid Booking"
-#   id: "covid_booking"
-#   trigger:
-#     - platform: time
-#       at: "12:00:00"
-#   condition:
-#     condition: time
-#     weekday:
-#       - mon
-#   action:
-#     - service: shell_command.covid_booking
-
-- alias: "Signal Webhook Message BVST"
-  id: "signal_webhook_message_bvst"
-  mode: "queued"
-  initial_state: on
+  - service: lock.unlock
+    entity_id: lock.back_door
+  - service: script.notify_wrapper
+    data:
+      message: Front door unlocked by {% if states('sensor.fingerprint_last_finger_id')
+        == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id')
+        == '2' %}Andrew left index{% else %}Unknown{% endif %}!
+- alias: Signal Webhook Message BVST
+  id: signal_webhook_message_bvst
+  mode: queued
+  initial_state: true
   trigger:
-    - platform: webhook
-      webhook_id: !secret signal_bvst_contact_webhook_id
-      id: contact
-      local_only: false
-    # - platform: webhook
-    #   webhook_id: !secret signal_bvst_intake_webhook_id
-    #   id: intake_forms
-    #   local_only: false
-    - platform: webhook
-      webhook_id: !secret signal_bvst_insurance_webhook_id
-      id: insurance
-      local_only: false
+  - platform: webhook
+    webhook_id: SECRET
+    id: contact
+    local_only: false
+  - platform: webhook
+    webhook_id: SECRET
+    id: insurance
+    local_only: false
   action:
-    - if: "{{ trigger.id == 'contact' }}"
-      then:
-        - service: notify.signal_bvst
-          data:
-            message: "{{ trigger.json['message'] }}"
-    # - if: "{{ trigger.id == 'intake_forms' }}"
-    #   then:
-    #     - service: notify.signal_self
-    #       data:
-    #         message: "Intake forms sent to {{ trigger.json['email'] }}"
-    - if: "{{ trigger.id == 'insurance' }}"
-      then:
-        - service: notify.signal_bvst_ins
-          data:
-            message: "{{ trigger.json['message'] }}"
-
-- alias: "Restart AppDaemon"
-  id: "restart_appdaemon"
+  - if: '{{ trigger.id == ''contact'' }}'
+    then:
+    - service: notify.signal_bvst
+      data:
+        message: '{{ trigger.json[''message''] }}'
+  - if: '{{ trigger.id == ''insurance'' }}'
+    then:
+    - service: notify.signal_bvst_ins
+      data:
+        message: '{{ trigger.json[''message''] }}'
+- alias: Restart AppDaemon
+  id: restart_appdaemon
   trigger:
     platform: time
-    at: "01:30:00"
+    at: 01:30:00
   action:
-    - service: switch.turn_off
-      entity_id: switch.docker_appdaemon
-    - delay: "00:00:30"
-    - service: switch.turn_on
-      entity_id: switch.docker_appdaemon
-
-- alias: "Deep Freeze Temperature"
-  id: "deep_freeze_temperature"
-  initial_state: on
+  - service: switch.turn_off
+    entity_id: switch.docker_appdaemon
+  - delay: 00:00:30
+  - service: switch.turn_on
+    entity_id: switch.docker_appdaemon
+- alias: Deep Freeze Temperature
+  id: deep_freeze_temperature
+  initial_state: true
   trigger:
     platform: numeric_state
     entity_id:
-      - sensor.deep_freeze_temperature
+    - sensor.deep_freeze_temperature
     above: 25
     for:
       minutes: 10
   action:
-    - service: script.notify_wrapper
+  - service: script.notify_wrapper
+    data:
+      message: The deep freeze has been above 25°F for 10 minutes and is currently
+        {{ trigger.to_state.state }}°F
       data:
-        message: "The deep freeze has been above 25°F for 10 minutes and is currently {{ trigger.to_state.state }}°F"
-        data:
-          priority: 2
-
-- alias: "Garage Fan"
-  id: "garage_fan"
-  initial_state: on
+        priority: 2
+- alias: Garage Fan
+  id: garage_fan
+  initial_state: true
   trigger:
     platform: state
     entity_id: cover.garage_door
     to:
-      - "open"
-      - "closed"
+    - open
+    - closed
   action:
-    - service: >
-        {% if trigger.from_state.state == "closed" and trigger.to_state.state == "open" %}
-          switch.turn_on
-        {% elif trigger.from_state.state == "open" and trigger.to_state.state == "closed" %}
-          switch.turn_off
-        {% endif %}
-      entity_id: switch.garage_fan
-
-# - alias: "Tunnel Notifications"
-#   id: "tunnel_notifications"
-#   initial_state: on
-#   trigger:
-#     - platform: state
-#       entity_id:
-#         - binary_sensor.kurt_tunnel
-#       from: "off"
-#       to: "on"
-#     - platform: state
-#       entity_id:
-#         - binary_sensor.kurt_tunnel
-#       from: "on"
-#       to: "off"
-#   action:
-#     - service: script.notify_wrapper
-#       data:
-#         message: >
-#             The tunnel "{{ trigger.to_state.attributes.friendly_name }}" is {% if trigger.to_state.state == "off" %}offline{% elif trigger.to_state.state == "on" %}online{% endif %}
-
-- alias: "Door Chime"
-  id: "door_chime"
-  initial_state: on
+  - service: "{% if trigger.from_state.state == \"closed\" and trigger.to_state.state
+      == \"open\" %}\n  switch.turn_on\n{% elif trigger.from_state.state == \"open\"
+      and trigger.to_state.state == \"closed\" %}\n  switch.turn_off\n{% endif %}\n"
+    entity_id: switch.garage_fan
+- alias: Door Chime
+  id: door_chime
+  initial_state: true
   trigger:
-    - platform: state
-      entity_id:
-        - cover.garage_door
-      from: "closed"
-      to: "open"
-  condition: "{{ states('group.trackers') == 'home'}}"
+  - platform: state
+    entity_id:
+    - cover.garage_door
+    from: closed
+    to: open
+  condition: '{{ states(''group.trackers'') == ''home''}}'
   action:
-    - service: notify.alexa_media_kitchen
+  - service: notify.alexa_media_kitchen
+    data:
       data:
-        data:
-          type: tts
-          method: speak
-        # https://developer.amazon.com/en-US/docs/alexa/custom-skills/ask-soundlibrary.html
-        message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
-
-- alias: "Startup Notificiation"
-  id: "startup_notification"
-  initial_state: on
+        type: tts
+        method: speak
+      message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
+- alias: Startup Notificiation
+  id: startup_notification
+  initial_state: true
   trigger:
-    - platform: homeassistant
-      event: start
+  - platform: homeassistant
+    event: start
   action:
-    - service: notify.signal_self
-      data:
-        message: >
-          Home Assistant v{{ states('sensor.ha_version')}} has started!
+  - service: notify.signal_self
+    data:
+      message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
-- alias: "Coffee Maker on With Alarm Clock"
-  id: "coffee_maker_alarm_clock"
-  initial_state: on
+        '
+- alias: Coffee Maker on With Alarm Clock
+  id: coffee_maker_alarm_clock
+  initial_state: true
   trigger:
-    # Andrew Phone Alarm Clock
-    - platform: state
-      entity_id: sensor.andrew_phone_last_notification
-      attribute: channel_id
-      to: Firing
+  - platform: state
+    entity_id: sensor.andrew_phone_last_notification
+    attribute: channel_id
+    to: Firing
   condition:
     condition: and
     conditions:
-      - "{{ states('binary_sensor.workday_sensor') == 'on' }}"
-      - "{{ states('person.andrew') == 'home' }}"
-      - condition: time
-        after: "05:30:00"
-        before: "09:45:00"
-      - "{{ states('sensor.andrew_phone_charger_type') != 'none' }}"
+    - '{{ states(''binary_sensor.workday_sensor'') == ''on'' }}'
+    - '{{ states(''person.andrew'') == ''home'' }}'
+    - condition: time
+      after: 05:30:00
+      before: 09:45:00
+    - '{{ states(''sensor.andrew_phone_charger_type'') != ''none'' }}'
   action:
-    - wait_template: "{{ is_state('sensor.andrew_phone_charger_type', 'none') }}"
-      timeout: "00:05:00"
-    - service: switch.turn_on
-      entity_id: switch.coffee_maker
-    - service: switch.turn_on
-      entity_id: switch.under_cabinet_lights_coffee
-    - wait_template: "{{ is_state('switch.under_cabinet_lights_coffee', 'off') }}"
-      timeout: "00:20:00"
-    - if:
-        - "{{ wait.completed }}"
-      then:
-        - service: switch.turn_off
-          entity_id: switch.coffee_maker
-
-- alias: "Coffee Maker Off"
-  id: "coffee_maker_off"
-  initial_state: on
-  trigger:
-    - platform: time
-      at: "10:00:00"
-    # also auto turns off after 30 minutes via ESPhome
-    # switch config of power_plug_1
-  condition: "{{ states('switch.coffee_maker') == 'on' }}"
-  action:
+  - wait_template: '{{ is_state(''sensor.andrew_phone_charger_type'', ''none'') }}'
+    timeout: 00:05:00
+  - service: switch.turn_on
+    entity_id: switch.coffee_maker
+  - service: switch.turn_on
+    entity_id: switch.under_cabinet_lights_coffee
+  - wait_template: '{{ is_state(''switch.under_cabinet_lights_coffee'', ''off'') }}'
+    timeout: 00:20:00
+  - if:
+    - '{{ wait.completed }}'
+    then:
     - service: switch.turn_off
       entity_id: switch.coffee_maker
+- alias: Coffee Maker Off
+  id: coffee_maker_off
+  initial_state: true
+  trigger:
+  - platform: time
+    at: '10:00:00'
+  condition: '{{ states(''switch.coffee_maker'') == ''on'' }}'
+  action:
+  - service: switch.turn_off
+    entity_id: switch.coffee_maker
+  - service: notify.signal_self
+    data:
+      message: 'Turned coffee maker off!
+
+        '
+- alias: Turn off AC Fan
+  id: turn_off_ac_fan
+  trigger:
+  - platform: state
+    entity_id: sensor.thermostat_state
+    to: Idle Fan
+    for:
+      minutes: 30
+  action:
+  - service: script.notify_wrapper
+    data:
+      message: AC fan on idle for 30 minutes, setting back to auto
+  - service: climate.set_fan_mode
+    entity_id: climate.thermostat
+    data:
+      fan_mode: auto
+- alias: Plant Light Corner Brightness
+  id: plant_corner_brightness
+  trigger:
+  - platform: state
+    entity_id: light.plant_light_corner
+    to: 'on'
+    for: 00:00:10
+  action:
+  - repeat:
+      count: 3
+      sequence:
+      - service: light.turn_on
+        entity_id: light.plant_light_corner
+        data:
+          brightness: 255
+      - delay: 00:00:05
+- alias: Rain Notifications
+  id: rain_notifications
+  mode: restart
+  trigger:
+  - platform: state
+    entity_id: sensor.neighbor_5in1_rain_last_1_hour
+    from:
+    - unknown
+    - unavailable
+    - '0.0'
+    - '0.00'
+    - '0'
+  action:
+  - if:
+    - '{{ float(trigger.to_state.state, default=-1) > 0.00 }}'
+    then:
     - service: notify.signal_self
       data:
-        message: >
-          Turned coffee maker off!
+        message: 'Rain started!
 
-# - alias: "Front Door NFC"
-#   id: "front_door_nfc"
-#   initial_state: on
-#   trigger:
-#     - platform: state
-#       entity_id: sensor.rfid_tag
-#   condition: '{{ "08" in trigger.to_state.state[:-2] }}'
-#   action:
-#     - service: script.notify_wrapper
-#       data:
-#         message: "Front door unlocked by NFC"
-#         data:
-#           priority: 1
-#     - service: lock.unlock
-#       entity_id: lock.front_door
-
-- alias: "Turn off AC Fan"
-  # In case I manually turned on the fan to clear stale air
-  id: "turn_off_ac_fan"
-  trigger:
-    - platform: state
-      entity_id: sensor.thermostat_state
-      to: "Idle Fan"
-      for:
-        minutes: 30
-  action:
-    - service: script.notify_wrapper
-      data:
-        message: "AC fan on idle for 30 minutes, setting back to auto"
-    - service: climate.set_fan_mode
-      entity_id: climate.thermostat
-      data:
-        fan_mode: auto
-
-- alias: "Plant Light Corner Brightness"
-  id: "plant_corner_brightness"
-  trigger:
-    - platform: state
-      entity_id: light.plant_light_corner
-      to: "on"
-      for: "00:00:10"
-  action:
-    - repeat:
-        count: 3
-        sequence:
-          - service: light.turn_on
-            entity_id: light.plant_light_corner
-            data:
-              brightness: 255
-          - delay: "00:00:05"
-
-- alias: "Rain Notifications"
-  id: rain_notifications
-  mode: "restart"
-  trigger:
-    - platform: state
-      entity_id: sensor.neighbor_5in1_rain_last_1_hour
-      from:
-        - "unknown"
-        - "unavailable"
-        - "0.0"
-        - "0.00"
-        - "0"
-    # - platform: numeric_state
-    #   entity_id: sensor.neighbor_5in1_rain_last_1_hour
-    #   above: 0.00
-    #   below: 0.03
-  action:
-    - if:
-        # Ensure new state is a float > 0.00
-        - "{{ float(trigger.to_state.state, default=-1) > 0.00 }}"
-      then:
-        - service: notify.signal_self
-          data:
-            message: >
-              Rain started!
-
-- alias: "Frozen Refrigerator"
+          '
+- alias: Frozen Refrigerator
   id: frozen_refrigerator
   trigger:
-    - platform: numeric_state
-      entity_id: sensor.refrigerator_power
-      above: 50
-      for: "03:00:00"
+  - platform: numeric_state
+    entity_id: sensor.refrigerator_power
+    above: 50
+    for: 03:00:00
   action:
-    - service: notify.signal_self
-      data:
-        message: >
-          Refrigerator power consumption >50W for three hours. Is it frozen up?
+  - service: notify.signal_self
+    data:
+      message: 'Refrigerator power consumption >50W for three hours. Is it frozen
+        up?
 
-- alias: "House secure at night reminder"
-  id: "house_secure_night_reminder"
+        '
+- alias: House secure at night reminder
+  id: house_secure_night_reminder
   trigger:
-    - platform: event
-      event_type: script_started
-      event_data:
-        entity_id: script.master_bedroom_bedtime
+  - platform: event
+    event_type: script_started
+    event_data:
+      entity_id: script.master_bedroom_bedtime
   variables:
-    doors_locked: "{{ is_state('lock.front_door','locked') and is_state('lock.back_door','locked') and is_state('lock.garage_exterior_door','locked') }}"
-  condition: "{{ is_state('cover.garage_door','open') or not doors_locked }}"
+    doors_locked: '{{ is_state(''lock.front_door'',''locked'') and is_state(''lock.back_door'',''locked'')
+      and is_state(''lock.garage_exterior_door'',''locked'') }}'
+  condition: '{{ is_state(''cover.garage_door'',''open'') or not doors_locked }}'
   action:
-    - service: notify.alexa_media_master
+  - service: notify.alexa_media_master
+    data:
       data:
-        data:
-          type: tts
-        message: >
-          {% if is_state('cover.garage_door','open') and doors_locked %}
-          "The garage door is still open. You can say 'Alexa, close the garage door.'"
-          {% elif is_state('cover.garage_door','open') and not doors_locked %}
-          "The garage door is still open and some doors are unlocked. You can say 'Alexa, close the garage door' and then 'Alexa, lock the doors.'"
-          {% elif is_state('cover.garage_door','closed') and not doors_locked %}
-          "Some doors are unlocked. You can say 'Alexa, lock the doors.'"
-          {% endif %}
+        type: tts
+      message: '{% if is_state(''cover.garage_door'',''open'') and doors_locked %}
+        "The garage door is still open. You can say ''Alexa, close the garage door.''"
+        {% elif is_state(''cover.garage_door'',''open'') and not doors_locked %} "The
+        garage door is still open and some doors are unlocked. You can say ''Alexa,
+        close the garage door'' and then ''Alexa, lock the doors.''" {% elif is_state(''cover.garage_door'',''closed'')
+        and not doors_locked %} "Some doors are unlocked. You can say ''Alexa, lock
+        the doors.''" {% endif %}
 
-- alias: "Doors still unlocked when no one home"
-  id: "doors_unlocked_noone_home"
+        '
+- alias: Doors still unlocked when no one home
+  id: doors_unlocked_noone_home
   trigger:
-    - platform: state
-      id: alert
-      entity_id: group.trackers
-      to: not_home
-    - platform: event
-      id: respond
-      event_type: mobile_app_notification_action
-      event_data:
-        action: confirm_lock_doors
+  - platform: state
+    id: alert
+    entity_id: group.trackers
+    to: not_home
+  - platform: event
+    id: respond
+    event_type: mobile_app_notification_action
+    event_data:
+      action: confirm_lock_doors
   condition:
-    - condition: state
-      entity_id: lock.all_doors
-      state: "open"
+  - condition: state
+    entity_id: lock.all_doors
+    state: open
   action:
-    - if: "{{ trigger.id == 'alert' }}"
-      then:
-        - service: notify.mobile_app_andrew_phone
-          data:
-            message: "No one home, lock doors?"
-            data:
-              persistent: true # Set to true to create a persistent notification
-              tag: persistent # Tag is required for the persistent notification
-              actions:
-                - action: "confirm_lock_doors"
-                  title: "Confirm"
-                - action: "ignore_lock_doors"
-                  title: "Ignore"
-    - if: "{{ trigger.id == 'respond' }}"
-      then:
-        - service: lock.lock
-          entity_id: lock.all_doors
+  - if: '{{ trigger.id == ''alert'' }}'
+    then:
+    - service: notify.mobile_app_andrew_phone
+      data:
+        message: No one home, lock doors?
+        data:
+          persistent: true
+          tag: persistent
+          actions:
+          - action: confirm_lock_doors
+            title: Confirm
+          - action: ignore_lock_doors
+            title: Ignore
+  - if: '{{ trigger.id == ''respond'' }}'
+    then:
+    - service: lock.lock
+      entity_id: lock.all_doors

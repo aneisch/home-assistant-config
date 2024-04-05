@@ -109,6 +109,7 @@ master_bedroom_wakeup:
         entity_id: light.master_bedroom_lamps
       data:
         transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
+        brightness: 255
     - service: homeassistant.turn_off
       entity_id: input_boolean.goodnight
     - service: homeassistant.turn_on
