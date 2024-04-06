@@ -49,9 +49,6 @@ gate_alert:
 rack_fan_auto_off:
   name: Rack Fan Auto-Off (nodered)
 
-vacation_mode:
-  name: Vacation Mode
-
 # So we can track when we turn
 compost_turn:
   name: Compost Turn

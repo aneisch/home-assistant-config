@@ -31,7 +31,7 @@ automation:
     id: "garge_lights_off"
     trigger:
       platform: state
-      entity_id: binary_sensor.garage_motion
+      entity_id: binary_sensor.garage_person_occupancy
       from: "on"
       to: "off"
       for: "00:10:00"

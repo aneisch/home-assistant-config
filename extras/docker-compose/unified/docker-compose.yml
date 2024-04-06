@@ -780,7 +780,7 @@ services:
         restart: always
         image: ghcr.io/blakeblackshear/frigate:stable
         #image: ghcr.io/blakeblackshear/frigate:0.13.0-beta7
-        shm_size: "128mb"
+        shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
             - /dev/dri/renderD128
@@ -817,6 +817,13 @@ services:
             - traefik.http.routers.frigate_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
             - traefik.http.routers.frigate_local.service=frigate
+            # Go2rtc Local
+            - traefik.http.services.go2rtc.loadbalancer.server.port=1984
+            - traefik.http.routers.go2rtc_local.service=go2rtc
+            - traefik.http.routers.go2rtc_local.tls=true
+            - traefik.http.routers.go2rtc_local.tls.certResolver=le-home
+            - traefik.http.routers.go2rtc_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.go2rtc_local.rule=Host(`go2rtc.home.domain.com`)
 
         environment:
             - PLUS_API_KEY=secret
@@ -830,7 +837,7 @@ services:
             - 32168:32168
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
-            - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+            #- /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYOLOv5-6.2/custom-models/
         labels:
             # HTTP Local Only

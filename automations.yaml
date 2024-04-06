@@ -166,8 +166,8 @@
     hours: /12
   action:
   - service: alexa_media.clear_history
-- alias: Update 'Last' Datetimes
-  id: update_last_datetimes
+- id: update_last_datetimes
+  alias: Update 'Last' Datetimes
   trigger:
   - platform: state
     entity_id:
@@ -176,14 +176,14 @@
     - binary_sensor.garage_exterior_door
     - binary_sensor.garage_interior_door
     - binary_sensor.master_bedroom_exterior_door
-    - binary_sensor.garage_motion
     - input_boolean.kitchen_motion
     - binary_sensor.living_room_motion
     - binary_sensor.hallway_motion
+    - binary_sensor.garage_person_occupancy
     from: 'off'
     to: 'on'
   action:
-    service: input_datetime.set_datetime
+  - service: input_datetime.set_datetime
     data:
       entity_id: input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.',
         replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.',
