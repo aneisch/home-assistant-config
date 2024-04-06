@@ -33,5 +33,5 @@ certificatesResolvers:
       email: "EMAIL"
       storage: "/etc/traefik/acme.json"
 
-log:
-  level: DEBUG
+# log:
+#   level: DEBUG

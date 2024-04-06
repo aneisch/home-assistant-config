@@ -58,5 +58,6 @@ tls:
   stores:
     default:
       defaultCertificate:
+        # Cloudflare Origin Cert
         certFile: /opt/certs/cert.crt
         keyFile: /opt/certs/cert.key

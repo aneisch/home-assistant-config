@@ -409,6 +409,13 @@ notify:
     recipients: # one or more recipients
       - !secret signal_group_frigate
 
+  - platform: signal_messenger
+    name: signal_homeassistant
+    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
+    number: !secret signal_phone
+    recipients: # one or more recipients
+      - !secret signal_group_homeassistant
+
   # - name: gsm_message
   #   platform: rest
   #   resource: http://127.0.0.1:9999/send_message

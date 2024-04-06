@@ -121,7 +121,7 @@ automation:
               entity_id: "input_datetime.usps_last"
               time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
               date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-          - service: notify.signal_self
+          - service: notify.signal_homeassistant
             data:
               message: "USPS detected"
               data:
@@ -131,7 +131,7 @@ automation:
 
       - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
         then: 
-          - service: notify.signal_self
+          - service: notify.signal_homeassistant
             data:
               message: "Prime Air Drone detected"
               data:

@@ -423,6 +423,15 @@ services:
             #- "8808:8080" 
         volumes:
             - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
+        labels:
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.enable=false # Disabled
+            - traefik.http.services.signal_local.loadbalancer.server.port=8080
+            - traefik.http.routers.signal_local.service=signal_local
+            - traefik.http.routers.signal_local.tls=true
+            - traefik.http.routers.signal_local.tls.certResolver=le-home
+            - traefik.http.routers.signal_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.signal_local.rule=Host(`signal.home.domain.com`)
 
     apcupsd:
         container_name: apcupsd
@@ -606,6 +615,10 @@ services:
             - traefik.http.routers.codeproject_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
             - traefik.http.routers.codeproject_local.service=codeproject
+            - traefik.http.routers.codeproject_local.middlewares=codeproject_local_redirect
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.regex=^https://codeproject.home.domain.com/(.*)
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.replacement=http://10.0.1.22:32168/$${1}
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.permanent=true
 
     auto-southwest:
         image: jdholtz/auto-southwest-check-in:develop

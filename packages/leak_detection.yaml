@@ -118,29 +118,30 @@ automation:
     id: "water_sensor_alert"
     trigger:
       - platform: state
-        id: non_esphome
+        id: critical
         entity_id:
           - binary_sensor.guest_bathroom_toilet_water_detector
           - binary_sensor.back_bathroom_toilet_water_detector
           - binary_sensor.kitchen_sink_water_detector
           - binary_sensor.master_bathroom_water_detector
           - binary_sensor.water_shutoff_water_detector
+          - binary_sensor.laundry_room_water_detector
+          - binary_sensor.kitchen_water_detector
+          - binary_sensor.misc_water_detector_in_office_cabinet_unused
         to: "on"
       - platform: state
-        id: esphome
+        id: non_critial
         entity_id:
-          - binary_sensor.laundry_room_water_detector
           - binary_sensor.water_heater_water_detector
-          - binary_sensor.kitchen_water_detector
         to: "on"
     action:
-      - if: "{{ trigger.id == 'non_esphome' }}"
+      - if: "{{ trigger.id == 'critical' }}"
         then:
           - service: switch.turn_on
             entity_id: switch.water_shutoff
       - service: script.notify_wrapper
         data:
-          message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
+          message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_critical' %}Shutting off water!{% endif %}"
           data:
             priority: 2
       # - service: notify.alexa_media

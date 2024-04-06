@@ -169,15 +169,20 @@ notify_wrapper:
         - if: '{{ "priority" in data }}'
           then:
             - service: notify.pushover
+              continue_on_error: true
               data:
                 message: "{{ message }}"
                 data:
                   priority: "{{ data.priority }}"
                   expire: 600
                   retry: 30
+            - service: notify.signal_homeassistant
+              data:
+                message: "{{ message }}"
           # If internet on and no priority set: send via signal
           else:
-            - service: notify.signal_self
+            - service: notify.signal_homeassistant
+              continue_on_error: true
               data:
                 message: "{{ message }}"
 

@@ -215,7 +215,7 @@
     allowed_methods:
     - POST
   action:
-  - service: notify.signal_self
+  - service: notify.signal_homeassistant
     data:
       message: '{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url
         }}'
@@ -284,7 +284,7 @@
     then:
     - if: '{{ is_state(''input_boolean.cellular_message_test_pending'', ''on'') }}'
       then:
-      - service: notify.signal_self
+      - service: notify.signal_homeassistant
         data:
           message: Modem Healtcheck Failed, Power Cycling
       - service: esphome.cellular_modem_power_toggle
@@ -766,7 +766,7 @@
   - platform: homeassistant
     event: start
   action:
-  - service: notify.signal_self
+  - service: notify.signal_homeassistant
     data:
       message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
@@ -812,7 +812,7 @@
   action:
   - service: switch.turn_off
     entity_id: switch.coffee_maker
-  - service: notify.signal_self
+  - service: notify.signal_homeassistant
     data:
       message: 'Turned coffee maker off!
 
@@ -865,7 +865,7 @@
   - if:
     - '{{ float(trigger.to_state.state, default=-1) > 0.00 }}'
     then:
-    - service: notify.signal_self
+    - service: notify.signal_homeassistant
       data:
         message: 'Rain started!
 
@@ -878,7 +878,7 @@
     above: 50
     for: 03:00:00
   action:
-  - service: notify.signal_self
+  - service: notify.signal_homeassistant
     data:
       message: 'Refrigerator power consumption >50W for three hours. Is it frozen
         up?
