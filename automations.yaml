@@ -215,7 +215,7 @@
     allowed_methods:
     - POST
   action:
-  - service: notify.signal_homeassistant
+  - service: notify.signal_self
     data:
       message: '{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url
         }}'
@@ -766,7 +766,7 @@
   - platform: homeassistant
     event: start
   action:
-  - service: notify.signal_homeassistant
+  - service: notify.signal_self
     data:
       message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
@@ -924,7 +924,7 @@
   condition:
   - condition: state
     entity_id: lock.all_doors
-    state: open
+    state: unlocked
   action:
   - if: '{{ trigger.id == ''alert'' }}'
     then:

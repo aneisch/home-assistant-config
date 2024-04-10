@@ -24,7 +24,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "webrtc"
 
-BINARY_VERSION = "1.8.5"
+BINARY_VERSION = "1.8.4"
 
 SYSTEM = {
     "Windows": {"AMD64": "go2rtc_win64.zip", "ARM64": "go2rtc_win_arm64.zip"},
@@ -113,19 +113,6 @@ async def get_stream_source(hass: HomeAssistant, entity: str) -> str:
         return None
 
 
-def register_static_path(app: web.Application, url_path: str, path):
-    """Register static path with CORS for Chromecast"""
-
-    async def serve_file(request):
-        return web.FileResponse(path)
-
-    route = app.router.add_route("GET", url_path, serve_file)
-    if "allow_all_cors" in app:
-        app["allow_all_cors"](route)
-    elif "allow_cors" in app:
-        app["allow_cors"](route)
-
-
 async def init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
     """Add extra JS module for lovelace mode YAML and new lovelace resource
     for mode GUI. It's better to add extra JS for all modes, because it has
@@ -169,29 +156,24 @@ async def init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
 
 
 # noinspection PyProtectedMember
-def dash_cast(hass: HomeAssistant, cast_entities: list, url: str, force=False):
+def dash_cast(hass: HomeAssistant, entities: list, url: str, force: bool):
     """Cast webpage to chromecast device via DashCast application."""
     try:
-        entities = [
-            e
-            for e in hass.data[DATA_INSTANCES]["media_player"].entities
-            if e.entity_id in cast_entities and getattr(e, "_chromecast", 0)
-        ]
-        if not entities:
-            _LOGGER.warning(f"Can't find {cast_entities} for DashCast")
-
-        for entity in entities:
-            from pychromecast.controllers.dashcast import DashCastController
+        for entity in hass.data[DATA_INSTANCES]["media_player"].entities:
+            if entity.entity_id not in entities or not hasattr(entity, "_chromecast"):
+                continue
 
             if not hasattr(entity, "dashcast"):
+                from pychromecast.controllers.dashcast import DashCastController
+
                 entity.dashcast = DashCastController()
                 entity._chromecast.register_handler(entity.dashcast)
 
             _LOGGER.debug(f"DashCast to {entity.entity_id}")
-            entity.dashcast.load_url(url, force)
+            entity.dashcast.load_url(url, force=force)
 
-    except Exception:
-        _LOGGER.exception(f"Can't DashCast to {cast_entities}")
+    except Exception as e:
+        _LOGGER.error(f"Can't DashCast to {entities}", exc_info=e)
 
 
 def validate_signed_request(request: web.Request) -> bool:

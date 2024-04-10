@@ -21,6 +21,7 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
+    allowEmptyServices: true
   file:
     directory: "/etc/traefik"
     watch: true
@@ -32,6 +33,12 @@ certificatesResolvers:
         provider: cloudflare
       email: "EMAIL"
       storage: "/etc/traefik/acme.json"
+
+experimental:
+  plugins:
+    sablier:
+      moduleName: "github.com/acouvreur/sablier"
+      version: "v1.7.0-beta.6"
 
 # log:
 #   level: DEBUG

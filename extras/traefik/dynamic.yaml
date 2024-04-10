@@ -7,6 +7,18 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000
+    sablier:
+      plugin:
+        sablier:
+          dynamic:
+            displayName: Your Service
+            refreshFrequency: 2s
+            showDetails: "false"
+            theme: ghost
+          group: default
+          sablierUrl: http://sablier:10000
+          sessionDuration: 1m
+
   serversTransports:
     skipVerify:
       insecureSkipVerify: true
@@ -31,6 +43,63 @@ http:
       rule: host(`plane.domain.com`)
       tls: true
 
+    # 
+    ## Sablier-enabled routers below 
+    #
+    librespeed:
+      middlewares:
+        - sablier@file
+      service: "librespeed"
+      rule: host(`librespeed.domain.com`)
+      entryPoints:
+      - websecure
+      tls: true
+    librespeed_local:
+      middlewares:
+        - sablier@file
+      service: "librespeed"
+      rule: host(`librespeed.home.domain.com`)
+      tls: 
+        certresolver: le-home
+        domains:
+          - main: "*.home.domain.com"
+
+    recipes:
+      middlewares:
+        - sablier@file
+      service: "recipes"
+      rule: host(`recipes.domain.com`)
+      entryPoints:
+      - websecure
+      tls: true
+    recipes_local:
+      middlewares:
+        - sablier@file
+      service: "recipes"
+      rule: host(`recipes.home.domain.com`)
+      tls: 
+        certresolver: le-home
+        domains:
+          - main: "*.home.domain.com"
+
+    portainer:
+      middlewares:
+        - sablier@file
+      service: "portainer"
+      rule: host(`portainer.domain.com`)
+      entryPoints:
+      - websecure
+      tls: true
+    portainer_local:
+      middlewares:
+        - sablier@file
+      service: "portainer"
+      rule: host(`portainer.home.domain.com`)
+      tls: 
+        certresolver: le-home
+        domains:
+          - main: "*.home.domain.com"
+
   services:
     plane:
       loadBalancer:
@@ -43,6 +112,18 @@ http:
           - url: https://10.0.1.1
         passHostHeader: true
         serversTransport: skipVerify
+    librespeed:
+      loadBalancer:
+        servers:
+          - url: http://librespeed:80
+    recipes:
+      loadBalancer:
+        servers:
+          - url: http://mealie:9000
+    portainer:
+      loadBalancer:
+        servers:
+          - url: http://portainer:9000
 
 tls:
   options:

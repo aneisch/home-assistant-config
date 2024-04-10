@@ -12,10 +12,6 @@ services:
             - traefik.http.routers.assist.rule=Host(`assist.domain.com`)
             - traefik.http.services.assist.loadbalancer.server.port=8123
             - traefik.http.routers.assist.service=assist
-            # HTTP Local Only
-            # - traefik.http.routers.assist_local.entrypoints=web
-            # - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
-            # - traefik.http.routers.assist_local.service=assist
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.assist_local.tls=true
             - traefik.http.routers.assist_local.tls.certResolver=le-home
@@ -113,10 +109,6 @@ services:
             - traefik.http.routers.nodered.rule=Host(`nodered.domain.com`)
             - traefik.http.services.nodered.loadbalancer.server.port=1880
             - traefik.http.routers.nodered.service=nodered
-            # HTTP Local Only
-            # - traefik.http.routers.nodered_local.entrypoints=web
-            # - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
-            # - traefik.http.routers.nodered_local.service=nodered
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.nodered_local.tls=true
             - traefik.http.routers.nodered_local.tls.certResolver=le-home
@@ -150,10 +142,6 @@ services:
             - traefik.http.routers.appdaemon.rule=Host(`appdaemon.domain.com`)
             - traefik.http.services.appdaemon.loadbalancer.server.port=8888
             - traefik.http.routers.appdaemon.service=appdaemon
-            # HTTP Local Only
-            # - traefik.http.routers.appdaemon_local.entrypoints=web
-            # - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
-            # - traefik.http.routers.appdaemon_local.service=appdaemon
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.appdaemon_local.tls=true
             - traefik.http.routers.appdaemon_local.tls.certResolver=le-home
@@ -200,10 +188,6 @@ services:
             - traefik.http.routers.zwavejs.rule=Host(`zwavejs.domain.com`)
             - traefik.http.services.zwavejs.loadbalancer.server.port=8091
             - traefik.http.routers.zwavejs.service=zwavejs
-            # HTTP Local Only
-            # - traefik.http.routers.zwavejs_local.entrypoints=web
-            # - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
-            # - traefik.http.routers.zwavejs_local.service=zwavejs  
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.zwavejs_local.tls=true
             - traefik.http.routers.zwavejs_local.tls.certResolver=le-home

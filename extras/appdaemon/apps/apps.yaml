@@ -36,6 +36,7 @@ Kitchen Timer Sync:
 Set Smallgroup Boolean On:
   module: entity_timer
   class: Timer
+  constrain_presence: anyone
   constrain_days: wed
   time_on: "08:00:00"
   entities: input_boolean.is_smallgroup

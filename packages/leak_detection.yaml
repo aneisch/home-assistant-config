@@ -55,7 +55,7 @@ automation:
         then:
           - service: script.notify_wrapper
             data:
-              message: Unexpected water flow! {{ states('sensor.flume_sensor_home_60_minutes')}}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m )
+              message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
                 priority: 1
       # high flow when not home and irrigation off AND not during a scheduled timer AND bhyve off
@@ -71,14 +71,14 @@ automation:
         then:
           - service: script.notify_wrapper
             data:
-              message: Unexpected water flow! {{ states('sensor.flume_sensor_home_60_minutes')}}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m )
+              message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
                 priority: 1
       - if: "{{ trigger.id == 'hours' }}"
         then:
           - service: script.notify_wrapper
             data:
-              message: Water left running? {{ states('sensor.flume_sensor_home_60_minutes')}}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m )
+              message: Water left running? {{ states('sensor.flume_sensor_home_60_minutes') | round(2) }}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') | round(2) }}g/m )
               data:
                 priority: 1
 
