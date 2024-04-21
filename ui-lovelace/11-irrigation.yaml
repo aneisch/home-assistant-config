@@ -5,12 +5,12 @@ cards:
     cards:
       - type: "entities"
         entities:
-          - entity: switch.1_maples_program
-            name: Maple Irrigation Auto Run
-          - entity: switch.2_bougainvillea_2x_week_program
-            name: Bougainvillea Irrigation Auto Run
-          - entity: switch.3_garden_morning_program
-            name: Garden Irrigation Auto Run
+          # - entity: switch.1_maples_program
+          #   name: Maple Irrigation Auto Run
+          # - entity: switch.2_bougainvillea_2x_week_program
+          #   name: Bougainvillea Irrigation Auto Run
+          # - entity: switch.3_garden_morning_program
+          #   name: Garden Irrigation Auto Run
           - input_boolean.front_bed_irrigation_scheduling
           - input_boolean.lawn_irrigation_scheduling
           - input_boolean.irrigation_force_run
@@ -36,7 +36,8 @@ cards:
     filter:
       include:
         - entity_id: "switch.irrigation_*"
-        - entity_id: switch.*_zone
+        #- entity_id: switch.*_zone
+        - entity_id: switch.bhyve*
       exclude:
         - entity_id: "switch.irrigation_zone_*"
     card:
@@ -64,7 +65,7 @@ cards:
 
       - type: markdown
         content: |
-          {% set irrigation = ["switch.maples_zone", "switch.garden_zone", "switch.bougainvillea_zone", "switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
+          {% set irrigation = ["switch.bhyve_1", "switch.bhyve_2", "switch.bhyve_3", "switch.irrigation_front_beds", "switch.irrigation_front_lawn", "switch.irrigation_left_and_main_rear_lawn", "switch.irrigation_front_and_right_rear_lawn", "switch.irrigation_side_lawn", "switch.irrigation_master_valve" ] %}
           {% for sprinkler_zone in irrigation -%}
           {%- set entity_name = "input_datetime" + sprinkler_zone | regex_replace(find='switch', replace='', ignorecase=False) -%}
           {% if states(sprinkler_zone) == "on" %}

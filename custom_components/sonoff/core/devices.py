@@ -21,7 +21,7 @@ from .ewelink import XDevice
 from ..binary_sensor import XBinarySensor, XWiFiDoor, XZigbeeMotion
 from ..climate import XClimateNS, XClimateTH, XThermostat
 from ..core.entity import XEntity
-from ..cover import XCover, XCoverDualR3, XZigbeeCover
+from ..cover import XCover, XCoverDualR3, XZigbeeCover, XCover91
 from ..fan import XDiffuserFan, XFan, XToggleFan, XFanDualR3
 from ..light import (
     XDiffuserLight,
@@ -35,6 +35,7 @@ from ..light import (
     XLightGroup,
     XLightL1,
     XLightL3,
+    XOnOffLight,
     XT5Light,
     XZigbeeLight,
 )
@@ -54,7 +55,6 @@ from ..sensor import (
     XEnergySensorPOWR3,
     XEnergyTotal,
     XT5Action,
-    XButton91,
 )
 from ..switch import (
     XSwitch,
@@ -70,7 +70,7 @@ from ..switch import (
 DEVICE_CLASS = {
     "binary_sensor": (XEntity, BinarySensorEntity),
     "fan": (XToggleFan,),  # using custom class for overriding is_on function
-    "light": (XEntity, LightEntity),
+    "light": (XOnOffLight,),  # fix color modes support
     "sensor": (XEntity, SensorEntity),
     "switch": (XEntity, SwitchEntity),
 }
@@ -211,7 +211,7 @@ DEVICES = {
     82: SPEC_2CH,
     83: SPEC_3CH,
     84: SPEC_4CH,
-    91: [XButton91],
+    91: [XCover91],
     102: [XWiFiDoor, XWiFiDoorBattery, RSSI],  # Sonoff DW2 Door/Window sensor
     103: [XLightB02, RSSI],  # Sonoff B02 CCT bulb
     104: [XLightB05B, RSSI],  # Sonoff B05-B RGB+CCT color bulb
@@ -512,6 +512,7 @@ DIY = {
     "fan_light": [34, "SONOFF", "iFan DIY"],
     "light": [44, "SONOFF", "D1 DIY"],  # don't know if light exist
     "diylight": [44, "SONOFF", "D1 DIY"],
+    "diy_light": [136, "SONOFF", "B0x-BL DIY"],
     "switch_radar": [77, "SONOFF", "Micro DIY"],  # Micro
     "multifun_switch": [126, "SONOFF", "DualR3 DIY"],
 }
@@ -534,5 +535,4 @@ def setup_diy(device: dict) -> XDevice:
         device["name"] = "Unknown DIY"
         device["extra"] = {"uiid": 0}
         device["productModel"] = ltype
-    # device["online"] = False
     return device

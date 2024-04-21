@@ -252,7 +252,7 @@ logbook:
 
 logger:
   #default: debug
-  default: warn
+  default: error
   logs:
     #homeassistant.components.homekit: debug
     #pyhap: debug

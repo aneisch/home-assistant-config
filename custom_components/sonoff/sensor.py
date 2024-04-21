@@ -77,10 +77,14 @@ class XSensor(XEntity, SensorEntity):
         if self.param and self.uid is None:
             self.uid = self.param
 
-        default_class = (
-            self.uid[:-2] if self.uid.endswith(("_1", "_2", "_3", "_4")) else self.uid
-        )
-        self._attr_device_class = DEVICE_CLASSES.get(default_class)
+        # remove tailing _1 _2 _3 _4
+        default_class = self.uid.rstrip("_01234")
+
+        if device["params"].get(self.param) in ("on", "off"):
+            default_class = None
+
+        if device_class := DEVICE_CLASSES.get(default_class):
+            self._attr_device_class = device_class
 
         if default_class in UNITS:
             # by default all sensors with units is measurement sensors
@@ -332,7 +336,8 @@ class XT5Action(XEventSesor):
     uid = "action"
 
     def set_state(self, params: dict):
-        if params.get("triggerType") == 2:
+        # https://github.com/AlexxIT/SonoffLAN/issues/1373
+        if "switches" in params and params.get("triggerType") == 2:
             self._attr_native_value = "touch"
             asyncio.create_task(self.clear_state())
 
@@ -340,15 +345,6 @@ class XT5Action(XEventSesor):
         if (slide := params.get("slide")) and len(params) == 1:
             self._attr_native_value = f"slide_{slide}"
             asyncio.create_task(self.clear_state())
-
-
-class XButton91(XEventSesor):
-    params = {"op"}
-
-    def set_state(self, params: dict):
-        button = params["op"]
-        self._attr_native_value = f"button_{button}"
-        asyncio.create_task(self.clear_state())
 
 
 class XUnknown(XEntity, SensorEntity):

@@ -206,6 +206,8 @@ services:
         environment:
             - TZ=America/Chicago
         labels:
+            #- sablier.enable=true
+            #- sablier.group=default
             # HTTPS for CF
             - traefik.enable=true
             - traefik.http.routers.vscode.entrypoints=websecure
@@ -354,7 +356,7 @@ services:
         environment:
             - MODE=native
             - TZ=America/Chicago
-            - AUTO_RECEIVE_SCHEDULE=0 22 * * *
+            - AUTO_RECEIVE_SCHEDULE=31 * * * *
         ports:
             - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
             #- "8808:8080" 
@@ -362,7 +364,7 @@ services:
             - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
         labels:
             # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.enable=false # Disabled
+            - traefik.enable=true # Disabled
             - traefik.http.services.signal_local.loadbalancer.server.port=8080
             - traefik.http.routers.signal_local.service=signal_local
             - traefik.http.routers.signal_local.tls=true
@@ -538,6 +540,7 @@ services:
         volumes:
             - /opt/codeproject/config:/etc/codeproject/ai
             #- /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+            - /opt/codeproject/NETmodules:/app/preinstalled-modules/ObjectDetectionYOLOv5Net/custom-models/
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYOLOv5-6.2/custom-models/
         labels:
             - traefik.enable=true
@@ -627,6 +630,7 @@ services:
     sablier:
         image: acouvreur/sablier:1.6.0
         container_name: sablier
+        restart: 'always'
         command:
             - start
             - --provider.name=docker

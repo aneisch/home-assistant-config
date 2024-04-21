@@ -52,8 +52,9 @@ http:
       service: "librespeed"
       rule: host(`librespeed.domain.com`)
       entryPoints:
-      - websecure
+        - websecure
       tls: true
+
     librespeed_local:
       middlewares:
         - sablier@file
@@ -100,6 +101,24 @@ http:
         domains:
           - main: "*.home.domain.com"
 
+    #vscode:
+    #  middlewares:
+    #    - sablier@file
+    #  service: "vscode"
+    #  rule: host(`vscode.domain.com`)
+    #  entryPoints:
+    #  - websecure
+    #  tls: true
+    #vscode_local:
+    #  middlewares:
+    #    - sablier@file
+    #  service: "vscode"
+    #  rule: host(`vscode.home.domain.com`)
+    #  tls: 
+    #    certresolver: le-home
+    #    domains:
+    #      - main: "*.home.domain.com"
+
   services:
     plane:
       loadBalancer:
@@ -124,6 +143,10 @@ http:
       loadBalancer:
         servers:
           - url: http://portainer:9000
+    #vscode:
+    #  loadBalancer:
+    #    servers:
+    #      - url: http://vscode:1337
 
 tls:
   options:

@@ -225,7 +225,7 @@ cards:
           {% set hours = (minutes // 60) | int %}
           {% set days = (hours // 24) | int %}
 
-          Last USPS: {% if seconds < 60 %}<font color='red'>{% elif seconds < 300 %}<font color='orange'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font>
+          Last USPS: {% if seconds > 172800 %}<font color='red'>{% elif seconds > 64800 %}<font color='orange'>{% elif seconds < 86400 %}<font color='green'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font> @ {{ states('input_datetime.usps_last')}}
       - type: entity-filter
         state_filter:
           - operator: ">"

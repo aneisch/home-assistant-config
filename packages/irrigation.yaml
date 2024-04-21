@@ -37,30 +37,30 @@ input_boolean:
     icon: "mdi:weather-windy"
 
 input_datetime:
-  maples_zone_last_start: 
-    name: Irrigation Maples Last Start Time 
+  bhyve_1_last_start: 
+    name: Irrigation Bhyve 1 Last Start Time 
     has_date: true
     has_time: true
-  maples_zone_last_stop: 
-    name: Irrigation Maples Last Stop Time 
-    has_date: true
-    has_time: true
-
-  garden_zone_last_start: 
-    name: Irrigation Garden Last Start Time 
-    has_date: true
-    has_time: true
-  garden_zone_last_stop: 
-    name: Irrigation Garden Last Stop Time 
+  bhyve_1_last_stop: 
+    name: Irrigation Bhyve 1 Last Stop Time 
     has_date: true
     has_time: true
 
-  bougainvillea_zone_last_start: 
-    name: Irrigation Bougainvillea Last Start Time 
+  bhyve_2_last_start: 
+    name: Irrigation Bhyve 2 Last Start Time 
     has_date: true
     has_time: true
-  bougainvillea_zone_last_stop: 
-    name: Irrigation Bougainvillea Last Stop Time 
+  bhyve_2_last_stop: 
+    name: Irrigation Bhyve 3 Last Stop Time 
+    has_date: true
+    has_time: true
+
+  bhyve_3_last_start: 
+    name: Irrigation Bhyve 3 Last Start Time 
+    has_date: true
+    has_time: true
+  bhyve_3_last_stop: 
+    name: Irrigation Bhyve 3 Last Stop Time 
     has_date: true
     has_time: true
 
@@ -194,21 +194,21 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-          - switch.garden_zone
-          - switch.bougainvillea_zone
-          - switch.maples_zone
+          - switch.bhyve_1
+          - switch.bhyve_2
+          - switch.bhyve_3
       - platform: homeassistant
         event: start
     action:
       - service: python_script.bhyve_next_watering
         data:
-          entity_id: switch.garden_zone
+          entity_id: switch.bhyve_1
       - service: python_script.bhyve_next_watering
         data:
-          entity_id: switch.bougainvillea_zone
+          entity_id: switch.bhyve_2
       - service: python_script.bhyve_next_watering
         data:
-          entity_id: switch.maples_zone
+          entity_id: switch.bhyve_3
 
   - alias: Store Sprinkler Start/Stop Times
     id: "store_sprinkler_times"
@@ -217,9 +217,9 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - switch.maples_zone
-        - switch.garden_zone
-        - switch.bougainvillea_zone
+        - switch.bhyve_1
+        - switch.bhyve_2
+        - switch.bhyve_3
         - switch.irrigation_front_beds
         - switch.irrigation_front_lawn 
         - switch.irrigation_left_and_main_rear_lawn

@@ -1,11 +1,11 @@
 api:
   dashboard: true
-  #insecure: true
 
 entryPoints:
   web:
     address: ":80"
     http:
+      # 80-->443 redirect for all
       redirections:
         entryPoint:
           to: websecure
@@ -21,7 +21,6 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     exposedByDefault: false
-    allowEmptyServices: true
   file:
     directory: "/etc/traefik"
     watch: true
@@ -33,6 +32,7 @@ certificatesResolvers:
         provider: cloudflare
       email: "EMAIL"
       storage: "/etc/traefik/acme.json"
+      certificatesduration: 168
 
 experimental:
   plugins:
@@ -40,5 +40,7 @@ experimental:
       moduleName: "github.com/acouvreur/sablier"
       version: "v1.7.0-beta.6"
 
-# log:
-#   level: DEBUG
+log:
+  level: DEBUG
+
+accessLog: {}

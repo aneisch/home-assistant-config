@@ -60,25 +60,56 @@ automation:
               data:
                 attachments:
                   - /config/media/images/front_door.jpg
-          - delay: '00:00:10'
+          #- delay: '00:00:10'
 
       # if not home or sleeping time and person detection anywhere then notify
       - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
         then:
-          - service: notify.signal_frigate
-            data:
-              message: >-
-                A person was detected.
+          - if: "{{ trigger.payload_json['after']['camera'] != 'front_door' }}"
+            then:
+              - service: notify.signal_frigate
+                data:
+                  message: >-
+                    A person was detected.
 
 
-                Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+                    Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
 
 
-                Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
-              data:
-                urls:
-                  - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
-          - delay: '00:00:10'
+                    Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+                  data:
+                    urls:
+                      - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
+              #- delay: '00:00:10'
+            else:
+              - service: camera.snapshot
+                data:
+                  filename: /config/media/images/front_door.jpg
+                target:
+                  entity_id: camera.front_door_fullres
+              - service: google_generative_ai_conversation.generate_content
+                continue_on_error: true
+                data:
+                  prompt: >-
+                    Very briefly describe what you see in this image from my doorbell camera.
+                    Your message needs to be short to fit in a phone notification. Don't
+                    describe stationary objects or buildings.
+                  image_filename: /config/media/images/front_door.jpg
+                response_variable: generated_content
+              - service: notify.signal_frigate
+                data:
+                  message: >-
+                    A person was detected {{ generated_content.text }}
+
+
+                    Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
+
+
+                    Stream: https://secret/api/camera_proxy_stream/camera.{{trigger.payload_json['after']['camera'].lower()}}?token={{state_attr( 'camera.' ~ trigger.payload_json['after']['camera'].lower(), 'access_token')}}
+                  data:
+                    attachments:
+                      - /config/media/images/front_door.jpg
+              #- delay: '00:00:10'
 
   - alias: Front Door on Photo Frame
     id: "front_door_on_photo_frame"
