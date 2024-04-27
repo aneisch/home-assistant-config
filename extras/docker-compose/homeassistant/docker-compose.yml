@@ -2,7 +2,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -20,7 +20,6 @@ services:
             - traefik.http.routers.assist_local.service=assist
         volumes:
             - /opt/homeassistant:/config
-            #- /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
             - /var/run/docker.sock:/var/run/docker.sock
             - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
             - /tmp/radar.gif:/tmp/radar.gif

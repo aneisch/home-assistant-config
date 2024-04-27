@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF

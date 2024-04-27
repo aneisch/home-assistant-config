@@ -69,7 +69,7 @@ cards:
           {% for sprinkler_zone in irrigation -%}
           {%- set entity_name = "input_datetime" + sprinkler_zone | regex_replace(find='switch', replace='', ignorecase=False) -%}
           {% if states(sprinkler_zone) == "on" %}
-          <font color = blue>**{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False) }}**: Running for {{ relative_time(strptime(as_timestamp(states(entity_name+"_last_start")) | timestamp_custom('%Y-%m-%d %H:%M:%S%z'), '%Y-%m-%d %H:%M:%S%z')) }}</font>
+          <font color = blue>**{{ state_attr(sprinkler_zone, "friendly_name") | regex_replace(find='Irrigation ', replace='', ignorecase=False) }}**: Running for {{ time_since(strptime(as_timestamp(states(entity_name+"_last_start")) | timestamp_custom('%Y-%m-%d %H:%M:%S%z'), '%Y-%m-%d %H:%M:%S%z')) }}</font>
           {% else -%}
 
           {# Calculate relative last stop time #}

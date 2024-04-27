@@ -21,7 +21,7 @@ automation:
         data:
           message: >
             {% if trigger.from_state.state == "ONBATT" %}
-              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ relative_time(trigger.from_state.last_changed) }}
+              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ time_since(trigger.from_state.last_changed) }}
             {% else %}
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}
             {% endif %}

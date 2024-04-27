@@ -113,7 +113,7 @@ sensor:
       # with some other templating functions and filters.
       roborock_s4_last_cleaned:
         friendly_name: Relative time since last cleaning ended
-        value_template: "{{relative_time(strptime(as_timestamp(states('sensor.roborock_s4_last_clean_end'))|timestamp_custom('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))}}"
+        value_template: "{{time_since(strptime(as_timestamp(states('sensor.roborock_s4_last_clean_end'))|timestamp_custom('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))}}"
 
       # roborock_s4_lifetime_cleaning_count:
       #   friendly_name: 'Lifetime Cleaning Count'

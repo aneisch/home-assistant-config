@@ -71,13 +71,14 @@ config:
 
 energy:
 
-folder_watcher:
-  - folder: '/tmp'
-    patterns:
-      - "database.sqlite"
-  - folder: '/tmp'
-    patterns:
-      - "config.yml"
+# Moved to UI v2024.5
+# folder_watcher:
+#   - folder: '/tmp'
+#     patterns:
+#       - "database.sqlite"
+#   - folder: '/tmp'
+#     patterns:
+#       - "config.yml"
 
 monitor_docker:
   #scan_interval: 60
@@ -124,9 +125,10 @@ homekit: !include homekit.yaml
 http:
   use_x_forwarded_for: true
   trusted_proxies:
-    - 172.18.0.0/24 # Nginx Proxy Manager
+    - 172.18.0.0/24 # Traefik
     - 10.0.1.22/32 # NUC
   server_port: 8123
+  # strict_connection: guard_page
 
 ifttt:
   key: !secret IFTTT

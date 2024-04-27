@@ -36,7 +36,7 @@ cards:
         cards:
           - type: markdown
             content: |
-              Last NUC Backup: {{ relative_time(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
+              Last NUC Backup: {{ time_since(strptime(states.sensor.last_nuc_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
             card_mod:
               style: |
                 @keyframes blink {
@@ -53,7 +53,7 @@ cards:
                 }
           - type: markdown
             content: |
-              Last VPS Backup: {{ relative_time(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
+              Last VPS Backup: {{ time_since(strptime(states.sensor.last_vps_backup_completed.state, '%Y-%m-%d %H:%M:%S')) }} ago
             card_mod:
               style: |
                 @keyframes blink {
