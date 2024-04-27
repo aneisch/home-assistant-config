@@ -46,7 +46,6 @@ automation:
       - if: "{{ trigger.id == 'minutes' 
             and states('sensor.flume_sensor_home_current') | float > 0 
             and is_state('switch.irrigation_master_valve', 'off') 
-            and not (now().hour == 12 and now().minute in [0,1,2,3,4,5])
             and not is_state('switch.bhyve_1','on')
             and is_state('group.trackers', 'not_home' ) 
             and is_state('input_boolean.guest_mode', 'off') }}"
@@ -60,7 +59,6 @@ automation:
       - if: "{{ trigger.id == 'minutes' 
             and states('sensor.flume_sensor_home_current') | float > 2.5 
             and is_state('switch.irrigation_master_valve', 'off') 
-            and not (now().hour == 12 and now().minute in [0,1,2,3,4,5])
             and not is_state('switch.bhyve_1','on')
             and is_state('group.trackers', 'home' ) 
             and is_state('input_boolean.guest_mode', 'off') }}"
@@ -123,7 +121,7 @@ automation:
           - binary_sensor.water_shutoff_water_detector
           - binary_sensor.laundry_room_water_detector
           - binary_sensor.kitchen_water_detector
-          - binary_sensor.misc_water_detector_in_office_cabinet_unused
+          - binary_sensor.dishwasher_water_detector
         to: "on"
       - platform: state
         id: non_critial

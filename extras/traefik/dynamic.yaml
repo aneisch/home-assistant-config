@@ -17,7 +17,7 @@ http:
             theme: ghost
           group: default
           sablierUrl: http://sablier:10000
-          sessionDuration: 5m
+          sessionDuration: 30m
 
   serversTransports:
     skipVerify:

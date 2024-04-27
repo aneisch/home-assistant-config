@@ -464,6 +464,7 @@
     - sensor.guest_bathroom_toilet_water_detector_battery_level
     - sensor.master_bathroom_water_detector_battery_level
     - sensor.kitchen_sink_water_detector_battery_level
+    - sensor.dishwasher_water_detector_battery_level
     - sensor.motion_1_battery_level
     - sensor.living_room_motion_battery_level
     - sensor.hallway_motion_battery
@@ -711,6 +712,17 @@
   - delay: 00:00:30
   - service: switch.turn_on
     entity_id: switch.docker_appdaemon
+- alias: Restart cellular_message_relay_sim7080g
+  id: restart_cellular_message_relay_sim7080g
+  trigger:
+    platform: time
+    at: 01:35:00
+  action:
+  - service: switch.turn_off
+    entity_id: switch.docker_cellular_message_relay_sim7080g
+  - delay: 00:00:45
+  - service: switch.turn_on
+    entity_id: switch.docker_cellular_message_relay_sim7080g
 - alias: Deep Freeze Temperature
   id: deep_freeze_temperature
   initial_state: true
