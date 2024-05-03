@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -21,7 +21,6 @@ services:
             - traefik.http.routers.assist_local.service=assist
         volumes:
             - /opt/homeassistant:/config
-            #- /opt/nginx-proxy-manager/database.sqlite:/tmp/database.sqlite
             - /var/run/docker.sock:/var/run/docker.sock
             - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
             - /tmp/radar.gif:/tmp/radar.gif
@@ -702,7 +701,6 @@ services:
             - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
             - TZ=America/Chicago
             - ADDITIONAL_PORTS=hostfwd=tcp::1234-:1234,
-
         devices:
             - /dev/kvm
         user: root
@@ -750,7 +748,6 @@ services:
             - traefik.http.routers.go2rtc_local.tls.certResolver=le-home
             - traefik.http.routers.go2rtc_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.go2rtc_local.rule=Host(`go2rtc.home.domain.com`)
-
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
@@ -861,6 +858,6 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
 
-networks:
-    macos_network:
-        driver: bridge
+# networks:
+#     macos_network:
+#         driver: bridge

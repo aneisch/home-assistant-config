@@ -158,7 +158,24 @@ automation:
               data:
                 attachments:
                   - /config/media/images/logo.jpg
+          - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
+            then:
+              - service: notify.alexa_media
+                data:
+                  message: "<audio src='https://vps.secret/mail.mp3'/>"
+                  data:
+                    type: tts
+                  target: media_player.kitchen
           - delay: "00:02:00"
+          - service: camera.snapshot
+            data:
+              filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+            target:
+              entity_id:
+                - camera.usps_vehicle
+          - service: shell_command.create_timelapse
+            data:
+              camera: usps_vehicle
 
       - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
         then: 

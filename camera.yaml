@@ -7,6 +7,11 @@
   file_path: /config/images/mail_and_packages/overlay.png
   name: mail_usps
 
+- platform: local_file
+  file_path: /config/media/images/logo.jpg
+  name: usps_vehicle
+
+
 #- platform: mjpeg
 #  mjpeg_url: http://10.0.0.26:8080/?action=stream
 #  name: Outdoor

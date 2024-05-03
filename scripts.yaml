@@ -123,9 +123,9 @@ master_bedroom_bedtime:
     # - service: script.turn_on # Calling this way allows the sequence to continue without blocking
     #   entity_id: script.christmas_goodnight
     - service: script.appdaemon_ac_night
-    - service: switch.turn_on
-      data:
-        entity_id: switch.master_bedroom_ceiling_fan
+    #- service: switch.turn_on
+    #  data:
+    #    entity_id: switch.master_bedroom_ceiling_fan
     #- service: switch.turn_on
     #  data:
     #    entity_id: switch.master_bedroom_sound_machine
