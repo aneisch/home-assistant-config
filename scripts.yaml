@@ -311,3 +311,14 @@ desk_led_white:
         rgb_color: [255, 255, 255]
         brightness: 255
         effect: "custom scan"
+
+# Launch app on Android phone
+andrew_phone_launch_watch_manager:
+  sequence: 
+    - service: notify.mobile_app_andrew_phone
+      data:
+        message: "command_launch_app"
+        data:
+          package_name: "com.samsung.android.app.watchmanager"
+          ttl: 0
+          priority: high

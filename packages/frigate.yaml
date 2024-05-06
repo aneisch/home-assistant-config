@@ -166,7 +166,6 @@ automation:
                   data:
                     type: tts
                   target: media_player.kitchen
-          - delay: "00:02:00"
           - service: camera.snapshot
             data:
               filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
@@ -176,6 +175,8 @@ automation:
           - service: shell_command.create_timelapse
             data:
               camera: usps_vehicle
+          - delay: "00:02:00"
+
 
       - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
         then: 

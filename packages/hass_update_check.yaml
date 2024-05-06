@@ -97,20 +97,31 @@ automation:
       webhook_id: !secret hass_github_action_webhook
       local_only: false
     action:
-      service: >
-        {% if (states("input_text.hass_target_branch") not in ["stable","beta"]) and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) %}
-          script.hass_update_notify
-
-        {% elif (states("input_text.hass_target_branch") == "stable") and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) and (states('sensor.ha_version').split(".")[:2] == states('sensor.ha_docker_version_stable').split(".")[:2]) %}
-          script.hass_update_stage
-
-        {% elif (states("input_text.hass_target_branch") == "stable") and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) %}
-          script.hass_update_notify
-
-        {% elif states("input_text.hass_target_branch") == "beta" %}
-          script.hass_update_stage
-
-        {% endif %}
+      - choose:
+          - alias: Pinned Version
+            conditions:
+              - condition: template
+                value_template: "{{ (states('input_text.hass_target_branch') not in ['stable','beta']) and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) }}"
+            sequence:
+              - service: script.hass_update_notify
+          - alias: Stable Minor Release
+            conditions:
+              - condition: template
+                value_template: "{{ (states('input_text.hass_target_branch') == 'stable') and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) and (states('sensor.ha_version').split('.')[:2] == states('sensor.ha_docker_version_stable').split('.')[:2]) }}"
+            sequence:
+              - service: script.hass_update_stage
+          - alias: Stable Major Release
+            conditions:
+              - condition: template
+                value_template: "{{ (states('input_text.hass_target_branch') == 'stable') and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) }}"
+            sequence:
+              - service: script.hass_update_notify
+          - alias: Beta Release or Major Release while on Beta
+            conditions:
+              - condition: template
+                value_template: "{{ states('input_text.hass_target_branch') == 'beta' }}"
+            sequence:
+              - service: script.hass_update_stage
 
   # Actually try to upgrade if conditions are met (home and boolean on)
   - alias: "Auto Update: Install Update or Notify"

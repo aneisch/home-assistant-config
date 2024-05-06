@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_platform
-from homeassistant.components.camera import SUPPORT_STREAM, Camera
+from homeassistant.components.camera import Camera, CameraEntityFeature
 
 from custom_components.dahua import DahuaDataUpdateCoordinator
 from custom_components.dahua.entity import DahuaBaseEntity
@@ -254,8 +254,8 @@ class DahuaCamera(DahuaBaseEntity, Camera):
 
     @property
     def supported_features(self):
-        """Return supported features."""
-        return SUPPORT_STREAM
+        """Flag supported features."""
+        return CameraEntityFeature.STREAM
 
     async def stream_source(self):
         """Return the RTSP stream source."""
@@ -316,7 +316,7 @@ class DahuaCamera(DahuaBaseEntity, Camera):
         channel = self._coordinator.get_channel()
         model = self._coordinator.get_model()
         # Some NVRs like the Lorex DHI-NVR4108HS-8P-4KS2 change the day/night mode through a switch
-        if 'NVR4108HS' in model:
+        if 'NVR4108HS' or 'IPC-Color4K' in model:
             await self._coordinator.client.async_set_night_switch_mode(channel, mode)
         else:
             await self._coordinator.client.async_set_video_profile_mode(channel, mode)
@@ -325,7 +325,7 @@ class DahuaCamera(DahuaBaseEntity, Camera):
         """ Handles the service call from SERVICE_SET_INFRARED_MODE to set zoom and focus """
         await self._coordinator.client.async_adjustfocus_v1(focus, zoom)
         await self._coordinator.async_refresh()
-        
+
     async def async_set_privacy_masking(self, index: int, enabled: bool):
         """ Handles the service call from SERVICE_SET_PRIVACY_MASKING to control the privacy masking """
         await self._coordinator.client.async_setprivacymask(index, enabled)

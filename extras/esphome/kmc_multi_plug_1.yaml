@@ -44,6 +44,7 @@ switch:
     pin: GPIO14
     # inverted: yes
     id: relay3
+    restore_mode: ALWAYS_ON
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"
