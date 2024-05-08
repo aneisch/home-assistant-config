@@ -165,6 +165,7 @@ services:
             driver: none
         restart: always
         labels:
+            - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
             - traefik.enable=true
             - traefik.http.routers.vault.entrypoints=websecure

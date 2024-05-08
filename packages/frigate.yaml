@@ -344,6 +344,27 @@ automation:
         entity_id: binary_sensor.front_door_button_pressed
         from: 'off'
         to: 'on'
+      - platform: state
+        id: front_door
+        entity_id: binary_sensor.front_door
+        from: 'off'
+        to: 'on'
+      - platform: state
+        id: back_door
+        entity_id: binary_sensor.back_porch_door
+        from: 'off'
+        to: 'on'
+      - platform: state
+        id: garage_exterior_door
+        entity_id: binary_sensor.garage_exterior_door
+        from: 'off'
+        to: 'on'
+      - platform: state
+        id: garage_interior_door
+        entity_id: binary_sensor.garage_interior_door
+        from: 'off'
+        to: 'on'
+    condition: "{{ is_state('binary_sensor.security_status','on') }}"
     action:
       - if: "{{ trigger.id == 'garage_door' }}"
         then:
@@ -361,6 +382,30 @@ automation:
             data:
               camera: front_door
               label: Doorbell
+      - if: "{{ trigger.id == 'front_door' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: front_door
+              label: FrontDoorOpened
+      - if: "{{ trigger.id == 'back_door' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: back_porch
+              label: BackDoorOpened
+      - if: "{{ trigger.id == 'garage_exterior_door' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: garage
+              label: GarageExteriorDoorOpened
+      - if: "{{ trigger.id == 'garage_interior_door' }}"
+        then:
+          - service: shell_command.frigate_create_event
+            data:
+              camera: garage
+              label: GarageInteriorDoorOpened
 
   # Handled by NodeRed
   # - alias: Frigate Timelapse Snapshots
