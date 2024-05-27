@@ -18,5 +18,6 @@ cards:
         entity: light.master_bedroom_lamps
       - entity: switch.master_closet_light
         name: Closet Light
+      - cover.master_bedroom_blinds
 
   - !include .cards/spotify.yaml

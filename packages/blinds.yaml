@@ -24,6 +24,11 @@ group:
     entities:
       - cover.office_blind_left
       - cover.office_blind_right
+  master_bedroom_blinds:
+    name: Master Bedroom Blinds
+    entities:
+      - cover.master_bedroom_blind_left
+      - cover.master_bedroom_blind_right
 
 cover:
   - platform: template
@@ -48,6 +53,43 @@ cover:
         value_template: "{{is_state('sensor.guest_bedroom_blinds', 'open')}}"
         icon_template: >-
           {% if is_state('sensor.guest_bedroom_blinds', 'open') %}
+            mdi:window-open
+          {% else %}
+            mdi:window-closed
+          {% endif %}
+
+  - platform: template
+    covers:
+      master_bedroom_blinds:
+        friendly_name: "Master Bedroom Blinds"
+        open_cover:
+          # Calling with script.turn_on results in non-blocking vs. calling script directly
+          service: script.turn_on
+          target:
+            entity_id: script.blinds_group
+          data:
+            variables:
+              modus: "open"
+              group: master_bedroom
+        close_cover:
+          service: script.turn_on
+          target:
+            entity_id: script.blinds_group
+          data:
+            variables:
+              modus: "close"
+              group: master_bedroom
+        stop_cover:
+          service: script.turn_on
+          target:
+            entity_id: script.blinds_group
+          data:
+            variables:
+              modus: "stop"
+              group: master_bedroom
+        value_template: "{{is_state('sensor.master_bedroom_blinds', 'open')}}"
+        icon_template: >-
+          {% if is_state('sensor.master_bedroom_blinds', 'open') %}
             mdi:window-open
           {% else %}
             mdi:window-closed
@@ -122,6 +164,16 @@ sensor:
             closed
           {% endif %}
 
+      master_bedroom_blinds:
+        value_template: >-
+          {% if is_state('cover.master_bedroom_blind_left', 'open') %}
+            open
+          {% elif is_state('cover.master_bedroom_blind_right', 'open') %}
+            open
+          {% else %}
+            closed
+          {% endif %}
+
       office_blinds:
         value_template: >-
           {% if is_state('cover.office_blind_left', 'open') %}
@@ -153,17 +205,21 @@ script:
           entity_id: >
             {% if group == "guest_bedroom" %}
             {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "master_bedroom" %}
+            {{ expand('group.master_bedroom_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "dining_room" %}
             {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "office" %}
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
-      - delay: "00:01:00"
+      - delay: "00:01:30"
       - service: "cover.{{modus}}_cover"
         target:
           entity_id: >
             {% if group == "guest_bedroom" %}
             {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "master_bedroom" %}
+            {{ expand('group.master_bedroom_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "dining_room" %}
             {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "office" %}
@@ -175,6 +231,8 @@ script:
           entity_id: >
             {% if group == "guest_bedroom" %}
             {{ expand('group.guest_bedroom_blinds') | map(attribute='entity_id') | list}}
+            {% elif group == "master_bedroom" %}
+            {{ expand('group.master_bedroom_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "dining_room" %}
             {{ expand('group.dining_room_blinds') | map(attribute='entity_id') | list}}
             {% elif group == "office" %}
@@ -256,10 +314,12 @@ automation:
           - cover.guest_bedroom_blind_right
           - cover.office_blind_left
           - cover.office_blind_right
+          - cover.master_bedroom_blind_left
+          - cover.master_bedroom_blind_right
         to:
           - opening
           - closing
-        for: "00:01:00"
+        for: "00:01:30"
     action:
       - service: homeassistant.update_entity
         target:

@@ -47,7 +47,10 @@ automation:
             and states('sensor.flume_sensor_home_current') | float > 0 
             and is_state('switch.irrigation_master_valve', 'off') 
             and not is_state('switch.bhyve_1','on')
+            and not is_state('switch.bhyve_2','on')
             and is_state('group.trackers', 'not_home' ) 
+            and not (now().hour == 9 and now().minute in [0,1,2,3,4,5,7,8,9,10])
+            and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
           - service: script.notify_wrapper
@@ -60,7 +63,10 @@ automation:
             and states('sensor.flume_sensor_home_current') | float > 2.5 
             and is_state('switch.irrigation_master_valve', 'off') 
             and not is_state('switch.bhyve_1','on')
+            and not is_state('switch.bhyve_2','on')
             and is_state('group.trackers', 'home' ) 
+            and not (now().hour == 9 and now().minute in [0,1,2,3,4,5,7,8,9,10]) 
+            and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
           - service: script.notify_wrapper

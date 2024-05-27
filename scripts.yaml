@@ -99,6 +99,8 @@ master_bedroom_wakeup:
     #     - service: script.turn_on
     #       entity_id:
     #         - script.christmas_wakeup
+    - service: cover.open_cover
+      entity_id: cover.master_bedroom_blinds
     - service: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan
@@ -120,12 +122,14 @@ master_bedroom_wakeup:
 
 master_bedroom_bedtime:
   sequence:
+    - service: cover.close_cover
+      entity_id: cover.master_bedroom_blinds
     # - service: script.turn_on # Calling this way allows the sequence to continue without blocking
     #   entity_id: script.christmas_goodnight
     - service: script.appdaemon_ac_night
-    #- service: switch.turn_on
-    #  data:
-    #    entity_id: switch.master_bedroom_ceiling_fan
+    - service: switch.turn_on
+      data:
+        entity_id: switch.master_bedroom_ceiling_fan
     #- service: switch.turn_on
     #  data:
     #    entity_id: switch.master_bedroom_sound_machine

@@ -364,7 +364,7 @@ automation:
         entity_id: binary_sensor.garage_interior_door
         from: 'off'
         to: 'on'
-    condition: "{{ is_state('binary_sensor.security_status','on') }}"
+    condition: "{{ is_state('input_boolean.security_status','on') }}"
     action:
       - if: "{{ trigger.id == 'garage_door' }}"
         then:
@@ -426,7 +426,7 @@ automation:
   #         entity_id:
   #           - camera.ptz
   #           - camera.front_door
-  #           - camera.driveway
+  #           - casmera.driveway
   #           - camera.back_porch
 
   - alias: Frigate Timelapse Creation
@@ -519,6 +519,7 @@ shell_command:
   frigate_create_event: "curl -X POST --data '''{ 'duration': 30, 'include_recording': true }''' http://localhost:5000/api/events/{{camera}}/{{label}}/create"
   create_timelapse: /config/scripts/frigate_timelapse.sh {{ camera }}
   commit_frigate_changes: ssh nuc '/opt/homeassistant/scripts/commit_frigate_changes.sh'
+  # get_timelapse_snapshot: /config/scripts/get_timelapse_snapshot.sh {{ camera }}
 
 timer:
   frigate_notification_snooze:
@@ -540,6 +541,15 @@ media_player:
 #     media_content_type: audio/mpeg
 
 script:
+  # get_timelapse_snapshots:
+  #   sequence:
+  #     - service: shell_command.get_timelapse_snapshot
+  #       data:
+  #         camera: driveway
+  #         height: 480
+  #         width: 704
+  #         file: '{{ "/config/media/images/camera.driveway" + "/" +  now().strftime("%Y%m%d-%H%M%S") + ".jpg" }}'
+
   doorbell_not_interested:
     sequence:
       # - service: tts.speak

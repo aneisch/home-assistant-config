@@ -290,11 +290,11 @@ Backyard Flood Lights with Person Detection:
   module: door_open
   class: DoorLight
   constrain_end_time: sunrise - 01:00:00
-  constrain_start_time: sunset + 00:30:00
+  constrain_start_time: sunset
   trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy
   toggle_entity: switch.backyard_flood_lights
   # Seconds to turn entity on when triggered
-  time_on: "30"
+  time_on: "300"
 
 Doorbell Ring Light:
   module: entity_timer

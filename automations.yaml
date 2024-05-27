@@ -120,7 +120,7 @@
   initial_state: true
   trigger:
   - platform: state
-    entity_id: sensor.thermostat_latest_equipment_event
+    entity_id: sensor.thermostat_active_equipment_event
   condition: '{{ trigger.to_state.state not in [ ''unavailable'', '''' ] and trigger.from_state.state
     not in [ ''unavailable'', '''' ] }}'
   action:
@@ -199,7 +199,7 @@
     - lock.garage_exterior_door
     - lock.back_door
     to: unlocked
-  condition: '{{ states(''input_boolean.security_status'') == ''on''}}'
+  condition: '{{ states(''input_boolean.door_notify'') == ''on''}}'
   action:
   - service: script.notify_wrapper
     data:
@@ -473,6 +473,8 @@
     - sensor.office_blind_right_battery
     - sensor.guest_bedroom_blind_left_battery
     - sensor.guest_bedroom_blind_right_battery
+    - sensor.master_bedroom_blind_left_battery
+    - sensor.master_bedroom_blind_right_battery
     - sensor.dining_room_blind_left_battery
     - sensor.dining_room_blind_center_battery
     - sensor.dining_room_blind_right_battery

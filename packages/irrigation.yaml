@@ -195,20 +195,20 @@ automation:
       - platform: state
         entity_id: 
           - switch.bhyve_1
-          - switch.bhyve_2
-          - switch.bhyve_3
+          # - switch.bhyve_2
+          # - switch.bhyve_3
       - platform: homeassistant
         event: start
     action:
       - service: python_script.bhyve_next_watering
         data:
           entity_id: switch.bhyve_1
-      - service: python_script.bhyve_next_watering
-        data:
-          entity_id: switch.bhyve_2
-      - service: python_script.bhyve_next_watering
-        data:
-          entity_id: switch.bhyve_3
+      # - service: python_script.bhyve_next_watering
+      #   data:
+      #     entity_id: switch.bhyve_2
+      # - service: python_script.bhyve_next_watering
+      #   data:
+      #     entity_id: switch.bhyve_3
 
   - alias: Store Sprinkler Start/Stop Times
     id: "store_sprinkler_times"

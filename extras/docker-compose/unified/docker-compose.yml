@@ -208,6 +208,8 @@ services:
             - PORT=11111
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
             - TZ=America/Chicago
+            - LOG_LEVEL=DEBUG
+
         volumes:
             - /etc/localtime:/etc/localtime:ro
         devices:
@@ -711,7 +713,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-ca8ef70
+        image: ghcr.io/blakeblackshear/frigate:dev-adb043e
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -727,7 +729,8 @@ services:
             # Two below needed for 2way stream
             - "8555:8555/tcp"
             - "8555:8555/udp"
-            - "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
+            #- "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
+            - 1984:1984/tcp
         labels:
             # HTTPS for CF
             - traefik.enable=true

@@ -207,6 +207,8 @@ services:
             - PORT=11111
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
             - TZ=America/Chicago
+            - LOG_LEVEL=DEBUG
+
         volumes:
             - /etc/localtime:/etc/localtime:ro
         devices:
