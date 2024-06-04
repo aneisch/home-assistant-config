@@ -364,7 +364,7 @@ automation:
         entity_id: binary_sensor.garage_interior_door
         from: 'off'
         to: 'on'
-    condition: "{{ is_state('input_boolean.security_status','on') }}"
+    #condition: "{{ is_state('input_boolean.security_status','on') }}"
     action:
       - if: "{{ trigger.id == 'garage_door' }}"
         then:

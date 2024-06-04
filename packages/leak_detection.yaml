@@ -51,6 +51,7 @@ automation:
             and is_state('group.trackers', 'not_home' ) 
             and not (now().hour == 9 and now().minute in [0,1,2,3,4,5,7,8,9,10])
             and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
+            and not (now().hour == 15 and now().minute in [0,1,2,3,4,5]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
           - service: script.notify_wrapper
@@ -67,6 +68,7 @@ automation:
             and is_state('group.trackers', 'home' ) 
             and not (now().hour == 9 and now().minute in [0,1,2,3,4,5,7,8,9,10]) 
             and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
+            and not (now().hour == 15 and now().minute in [0,1,2,3,4,5]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
           - service: script.notify_wrapper

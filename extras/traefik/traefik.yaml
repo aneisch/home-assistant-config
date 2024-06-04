@@ -12,7 +12,8 @@ entryPoints:
 
   websecure:
     address: ":443"
-    http3:
+    # The {} is necessary
+    http3: {}
     http:
       middlewares:
         - secureHeaders@file
@@ -40,7 +41,7 @@ experimental:
       moduleName: "github.com/acouvreur/sablier"
       version: "v1.7.0-beta.6"
 
-log:
-  level: DEBUG
+# log:
+#   level: DEBUG
 
 #accessLog: {}
