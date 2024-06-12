@@ -65,7 +65,7 @@
 - platform: statistics
   name: "Neighbor 5in1 Rain Last 5 Days"
   entity_id: sensor.neighbor_5in1_rain_total
-  state_characteristic: change
+  state_characteristic: sum_differences
   max_age:
     days: 5
   precision: 3
@@ -73,7 +73,7 @@
 - platform: statistics
   name: "Neighbor 5in1 Rain Last 24 Hours"
   entity_id: sensor.neighbor_5in1_rain_total
-  state_characteristic: change
+  state_characteristic: sum_differences
   max_age:
     hours: 24
   precision: 3
@@ -81,7 +81,7 @@
 - platform: statistics
   name: "Neighbor 5in1 Rain Last 1 Hour"
   entity_id: sensor.neighbor_5in1_rain_total
-  state_characteristic: change
+  state_characteristic: sum_differences
   max_age:
     hours: 1
   precision: 3

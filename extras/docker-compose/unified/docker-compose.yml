@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:beta
+        image: ghcr.io/home-assistant/home-assistant:stable
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -714,7 +714,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-1e80342
+        image: ghcr.io/blakeblackshear/frigate:dev-30b8627-amd64
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb

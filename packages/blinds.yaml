@@ -251,8 +251,10 @@ automation:
         to: below_horizon
         for: "00:30:00"
         id: sunset
-      - platform: time
-        at: "21:00:00"
+      - platform: state
+        entity_id: sun.sun
+        to: below_horizon
+        for: "00:45:00"
         id: late
     action:
       - choose:
