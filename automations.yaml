@@ -957,3 +957,15 @@
     then:
     - service: lock.lock
       entity_id: lock.all_doors
+- id: '1718318289284'
+  alias: PFsense Backup
+  description: ''
+  trigger:
+  - platform: time_pattern
+    hours: /1
+  condition: []
+  action:
+  - service: shell_command.commit_pfsense_changes
+    metadata: {}
+    data: {}
+  mode: single

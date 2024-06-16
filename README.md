@@ -1,24 +1,24 @@
 # My Home Assistant Config
+
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2024.6.2%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2024.6.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
+I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Most of my setup is run as Docker containers (see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list).
 
-I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Using [Home Assistant Companion](https://itunes.apple.com/us/app/home-assistant-companion/id1099568401?mt=8) for iOS, built-in browser shortcut in Android. Also using [Tasker Plugin](https://github.com/MarkAdamson/home-assistant-plugin-for-tasker) from [MarkAdamsom](https://github.com/MarkAdamson) to trigger some automations and scripts from the client-side. Most of my home automation software pieces run as Docker containers (see [docker-compose for container list](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)). 
+My Home Assistant installation runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) with Centos 7:
 
-My Home Assistant installation contains many different components and runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) running Centos 7:
-
-- Home Assistant Companion for iOS and Android device tracking
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
 - [Frigate](https://frigate.video/) for security camera recording and object detection
-- A plethora of Lolin D1 Mini and S2 Mini sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs. 
-- Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01. 
+- Home Assistant Companion for iOS and Android device tracking
+- A plethora of Lolin D1 Mini and S2 Mini sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs
+- Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01
 - Zwave, Zigbee, and Wifi (ESPHome) smart plugs
 - ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware
 - Z-Wave JS using Aeon Labs USB stick with:
-  - 1 AEON Labs DSA03XXX-ZW
+    - 1 AEON Labs DSA03XXX-ZW
   - 1 AEON Labs ZW090
   - 2 First Alert (BRK Brands Inc) ZCOMBO
   - 1 GE 12719 / ZW4101
@@ -43,28 +43,28 @@ My Home Assistant installation contains many different components and runs on a 
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a large number of automations and intelligent AC control. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for irrigation and other automations (see screenshot below)
 - [Amazon Echos](https://amzn.to/2VLPPm0)
-  - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda 
-  - Custom routines configured in the Alexa App.
+
+  - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda
+  - Custom routines configured in the Alexa App
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - UPS monitoring using [apcupsd](https://github.com/gersilex/apcupsd-docker)
-- Home power monitoring with ESPHome-flashed Emporia View
+- Whole home power monitoring with ESPHome-flashed Emporia View
 - Github actions to test beta and stable builds against config
 
-Also using Grafana/Influx for graphing, both running in Docker containers on NUC, see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list. Home Assistant, along with a few other web apps, are proxied through my firewall and fronted and secured by Cloudflare.
- 
+Home Assistant and other containers have ingress handled automatically by [Traefik](https://doc.traefik.io/traefik/) and are accessible locally or fronted and secured by Cloudflare Zero Trust Network Access.
 
 ## Some statistics about my installation:
 Description | value
 -- | --
 Lines of ESPHome YAML | 2802
-Lines of Home Assistant YAML | 9173
+Lines of Home Assistant YAML | 9182
 [Integrations](https://www.home-assistant.io/integrations/) in use | 61
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
 Description | value
 -- | --
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 121
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 122
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 140
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 15
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 15
@@ -101,8 +101,9 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1235**
+**Total state objects** | **1236**
 ## The HACS integrations/plugins that I use:
+
 **Appdaemon**:<br>
 [aneisch/follow_me_appdaemon](https://github.com/aneisch/follow_me_appdaemon)<br>
 
@@ -158,8 +159,9 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 
 
 # Interface
-![UI](images/1.png)  
-![UI](images/2.png)  
+
+![UI](images/1.png)
+![UI](images/2.png)
 ![UI](images/3.png)
 ![UI](images/4.png)
 ![UI](images/5.png)

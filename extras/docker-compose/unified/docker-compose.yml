@@ -764,11 +764,13 @@ services:
         ports:
             - 32168:32168
         volumes:
+            - /etc/localtime:/etc/localtime:ro
             - /opt/codeproject/config:/etc/codeproject/ai
             #- /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
             - /opt/codeproject/NETmodules:/app/preinstalled-modules/ObjectDetectionYOLOv5Net/custom-models/
             - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYOLOv5-6.2/custom-models/
         labels:
+            - com.centurylinklabs.watchtower.monitor-only=true
             - traefik.enable=true
             - traefik.http.services.codeproject.loadbalancer.server.port=32168
             # HTTPS Local Only (with 80-->443 redirect)

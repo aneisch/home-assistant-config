@@ -246,6 +246,9 @@ automation:
       - platform: time
         at: "09:00:00"
         id: morning
+      - platform: time
+        at: "10:30:00"
+        id: morning_later
       - platform: state
         entity_id: sun.sun
         to: below_horizon
@@ -277,7 +280,7 @@ automation:
                     - cover.office_blinds
                     - cover.dining_room_blinds
           - conditions: "{{ trigger.id == 'morning' }}"
-            alias: Open Blinds
+            alias: Open Blinds Morning
             sequence:
               - service: cover.open_cover
                 continue_on_error: true
@@ -285,6 +288,9 @@ automation:
                   entity_id:
                     - cover.office_blinds
                     - cover.dining_room_blinds
+          - conditions: "{{ trigger.id == 'morning_later' }}"
+            alias: Open Blinds Morning Later
+            sequence:
               # Only open blinds if guest mode is OFF
               - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
                 then:
@@ -293,15 +299,6 @@ automation:
                     target:
                       entity_id:
                         - cover.guest_bedroom_blinds
-          # Prevent stuck "opening" or "closing"
-          # - repeat:
-          #   count: "13"
-          #   sequence:
-          #     - delay: 5
-          #     - service: homeassistant.update_entity
-          #       target:
-          #         entity_id: >
-          #           {{ expand(['group.guest_bedroom_blinds','group.dining_room_blinds', 'group.office_blinds']) | map(attribute='entity_id') | list}}
 
   - alias: "Manually Update Blind State"
     id: manually_update_blind_state
