@@ -714,7 +714,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-30b8627-amd64
+        image: ghcr.io/blakeblackshear/frigate:dev-e9cdef9
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -856,7 +856,7 @@ services:
             # - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
 
     sablier:
-        image: acouvreur/sablier:1.6.0
+        image: acouvreur/sablier:1.7.0
         container_name: sablier
         restart: 'always'
         command:

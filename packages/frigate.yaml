@@ -514,6 +514,9 @@ input_datetime:
     has_date: true
     has_time: true
 
+input_text:
+  qr_code_content:
+
 shell_command:
   frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
   frigate_create_event: "curl -X POST --data '''{ 'duration': 30, 'include_recording': true }''' http://localhost:5000/api/events/{{camera}}/{{label}}/create"
