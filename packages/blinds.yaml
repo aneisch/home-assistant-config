@@ -148,8 +148,9 @@ cover:
           {% endif %}
 
 input_boolean:
-  # This is for the Zwave remote only
+  # This is for the Zwave remotes only
   guest_bedroom_blinds_mode:
+  master_bedroom_blinds_mode:
 
 sensor:
   - platform: template

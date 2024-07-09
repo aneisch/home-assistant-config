@@ -12,6 +12,46 @@ esphome:
 # See https://randomnerdtutorials.com/esp8266-pinout-reference-gpios/ for
 # allowable pins
 
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+datetime:
+  - platform: template
+    id: front_door_last
+    type: datetime
+    name: Front Door Last
+    optimistic: yes
+    restore_value: true
+
+  - platform: template
+    id: master_bedroom_exterior_door_last
+    type: datetime
+    name: Master Bedroom Exterior Door Last
+    optimistic: yes
+    restore_value: true
+
+  - platform: template
+    id: back_porch_door_last
+    type: datetime
+    name: Back Porch Door Last
+    optimistic: yes
+    restore_value: true
+
+  - platform: template
+    id: garage_interior_door_last
+    type: datetime
+    name: Garage Interior Door Last
+    optimistic: yes
+    restore_value: true
+
+  - platform: template
+    id: garage_exterior_door_last
+    type: datetime
+    name: Garage Exterior Door Last
+    optimistic: yes
+    restore_value: true
+
 binary_sensor:
   - platform: gpio
     pin:
@@ -21,6 +61,12 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
+    on_press:
+      then:
+        - datetime.datetime.set:
+            id: front_door_last
+            datetime: !lambda |-
+              return id(homeassistant_time).now();
 
   - platform: gpio
     pin:
@@ -30,6 +76,12 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
+    on_press:
+      then:
+        - datetime.datetime.set:
+            id: master_bedroom_exterior_door_last
+            datetime: !lambda |-
+              return id(homeassistant_time).now();
 
   - platform: gpio
     pin:
@@ -39,6 +91,12 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
+    on_press:
+      then:
+        - datetime.datetime.set:
+            id: back_porch_door_last
+            datetime: !lambda |-
+              return id(homeassistant_time).now();
 
   - platform: gpio
     pin:
@@ -48,6 +106,12 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
+    on_press:
+      then:
+        - datetime.datetime.set:
+            id: garage_interior_door_last
+            datetime: !lambda |-
+              return id(homeassistant_time).now();
 
   - platform: gpio
     pin:
@@ -57,6 +121,12 @@ binary_sensor:
     device_class: door
     filters:
       - delayed_on_off: 0.5s
+    on_press:
+      then:
+        - datetime.datetime.set:
+            id: garage_exterior_door_last
+            datetime: !lambda |-
+              return id(homeassistant_time).now();
 
 switch:
   - platform: restart

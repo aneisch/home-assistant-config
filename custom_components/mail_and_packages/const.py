@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.28"
+VERSION = "0.3.31"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -55,6 +55,7 @@ CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
 CONF_VERIFY_SSL = "verify_ssl"
+CONF_IMAP_SECURITY = "imap_security"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -67,7 +68,7 @@ DEFAULT_IMAP_TIMEOUT = 60
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 30
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
-DEFAULT_AMAZON_FWDS = []
+DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
@@ -86,6 +87,7 @@ AMAZON_DOMAINS = [
     "amazon.es",
     "amazon.fr",
     "amazon.ae",
+    "amazon.nl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
     "Delivered: Your",
@@ -94,6 +96,7 @@ AMAZON_DELIVERED_SUBJECT = [
     "Geliefert:",
     "Livré",
     "Entregado:",
+    "Bezorgd:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
     "shipment-tracking",
@@ -101,6 +104,8 @@ AMAZON_SHIPMENT_TRACKING = [
     "confirmar-envio",
     "versandbestaetigung",
     "confirmation-commande",
+    "verzending-volgen",
+    "update-bestelling",
 ]
 AMAZON_EMAIL = "order-update@"
 AMAZON_PACKAGES = "amazon_packages"
@@ -131,6 +136,7 @@ AMAZON_TIME_PATTERN = [
     "Entrega:",
     "A chegar:",
     "Arrivée :",
+    "Verwachte bezorgdatum:",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -144,6 +150,8 @@ AMAZON_TIME_PATTERN_END = [
     "Lieferung verfolgen",
     "Ihr Paket verfolgen",
     "Suivre",
+    "Volg je pakket",
+    "Je pakket volgen",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -192,6 +200,15 @@ SENSOR_DATA = {
             "USPS Informed Delivery",
         ],
         "subject": ["Your Daily Digest"],
+    },
+    "usps_mail_delivered": {
+        "email": [
+            "USPSInformedDelivery@usps.gov",
+            "USPSInformeddelivery@email.informeddelivery.usps.com",
+            "USPSInformeddelivery@informeddelivery.usps.com",
+            "USPS Informed Delivery",
+        ],
+        "subject": ["Your Mail Was Delivered"],
     },
     # UPS
     "ups_delivered": {
@@ -1119,6 +1136,11 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         name="Amazon Image Updated",
         key="amazon_update",
         device_class=BinarySensorDeviceClass.UPDATE,
+    ),
+    "usps_mail_delivered": BinarySensorEntityDescription(
+        name="USPS Mail Delivered",
+        key="usps_mail_delivered",
+        entity_registry_enabled_default=False,
     ),
 }
 

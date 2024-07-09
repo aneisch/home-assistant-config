@@ -969,3 +969,117 @@
     metadata: {}
     data: {}
   mode: single
+- id: '1720406432197'
+  alias: Back Bedroom Remote
+  description: ''
+  use_blueprint:
+    path: rwalker777/Zen37-ZwaveJS-blueprint.yaml
+    input:
+      zen37lr:
+      - 68971831fd0b085e4182822bb5ff1ede
+      button_1_1_tap:
+      - service: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.back_bedroom_ceiling_fan
+      button_2_1_tap:
+      - service: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.back_bedroom_ceiling_fan
+      button_3_1_tap:
+      - service: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.back_bedroom_nightstand_lamp
+      button_4_1_tap:
+      - service: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.back_bedroom_dresser_lamp
+- id: '1720408089416'
+  alias: Guest Bedroom Remote
+  description: ''
+  use_blueprint:
+    path: rwalker777/Zen37-ZwaveJS-blueprint.yaml
+    input:
+      zen37lr:
+      - 273e5786af733bd9027661670d6e232d
+      button_1_1_tap:
+      - service: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.guest_bedroom_ceiling_fan
+      button_2_1_tap:
+      - service: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.guest_bedroom_ceiling_fan
+      button_3_1_tap:
+      - service: light.toggle
+        target:
+          entity_id: light.guest_bedroom_nightstand_lamp
+        data: {}
+      button_4_1_tap:
+      - service: cover.stop_cover
+        target:
+          entity_id:
+          - cover.guest_bedroom_blind_left
+          - cover.guest_bedroom_blind_right
+        data: {}
+      - service: input_boolean.toggle
+        entity_id: input_boolean.guest_bedroom_blinds_mode
+      - service: cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on')
+          %}close{% else %}open{% endif %}_cover
+        target:
+          entity_id:
+          - cover.guest_bedroom_blind_left
+          - cover.guest_bedroom_blind_right
+      automation_mode: restart
+- id: '1720483482802'
+  alias: Master Bedroom Remote
+  description: ''
+  use_blueprint:
+    path: rwalker777/Zen37-ZwaveJS-blueprint.yaml
+    input:
+      zen37lr:
+      - 02c3c1689c22bf4221da0a498094ef45
+      button_1_1_tap:
+      - service: light.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: light.master_bedroom_ceiling_fan
+      button_2_1_tap:
+      - service: switch.toggle
+        metadata: {}
+        data: {}
+        target:
+          entity_id: switch.master_bedroom_ceiling_fan
+      button_3_1_tap:
+      - service: light.toggle
+        data: {}
+        target:
+          entity_id: light.master_bedroom_lamps
+      button_4_1_tap:
+      - service: cover.stop_cover
+        target:
+          entity_id:
+          - cover.master_bedroom_blind_left
+          - cover.master_bedroom_blind_right
+        data: {}
+      - service: input_boolean.toggle
+        entity_id: input_boolean.guest_bedroom_blinds_mode
+      - service: cover.{% if is_state('input_boolean.master_bedroom_blinds_mode',
+          'on') %}close{% else %}open{% endif %}_cover
+        target:
+          entity_id:
+          - cover.master_bedroom_blind_left
+          - cover.master_bedroom_blind_right
+      automation_mode: restart

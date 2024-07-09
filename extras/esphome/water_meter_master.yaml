@@ -1,0 +1,43 @@
+i2c:
+  id: i2c_bus
+  sda: ${i2c_sda}
+  scl: ${i2c_scl}
+  scan: True
+  frequency: 400kHz
+
+packages:
+  meter:
+    url: https://github.com/tronikos/esphome-magnetometer-water-gas-meter
+    ref: main
+    file: esphome-water-meter.yaml
+    # Or for gas meter:
+    # file: esphome-gas-meter.yaml
+    # Or if you are using HMC5883L instead of QMC5883L:
+    # files: [esphome-water-meter.yaml, hmc5883l.yaml]
+    refresh: 0s 
+
+binary_sensor:
+  - platform: template
+    name: ${prefix_name}Flow Status
+    lambda: |-
+      if (id(${prefix_id}sensor_flow).state > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    
+debug:
+  update_interval: 5s
+
+sensor:
+  - platform: debug
+    loop_time:
+      name: "Loop Time"
+      
+  - id: !extend ${prefix_id}qmc5883l_id
+    field_strength_x:
+      internal: true
+    field_strength_y:
+      internal: true
+    field_strength_z:
+      internal: true

@@ -1,0 +1,42 @@
+type: vertical-stack
+cards:
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.flume_flow_status
+        state: "on"
+    card:
+      type: custom:mushroom-template-card
+      primary: "{{ states('sensor.flow') | round(2) }} gal/m"
+      secondary: "8266"
+      icon: mdi:water
+      card_mod:
+        style: |
+          @keyframes blink {
+            50% {
+              background: white;
+            }
+          }
+          ha-card {
+            background: blue;
+            animation: blink 3s linear infinite;
+          }
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.flume_flow_status
+        state: "on"
+    card:
+      type: custom:mushroom-template-card
+      primary: "{{ states('sensor.s2flow') | round(2) }} gal/m"
+      secondary: "S2"
+      icon: mdi:water
+      card_mod:
+        style: |
+          @keyframes blink {
+            50% {
+              background: white;
+            }
+          }
+          ha-card {
+            background: blue;
+            animation: blink 3s linear infinite;
+          }

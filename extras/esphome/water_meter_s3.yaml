@@ -1,0 +1,34 @@
+substitutions:
+  name: water_meter_s3
+  friendly_name: "Water Meter S3"
+  volume_unit: 'gal'
+  i2c_scl: GPIO35  # D1
+  i2c_sda: GPIO33  # D2
+  prefix_name: s3
+  #flow_update_interval_seconds: "5"
+
+esphome:
+  name: ${name}
+  platformio_options:
+    board_build.arduino.memory_type: qio_qspi
+    board_upload.ram_size: 327680
+    board_upload_maximum_size: 4193404
+    board_upload_speed: 460800
+    build_flags: [
+      "-DBOARD_HAS_PSRAM",
+      "-DARDUINO_LOLIN_S3_MINI",
+      "-DARDUINO_USB_MODE=1"
+      ]
+
+esp32:
+  board: lolin_s3_mini
+  variant: esp32s3
+  flash_size: 4MB
+  framework:
+    type: arduino
+    version: 2.0.8
+    platform_version: 6.3.2
+
+<<: !include common.yaml
+
+<<: !include water_meter_master.yaml

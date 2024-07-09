@@ -4,6 +4,7 @@ cards:
   # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
   - !include .cards/water_flow.yaml
+  - !include .cards/water_flow_copy.yaml
   - !include .cards/camera_detect.yaml
 
   - type: custom:vertical-stack-in-card
@@ -95,7 +96,15 @@ cards:
 
       - type: markdown
         content: |
-          {% set door_sensors = ['front_door_last','back_porch_door_last','garage_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last','garage_motion_last','kitchen_motion_last','living_room_motion_last','hallway_motion_last'] %}
+          {% set door_sensors = ['front_door_last','back_porch_door_last','garage_door_last','garage_exterior_door_last','garage_interior_door_last','master_bedroom_exterior_door_last'] %}
+          {% for door in door_sensors -%}
+          {%- set seconds = (as_timestamp(now()) - as_timestamp(states('datetime.' + door))) | int -%}
+          {%- set minutes = (seconds // 60) | int -%}
+          {%- set hours = (minutes // 60) | int -%}
+          {%- set days = (hours // 24) | int -%}
+          {{ state_attr('datetime.' + door, 'friendly_name') | capitalize }}: {% if seconds < 60 %}<font color='red'>{% elif seconds < 300 %}<font color='orange'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font>
+          {% endfor %}
+          {% set door_sensors = ['garage_motion_last','kitchen_motion_last','living_room_motion_last','hallway_motion_last'] %}
           {% for door in door_sensors -%}
           {%- set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.' + door))) | int -%}
           {%- set minutes = (seconds // 60) | int -%}

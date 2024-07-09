@@ -23,18 +23,18 @@ automation:
         data:
           message: "{{ trigger.from_state.attributes.friendly_name }}"
 
-  - alias: "Smoke Alarm Battery Alerts"
-    id: "smoke_alarm_battery_alert"
-    trigger:
-      - platform: numeric_state
-        entity_id:
-          - sensor.hallway_alarm_battery_level
-          - sensor.kitchen_alarm_battery_level
-        below: 79
-    action:
-      - service: script.notify_wrapper
-        data:
-          message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%. Time to replace!"
+  # - alias: "Smoke Alarm Battery Alerts"
+  #   id: "smoke_alarm_battery_alert"
+  #   trigger:
+  #     - platform: numeric_state
+  #       entity_id:
+  #         - sensor.hallway_alarm_battery_level
+  #         - sensor.kitchen_alarm_battery_level
+  #       below: 79
+  #   action:
+  #     - service: script.notify_wrapper
+  #       data:
+  #         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%. Time to replace!"
 
   - alias: "Smoke Alarm Detection"
     id: "smoke_alarm_detection"

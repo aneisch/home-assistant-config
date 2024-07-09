@@ -1,0 +1,98 @@
+substitutions:
+  name: "coffee_maker"
+  friendly_name: "Coffee Maker"
+
+esphome:
+  name: ${name}
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common.yaml
+
+# Enable logging
+logger:
+  # Disable serial logging
+  baud_rate: 0
+
+external_components:
+  - source: github://TillFleisch/ESPHome-Philips-Smart-Coffee@main
+
+uart:
+  # UART connected to the mainboard
+  - tx_pin: GPIO1
+    rx_pin: GPIO3
+    baud_rate: 115200
+    id: uart_mainboard
+
+  # UART connected to the display
+  - tx_pin: GPIO15
+    rx_pin: GPIO13
+    baud_rate: 115200
+    id: uart_display
+
+philips_coffee_machine:
+  display_uart: uart_display
+  mainboard_uart: uart_mainboard
+  power_pin: GPIO12
+  id: philip
+  power_message_repetitions: 25
+  model: EP_3246
+
+text_sensor:
+  - platform: philips_coffee_machine
+    controller_id: philip
+    id: status
+    name: "${friendly_name} Status"
+
+switch:
+  - platform: philips_coffee_machine
+    controller_id: philip
+    name: "${friendly_name} Power"
+    icon: mdi:coffee-maker
+
+button:
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_ESPRESSO
+    name: "${friendly_name} Make Espresso"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_CAPPUCCINO
+    name: "${friendly_name} Make Cappuccino"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_LATTE
+    name: "${friendly_name} Make Latte"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: PLAY_PAUSE
+    name: "${friendly_name} Select play/pause"
+    icon: mdi:play-pause
+
+number:
+  - platform: philips_coffee_machine
+    type: bean
+    name: "${friendly_name} Coffee Beans"
+    controller_id: philip
+    status_sensor_id: status
+    source: COFFEE
+
+  - platform: philips_coffee_machine
+    type: milk
+    name: "${friendly_name} Milk Setting"
+    controller_id: philip
+    status_sensor_id: status
+    source: COFFEE
+
+  - platform: philips_coffee_machine
+    type: size
+    name: "${friendly_name} Coffee Size"
+    controller_id: philip
+    status_sensor_id: status
+    source: COFFEE

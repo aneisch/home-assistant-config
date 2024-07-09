@@ -254,7 +254,7 @@ logger:
   #default: debug
   default: error
   logs:
-    #homeassistant.components.homekit: debug
+    #homeassistant.components.recorder: debug
     #pyhap: debug
     #homeassistant.core: warn
     #homeassistant.components.media_player: debug
@@ -444,9 +444,20 @@ python_script:
 
 readme:
 
+
+# SELECT 
+#     states_meta.entity_id,
+#     COUNT(*) AS cnt
+# FROM states JOIN states_meta
+# ON states.metadata_id = states_meta.metadata_id
+# GROUP BY
+#     states_meta.entity_id
+# ORDER BY
+#     COUNT(*) DESC;
 recorder:
   db_url: mysql://homeassistant:homeassistant@127.0.0.1/homeassistant?charset=utf8
-  purge_keep_days: 365
+  purge_keep_days: 182
+  commit_interval: 30
   exclude:
     entities:
       - automation.update_readme

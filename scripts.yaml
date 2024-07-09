@@ -12,6 +12,7 @@ home_empty:
       data:
         entity_id:
           - group.master_bedroom
+          - group.master_bathroom_lights
           - group.common_areas
           #- switch.master_bedroom_christmas_tree # manually turn off because of goodnight script
           - media_player.kitchen_photo_frame
@@ -81,7 +82,7 @@ security_arm:
     # - service: alarm_control_panel.alarm_arm_away
     #   entity_id: alarm_control_panel.alexa_guard_7f9e9
     - service: homeassistant.turn_on
-      entity_id: automation.frigate_notifications
+      entity_id: automation.frigate_notification_person
     - service: timer.cancel
       entity_id: timer.frigate_notification_snooze
     # - service: script.notify_wrapper
@@ -158,6 +159,10 @@ master_bedroom_bedtime:
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
+    # Lower laptop volume
+    - service: shell_command.weasel_shortcut
+      data:
+        shortcut: set-volume-15
 
 #########
 # OTHER #

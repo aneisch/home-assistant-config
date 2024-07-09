@@ -10,9 +10,9 @@ esphome:
 
 <<: !include common.yaml
 
-dallas:
+one_wire:
+  platform: gpio
   pin: D4
-  update_interval: 5s
 
 switch:
   - platform: restart
@@ -20,6 +20,6 @@ switch:
     name: "${friendly_name} Restart"
 
 sensor:
-  - platform: dallas
+  - platform: dallas_temp
     address: 0xe73de1e38099b628
     name: "${friendly_name} Temperature"

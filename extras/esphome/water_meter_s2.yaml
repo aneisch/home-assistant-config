@@ -1,0 +1,24 @@
+substitutions:
+  name: water_meter_s2
+  friendly_name: "Water Meter S2"
+  volume_unit: 'gal'
+  i2c_scl: GPIO35  # D1
+  i2c_sda: GPIO33  # D2
+  prefix_name: s2
+  #flow_update_interval_seconds: "5"
+
+esphome:
+  name: ${name}
+
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
+esp32:
+  board: lolin_s2_mini
+  #type: esp-idf
+  # framework:
+  #   type: esp-idf
+  #   sdkconfig_options:
+  #     CONFIG_ESP_CONSOLE_USB_CDC: y
+
+<<: !include common.yaml
+
+<<: !include water_meter_master.yaml

@@ -1,0 +1,21 @@
+substitutions:
+  name: water_meter_8266
+  friendly_name: "Water Meter 8266"
+  volume_unit: 'gal'
+  i2c_scl: D1  # D1
+  i2c_sda: D2  # D2
+  #flow_update_interval_seconds: "5"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: d1_mini
+  restore_from_flash: true
+
+preferences:
+  flash_write_interval: 60min
+
+<<: !include common.yaml
+
+<<: !include water_meter_master.yaml

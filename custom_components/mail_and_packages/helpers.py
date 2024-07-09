@@ -76,6 +76,7 @@ from .const import (
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
+    CONF_IMAP_SECURITY,
     CONF_PATH,
     CONF_VERIFY_SSL,
     DEFAULT_AMAZON_DAYS,
@@ -85,6 +86,7 @@ from .const import (
     SHIPPERS,
 )
 
+NO_SSL = "Email will be accessed without encryption using this method and is not recommended."
 _LOGGER = logging.getLogger(__name__)
 
 # Config Flow Helpers
@@ -110,20 +112,33 @@ async def _check_ffmpeg() -> bool:
     return which("ffmpeg")
 
 
-async def _test_login(host: str, port: int, user: str, pwd: str, verify: bool) -> bool:
+async def _test_login(
+    host: str, port: int, user: str, pwd: str, security: str, verify: bool
+) -> bool:
     """Test IMAP login to specified server.
 
     Returns success boolean
     """
     context = ssl.create_default_context()
-    if not verify:
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-    else:
-        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
     # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        if security == "SSL":
+            if not verify:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            else:
+                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        elif security == "startTLS":
+            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            account = imaplib.IMAP4(host=host, port=port)
+            account.starttls(context)
+        else:
+            _LOGGER.warning(NO_SSL)
+            account = imaplib.IMAP4(host=host, port=port)
     except Exception as err:
         _LOGGER.error("Error connecting into IMAP Server: %s", str(err))
         return False
@@ -150,7 +165,7 @@ def default_image_path(
     return "custom_components/mail_and_packages/images/"
 
 
-async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
+def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     """Process emails and return value.
 
     Returns dict containing sensor data
@@ -161,13 +176,14 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     pwd = config.get(CONF_PASSWORD)
     folder = config.get(CONF_FOLDER)
     resources = config.get(CONF_RESOURCES)
+    imap_security = config.get(CONF_IMAP_SECURITY)
     verify_ssl = config.get(CONF_VERIFY_SSL)
 
     # Create the dict container
     data = {}
 
     # Login to email server and select the folder
-    account = login(host, port, user, pwd, verify_ssl)
+    account = login(host, port, user, pwd, imap_security, verify_ssl)
 
     # Do not process if account returns false
     if not account:
@@ -181,12 +197,12 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
     _image = {}
 
     # USPS Mail Image name
-    image_name = await image_file_name(hass, config)
+    image_name = image_file_name(hass, config)
     _LOGGER.debug("Image name: %s", image_name)
     _image[ATTR_IMAGE_NAME] = image_name
 
     # Amazon delivery image name
-    image_name = await image_file_name(hass, config, True)
+    image_name = image_file_name(hass, config, True)
     _LOGGER.debug("Amazon Image Name: %s", image_name)
     _image[ATTR_AMAZON_IMAGE] = image_name
 
@@ -197,11 +213,14 @@ async def process_emails(hass: HomeAssistant, config: ConfigEntry) -> dict:
 
     # Only update sensors we're intrested in
     for sensor in resources:
-        await fetch(hass, config, account, data, sensor)
+        try:
+            fetch(hass, config, account, data, sensor)
+        except Exception as err:
+            _LOGGER.error("Error updating sensor: %s reason: %s", sensor, err)
 
     # Copy image file to www directory if enabled
     if config.get(CONF_ALLOW_EXTERNAL):
-        await hass.async_add_executor_job(copy_images, hass, config)
+        copy_images(hass, config)
 
     return data
 
@@ -237,7 +256,7 @@ def copy_images(hass: HomeAssistant, config: ConfigEntry) -> None:
         return
 
 
-async def image_file_name(
+def image_file_name(
     hass: HomeAssistant, config: ConfigEntry, amazon: bool = False
 ) -> str:
     """Determine if filename is to be changed or not.
@@ -271,7 +290,7 @@ async def image_file_name(
 
     # SHA1 file hash check
     try:
-        sha1 = await hass.async_add_executor_job(hash_file, mail_none)
+        sha1 = hash_file(mail_none)
     except OSError as err:
         _LOGGER.error("Problem accessing file: %s, error returned: %s", mail_none, err)
         return image_name
@@ -294,13 +313,7 @@ async def image_file_name(
             _LOGGER.debug("Created: %s, Today: %s", created, today)
             # If image isn't mail_none and not created today,
             # return a new filename
-            if (
-                sha1
-                != await hass.async_add_executor_job(
-                    hash_file, os.path.join(path, file)
-                )
-                and today != created
-            ):
+            if sha1 != hash_file(os.path.join(path, file)) and today != created:
                 image_name = f"{str(uuid.uuid4())}{ext}"
             else:
                 image_name = file
@@ -313,9 +326,7 @@ async def image_file_name(
     # Insert place holder image
     _LOGGER.debug("Copying %s to %s", mail_none, os.path.join(path, image_name))
 
-    await hass.async_add_executor_job(
-        copyfile, mail_none, os.path.join(path, image_name)
-    )
+    copyfile(mail_none, os.path.join(path, image_name))
 
     return image_name
 
@@ -341,7 +352,7 @@ def hash_file(filename: str) -> str:
     return the_hash.hexdigest()
 
 
-async def fetch(
+def fetch(
     hass: HomeAssistant, config: ConfigEntry, account: Any, data: dict, sensor: str
 ) -> int:
     """Fetch data for a single sensor, including any sensors it depends on.
@@ -367,8 +378,7 @@ async def fetch(
     count = {}
 
     if sensor == "usps_mail":
-        count[sensor] = await hass.async_add_executor_job(
-            get_mails,
+        count[sensor] = get_mails(
             account,
             img_out_path,
             gif_duration,
@@ -377,15 +387,13 @@ async def fetch(
             nomail,
         )
     elif sensor == AMAZON_PACKAGES:
-        count[sensor] = await hass.async_add_executor_job(
-            get_items,
+        count[sensor] = get_items(
             account,
             ATTR_COUNT,
             amazon_fwds,
             amazon_days,
         )
-        count[AMAZON_ORDER] = await hass.async_add_executor_job(
-            get_items,
+        count[AMAZON_ORDER] = get_items(
             account,
             ATTR_ORDER,
             amazon_fwds,
@@ -401,12 +409,12 @@ async def fetch(
         count[AMAZON_EXCEPTION_ORDER] = info[ATTR_ORDER]
     elif "_packages" in sensor:
         prefix = sensor.replace("_packages", "")
-        delivering = await fetch(hass, config, account, data, f"{prefix}_delivering")
-        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivering = fetch(hass, config, account, data, f"{prefix}_delivering")
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         count[sensor] = delivering + delivered
     elif "_delivering" in sensor:
         prefix = sensor.replace("_delivering", "")
-        delivered = await fetch(hass, config, account, data, f"{prefix}_delivered")
+        delivered = fetch(hass, config, account, data, f"{prefix}_delivered")
         info = get_count(account, sensor, True)
         count[sensor] = max(0, info[ATTR_COUNT] - delivered)
         count[f"{prefix}_tracking"] = info[ATTR_TRACKING]
@@ -415,13 +423,13 @@ async def fetch(
         for shipper in SHIPPERS:
             delivered = f"{shipper}_delivered"
             if delivered in data and delivered != sensor:
-                count[sensor] += await fetch(hass, config, account, data, delivered)
+                count[sensor] += fetch(hass, config, account, data, delivered)
     elif sensor == "zpackages_transit":
         total = 0
         for shipper in SHIPPERS:
             delivering = f"{shipper}_delivering"
             if delivering in data and delivering != sensor:
-                total += await fetch(hass, config, account, data, delivering)
+                total += fetch(hass, config, account, data, delivering)
         count[sensor] = max(0, total)
     elif sensor == "mail_updated":
         count[sensor] = update_time()
@@ -436,21 +444,29 @@ async def fetch(
 
 
 def login(
-    host: str, port: int, user: str, pwd: str, verify: bool = True
+    host: str, port: int, user: str, pwd: str, security: str, verify: bool = True
 ) -> Union[bool, Type[imaplib.IMAP4_SSL]]:
     """Login to IMAP server.
 
     Returns account object
     """
-    context = ssl.create_default_context()
-    if not verify:
-        context.check_hostname = False
-        context.verify_mode = ssl.CERT_NONE
-    else:
-        context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
-    # Catch invalid mail server / host names
     try:
-        account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        if security == "SSL":
+            if not verify:
+                context = ssl.create_default_context()
+                context.check_hostname = False
+                context.verify_mode = ssl.CERT_NONE
+            else:
+                context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            account = imaplib.IMAP4_SSL(host=host, port=port, ssl_context=context)
+        elif security == "startTLS":
+            context = ssl.create_default_context(purpose=Purpose.SERVER_AUTH)
+            context.check_hostname = False
+            context.verify_mode = ssl.CERT_NONE
+            account = imaplib.IMAP4(host=host, port=port)
+            account.starttls(context)
+        else:
+            account = imaplib.IMAP4(host=host, port=port)
 
     except Exception as err:
         _LOGGER.error("Network error while connecting to server: %s", str(err))
@@ -958,7 +974,8 @@ def get_count(
             found.append(data[0])
 
     if (
-        ATTR_PATTERN
+        f"{'_'.join(sensor_type.split('_')[:-1])}_tracking" in SENSOR_DATA
+        and ATTR_PATTERN
         in SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"].keys()
     ):
         track = SENSOR_DATA[f"{'_'.join(sensor_type.split('_')[:-1])}_tracking"][
@@ -1099,8 +1116,7 @@ def amazon_search(
             if server_response == "OK" and data[0] is not None:
                 count += len(data[0].split())
                 _LOGGER.debug("Amazon delivered email(s) found: %s", count)
-                hass.async_add_executor_job(
-                    get_amazon_image,
+                get_amazon_image(
                     data[0],
                     account,
                     image_path,
@@ -1150,10 +1166,12 @@ def get_amazon_image(
 
     if img_url is not None:
         # Download the image we found
-        hass.add_job(download_img(img_url, image_path, image_name))
+        hass.add_job(download_img(hass, img_url, image_path, image_name))
 
 
-async def download_img(img_url: str, img_path: str, img_name: str) -> None:
+async def download_img(
+    hass: HomeAssistant, img_url: str, img_path: str, img_name: str
+) -> None:
     """Download image from url."""
     img_path = f"{img_path}amazon/"
     filepath = f"{img_path}{img_name}"
@@ -1168,9 +1186,9 @@ async def download_img(img_url: str, img_path: str, img_name: str) -> None:
             if "image" in content_type:
                 data = await resp.read()
                 _LOGGER.debug("Downloading image to: %s", filepath)
-                with open(filepath, "wb") as the_file:
-                    the_file.write(data)
-                    _LOGGER.debug("Amazon image downloaded")
+                the_file = await hass.async_add_executor_job(open, filepath, "wb")
+                the_file.write(data)
+                _LOGGER.debug("Amazon image downloaded")
 
 
 def _process_amazon_forwards(email_list: Union[List[str], None]) -> list:

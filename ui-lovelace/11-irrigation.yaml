@@ -14,6 +14,7 @@ cards:
           - input_boolean.front_bed_irrigation_scheduling
           - input_boolean.lawn_irrigation_scheduling
           - input_boolean.irrigation_force_run
+          - sensor.irrigation_water_usage_2
           - sensor.precip_probability
           - sensor.nws_wind_speed
           - sensor.neighbor_5in1_wind

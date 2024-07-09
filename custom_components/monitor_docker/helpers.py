@@ -64,7 +64,7 @@ from .const import (
     PRECISION,
 )
 
-VERSION = "1.18"
+VERSION = "1.19"
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -276,7 +276,7 @@ class DockerAPI:
                     # Remove the docker info sensors
                     self.remove_entities()
 
-                    # Remove all the sensors/switches, they will be auto created if connection is working again
+                    # Remove all the sensors/switches/buttons, they will be auto created if connection is working again
                     for cname in list(self._containers.keys()):
                         try:
                             await self._container_remove(cname)
@@ -353,7 +353,7 @@ class DockerAPI:
                             await self._container_create_destroy()
                     elif event["Action"] == "rename":
                         # during a docker-compose up -d <container> the old container can be renamed
-                        # sensors/switch should be removed before the new container is monitored
+                        # sensors/switch/button should be removed before the new container is monitored
 
                         # New name
                         cname = event["Actor"]["Attributes"]["name"]
@@ -391,7 +391,8 @@ class DockerAPI:
                                     oname,
                                 )
 
-                            if self._event_destroy and not taskcreated:
+                            # taskcreate is not unavailable, so remove for now
+                            if self._event_destroy:
                                 await self._container_create_destroy()
 
                             # Second re-add the container with the original name
@@ -478,7 +479,7 @@ class DockerAPI:
         result = await self._containers[cname]._initGetContainer()
 
         if result:
-            # Lets wait 1 second before we try to create sensors/switches
+            # Lets wait 1 second before we try to create sensors/switches/buttons
             await asyncio.sleep(1)
 
             for component in COMPONENTS:
@@ -750,9 +751,17 @@ class DockerContainerAPI:
 
         try:
             self._container = await self._api.containers.get(self._name)
+        except aiodocker.exceptions.DockerError as err:
+            _LOGGER.error(
+                "[%s] %s: Container not available anymore (2a) (%s)",
+                self._instance,
+                self._name,
+                str(err),
+            )
+            return False
         except Exception as err:
             _LOGGER.error(
-                "[%s] %s: Container not available anymore (2) (%s)",
+                "[%s] %s: Container not available anymore (2b) (%s)",
                 self._instance,
                 self._name,
                 str(err),
@@ -794,9 +803,16 @@ class DockerContainerAPI:
                 )
                 pass
                 break
+            except aiodocker.exceptions.DockerError as err:
+                _LOGGER.error(
+                    "[%s] %s: Container not available anymore (3a) (%s)",
+                    self._instance,
+                    self._name,
+                    str(err),
+                )
             except Exception as err:
                 _LOGGER.error(
-                    "[%s] %s: Container not available anymore (3) (%s)",
+                    "[%s] %s: Container not available anymore (3b) (%s)",
                     self._instance,
                     self._name,
                     str(err),
@@ -890,7 +906,12 @@ class DockerContainerAPI:
 
         # Get container stats, only interested in [0]
         rawarr = await self._container.stats(stream=False)
-        raw: dict[str, Any] = rawarr[0]
+
+        # Could be out-of-range when stopping/renaming
+        try:
+            raw: dict[str, Any] = rawarr[0]
+        except IndexError:
+            return
 
         stats["read"] = parser.parse(raw["read"])
 
@@ -1285,6 +1306,14 @@ class DockerContainerAPI:
             self._busy = False
 
     #############################################################
+    async def _restart_button(self) -> None:
+        """Called from HA button."""
+        _LOGGER.info("[%s] %s: Restart container", self._instance, self._name)
+
+        self._busy = True
+        await self._restart()
+
+    #############################################################
     async def restart(self) -> None:
         """Called from service call."""
         _LOGGER.info("[%s] %s: Restart container", self._instance, self._name)
@@ -1314,7 +1343,7 @@ class DockerContainerAPI:
 
     #############################################################
     def register_callback(self, callback: Callable, variable: str):
-        """Register callback from sensor/switch."""
+        """Register callback from sensor/switch/button."""
         if callback not in self._subscribers:
             _LOGGER.debug(
                 "[%s] %s: Added callback to container, entity: %s",

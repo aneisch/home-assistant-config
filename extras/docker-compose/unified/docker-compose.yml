@@ -420,6 +420,7 @@ services:
             - '/opt/terraform:/config/terraform'
             - '/opt/traefik:/config/traefik'
             - '/opt/vscode/run:/etc/s6-overlay/s6-rc.d/init-user/run'
+            - '/opt/esphome:/config/esphome'
         environment:
             - TZ=America/Chicago
         labels:
@@ -672,8 +673,45 @@ services:
             - traefik.http.services.vrs.loadbalancer.server.port=8080
             - traefik.http.routers.vrs.service=vrs
 
-    macos:
-        container_name: macos
+    # macos:
+    #     container_name: macos
+    #     restart: 'no'
+    #     image: sickcodes/docker-osx:naked
+    #     labels:
+    #         - com.centurylinklabs.watchtower.enable=false
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.routers.bb.entrypoints=websecure
+    #         - traefik.http.routers.bb.tls=true
+    #         - traefik.http.routers.bb.rule=Host(`bb.domain.com`)
+    #         - traefik.http.services.bb.loadbalancer.server.port=1234
+    #         - traefik.http.routers.bb.service=bb
+    #     ports:
+    #         - 50922:10022
+    #         - 127.0.0.1:1234:1234 # Bluebubbles API
+    #         - 5999:5999 # vnc
+    #     volumes:
+    #         - /tmp/.X11-unix:/tmp/.X11-unix
+    #         - /opt/macos/mac.qcow2:/image # Backed up on portable SSD
+    #     # networks:
+    #     #     - macos_network
+    #     environment:
+    #         - DISPLAY=${DISPLAY:-:0.0}
+    #         - GENERATE_SPECIFIC=true
+    #         - DEVICE_MODEL=iMacPro1,1
+    #         - SERIAL=SERIAL
+    #         - BOARD_SERIAL=BOARD
+    #         - UUID=UUID
+    #         - MAC_ADDRESS=MAC
+    #         - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
+    #         - TZ=America/Chicago
+    #         - ADDITIONAL_PORTS=hostfwd=tcp::1234-:1234,
+    #     devices:
+    #         - /dev/kvm
+    #     user: root
+
+    macos-ventura:
+        container_name: macos-ventura
         restart: 'always'
         image: sickcodes/docker-osx:naked
         labels:
@@ -691,17 +729,19 @@ services:
             - 5999:5999 # vnc
         volumes:
             - /tmp/.X11-unix:/tmp/.X11-unix
-            - /opt/macos/mac.qcow2:/image # Backed up on nas /Backup/home-assistant/
+            - /opt/macos/macos_ventura.qcow2:/image # Backed up on portable SSD
         # networks:
         #     - macos_network
         environment:
             - DISPLAY=${DISPLAY:-:0.0}
             - GENERATE_SPECIFIC=true
             - DEVICE_MODEL=iMacPro1,1
-            - SERIAL=SERIAL
-            - BOARD_SERIAL=BOARD
-            - UUID=UUID
-            - MAC_ADDRESS=MAC
+            - SERIAL=C02F1QY1HX87
+            - BOARD_SERIAL=C02053200GUJG36CB
+            - UUID=76F638BF-7636-4891-83B8-E1904DB20EB7
+            - MAC_ADDRESS=6C:E5:C9:89:6B:07
+            - WIDTH=1920
+            - HEIGHT=1080
             - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
             - TZ=America/Chicago
             - ADDITIONAL_PORTS=hostfwd=tcp::1234-:1234,
@@ -714,7 +754,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-e9cdef9
+        image: ghcr.io/blakeblackshear/frigate:dev-188a7de
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -763,6 +803,8 @@ services:
         image: codeproject/ai-server
         ports:
             - 32168:32168
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/codeproject/config:/etc/codeproject/ai

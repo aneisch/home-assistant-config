@@ -23,27 +23,29 @@ time:
     timezone: America/Chicago
     id: homeassistant_time
 
-# text_sensor:
-#   - platform: template
-#     name: Garage Door Last Opened
-#     id: garage_door_last
+datetime:
+  - platform: template
+    id: garage_door_last
+    type: datetime
+    name: Garage Door Last
+    optimistic: yes
+    restore_value: true
 
-dallas:
-  - pin:
-      number: D4
-      #mode: INPUT_PULLUP
-    update_interval: 300s
+one_wire:
+  - platform: gpio
+    pin: D4
 
 sensor:
-  - platform: dallas
+  - platform: dallas_temp
     address: 0x4C01204F1CFB3628
     name: "${friendly_name} Temperature"
+    update_interval: 300s
 
   # 5v supply connected to lightbulb socket through voltage divider
   - platform: adc
     pin: A0
     id: motor_light
-    update_interval: 0.5s
+    update_interval: 1s
     accuracy_decimals: 2
     filters:
       - multiply: 15.43
@@ -98,6 +100,12 @@ binary_sensor:
     filters:
       - delayed_on: 0.5s
       - delayed_off: 0.5s
+    on_press:
+        then:
+          - datetime.datetime.set:
+              id: garage_door_last
+              datetime: !lambda |-
+                return id(homeassistant_time).now();
     # on_press:
     #   then:
     #     - text_sensor.template.publish:

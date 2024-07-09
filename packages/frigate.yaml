@@ -15,7 +15,7 @@ automation:
 
   - alias: Frigate Notification Person
     id: "frigate_notification_person"
-    mode: single
+    mode: parallel
     variables:
       generated_content: " "
     trigger:
@@ -38,6 +38,7 @@ automation:
               filename: /config/media/images/front_door.jpg
             target:
               entity_id: camera.front_door_fullres
+          - delay: 00:00:03
           - service: google_generative_ai_conversation.generate_content
             continue_on_error: true
             data:
@@ -60,7 +61,17 @@ automation:
               data:
                 attachments:
                   - /config/media/images/front_door.jpg
-          #- delay: '00:00:10'
+          - service: notify.alexa_media_kitchen
+            data:
+              data:
+                type: tts
+                method: speak
+              message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_03"/>
+          - service: notify.alexa_media_kitchen
+            data:
+              data:
+                type: tts
+              message: "{{ generated_content.text }}"
 
       # if not home or sleeping time and person detection anywhere then notify
       - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"
@@ -87,6 +98,7 @@ automation:
                   filename: /config/media/images/front_door.jpg
                 target:
                   entity_id: camera.front_door_fullres
+              - delay: 00:00:03
               - service: google_generative_ai_conversation.generate_content
                 continue_on_error: true
                 data:
@@ -203,6 +215,7 @@ automation:
         target:
           entity_id: camera.front_door_fullres
         continue_on_error: true
+      - delay: 00:00:03
       - service: siren.turn_on
         entity_id: siren.garage_chime_siren
         continue_on_error: true

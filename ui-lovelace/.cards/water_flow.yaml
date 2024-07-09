@@ -7,6 +7,7 @@ card:
   cards:
     - type: custom:mushroom-template-card
       primary: "{{ states('sensor.flume_sensor_home_current') | round(2) }} gal/m"
+      secondary: flume
       icon: mdi:water
       card_mod:
         style: |

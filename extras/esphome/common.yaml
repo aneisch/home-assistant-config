@@ -12,7 +12,7 @@ api:
     key: !secret encryption_key
 
 ota:
-  safe_mode: True
+  platform: esphome
   password: esphome_recovery
 
 # text_sensor:

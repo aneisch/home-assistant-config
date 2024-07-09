@@ -1,0 +1,44 @@
+esphome:
+  name: "philips-smart-coffee"
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ap:
+
+captive_portal:
+
+web_server:
+
+# Enable logging
+logger:
+  # Disable serial logging
+  baud_rate: 0
+
+external_components:
+  - source: github://TillFleisch/ESPHome-Philips-Smart-Coffee@main
+
+uart:
+  # UART connected to the mainboard
+  - tx_pin: GPIO1
+    rx_pin: GPIO3
+    baud_rate: 115200
+    id: uart_mainboard
+
+  # UART connected to the display
+  - tx_pin: GPIO15
+    rx_pin: GPIO13
+    baud_rate: 115200
+    id: uart_display
+
+philips_coffee_machine:
+  display_uart: uart_display
+  mainboard_uart: uart_mainboard
+  power_pin: GPIO12
+  id: philip
+
+text_sensor:
+  - platform: philips_coffee_machine
+    controller_id: philip
+    id: status
+    name: "Status"

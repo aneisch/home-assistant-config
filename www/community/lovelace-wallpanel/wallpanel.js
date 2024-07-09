@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.25.2";
+const version = "4.25.4";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -499,11 +499,13 @@ function setSidebarHidden(hidden) {
 		const menuButton = panelLovelace.shadowRoot
 			.querySelector("hui-root").shadowRoot
 			.querySelector("ha-menu-button");
-		if (hidden) {
-			menuButton.style.display = "none";
-		}
-		else {
-			menuButton.style.removeProperty("display");
+		if (menuButton) {
+			if (hidden) {
+				menuButton.style.display = "none";
+			}
+			else {
+				menuButton.style.removeProperty("display");
+			}
 		}
 	}
 	catch (e) {
@@ -667,6 +669,7 @@ class WallpanelView extends HuiView {
 		this.lastEnergyCollectionUpdate = 0;
 		this.screensaverStopNavigationPathTimeout = null;
 
+		this.lovelace = getHaPanelLovelace().lovelace;
 		this.__hass = elHass.__hass;
 		this.__cards = [];
 		this.__badges = [];
@@ -1572,19 +1575,20 @@ class WallpanelView extends HuiView {
 				let tmp = tags.split("!");
 				tags = tmp[0];
 				for (let i=1; i<tmp.length; i++) {
-					let tmp2 = tmp[i].split("=", 2);
-					if (tmp2[0] == "prefix") {
-						prefix = tmp2[1];
+					let argType = tmp[i].substring(0, tmp[i].indexOf("="));
+					let argValue = tmp[i].substring(tmp[i].indexOf("=") + 1);
+					if (argType == "prefix") {
+						prefix = argValue;
 					}
-					else if (tmp2[0] == "suffix") {
-						suffix = tmp2[1];
+					else if (argType == "suffix") {
+						suffix = argValue;
 					}
-					else if (tmp2[0] == "options") {
+					else if (argType == "options") {
 						options = {};
-						tmp2[1].split(",").forEach(optVal => {
-							let tmp3 = optVal.split(":", 2);
-							if (tmp3[0] && tmp3[1]) {
-								options[tmp3[0].replace(/\s/g, '')] = tmp3[1].replace(/\s/g, '');
+						argValue.split(",").forEach(optVal => {
+							let tmp2 = optVal.split(":", 2);
+							if (tmp2[0] && tmp2[1]) {
+								options[tmp2[0].replace(/\s/g, '')] = tmp2[1].replace(/\s/g, '');
 							}
 						});
 					}
@@ -1612,6 +1616,10 @@ class WallpanelView extends HuiView {
 			}
 			if (/DateTime/.test(tag)) {
 				let date = new Date(val.replace(/(\d\d\d\d):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/, '$1-$2-$3T$4:$5:$6'));
+				if (isNaN(date)) {
+					// Invalid date
+					return "";
+				}
 				if (!options) {
 					options = {year: "numeric", month: "2-digit", day: "2-digit"};
 				}
