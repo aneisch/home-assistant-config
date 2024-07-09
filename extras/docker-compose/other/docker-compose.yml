@@ -521,10 +521,10 @@ services:
             - DISPLAY=${DISPLAY:-:0.0}
             - GENERATE_SPECIFIC=true
             - DEVICE_MODEL=iMacPro1,1
-            - SERIAL=C02F1QY1HX87
-            - BOARD_SERIAL=C02053200GUJG36CB
-            - UUID=76F638BF-7636-4891-83B8-E1904DB20EB7
-            - MAC_ADDRESS=6C:E5:C9:89:6B:07
+            - SERIAL=SERIAL
+            - BOARD_SERIAL=SERIAL
+            - UUID=7UUID
+            - MAC_ADDRESS=MAC
             - WIDTH=1920
             - HEIGHT=1080
             - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
