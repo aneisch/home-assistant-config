@@ -1,13 +1,13 @@
 type: conditional
 conditions:
-  - entity: binary_sensor.flume_flow_status
+  - entity: binary_sensor.s3_flow_status
     state: 'on'
 card:
   type: vertical-stack
   cards:
     - type: custom:mushroom-template-card
-      primary: "{{ states('sensor.flume_sensor_home_current') | round(2) }} gal/m"
-      secondary: Flume
+      primary: "{{ states('sensor.s3_flow') | round(2) }} gal/m"
+      secondary: "S3"
       icon: mdi:water
       card_mod:
         style: |

@@ -4,7 +4,7 @@ cards:
   # - !include .cards/kitchen_timer.yaml
   - !include .cards/grill.yaml
   - !include .cards/water_flow.yaml
-  - !include .cards/water_flow_copy.yaml
+  - !include .cards/water_flow_s3.yaml
   - !include .cards/camera_detect.yaml
 
   - type: custom:vertical-stack-in-card

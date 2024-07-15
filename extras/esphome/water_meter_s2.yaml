@@ -6,6 +6,8 @@ substitutions:
   i2c_sda: GPIO33  # D2
   prefix_name: s2
   #flow_update_interval_seconds: "5"
+  hide_magnetic_field_strength_sensors: 'true'
+  hide_half_rotations_total_sensor: 'false'
 
 esphome:
   name: ${name}
@@ -19,6 +21,18 @@ esp32:
   #   sdkconfig_options:
   #     CONFIG_ESP_CONSOLE_USB_CDC: y
 
-<<: !include common.yaml
+# Common settings to all my devices
+wifi:
+  ssid: "SSID"
+  password: !secret wifi_password
+
+api:
+  #reboot_timeout: 0s # default
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  platform: esphome
+  password: esphome_recovery
 
 <<: !include water_meter_master.yaml

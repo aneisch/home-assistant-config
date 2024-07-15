@@ -50,6 +50,13 @@ switch:
     name: "${friendly_name} Power"
     icon: mdi:coffee-maker
 
+  - platform: philips_coffee_machine
+    controller_id: philip
+    clean: false
+    id: power_without_cleaning
+    name: "Power Without Cleaning"
+    icon: mdi:coffee-maker    
+
 button:
   - platform: philips_coffee_machine
     controller_id: philip

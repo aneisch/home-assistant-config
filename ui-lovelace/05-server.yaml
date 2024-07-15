@@ -118,7 +118,20 @@ cards:
           Monthly Water + Sewer + Electric: ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly_emporia') | float)) | round(2) }}
 
           Cycle Ends: {{ states('sensor.utilities_cycle_end') }}
-
+      - type: sensor
+        entity: sensor.s3_water_usage
+        graph: line
+        name: S3 Monthly Water
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:water
+      - type: sensor
+        entity: sensor.flume_monthly_water_usage
+        graph: line
+        name: Flume Monthly Water
+        detail: 2
+        hours_to_show: 730
+        icon: mdi:water
   - type: entities
     show_header_toggle: false
     title: UPS

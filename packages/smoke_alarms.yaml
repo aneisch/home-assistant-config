@@ -5,11 +5,11 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - binary_sensor.kitchen_alarm_co_alarm_alarm_silenced
-        - binary_sensor.kitchen_alarm_co_alarm_carbon_monoxide_detected
-        - binary_sensor.kitchen_alarm_co_alarm_replacement_required_end_of_life
-        - binary_sensor.kitchen_alarm_smoke_alarm_alarm_silenced
-        - binary_sensor.kitchen_alarm_system_system_hardware_failure
+        - binary_sensor.office_alarm_co_alarm_alarm_silenced
+        - binary_sensor.office_alarm_co_alarm_carbon_monoxide_detected
+        - binary_sensor.office_alarm_co_alarm_replacement_required_end_of_life
+        - binary_sensor.office_alarm_smoke_alarm_alarm_silenced
+        - binary_sensor.office_alarm_system_system_hardware_failure
         - binary_sensor.hallway_alarm_co_alarm_alarm_silenced
         - binary_sensor.hallway_alarm_co_alarm_carbon_monoxide_detected
         - binary_sensor.hallway_alarm_co_alarm_replacement_required_end_of_life
@@ -29,7 +29,7 @@ automation:
   #     - platform: numeric_state
   #       entity_id:
   #         - sensor.hallway_alarm_battery_level
-  #         - sensor.kitchen_alarm_battery_level
+  #         - sensor.office_alarm_battery_level
   #       below: 79
   #   action:
   #     - service: script.notify_wrapper
@@ -42,8 +42,8 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
-        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.office_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.office_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hardwired_smoke_alarms_smoke_detected
@@ -67,8 +67,8 @@ automation:
     trigger:
       platform: state
       entity_id:
-        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_alarm_test
-        - binary_sensor.kitchen_alarm_smoke_alarm_smoke_detected
+        - binary_sensor.office_alarm_smoke_alarm_smoke_alarm_test
+        - binary_sensor.office_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hardwired_smoke_alarms_smoke_detected
@@ -80,11 +80,11 @@ automation:
       - service: script.notify_wrapper
         data:
           message: >
-            {{ trigger.from_state.attributes.friendly_name }}: Cleared
+            {{ trigger.from_state.attributes.friendly_name }}: Cleared. Turn A/C on manually.
           data:
             priority: 1
-      - service: climate.turn_on
-        entity_id: climate.thermostat
+      # - service: climate.turn_on
+      #   entity_id: climate.thermostat
 
   - alias: "Smoke Alarm Home Response"
     id: "smoke_alarm_home_response"

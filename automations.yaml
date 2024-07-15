@@ -378,17 +378,20 @@
     entity_id:
     - switch.living_room_speakers
     - switch.tv
-- alias: Desk Lamp on when MacBook Active
-  id: desk_lamp_macbook_active
-  initial_state: true
+- id: desk_lamp_macbook_active
+  alias: Desk Lamp on when MacBook Active
   trigger:
-    platform: state
+  - platform: state
     entity_id: binary_sensor.weasel_active
     to: 'on'
-  condition: '{{ states(''person.andrew'') == ''home'' }}'
+  condition:
+  - condition: template
+    value_template: '{{ states(''person.andrew'') == ''home'' }}'
   action:
-  - if: '{{ states(''sun.sun'') == ''below_horizon'' or (states(''cover.office_blind_left'')
-      == ''closed'' and states(''cover.office_blind_right'') == ''closed'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ states(''sun.sun'') == ''below_horizon'' or (states(''cover.office_blind_left'')
+        == ''closed'' and states(''cover.office_blind_right'') == ''closed'') }}'
     then:
     - service: homeassistant.turn_on
       entity_id: light.andrew_desk_lamp
@@ -397,6 +400,15 @@
     - switch.andrew_monitor
     - media_player.kitchen_photo_frame
     - media_player.office_photo_frame
+  - condition: time
+    after: 08:00:00
+    before: '21:00:00'
+  - service: input_boolean.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.goodnight
+  initial_state: true
 - alias: Desk Lamp and Monitor off
   id: desk_lamp_and_monitor_off
   initial_state: true

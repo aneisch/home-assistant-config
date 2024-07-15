@@ -33,11 +33,3 @@ sensor:
   - platform: debug
     loop_time:
       name: "Loop Time"
-      
-  - id: !extend ${prefix_id}qmc5883l_id
-    field_strength_x:
-      internal: true
-    field_strength_y:
-      internal: true
-    field_strength_z:
-      internal: true
