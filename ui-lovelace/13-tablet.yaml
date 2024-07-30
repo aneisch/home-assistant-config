@@ -200,13 +200,15 @@ cards:
                     }
                 tap_action:
                   action: call-service
-                  service: light.turn_on
-                  data:
-                    rgb_color: [255, 255, 255]
-                    brightness: 255
-                    #effect: "custom scan"
-                    effect: "fast pulse"
-                    entity_id: light.desk_led
+                  service: script.desk_led_white
+
+                  # service: light.turn_on
+                  # data:
+                  #   rgb_color: [255, 255, 255]
+                  #   brightness: 255
+                  #   #effect: "custom scan"
+                  #   effect: "fast pulse"
+                  #   entity_id: light.desk_led
 
               - type: custom:mushroom-template-card
                 primary: "LED"
@@ -237,13 +239,14 @@ cards:
                     }
                 tap_action:
                   action: call-service
-                  service: light.turn_on
-                  data:
-                    rgb_color: [255, 0, 0]
-                    brightness: 255
-                    #effect: "custom scan"
-                    effect: "fast pulse"
-                    entity_id: light.desk_led
+                  service: script.desk_led_red
+                  # service: light.turn_on
+                  # data:
+                  #   rgb_color: [255, 0, 0]
+                  #   brightness: 255
+                  #   #effect: "custom scan"
+                  #   effect: "fast pulse"
+                  #   entity_id: light.desk_led
 
           - type: custom:mushroom-media-player-card
             entity: media_player.spotify

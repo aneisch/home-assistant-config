@@ -77,7 +77,7 @@ script:
         data:
           rgb_color: [255,0,0]
           brightness: 255
-          effect: "custom scan"
+          effect: "fast pulse"
   desk_led_white:
     sequence:
       - service: homeassistant.turn_on
@@ -85,7 +85,7 @@ script:
         data:
           rgb_color: [255,255,255]
           brightness: 255
-          effect: "custom scan"
+          effect: "fast pulse"
 
 # sensor:
 #   - platform: mqtt

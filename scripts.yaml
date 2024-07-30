@@ -305,21 +305,27 @@ noop:
 
 desk_led_red:
   sequence:
+    - service: homeassistant.turn_off
+      entity_id: light.desk_led
     - service: homeassistant.turn_on
       entity_id: light.desk_led
       data:
         rgb_color: [255, 0, 0]
         brightness: 255
-        effect: "custom scan"
+        #effect: "custom scan"
+        effect: "fast pulse"
 
 desk_led_white:
   sequence:
+    - service: homeassistant.turn_off
+      entity_id: light.desk_led
     - service: homeassistant.turn_on
       entity_id: light.desk_led
       data:
         rgb_color: [255, 255, 255]
         brightness: 255
-        effect: "custom scan"
+        #effect: "custom scan"
+        effect: "fast pulse"
 
 # Launch app on Android phone
 andrew_phone_launch_watch_manager:
@@ -331,3 +337,60 @@ andrew_phone_launch_watch_manager:
           package_name: "com.samsung.android.app.watchmanager"
           ttl: 0
           priority: high
+
+andrew_double_latte:
+  alias: Make Andrew Double Latte
+  sequence:
+    - repeat:
+        count: 2
+        sequence:
+          - service: button.press
+            target:
+              entity_id: button.coffee_maker_select_latte
+            data: {}
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 1
+              milliseconds: 0
+          - service: number.min
+            metadata: {}
+            data: {}
+            target:
+              entity_id: number.coffee_maker_milk
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 5
+              milliseconds: 0
+          - service: number.max
+            metadata: {}
+            data: {}
+            target:
+              entity_id: number.coffee_maker_size
+          - delay:
+              hours: 0
+              minutes: 0
+              seconds: 5
+              milliseconds: 0
+          - service: button.press
+            metadata: {}
+            data: {}
+            target:
+              entity_id: button.coffee_maker_select_play_pause
+          - wait_for_trigger:
+              - platform: state
+                entity_id:
+                  - sensor.coffee_maker_status
+                to: Idle
+                for:
+                  hours: 0
+                  minutes: 0
+                  seconds: 2
+            timeout:
+              hours: 0
+              minutes: 2
+              seconds: 0
+              milliseconds: 0
+            continue_on_timeout: false
+  icon: mdi:coffee

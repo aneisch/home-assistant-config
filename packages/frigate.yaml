@@ -143,61 +143,99 @@ automation:
             - media_player.kitchen_photo_frame
             - media_player.office_photo_frame
 
-  - alias: Frigate Notification Deliveries
-    id: "frigate_notification_deliveries"
+  - alias: Frigate Notification USPS
+    id: "frigate_notification_usps"
     mode: single
     trigger:
-      - platform: mqtt
-        topic: frigate/events
-        payload: update
-        value_template: "{{ value_json.type }}"
-      - platform: mqtt
-        topic: frigate/events
-        payload: end
-        value_template: "{{ value_json.type }}"
-    condition: "{{ trigger.payload_json['after']['sub_label'] != 'Undefined' or trigger.payload_json['after']['label'] == 'PrimeAir'  }}"
+      - platform: webhook
+        webhook_id: "usps_mail_detected"
+        allowed_methods:
+          - POST
+        local_only: true
     action:
-      - if: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}"
-        then: 
-          - service: input_datetime.set_datetime
+      - service: input_datetime.set_datetime
+        data:
+          entity_id: "input_datetime.usps_last"
+          time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
+          date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
+      - service: camera.snapshot
+        data:
+          filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+        target:
+          entity_id:
+            - camera.usps_vehicle
+      - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
+        then:
+          - service: notify.alexa_media
+            continue_on_error: true
             data:
-              entity_id: "input_datetime.usps_last"
-              time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
-              date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-          - service: notify.signal_homeassistant
-            data:
-              message: "USPS detected"
+              message: "<audio src='https://vps.secret/mail.mp3'/>"
               data:
-                attachments:
-                  - /config/media/images/logo.jpg
-          - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
-            then:
-              - service: notify.alexa_media
-                data:
-                  message: "<audio src='https://vps.secret/mail.mp3'/>"
-                  data:
-                    type: tts
-                  target: media_player.kitchen
-          - service: camera.snapshot
-            data:
-              filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
-            target:
-              entity_id:
-                - camera.usps_vehicle
-          - service: shell_command.create_timelapse
-            data:
-              camera: usps_vehicle
-          - delay: "00:02:00"
+                type: tts
+              target: media_player.kitchen
+      - service: notify.signal_homeassistant
+        data:
+          message: "USPS detected"
+          data:
+            attachments:
+              - /config/media/images/logo.jpg
+      - delay: "00:01:00"
+
+  # - alias: Frigate Notification Deliveries
+  #   id: "frigate_notification_deliveries"
+  #   mode: single
+  #   trigger:
+  #     - platform: mqtt
+  #       topic: frigate/events
+  #       payload: update
+  #       value_template: "{{ value_json.type }}"
+  #     - platform: mqtt
+  #       topic: frigate/events
+  #       payload: end
+  #       value_template: "{{ value_json.type }}"
+  #   condition: "{{ trigger.payload_json['after']['sub_label'] != 'Undefined' or trigger.payload_json['after']['label'] == 'PrimeAir'  }}"
+  #   action:
+  #     - if: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}"
+  #       then: 
+  #         - service: input_datetime.set_datetime
+  #           data:
+  #             entity_id: "input_datetime.usps_last"
+  #             time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
+  #             date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
+  #         - service: notify.signal_homeassistant
+  #           data:
+  #             message: "USPS detected"
+  #             data:
+  #               attachments:
+  #                 - /config/media/images/logo.jpg
+  #         - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
+  #           then:
+  #             - service: notify.alexa_media
+  #               data:
+  #                 message: "<audio src='https://vps.secret/mail.mp3'/>"
+  #                 data:
+  #                   type: tts
+  #                 target: media_player.kitchen
+  #         - service: camera.snapshot
+  #           data:
+  #             filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+  #           target:
+  #             entity_id:
+  #               - camera.usps_vehicle
+  #         - service: shell_command.create_timelapse
+  #           data:
+  #             camera: usps_vehicle
+  #         - delay: "00:02:00"
 
 
-      - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
-        then: 
-          - service: notify.signal_homeassistant
-            data:
-              message: "Prime Air Drone detected"
-              data:
-                attachments:
-                  - /config/media/images/logo.jpg
+  #     - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
+  #       then: 
+  #         - service: notify.signal_homeassistant
+  #           data:
+  #             message: "Prime Air Drone detected"
+  #             data:
+  #               attachments:
+  #                 - /config/media/images/logo.jpg
 
   - alias: Doorbell Ring
     id: "frigate_doorbell_ring"

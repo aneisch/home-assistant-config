@@ -99,20 +99,20 @@ automation:
       - delay: "00:00:15"
 
   # Also see nodered for faucet auto-drip
-  - alias: "Water Temperature Alert"
-    id: "water_temperature_alert"
-    initial_state: on
-    mode: 'single'
-    trigger:
-      - platform: numeric_state
-        entity_id: sensor.water_supply_temperature
-        below: 34
-    action:
-      - service: script.notify_wrapper
-        data:
-          message: "Water supply temperature below 34! Currently {{ trigger.to_state.state }} degrees!"
-          data:
-            priority: 1
+  # - alias: "Water Temperature Alert"
+  #   id: "water_temperature_alert"
+  #   initial_state: on
+  #   mode: 'single'
+  #   trigger:
+  #     - platform: numeric_state
+  #       entity_id: sensor.water_supply_temperature
+  #       below: 34
+  #   action:
+  #     - service: script.notify_wrapper
+  #       data:
+  #         message: "Water supply temperature below 34! Currently {{ trigger.to_state.state }} degrees!"
+  #         data:
+  #           priority: 1
 
   - alias: "Water Sensor Alerts"
     id: "water_sensor_alert"

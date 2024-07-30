@@ -518,7 +518,7 @@ scene: !include scene.yaml
 
 script: !include scripts.yaml
 
-#setter:
+setter:
 
 sensor: !include sensors.yaml
 

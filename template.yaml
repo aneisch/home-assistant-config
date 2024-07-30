@@ -113,15 +113,19 @@
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 # Unused
-# - trigger:
-#     # - platform: mqtt
-#     #   topic: "sensor/rtl_433_office"
-#     #   payload: True
-#     #   value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
-#     - platform: mqtt
-#       topic: "sensor/rtl_433_attic"
-#       payload: "True"
-#       value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
-#   sensor:
-#     - name: "433 Motion"
-#       state: "{{ now() }}"
+- trigger:
+    # - platform: mqtt
+    #   topic: "sensor/rtl_433_office"
+    #   payload: True
+    #   value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Smoke-GS558' and value_json.id == 13751 and value_json.code == '06b6fd' }}"
+  sensor:
+    - name: "433 Motion Master Bathroom"
+      state: "{{ now() }}"
+  binary_sensor:
+    - name: "433 Motion Master Bathroom"
+      state: "{{ 1==1 }}"
+      device_class: motion

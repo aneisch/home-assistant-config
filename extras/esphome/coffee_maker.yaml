@@ -2,17 +2,18 @@ substitutions:
   name: "coffee_maker"
   friendly_name: "Coffee Maker"
 
+globals:
+  - id: last_message
+    type: std::vector<uint8_t>
+  - id: same_message_count
+    type: uint8_t
+
 esphome:
   name: ${name}
   platform: ESP8266
   board: d1_mini
 
 <<: !include common.yaml
-
-# Enable logging
-logger:
-  # Disable serial logging
-  baud_rate: 0
 
 external_components:
   - source: github://TillFleisch/ESPHome-Philips-Smart-Coffee@main
@@ -23,19 +24,68 @@ uart:
     rx_pin: GPIO3
     baud_rate: 115200
     id: uart_mainboard
+    # debug:
+    #   direction: TX
+    #   sequence:
+    #     - lambda: |
+    #         while (bytes.size()>=12)
+    #         {
+    #             // Search for start bytes
+    #             // Checking byte 9 filters a lot of noisy (invalid) message but may also remove valuable message
+    #             // Since we don't know how the checksum is calculated, this is the best we can do
+    #             if (bytes[0] == 0xD5 && bytes[1] == 0x55 &&
+    #                 (bytes[9] == 0x00 || bytes[9] == 0x01))
+    #             {
+    #               // Assume D5 55 does not appear in messages, skip invalid messages
+    #               for (int i = 2; i < 11; i++){
+    #                 if (bytes[i] == 0xD5 && bytes[i+1] == 0x55){
+    #                   bytes.erase(bytes.begin(), bytes.begin() + (i-1));
+    #                   return;
+    #                 }
+    #               }
+
+    #               // Log byte subsection
+    #               std::vector<uint8_t> subset(bytes.begin(), bytes.begin() + 12);
+
+    #               if(subset != id(last_message)){
+    #                 // Append message repetition count
+    #                 id(last_message).push_back(0);
+    #                 id(last_message).push_back(0);
+    #                 id(last_message).push_back(id(same_message_count));
+                    
+    #                 // Filter out rare messages. This may also remove some valuable information
+    #                 if(id(same_message_count) > 3){
+    #                   UARTDebug::log_hex(direction, id(last_message), ' ');
+    #                 }
+    #                 id(same_message_count)=0;
+    #               }
+
+    #               id(last_message) = subset;
+    #               id(same_message_count)++;
+
+    #               // remove logged bytes from buffer
+    #               bytes.erase(bytes.begin(), bytes.begin() + 12);
+    #             }else{
+    #               // remove first byte
+    #               bytes.erase(bytes.begin());
+    #             }
+    #         }
 
   # UART connected to the display
   - tx_pin: GPIO15
     rx_pin: GPIO13
     baud_rate: 115200
     id: uart_display
+    # debug:
+    #   after:
+    #     bytes: 12
 
 philips_coffee_machine:
   display_uart: uart_display
   mainboard_uart: uart_mainboard
   power_pin: GPIO12
   id: philip
-  power_message_repetitions: 25
+  #power_message_repetitions: 5
   model: EP_3246
 
 text_sensor:
@@ -47,17 +97,48 @@ text_sensor:
 switch:
   - platform: philips_coffee_machine
     controller_id: philip
-    name: "${friendly_name} Power"
+    id: coffee_power_with_cleaning
+    name: "${friendly_name} Power With Cleaning"
     icon: mdi:coffee-maker
 
   - platform: philips_coffee_machine
     controller_id: philip
     clean: false
-    id: power_without_cleaning
-    name: "Power Without Cleaning"
+    id: coffee_power_without_cleaning
+    name: "${friendly_name} Power Without Cleaning"
     icon: mdi:coffee-maker    
 
 button:
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: SELECT_COFFEE
+    name: "${friendly_name} Select Coffee"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_COFFEE
+    name: "${friendly_name} Make Coffee"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: SELECT_AMERICANO
+    name: "${friendly_name} Select Americano"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_AMERICANO
+    name: "${friendly_name} Make Americano"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: SELECT_ESPRESSO
+    name: "${friendly_name} Select Espresso"
+    icon: mdi:coffee
+
   - platform: philips_coffee_machine
     controller_id: philip
     action: MAKE_ESPRESSO
@@ -66,8 +147,32 @@ button:
 
   - platform: philips_coffee_machine
     controller_id: philip
+    action: SELECT_CAPPUCCINO
+    name: "${friendly_name} Select Cappuccino"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
     action: MAKE_CAPPUCCINO
     name: "${friendly_name} Make Cappuccino"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: SELECT_HOT_WATER
+    name: "${friendly_name} Select Hot Water"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: MAKE_HOT_WATER
+    name: "${friendly_name} Dispense Hot Water"
+    icon: mdi:coffee
+
+  - platform: philips_coffee_machine
+    controller_id: philip
+    action: SELECT_LATTE
+    name: "${friendly_name} Select Latte"
     icon: mdi:coffee
 
   - platform: philips_coffee_machine
@@ -79,27 +184,24 @@ button:
   - platform: philips_coffee_machine
     controller_id: philip
     action: PLAY_PAUSE
-    name: "${friendly_name} Select play/pause"
+    name: "${friendly_name} Select Play/Pause"
     icon: mdi:play-pause
 
 number:
   - platform: philips_coffee_machine
     type: bean
-    name: "${friendly_name} Coffee Beans"
+    name: "${friendly_name} Strength"
     controller_id: philip
     status_sensor_id: status
-    source: COFFEE
 
   - platform: philips_coffee_machine
     type: milk
-    name: "${friendly_name} Milk Setting"
+    name: "${friendly_name} Milk"
     controller_id: philip
     status_sensor_id: status
-    source: COFFEE
 
   - platform: philips_coffee_machine
     type: size
-    name: "${friendly_name} Coffee Size"
+    name: "${friendly_name} Size"
     controller_id: philip
     status_sensor_id: status
-    source: COFFEE

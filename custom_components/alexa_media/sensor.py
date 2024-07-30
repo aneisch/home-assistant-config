@@ -257,9 +257,9 @@ class TemperatureSensor(SensorEntity, CoordinatorEntity):
         self._attr_name = name + " Temperature"
         self._attr_device_class = SensorDeviceClass.TEMPERATURE
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_value: Optional[datetime.datetime] = (
-            parse_temperature_from_coordinator(coordinator, entity_id)
-        )
+        self._attr_native_value: Optional[
+            datetime.datetime
+        ] = parse_temperature_from_coordinator(coordinator, entity_id)
         self._attr_native_unit_of_measurement: Optional[str] = UnitOfTemperature.CELSIUS
         # This includes "_temperature" because the Alexa entityId is for a physical device
         # A single physical device could have multiple HA entities
@@ -306,12 +306,12 @@ class AirQualitySensor(SensorEntity, CoordinatorEntity):
         self._attr_name = name + " " + self._sensor_name
         self._attr_device_class = self._sensor_name
         self._attr_state_class = SensorStateClass.MEASUREMENT
-        self._attr_native_value: Optional[datetime.datetime] = (
-            parse_air_quality_from_coordinator(coordinator, entity_id, instance)
-        )
-        self._attr_native_unit_of_measurement: Optional[str] = (
-            ALEXA_UNIT_CONVERSION.get(unit)
-        )
+        self._attr_native_value: Optional[
+            datetime.datetime
+        ] = parse_air_quality_from_coordinator(coordinator, entity_id, instance)
+        self._attr_native_unit_of_measurement: Optional[
+            str
+        ] = ALEXA_UNIT_CONVERSION.get(unit)
         self._attr_unique_id = entity_id + " " + self._sensor_name
         self._attr_icon = ALEXA_ICON_CONVERSION.get(sensor_name, ALEXA_ICON_DEFAULT)
         self._attr_device_info = (
@@ -430,7 +430,7 @@ class AlexaMediaNotificationSensor(SensorEntity):
             "alexa_media_notification_event",
             dt.as_local(time_date),
         )
-        self.hass.bus.async_fire(
+        self.hass.bus.fire(
             "alexa_media_notification_event",
             event_data={
                 "email": hide_email(self._account),
@@ -703,6 +703,18 @@ class TimerSensor(AlexaMediaNotificationSensor):
             else "mdi:timer-off"
         )
         return self._attr_icon if not self.paused else off_icon
+
+    @property
+    def timer(self):
+        """Return the timer of the sensor."""
+        return self._next.get("timerLabel") if self._next else None
+
+    @property
+    def extra_state_attributes(self):
+        """Return the scene state attributes."""
+        attr = super().extra_state_attributes
+        attr.update({"timer": self.timer})
+        return attr
 
 
 class ReminderSensor(AlexaMediaNotificationSensor):

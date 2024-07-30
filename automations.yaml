@@ -183,12 +183,19 @@
     from: 'off'
     to: 'on'
   action:
-  - service: input_datetime.set_datetime
-    data:
-      entity_id: input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.',
-        replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.',
-        replace='') }}_last
-      datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+  - if: '{{ trigger.entity_id == ''binary_sensor.garage_person_occupancy'' }}'
+    then:
+    - service: input_datetime.set_datetime
+      data:
+        entity_id: input_datetime.garage_motion_last
+        datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
+    else:
+    - service: input_datetime.set_datetime
+      data:
+        entity_id: input_datetime.{{trigger.entity_id | regex_replace(find='binary_sensor.',
+          replace='') | regex_replace(find='input_boolean.', replace='') | regex_replace(find='sensor.',
+          replace='') }}_last
+        datetime: '{{ now().strftime(''%Y-%m-%d %H:%M:%S'') }}'
 - alias: Door Lock Alerts
   id: door_lock_alerts
   initial_state: true
@@ -797,52 +804,129 @@
       message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
         '
-- alias: Coffee Maker on With Alarm Clock
-  id: coffee_maker_alarm_clock
-  initial_state: true
+- id: coffee_maker_alarm_clock
+  alias: Coffee Maker on With Alarm Clock
   trigger:
   - platform: state
     entity_id: sensor.andrew_phone_last_notification
     attribute: channel_id
     to: Firing
+    id: alarm
+    alias: Phone Alarm
+  - platform: event
+    id: respond
+    event_type: mobile_app_notification_action
+    event_data:
+      action: confirm_coffee_on
+    alias: Mobile Notification Response
+  - alias: Mobile Notification Response
+    platform: event
+    id: make
+    event_type: mobile_app_notification_action
+    event_data:
+      action: confirm_make_latte
   condition:
-    condition: and
+  - condition: and
     conditions:
-    - '{{ states(''binary_sensor.workday_sensor'') == ''on'' }}'
-    - '{{ states(''person.andrew'') == ''home'' }}'
+    - condition: template
+      value_template: '{{ states(''binary_sensor.workday_sensor'') == ''on'' }}'
+      alias: Workday?
+      enabled: false
     - condition: time
       after: 05:30:00
-      before: 09:45:00
-    - '{{ states(''sensor.andrew_phone_charger_type'') != ''none'' }}'
+      before: '10:00:00'
+      enabled: true
+      alias: Morning?
+    - condition: template
+      value_template: '{{ states(''person.andrew'') == ''home'' }}'
+      alias: Andrew Home?
   action:
-  - wait_template: '{{ is_state(''sensor.andrew_phone_charger_type'', ''none'') }}'
-    timeout: 00:05:00
-  - service: switch.turn_on
-    entity_id: switch.coffee_maker
-  - service: switch.turn_on
-    entity_id: switch.under_cabinet_lights_coffee
-  - wait_template: '{{ is_state(''switch.under_cabinet_lights_coffee'', ''off'') }}'
-    timeout: 00:20:00
   - if:
-    - '{{ wait.completed }}'
+    - condition: trigger
+      id:
+      - alarm
     then:
-    - service: switch.turn_off
-      entity_id: switch.coffee_maker
-- alias: Coffee Maker Off
-  id: coffee_maker_off
+    - wait_template: '{{ is_state(''sensor.andrew_phone_charger_type'', ''none'')
+        }}'
+      timeout: 00:05:00
+    - service: notify.mobile_app_andrew_phone
+      data:
+        message: Turn on Coffee Maker?
+        data:
+          persistent: true
+          tag: persistent
+          actions:
+          - action: confirm_coffee_on
+            title: 'Yes'
+          - action: ignore_coffee_on
+            title: 'No'
+    alias: Send Notification
+  - alias: Turn on Coffee Maker
+    if:
+    - condition: trigger
+      id:
+      - respond
+    then:
+    - service: switch.turn_on
+      data: {}
+      target:
+        entity_id: switch.coffee_maker_power_with_cleaning
+      alias: Turn on Coffee Maker
+    - wait_for_trigger:
+      - platform: state
+        entity_id:
+        - sensor.coffee_maker_status
+        to: Idle
+        for:
+          hours: 0
+          minutes: 1
+          seconds: 0
+      timeout:
+        hours: 0
+        minutes: 2
+        seconds: 0
+        milliseconds: 0
+      alias: Wait For Idle Status
+    - service: notify.mobile_app_andrew_phone
+      data:
+        message: Make Double Latte?
+        data:
+          persistent: true
+          tag: persistent
+          actions:
+          - action: confirm_make_latte
+            title: 'Yes'
+          - action: ignore_make_latte
+            title: 'No'
+      alias: Send Make Late Question
+  - alias: Make Double Latte
+    if:
+    - condition: trigger
+      id:
+      - make
+    then:
+    - service: script.andrew_double_latte
+      data: {}
   initial_state: true
+- id: coffee_maker_off
+  alias: Coffee Maker Off
   trigger:
   - platform: time
     at: '10:00:00'
-  condition: '{{ states(''switch.coffee_maker'') == ''on'' }}'
+  condition:
+  - condition: template
+    value_template: '{{ states(''switch.coffee_maker'') == ''on'' }}'
   action:
   - service: switch.turn_off
-    entity_id: switch.coffee_maker
+    data: {}
+    target:
+      entity_id: switch.coffee_maker_power_without_cleaning
   - service: notify.signal_homeassistant
     data:
       message: 'Turned coffee maker off!
 
         '
+  initial_state: true
 - alias: Turn off AC Fan
   id: turn_off_ac_fan
   trigger:
@@ -1095,3 +1179,46 @@
           - cover.master_bedroom_blind_left
           - cover.master_bedroom_blind_right
       automation_mode: restart
+- id: '1722280146692'
+  alias: Reset Master Bathroom Motion
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.433_motion_master_bathroom
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  condition: []
+  action:
+  - service: setter.set
+    data:
+      entity_id: binary_sensor.433_motion_master_bathroom
+      state: 'off'
+      attributes:
+        device_class: motion
+        friendly_name: 433 Motion Master Bathroom
+  mode: single
+- id: '1722300479686'
+  alias: Turn off Master Bathroom Lights
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - binary_sensor.433_motion_master_bathroom
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 30
+      seconds: 0
+  condition: []
+  action:
+  - service: switch.turn_off
+    target:
+      entity_id:
+      - switch.master_bathroom_light_main
+      - switch.master_bathroom_light_secondary
+    data: {}
+  mode: single

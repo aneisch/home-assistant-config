@@ -22,6 +22,11 @@ esphome:
       "-DARDUINO_USB_MODE=1"
       ]
 
+logger:
+  #level: DEBUG
+  # Disable serial logging
+  baud_rate: 0
+
 esp32:
   board: lolin_s3_mini
   variant: esp32s3
@@ -37,9 +42,9 @@ wifi:
   password: !secret wifi_password
 
 api:
-  #reboot_timeout: 0s # default
-  encryption:
-    key: !secret encryption_key
+  # #reboot_timeout: 0s # default
+  # encryption:
+  #   key: !secret encryption_key
 
 ota:
   platform: esphome
