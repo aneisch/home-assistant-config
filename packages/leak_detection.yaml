@@ -19,7 +19,7 @@ automation:
         from: "off"
         to: "on"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "Flume sensor {% if trigger.id == 'disconnected' %}disconnected{% else %}connected{% endif %}"
 
@@ -53,7 +53,7 @@ automation:
             and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
-          - service: script.notify_wrapper
+          - action: script.notify_wrapper
             data:
               message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
@@ -69,14 +69,14 @@ automation:
             and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
-          - service: script.notify_wrapper
+          - action: script.notify_wrapper
             data:
               message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
                 priority: 1
       - if: "{{ trigger.id == 'hours' }}"
         then:
-          - service: script.notify_wrapper
+          - action: script.notify_wrapper
             data:
               message: Water left running? {{ states('sensor.flume_sensor_home_60_minutes') | round(2) }}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') | round(2) }}g/m )
               data:
@@ -91,7 +91,7 @@ automation:
         entity_id: switch.water_shutoff
         to: "on"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: Water supply has been shut off!
           data:
@@ -108,7 +108,7 @@ automation:
   #       entity_id: sensor.water_supply_temperature
   #       below: 34
   #   action:
-  #     - service: script.notify_wrapper
+  #     - action: script.notify_wrapper
   #       data:
   #         message: "Water supply temperature below 34! Currently {{ trigger.to_state.state }} degrees!"
   #         data:
@@ -137,14 +137,14 @@ automation:
     action:
       - if: "{{ trigger.id == 'critical' }}"
         then:
-          - service: switch.turn_on
+          - action: switch.turn_on
             entity_id: switch.water_shutoff
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_critical' %}Shutting off water!{% endif %}"
           data:
             priority: 2
-      # - service: notify.alexa_media
+      # - action: notify.alexa_media
       #   data:
       #     message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_esphome' %}Shutting off water!{% endif %}"
       #     data:

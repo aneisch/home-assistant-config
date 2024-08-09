@@ -20,7 +20,7 @@ services:
             - traefik.http.routers.assist_local.service=assist
         volumes:
             - /opt/homeassistant:/config
-            - /var/run/docker.sock:/var/run/docker.sock
+            #- /var/run/docker.sock:/var/run/docker.sock
             - /home/aneisch/symlinks_for_rsync/hass-docker-ssh:/root/.ssh:ro
             - /tmp/radar.gif:/tmp/radar.gif
             - /sys/class/hwmon/hwmon1/temp1_input:/sys/class/thermal/thermal_zone0/temp:ro

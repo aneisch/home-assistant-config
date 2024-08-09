@@ -19,7 +19,7 @@ automation:
       from: "off"
       to: "on"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "{{ trigger.from_state.attributes.friendly_name }}"
 
@@ -32,7 +32,7 @@ automation:
   #         - sensor.office_alarm_battery_level
   #       below: 79
   #   action:
-  #     - service: script.notify_wrapper
+  #     - action: script.notify_wrapper
   #       data:
   #         message: "{{ trigger.to_state.name }} battery level at {{ trigger.to_state.state }}%. Time to replace!"
 
@@ -50,15 +50,15 @@ automation:
       from: "off"
       to: "on"
     action:
-      - service: input_boolean.turn_on
+      - action: input_boolean.turn_on
         entity_id: input_boolean.smoke_alarm_triggered
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: >
             {{ trigger.from_state.attributes.friendly_name }}: Triggered
           data:
             priority: 2
-      - service: climate.turn_off
+      - action: climate.turn_off
         entity_id: climate.thermostat
 
   - alias: "Smoke Alarm Clear"
@@ -75,15 +75,15 @@ automation:
       from: "on"
       to: "off"
     action:
-      - service: input_boolean.turn_off
+      - action: input_boolean.turn_off
         entity_id: input_boolean.smoke_alarm_triggered
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: >
             {{ trigger.from_state.attributes.friendly_name }}: Cleared. Turn A/C on manually.
           data:
             priority: 1
-      # - service: climate.turn_on
+      # - action: climate.turn_on
       #   entity_id: climate.thermostat
 
   - alias: "Smoke Alarm Home Response"
@@ -99,7 +99,7 @@ automation:
       - if: "{{ states('sun.sun') == 'below_horizon' }}"
         then:
           - alias: "Turn on some Lights"
-            service: homeassistant.turn_on
+            action: homeassistant.turn_on
             data:
               brightness: 255
               transition: 5
@@ -112,25 +112,25 @@ automation:
 # script:
 #   smoke_alarm_trigger_response:
 #     sequence:
-#       - service: homeassistant.turn_on
+#       - action: homeassistant.turn_on
 #         data:
 #           entity_id: input_boolean.security_status
-#       - service: homeassistant.turn_off
+#       - action: homeassistant.turn_off
 #         data:
 #           entity_id: group.master_bedroom
-#       - service: homeassistant.turn_off
+#       - action: homeassistant.turn_off
 #         data:
 #           entity_id: group.common_areas
 
 #   smoke_alarm_clear_response:
 #     sequence:
-#       - service: homeassistant.turn_on
+#       - action: homeassistant.turn_on
 #         data:
 #           entity_id: input_boolean.security_status
-#       - service: homeassistant.turn_off
+#       - action: homeassistant.turn_off
 #         data:
 #           entity_id: group.master_bedroom
-#       - service: homeassistant.turn_off
+#       - action: homeassistant.turn_off
 #         data:
 #           entity_id: group.common_areas
 

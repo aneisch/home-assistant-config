@@ -39,3 +39,7 @@ hallway_motion_last:
   name: Last Hallway Motion
   has_date: true
   has_time: true
+433_motion_master_bathroom_last:
+  name: Last Master Bathroom Motion
+  has_date: true
+  has_time: true

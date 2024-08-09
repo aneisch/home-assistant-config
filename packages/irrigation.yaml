@@ -200,13 +200,13 @@ automation:
       - platform: homeassistant
         event: start
     action:
-      - service: python_script.bhyve_next_watering
+      - action: python_script.bhyve_next_watering
         data:
           entity_id: switch.bhyve_1
-      # - service: python_script.bhyve_next_watering
+      # - action: python_script.bhyve_next_watering
       #   data:
       #     entity_id: switch.bhyve_2
-      # - service: python_script.bhyve_next_watering
+      # - action: python_script.bhyve_next_watering
       #   data:
       #     entity_id: switch.bhyve_3
 
@@ -230,7 +230,7 @@ automation:
       to: "on"
       for: "00:00:30"
     action:
-      - service: input_datetime.set_datetime
+      - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_start"
           time: "{{ ((as_timestamp(now()) - 30) | timestamp_custom('%H:%M:%S', true)) }}"
@@ -239,7 +239,7 @@ automation:
         timeout:
           minutes: 60
         continue_on_timeout: false
-      - service: input_datetime.set_datetime
+      - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.{{ trigger.entity_id |regex_replace(find='switch.', replace='', ignorecase=False) }}_last_stop"
           time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"

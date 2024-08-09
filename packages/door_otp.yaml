@@ -10,24 +10,24 @@ automation:
         webhook_id: !secret cf_lock_otp_webhook
         local_only: false
     action:
-      - service: zwave_js.clear_lock_usercode
+      - action: zwave_js.clear_lock_usercode
         entity_id: lock.garage_exterior_door
         data:
           code_slot: 30
-      - service: notify.signal_homeassistant
+      - action: notify.signal_homeassistant
         data:
           message: "Garage code {{ trigger.json['otp'] }} generated for {{ trigger.json['email'] }}"
-      - service: zwave_js.set_lock_usercode
+      - action: zwave_js.set_lock_usercode
         data:
           entity_id: lock.garage_exterior_door
           code_slot: 30
           usercode: "{{ trigger.json['otp'] }}"
-      - service: switch.turn_on
+      - action: switch.turn_on
         entity_id: switch.garage_exterior_light
       - delay: 60
-      - service: zwave_js.clear_lock_usercode
+      - action: zwave_js.clear_lock_usercode
         entity_id: lock.garage_exterior_door
         data:
           code_slot: 30
-      - service: switch.turn_off
+      - action: switch.turn_off
         entity_id: switch.garage_exterior_light

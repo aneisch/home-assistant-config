@@ -6,7 +6,7 @@ automation:
         entity_id: sensor.ups_status
         from: "ONLINE"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
@@ -17,7 +17,7 @@ automation:
         entity_id: sensor.ups_status
         to: "ONLINE"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: >
             {% if trigger.from_state.state == "ONBATT" %}
@@ -39,10 +39,10 @@ automation:
       entity_id: switch.nas
       state: "on"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
-      - service: switch.turn_off
+      - action: switch.turn_off
         entity_id: switch.nas
 
   - alias: "Containers Off With Outage"
@@ -55,7 +55,7 @@ automation:
         for:
           minutes: 5
     action:
-      - service: homeassistant.turn_off
+      - action: homeassistant.turn_off
         entity_id:
           - switch.docker_zwavejs
           - switch.docker_vscode
@@ -73,7 +73,7 @@ automation:
         for:
           seconds: 30
     action:
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id:
           - switch.docker_zwavejs
           - switch.docker_vscode
@@ -89,10 +89,10 @@ automation:
       below: 10
     condition: "{{ statest('sensor.ups_status') != 'ONLINE' }}"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
-      - service: shell_command.nuc_poweroff
+      - action: shell_command.nuc_poweroff
 
 homeassistant:
   customize:

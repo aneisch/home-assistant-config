@@ -1,0 +1,8 @@
+type: conditional
+conditions:
+  - entity: input_boolean.is_smallgroup
+    state: 'on'
+card:
+  type: entities
+  entities:
+    - input_boolean.is_smallgroup

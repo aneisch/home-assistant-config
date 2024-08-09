@@ -52,26 +52,26 @@ automation:
   action:
     - if: "{{ trigger.id == 'start' and is_state('input_boolean.kitchen_timers_showing', 'off') }}"
       then:
-        - service: script.photo_frame_launch_timers
+        - action: script.photo_frame_launch_timers
           data:
             entity_id: 
               - media_player.kitchen_photo_frame
               - media_player.office_photo_frame
-        - service: input_boolean.turn_on
+        - action: input_boolean.turn_on
           entity_id: input_boolean.kitchen_timers_showing
     - if: "{{ trigger.id == 'stop' and states('timer.kitchen_alexa_1') == 'idle' }}"
       then:
-        - service: androidtv.adb_command
+        - action: androidtv.adb_command
           entity_id: 
             - media_player.kitchen_photo_frame
             - media_player.office_photo_frame
           data:
             # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
             command: "am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
-        - service: script.photo_frame_launch_fotoo
+        - action: script.photo_frame_launch_fotoo
           data:
             entity_id: 
               - media_player.kitchen_photo_frame
               - media_player.office_photo_frame
-        - service: input_boolean.turn_off
+        - action: input_boolean.turn_off
           entity_id: input_boolean.kitchen_timers_showing

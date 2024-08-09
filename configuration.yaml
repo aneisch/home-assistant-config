@@ -82,6 +82,7 @@ energy:
 
 monitor_docker:
   #scan_interval: 60
+  url: "http://localhost:2375"
   monitored_conditions:
     - state
   #switchname: 'docker_{name}'

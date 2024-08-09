@@ -9,7 +9,7 @@ automation:
         value_template: "{{ value_json.type == 'end' and value_json.after.label == 'person' }}"
     action:
       - delay: '00:00:05'
-      - service: shell_command.frigate_clips_drive
+      - action: shell_command.frigate_clips_drive
         data:
           clip_id: "{{trigger.payload_json['after']['id']}}"
 
@@ -30,16 +30,16 @@ automation:
         then:
           - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
             then:
-              - service: shell_command.weasel_shortcut
+              - action: shell_command.weasel_shortcut
                 data:
                   shortcut: open-front-door-cam-weasel
-          - service: camera.snapshot
+          - action: camera.snapshot
             data:
               filename: /config/media/images/front_door.jpg
             target:
               entity_id: camera.front_door_fullres
           - delay: 00:00:03
-          - service: google_generative_ai_conversation.generate_content
+          - action: google_generative_ai_conversation.generate_content
             continue_on_error: true
             data:
               prompt: >-
@@ -48,7 +48,7 @@ automation:
                 describe stationary objects or buildings.
               image_filename: /config/media/images/front_door.jpg
             response_variable: generated_content
-          - service: notify.signal_frigate
+          - action: notify.signal_frigate
             data:
               message: >-
                 A person was detected {{ generated_content.text }}
@@ -61,13 +61,13 @@ automation:
               data:
                 attachments:
                   - /config/media/images/front_door.jpg
-          - service: notify.alexa_media_kitchen
+          - action: notify.alexa_media_kitchen
             data:
               data:
                 type: tts
                 method: speak
               message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_03"/>
-          - service: notify.alexa_media_kitchen
+          - action: notify.alexa_media_kitchen
             data:
               data:
                 type: tts
@@ -78,7 +78,7 @@ automation:
         then:
           - if: "{{ trigger.payload_json['after']['camera'] != 'front_door' }}"
             then:
-              - service: notify.signal_frigate
+              - action: notify.signal_frigate
                 data:
                   message: >-
                     A person was detected.
@@ -93,13 +93,13 @@ automation:
                       - http://localhost:8123/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/snapshot.jpg?bbox=1&timestamp=1&quality=100
               #- delay: '00:00:10'
             else:
-              - service: camera.snapshot
+              - action: camera.snapshot
                 data:
                   filename: /config/media/images/front_door.jpg
                 target:
                   entity_id: camera.front_door_fullres
               - delay: 00:00:03
-              - service: google_generative_ai_conversation.generate_content
+              - action: google_generative_ai_conversation.generate_content
                 continue_on_error: true
                 data:
                   prompt: >-
@@ -108,7 +108,7 @@ automation:
                     describe stationary objects or buildings.
                   image_filename: /config/media/images/front_door.jpg
                 response_variable: generated_content
-              - service: notify.signal_frigate
+              - action: notify.signal_frigate
                 data:
                   message: >-
                     A person was detected {{ generated_content.text }}
@@ -123,25 +123,25 @@ automation:
                       - /config/media/images/front_door.jpg
               #- delay: '00:00:10'
 
-  - alias: Front Door on Photo Frame
-    id: "front_door_on_photo_frame"
-    mode: 'single'
-    trigger:
-      - platform: mqtt
-        topic: frigate/events
-        payload: true
-        value_template: "{{ value_json.type == 'new' and value_json.after.label == 'person' and value_json.after.camera == 'front_door' }}"
-      - platform: state
-        entity_id: binary_sensor.front_door_button_pressed
-        to: "on"
-    condition: "{{ states('media_player.kitchen_photo_frame') != 'off' }}"
-    action:
-      - service: script.photo_frame_launch_front_door_stream
-        data:
-          delay: "00:00:30" # How long to show video
-          entity_id: 
-            - media_player.kitchen_photo_frame
-            - media_player.office_photo_frame
+  # - alias: Front Door on Photo Frame
+  #   id: "front_door_on_photo_frame"
+  #   mode: 'single'
+  #   trigger:
+  #     - platform: mqtt
+  #       topic: frigate/events
+  #       payload: true
+  #       value_template: "{{ value_json.type == 'new' and value_json.after.label == 'person' and value_json.after.camera == 'front_door' }}"
+  #     - platform: state
+  #       entity_id: binary_sensor.front_door_button_pressed
+  #       to: "on"
+  #   condition: "{{ states('media_player.kitchen_photo_frame') != 'off' }}"
+  #   action:
+  #     - action: script.photo_frame_launch_front_door_stream
+  #       data:
+  #         delay: "00:00:30" # How long to show video
+  #         entity_id: 
+  #           - media_player.kitchen_photo_frame
+  #           - media_player.office_photo_frame
 
   - alias: Frigate Notification USPS
     id: "frigate_notification_usps"
@@ -153,12 +153,12 @@ automation:
           - POST
         local_only: true
     action:
-      - service: input_datetime.set_datetime
+      - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.usps_last"
           time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-      - service: camera.snapshot
+      - action: camera.snapshot
         data:
           filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
         target:
@@ -166,14 +166,14 @@ automation:
             - camera.usps_vehicle
       - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
         then:
-          - service: notify.alexa_media
+          - action: notify.alexa_media
             continue_on_error: true
             data:
               message: "<audio src='https://vps.secret/mail.mp3'/>"
               data:
                 type: tts
               target: media_player.kitchen
-      - service: notify.signal_homeassistant
+      - action: notify.signal_homeassistant
         data:
           message: "USPS detected"
           data:
@@ -197,12 +197,12 @@ automation:
   #   action:
   #     - if: "{{ 'usps' in  trigger.payload_json['after']['sub_label'] }}"
   #       then: 
-  #         - service: input_datetime.set_datetime
+  #         - action: input_datetime.set_datetime
   #           data:
   #             entity_id: "input_datetime.usps_last"
   #             time: "{{ ((as_timestamp(now())) | timestamp_custom('%H:%M:%S', true)) }}"
   #             date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
-  #         - service: notify.signal_homeassistant
+  #         - action: notify.signal_homeassistant
   #           data:
   #             message: "USPS detected"
   #             data:
@@ -210,19 +210,19 @@ automation:
   #                 - /config/media/images/logo.jpg
   #         - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
   #           then:
-  #             - service: notify.alexa_media
+  #             - action: notify.alexa_media
   #               data:
   #                 message: "<audio src='https://vps.secret/mail.mp3'/>"
   #                 data:
   #                   type: tts
   #                 target: media_player.kitchen
-  #         - service: camera.snapshot
+  #         - action: camera.snapshot
   #           data:
   #             filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
   #           target:
   #             entity_id:
   #               - camera.usps_vehicle
-  #         - service: shell_command.create_timelapse
+  #         - action: shell_command.create_timelapse
   #           data:
   #             camera: usps_vehicle
   #         - delay: "00:02:00"
@@ -230,7 +230,7 @@ automation:
 
   #     - if: "{{ 'PrimeAir' in  trigger.payload_json['after']['label'] }}"
   #       then: 
-  #         - service: notify.signal_homeassistant
+  #         - action: notify.signal_homeassistant
   #           data:
   #             message: "Prime Air Drone detected"
   #             data:
@@ -247,17 +247,17 @@ automation:
         entity_id: binary_sensor.front_door_button_pressed
         to: "on"
     action:
-      - service: camera.snapshot
+      - action: camera.snapshot
         data:
           filename: /config/media/images/doorbell.jpg
         target:
           entity_id: camera.front_door_fullres
         continue_on_error: true
       - delay: 00:00:03
-      - service: siren.turn_on
+      - action: siren.turn_on
         entity_id: siren.garage_chime_siren
         continue_on_error: true
-      - service: google_generative_ai_conversation.generate_content
+      - action: google_generative_ai_conversation.generate_content
         continue_on_error: true
         data:
           prompt: >-
@@ -266,7 +266,7 @@ automation:
             describe stationary objects or buildings.
           image_filename: /config/media/images/doorbell.jpg
         response_variable: generated_content
-      - service: notify.signal_frigate
+      - action: notify.signal_frigate
         data:
           message: >-
             Doorbell ring! {{ generated_content.text }}
@@ -277,7 +277,7 @@ automation:
             attachments:
               - /config/media/images/doorbell.jpg
       # Mirror to WearOS
-      - service: notify.mobile_app_galaxy_watch6_kqbw
+      - action: notify.mobile_app_galaxy_watch6_kqbw
         data:
           message: >-
             Doorbell! {{ generated_content.text }}
@@ -286,7 +286,7 @@ automation:
             priority: high
       - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
         then:
-          - service: shell_command.weasel_shortcut
+          - action: shell_command.weasel_shortcut
             data:
               shortcut: open-front-door-cam-weasel
 
@@ -317,21 +317,21 @@ automation:
     action:
       - if: "{{ trigger.id == 'start' }}"
         then:
-          - service: homeassistant.turn_off
+          - action: homeassistant.turn_off
             entity_id: automation.frigate_notification_person
           - delay: "00:00:01"
 
       - if: "{{ trigger.id == 'finish' }}"
         then:
-          - service: homeassistant.turn_on
+          - action: homeassistant.turn_on
             entity_id: automation.frigate_notification_person
-          - service: timer.cancel
+          - action: timer.cancel
             entity_id: timer.frigate_notification_snooze
           - delay: "00:00:01"
 
       - if: "{{ trigger.id == 'manual' }}"
         then:
-          - service: timer.cancel
+          - action: timer.cancel
             entity_id: timer.frigate_notification_snooze
 
   - alias: Frigate Notification Snooze Door
@@ -347,13 +347,13 @@ automation:
         event_type: call_service
         event_data:
           domain: lock
-          service: unlock
+          action: unlock
           service_data:
             entity_id: lock.front_door
     action:
       - if: "{{ trigger.id == 'front_door' and is_state('group.trackers', 'home') and is_state('automation.frigate_notification_person', 'on') }}"
         then:
-          - service: timer.start
+          - action: timer.start
             data:
               duration: "00:05:00"
             target:
@@ -361,7 +361,7 @@ automation:
 
       - if: "{{ trigger.id == 'unlock' }}"
         then:
-          - service: timer.start
+          - action: timer.start
             data:
               duration: "00:02:00"
             target:
@@ -375,7 +375,7 @@ automation:
         entity_id: binary_sensor.front_door_person_occupancy
     condition: "{{ is_state('sun.sun', 'below_horizon')}}"
     action:
-      - service: select.select_option
+      - action: select.select_option
         data:
           option: "{% if trigger.to_state.state == 'on' %}On{% elif trigger.to_state.state == 'off' %}Off{% endif %}"
         target:
@@ -419,41 +419,41 @@ automation:
     action:
       - if: "{{ trigger.id == 'garage_door' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: garage
               label: GarageDoorOpened
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: driveway
               label: GarageDoorOpened
       - if: "{{ trigger.id == 'doorbell' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: front_door
               label: Doorbell
       - if: "{{ trigger.id == 'front_door' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: front_door
               label: FrontDoorOpened
       - if: "{{ trigger.id == 'back_door' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: back_porch
               label: BackDoorOpened
       - if: "{{ trigger.id == 'garage_exterior_door' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: garage
               label: GarageExteriorDoorOpened
       - if: "{{ trigger.id == 'garage_interior_door' }}"
         then:
-          - service: shell_command.frigate_create_event
+          - action: shell_command.frigate_create_event
             data:
               camera: garage
               label: GarageInteriorDoorOpened
@@ -470,7 +470,7 @@ automation:
   #     - platform: time
   #       at: "18:00:00"
   #   action:
-  #     - service: camera.snapshot
+  #     - action: camera.snapshot
   #       data:
   #         filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
   #       target:
@@ -487,19 +487,19 @@ automation:
       - platform: time
         at: "20:00:00"
     action:
-      - service: shell_command.create_timelapse
+      - action: shell_command.create_timelapse
         data:
           camera: back_porch
-      - service: shell_command.create_timelapse
+      - action: shell_command.create_timelapse
         data:
           camera: front_door
-      - service: shell_command.create_timelapse
+      - action: shell_command.create_timelapse
         data:
           camera: driveway
-      # - service: shell_command.create_timelapse
+      # - action: shell_command.create_timelapse
       #   data:
       #     camera: ptz
-      - service: shell_command.create_timelapse
+      - action: shell_command.create_timelapse
         data:
           camera: bullet
 
@@ -509,7 +509,7 @@ automation:
       platform: time
       at: "09:00:00"
     action:
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           qos: 0
           retain: false
@@ -524,7 +524,7 @@ automation:
         from: running
         for: 00:05:00
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "Frigate has been unavailable for more than five minutes"
 
@@ -587,7 +587,7 @@ media_player:
     audio: pcma
 
 # Eg:
-# - service: media_player.play_media
+# - action: media_player.play_media
 #   target:
 #     entity_id: media_player.doorbell
 #   data:
@@ -597,7 +597,7 @@ media_player:
 script:
   # get_timelapse_snapshots:
   #   sequence:
-  #     - service: shell_command.get_timelapse_snapshot
+  #     - action: shell_command.get_timelapse_snapshot
   #       data:
   #         camera: driveway
   #         height: 480
@@ -606,14 +606,14 @@ script:
 
   doorbell_not_interested:
     sequence:
-      # - service: tts.speak
+      # - action: tts.speak
       #   target:
       #     entity_id: tts.google_en_com
       #   data:
       #     cache: false
       #     media_player_entity_id: media_player.doorbell
       #     message: "Hello. We are not interested. We hope you have a nice day!"
-      - service: media_player.play_media
+      - action: media_player.play_media
         target:
           entity_id: media_player.doorbell
         data:

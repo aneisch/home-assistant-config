@@ -58,7 +58,7 @@ automation:
         entity_id: sensor.ha_docker_version_beta
     condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.from_state.state not in ["unknown", "unavailable"]) and (trigger.to_state.state not in ["unknown", "unavailable"]) and "b" in trigger.to_state.state }}'
     action:
-      - service: shell_command.github_action_trigger
+      - action: shell_command.github_action_trigger
         data:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/actions
@@ -78,7 +78,7 @@ automation:
         entity_id: sensor.ha_docker_version_stable
     condition: '{{ (trigger.from_state.state != trigger.to_state.state) and (states.sensor.ha_version.state != trigger.to_state.state) and (trigger.from_state.state not in ["unknown", "unavailable"]) and (trigger.to_state.state not in ["unknown", "unavailable"]) }}'
     action:
-      - service: shell_command.github_action_trigger
+      - action: shell_command.github_action_trigger
         data:
           github_token: !secret github_token
           # https://github.com/aneisch/home-assistant-config/actions
@@ -103,25 +103,25 @@ automation:
               - condition: template
                 value_template: "{{ (states('input_text.hass_target_branch') not in ['stable','beta']) and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) }}"
             sequence:
-              - service: script.hass_update_notify
+              - action: script.hass_update_notify
           - alias: Stable Minor Release
             conditions:
               - condition: template
                 value_template: "{{ (states('input_text.hass_target_branch') == 'stable') and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) and (states('sensor.ha_version').split('.')[:2] == states('sensor.ha_docker_version_stable').split('.')[:2]) }}"
             sequence:
-              - service: script.hass_update_stage
+              - action: script.hass_update_stage
           - alias: Stable Major Release
             conditions:
               - condition: template
                 value_template: "{{ (states('input_text.hass_target_branch') == 'stable') and (states('sensor.ha_version') != states('sensor.ha_docker_version_stable')) }}"
             sequence:
-              - service: script.hass_update_notify
+              - action: script.hass_update_notify
           - alias: Beta Release or Major Release while on Beta
             conditions:
               - condition: template
                 value_template: "{{ states('input_text.hass_target_branch') == 'beta' }}"
             sequence:
-              - service: script.hass_update_stage
+              - action: script.hass_update_stage
 
   # Actually try to upgrade if conditions are met (home and boolean on)
   - alias: "Auto Update: Install Update or Notify"
@@ -140,7 +140,7 @@ automation:
     action:
       # Delay if triggered by occupancy
       - delay: "{% if trigger.entity_id == 'person.andrew' %}00:10:00{% else %}00:00:01{% endif %}"
-      - service: >
+      - action: >
           {% if states("person.andrew") == "home" %}
             script.hass_update_install
           {% else %}
@@ -155,7 +155,7 @@ automation:
         event: start
     condition: '{{ states("input_boolean.hass_update_available") == "on" }}'
     action:
-      - service: >
+      - action: >
           {% if (states("sensor.ha_version") == states("sensor.ha_docker_version_stable")) or (states("sensor.ha_version") == states("sensor.ha_docker_version_beta")) %}
             homeassistant.turn_off
           {% endif %}
@@ -173,48 +173,48 @@ script:
   # allows shell command to fail without failing whole set of actions
   update_hass_wrapper:
     sequence:
-      - service: shell_command.update_hass
+      - action: shell_command.update_hass
 
   hass_switch_to_version:
     alias: Switch to Version
     sequence:
       # Change docker compose image tag
-      - service: shell_command.switch_hass_running_branch
+      - action: shell_command.switch_hass_running_branch
         data:
           version: "{{ states('input_text.hass_target_branch') }}"
       # Pull new tag
-      - service: shell_command.update_hass
+      - action: shell_command.update_hass
       # To force sync of states
-      - service: homeassistant.restart
+      - action: homeassistant.restart
 
   hass_update_stage:
     # Turn on boolean to trigger upgrade automation if we meet criteria
     sequence:
-      # - service: shell_command.pull_hass
+      # - action: shell_command.pull_hass
       # # Run twice because sometimes it times out /shrug
-      # - service: shell_command.pull_hass
-      - service: homeassistant.turn_on
+      # - action: shell_command.pull_hass
+      - action: homeassistant.turn_on
         entity_id: input_boolean.hass_update_trigger
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: input_boolean.hass_update_available
 
   hass_update_notify:
     # Notify and enable update button on frontend
     sequence:
-      #- service: shell_command.pull_hass
-      - service: notify.signal_homeassistant
+      #- action: shell_command.pull_hass
+      - action: notify.signal_homeassistant
         data:
           message: >
             Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
             Changes: https://git.io/JvkT4
             Tested: https://git.io/JvkTY
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: input_boolean.hass_update_available
 
   hass_update_install:
     # Notify and install latest version
     sequence:
-      - service: notify.signal_homeassistant
+      - action: notify.signal_homeassistant
         data:
           message: >
             Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
@@ -223,28 +223,28 @@ script:
       - if: "{{ states('binary_sensor.hass_on_beta') == 'on' and (states('sensor.ha_docker_version_stable') == states('sensor.ha_docker_version_beta')) }}"
         then:
           - alias: "Set stable branch"
-            service: input_text.set_value
+            action: input_text.set_value
             data:
               value: "stable"
             target:
               entity_id:
                 - input_text.hass_target_branch
           - alias: "Switch to stable branch"
-            service: shell_command.switch_hass_running_branch
+            action: shell_command.switch_hass_running_branch
             data:
               version: "{{ states('input_text.hass_target_branch') }}"
-          - service: notify.signal_homeassistant
+          - action: notify.signal_homeassistant
             data:
               message: >
                 Auto-switched to stable build
       - delay: "00:00:05"
-      - service: homeassistant.turn_off
+      - action: homeassistant.turn_off
         entity_id: input_boolean.hass_update_trigger
-      - service: homeassistant.turn_off
+      - action: homeassistant.turn_off
         entity_id: input_boolean.hass_update_available
-      - service: script.update_hass_wrapper
+      - action: script.update_hass_wrapper
       # To force sync of input_text state
-      - service: homeassistant.restart
+      - action: homeassistant.restart
 
 homeassistant:
   customize:

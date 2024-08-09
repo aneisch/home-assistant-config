@@ -21,10 +21,10 @@ automation:
       - platform: homeassistant
         event: start
     action:
-      - service: camera.turn_on
+      - action: camera.turn_on
         entity_id: camera.xiaomi_cloud_map_extractor
       - delay: "00:00:30"
-      - service: camera.turn_off
+      - action: camera.turn_off
         entity_id: camera.xiaomi_cloud_map_extractor
 
   - alias: "Roborock Go to Trashcan After Cleaning"
@@ -38,11 +38,11 @@ automation:
       entity_id: input_boolean.return_to_trashcan
       state: "on"
     action:
-      - service: vacuum.pause
+      - action: vacuum.pause
         entity_id: vacuum.roborock_s4
       - delay: "00:00:02"
-      - service: script.vacuum_park_trashcan
-      - service: homeassistant.turn_off
+      - action: script.vacuum_park_trashcan
+      - action: homeassistant.turn_off
         entity_id: input_boolean.return_to_trashcan
 
   - alias: "Vacuum When House Unoccupied"
@@ -53,8 +53,8 @@ automation:
         entity_id: group.trackers
         to: not_home
     action:
-      - service: python_script.vacuum_custom_clean
-      - service: homeassistant.turn_off
+      - action: python_script.vacuum_custom_clean
+      - action: homeassistant.turn_off
         entity_id: automation.vacuum_when_house_unoccupied
 
   - alias: "Vacuum Kitchen With Button"
@@ -69,8 +69,8 @@ automation:
           # Hold Down
           value: "KeyHeldDown"
     action:
-      - service: script.vacuum_clean_kitchen
-      - service: notify.alexa_media_kitchen
+      - action: script.vacuum_clean_kitchen
+      - action: notify.alexa_media_kitchen
         data:
           data:
             type: tts
@@ -84,11 +84,11 @@ automation:
         to: "Expired"
     condition: '{{ states("vacuum.roborock_s4") == "cleaning" }}'
     action:
-      - service: vacuum.pause
+      - action: vacuum.pause
         entity_id: vacuum.roborock_s4
       - wait_template: "{{ states('sensor.kitchen_timer_countdown') != 'Expired' }}"
         timeout: "00:01:30"
-      - service: vacuum.start
+      - action: vacuum.start
         entity_id: vacuum.roborock_s4
 
 sensor:
@@ -412,7 +412,7 @@ script:
             - choose:
                 - conditions: "{{ mode == 'individual' }}"
                   sequence:
-                    - service: "{{ service }}"
+                    - action: "{{ service }}"
                       data:
                         entity_id: "{{ entity_id }}"
                         x_coord: "{{ path[repeat.index-1][0] }}"
@@ -420,7 +420,7 @@ script:
             - choose:
                 - conditions: "{{ mode == 'send_command' }}"
                   sequence:
-                    - service: "{{ service }}"
+                    - action: "{{ service }}"
                       data:
                         entity_id: "{{ entity_id }}"
                         command: app_goto_target
@@ -435,12 +435,12 @@ script:
 
   vacuum_locate:
     sequence:
-      - service: vacuum.locate
+      - action: vacuum.locate
         entity_id: vacuum.roborock_s4
 
   vacuum_park_trashcan:
     sequence:
-      - service: xiaomi_miio.vacuum_goto
+      - action: xiaomi_miio.vacuum_goto
         data:
           entity_id: vacuum.roborock_s4
           x_coord: 13950
@@ -449,49 +449,49 @@ script:
   # For Alexa routines, see python_scripts/vacuum for segment #s
   vacuum_clean_kitchen:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 24
 
   vacuum_clean_living_room:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 23
 
   vacuum_clean_dining_room:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 22
 
   vacuum_clean_office:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 21
 
   vacuum_clean_bethany_office:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 20
 
   vacuum_clean_master_bedroom:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 18
 
   vacuum_clean_guest_bedroom:
     sequence:
-      - service: xiaomi_miio.vacuum_clean_segment
+      - action: xiaomi_miio.vacuum_clean_segment
         data:
           entity_id: vacuum.roborock_s4
           segments: 26
@@ -508,11 +508,11 @@ switch:
         - delay:
             seconds: 1
       turn_off:
-        - service: vacuum.stop
+        - action: vacuum.stop
           data:
             entity_id: vacuum.roborock_s4
         - delay: "00:00:01"
-        - service: vacuum.return_to_base
+        - action: vacuum.return_to_base
           data:
             entity_id: vacuum.roborock_s4
 

@@ -99,9 +99,9 @@ binary_sensor:
       meater_tip_in_range:
         value_template: >-
           {{ (states('sensor.meater_tip')|float >= states('input_number.meater_tip_set_low')|float) and (states('sensor.meater_tip')|float <= states('input_number.meater_tip_set_high')|float) }}
-      grill_probe_active:
+      meater_probe_active:
         value_template: >-
-          {{ states('sensor.meater_tip') != "unknown" or states('sensor.thermopro_probe_1') != "-1.0" or states('sensor.thermopro_probe_2') != "-1.0" }}
+          {{ states('sensor.meater_tip') != "unknown" }}
 
 input_number:
   thermopro_probe_1_set_low:
@@ -155,7 +155,7 @@ automation:
         entity_id: binary_sensor.meater_tip_in_range
         to: 'off'
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: |
             {% if trigger.entity_id == 'binary_sensor.thermopro_probe_1_in_range' %}
@@ -184,7 +184,7 @@ automation:
         below: 5
     condition: "{{ as_timestamp(now()) - as_timestamp(state_attr('automation.hopper_level_alert.attributes','last_triggered')) | int > 600 }}"
     action: 
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "Traeger Hopper level too low!! ({{ states('sensor.traeger_hopper_level') }}%)"
           data:
@@ -203,7 +203,7 @@ automation:
         payload: True
     action:
       - delay: 120
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: sensor/rtl_433_attic
           payload: >-
@@ -214,11 +214,11 @@ automation:
     id: "temp_probe_offline"
     trigger:
       - platform: state
-        entity_id: binary_sensor.grill_probe_active
+        entity_id: binary_sensor.meater_probe_active
         to: "off"
         for: "00:01:00"
     action: 
-      - service: notify.pushover
+      - action: notify.pushover
         data:
           message: "Temperature Probe Disconnected 1 Minute Ago"
           data:

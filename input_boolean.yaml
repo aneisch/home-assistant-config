@@ -33,6 +33,8 @@ guest_mode:
   icon: mdi:account-plus
 
 is_smallgroup:
+  name: Is Smallgroup?
+  icon: mdi:account-multiple
 
 house_lamps_automation:
   name: House-Wide Lamps Automation

@@ -60,7 +60,7 @@ automation:
   #       entity_id: binary_sensor.gate_automation_safety
   #       to: 'on'
   #   action:
-  #     - service: notify.pushover
+  #     - action: notify.pushover
   #       data:
   #         message: >
   #           Vehicle Sensor Automation Fired!
@@ -83,7 +83,7 @@ automation:
         allowed_methods: 
           - GET
     action:
-      - service: cover.toggle
+      - action: cover.toggle
         data:
           entity_id: >
             {% if trigger.id == 'gate' %}
@@ -107,7 +107,7 @@ automation:
   #       local_only: false
   #       id: garage
   #   action:
-  #     - service: cover.toggle
+  #     - action: cover.toggle
   #       data:
   #         entity_id: >
   #           {% if trigger.id == 'gate' %}
@@ -115,6 +115,6 @@ automation:
   #           {% elif trigger.id == 'garage' %}
   #             cover.mom_and_dad_garage_mom_and_dad_garage
   #           {% endif %}
-  #     - service: notify.signal_self
+  #     - action: notify.signal_self
   #       data:
   #         message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"

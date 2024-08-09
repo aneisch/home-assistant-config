@@ -1,12 +1,12 @@
 script:
   # magic_cube_music:
   #   sequence:
-  #     - service: media_player.select_source
+  #     - action: media_player.select_source
   #       data:
   #         entity_id: media_player.spotify
   #         # Kitchen, Office, Everywhere, etc..
   #         source: "{{ speakers }}"
-  #     - service: media_player.play_media
+  #     - action: media_player.play_media
   #       data:
   #         entity_id: media_player.spotify
   #         media_content_id: "{{ media }}"
@@ -21,7 +21,7 @@ automation:
   #       event_data:
   #         command: "shake"
   #   action:
-  #     - service: homeassistant.toggle
+  #     - action: homeassistant.toggle
   #       data:
   #         entity_id: group.christmas_trees
 
@@ -47,14 +47,14 @@ automation:
     action:
       - if: "{{ trigger.event.data['command'] in ['knock'] and trigger.event.data.args['activated_face'] == 1 }}"
         then:
-          - service: shell_command.turn_off_mirroring
+          - action: shell_command.turn_off_mirroring
       - if: "{{ trigger.event.data['command'] in ['knock'] and trigger.event.data.args['activated_face'] == 2 }}"
         then:
-          - service: shell_command.turn_on_mirroring
+          - action: shell_command.turn_on_mirroring
         else:
           - if: "{{ trigger.event.data['command'] in ['knock','slide'] }}"
             then:
-              - service: homeassistant.toggle
+              - action: homeassistant.toggle
                 data:
                   entity_id: >
                     {% if trigger.event.data.args["activated_face"] == 1  %}
@@ -86,7 +86,7 @@ automation:
   #       event_data:
   #         command: "rotate_right"
   #   action:
-  #     - service: >
+  #     - action: >
   #         {% if trigger.event.data['command'] == "rotate_right" %}
   #           script.aquarium_light_increase
   #         {% else %}
@@ -128,7 +128,7 @@ automation:
   #       type: device_flipped
   #       subtype: "face_6"
   #   action:
-  #     - service: script.magic_cube_music
+  #     - action: script.magic_cube_music
   #       data:
   #         speakers: "Kitchen"
   #         media: >

@@ -36,17 +36,17 @@ cover:
       guest_bedroom_blinds:
         friendly_name: "Guest Bedroom Blinds"
         open_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "open"
             group: guest_bedroom
         close_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "close"
             group: guest_bedroom
         stop_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "stop"
             group: guest_bedroom
@@ -64,7 +64,7 @@ cover:
         friendly_name: "Master Bedroom Blinds"
         open_cover:
           # Calling with script.turn_on results in non-blocking vs. calling script directly
-          service: script.turn_on
+          action: script.turn_on
           target:
             entity_id: script.blinds_group
           data:
@@ -72,7 +72,7 @@ cover:
               modus: "open"
               group: master_bedroom
         close_cover:
-          service: script.turn_on
+          action: script.turn_on
           target:
             entity_id: script.blinds_group
           data:
@@ -80,7 +80,7 @@ cover:
               modus: "close"
               group: master_bedroom
         stop_cover:
-          service: script.turn_on
+          action: script.turn_on
           target:
             entity_id: script.blinds_group
           data:
@@ -100,17 +100,17 @@ cover:
       office_blinds:
         friendly_name: "Office Blinds"
         open_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "open"
             group: office
         close_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "close"
             group: office
         stop_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "stop"
             group: office
@@ -125,17 +125,17 @@ cover:
       dining_room_blinds:
         friendly_name: "Dining Room Blinds"
         open_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "open"
             group: dining_room
         close_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "close"
             group: dining_room
         stop_cover:
-          service: script.blinds_group
+          action: script.blinds_group
           data:
             modus: "stop"
             group: dining_room
@@ -201,7 +201,7 @@ script:
   blinds_group:
     mode: parallel
     sequence:
-      - service: "cover.{{modus}}_cover"
+      - action: "cover.{{modus}}_cover"
         target:
           entity_id: >
             {% if group == "guest_bedroom" %}
@@ -214,7 +214,7 @@ script:
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
       - delay: "00:01:30"
-      - service: "cover.{{modus}}_cover"
+      - action: "cover.{{modus}}_cover"
         target:
           entity_id: >
             {% if group == "guest_bedroom" %}
@@ -227,7 +227,7 @@ script:
             {{ expand('group.office_blinds') | map(attribute='entity_id') | list}}
             {% endif %}
       - delay: "00:00:10"
-      - service: homeassistant.update_entity
+      - action: homeassistant.update_entity
         target:
           entity_id: >
             {% if group == "guest_bedroom" %}
@@ -265,7 +265,7 @@ automation:
           - conditions: "{{ trigger.id == 'sunset' }}"
             alias: Close Blinds at Sunset
             sequence:
-              - service: cover.close_cover
+              - action: cover.close_cover
                 continue_on_error: true
                 target:
                   entity_id:
@@ -274,7 +274,7 @@ automation:
           - conditions: "{{ trigger.id == 'late' }}"
             alias: Close Blinds Late
             sequence:
-              - service: cover.close_cover
+              - action: cover.close_cover
                 continue_on_error: true
                 target:
                   entity_id:
@@ -283,7 +283,7 @@ automation:
           - conditions: "{{ trigger.id == 'morning' }}"
             alias: Open Blinds Morning
             sequence:
-              - service: cover.open_cover
+              - action: cover.open_cover
                 continue_on_error: true
                 target:
                   entity_id:
@@ -295,7 +295,7 @@ automation:
               # Only open blinds if guest mode is OFF
               - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
                 then:
-                  - service: cover.open_cover
+                  - action: cover.open_cover
                     continue_on_error: true
                     target:
                       entity_id:
@@ -321,11 +321,11 @@ automation:
           - closing
         for: "00:01:30"
     action:
-      - service: homeassistant.update_entity
+      - action: homeassistant.update_entity
         target:
           entity_id: "{{ trigger.entity_id }}"
       - delay: "00:00:30"
-      - service: homeassistant.update_entity
+      - action: homeassistant.update_entity
         target:
           entity_id: "{{ trigger.entity_id }}"
 
@@ -356,17 +356,17 @@ automation:
     action:
       - if: "{{ trigger.id == 'zwave' }}"
         then:
-          - service: cover.stop_cover
+          - action: cover.stop_cover
             target:
               entity_id: cover.guest_bedroom_blinds
-          - service: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
+          - action: "cover.{% if is_state('input_boolean.guest_bedroom_blinds_mode', 'on') %}close{% else %}open{% endif %}_cover"
             target:
               entity_id: cover.guest_bedroom_blinds
-          - service: input_boolean.toggle
+          - action: input_boolean.toggle
             entity_id: input_boolean.guest_bedroom_blinds_mode
           - delay: "00:00:02"
       - if: "{{ trigger.id == 'zigbee' }}"
         then:
-          - service: "cover.{% if trigger.event.data.command == 'down_close' %}close{% elif trigger.event.data.command == 'up_open' %}open{% endif %}_cover"
+          - action: "cover.{% if trigger.event.data.command == 'down_close' %}close{% elif trigger.event.data.command == 'up_open' %}open{% endif %}_cover"
             target:
               entity_id: cover.guest_bedroom_blinds

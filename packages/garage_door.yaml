@@ -7,11 +7,11 @@ automation:
         from: "closed"
         to: "open"
     action:
-      - service: input_datetime.set_datetime
+      - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.{{trigger.entity_id | regex_replace(find='cover.', replace='') }}_last"
           datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
-      - service: counter.increment
+      - action: counter.increment
         entity_id: counter.garage_door_cycles
 
   - alias: "Garage Exterior Switch Scenes"
@@ -24,7 +24,7 @@ automation:
           # Double tap up
           value: 3
     action:
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: switch.garage_lights
 
   - alias: "Turn off Garage Lights"
@@ -34,10 +34,10 @@ automation:
       entity_id: binary_sensor.garage_person_occupancy
       from: "on"
       to: "off"
-      for: "00:10:00"
+      for: "00:05:00"
     condition: "{{ states('switch.garage_lights') == 'on' }}"
     action:
-      service: homeassistant.turn_off
+      action: homeassistant.turn_off
       entity_id: switch.garage_lights
 
   - alias: "Change entry switch LEDs based on garage door state"
@@ -49,14 +49,14 @@ automation:
         to: "open"
     action:
       # Run command that for some reason doesn't always work
-      - service: script.zen30_led_color_change
+      - action: script.zen30_led_color_change
         data:
           color: "Red"
       - wait_for_trigger:
           - platform: state
             entity_id: cover.garage_door
             to: "closed"
-      - service: script.zen30_led_color_change
+      - action: script.zen30_led_color_change
         data:
           color: "Green"
 
@@ -79,7 +79,7 @@ automation:
     action:
       - if: "{{ trigger.id == 'alert' }}"
         then:
-          - service: notify.mobile_app_andrew_phone
+          - action: notify.mobile_app_andrew_phone
             data:
               message: "No one home, close garage door?"
               data:
@@ -92,7 +92,7 @@ automation:
                     title: "Ignore"
       - if: "{{ trigger.id == 'respond' }}"
         then:
-          - service: cover.close_cover
+          - action: cover.close_cover
             entity_id: cover.garage_door
 
   - alias: "Garage changed to open when no one home"
@@ -106,7 +106,7 @@ automation:
       entity_id: group.trackers
       state: "not_home"
     action:
-      - service: script.notify_wrapper
+      - action: script.notify_wrapper
         data:
           message: "Garage door opened and no one home"
 
@@ -118,13 +118,13 @@ script:
   zen30_led_color_change:
     sequence:
       # Entryway
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.entryway_light
         data:
           parameter: LED Indicator Color for Dimmer
           value: "{{ color }}"
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.entryway_light
         data:
@@ -132,13 +132,13 @@ script:
           value: "{{ color }}"
 
       # Kitchen Sink
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.kitchen_sink_light
         data:
           parameter: LED Indicator Color for Dimmer
           value: "{{ color }}"
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.kitchen_sink_light
         data:
@@ -146,13 +146,13 @@ script:
           value: "{{ color }}"
 
       # Entryway
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.master_bedroom_ceiling_fan
         data:
           parameter: LED Indicator Color for Dimmer
           value: "{{ color }}"
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.master_bedroom_ceiling_fan
         data:
@@ -160,13 +160,13 @@ script:
           value: "{{ color }}"
 
       # Bethany's Office
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.bethany_office_ceiling_fan
         data:
           parameter: LED Indicator Color for Dimmer
           value: "{{ color }}"
-      - service: zwave_js.set_config_parameter
+      - action: zwave_js.set_config_parameter
         target:
           entity_id: light.bethany_office_ceiling_fan
         data:

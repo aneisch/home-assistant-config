@@ -24,68 +24,18 @@ uart:
     rx_pin: GPIO3
     baud_rate: 115200
     id: uart_mainboard
-    # debug:
-    #   direction: TX
-    #   sequence:
-    #     - lambda: |
-    #         while (bytes.size()>=12)
-    #         {
-    #             // Search for start bytes
-    #             // Checking byte 9 filters a lot of noisy (invalid) message but may also remove valuable message
-    #             // Since we don't know how the checksum is calculated, this is the best we can do
-    #             if (bytes[0] == 0xD5 && bytes[1] == 0x55 &&
-    #                 (bytes[9] == 0x00 || bytes[9] == 0x01))
-    #             {
-    #               // Assume D5 55 does not appear in messages, skip invalid messages
-    #               for (int i = 2; i < 11; i++){
-    #                 if (bytes[i] == 0xD5 && bytes[i+1] == 0x55){
-    #                   bytes.erase(bytes.begin(), bytes.begin() + (i-1));
-    #                   return;
-    #                 }
-    #               }
-
-    #               // Log byte subsection
-    #               std::vector<uint8_t> subset(bytes.begin(), bytes.begin() + 12);
-
-    #               if(subset != id(last_message)){
-    #                 // Append message repetition count
-    #                 id(last_message).push_back(0);
-    #                 id(last_message).push_back(0);
-    #                 id(last_message).push_back(id(same_message_count));
-                    
-    #                 // Filter out rare messages. This may also remove some valuable information
-    #                 if(id(same_message_count) > 3){
-    #                   UARTDebug::log_hex(direction, id(last_message), ' ');
-    #                 }
-    #                 id(same_message_count)=0;
-    #               }
-
-    #               id(last_message) = subset;
-    #               id(same_message_count)++;
-
-    #               // remove logged bytes from buffer
-    #               bytes.erase(bytes.begin(), bytes.begin() + 12);
-    #             }else{
-    #               // remove first byte
-    #               bytes.erase(bytes.begin());
-    #             }
-    #         }
 
   # UART connected to the display
   - tx_pin: GPIO15
     rx_pin: GPIO13
     baud_rate: 115200
     id: uart_display
-    # debug:
-    #   after:
-    #     bytes: 12
 
 philips_coffee_machine:
   display_uart: uart_display
   mainboard_uart: uart_mainboard
   power_pin: GPIO12
   id: philip
-  #power_message_repetitions: 5
   model: EP_3246
 
 text_sensor:
@@ -93,6 +43,14 @@ text_sensor:
     controller_id: philip
     id: status
     name: "${friendly_name} Status"
+    on_value:
+      then:
+        - lambda: |-
+            if (id(status).state.find("Brewing") != std::string::npos)  {
+              auto call = id(brew_count).make_call();
+              call.number_increment(true);
+              call.perform();
+            } 
 
 switch:
   - platform: philips_coffee_machine
@@ -205,3 +163,12 @@ number:
     name: "${friendly_name} Size"
     controller_id: philip
     status_sensor_id: status
+
+  - platform: template
+    id: brew_count
+    name: "${friendly_name} Brew Count"
+    step: 1
+    restore_value: True
+    min_value: 0
+    max_value: 99999
+    optimistic: true

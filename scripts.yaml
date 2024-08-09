@@ -5,10 +5,10 @@
 # Turn off master and common room things, arm security
 home_empty:
   sequence:
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       data:
         entity_id: input_boolean.security_status
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       data:
         entity_id:
           - group.master_bedroom
@@ -22,7 +22,7 @@ home_empty:
       
     # - if: "{{ now().hour < 16 }}"
     #   then:
-    #     - service: switch.turn_off
+    #     - action: switch.turn_off
     #       entity_id:
     #         - switch.office_christmas_tree
     #         - switch.dining_room_christmas_tree
@@ -30,12 +30,12 @@ home_empty:
 # Turn on lights and disarm security
 home_occupied:
   sequence:
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       data:
         entity_id: input_boolean.security_status
     - if: "{{ now().hour <= 7 or now().hour >= 18}}"
       then:
-        - service: light.turn_on
+        - action: light.turn_on
           data:
             entity_id:
               - light.master_bedroom_lamps
@@ -47,20 +47,20 @@ home_occupied:
               {% else %}
               254
               {% endif %}
-        - service: homeassistant.turn_on
+        - action: homeassistant.turn_on
           data:
             entity_id:
               - group.under_cabinet_lights
               #- group.christmas # dining, office, master tree follow 'on' via appdaemon
               #- switch.master_bedroom_christmas_tree # manually turn on because of goodnight script
-    - service: media_player.turn_on
+    - action: media_player.turn_on
       entity_id: 
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
     # Only turn on guest bathroom frame if guest mode
     - if: "{{ is_state('input_boolean.guest_mode', 'on') }}"
       then:
-        - service: media_player.turn_on
+        - action: media_player.turn_on
           entity_id: 
             - media_player.misc_photo_frame
 
@@ -70,22 +70,22 @@ home_occupied:
 
 security_disarm:
   sequence:
-    - service: script.noop
-    # - service: alarm_control_panel.alarm_disarm
+    - action: script.noop
+    # - action: alarm_control_panel.alarm_disarm
     #   entity_id: alarm_control_panel.alexa_guard_7f9e9
-    # - service: script.notify_wrapper
+    # - action: script.notify_wrapper
     #   data:
     #     message: Disarmed!
 
 security_arm:
   sequence:
-    # - service: alarm_control_panel.alarm_arm_away
+    # - action: alarm_control_panel.alarm_arm_away
     #   entity_id: alarm_control_panel.alexa_guard_7f9e9
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       entity_id: automation.frigate_notification_person
-    - service: timer.cancel
+    - action: timer.cancel
       entity_id: timer.frigate_notification_snooze
-    # - service: script.notify_wrapper
+    # - action: script.notify_wrapper
     #   data:
     #     message: Armed!
 
@@ -97,25 +97,25 @@ master_bedroom_wakeup:
   sequence:
     # - if: "{{ now().hour < 11 }}"
     #   then:
-    #     - service: script.turn_on
+    #     - action: script.turn_on
     #       entity_id:
     #         - script.christmas_wakeup
-    - service: cover.open_cover
+    - action: cover.open_cover
       entity_id: cover.master_bedroom_blinds
-    - service: switch.turn_off
+    - action: switch.turn_off
       data:
         entity_id: switch.master_bedroom_ceiling_fan
     - delay: "00:00:02"
-    - service: script.appdaemon_ac_morning
-    - service: light.turn_on
+    - action: script.appdaemon_ac_morning
+    - action: light.turn_on
       target:
         entity_id: light.master_bedroom_lamps
       data:
         transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
         brightness: 255
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       entity_id: input_boolean.goodnight
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       entity_id: 
         #- group.christmas
         - media_player.kitchen_photo_frame
@@ -123,31 +123,31 @@ master_bedroom_wakeup:
 
 master_bedroom_bedtime:
   sequence:
-    - service: cover.close_cover
+    - action: cover.close_cover
       entity_id: cover.master_bedroom_blinds
-    # - service: script.turn_on # Calling this way allows the sequence to continue without blocking
+    # - action: script.turn_on # Calling this way allows the sequence to continue without blocking
     #   entity_id: script.christmas_goodnight
-    - service: script.appdaemon_ac_night
-    - service: switch.turn_on
+    - action: script.appdaemon_ac_night
+    - action: switch.turn_on
       data:
         entity_id: switch.master_bedroom_ceiling_fan
-    #- service: switch.turn_on
+    #- action: switch.turn_on
     #  data:
     #    entity_id: switch.master_bedroom_sound_machine
-    - service: light.turn_off
+    - action: light.turn_off
       data:
         entity_id: light.master_bedroom_ceiling_fan
         transition: 5
-    - service: light.turn_off
+    - action: light.turn_off
       data:
         entity_id: light.master_bedroom_lamps
         transition: 5
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       data:
         entity_id: group.off_at_bedtime
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       entity_id: input_boolean.goodnight
-    # - service: lock.lock
+    # - action: lock.lock
     #   target:
     #     entity_id:
     #       - lock.front_door
@@ -155,12 +155,12 @@ master_bedroom_bedtime:
     #       - lock.back_door
     - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
       then:
-        - service: light.turn_off
+        - action: light.turn_off
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
     # Lower laptop volume
-    - service: shell_command.weasel_shortcut
+    - action: shell_command.weasel_shortcut
       data:
         shortcut: set-volume-15
 
@@ -177,7 +177,7 @@ notify_wrapper:
         # If internet on and priority set: send via pushover
         - if: '{{ "priority" in data }}'
           then:
-            - service: notify.pushover
+            - action: notify.pushover
               continue_on_error: true
               data:
                 message: "{{ message }}"
@@ -185,18 +185,18 @@ notify_wrapper:
                   priority: "{{ data.priority }}"
                   expire: 600
                   retry: 30
-            - service: notify.signal_homeassistant
+            - action: notify.signal_homeassistant
               data:
                 message: "{{ message }}"
           # If internet on and no priority set: send via signal
           else:
-            - service: notify.signal_homeassistant
+            - action: notify.signal_homeassistant
               continue_on_error: true
               data:
                 message: "{{ message }}"
 
         # Mirror to WearOS
-        - service: notify.mobile_app_galaxy_watch6_kqbw
+        - action: notify.mobile_app_galaxy_watch6_kqbw
           data:
             message: "{{ message }}"
             data:
@@ -207,20 +207,20 @@ notify_wrapper:
         # If no internet: send via cellular
         - if: '{{ "priority" in data }}'
           then:
-            - service: notify.cellular_message
+            - action: notify.cellular_message
               data:
                 message: "{{ message }}"
                 data:
                   priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional default 0
                   # https://pushover.net/api#priority
           else:
-            - service: notify.cellular_message
+            - action: notify.cellular_message
               data:
                 message: "{{ message }}"
 
 copy:
   sequence:
-    - service: shell_command.copy
+    - action: shell_command.copy
 
 appdaemon_ac_night:
   sequence:
@@ -228,7 +228,7 @@ appdaemon_ac_night:
     - condition: state
       entity_id: input_boolean.ac_automation
       state: "on"
-    - service: rest_command.adjust_night
+    - action: rest_command.adjust_night
 
 appdaemon_ac_morning:
   sequence:
@@ -236,25 +236,25 @@ appdaemon_ac_morning:
     - condition: state
       entity_id: input_boolean.ac_automation
       state: "on"
-    - service: rest_command.adjust_morning
+    - action: rest_command.adjust_morning
 
 too_cold:
   sequence:
-    - service: climate.set_temperature
+    - action: climate.set_temperature
       data:
         entity_id: climate.thermostat
         temperature: "{{ float(states('sensor.thermostat_temperature')) + 2 }}"
 
 too_hot:
   sequence:
-    - service: climate.set_temperature
+    - action: climate.set_temperature
       data:
         entity_id: climate.thermostat
         temperature: "{{ float(states('sensor.thermostat_temperature')) - 1 }}"
 
 turn_ac_off:
   sequence:
-    - service: climate.turn_off
+    - action: climate.turn_off
       data:
         entity_id: climate.thermostat
 
@@ -262,7 +262,7 @@ turn_ac_off:
 # See associated automation
 panic:
   sequence:
-    - service: notify.pushover
+    - action: notify.pushover
       data:
         message: "Help!"
         title: "Panic!!"
@@ -274,27 +274,27 @@ panic:
 
 spotify_occusim_start:
   sequence:
-    - service: media_player.select_source
+    - action: media_player.select_source
       data:
         entity_id: media_player.spotify
         source: "Everywhere"
-    - service: media_player.volume_set
+    - action: media_player.volume_set
       data:
         entity_id: media_player.spotify
         volume_level: 0.6
-    - service: media_player.media_play
+    - action: media_player.media_play
       data:
         entity_id: media_player.spotify
 
 spotify_occusim_stop:
   sequence:
-    - service: media_player.media_pause
+    - action: media_player.media_pause
       data:
         entity_id: media_player.spotify
 
 andrew_phone_update_location:
   sequence:
-    - service: notify.mobile_app_andrew_phone
+    - action: notify.mobile_app_andrew_phone
       data:
         message: "request_location_update"
 
@@ -305,9 +305,9 @@ noop:
 
 desk_led_red:
   sequence:
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       entity_id: light.desk_led
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       entity_id: light.desk_led
       data:
         rgb_color: [255, 0, 0]
@@ -317,9 +317,9 @@ desk_led_red:
 
 desk_led_white:
   sequence:
-    - service: homeassistant.turn_off
+    - action: homeassistant.turn_off
       entity_id: light.desk_led
-    - service: homeassistant.turn_on
+    - action: homeassistant.turn_on
       entity_id: light.desk_led
       data:
         rgb_color: [255, 255, 255]
@@ -330,7 +330,7 @@ desk_led_white:
 # Launch app on Android phone
 andrew_phone_launch_watch_manager:
   sequence: 
-    - service: notify.mobile_app_andrew_phone
+    - action: notify.mobile_app_andrew_phone
       data:
         message: "command_launch_app"
         data:
@@ -344,16 +344,16 @@ andrew_double_latte:
     - repeat:
         count: 2
         sequence:
-          - service: button.press
+          - action: button.press
             target:
               entity_id: button.coffee_maker_select_latte
             data: {}
           - delay:
               hours: 0
               minutes: 0
-              seconds: 1
+              seconds: 2
               milliseconds: 0
-          - service: number.min
+          - action: number.min
             metadata: {}
             data: {}
             target:
@@ -363,7 +363,7 @@ andrew_double_latte:
               minutes: 0
               seconds: 5
               milliseconds: 0
-          - service: number.max
+          - action: number.max
             metadata: {}
             data: {}
             target:
@@ -373,7 +373,7 @@ andrew_double_latte:
               minutes: 0
               seconds: 5
               milliseconds: 0
-          - service: button.press
+          - action: button.press
             metadata: {}
             data: {}
             target:

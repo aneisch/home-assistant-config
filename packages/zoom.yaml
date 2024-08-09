@@ -5,7 +5,7 @@ automation:
   #     - platform: webhook
   #       webhook_id: !secret zoom_webhook
   #   action:
-  #     - service: setter.set
+  #     - action: setter.set
   #       data:
   #         entity_id: "sensor.andrew_zoom_status"
   #         state: "{{ dict(trigger.json)['payload']['object']['presence_status'] | lower }}"
@@ -22,7 +22,7 @@ automation:
   #       to:
   #         - "on"
   #   action:
-  #     - service: homeassistant.turn_on
+  #     - action: homeassistant.turn_on
   #       entity_id: light.zoom_led
   #       data:
   #         rgb_color: [255,0,0]
@@ -39,7 +39,7 @@ automation:
   #       from: "on"
   #       to: "off"
   #   action:
-  #     - service: homeassistant.turn_off
+  #     - action: homeassistant.turn_off
   #       entity_id: light.zoom_led
 
   # - alias: "Zoom LED On"
@@ -57,7 +57,7 @@ automation:
   #       to: "on"
   #   condition: "{{ trigger.from_state.state != 'unavailable' }}"
   #   action:
-  #     - service: homeassistant.turn_on
+  #     - action: homeassistant.turn_on
   #       entity_id: light.zoom_led
   #       data:
   #         rgb_color: >
@@ -72,7 +72,7 @@ automation:
 script:
   desk_led_red:
     sequence:
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: light.desk_led
         data:
           rgb_color: [255,0,0]
@@ -80,7 +80,7 @@ script:
           effect: "fast pulse"
   desk_led_white:
     sequence:
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: light.desk_led
         data:
           rgb_color: [255,255,255]

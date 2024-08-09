@@ -27,7 +27,7 @@ group:
 script:
   send_alexa_command:
     sequence:
-      - service: media_player.play_media
+      - action: media_player.play_media
         data:
           entity_id: '{{ "media_player." + (states("input_select.target_echo")|regex_replace(find=" ", replace="_", ignorecase=False)) }}'
           media_content_id: '{{ states("input_text.alexa_cmd_text") }}'
@@ -36,7 +36,7 @@ script:
   stop_alexa_command:
     alias: STOP Alexa command
     sequence:
-    - service: media_player.play_media
+    - action: media_player.play_media
       data_template:
         entity_id: '{{ states("input_select.target_echo") }}'
         media_content_id: "stop"
