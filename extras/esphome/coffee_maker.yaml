@@ -7,6 +7,14 @@ globals:
     type: std::vector<uint8_t>
   - id: same_message_count
     type: uint8_t
+  - id: service_interval_counter
+    type: int
+    restore_value: true
+    initial_value: '20'
+  - id: brew_count
+    type: int
+    restore_value: true
+    initial_value: '20' 
 
 esphome:
   name: ${name}
@@ -46,11 +54,13 @@ text_sensor:
     on_value:
       then:
         - lambda: |-
-            if (id(status).state.find("Brewing") != std::string::npos)  {
-              auto call = id(brew_count).make_call();
-              call.number_increment(true);
-              call.perform();
-            } 
+            if (id(status).state.find("Brewing 2x") != std::string::npos) {
+              id(brew_count) += 2;
+              id(service_interval_counter) += 2;
+            } else if (id(status).state.find("Brewing") != std::string::npos) {
+              id(brew_count) += 1;
+              id(service_interval_counter) += 1;
+            }      
 
 switch:
   - platform: philips_coffee_machine
@@ -145,6 +155,20 @@ button:
     name: "${friendly_name} Select Play/Pause"
     icon: mdi:play-pause
 
+  - platform: template
+    name: "${friendly_name} Reset Service Interval Counter"
+    on_press:
+      then:
+        - lambda: |-
+            id(service_interval_counter) = 0;
+
+  - platform: template
+    name: "${friendly_name} Reset Brew Count"
+    on_press:
+      then:
+        - lambda: |-
+            id(brew_count) = 0;
+
 number:
   - platform: philips_coffee_machine
     type: bean
@@ -164,11 +188,19 @@ number:
     controller_id: philip
     status_sensor_id: status
 
+sensor:
   - platform: template
-    id: brew_count
+    name: "${friendly_name} Service Interval Counter"
+    lambda: |-
+      return id(service_interval_counter);
+    state_class: measurement
+    unit_of_measurement: "count"
+    accuracy_decimals: 0
+
+  - platform: template
     name: "${friendly_name} Brew Count"
-    step: 1
-    restore_value: True
-    min_value: 0
-    max_value: 99999
-    optimistic: true
+    lambda: |-
+      return id(brew_count);
+    state_class: measurement
+    unit_of_measurement: "count"
+    accuracy_decimals: 0   

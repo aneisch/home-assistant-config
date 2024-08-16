@@ -20,7 +20,7 @@ esphome:
   
 time:
   - platform: homeassistant
-    timezone: America/Chicago
+    timezone: UTC # UTC must be set here or the processing on the home assistant side for the datetime sensor is wrong
     id: homeassistant_time
 
 datetime:

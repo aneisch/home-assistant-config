@@ -218,9 +218,9 @@ automation:
         to: "off"
         for: "00:01:00"
     action: 
-      - action: notify.pushover
+      - action: script.notify_wrapper
         data:
-          message: "Temperature Probe Disconnected 1 Minute Ago"
+          message: "Meater Probe Disconnected 1 Minute Ago"
           data:
             priority: 2
             retry: 600

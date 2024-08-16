@@ -381,7 +381,7 @@ services:
             driver: none
         restart: always
         labels:
-            - com.centurylinklabs.watchtower.monitor-only=true
+            #- com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
             - traefik.enable=true
             - traefik.http.routers.vault.entrypoints=websecure
@@ -753,7 +753,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:dev-4c2e6f7
+        image: ghcr.io/blakeblackshear/frigate:0.14.0
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb

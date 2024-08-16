@@ -26,7 +26,7 @@ wifi:
  
 ble_client:
   - mac_address: B8:1F:5E:90:91:91 # Repeater Block - disabled due to disconnects
-  #- mac_address: B8:1F:5E:7B:54:E9 # Probe
+  #- mac_address: B8:1F:5E:7B:54:E9 # Probe (take battery out of block to prevent probe connection to it: Only 1 connection to probe allowed)
     id: meater
 
 text_sensor:

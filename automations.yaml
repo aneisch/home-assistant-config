@@ -171,11 +171,12 @@
   trigger:
   - platform: state
     entity_id:
-    - binary_sensor.front_door
-    - binary_sensor.back_porch_door
-    - binary_sensor.garage_exterior_door
-    - binary_sensor.garage_interior_door
-    - binary_sensor.master_bedroom_exterior_door
+    # below set by esphome now
+    # - binary_sensor.front_door
+    # - binary_sensor.back_porch_door
+    # - binary_sensor.garage_exterior_door
+    # - binary_sensor.garage_interior_door
+    # - binary_sensor.master_bedroom_exterior_door
     - input_boolean.kitchen_motion
     - binary_sensor.living_room_motion
     - binary_sensor.hallway_motion
@@ -1173,8 +1174,8 @@
         data: {}
       - action: input_boolean.toggle
         entity_id: input_boolean.guest_bedroom_blinds_mode
-      - action: cover.{% if is_state('input_boolean.master_bedroom_blinds_mode',
-          'on') %}close{% else %}open{% endif %}_cover
+      - action: cover.{% if is_state('input_boolean.master_bedroom_blinds_mode', 'on')
+          %}close{% else %}open{% endif %}_cover
         target:
           entity_id:
           - cover.master_bedroom_blind_left
@@ -1192,6 +1193,8 @@
       hours: 0
       minutes: 1
       seconds: 0
+  - platform: time_pattern
+    hours: /1
   condition: []
   action:
   - action: setter.set
@@ -1225,4 +1228,23 @@
       - switch.master_bathroom_light_main
       - switch.master_bathroom_light_secondary
     data: {}
+  mode: single
+- id: '1723658532445'
+  alias: Coffee Maker Alerts
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - sensor.coffee_maker_status
+    to:
+    - Error
+    - Waste container warning
+    - Warning
+  condition: []
+  action:
+  - action: notify.signal_homeassistant
+    data:
+      message: 'Coffee maker in {{ trigger.to_state.state }} status!
+
+        '
   mode: single

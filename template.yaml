@@ -112,7 +112,7 @@
     - name: "433 Weather Battery"
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
-# Unused
+
 - trigger:
     # - platform: mqtt
     #   topic: "sensor/rtl_433_office"

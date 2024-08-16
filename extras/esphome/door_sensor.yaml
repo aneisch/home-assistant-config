@@ -15,6 +15,7 @@ esphome:
 time:
   - platform: homeassistant
     id: homeassistant_time
+    timezone: UTC # UTC must be set here or the processing on the home assistant side for the datetime sensor is wrong
 
 datetime:
   - platform: template
