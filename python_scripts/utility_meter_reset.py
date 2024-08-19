@@ -1,6 +1,9 @@
 ResetEntity = data.get('cycle_reset_entity_id')
 MeterEntity = data.get('meter_entity')
 
+# Comment this out once the sensor.utilities_cycle_end is fixed
+hass.services.call("utility_meter", "calibrate", {'value': '0', 'entity_id': MeterEntity})
+
 # Handle Meter Reset -- Run daily at midnight via automation
 
 # Get state of reset entity (probably sensor.utilities_cycle_start)

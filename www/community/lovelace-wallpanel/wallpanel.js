@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.25.6";
+const version = "4.26.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -670,7 +670,7 @@ class WallpanelView extends HuiView {
 		this.lastEnergyCollectionUpdate = 0;
 		this.screensaverStopNavigationPathTimeout = null;
 
-		this.lovelace = getHaPanelLovelace().__lovelace;
+		this.lovelace = null;
 		this.__hass = elHass.__hass;
 		this.__cards = [];
 		this.__badges = [];
@@ -1108,6 +1108,7 @@ class WallpanelView extends HuiView {
 
 	createInfoBoxContent() {
 		logger.debug("Creating info box content");
+		this.lovelace = getHaPanelLovelace().__lovelace;
 		this.infoBoxContentCreatedDate = new Date();
 		this.infoBoxContent.innerHTML = '';
 		this.__badges = [];
@@ -1130,12 +1131,21 @@ class WallpanelView extends HuiView {
 			div.style.justifyContent = 'center';
 			div.style.gap = '8px';
 			div.style.margin = '0px';
+			div.style.minWidth = '200px'
 			config.badges.forEach(badge => {
-				let badgeConfig = structuredClone(badge);
+				let badgeConfig = JSON.parse(JSON.stringify(badge));
 				logger.debug("Creating badge:", badgeConfig);
+				let style = {};
+				if (badgeConfig.wp_style) {
+					style = badgeConfig.wp_style;
+					delete badgeConfig.wp_style;
+				}
 				const createBadgeElement = this._createBadgeElement ? this._createBadgeElement : this.createBadgeElement;
 				const badgeElement = createBadgeElement.bind(this)(badgeConfig);
 				badgeElement.hass = this.hass;
+				for (const attr in style) {
+					badgeElement.style.setProperty(attr, style[attr]);
+				}
 				this.__badges.push(badgeElement);
 				div.append(badgeElement);
 			});
@@ -1144,7 +1154,7 @@ class WallpanelView extends HuiView {
 		if (config.cards) {
 			config.cards.forEach(card => {
 				// Copy object
-				let cardConfig = structuredClone(card);
+				let cardConfig = JSON.parse(JSON.stringify(card));
 				logger.debug("Creating card:", cardConfig);
 				let style = {};
 				if (cardConfig.wp_style) {
@@ -3644,3 +3654,4 @@ EXIF.pretty = function(img) {
 EXIF.readFromBinaryFile = function(file) {
 	return findEXIFinJPEG(file);
 }
+

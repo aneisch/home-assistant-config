@@ -171,12 +171,6 @@
   trigger:
   - platform: state
     entity_id:
-    # below set by esphome now
-    # - binary_sensor.front_door
-    # - binary_sensor.back_porch_door
-    # - binary_sensor.garage_exterior_door
-    # - binary_sensor.garage_interior_door
-    # - binary_sensor.master_bedroom_exterior_door
     - input_boolean.kitchen_motion
     - binary_sensor.living_room_motion
     - binary_sensor.hallway_motion
@@ -659,11 +653,15 @@
   - action: python_script.compute_utility_costs
     data:
       meter_entity: sensor.water_usage
-- alias: Reset Utility Meters
-  id: reset_utility_meters
+- id: reset_utility_meters
+  alias: Reset Utility Meters
   trigger:
   - platform: time
     at: 00:00:00
+    enabled: true
+  condition:
+  - condition: template
+    value_template: '{{ now().day == 1 }}'
   action:
   - action: python_script.utility_meter_reset
     data:
