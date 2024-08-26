@@ -13,7 +13,7 @@ appdaemon:
   production_mode: False
 
 http:
-  url: http://10.0.1.22:8888
+  url: http://0.0.0.0:8888
 
 api:
 

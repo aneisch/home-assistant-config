@@ -6,7 +6,7 @@ substitutions:
   i2c_sda: GPIO35  # D2
   prefix_name: "S3 "
   flow_update_interval_seconds: "2"
-  hide_magnetic_field_strength_sensors: 'true'
+  hide_magnetic_field_strength_sensors: 'false'
   hide_half_rotations_total_sensor: 'false'
 
 esphome:
@@ -55,7 +55,7 @@ i2c:
   sda: ${i2c_sda}
   scl: ${i2c_scl}
   scan: True
-  frequency: 400kHz
+  #frequency: 300kHz
 
 packages:
   meter:
@@ -77,7 +77,12 @@ binary_sensor:
       } else {
         return false;
       }
-    
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
 debug:
   update_interval: 5s
 

@@ -1,7 +1,7 @@
 # Rest call to appdaemon api so we can intelligently trigger changes via appdaemon apps
 # these will be triggered by scripts
 
-adjust_night:
+adjust_night:z
   url: http://127.0.0.1:8888/api/appdaemon/adjust_night
   method: POST
   payload: '{"type": "Adjust Night"}'

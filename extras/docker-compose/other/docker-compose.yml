@@ -793,6 +793,46 @@ services:
             - traefik.http.routers.doubletake_local.rule=Host(`doubletake.home.domain.com`)
             - traefik.http.routers.doubletake_local.service=doubletake
 
+    guacd:
+        image: guacamole/guacd
+        container_name: guacd
+        restart: unless-stopped
+        security_opt:
+            - no-new-privileges:true
+
+    guacamole:
+        image: guacamole/guacamole:latest
+        container_name: guacamole
+        restart: unless-stopped
+        depends_on:
+            - guacd
+        security_opt:
+            - no-new-privileges:true
+        environment:
+            GUACD_HOSTNAME: guacd
+            MYSQL_HOSTNAME: mariadb
+            MYSQL_PORT: 3306
+            MYSQL_DATABASE: guacamole
+            MYSQL_USER: guacamole
+            MYSQL_PASSWORD: Dimmed3
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.guacamole.loadbalancer.server.port=8080
+            # HTTPS for CF
+            - traefik.http.routers.guacamole.entrypoints=websecure
+            - traefik.http.routers.guacamole.tls=true
+            - traefik.http.routers.guacamole.rule=Host(`guacamole.domain.com`)
+            - traefik.http.routers.guacamole.middlewares=add-guacamole
+            - traefik.http.routers.guacamole.service=guacamole
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.guacamole_local.tls=true
+            - traefik.http.routers.guacamole_local.tls.certResolver=le-home
+            - traefik.http.routers.guacamole_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.guacamole_local.rule=Host(`guacamole.home.domain.com`)
+            - traefik.http.routers.guacamole_local.middlewares=add-guacamole
+            - traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole
+            - traefik.http.routers.guacamole_local.service=guacamole
+
 # networks:
 #     macos_network:
 #         driver: bridge

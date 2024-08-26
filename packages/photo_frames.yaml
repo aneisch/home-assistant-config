@@ -176,3 +176,9 @@ script:
           entity_id: "{{ entity_id }}"
         data:
           command: "input tap 50 200" # tap on screen to make fullscreen
+
+  kitchen_launch_timers:
+    sequence:
+      - action: script.photo_frame_launch_timers
+        data:
+          entity_id: media_player.kitchen_photo_frame

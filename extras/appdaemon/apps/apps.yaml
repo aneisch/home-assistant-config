@@ -368,7 +368,7 @@ Cameras Smallgroup:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.is_smallgroup
-  time_off: "17:30:00"
+  time_off: "17:41:00"
   time_on: "21:00:00"
   entities: switch.driveway_detect,switch.front_door_detect
 
@@ -376,7 +376,7 @@ Indoor Light Automation Sunset Smallgroup:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.is_smallgroup
-  time_on: "17:30:00"
+  time_on: "17:41:00"
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
@@ -384,7 +384,7 @@ Entryway Light Sunset Smallgroup:
   module: entity_timer
   class: Timer
   constrain_input_boolean: input_boolean.is_smallgroup
-  time_on: "17:30:00"
+  time_on: "17:41:00"
   time_off: "23:00:00"
   entities: light.entryway_light
   brightness: 255
