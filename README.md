@@ -59,7 +59,7 @@ Home Assistant and other containers have ingress handled automatically by [Traef
 Description | value
 -- | --
 Lines of ESPHome YAML | 3254
-Lines of Home Assistant YAML | 9668
+Lines of Home Assistant YAML | 9685
 [Integrations](https://www.home-assistant.io/integrations/) in use | 62
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -95,18 +95,18 @@ Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 4
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 51
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 4
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 524
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 523
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 181
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 186
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 6
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 1
-Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 35
+Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 81
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 6
-**Total state objects** | **1425**
+**Total state objects** | **1475**
 ## The HACS integrations/plugins that I use:
 
 **Appdaemon**:<br>

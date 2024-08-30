@@ -67,11 +67,11 @@ automation:
                 type: tts
                 method: speak
               message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_03"/>
-          - action: notify.alexa_media_kitchen
-            data:
-              data:
-                type: tts
-              message: "{{ generated_content.text }}"
+          # - action: notify.alexa_media_kitchen
+          #   data:
+          #     data:
+          #       type: tts
+          #     message: "{{ generated_content.text }}"
 
       # if not home or sleeping time and person detection anywhere then notify
       - if: "{{ is_state('input_boolean.security_status', 'on') or is_state('input_boolean.goodnight', 'on') }}"

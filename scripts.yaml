@@ -63,6 +63,23 @@ home_occupied:
         - action: media_player.turn_on
           entity_id: 
             - media_player.misc_photo_frame
+        - if: "{{ now().hour <= 7 or now().hour >= 18}}"
+          then:
+            - action: light.turn_on
+              data:
+                entity_id:
+                  - light.guest_bedroom_nightstand_lamp
+                  - light.back_bedroom_dresser_lamp
+                  - light.back_bedroom_nightstand_lamp
+                  #- light.living_room_sconces
+                # Not so bright if it's late..
+                brightness: >
+                  {% if now().hour <= 7 or now().hour >= 22 %}
+                  128
+                  {% else %}
+                  254
+                  {% endif %}
+        
 
 ############
 # SECURITY #

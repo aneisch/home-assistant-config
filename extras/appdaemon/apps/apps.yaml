@@ -364,6 +364,17 @@ Indoor Light Automation Sunset:
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
   brightness: 255
 
+Guest Light Automation Sunset:
+  module: entity_timer
+  class: Timer
+  constrain_input_boolean: 
+    - input_boolean.house_lamps_automation
+    - input_boolean.guest_mode
+  constrain_presence: anyone
+  time_on: sunset - 00:20:00
+  entities: light.guest_bedroom_nightstand_lamp,light.back_bedroom_nightstand_lamp,light.back_bedroom_dresser_lamp
+  brightness: 255
+
 Cameras Smallgroup:
   module: entity_timer
   class: Timer
