@@ -54,3 +54,6 @@ rack_fan_auto_off:
 # So we can track when we turn
 compost_turn:
   name: Compost Turn
+
+backyard_floodlight_automation:
+  name: Backyard Flood Light Automation

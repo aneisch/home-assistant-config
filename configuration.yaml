@@ -456,7 +456,7 @@ readme:
 # ORDER BY
 #     COUNT(*) DESC;
 recorder:
-  db_url: mysql://homeassistant:homeassistant@127.0.0.1/homeassistant?charset=utf8
+  db_url: mysql://homeassistant:homeassistant@127.0.0.1/homeassistant?charset=utf8mb4
   purge_keep_days: 182
   commit_interval: 30
   exclude:

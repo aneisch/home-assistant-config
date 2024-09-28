@@ -15,7 +15,7 @@ cards:
       - cover.mom_and_dad_gate_mom_and_dad_gate
       - sensor.mom_and_dad_gate_mom_and_dad_gate_ip_address
       - sensor.mom_and_dad_gate_mom_and_dad_gate_uptime
-      - button.mom_and_dad_gate_mom_and_dad_gate_firmware_update
+      #- button.mom_and_dad_gate_mom_and_dad_gate_firmware_update
       # - automation.gate_heading_comparison_action_notify
       # - input_boolean.gate_alert
       # - entity: script.mom_and_dad_gate_toggle

@@ -12,9 +12,10 @@ ENTITY_CATEGORIES = {
     "battery": EntityCategory.DIAGNOSTIC,
     "battery_voltage": EntityCategory.DIAGNOSTIC,
     "led": EntityCategory.CONFIG,
-    "rssi": EntityCategory.DIAGNOSTIC,
     "pulse": EntityCategory.CONFIG,
     "pulseWidth": EntityCategory.CONFIG,
+    "rssi": EntityCategory.DIAGNOSTIC,
+    "sensitivity": EntityCategory.CONFIG,
 }
 
 ICONS = {
@@ -65,7 +66,7 @@ class XEntity(Entity):
             self._attr_unique_id = device["deviceid"]
 
         # domain will be replaced in entity_registry.async_generate_entity_id
-        self.entity_id = f"{DOMAIN}.{DOMAIN}_{self._attr_unique_id}"
+        self.entity_id = f"{DOMAIN}.{DOMAIN}_{self._attr_unique_id.lower()}"
 
         deviceid: str = device["deviceid"]
         params: dict = device["params"]

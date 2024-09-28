@@ -30,6 +30,7 @@ from .core import devices as core_devices
 from .core.const import (
     CONF_APPID,
     CONF_APPSECRET,
+    CONF_COUNTRY_CODE,
     CONF_DEFAULT_CLASS,
     CONF_DEVICEKEY,
     CONF_RFBRIDGE,
@@ -96,7 +97,7 @@ UNIQUE_DEVICES = {}
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:
-    if (MAJOR_VERSION, MINOR_VERSION) < (2023, 1):
+    if (MAJOR_VERSION, MINOR_VERSION) < (2023, 2):
         raise Exception("unsupported hass version")
 
     # init storage for registries
@@ -108,10 +109,10 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         if CONF_APPID in conf and CONF_APPSECRET in conf:
             APP[0] = (conf[CONF_APPID], conf[CONF_APPSECRET])
         if CONF_DEFAULT_CLASS in conf:
-            core_devices.set_default_class(conf.pop(CONF_DEFAULT_CLASS))
+            core_devices.set_default_class(conf.get(CONF_DEFAULT_CLASS))
         if CONF_SENSORS in conf:
             core_devices.get_spec = core_devices.get_spec_wrapper(
-                core_devices.get_spec, conf.pop(CONF_SENSORS)
+                core_devices.get_spec, conf.get(CONF_SENSORS)
             )
 
     # cameras starts only on first command to it
@@ -175,11 +176,18 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         hass.data[DOMAIN][config_entry.entry_id] = registry = XRegistry(session)
 
     mode = config_entry.options.get(CONF_MODE, "auto")
+    data = config_entry.data
 
     # if has cloud password and not auth
-    if not registry.cloud.auth and config_entry.data.get(CONF_PASSWORD):
+    if not registry.cloud.auth and data.get(CONF_PASSWORD):
         try:
-            await registry.cloud.login(**config_entry.data)
+            await registry.cloud.login(**data)
+            # store country_code for future requests optimisation
+            if not data.get(CONF_COUNTRY_CODE):
+                hass.config_entries.async_update_entry(
+                    config_entry,
+                    data={**data, CONF_COUNTRY_CODE: registry.cloud.country_code},
+                )
         except Exception as e:
             _LOGGER.warning(f"Can't login in {mode} mode: {repr(e)}")
             if mode == "cloud":

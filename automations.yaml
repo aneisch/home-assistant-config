@@ -1238,6 +1238,8 @@
     - Error
     - Waste container warning
     - Warning
+    - Water empty
+    - Internal Error
   condition: []
   action:
   - action: notify.signal_homeassistant
@@ -1245,4 +1247,20 @@
       message: 'Coffee maker in {{ trigger.to_state.state }} status!
 
         '
+  mode: single
+- id: '1727469189792'
+  alias: Total Power Alert
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id:
+    - sensor.total_power
+    above: 18000
+  condition: []
+  action:
+  - action: script.notify_wrapper
+    data:
+      message: Total power has exceeded 18k Watts! Currently {{trigger.to_state.state}}
+      data:
+        priority: 1
   mode: single

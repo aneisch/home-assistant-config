@@ -6,7 +6,7 @@ automation:
         entity_id: sensor.ups_status
         from: "ONLINE"
     action:
-      - action: script.notify_wrapper
+      - action: notify.cellular_message
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
@@ -17,7 +17,7 @@ automation:
         entity_id: sensor.ups_status
         to: "ONLINE"
     action:
-      - action: script.notify_wrapper
+      - action: notify.cellular_message
         data:
           message: >
             {% if trigger.from_state.state == "ONBATT" %}
@@ -39,7 +39,7 @@ automation:
       entity_id: switch.nas
       state: "on"
     action:
-      - action: script.notify_wrapper
+      - action: notify.cellular_message
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Initiaiting NAS shutdown."
       - action: switch.turn_off
@@ -89,7 +89,7 @@ automation:
       below: 10
     condition: "{{ statest('sensor.ups_status') != 'ONLINE' }}"
     action:
-      - action: script.notify_wrapper
+      - action: notify.cellular_message
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} battery at {{ states('sensor.ups_battery') }}%. Issued NUC shutdown 2 minutes from now. Cancel with sudo shutdown -c"
       - action: shell_command.nuc_poweroff

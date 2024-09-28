@@ -243,7 +243,6 @@ REGIONS = {
 DATA_ERROR = {0: "online", 503: "offline", 504: "timeout", None: "unknown"}
 
 APP = [
-    ("4s1FXKC9FaGfoqXhmXSJneb3qcm1gOak", "oKvCM06gvwkRbfetd6qWRrbC3rFrbIpV"),
     ("R8Oq3y0eSZSYdKccHlrQzT1ACCOUT9Gv", "1ve5Qk9GXfUhKAn1svnKwpAlxXkMarru"),
 ]
 
@@ -346,6 +345,10 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
     def token(self) -> str:
         return self.region + ":" + self.auth["at"]
 
+    @property
+    def country_code(self) -> str:
+        return self.auth["user"]["countryCode"]
+
     async def login(
         self, username: str, password: str, country_code: str = "+86", app: int = 0
     ) -> bool:
@@ -364,7 +367,7 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
         else:
             payload["phoneNumber"] = "+" + username
 
-        appid, appsecret = APP[app]
+        appid, appsecret = APP[0]  # force using app=0
 
         # ensure POST payload and Sign payload will be same
         data = json.dumps(payload).encode()
@@ -464,21 +467,22 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
             sequence = await self.sequence()
         log += sequence
 
-        # https://coolkit-technologies.github.io/eWeLink-API/#/en/APICenterV2?id=websocket-update-device-status
-        payload = {
-            "action": "update" if params else "query",
-            # we need to use device apikey bacause device may be shared from
-            # another account
-            "apikey": device["apikey"],
-            "selfApikey": self.auth["user"]["apikey"],
-            "deviceid": device["deviceid"],
-            "params": params or [],
-            "userAgent": "app",
-            "sequence": sequence,
-        }
-
         _LOGGER.debug(log)
         try:
+            # https://coolkit-technologies.github.io/eWeLink-API/#/en/APICenterV2?id=websocket-update-device-status
+            payload = {
+                "action": "update" if params else "query",
+                # we need to use device apikey bacause device may be shared from
+                # another account
+                "apikey": device["apikey"],
+                # auth can be null (logged in from another place)
+                "selfApikey": self.auth["user"]["apikey"],
+                "deviceid": device["deviceid"],
+                "params": params or [],
+                "userAgent": "app",
+                "sequence": sequence,
+            }
+
             await self.ws.send_json(payload)
 
             if timeout:
@@ -573,8 +577,11 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
                 # {'error': 406, 'reason': 'Authentication Failed'}
                 # can happened when login from another place with same user/appid
                 if error == 406:
-                    _LOGGER.warning("You logged in from another place")
-                    self.auth = None
+                    _LOGGER.error(
+                        "You logged in from another place, read more "
+                        "https://github.com/AlexxIT/SonoffLAN#configuration"
+                    )
+                    # self.auth = None
                     return False
 
                 raise Exception(resp)
@@ -595,7 +602,8 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
     async def _process_ws_msg(self, data: dict):
         if "action" not in data:
             # response on our command
-            self._set_response(data["sequence"], data["error"])
+            if "sequence" in data:
+                self._set_response(data["sequence"], data.get("error"))
 
             # with params response on query, without - on update
             if "params" in data:
@@ -603,8 +611,11 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
             elif "config" in data:
                 data["params"] = data.pop("config")
                 self.dispatcher_send(SIGNAL_UPDATE, data)
-            elif data["error"] != 0:
-                _LOGGER.warning(f"Cloud ERROR: {data}")
+            elif "error" in data:
+                if data["error"] != 0:
+                    _LOGGER.warning(f"Cloud ERROR: {data}")
+            else:
+                _LOGGER.warning(f"UNKNOWN cloud msg: {data}")
 
         elif data["action"] == "update":
             # new state from device

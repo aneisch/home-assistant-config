@@ -213,6 +213,7 @@ cards:
       - input_boolean.house_lamps_automation
       - input_boolean.panic_mode
       - automation.lower_and_raise_blinds
+      - input_boolean.backyard_floodlight_automation
 
   - type: entities
     show_header_toggle: false

@@ -1,0 +1,109 @@
+{
+  "config": {
+    "abort": {
+      "already_configured": "Account is already configured",
+      "reauth_successful": "Re-authentication was successful"
+    },
+    "error": {
+      "already_configured": "Account is already configured",
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Invalid authentication"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "api_proxy_enable": "Use Fleet API Proxy"
+        },
+        "description": "Newer vehicles may require an API Proxy.  If this applies to\r\n you, install the Tesla HTTP Proxy first.",
+        "title": "Tesla - Configuration"
+      },
+      "credentials": {
+        "data": {
+          "mfa": "MFA Code (optional)",
+          "password": "Password",
+          "username": "Email",
+          "token": "Refresh Token",
+          "include_vehicles": "Include Vehicles",
+          "include_energysites": "Include Energy Sites",
+          "api_proxy_url": "Proxy URL",
+          "api_proxy_cert": "Proxy SSL certificate",
+          "client_id": "Tesla developer Client ID"
+        },
+        "description": "Use 'Auth App for Tesla' on iOS or 'Tesla Tokens' on Android\r\n to create a refresh token and enter it below.\r\n Vehicle(s) are forced awake for setup.",
+        "title": "Tesla - Configuration"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "enable_wake_on_start": "Force cars awake on startup",
+          "scan_interval": "Seconds between polling",
+          "enable_teslamate": "Sync Data from TeslaMate via MQTT"
+        }
+      }
+    }
+  },
+  "services": {
+    "api": {
+      "name": "Run API Command",
+      "description": "Run an API command using controller.api",
+      "fields": {
+        "email": {
+          "name": "Email address",
+          "description": "Email address (optional if only one account)"
+        },
+        "command": {
+          "name": "Command",
+          "description": "Command to run. See https://github.com/zabuldon/teslajsonpy/blob/master/teslajsonpy/endpoints.json"
+        },
+        "parameters": {
+          "name": "Parameters",
+          "description": "Parameters in a dictionary. `path_vars` replace variables in endpoints.json path. All others are passed directly to controller.api. For command parameters see https://tesla-api.timdorr.com/vehicle/commands."
+        }
+      }
+    },
+    "polling_interval": {
+      "name": "Set Polling Interval",
+      "description": "Set the polling interval for the Tesla API",
+      "fields": {
+        "scan_interval": {
+          "name": "Interval (seconds)",
+          "description": "Number of seconds between each poll.  See https://github.com/alandtse/tesla/wiki/Polling-policy more information."
+        },
+        "email": {
+          "name": "Email address",
+          "description": "Email address (optional if only one account)"
+        },
+        "vin": {
+          "name": "Vehicle VIN",
+          "description": "Vehicle VIN (if not provided then default polling interval will be updated)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "climate": {
+      "car_climate": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "bioweapon": "Bioweapon Mode",
+              "off": "Normal"
+            }
+          },
+          "preset_mode": {
+            "state": {
+              "normal": "Normal",
+              "defrost": "Defrost",
+              "keep": "Keep On",
+              "dog": "Dog Mode",
+              "camp": "Camp Mode"
+            }
+          }
+        }
+      }
+    }
+  }
+}

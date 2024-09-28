@@ -145,7 +145,7 @@ master_bedroom_bedtime:
     # - action: script.turn_on # Calling this way allows the sequence to continue without blocking
     #   entity_id: script.christmas_goodnight
     - action: script.appdaemon_ac_night
-    - action: switch.turn_on
+    - action: switch.turn_off #revert this
       data:
         entity_id: switch.master_bedroom_ceiling_fan
     #- action: switch.turn_on
@@ -411,3 +411,10 @@ andrew_double_latte:
               milliseconds: 0
             continue_on_timeout: false
   icon: mdi:coffee
+
+surround_mute:
+  alias: Surround Mute
+  sequence:
+    - action: esphome.living_room_speakers_mute
+      data: {}
+  description: ""

@@ -10,18 +10,15 @@ esphome:
 
 <<: !include midnight_reboot.yaml
 
-external_components:
-  - source: github://pr#5586
-    components: [ ota_http ]
-
-ota_http:
-
 web_server:
   port: 80
 
 logger:
   level: DEBUG
   
+# http_request:
+#   verify_ssl: false
+
 wifi:
   networks:
   - ssid: SSID
@@ -31,9 +28,8 @@ wifi:
   - ssid: SSID
     password: WPA_KEY
 
-ota:
-  safe_mode: True
-  password: esphome_recovery
+# ota:
+#   - platform: http_request
 
 # i2c:
 #   sda: D2
@@ -66,7 +62,7 @@ ota:
 #           - binary_sensor.template.publish:
 #               id: automation_safety
 #               state: OFF
-
+  
 mqtt:
   broker: MQTT_BROKER
   port: 1883
@@ -77,7 +73,7 @@ mqtt:
   log_topic: 
     topic: ${mqtt_prefix}/logs
     level: NONE
-  
+
 sensor:
   # - platform: qmc5883l
   #   address: 0x0D
@@ -165,15 +161,14 @@ binary_sensor:
   #     - delayed_on: 1s
   #     - delayed_off: 1s
 
-button:
-  - platform: template
-    name: "Mom and Dad Gate Firmware update"
-    on_press:
-      then:
-        - ota_http.flash:
-            verify_ssl: false
-            url: !secret mom_and_dad_gate_ota
-        - logger.log: "This message should be not displayed(reboot)"
+# button:
+#   - platform: template
+#     name: "Mom and Dad Gate Firmware update"
+#     on_press:
+#       then:
+#         - ota.http_request.flash:
+#             url: !secret mom_and_dad_gate_ota
+#         - logger.log: "This message should be not displayed(reboot)"
 
 switch:
   - platform: restart
@@ -183,7 +178,7 @@ switch:
   - platform: gpio
     id: relay
     pin:
-      number: 5
+      number: D8
       inverted: False
   
   # Switch which toggles the relay on and off

@@ -212,8 +212,8 @@ cards:
           - input_text.hass_target_branch
           - name: "Switch to Above Branch"
             entity: script.hass_switch_to_version
-          - entity: sensor.hacs
-            name: HACS Updates
+          # - entity: sensor.hacs
+          #   name: HACS Updates
 
       - type: conditional
         conditions:

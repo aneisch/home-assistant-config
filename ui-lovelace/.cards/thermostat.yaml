@@ -34,6 +34,8 @@ sensors:
     name: Water Supply Closet
   - entity: sensor.netatmo_home_attic_temperature
     name: Attic
+  - entity: sensor.tesla_temperature_outside
+  - entity: sensor.tesla_temperature_inside
   - entity: sensor.ac_runtime_today
     name: Today
   - entity: sensor.ac_runtime_yesterday

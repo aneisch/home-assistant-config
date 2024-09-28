@@ -84,9 +84,13 @@ def configured_instances(hass):
 
 
 @callback
-def in_progess_instances(hass):
-    """Return a set of in progress Alexa Media flows."""
-    return {entry["flow_id"] for entry in hass.config_entries.flow.async_progress()}
+def in_progress_instances(hass):
+    """Return a set of in-progress Alexa Media flows."""
+    return {
+        entry["flow_id"]
+        for entry in hass.config_entries.flow.async_progress()
+        if entry["handler"] == DOMAIN  # Ensure only Alexa Media flows are included
+    }
 
 
 @config_entries.HANDLERS.register(DOMAIN)
@@ -646,7 +650,8 @@ class AlexaMediaFlowHandler(config_entries.ConfigFlow):
                     event_data={"email": hide_email(email), "url": login.url},
                 )
                 async_dismiss_persistent_notification(
-                    f"alexa_media_{slugify(email)}{slugify(login.url[7:])}"
+                    self.hass,
+                    notification_id=f"alexa_media_{slugify(email)}{slugify(login.url[7:])}",
                 )
                 if not self.hass.data[DATA_ALEXAMEDIA]["accounts"].get(
                     self.config[CONF_EMAIL]
@@ -699,7 +704,8 @@ class AlexaMediaFlowHandler(config_entries.ConfigFlow):
             _LOGGER.debug("Login failed: %s", login.status.get("login_failed"))
             await login.close()
             async_dismiss_persistent_notification(
-                f"alexa_media_{slugify(email)}{slugify(login.url[7:])}"
+                self.hass,
+                notification_id=f"alexa_media_{slugify(email)}{slugify(login.url[7:])}",
             )
             return self.async_abort(reason="login_failed")
         new_schema = self._update_schema_defaults()
