@@ -1,0 +1,153 @@
+title: Tablet
+visible: false
+type: panel
+path: tesla
+cards:
+  - type: horizontal-stack
+    cards:
+      # Column 1
+      - type: vertical-stack
+        cards:
+          - type: custom:mushroom-climate-card
+            entity: climate.thermostat
+            show_temperature_control: true
+
+          - type: custom:mushroom-entity-card
+            entity: input_boolean.security_status
+            tap_action:
+              action: toggle
+
+          - type: custom:mushroom-entity-card
+            entity: cover.garage_door
+            tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('cover.garage_door') == "open" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('cover.garage_door') == "open" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: custom:mushroom-entity-card
+            entity: lock.front_door
+            tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('lock.front_door') == "unlocked" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('lock.front_door') == "unlocked" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: custom:mushroom-entity-card
+            entity: lock.back_door
+            tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('lock.front_door') == "unlocked" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('lock.front_door') == "unlocked" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: custom:mushroom-entity-card
+            entity: lock.garage_exterior_door
+            tap_action:
+              action: toggle
+            card_mod:
+              style: |
+                @keyframes blink {
+                  50% {
+                    {% if states('lock.front_door') == "unlocked" %}
+                    background: red;
+                    {% endif %}
+                  }
+                }
+                ha-card {
+                  {% if states('lock.front_door') == "unlocked" %}
+                  animation: blink 1s linear infinite;
+                  {% endif %}
+                }
+
+          - type: vertical-stack
+            cards:
+              - type: picture-entity
+                entity: camera.driveway
+
+              - type: picture-entity
+                entity: camera.back_porch
+
+      # Column 2
+      - type: vertical-stack
+        cards:
+          #- !include .cards/kitchen_timer.yaml
+
+          - type: custom:mushroom-entity-card
+            entity: switch.garage_lights
+            icon: mdi:lightbulb
+            tap_action:
+              action: toggle
+
+          - type: custom:mushroom-entity-card
+            entity: group.kitchen
+            icon: mdi:countertop
+            tap_action:
+              action: toggle
+
+          - type: custom:mushroom-entity-card
+            entity: group.living_room
+            icon: mdi:sofa-outline
+            tap_action:
+              action: toggle
+
+          - type: custom:mushroom-entity-card
+            entity: group.master_bedroom
+            icon: mdi:bed
+            tap_action:
+              action: toggle
+
+          # - type: custom:mushroom-entity-card
+          #   entity: group.christmas
+          #   icon: mdi:forest
+          #   tap_action:
+          #     action: toggle
+
+          - type: sensor
+            entity: sensor.total_power
+            graph: line
+            detail: 2
+            hours_to_show: 8
+
+          - !include .cards/water_flow.yaml
+
+          - type: vertical-stack
+            cards:
+              - type: picture-entity
+                entity: camera.front_door
+
+              - type: picture-entity
+                entity: camera.garage

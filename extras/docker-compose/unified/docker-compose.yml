@@ -1048,6 +1048,65 @@ services:
             - traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole
             - traefik.http.routers.guacamole_local.service=guacamole
 
+    teslamate:
+        image: teslamate/teslamate:latest
+        container_name: teslamate
+        restart: always
+        environment:
+            - ENCRYPTION_KEY=PW #replace with a secure key to encrypt your Tesla API tokens
+            - DATABASE_USER=teslamate
+            - DATABASE_PASS=PW #insert your secure database password!
+            - DATABASE_NAME=teslamate
+            - DATABASE_HOST=teslamate-database
+            - MQTT_HOST=mosquitto
+            - TZ=America/Chicago
+        ports:
+            - 4001:4000
+        volumes:
+            - /opt/teslamate/teslamate:/opt/app/import
+        cap_drop:
+            - all
+
+    teslamate-database:
+        image: postgres:16
+        container_name: teslamate-database
+        restart: always
+        environment:
+            - POSTGRES_USER=teslamate
+            - POSTGRES_PASSWORD=PW #insert your secure database password!
+            - POSTGRES_DB=teslamate
+        volumes:
+            - /opt/teslamate/db:/var/lib/postgresql/data
+
+    teslamate-grafana:
+        image: teslamate/grafana:latest
+        container_name: teslamate-grafana
+        restart: always
+        environment:
+            - DATABASE_USER=teslamate
+            - DATABASE_PASS=password #insert your secure database password!
+            - DATABASE_NAME=teslamate
+            - DATABASE_HOST=database
+        # ports:
+        # - 3001:3000
+        volumes:
+            - /opt/teslamate/grafana:/var/lib/grafana
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.teslamate.loadbalancer.server.port=3000
+            # HTTPS for CF
+            # - traefik.http.routers.teslamate.entrypoints=websecure
+            # - traefik.http.routers.teslamate.tls=true
+            # - traefik.http.routers.teslamate.rule=Host(`teslamate.domain.com`)
+            # - traefik.http.routers.teslamate.service=teslamate
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.teslamate_local.tls=true
+            - traefik.http.routers.teslamate_local.tls.certResolver=le-home
+            - traefik.http.routers.teslamate_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
+            - traefik.http.routers.teslamate_local.service=teslamate
+
+
 # networks:
 #     macos_network:
 #         driver: bridge

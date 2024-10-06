@@ -638,9 +638,8 @@
   action:
   - action: homeassistant.turn_on
     entity_id: switch.docker_watchtower
-- alias: Update Utility Costs
-  id: update_utility_costs
-  mode: single
+- id: update_utility_costs
+  alias: Update Utility Costs
   trigger:
   - platform: time_pattern
     hours: /12
@@ -649,10 +648,13 @@
   action:
   - action: python_script.compute_utility_costs
     data:
-      meter_entity: sensor.electricity_usage
-  - action: python_script.compute_utility_costs
-    data:
       meter_entity: sensor.water_usage
+    alias: Water
+  - alias: Electricity
+    action: python_script.compute_utility_costs
+    data:
+      meter_entity: sensor.electricity_usage
+  mode: single
 - id: reset_utility_meters
   alias: Reset Utility Meters
   trigger:
@@ -1247,20 +1249,4 @@
       message: 'Coffee maker in {{ trigger.to_state.state }} status!
 
         '
-  mode: single
-- id: '1727469189792'
-  alias: Total Power Alert
-  description: ''
-  trigger:
-  - platform: numeric_state
-    entity_id:
-    - sensor.total_power
-    above: 18000
-  condition: []
-  action:
-  - action: script.notify_wrapper
-    data:
-      message: Total power has exceeded 18k Watts! Currently {{trigger.to_state.state}}
-      data:
-        priority: 1
   mode: single

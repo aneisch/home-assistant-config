@@ -15,9 +15,6 @@ web_server:
 
 logger:
   level: DEBUG
-  
-# http_request:
-#   verify_ssl: false
 
 wifi:
   networks:
@@ -27,9 +24,6 @@ wifi:
     password: WPA_KEY
   - ssid: SSID
     password: WPA_KEY
-
-# ota:
-#   - platform: http_request
 
 # i2c:
 #   sda: D2

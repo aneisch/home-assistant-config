@@ -2,6 +2,9 @@
 # electricity_cost_monthly:
 #   name: "Electricity Cost"
 
+electricity_cost_monthly_tesla:
+  name: "Tesla Electricity Cost"
+
 electricity_cost_monthly_emporia:
   name: "Electricity Cost"
 

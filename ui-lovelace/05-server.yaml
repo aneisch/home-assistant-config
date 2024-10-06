@@ -109,6 +109,8 @@ cards:
       - type: markdown
         content: >
 
+          Monthly Tesla Home Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
+
           Monthly Electric Cost Emporia: ${{ states('input_text.electricity_cost_monthly_emporia') }}
 
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}

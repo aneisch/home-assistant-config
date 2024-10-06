@@ -29,6 +29,7 @@ homeassistant:
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
     photo_frames: !include packages/photo_frames.yaml
+    tesla: !include packages/tesla.yaml
     timers: !include packages/timers.yaml
     ups_monitoring: !include packages/ups_monitor.yaml
     vacuum: !include packages/vacuum.yaml
@@ -368,12 +369,6 @@ notify:
   # - platform: pushbullet
   #   api_key: !secret pushbullet_key
   #   name: pushbullet
-
-  - platform: html5
-    name: html5
-    vapid_pub_key: !secret vapid_pub_key
-    vapid_prv_key: !secret vapid_prv_key
-    vapid_email: !secret vapid_email
 
   - platform: signal_messenger
     name: signal_self
