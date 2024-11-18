@@ -597,54 +597,99 @@ automation:
           entity_id: sensor.total_power
           above: 15000
         - platform: numeric_state
+          id: total
+          entity_id: sensor.total_power
+          above: 20000
+        - platform: numeric_state
           id: dryer
           entity_id: sensor.dryer_power
-          above: 5000
+          above: 1000
         - platform: numeric_state
           id: oven
           entity_id: sensor.oven_power
-          above: 5000
+          above: 3500
     action:
         - if: "{{ (states('sensor.total_power') | int) < 15000}}"
           alias: "Less than 15k"
           then:
-            - action: emporia_vue.set_charger_current
-              data:
-                current: 20
-              target:
-                entity_id: switch.emporia_charger
-            - action: timer.start
-              data:
-                duration: "00:15:00"
-              target:
-                entity_id: timer.tesla_charge_backoff
-            - if: "{{ state_attr('switch.emporia_charger','charging_rate') != 20 }}"
+            # If charging and not already lowered, notify
+            - if: "{{ state_attr('switch.emporia_charger','charging_rate') not in [6,20] and is_state('sensor.tesla_state', 'charging') }}"
               then:
                 - action: script.notify_wrapper
                   data:
                     message: Charge rate automation triggered by {{ trigger.id }}! Total power {{ states('sensor.total_power') }}W. Limiting charge rate to 20A.
-                    data:
-                        priority: "{% if (is_state('sensor.tesla_state', 'charging') and state_attr('switch.emporia_charger','charging_rate') < 20) %}1{% else %}0{% endif %}"
-          else:
-            - action: emporia_vue.set_charger_current
-              data:
-                current: 1
-              target:
-                entity_id: switch.emporia_charger
-            # - action: switch.turn_off
-            #   entity_id: switch.emporia_charger
+            # If not already lowered, lower
+            - if: "{{ state_attr('switch.emporia_charger','charging_rate') not in [6,20] }}"
+              then:
+                # Limit on charger
+                - action: emporia_vue.set_charger_current
+                  data:
+                    current: 20
+                  target:
+                    entity_id: switch.emporia_charger
+                # Limit on vehicle directly
+                - action: number.set_value
+                  data:
+                    value: "20"
+                  target:
+                    entity_id: number.tesla_ble_882c04_charging_amps
             - action: timer.start
               data:
                 duration: "00:15:00"
               target:
                 entity_id: timer.tesla_charge_backoff
-            - if: "{{ state_attr('switch.emporia_charger','charging_rate') != 1 }}"
+
+        - if: "{{ 15000 <= (states('sensor.total_power') | int) <= 20000 }}"
+          alias: "Between 15k and 20k"
+          then:
+            # If charging and not already lowered all the way, notify
+            - if: "{{ state_attr('switch.emporia_charger','charging_rate') not in [6] and is_state('sensor.tesla_state', 'charging') }}"
               then:
                 - action: script.notify_wrapper
                   data:
-                    message: Total power has exceeded 15kW! Total power {{ states('sensor.total_power') }}W. Limiting charge rate to 1A.
+                    message: Total power has exceeded 15kW! Total power {{ states('sensor.total_power') }}W. Limiting charge rate to 6A.
                     data:
                       priority: 1
+            # Limit on charger (min 6)
+            - action: emporia_vue.set_charger_current
+              data:
+                current: 6
+              target:
+                entity_id: switch.emporia_charger
+            # Limit on vehicle directly (min 5)
+            - action: number.set_value
+              data:
+                value: "5"
+              target:
+                entity_id: number.tesla_ble_882c04_charging_amps
+            - action: timer.start
+              data:
+                duration: "00:15:00"
+              target:
+                entity_id: timer.tesla_charge_backoff
+
+        - if: "{{ (states('sensor.total_power') | int) >= 20000 }}"
+          alias: "Greater than 20k"
+          then:
+            # If charging and not already off, notify
+            - if: "{{ (is_state('switch.emporia_charger', 'on') or is_state('switch.tesla_ble_882c04_charger_switch', 'on')) and is_state('sensor.tesla_state', 'charging') }}"
+              then:
+                - action: script.notify_wrapper
+                  data:
+                    message: Total power has exceeded 20kW! Total power {{ states('sensor.total_power') }}W. Disabling charger for 15 minutes.
+                    data:
+                      priority: 1
+            # Turn off charger
+            - action: switch.turn_off
+              entity_id: switch.emporia_charger
+            # Tell vehicle to stop charging
+            - action: switch.turn_off
+              entity_id: switch.tesla_ble_882c04_charger_switch
+            - action: timer.start
+              data:
+                duration: "00:15:00"
+              target:
+                entity_id: timer.tesla_charge_backoff
 
   - alias: "Auto Raise Charge Rate"
     id: auto_raise_charge_rate
@@ -660,14 +705,26 @@ automation:
     action:
         - action: switch.turn_on
           entity_id: switch.emporia_charger
-        - action: script.notify_wrapper
-          data:
-            message: Timer expired, increasing charge rate to 40A.
+        # Allow vehicle to start charging
+        - action: switch.turn_on
+          entity_id: switch.tesla_ble_882c04_charger_switch
+        - if: "{{ state_attr('switch.emporia_charger','charging_rate') != 1  and is_state('sensor.tesla_state', 'charging') }}"
+          then:
+            - action: script.notify_wrapper
+              data:
+                message: Timer expired, increasing charge rate to 40A.
+        # Limit on charger
         - action: emporia_vue.set_charger_current
           data:
             current: 40
           target:
             entity_id: switch.emporia_charger
+        # Limit on vehicle directly
+        - action: number.set_value
+          data:
+            value: "40"
+          target:
+            entity_id: number.tesla_ble_882c04_charging_amps
 
   - id: update_tesla_charging_cost
     alias: Update Tesla Charging Cost
@@ -687,7 +744,7 @@ automation:
       platform: numeric_state
       entity_id: sensor.tesla_active_route_minutes_to_arrival
       below: 31
-    condition: "{{ is_state('sensor.tesla_active_route_destination','home')}}"
+    condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
     action:
       - action: script.notify_wrapper
         data:

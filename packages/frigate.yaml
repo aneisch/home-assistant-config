@@ -13,6 +13,20 @@ automation:
         data:
           clip_id: "{{trigger.payload_json['after']['id']}}"
 
+  # - alias: Frigate Smoke Alarm Offsite
+  #   id: "frigate_smokealarm_offsite"
+  #   mode: queued
+  #   trigger:
+  #     - platform: mqtt
+  #       topic: frigate/reviews
+  #       payload: true
+  #       value_template: "{{ value_json.type == 'end' and 'SmokeAlarm' in value_json.before.data.objects }}"
+  #   action:
+  #     - delay: '00:00:05'
+  #     - action: shell_command.frigate_clips_drive
+  #       data:
+  #         clip_id: "{{trigger.payload_json['before']['id']}}"
+
   - alias: Frigate Notification Person
     id: "frigate_notification_person"
     mode: parallel
@@ -415,6 +429,11 @@ automation:
         entity_id: binary_sensor.garage_interior_door
         from: 'off'
         to: 'on'
+      - platform: state
+        id: smoke_alarm
+        entity_id: binary_sensor.hardwired_smoke_alarms_smoke_detected
+        from: 'off'
+        to: 'on'
     #condition: "{{ is_state('input_boolean.security_status','on') }}"
     action:
       - if: "{{ trigger.id == 'garage_door' }}"
@@ -457,6 +476,20 @@ automation:
             data:
               camera: garage
               label: GarageInteriorDoorOpened
+      - if: "{{ trigger.id == 'smoke_alarm' }}"
+        then:
+          - action: shell_command.frigate_create_event
+            data:
+              camera: garage
+              label: SmokeAlarm
+          - action: shell_command.frigate_create_event
+            data:
+              camera: back_porch
+              label: SmokeAlarm
+          - action: shell_command.frigate_create_event
+            data:
+              camera: driveway
+              label: SmokeAlarm
 
   # Handled by NodeRed
   # - alias: Frigate Timelapse Snapshots

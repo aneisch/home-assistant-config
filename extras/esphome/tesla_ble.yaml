@@ -1,0 +1,61 @@
+substitutions:
+  name: tesla_ble
+  friendly_name: "Tesla BLE"
+  charging_amps_max: "40"
+
+<<: !include common.yaml
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: esp-idf
+    version: 5.2.2
+    platform_version: 6.7.0
+
+logger:
+  level: INFO
+
+esphome:
+  name: ${name}
+  name_add_mac_suffix: true
+  friendly_name: ${friendly_name}
+  # project:
+  #   name: yoziru.esphome-tesla-ble
+  #   version: "2024.8.1"
+  libraries:
+    #- https://github.com/yoziru/tesla-ble.git#v2.2.1
+    - https://github.com/aneisch/tesla-ble.git
+
+external_components:
+  #- source: github://yoziru/esphome-tesla-ble/tree/main/components
+  - source: github://aneisch/esphome-tesla-ble
+    components: [tesla_ble_vehicle]
+    refresh: 0s
+
+packages:
+  #common: github://yoziru/esphome-tesla-ble/packages/common.yml@main
+  #client: github://yoziru/esphome-tesla-ble/packages/client.yml@main
+  common: github://aneisch/esphome-tesla-ble/packages/common.yml
+  client: github://aneisch/esphome-tesla-ble/packages/client.yml
+
+esp32_ble_tracker:
+  scan_parameters:
+    # Activate scan only after wifi connect, see https://github.com/esphome/issues/issues/2941#issuecomment-1842369092
+    continuous: false
+
+wifi:
+  ssid: "SSID"
+  password: !secret wifi_password
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  manual_ip:
+    static_ip: 10.0.0.22
+    gateway: 10.0.1.1
+    subnet: 255.255.254.0
+  ap:
+    password: !secret wifi_password
+  # Activate scan only after wifi connect, see https://github.com/esphome/issues/issues/2941#issuecomment-1842369092
+  on_connect:
+    - esp32_ble_tracker.start_scan:
+       continuous: true
+  on_disconnect:
+    - esp32_ble_tracker.stop_scan:

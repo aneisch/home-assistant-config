@@ -44,4 +44,4 @@ experimental:
 # log:
 #   level: DEBUG
 
-#accessLog: {}
+accessLog: {}

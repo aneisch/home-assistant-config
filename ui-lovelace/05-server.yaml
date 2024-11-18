@@ -108,6 +108,7 @@ cards:
         icon: mdi:flash
       - type: markdown
         content: >
+          Tesla Energy This Month: {{ states('sensor.tesla_energy_this_month') | int }} kWh
 
           Monthly Tesla Home Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
 

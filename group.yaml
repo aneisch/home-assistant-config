@@ -6,7 +6,9 @@ common_areas:
     - group.office
     - group.garage
     - group.dining_room
-    #- group.christmas
+    # Start Christmas
+    - group.christmas
+    # End Christmas
 
 office:
   name: Office
@@ -27,7 +29,10 @@ master_bedroom:
     #- switch.master_bedroom_sound_machine
     - light.andrew_nightstand_lamp
     - light.bethany_nightstand_lamp
-    #- switch.master_bedroom_christmas_tree
+    # Start Christmas
+    - switch.master_bedroom_christmas_tree
+    # End Christmas
+
 
 garage:
   name: Garage
@@ -94,9 +99,11 @@ off_at_bedtime:
     - light.living_room_sconces
     - switch.master_closet_light
     - group.master_bathroom_lights
-    - group.common_areas # contains christmas group
-    #- switch.dining_room_christmas_tree
-    #- switch.office_christmas_tree
+    - group.common_areas 
+    # Start Christmas
+    - switch.dining_room_christmas_tree
+    - switch.office_christmas_tree
+    # End Christmas
     #- switch.ir_candles
     - media_player.kitchen_photo_frame
     - media_player.office_photo_frame

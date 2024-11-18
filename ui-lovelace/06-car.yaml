@@ -49,20 +49,99 @@ cards:
       - type: entities
         entities:
           - switch.emporia_charger
-          - sensor.tesla_miles_per_month
           - sensor.tesla_energy_this_month
           - entity: sensor.tesla_charger_actual_current
             name: Charger Current
-          - entity: sensor.tesla_charger_power
-            name: Charger Power
-          - entity: sensor.tesla_charger_voltage
-            name: Charger Voltage
           - entity: sensor.tesla_time_to_full_charge
             name: Time To Full Charge
+          - timer.tesla_charge_backoff
+          - number.tesla_ble_882c04_charging_amps
+          - switch.tesla_ble_882c04_hvac_switch
       - type: markdown
         content: >
+          {% set current_time = now() %}
+          {% set future_time = as_local(as_datetime( ((now() + timedelta( hours = (states('sensor.tesla_time_to_full_charge')| float))) | string)[:-16] )) %}
+          {% set time_distance = future_time - current_time %}
+
+          {% if is_state('sensor.tesla_state', 'charging')%}Finishing in {{ relative_time(current_time - time_distance) }} @ {{ ((now() + timedelta( hours = (states('sensor.tesla_time_to_full_charge')| float))) | string)[:-16] }}{% endif %}
+
+          Offering rate: {{ state_attr('switch.emporia_charger','charging_rate') }}A
 
           Tesla Home Charging Cost This Month: ${{ states('input_text.electricity_cost_monthly_tesla') }}
+      - type: horizontal-stack
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "70"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('number.tesla_ble_882c04_charging_limit','70.0') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "70"
+                  target:
+                    entity_id: number.tesla_ble_882c04_charging_limit
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "90"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('number.tesla_ble_882c04_charging_limit','90.0') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "90"
+                  target:
+                    entity_id: number.tesla_ble_882c04_charging_limit
+          - type: vertical-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "80"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('number.tesla_ble_882c04_charging_limit','80.0') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "80"
+                  target:
+                    entity_id: number.tesla_ble_882c04_charging_limit
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "100"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('number.tesla_ble_882c04_charging_limit','100.0') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "100"
+                  target:
+                    entity_id: number.tesla_ble_882c04_charging_limit
 
   - type: entities
     entities:
@@ -70,29 +149,17 @@ cards:
         name: Status
       - entity: sensor.tesla_since
         name: Last Status Change
-      - entity: binary_sensor.tesla_healthy
-        name: Logger Healthy
       - entity: sensor.tesla_version
         name: Software Version
       - entity: binary_sensor.tesla_update_available
         name: Available Update Status
       - entity: sensor.tesla_update_version
         name: Available Update Version
-      - entity: sensor.tesla_geofence
-        name: Geo-fence Name
       - device_tracker.tesla_location
-      - entity: sensor.tesla_shift_state
-        name: Shifter State
       - entity: sensor.tesla_speed
         name: Speed
       - entity: sensor.tesla_elevation
         name: Elevation
-      - entity: binary_sensor.tesla_locked
-        name: Locked
-      - entity: binary_sensor.tesla_sentry_mode
-        name: Sentry Mode Enabled
-      - entity: binary_sensor.tesla_windows_open
-        name: Windows Open
       - entity: binary_sensor.tesla_doors_open
         name: Doors Open
       - entity: binary_sensor.tesla_trunk_open
@@ -111,18 +178,13 @@ cards:
         name: Preconditioning
       - entity: sensor.tesla_odometer
         name: Odometer
+      - sensor.tesla_miles_per_month
       - entity: sensor.tesla_est_battery_range
         name: Estimated Battery Range
       - entity: sensor.tesla_rated_battery_range
         name: Rated Battery Range
       - entity: sensor.tesla_ideal_battery_range
         name: Ideal Battery Range
-      - entity: sensor.tesla_battery_level
-        name: Battery Level
-      - entity: sensor.tesla_usable_battery_level
-        name: Usable Battery Level
-      - entity: binary_sensor.tesla_plugged_in
-        name: Plugged In
       - entity: sensor.tesla_charge_energy_added
         name: Charge Energy Added
       - entity: sensor.tesla_charge_limit_soc

@@ -161,21 +161,22 @@ cards:
   #             action: call-service
   #             service: esphome.twinkle_lights_string_8_steady_on
 
-# Christmas
-  # - type: 'custom:auto-entities'
-  #   filter:
-  #     include:
-  #       - entity_id: "light.*christmas*"
-  #       - entity_id: "switch.*christmas*"
-  #       - entity_id: switch.santa_tree
-  #       - entity_id: switch.ferris_wheel
-  #       - entity_id: switch.nativity
-  #   card:
-  #     type: entities
-  #     title: Christmas
-  #     # show_header_toggle: false
-  #   sort:
-  #     method: name
+# Start Christmas
+  - type: 'custom:auto-entities'
+    filter:
+      include:
+        - entity_id: "light.*christmas*"
+        - entity_id: "switch.*christmas*"
+        - entity_id: switch.santa_tree
+        - entity_id: switch.ferris_wheel
+        - entity_id: switch.nativity
+    card:
+      type: entities
+      title: Christmas
+      # show_header_toggle: false
+    sort:
+      method: name
+# End Christmas
 
   - type: entities
     show_header_toggle: false
@@ -194,8 +195,8 @@ cards:
     show_header_toggle: false
     title: Outside
     entities:
-      - light.front_porch_lights
-      #- light.front_porch_halloween
+      #- light.front_porch_lights
+      - light.front_porch_halloween
       - light.front_sconces
       # - light.back_porch_light # ring
       # - entity: light.garage_exterior_light #ring

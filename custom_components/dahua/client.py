@@ -604,6 +604,18 @@ class DahuaClient:
         url = "/cgi-bin/configManager.cgi?action=setConfig&DisableLinkage[{0}].Enable={1}".format(channel, value)
         return await self.get(url)
 
+    async def async_set_event_notifications(self, channel: int, enabled: bool) -> dict:
+        """
+        async_set_event_notifications will set the camera's disarming event notifications (Event -> Disarming -> Event Notifications in the UI)
+        """
+
+        value = "true"
+        if enabled:
+            value = "false"
+
+        url = "/cgi-bin/configManager.cgi?action=setConfig&DisableEventNotify[{0}].Enable={1}".format(channel, value)
+        return await self.get(url)
+
     async def async_set_record_mode(self, channel: int, mode: str) -> dict:
         """
         async_set_record_mode sets the record mode.
@@ -629,10 +641,18 @@ class DahuaClient:
         """
 
         url = "/cgi-bin/configManager.cgi?action=getConfig&name=DisableLinkage"
-        try:
-            return await self.get(url)
-        except aiohttp.ClientResponseError as e:
-            return {"table.DisableLinkage.Enable": "false"}
+        return await self.get(url)
+
+    async def async_get_event_notifications(self) -> dict:
+        """
+        async_get_event_notifications will return false if the event notifications in disarmed state are enabled
+
+        returns
+        table.DisableEventNotify.Enable=false
+        """
+
+        url = "/cgi-bin/configManager.cgi?action=getConfig&name=DisableEventNotify"
+        return await self.get(url)
 
     async def async_access_control_open_door(self, door_id: int = 1) -> dict:
         """

@@ -51,13 +51,19 @@
       friendly_name: Mac Focus Mode
       value_template: "{{ is_state('binary_sensor.weasel_focus', 'on') }}"
       turn_on:
-        service: shell_command.weasel_shortcut
-        data:
-          shortcut: focus-in-a-meeting-on
+        - service: shell_command.weasel_shortcut
+          data:
+            shortcut: focus-in-a-meeting-on
+        - service: shell_command.weasel_shortcut
+          data:
+            shortcut: set-volume-0
       turn_off:
-        service: shell_command.weasel_shortcut
-        data:
-          shortcut: focus-in-a-meeting-off
+        - service: shell_command.weasel_shortcut
+          data:
+            shortcut: focus-in-a-meeting-off
+        - service: shell_command.weasel_shortcut
+          data:
+            shortcut: set-volume-15
       icon_template: >
         {% if is_state('binary_sensor.weasel_focus', 'off') %}
           mdi:bell

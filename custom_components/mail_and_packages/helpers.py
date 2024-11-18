@@ -78,6 +78,7 @@ from .const import (
     CONF_GENERATE_MP4,
     CONF_IMAP_SECURITY,
     CONF_VERIFY_SSL,
+    CONF_STORAGE,
     DEFAULT_AMAZON_DAYS,
     OVERLAY,
     SENSOR_DATA,
@@ -158,9 +159,11 @@ def default_image_path(
 ) -> str:
     """Return value of the default image path.
 
-    Returns the default path based on logic (placeholder for future code)
+    Returns the default path based on logic
     """
-    # Return the default
+    storage = config_entry.get(CONF_STORAGE)
+    if storage:
+        return storage
     return "custom_components/mail_and_packages/images/"
 
 
@@ -1113,6 +1116,9 @@ def amazon_search(
     count = 0
     domains = amazon_domain.split()
 
+    _LOGGER.debug("Cleaning up amazon images...")
+    cleanup_images(f"{image_path}amazon/")
+
     for domain in domains:
         for subject in subjects:
             email_address = []
@@ -1134,6 +1140,14 @@ def amazon_search(
                     hass,
                     amazon_image_name,
                 )
+
+    if count == 0:
+        _LOGGER.debug("No Amazon deliveries found.")
+        nomail = f"{os.path.dirname(__file__)}/no_deliveries.jpg"
+        try:
+            copyfile(nomail, f"{image_path}amazon/" + amazon_image_name)
+        except Exception as err:
+            _LOGGER.error("Error attempting to copy image: %s", str(err))
 
     return count
 
@@ -1202,17 +1216,20 @@ async def download_img(
                 _LOGGER.debug("Amazon image downloaded")
 
 
-def _process_amazon_forwards(email_list: Union[List[str], None]) -> list:
+def _process_amazon_forwards(email_list: str | list | None) -> list:
     """Process amazon forward emails.
 
     Returns list of email addresses
     """
     result = []
-    if email_list:
+    if email_list is not None:
+        if not isinstance(email_list, list):
+            email_list = email_list.split()
         for fwd in email_list:
             if fwd and fwd != '""' and fwd not in result:
                 result.append(fwd)
 
+    _LOGGER.debug("Processed forwards: %s", result)
     return result
 
 
@@ -1221,7 +1238,8 @@ def amazon_hub(account: Type[imaplib.IMAP4_SSL], fwds: Optional[str] = None) -> 
 
     Returns dict of sensor data
     """
-    email_addresses = _process_amazon_forwards(fwds)
+    email_addresses = []
+    email_addresses.extend(_process_amazon_forwards(fwds))
     body_regex = AMAZON_HUB_BODY
     subject_regex = AMAZON_HUB_SUBJECT_SEARCH
     info = {}
@@ -1374,9 +1392,10 @@ def get_items(
     tfmt = past_date.strftime("%d-%b-%Y")
     deliveries_today = []
     order_number = []
-    domains = _process_amazon_forwards(fwds)
+    domains = []
+    domains.extend(_process_amazon_forwards(fwds))
     the_domain = the_domain.split()
-    domains.append(the_domain)
+    domains.extend(the_domain)
 
     _LOGGER.debug("Amazon email list: %s", str(domains))
 

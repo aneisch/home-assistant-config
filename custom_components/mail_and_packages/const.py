@@ -13,7 +13,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.4.0"
+VERSION = "0.4.1"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -46,6 +46,7 @@ CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
 CONF_CUSTOM_IMG = "custom_img"
 CONF_CUSTOM_IMG_FILE = "custom_img_file"
+CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -76,6 +77,7 @@ DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
+DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -252,6 +254,7 @@ SENSOR_DATA = {
         "subject": [
             "Your package has been delivered",
             "Your packages have been delivered",
+            "Your shipment was delivered",
         ],
     },
     "fedex_delivering": {
@@ -260,6 +263,7 @@ SENSOR_DATA = {
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
             "Your package is now out for delivery",
+            "Your shipment is out for delivery today",
             "out for delivery today",
         ],
     },
@@ -312,6 +316,7 @@ SENSOR_DATA = {
         "subject": [
             "DHL On Demand Delivery",
             "Paket kommt heute",
+            "kommt heute",
             "Paket wird gleich zugestellt",
             "Powiadomienie o przesyłce",
             "DHL Shipment Notification",
@@ -320,6 +325,7 @@ SENSOR_DATA = {
             "scheduled for delivery TODAY",
             "zostanie dziś do Państwa doręczona",
             "wird Ihnen heute",
+            "heute zwischen",
             " - Shipment is out with courier for delivery - ",
             "Shipment is scheduled for delivery",
             "voraussichtlich innerhalb",

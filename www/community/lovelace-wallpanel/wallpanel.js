@@ -107,7 +107,7 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.29.1";
+const version = "4.30.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -136,6 +136,7 @@ const defaultConfig = {
 	image_url: "https://picsum.photos/${width}/${height}?random=${timestamp}",
 	immich_api_key: "",
 	immich_album_names: [],
+	immich_resolution: "preview",
 	image_fit: 'cover', // cover / contain / fill
 	image_list_update_interval: 3600,
 	image_order: 'sorted', // sorted / random
@@ -232,7 +233,7 @@ function getActiveBrowserModPopup() {
 	}
 	const bmp = document.getElementsByTagName("browser-mod-popup");
 	if (!bmp || !bmp[0] || !bmp[0].shadowRoot || bmp[0].shadowRoot.children.length == 0) {
-		return null;	
+		return null;
 	}
 	return bmp[0];
 }
@@ -357,6 +358,7 @@ function mergeConfig(target, ...sources) {
 					return state;
 				}
 				if (typeof val === 'string' || val instanceof String) {
+					val = val.replace("${browser_id}", browserId ? browserId : "browser-id-unset");
 					val = val.replace(/\$\{entity:\s*([^}]+\.[^}]+)\}/g, replacer);
 				}
 				if (typeof target[key] === 'boolean') {
@@ -393,11 +395,16 @@ function updateConfig() {
 		}
 	}
 	config = mergeConfig(config, paramConfig);
-	const profile = insertBrowserID(config.profile);
+	const profile = config.profile;
 
 	if (config.profiles && profile && config.profiles[profile]) {
 		config = mergeConfig(config, config.profiles[profile]);
 		logger.debug(`Profile set from config: ${profile}`);
+	}
+	if (config.profiles && browserId && config.profiles[`device.${browserId}`]) {
+		let profile = `device.${browserId}`;
+		config = mergeConfig(config, config.profiles[profile]);
+		logger.debug(`Profile set from device: ${profile}`);
 	}
 	if (config.profiles && user && config.profiles[`user.${user}`]) {
 		let profile = `user.${user}`;
@@ -405,13 +412,13 @@ function updateConfig() {
 		logger.debug(`Profile set from user: ${profile}`);
 	}
 	config = mergeConfig(config, paramConfig);
-	const profile_entity = insertBrowserID(config.profile_entity);
+	const profile_entity = config.profile_entity;
 	if (config.profiles && profile_entity && elHass.__hass.states[profile_entity] && config.profiles[elHass.__hass.states[profile_entity].state]) {
 		let profile = elHass.__hass.states[profile_entity].state;
 		config = mergeConfig(config, config.profiles[profile]);
 		logger.debug(`Profile set from entity state: ${profile}`);
 	}
-	
+
 	if (config.card_interaction) {
 		config.stop_screensaver_on_mouse_move = false;
 	}
@@ -441,7 +448,7 @@ function updateConfig() {
 		config.show_images = false;
 	}
 
-	logger.debug(`Wallpanel config is now: ${JSON.stringify(config)}`);
+	logger.debug("Wallpanel config is now:", config);
 	if (wallpanel) {
 		if (isActive()) {
 			wallpanel.reconfigure(oldConfig);
@@ -621,21 +628,6 @@ function navigate(path, keepSearch=true) {
 }
 
 
-function insertBrowserID(string) {
-	if (!string) {
-		logger.debug(`insertBrowserID(${string}): no string`);
-		return string
-	}
-	if (!browserId) {
-		logger.debug(`insertBrowserID(${string}): no browser_mod`);
-		return string
-	}
-	let res = string.replace("${browser_id}", browserId);
-	logger.debug(`insertBrowserID(${string}): return ${res}`);
-	return res;
-}
-
-
 document.addEventListener('fullscreenerror', (event) => {
 	logger.error('Failed to enter fullscreen');
 });
@@ -689,7 +681,7 @@ class WallpanelView extends HuiView {
 		this.screensaverStoppedAt = new Date();
 		this.infoBoxContentCreatedDate;
 		this.idleSince = Date.now();
-		this.lastProfileSet = insertBrowserID(config.profile);
+		this.lastProfileSet = config.profile;
 		this.lastMove = null;
 		this.lastCorner = 0; // 0 - top left, 1 - bottom left, 2 - bottom right, 3 - top right
 		this.translateInterval = null;
@@ -731,7 +723,7 @@ class WallpanelView extends HuiView {
 			return;
 		}
 
-		const screensaver_entity = insertBrowserID(config.screensaver_entity);
+		const screensaver_entity = config.screensaver_entity;
 
 		if (screensaver_entity && this.__hass.states[screensaver_entity]) {
 			let lastChanged = new Date(this.__hass.states[screensaver_entity].last_changed);
@@ -760,7 +752,7 @@ class WallpanelView extends HuiView {
 	}
 
 	setScreensaverEntityState() {
-		const screensaver_entity = insertBrowserID(config.screensaver_entity);
+		const screensaver_entity = config.screensaver_entity;
 		if (!screensaver_entity || !this.__hass.states[screensaver_entity]) return;
 		if (this.screensaverRunning() && this.__hass.states[screensaver_entity].state == 'on') return;
 		if (!this.screensaverRunning() && this.__hass.states[screensaver_entity].state == 'off') return;
@@ -778,7 +770,7 @@ class WallpanelView extends HuiView {
 	}
 
 	updateProfile() {
-		const profile_entity = insertBrowserID(config.profile_entity);
+		const profile_entity = config.profile_entity;
 		if (profile_entity && this.__hass.states[profile_entity]) {
 			const profile = this.__hass.states[profile_entity].state;
 			if ((profile && profile != this.lastProfileSet) || (!profile && this.lastProfileSet)) {
@@ -1013,7 +1005,7 @@ class WallpanelView extends HuiView {
 
 		if (config.style) {
 			for (const elId in config.style) {
-				if (elId.startsWith('wallpanel-') && elId != 'wallpanel-shadow-host' && !classStyles[elId]) {
+				if (elId.startsWith('wallpanel-') && elId != 'wallpanel-shadow-host' && elId != 'wallpanel-screensaver-info-box-badges' && !classStyles[elId]) {
 					let el = this.shadowRoot.getElementById(elId);
 					if (el) {
 						logger.debug(`Setting style attributes for element #${elId}`);
@@ -1165,7 +1157,8 @@ class WallpanelView extends HuiView {
 
 		if (config.badges) {
 			const div = document.createElement('div');
-			div.classList.add("badges");
+			div.id = "wallpanel-screensaver-info-box-badges";
+			div.classList.add("wp-badges");
 			div.style.padding = 'var(--wp-card-padding)';
 			div.style.margin = 'var(--wp-card-margin)';
 			div.style.textAlign = 'center';
@@ -1176,6 +1169,12 @@ class WallpanelView extends HuiView {
 			div.style.gap = '8px';
 			div.style.margin = '0px';
 			div.style.minWidth = 'var(--wp-badges-minwidth)';
+			if (config.style[div.id]) {
+				for (const attr in config.style[div.id]) {
+					logger.debug(`Setting style attribute ${attr} to ${config.style[div.id][attr]}`);
+					div.style.setProperty(attr, config.style[div.id][attr]);
+				}
+			}
 			config.badges.forEach(badge => {
 				let badgeConfig = JSON.parse(JSON.stringify(badge));
 				logger.debug("Creating badge:", badgeConfig);
@@ -1853,7 +1852,6 @@ class WallpanelView extends HuiView {
 					const url = entry.urls.raw + "&w=${width}&h=${height}&auto=format";
 					urls.push(url);
 					data[url] = entry;
-					data[url]["unsplash"] = JSON.parse(JSON.stringify(entry));
 				});
 			} else {
 				logger.warn("Unsplash API error, get random images", http);
@@ -1886,14 +1884,16 @@ class WallpanelView extends HuiView {
 		let data = {};
 		const api_url = config.image_url.replace(/^immich\+/, "");
 		const http = new XMLHttpRequest();
+		const resolution = config.immich_resolution == "original" ? "original" : "thumbnail?size=preview"
 		http.responseType = "json";
 		http.open("GET", `${api_url}/albums`, true);
 		http.setRequestHeader("x-api-key", config.immich_api_key);
 		http.onload = function() {
 			let album_ids = [];
 			if (http.status == 200 || http.status === 0) {
-				logger.debug(`Got immich API response`, http.response);
-				http.response.forEach(album => {
+				const allAlbums = http.response;
+				logger.debug(`Got immich API response`, allAlbums);
+				allAlbums.forEach(album => {
 					logger.debug(album);
 					if (config.immich_album_names && ! config.immich_album_names.includes(album.albumName)) {
 						logger.debug("Skipping album: ", album.albumName);
@@ -1912,16 +1912,16 @@ class WallpanelView extends HuiView {
 						http2.setRequestHeader("x-api-key", config.immich_api_key);
 						http2.onload = function() {
 							if (http2.status == 200 || http2.status === 0) {
-								logger.debug(`Got immich API response`, http2.response);
-								http2.response.assets.forEach(asset => {
+								const albumDetails = http2.response;
+								logger.debug(`Got immich API response`, albumDetails);
+								albumDetails.assets.forEach(asset => {
 									logger.debug(asset);
 									if (asset.type == "IMAGE") {
-										const url = `${api_url}/assets/${asset.id}/original`;
+										const url = `${api_url}/assets/${asset.id}/${resolution}`;
 										data[url] = asset.exifInfo;
-										data[url]["immich"] = JSON.parse(JSON.stringify(asset));
 										data[url]["image"] = {
 											"filename": asset.originalFileName,
-											"folderName": http2.response.albumName
+											"folderName": albumDetails.albumName
 										}
 										urls.push(url);
 									}
@@ -2079,7 +2079,6 @@ class WallpanelView extends HuiView {
 			return;
 		}
 		img.setAttribute('data-loading', true);
-		img.imageUrl = null;
 
 		if (imageSourceType() == "media-source") {
 			this.updateImageFromMediaSource(img);
@@ -2451,7 +2450,7 @@ class WallpanelView extends HuiView {
 		const inactiveImage = this.getInactiveImageElement();
 		this.updateImage(inactiveImage,
 			function(wp, img) {
-				wp.switchActiveImage(500);
+				wp.switchActiveImage(250);
 			}
 		);
 	}
@@ -2499,7 +2498,7 @@ class WallpanelView extends HuiView {
 
 		const bmp = getActiveBrowserModPopup();
 		if (bmp) {
-			const bm_elements = [ bmp.shadowRoot.querySelector(".content"), bmp.shadowRoot.querySelector("ha-dialog-header") ]; 
+			const bm_elements = [ bmp.shadowRoot.querySelector(".content"), bmp.shadowRoot.querySelector("ha-dialog-header") ];
 			for (let i=0; i<bm_elements.length; i++) {
 				if (bm_elements[i]) {
 					const pos = bm_elements[i].getBoundingClientRect();
@@ -2548,12 +2547,8 @@ class WallpanelView extends HuiView {
 					if (this.imageListDirection != "forwards") {
 						this.switchImageDirection("forwards");
 					}
-					else if (
-						(now - this.lastImageUpdate > 500) &&
-						(this.imageOne.getAttribute('data-loading') == "false") &&
-						(this.imageTwo.getAttribute('data-loading') == "false")
-					) {
-						this.switchActiveImage(500);
+					else if (this.imageOne.getAttribute('data-loading') == "false" && this.imageTwo.getAttribute('data-loading') == "false") {
+						this.switchActiveImage(250);
 					}
 				}
 				return;
@@ -2563,12 +2558,8 @@ class WallpanelView extends HuiView {
 					if (this.imageListDirection != "backwards") {
 						this.switchImageDirection("backwards");
 					}
-					else if (
-						isClick && (now - this.lastImageUpdate > 500) &&
-						(this.imageOne.getAttribute('data-loading') == "false") &&
-						(this.imageTwo.getAttribute('data-loading') == "false")
-					) {
-						this.switchActiveImage(500);
+					else if (this.imageOne.getAttribute('data-loading') == "false" && this.imageTwo.getAttribute('data-loading') == "false") {
+						this.switchActiveImage(250);
 					}
 				}
 				return;
@@ -3842,4 +3833,3 @@ EXIF.pretty = function(img) {
 EXIF.readFromBinaryFile = function(file) {
 	return findEXIFinJPEG(file);
 }
-

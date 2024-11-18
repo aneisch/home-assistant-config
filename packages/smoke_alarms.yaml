@@ -47,6 +47,7 @@ automation:
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_alarm_test
         - binary_sensor.hallway_alarm_smoke_alarm_smoke_detected
         - binary_sensor.hardwired_smoke_alarms_smoke_detected
+        - binary_sensor.garage_heat_alarm_detected
       from: "off"
       to: "on"
     action:

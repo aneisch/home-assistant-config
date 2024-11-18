@@ -538,7 +538,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.14.0
+        image: ghcr.io/blakeblackshear/frigate:0.14.1
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
