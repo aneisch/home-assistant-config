@@ -312,7 +312,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v3.0
+        image: traefik:v3.2.0
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
@@ -538,7 +538,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.14.1
+        image: ghcr.io/blakeblackshear/frigate:c0ba98e
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -682,7 +682,7 @@ services:
             # - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
 
     sablier:
-        image: acouvreur/sablier:1.7.0
+        image: sablierapp/sablier:1.8.1
         container_name: sablier
         restart: 'always'
         command:

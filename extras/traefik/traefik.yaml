@@ -38,10 +38,10 @@ certificatesResolvers:
 experimental:
   plugins:
     sablier:
-      moduleName: "github.com/acouvreur/sablier"
-      version: "v1.7.0"
+      moduleName: "github.com/sablierapp/sablier"
+      version: "v1.8.1"
 
 # log:
 #   level: DEBUG
 
-accessLog: {}
+#accessLog: {}

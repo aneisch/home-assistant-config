@@ -101,6 +101,16 @@ cards:
               - type: picture-entity
                 entity: camera.back_porch
 
+          - type: custom:mushroom-entity-card
+            entity: cover.mom_and_dad_gate_mom_and_dad_gate
+            tap_action:
+              action: toggle
+
+          - type: custom:mushroom-entity-card
+            entity: cover.mom_and_dad_garage_mom_and_dad_garage
+            tap_action:
+              action: toggle
+
       # Column 2
       - type: vertical-stack
         cards:

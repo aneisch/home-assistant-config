@@ -350,37 +350,56 @@
     then:
     - action: homeassistant.turn_on
       entity_id: switch.andrew_office_speakers
-- alias: Turn on speakers and tv when XBOX powers on
-  id: speakers_with_xbox
-  initial_state: true
-  trigger:
-    platform: state
-    entity_id: binary_sensor.xbox_power
+- id: speakers_with_xbox
+  alias: Turn on speakers and tv when XBOX powers on
+  triggers:
+  - entity_id:
+    - binary_sensor.xbox_power
     to: 'on'
-  condition: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
-    == ''home'' }}'
-  action:
-    action: homeassistant.turn_on
+    trigger: state
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  conditions:
+  - condition: template
+    value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
+      == ''home'' }}'
+  actions:
+  - action: homeassistant.turn_on
     entity_id:
     - switch.living_room_speakers
     - switch.tv
-- alias: Turn off speakers when tv OR xbox powers off
-  id: tv_off_with_xbox_off
   initial_state: true
-  trigger:
-  - platform: state
-    entity_id: switch.tv
+- id: tv_off_with_xbox_off
+  alias: Turn off speakers when tv OR xbox powers off
+  triggers:
+  - entity_id:
+    - switch.tv
     to: 'off'
-  - platform: state
-    entity_id: binary_sensor.xbox_power
+    trigger: state
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  - entity_id:
+    - binary_sensor.xbox_power
     to: 'off'
-  condition: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
-    == ''home'' }}'
-  action:
-    action: homeassistant.turn_off
+    trigger: state
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+  conditions:
+  - condition: template
+    value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
+      == ''home'' }}'
+  actions:
+  - action: homeassistant.turn_off
     entity_id:
     - switch.living_room_speakers
     - switch.tv
+  initial_state: true
 - id: desk_lamp_macbook_active
   alias: Desk Lamp on when MacBook Active
   trigger:

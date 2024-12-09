@@ -107,7 +107,107 @@ class ScreenWakeLock {
 	}
 }
 
-const version = "4.30.0";
+class CameraMotionDetection {
+	constructor() {
+		this.enabled = false;
+		this.width = 64;
+		this.height = 48;
+		this.threshold = this.width * this.height * 0.05;
+		this.captureInterval = 300;
+		
+		this.videoElement = document.createElement("video");
+		this.videoElement.setAttribute("id", "wallpanelMotionDetectionVideo");
+		this.videoElement.style.display = 'none';
+		document.body.appendChild(this.videoElement);
+		
+		this.canvasElement = document.createElement("canvas");
+		this.canvasElement.setAttribute("id", "wallpanelMotionDetectionCanvas");
+		this.canvasElement.style.display = 'none';
+		document.body.appendChild(this.canvasElement);
+
+		this.context = this.canvasElement.getContext('2d', { willReadFrequently: true });
+	}
+
+	capture() {
+		let diffPixels = 0;
+		this.context.globalCompositeOperation = 'difference';
+		this.context.drawImage(this.videoElement, 0, 0, this.width, this.height);
+		const diffImageData = this.context.getImageData(0, 0, this.width, this.height);
+		const rgba = diffImageData.data;
+		for (let i = 0; i < rgba.length; i += 4) {
+			const pixelDiff = rgba[i] + rgba[i + 1] + rgba[i + 2];
+			if (pixelDiff >= 256) {
+				diffPixels ++;
+				if (diffPixels >= this.threshold) {
+					break;
+				}
+			}
+		}
+		if (diffPixels >= this.threshold) {
+			logger.debug("Motion detetcted:", diffPixels, this.threshold);
+			wallpanel.motionDetected();
+		}
+		this.context.globalCompositeOperation = 'source-over';
+		this.context.drawImage(this.videoElement, 0, 0, this.width, this.height);
+	}
+
+	start() {
+		if (this.enabled) {
+			return;
+		}
+		if (!navigator.mediaDevices) {
+			logger.error("No media devices found");
+			return;
+		}
+		
+		this.enabled = true;
+		this.width = config.camera_motion_detection_capture_width;
+		this.height = config.camera_motion_detection_capture_height;
+		this.threshold = this.width * this.height * config.camera_motion_detection_threshold * 0.01;
+		this.captureInterval = config.camera_motion_detection_capture_interval * 1000;
+
+		this.videoElement.width = this.width;
+		this.videoElement.height = this.height;
+		this.canvasElement.width = this.width;
+		this.canvasElement.height = this.height;
+		if (config.camera_motion_detection_capture_visible) {
+			this.canvasElement.style.position = "fixed";
+			this.canvasElement.style.top = 0;
+			this.canvasElement.style.left = 0;
+			this.canvasElement.style.zIndex = 10000;
+			this.canvasElement.style.border = "1px solid black";
+			this.canvasElement.style.display = 'block';
+		}
+		else {
+			this.canvasElement.style.display = 'none';
+		}
+
+		navigator.mediaDevices.getUserMedia(
+			{ audio: false, video: { facingMode: { acceptable: "user" }, width: this.width, height: this.height } }
+		).then((stream) => {
+			this.videoElement.srcObject = stream
+			this.videoElement.play();
+			if (this.enabled) {
+				setInterval(this.capture.bind(this), this.captureInterval);
+			}
+		}).catch((err) => {
+			logger.error("Camera motion detection error:", err);
+		});
+	}
+
+	stop() {
+		if (!this.enabled) {
+			return;
+		}
+		this.enabled = false;
+		this.videoElement.pause();
+		this.videoElement.srcObject.getTracks().forEach(track => {
+			track.stop();
+		});
+	}
+}
+
+const version = "4.31.2";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -120,18 +220,24 @@ const defaultConfig = {
 	z_index: 1000,
 	idle_time: 15,
 	fade_in_time: 3.0,
+	fade_out_time_motion_detected: 1.0,
+	fade_out_time_screensaver_entity: 3.0,
+	fade_out_time_browser_mod_popup: 1.0,
+	fade_out_time_interaction: 0.3,
 	crossfade_time: 3.0,
 	display_time: 15.0,
 	keep_screen_on_time: 0,
 	black_screen_after_time: 0,
 	control_reactivation_time: 1.0,
 	screensaver_stop_navigation_path: '',
+	screensaver_stop_close_browser_mod_popup: false,
 	screensaver_entity: '',
 	stop_screensaver_on_mouse_move: true,
 	stop_screensaver_on_mouse_click: true,
 	stop_screensaver_on_key_down: true,
 	stop_screensaver_on_location_change: true,
 	disable_screensaver_on_browser_mod_popup: false,
+	disable_screensaver_on_browser_mod_popup_func: '',
 	show_images: true,
 	image_url: "https://picsum.photos/${width}/${height}?random=${timestamp}",
 	immich_api_key: "",
@@ -158,6 +264,12 @@ const defaultConfig = {
 	image_animation_ken_burns: false,
 	image_animation_ken_burns_zoom: 1.3,
 	image_animation_ken_burns_delay: 0,
+	camera_motion_detection_enabled: false,
+	camera_motion_detection_threshold: 5,
+	camera_motion_detection_capture_width: 64,
+	camera_motion_detection_capture_height: 48,
+	camera_motion_detection_capture_interval: 0.3,
+	camera_motion_detection_capture_visible: false,
 	style: {},
 	badges: [],
 	cards: [
@@ -175,6 +287,7 @@ let activePanel = null;
 let activeTab = null;
 let fullscreen = false;
 let screenWakeLock = new ScreenWakeLock();
+let cameraMotionDetection = new CameraMotionDetection();
 let wallpanel = null;
 let skipDisableScreensaverOnLocationChanged = false;
 let classStyles = {
@@ -471,6 +584,12 @@ function isActive() {
 	if (config.enabled_on_tabs && config.enabled_on_tabs.length > 0 && activeTab && !config.enabled_on_tabs.includes(activeTab)) {
 		return false;
 	}
+	if (wallpanel &&
+		wallpanel.disable_screensaver_on_browser_mod_popup_function &&
+		getActiveBrowserModPopup() &&
+		wallpanel.disable_screensaver_on_browser_mod_popup_function(getActiveBrowserModPopup())) {
+		return false;
+	}
 	if (config.disable_screensaver_on_browser_mod_popup && getActiveBrowserModPopup()) {
 		return false;
 	}
@@ -663,6 +782,20 @@ function enterFullscreen() {
 	}
 }
 
+function exitFullscreen() {
+	logger.debug("Exit fullscreen");
+	if (document.fullscreenElement) {
+		document.fullscreenElement.exitFullscreen().then(
+			result => {
+				logger.debug("Successfully exited from fullscreen mode");
+			},
+			error => {
+				logger.error(error);
+			}
+		)
+	}
+}
+
 
 class WallpanelView extends HuiView {
 	constructor() {
@@ -691,6 +824,7 @@ class WallpanelView extends HuiView {
 		this.energyCollectionUpdateInterval = 60;
 		this.lastEnergyCollectionUpdate = 0;
 		this.screensaverStopNavigationPathTimeout = null;
+		this.disable_screensaver_on_browser_mod_popup_function = null;
 
 		this.lovelace = null;
 		this.__hass = elHass.__hass;
@@ -730,7 +864,7 @@ class WallpanelView extends HuiView {
 			let state = this.__hass.states[screensaver_entity].state;
 
 			if (state == "off" && this.screensaverStartedAt && lastChanged.getTime() - this.screensaverStartedAt > 0) {
-				this.stopScreensaver();
+				this.stopScreensaver(config.fade_out_time_screensaver_entity);
 			}
 			else if (state == "on" && this.screensaverStoppedAt && lastChanged.getTime() - this.screensaverStoppedAt > 0) {
 				this.startScreensaver();
@@ -789,7 +923,7 @@ class WallpanelView extends HuiView {
 		}
 		if (this.screensaverRunning()) {
 			if (config.disable_screensaver_on_browser_mod_popup && getActiveBrowserModPopup()) {
-				this.stopScreensaver();
+				this.stopScreensaver(config.fade_out_time_browser_mod_popup);
 			}
 			else {
 				this.updateScreensaver();
@@ -1144,7 +1278,11 @@ class WallpanelView extends HuiView {
 
 	createInfoBoxContent() {
 		logger.debug("Creating info box content");
-		this.lovelace = getHaPanelLovelace().__lovelace;
+		const haPanelLovelace = getHaPanelLovelace();
+		if (!haPanelLovelace) {
+			return;
+		}
+		this.lovelace = haPanelLovelace.__lovelace;
 		this.infoBoxContentCreatedDate = new Date();
 		this.infoBoxContent.innerHTML = '';
 		this.__badges = [];
@@ -1503,6 +1641,16 @@ class WallpanelView extends HuiView {
 				this.imageList = [];
 				this.preloadImages(preloadCallback);
 			}
+		}
+
+		if (config.disable_screensaver_on_browser_mod_popup_func) {
+			this.disable_screensaver_on_browser_mod_popup_function = new Function('bmp', config.disable_screensaver_on_browser_mod_popup_func);
+		}
+		if (config.camera_motion_detection_enabled) {
+			cameraMotionDetection.start();
+		}
+		else {
+			cameraMotionDetection.stop();
 		}
 	}
 
@@ -2246,11 +2394,11 @@ class WallpanelView extends HuiView {
 
 	setupScreensaver() {
 		logger.debug("Setup screensaver");
-		if (config.fullscreen && !fullscreen) {
-			enterFullscreen();
-		}
 		if (config.keep_screen_on_time > 0 && !screenWakeLock.enabled) {
 			screenWakeLock.enable();
+		}
+		if (config.fullscreen && !fullscreen) {
+			enterFullscreen();
 		}
 	}
 
@@ -2293,13 +2441,21 @@ class WallpanelView extends HuiView {
 
 		this.setScreensaverEntityState();
 
-		if (config.screensaver_stop_navigation_path) {
+		if (config.screensaver_stop_navigation_path || config.screensaver_stop_close_browser_mod_popup) {
 			this.screensaverStopNavigationPathTimeout = setTimeout(() => {
-				skipDisableScreensaverOnLocationChanged = true;
-				navigate(config.screensaver_stop_navigation_path);
-				setTimeout(() => {
-					skipDisableScreensaverOnLocationChanged = false;
-				}, 250);
+				if (config.screensaver_stop_navigation_path) {
+					skipDisableScreensaverOnLocationChanged = true;
+					navigate(config.screensaver_stop_navigation_path);
+					setTimeout(() => {
+						skipDisableScreensaverOnLocationChanged = false;
+					}, 250);
+				}
+				if (config.screensaver_stop_close_browser_mod_popup) {
+					let bmp = getActiveBrowserModPopup();
+					if (bmp) {
+						bmp.closeDialog();
+					}
+				}
 			}, (config.fade_in_time + 1) * 1000);
 		}
 	}
@@ -2308,7 +2464,7 @@ class WallpanelView extends HuiView {
 		return this.screensaverStartedAt && this.screensaverStartedAt > 0;
 	}
 
-	stopScreensaver() {
+	stopScreensaver(fadeOutTime = 0.0) {
 		logger.debug("Stop screensaver");
 
 		this.screensaverStartedAt = null;
@@ -2322,7 +2478,12 @@ class WallpanelView extends HuiView {
 		this.hideMessage();
 
 		this.debugBox.style.pointerEvents = 'none';
-		this.style.transition = '';
+		if (fadeOutTime > 0) {
+			this.style.transition = `opacity ${Math.round(fadeOutTime*1000)}ms ease-in-out`;
+		}
+		else {
+			this.style.transition = '';
+		}
 		this.style.opacity = 0;
 		this.style.visibility = 'hidden';
 		this.infoBoxPosX.style.animation = '';
@@ -2455,6 +2616,10 @@ class WallpanelView extends HuiView {
 		);
 	}
 
+	motionDetected() {
+		this.stopScreensaver(config.fade_out_time_motion_detected);
+	}
+
 	handleInteractionEvent(evt, isClick) {
 		let now = Date.now();
 		this.idleSince = now;
@@ -2585,7 +2750,7 @@ class WallpanelView extends HuiView {
 		if (!isClick || config.stop_screensaver_on_mouse_click) {
 			// Prevent interaction with the dashboards after screensaver was stopped
 			this.blockEventsUntil = now + config.control_reactivation_time * 1000;
-			this.stopScreensaver();
+			this.stopScreensaver(config.fade_out_time_interaction);
 		}
 	}
 }
@@ -3833,3 +3998,4 @@ EXIF.pretty = function(img) {
 EXIF.readFromBinaryFile = function(file) {
 	return findEXIFinJPEG(file);
 }
+

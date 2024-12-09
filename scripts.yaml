@@ -119,11 +119,13 @@ security_arm:
 master_bedroom_wakeup:
   sequence:
     # Start Christmas
-    - if: "{{ now().hour < 11 }}"
+    - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
       then:
-        - action: script.turn_on
-          entity_id:
-            - script.christmas_wakeup
+        - if: "{{ now().hour < 11 }}"
+          then:
+            - action: script.turn_on
+              entity_id:
+                - script.christmas_wakeup
     # End Christmas
     - action: cover.open_cover
       entity_id: cover.master_bedroom_blinds
@@ -153,8 +155,10 @@ master_bedroom_bedtime:
     - action: cover.close_cover
       entity_id: cover.master_bedroom_blinds
     # Start Christmas
-    - action: script.turn_on # Calling this way allows the sequence to continue without blocking
-      entity_id: script.christmas_goodnight
+    - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
+      then:
+        - action: script.turn_on # Calling this way allows the sequence to continue without blocking
+          entity_id: script.christmas_goodnight
     # End Christmas
     - action: script.appdaemon_ac_night
     - action: switch.turn_on #revert this

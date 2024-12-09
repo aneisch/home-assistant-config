@@ -57,3 +57,6 @@ compost_turn:
 
 backyard_floodlight_automation:
   name: Backyard Flood Light Automation
+
+christmas_jingle:
+  name: Master Wakeup/Bedtime Jingle
