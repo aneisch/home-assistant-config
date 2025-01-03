@@ -5,7 +5,7 @@ homeassistant:
   internal_url: http://10.0.1.22:8123
   country: US
   elevation: !secret elevation
-  unit_system: imperial
+  #unit_system: imperial
   latitude: !secret home_lat
   longitude: !secret home_long
   time_zone: America/Chicago

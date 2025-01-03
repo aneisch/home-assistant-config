@@ -359,8 +359,8 @@
     trigger: state
     for:
       hours: 0
-      minutes: 1
-      seconds: 0
+      minutes: 0
+      seconds: 5
   conditions:
   - condition: template
     value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
@@ -380,16 +380,17 @@
     trigger: state
     for:
       hours: 0
-      minutes: 1
-      seconds: 0
+      minutes: 0
+      seconds: 5
+    enabled: false
   - entity_id:
     - binary_sensor.xbox_power
     to: 'off'
     trigger: state
     for:
       hours: 0
-      minutes: 1
-      seconds: 0
+      minutes: 0
+      seconds: 30
   conditions:
   - condition: template
     value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')

@@ -23,8 +23,8 @@ esphome:
   #   name: yoziru.esphome-tesla-ble
   #   version: "2024.8.1"
   libraries:
-    #- https://github.com/yoziru/tesla-ble.git#v2.2.1
-    - https://github.com/aneisch/tesla-ble.git
+    - https://github.com/yoziru/tesla-ble.git
+    #- https://github.com/aneisch/tesla-ble.git
 
 external_components:
   #- source: github://yoziru/esphome-tesla-ble/tree/main/components

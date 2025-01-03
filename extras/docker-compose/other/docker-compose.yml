@@ -24,6 +24,7 @@ services:
             - traefik.http.services.plex.loadbalancer.server.port=32400
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.plex_local.tls=true
+            - traefik.http.routers.plex_local.entrypoints=websecure
             - traefik.http.routers.plex_local.tls.certResolver=le-home
             - traefik.http.routers.plex_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.plex_local.rule=Host(`plex.home.domain.com`)
@@ -108,6 +109,7 @@ services:
             - traefik.http.routers.esphome.service=esphome
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.esphome_local.tls=true
+            - traefik.http.routers.esphome_local.entrypoints=websecure
             - traefik.http.routers.esphome_local.tls.certResolver=le-home
             - traefik.http.routers.esphome_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.esphome_local.rule=Host(`esphome.home.domain.com`)
@@ -206,6 +208,7 @@ services:
             - '/opt/traefik:/config/traefik'
             - '/opt/vscode/run:/etc/s6-overlay/s6-rc.d/init-user/run'
             - '/opt/esphome:/config/esphome'
+            - '/opt/teslausb:/config/teslausb'
         environment:
             - TZ=America/Chicago
         labels:
@@ -219,6 +222,7 @@ services:
             - traefik.http.services.vscode.loadbalancer.server.port=1337
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.vscode_local.tls=true
+            - traefik.http.routers.vscode_local.entrypoints=websecure
             - traefik.http.routers.vscode_local.tls.certResolver=le-home
             - traefik.http.routers.vscode_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
@@ -276,6 +280,7 @@ services:
             - traefik.http.routers.adguard.service=adguard
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.adguard_local.tls=true
+            - traefik.http.routers.adguard_local.entrypoints=websecure
             - traefik.http.routers.adguard_local.tls.certResolver=le-home
             - traefik.http.routers.adguard_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
@@ -312,7 +317,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:v3.2.0
+        image: traefik:3.3.0-rc1
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
@@ -334,6 +339,7 @@ services:
             - traefik.http.routers.traefik_https.service=api@internal
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.traefik_local.tls=true
+            - traefik.http.routers.traefik_local.entrypoints=websecure
             - traefik.http.routers.traefik_local.tls.certResolver=le-home
             - traefik.http.routers.traefik_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
@@ -369,6 +375,7 @@ services:
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.enable=true # Disabled
             - traefik.http.services.signal_local.loadbalancer.server.port=8080
+            - traefik.http.routers.signal_local.entrypoints=websecure
             - traefik.http.routers.signal_local.service=signal_local
             - traefik.http.routers.signal_local.tls=true
             - traefik.http.routers.signal_local.tls.certResolver=le-home
@@ -538,7 +545,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:c0ba98e
+        image: ghcr.io/blakeblackshear/frigate:0.15.0-beta4
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -566,6 +573,7 @@ services:
             - traefik.http.routers.frigate.service=frigate
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.frigate_local.tls=true
+            - traefik.http.routers.frigate_local.entrypoints=websecure
             - traefik.http.routers.frigate_local.tls.certResolver=le-home
             - traefik.http.routers.frigate_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
@@ -573,6 +581,7 @@ services:
             # Go2rtc Local
             - traefik.http.services.go2rtc.loadbalancer.server.port=1984
             - traefik.http.routers.go2rtc_local.service=go2rtc
+            - traefik.http.routers.go2rtc_local.entrypoints=websecure
             - traefik.http.routers.go2rtc_local.tls=true
             - traefik.http.routers.go2rtc_local.tls.certResolver=le-home
             - traefik.http.routers.go2rtc_local.tls.domains[0].main=*.home.domain.com
@@ -601,6 +610,7 @@ services:
             - traefik.http.services.codeproject.loadbalancer.server.port=32168
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.codeproject_local.tls=true
+            - traefik.http.routers.codeproject_local.entrypoints=websecure
             - traefik.http.routers.codeproject_local.tls.certResolver=le-home
             - traefik.http.routers.codeproject_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
@@ -755,6 +765,7 @@ services:
             - traefik.http.services.compreface.loadbalancer.server.port=80
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.compreface_local.tls=true
+            - traefik.http.routers.compreface_local.entrypoints=websecure
             - traefik.http.routers.compreface_local.tls.certResolver=le-home
             - traefik.http.routers.compreface_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.compreface_local.rule=Host(`compreface.home.domain.com`)
@@ -788,6 +799,7 @@ services:
             - traefik.http.services.doubletake.loadbalancer.server.port=3000
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.doubletake_local.tls=true
+            - traefik.http.routers.doubletake_local.entrypoints=websecure
             - traefik.http.routers.doubletake_local.tls.certResolver=le-home
             - traefik.http.routers.doubletake_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.doubletake_local.rule=Host(`doubletake.home.domain.com`)
@@ -826,6 +838,7 @@ services:
             - traefik.http.routers.guacamole.service=guacamole
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.guacamole_local.tls=true
+            - traefik.http.routers.guacamole_local.entrypoints=websecure
             - traefik.http.routers.guacamole_local.tls.certResolver=le-home
             - traefik.http.routers.guacamole_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.guacamole_local.rule=Host(`guacamole.home.domain.com`)
@@ -880,17 +893,34 @@ services:
             - traefik.enable=true
             - traefik.http.services.teslamate.loadbalancer.server.port=3000
             # HTTPS for CF
-            # - traefik.http.routers.teslamate.entrypoints=websecure
-            # - traefik.http.routers.teslamate.tls=true
-            # - traefik.http.routers.teslamate.rule=Host(`teslamate.domain.com`)
-            # - traefik.http.routers.teslamate.service=teslamate
+            - traefik.http.routers.teslamate.entrypoints=websecure
+            - traefik.http.routers.teslamate.tls=true
+            - traefik.http.routers.teslamate.rule=Host(`teslamate.domain.com`)
+            - traefik.http.routers.teslamate.service=teslamate
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.teslamate_local.tls=true
+            - traefik.http.routers.teslamate_local.entrypoints=websecure
             - traefik.http.routers.teslamate_local.tls.certResolver=le-home
             - traefik.http.routers.teslamate_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
             - traefik.http.routers.teslamate_local.service=teslamate
 
+    proxy:
+        image: ghcr.io/aneisch/tesla-ble-http-proxy:latest
+        container_name: proxy
+        volumes:
+        - /opt/proxy:/key
+        - /var/run/dbus:/var/run/dbus
+        restart: always
+        privileged: true
+        ports:
+            - 8125:8080
+        #network_mode: host
+        cap_add:
+        - NET_ADMIN
+        - SYS_ADMIN
+        environment:
+          - logLevel=debug
 
 # networks:
 #     macos_network:

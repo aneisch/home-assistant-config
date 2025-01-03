@@ -4,6 +4,7 @@ badges: []
 icon: mdi:car-connected
 cards:
   - type: vertical-stack
+    title: Overview
     cards:
       - type: glance
         entities:
@@ -39,7 +40,35 @@ cards:
                 icon: mdi:lock-open
                 color: red
 
+
+      - type: entities
+        title: Commands
+        show_header_toggle: false
+        entities:
+          - binary_sensor.tesla_ble
+          - button.tesla_ble_wake_up_car
+          - switch.tesla_ble_sentry_mode
+          - button.tesla_ble_flash_lights
+          - button.tesla_ble_honk_horn
+          - button.tesla_ble_lock_car
+          - button.tesla_ble_unlock_car
+          - button.tesla_ble_open_car_frunk
+          - cover.tesla_ble_trunk
+          - button.tesla_ble_toggle_between_play_pause
+          - cover.tesla_ble_windows
+          - switch.tesla_ble_climate
+          - number.tesla_ble_climate_temp
+          - button.tesla_ble_set_climate_mode_to_auto
+          - switch.tesla_ble_steering_wheel_heater
+          - select.tesla_ble_heated_seat_front_left
+          - select.tesla_ble_heated_seat_front_right
+          - cover.tesla_ble_charge_port
+          - button.tesla_ble_remote_start_car
+
+
+
   - type: vertical-stack
+    title: Charging
     cards:
       - type: gauge
         entity: sensor.total_power
@@ -49,25 +78,33 @@ cards:
       - type: entities
         entities:
           - switch.emporia_charger
-          - sensor.tesla_energy_this_month
+          - switch.tesla_ble_charger
           - entity: sensor.tesla_charger_actual_current
-            name: Charger Current
+            name: Charging Current
+          - entity: sensor.tesla_charge_limit_soc
+            name: Charge Limit
           - entity: sensor.tesla_time_to_full_charge
             name: Time To Full Charge
           - timer.tesla_charge_backoff
-          - number.tesla_ble_882c04_charging_amps
-          - switch.tesla_ble_882c04_hvac_switch
+          - entity: number.tesla_ble_charging_current
+            name: BLE Current Limit
+          - entity: number.tesla_ble_charging_limit
+            name: BLE Charge Limit
+
+          # - number.tesla_ble_882c04_charging_amps
+          # - switch.tesla_ble_882c04_hvac_switch
+          # - switch.tesla_ble_882c04_sentry_switch
       - type: markdown
         content: >
           {% set current_time = now() %}
           {% set future_time = as_local(as_datetime( ((now() + timedelta( hours = (states('sensor.tesla_time_to_full_charge')| float))) | string)[:-16] )) %}
           {% set time_distance = future_time - current_time %}
 
-          {% if is_state('sensor.tesla_state', 'charging')%}Finishing in {{ relative_time(current_time - time_distance) }} @ {{ ((now() + timedelta( hours = (states('sensor.tesla_time_to_full_charge')| float))) | string)[:-16] }}{% endif %}
+          {% if is_state('sensor.tesla_state', 'charging')%}Reaching {{ states('sensor.tesla_charge_limit_soc') }}% in {{ relative_time(current_time - time_distance) }} @ {{ ((now() + timedelta( hours = (states('sensor.tesla_time_to_full_charge')| float))) | string)[:-16] }}{% endif %}
 
           Offering rate: {{ state_attr('switch.emporia_charger','charging_rate') }}A
-
-          Tesla Home Charging Cost This Month: ${{ states('input_text.electricity_cost_monthly_tesla') }}
+          
+          Tesla Usage This Month: {{ states('sensor.tesla_energy_this_month') | int }}kWh (${{ states('input_text.electricity_cost_monthly_tesla') }})
       - type: horizontal-stack
         cards:
           - type: vertical-stack
@@ -78,7 +115,7 @@ cards:
                 card_mod:
                   style: |
                     ha-card {
-                      {% if is_state('number.tesla_ble_882c04_charging_limit','70.0') %}
+                      {% if is_state('sensor.tesla_charge_limit_soc','70') %}
                       background: gray;
                       {% endif %}
                     }
@@ -88,14 +125,14 @@ cards:
                   data:
                     value: "70"
                   target:
-                    entity_id: number.tesla_ble_882c04_charging_limit
+                    entity_id: number.tesla_ble_charging_limit
               - type: custom:mushroom-template-card
                 primary: "Charge Limit"
                 secondary: "90"
                 card_mod:
                   style: |
                     ha-card {
-                      {% if is_state('number.tesla_ble_882c04_charging_limit','90.0') %}
+                      {% if is_state('sensor.tesla_charge_limit_soc','90') %}
                       background: gray;
                       {% endif %}
                     }
@@ -105,7 +142,7 @@ cards:
                   data:
                     value: "90"
                   target:
-                    entity_id: number.tesla_ble_882c04_charging_limit
+                    entity_id: number.tesla_ble_charging_limit
           - type: vertical-stack
             cards:
               - type: custom:mushroom-template-card
@@ -114,7 +151,7 @@ cards:
                 card_mod:
                   style: |
                     ha-card {
-                      {% if is_state('number.tesla_ble_882c04_charging_limit','80.0') %}
+                      {% if is_state('sensor.tesla_charge_limit_soc','80') %}
                       background: gray;
                       {% endif %}
                     }
@@ -124,14 +161,14 @@ cards:
                   data:
                     value: "80"
                   target:
-                    entity_id: number.tesla_ble_882c04_charging_limit
+                    entity_id: number.tesla_ble_charging_limit
               - type: custom:mushroom-template-card
                 primary: "Charge Limit"
                 secondary: "100"
                 card_mod:
                   style: |
                     ha-card {
-                      {% if is_state('number.tesla_ble_882c04_charging_limit','100.0') %}
+                      {% if is_state('sensor.tesla_charge_limit_soc','100') %}
                       background: gray;
                       {% endif %}
                     }
@@ -141,25 +178,26 @@ cards:
                   data:
                     value: "100"
                   target:
-                    entity_id: number.tesla_ble_882c04_charging_limit
+                    entity_id: number.tesla_ble_charging_limit
 
   - type: entities
+    title: Sensors
+    show_header_toggle: false
     entities:
       - entity: sensor.tesla_state
         name: Status
       - entity: sensor.tesla_since
         name: Last Status Change
-      - entity: sensor.tesla_version
-        name: Software Version
-      - entity: binary_sensor.tesla_update_available
-        name: Available Update Status
-      - entity: sensor.tesla_update_version
-        name: Available Update Version
+      # - entity: sensor.tesla_version
+      #   name: Software Version
+      # - entity: binary_sensor.tesla_update_available
+      #   name: Available Update Status
+      # - entity: sensor.tesla_update_version
       - device_tracker.tesla_location
-      - entity: sensor.tesla_speed
-        name: Speed
-      - entity: sensor.tesla_elevation
-        name: Elevation
+      # - entity: sensor.tesla_speed
+      #   name: Speed
+      # - entity: sensor.tesla_elevation
+      #   name: Elevation
       - entity: binary_sensor.tesla_doors_open
         name: Doors Open
       - entity: binary_sensor.tesla_trunk_open
@@ -168,12 +206,12 @@ cards:
         name: Frunk Open
       - entity: binary_sensor.tesla_is_user_present
         name: User Present
-      - entity: binary_sensor.tesla_is_climate_on
-        name: Climate On
       - entity: sensor.tesla_inside_temp
         name: Inside Temperature
       - entity: sensor.tesla_outside_temp
         name: Outside Temperature
+      - entity: binary_sensor.tesla_is_climate_on
+        name: Climate On
       - entity: binary_sensor.tesla_is_preconditioning
         name: Preconditioning
       - entity: sensor.tesla_odometer
@@ -181,16 +219,14 @@ cards:
       - sensor.tesla_miles_per_month
       - entity: sensor.tesla_est_battery_range
         name: Estimated Battery Range
-      - entity: sensor.tesla_rated_battery_range
-        name: Rated Battery Range
-      - entity: sensor.tesla_ideal_battery_range
-        name: Ideal Battery Range
-      - entity: sensor.tesla_charge_energy_added
-        name: Charge Energy Added
-      - entity: sensor.tesla_charge_limit_soc
-        name: Charge Limit
-      - entity: binary_sensor.tesla_charge_port_door_open
-        name: Charge Port Door Open
+      # - entity: sensor.tesla_rated_battery_range
+      #   name: Rated Battery Range
+      # - entity: sensor.tesla_ideal_battery_range
+      #   name: Ideal Battery Range
+      # - entity: sensor.tesla_charge_energy_added
+      #   name: Charge Energy Added
+      # - entity: binary_sensor.tesla_charge_port_door_open
+      #   name: Charge Port Door Open
       - entity: sensor.tesla_tpms_pressure_fl
         name: Front Left Tire Pressure
       - entity: sensor.tesla_tpms_pressure_fr

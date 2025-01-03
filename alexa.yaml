@@ -81,6 +81,7 @@ smart_home:
       - script.vacuum_clean_guest_bedroom
       - script.vacuum_locate
       - script.kitchen_launch_timers
+      - script.tesla_hvac
       - sensor.master_bedroom_temperature
       - switch.bethany_office_ceiling_fan
       - switch.master_bedroom_ceiling_fan
@@ -208,6 +209,10 @@ smart_home:
     script.vacuum_clean_guest_bedroom:
       name: "Roxie Clean Guest Bedroom"
       description: "Vacuum the Guest Bedroom"
+      display_categories: SCENE_TRIGGER
+
+    script.tesla_hvac:
+      name: Tesla HVAC
       display_categories: SCENE_TRIGGER
 
     sensor.master_bedroom_temperature:

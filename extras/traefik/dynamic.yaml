@@ -59,7 +59,35 @@ http:
       middlewares:
         - sablier@file
       service: "librespeed"
+      entrypoints:
+        - websecure
       rule: host(`librespeed.home.domain.com`)
+      tls: 
+        certresolver: le-home
+        domains:
+          - main: "*.home.domain.com"
+
+    teslausb:
+      service: "teslausb"
+      rule: host(`teslausb.domain.com`)
+      entryPoints:
+      - websecure
+      tls: true
+    teslausb_local:
+      entrypoints:
+        - websecure
+      service: "teslausb"
+      rule: host(`teslausb.home.domain.com`)
+      tls: 
+        certresolver: le-home
+        domains:
+          - main: "*.home.domain.com"
+
+    tesla_proxy:
+      entrypoints:
+        - websecure
+      service: "teslaproxy"
+      rule: host(`teslaproxy.home.domain.com`)
       tls: 
         certresolver: le-home
         domains:
@@ -76,6 +104,8 @@ http:
     recipes_local:
       middlewares:
         - sablier@file
+      entrypoints:
+        - websecure
       service: "recipes"
       rule: host(`recipes.home.domain.com`)
       tls: 
@@ -95,6 +125,8 @@ http:
       middlewares:
         - sablier@file
       service: "portainer"
+      entrypoints:
+        - websecure
       rule: host(`portainer.home.domain.com`)
       tls: 
         certresolver: le-home
@@ -124,6 +156,16 @@ http:
       loadBalancer:
         servers:
           - url: http://10.0.1.8
+        passHostHeader: true
+    teslausb:
+      loadBalancer:
+        servers:
+          - url: http://10.0.1.25
+        passHostHeader: true
+    teslaproxy:
+      loadBalancer:
+        servers:
+          - url: http://10.0.0.67:8080
         passHostHeader: true
     pfsense:
       loadBalancer:

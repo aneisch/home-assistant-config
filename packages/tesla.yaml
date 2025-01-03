@@ -553,6 +553,88 @@ mqtt:
       payload_off: "false"
       icon: mdi:ev-plug-tesla
 
+lock:
+  - platform: template
+    unique_id: tesla_lock_entity
+    name: Tesla
+    value_template: "{{ is_state('binary_sensor.tesla_locked', 'off') }}"
+    lock:
+      action: button.press
+      target:
+        entity_id: button.tesla_ble_lock_car
+    unlock:
+      action: button.press
+      target:
+        entity_id: button.tesla_ble_unlock_car
+
+script:
+  tesla_hvac:
+    sequence:
+      - action: switch.turn_on
+        entity_id: switch.tesla_ble_climate
+      - if: "{{ states('sensor.tesla_outside_temp') | float < 70 }}"
+        then: 
+          - delay: '00:00:05'
+          - action: number.set_value
+            data:
+              value: "82"
+            target:
+              entity_id: number.tesla_ble_climate_temp
+          - action: switch.turn_on
+            entity_id: switch.tesla_ble_steering_wheel_heater
+          - action: select.select_option
+            data:
+              option: high
+            target:
+              entity_id:
+                - select.tesla_ble_heated_seat_front_right
+                - select.tesla_ble_heated_seat_front_left
+        else:
+          - delay: '00:00:05'
+          - action: number.set_value
+            data:
+              value: "65"
+            target:
+              entity_id: number.tesla_ble_climate_temp
+      - delay: '00:10:00'
+      - action: switch.turn_off
+        entity_id: switch.tesla_ble_climate
+      - delay: '00:00:05'
+      - action: switch.turn_off
+        entity_id: switch.tesla_ble_steering_wheel_heater
+      - action: select.select_option
+        data:
+          option: "off"
+        target:
+          entity_id:
+            - select.tesla_ble_heated_seat_front_right
+            - select.tesla_ble_heated_seat_front_left
+
+# rest_command:
+#   tesla_ble_proxy:
+#     url: "http://100.74.170.3:8080/api/1/vehicles/VIN/command/{{ command }}"
+#     method: post
+#   tesla_ble_set_sentry_on:
+#     url: http://100.74.170.3:8080/api/1/vehicles/VIN/command/set_sentry_mode
+#     method: POST
+#     payload: '{"on": true}'
+#     content_type: 'application/json'
+#   tesla_ble_set_sentry_off:
+#     url: http://100.74.170.3:8080/api/1/vehicles/VIN/command/set_sentry_mode
+#     method: POST
+#     payload: '{"on": false}'
+#     content_type: 'application/json'
+#   tesla_ble_set_temperature:
+#     url: http://100.74.170.3:8080/api/1/vehicles/VIN/command/set_temps
+#     method: POST
+#     payload: '{"driverTemp": {{ driverTemp }}, "passengerTemp": {{ passengerTemp }}}'
+#     content_type: 'application/json'
+#
+# action: rest_command.tesla_ble_set_temperature
+# data:
+#   driverTemp: 25
+#   passengerTemp: 22
+
 timer:
   tesla_charge_backoff:
     name: Tesla Charge Backoff
@@ -560,6 +642,67 @@ timer:
     restore: true
 
 automation:
+  # - alias: TeslaUSB Webhook
+  #   id: "TeslaUSB Webhook"
+  #   trigger:
+  #     - platform: webhook
+  #       webhook_id: !secret teslausb_webhook
+  #       local_only: false
+  #   action:
+  #     - action: persistent_notification.create
+  #       data:
+  #         message: "{% if 'data' in trigger %}\n  Data: {{ dict(trigger.data)|tojson }}\n{%
+  #           elif 'json' in trigger %}\n  JSON: {{ dict(trigger.json)|tojson }}\n{% else
+  #           %} {% endif %} {% if 'query' in trigger and trigger.query|length > 0 %}\n
+  #           \ Query: {{ dict(trigger.query)|tojson }}\n{% endif %}"
+
+  # This allows TeslaUSB backup to complete (sentry mode on by default at home keeps the Pi powered)
+  # turn off after 15 minutes to allow backup to complete
+  - alias: Disable Sentry Mode for TeslaUSB
+    id: disable_sentry_mode_for_teslausb
+    trigger:
+      - platform: state
+        entity_id: device_tracker.tesla_location
+        from: "not_home"
+        to: "home"
+        id: location
+      - platform: webhook
+        webhook_id: !secret teslausb_webhook
+        local_only: false
+        id: webhook
+    action:
+      - if: "{{ trigger.id == 'webhook' }}"
+        alias: "Webhook"
+        then:
+          - choose:
+            - conditions:
+              - condition: template
+                value_template: '{{ ''including'' in trigger.json.value2 }}'
+              alias: "Started"
+              sequence:
+                - action: switch.turn_on
+                  target:
+                    entity_id: switch.tesla_ble_sentry_mode
+            - conditions:
+              - condition: template
+                value_template: '{{ ''completed'' in trigger.json.value2 }}'
+              alias: "Completed"
+              sequence:
+                - action: switch.turn_off
+                  target:
+                    entity_id: switch.tesla_ble_sentry_mode
+      - if: "{{ trigger.id == 'location' }}"
+        alias: "Location"
+        then:
+          - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'on') }}"
+            timeout: 00:05:00
+          - action: switch.turn_on
+            entity_id: switch.tesla_ble_sentry_mode
+          - delay: "00:05:00"
+          - action: switch.turn_off
+            entity_id: switch.tesla_ble_sentry_mode
+    mode: restart
+
   - alias: "Tesla Charge Limit Change Notice"
     id: "tesla_charge_limit_change_notice"
     initial_state: on
@@ -567,8 +710,9 @@ automation:
     trigger:
         platform: state
         entity_id: sensor.tesla_charge_limit_soc
+    condition: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] and trigger.from_state.state not in ['unknown', 'unavailable'] }}"
     action:
-      - action: script.notify_wrapper
+      - action: notify.signal_homeassistant
         data:
           message: "Tesla charge limit set to {{ states('sensor.tesla_charge_limit_soc') }}%"
 
@@ -582,13 +726,13 @@ automation:
         from: "not_home"
         to: "home"
     action:
-      - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'open') }}"
+      - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'on') }}"
         timeout: 00:10:00
       - action: number.set_value
         data:
           value: "70"
         target:
-          entity_id: number.tesla_ble_882c04_charging_limit
+          entity_id: number.tesla_ble_charging_limit
 
   - alias: "Tesla Auto Open Garage"
     id: "tesla_auto_open_garage"
@@ -608,7 +752,7 @@ automation:
               entity_id: input_boolean.security_status
             - service: cover.open_cover
               entity_id: cover.garage_door
-            - service: script.notify_wrapper
+            - service: notify.signal_homeassistant
               data:
                 message: "Tesla Auto Opened Garage"
             - delay: "00:05:00"
@@ -662,7 +806,7 @@ automation:
                   data:
                     value: "20"
                   target:
-                    entity_id: number.tesla_ble_882c04_charging_amps
+                    entity_id: number.tesla_ble_charging_current
             - action: timer.start
               data:
                 duration: "00:15:00"
@@ -691,7 +835,7 @@ automation:
               data:
                 value: "5"
               target:
-                entity_id: number.tesla_ble_882c04_charging_amps
+                entity_id: number.tesla_ble_charging_current
             - action: timer.start
               data:
                 duration: "00:15:00"
@@ -702,7 +846,7 @@ automation:
           alias: "Greater than 20k"
           then:
             # If charging and not already off, notify
-            - if: "{{ (is_state('switch.emporia_charger', 'on') or is_state('switch.tesla_ble_882c04_charger_switch', 'on')) and is_state('sensor.tesla_state', 'charging') }}"
+            - if: "{{ (is_state('switch.emporia_charger', 'on') or is_state('switch.tesla_ble_882c04_charger_switch', 'on') or is_state('switch.tesla_ble_charger', 'on')) and is_state('sensor.tesla_state', 'charging') }}"
               then:
                 - action: script.notify_wrapper
                   data:
@@ -714,7 +858,7 @@ automation:
               entity_id: switch.emporia_charger
             # Tell vehicle to stop charging
             - action: switch.turn_off
-              entity_id: switch.tesla_ble_882c04_charger_switch
+              entity_id: switch.tesla_ble_charger
             - action: timer.start
               data:
                 duration: "00:15:00"
@@ -737,7 +881,7 @@ automation:
           entity_id: switch.emporia_charger
         # Allow vehicle to start charging
         - action: switch.turn_on
-          entity_id: switch.tesla_ble_882c04_charger_switch
+          entity_id: switch.tesla_ble_charger
         - if: "{{ state_attr('switch.emporia_charger','charging_rate') != 1  and is_state('sensor.tesla_state', 'charging') }}"
           then:
             - action: script.notify_wrapper
@@ -754,7 +898,7 @@ automation:
           data:
             value: "40"
           target:
-            entity_id: number.tesla_ble_882c04_charging_amps
+            entity_id: number.tesla_ble_charging_current
 
   - id: update_tesla_charging_cost
     alias: Update Tesla Charging Cost
@@ -768,15 +912,15 @@ automation:
       data:
         meter_entity: sensor.tesla_energy_this_month
 
-  - alias: "AC Adjustment Near Arrival"
-    id: tesla_ac_adjustment_for_arrival
-    trigger:
-      platform: numeric_state
-      entity_id: sensor.tesla_active_route_minutes_to_arrival
-      below: 31
-    condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
-    action:
-      - action: script.notify_wrapper
-        data:
-          message: Adjusting AC prior to arrival based on Tesla location.
-      - action: rest_command.adjust_morning
+  # - alias: "AC Adjustment Near Arrival"
+  #   id: tesla_ac_adjustment_for_arrival
+  #   trigger:
+  #     platform: numeric_state
+  #     entity_id: sensor.tesla_active_route_minutes_to_arrival
+  #     below: 31
+  #   condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
+  #   action:
+  #     - action: notify.signal_homeassistant
+  #       data:
+  #         message: Adjusting AC prior to arrival based on Tesla location.
+  #     - action: rest_command.adjust_morning

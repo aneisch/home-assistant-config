@@ -1,0 +1,51 @@
+version: '3.2'
+services:
+    tailscale:
+        restart: always
+        container_name: tailscale
+        volumes:
+            - '/var/lib:/var/lib'
+            - '/dev/net/tun:/dev/net/tun'
+        network_mode: host
+        privileged: true
+        image: tailscale/tailscale
+        entrypoint: tailscaled
+
+    #tesla-ble-http-proxy:
+    #  #image: wimaha/tesla-ble-http-proxy
+    #  image: ghcr.io/aneisch/tesla-ble-http-proxy:latest-arm64
+    #  container_name: tesla-ble-http-proxy
+    #  volumes:
+    #    - /opt/teslaproxy/key:/key
+    #    - /run/dbus:/var/run/dbus
+    #  restart: always
+    #  privileged: true
+    #  network_mode: host
+    #  cap_add:
+    #    - NET_ADMIN
+    #    - SYS_ADMIN
+    #  environment: #optional
+    #    logLevel: debug
+
+    tesla_ble_mqtt:
+      container_name: tesla_ble_mqtt
+      #image: "iainbullock/tesla_ble_mqtt:latest"
+      image: "iainbullock/tesla_ble_mqtt:dev"
+      environment:
+        - VIN_LIST=VIN
+        - MQTT_SERVER=10.0.1.22
+        - MQTT_PORT=1883
+        - BLE_CMD_RETRY_DELAY=2
+        - PRESENCE_DETECTION_LOOP_DELAY=120
+        - PRESENCE_DETECTION_TTL=240
+        - TZ='America/Chicago'
+        - TEMPERATURE_UNIT_FAHRENHEIT=true
+        - MAX_CURRENT=48
+        - DEBUG=false
+        - ENABLE_HA_FEATURES=true
+      network_mode: host
+      privileged: true
+      volumes:
+        - /opt/tesla_ble_mqtt:/share/tesla_ble_mqtt
+        - /run/dbus:/run/dbus
+      restart: on-failure:5

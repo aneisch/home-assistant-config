@@ -15,7 +15,7 @@ from homeassistant.const import (
     PERCENTAGE,
 )
 
-__version__ = "5.0.2"
+__version__ = "5.3.0"
 PROJECT_URL = "https://github.com/alandtse/alexa_media_player/"
 ISSUE_URL = f"{PROJECT_URL}issues"
 NOTIFY_URL = f"{PROJECT_URL}wiki/Configuration%3A-Notification-Component#use-the-notifyalexa_media-service"
@@ -67,6 +67,7 @@ DEFAULT_QUEUE_DELAY = 1.5
 DEFAULT_SCAN_INTERVAL = 60
 
 SERVICE_UPDATE_LAST_CALLED = "update_last_called"
+SERVICE_RESTORE_VOLUME = "restore_volume"
 SERVICE_FORCE_LOGOUT = "force_logout"
 
 RECURRING_PATTERN = {
@@ -110,6 +111,13 @@ RECURRING_PATTERN_ISO_SET = {
 ATTR_MESSAGE = "message"
 ATTR_EMAIL = "email"
 ATTR_NUM_ENTRIES = "entries"
+STREAMING_ERROR_MESSAGE = (
+    "Sorry, direct music streaming isn't supported. "
+    "This limitation is set by Amazon, and not by Alexa-Media-Player, Music-Assistant, nor Home-Assistant."
+)
+PUBLIC_URL_ERROR_MESSAGE = (
+    "To send TTS, please set the public URL in integration configuration."
+)
 STARTUP = f"""
 -------------------------------------------------------------------
 {DOMAIN}

@@ -60,8 +60,9 @@ i2c:
   sda: 21
   scl: 22
   scan: false
-  frequency: 200kHz  # recommended range is 50-200kHz
+  frequency: 400kHz  # recommended range is 50-200kHz
   id: i2c_a
+  timeout: 1ms
 
 time:
   - platform: sntp

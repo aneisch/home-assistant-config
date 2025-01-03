@@ -300,7 +300,7 @@ Backyard Flood Lights with Person Detection:
   constrain_end_time: sunrise - 01:00:00
   constrain_start_time: sunset
   constrain_input_boolean: input_boolean.backyard_floodlight_automation
-  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy
+  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.back_porch_person_occupancy
   toggle_entity: switch.backyard_flood_lights,switch.globe_lights
   # Seconds to turn entity on when triggered
   time_on: "300"

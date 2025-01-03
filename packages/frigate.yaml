@@ -13,19 +13,19 @@ automation:
         data:
           clip_id: "{{trigger.payload_json['after']['id']}}"
 
-  # - alias: Frigate Smoke Alarm Offsite
-  #   id: "frigate_smokealarm_offsite"
-  #   mode: queued
-  #   trigger:
-  #     - platform: mqtt
-  #       topic: frigate/reviews
-  #       payload: true
-  #       value_template: "{{ value_json.type == 'end' and 'SmokeAlarm' in value_json.before.data.objects }}"
-  #   action:
-  #     - delay: '00:00:05'
-  #     - action: shell_command.frigate_clips_drive
-  #       data:
-  #         clip_id: "{{trigger.payload_json['before']['id']}}"
+  - alias: Frigate Smoke Alarm Offsite
+    id: "frigate_smokealarm_offsite"
+    mode: queued
+    trigger:
+      - platform: mqtt
+        topic: frigate/reviews
+        payload: true
+        value_template: "{{ value_json.type == 'end' and 'SmokeAlarm' in value_json.before.data.objects }}"
+    action:
+      - delay: '00:00:05'
+      - action: shell_command.frigate_clips_drive
+        data:
+          clip_id: "{{trigger.payload_json['before']['id']}}"
 
   - alias: Frigate Notification Person
     id: "frigate_notification_person"

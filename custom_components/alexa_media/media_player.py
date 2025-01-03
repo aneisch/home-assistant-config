@@ -46,6 +46,8 @@ from .const import (
     MIN_TIME_BETWEEN_SCANS,
     MODEL_IDS,
     PLAY_SCAN_INTERVAL,
+    PUBLIC_URL_ERROR_MESSAGE,
+    STREAMING_ERROR_MESSAGE,
     UPLOAD_PATH,
 )
 from .helpers import _catch_login_errors, add_devices
@@ -243,6 +245,7 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
         self._media_is_muted = None
         self._media_vol_level = None
         self._previous_volume = None
+        self._saved_volume = None
         self._source = None
         self._source_list = []
         self._connected_bluetooth = None
@@ -1127,14 +1130,23 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
         """Set volume level, range 0..1."""
         if not self.available:
             return
+
+        # Save the current volume level before we change it
+        _LOGGER.debug("Saving previous volume level: %s", self.volume_level)
+        self._previous_volume = self.volume_level
+
+        # Change the volume level on the device
         if self.hass:
             self.hass.async_create_task(self.alexa_api.set_volume(volume))
         else:
             await self.alexa_api.set_volume(volume)
         self._media_vol_level = volume
+
+        # Let http2push update the new volume level
         if not (
             self.hass.data[DATA_ALEXAMEDIA]["accounts"][self._login.email]["http2"]
         ):
+            # Otherwise we do it ourselves
             await self.async_update()
 
     @property
@@ -1162,19 +1174,19 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
 
         self._media_is_muted = mute
         if mute:
-            self._previous_volume = self.volume_level
+            self._saved_volume = self.volume_level
             if self.hass:
                 self.hass.async_create_task(self.alexa_api.set_volume(0))
             else:
                 await self.alexa_api.set_volume(0)
         else:
-            if self._previous_volume is not None:
+            if self._saved_volume is not None:
                 if self.hass:
                     self.hass.async_create_task(
-                        self.alexa_api.set_volume(self._previous_volume)
+                        self.alexa_api.set_volume(self._saved_volume)
                     )
                 else:
-                    await self.alexa_api.set_volume(self._previous_volume)
+                    await self.alexa_api.set_volume(self._saved_volume)
             else:
                 if self.hass:
                     self.hass.async_create_task(self.alexa_api.set_volume(50))
@@ -1430,12 +1442,8 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
                 f"<audio src='{public_url}local/alexa_tts{output_file_name}' />"
             )
         else:
-            await self.async_send_tts(
-                "To send TTS, please set Announce=true. Music can't be played this way."
-            )
-            _LOGGER.warning(
-                "To send TTS, please set Announce=true. Music can't be played this way."
-            )
+            await self.async_send_tts(STREAMING_ERROR_MESSAGE)
+            _LOGGER.warning(STREAMING_ERROR_MESSAGE)
 
     @_catch_login_errors
     async def async_play_media(self, media_type, media_id, enqueue=None, **kwargs):
@@ -1449,16 +1457,12 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
         ].get(CONF_PUBLIC_URL, DEFAULT_PUBLIC_URL)
         if media_type == "music":
             if public_url:
+                # Handle TTS playback
                 await self.async_play_tts_cloud_say(public_url, media_id, **kwargs)
             else:
-                await self.async_send_tts(
-                    "To send TTS, set public url in integration configuration"
-                )
-                _LOGGER.warning(
-                    "To send TTS, set public url in integration configuration"
-                    " Please see the alexa_media wiki for details."
-                    "https://github.com/alandtse/alexa_media_player/wiki/Configuration%3A-Notification-Component#use-the-notifyalexa_media-service"
-                )
+                # Log and notify for missing public URL
+                _LOGGER.warning(PUBLIC_URL_ERROR_MESSAGE)
+                await self.async_send_tts(PUBLIC_URL_ERROR_MESSAGE)
         elif media_type == "sequence":
             _LOGGER.debug(
                 "%s: %s:Running sequence %s with queue_delay %s",
@@ -1626,6 +1630,7 @@ class AlexaClient(MediaPlayerDevice, AlexaMedia):
             "last_called_summary": self._last_called_summary,
             "connected_bluetooth": self._connected_bluetooth,
             "bluetooth_list": self._bluetooth_list,
+            "previous_volume": self._previous_volume,
         }
         return attr
 

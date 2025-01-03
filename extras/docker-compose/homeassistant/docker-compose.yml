@@ -2,7 +2,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -14,6 +14,7 @@ services:
             - traefik.http.routers.assist.service=assist
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.assist_local.tls=true
+            - traefik.http.routers.assist_local.entrypoints=websecure
             - traefik.http.routers.assist_local.tls.certResolver=le-home
             - traefik.http.routers.assist_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.assist_local.rule=Host(`assist.home.domain.com`)
@@ -110,6 +111,7 @@ services:
             - traefik.http.routers.nodered.service=nodered
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.nodered_local.tls=true
+            - traefik.http.routers.nodered_local.entrypoints=websecure
             - traefik.http.routers.nodered_local.tls.certResolver=le-home
             - traefik.http.routers.nodered_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.nodered_local.rule=Host(`nodered.home.domain.com`)
@@ -143,6 +145,7 @@ services:
             - traefik.http.routers.appdaemon.service=appdaemon
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.appdaemon_local.tls=true
+            - traefik.http.routers.appdaemon_local.entrypoints=websecure
             - traefik.http.routers.appdaemon_local.tls.certResolver=le-home
             - traefik.http.routers.appdaemon_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
@@ -154,8 +157,8 @@ services:
         image: ghcr.io/aneisch/thermostat_api_server:latest
         volumes:
             - /etc/localtime:/etc/localtime:ro
-        ports:
-            - '8080:8080'
+        # ports:
+        #     - '8080:8080'
         environment:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
@@ -163,6 +166,13 @@ services:
             - LOG_LEVEL=INFO
         depends_on:
             - mosquitto
+        labels:
+            # HTTP Local Only
+            - traefik.enable=true
+            - traefik.http.routers.thermostat_api.entrypoints=web
+            - traefik.http.services.thermostat_api.loadbalancer.server.port=8080
+            - traefik.http.routers.thermostat_api.rule=Host(`thermostat-api.home.domain.com`)
+            - traefik.http.routers.thermostat_api.service=thermostat_api
 
     zwavejs:
         container_name: zwavejs
@@ -189,6 +199,7 @@ services:
             - traefik.http.routers.zwavejs.service=zwavejs
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.zwavejs_local.tls=true
+            - traefik.http.routers.zwavejs_local.entrypoints=websecure
             - traefik.http.routers.zwavejs_local.tls.certResolver=le-home
             - traefik.http.routers.zwavejs_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
@@ -208,9 +219,54 @@ services:
             - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
             - TZ=America/Chicago
             - LOG_LEVEL=DEBUG
-
         volumes:
             - /etc/localtime:/etc/localtime:ro
         devices:
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
 
+    faster-whisper:
+        image: lscr.io/linuxserver/faster-whisper:latest
+        container_name: faster-whisper
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+            - WHISPER_MODEL=tiny-int8
+            - WHISPER_BEAM=1 #optional
+            - WHISPER_LANG=en #optional
+        ports:
+            - 127.0.0.1:10300:10300
+        restart: always
+
+    piper:
+        image: lscr.io/linuxserver/piper:latest
+        container_name: piper
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+            - PIPER_VOICE=en_US-hfc_female-medium
+        ports:
+            - 127.0.0.1:10200:10200
+        restart: always
+
+    openwakeword:
+        image: rhasspy/wyoming-openwakeword
+        container_name: openwakeword
+        environment:
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+            - "PYTHONUNBUFFERED=1"
+        ports:
+            - 127.0.0.1:10400:10400
+        command: >-
+            --preload-model 'yo_homie'
+            --custom-model-dir /custom
+            --debug
+            --threshold 0.5
+            --trigger-level 2
+            --debug-probability
+        volumes:
+            - /opt/openwakeword/:/custom
+        restart: always

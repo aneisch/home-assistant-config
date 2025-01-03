@@ -10,7 +10,7 @@ from voluptuous.validators import All, Range
 from yarl import URL
 
 from homeassistant import config_entries
-from homeassistant.const import CONF_URL
+from homeassistant.const import CONF_PASSWORD, CONF_URL, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_create_clientsession
@@ -48,32 +48,62 @@ class FrigateFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
+        return await self._handle_config_step(user_input)
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle a flow initialized by a reconfiguration."""
+        return await self._handle_config_step(
+            user_input,
+            default_form_input=dict(self._get_reconfigure_entry().data),
+        )
+
+    async def _handle_config_step(
+        self,
+        user_input: dict[str, Any] | None = None,
+        default_form_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Handle a config step."""
 
         if user_input is None:
-            return self._show_config_form()
+            return self._show_config_form(user_input=default_form_input)
 
         try:
-            # Cannot use cv.url validation in the schema itself, so
-            # apply extra validation here.
+            # Cannot use cv.url validation in the schema itself, so apply extra
+            # validation here.
             cv.url(user_input[CONF_URL])
         except vol.Invalid:
             return self._show_config_form(user_input, errors={"base": "invalid_url"})
 
         try:
             session = async_create_clientsession(self.hass)
-            client = FrigateApiClient(user_input[CONF_URL], session)
+            client = FrigateApiClient(
+                user_input[CONF_URL],
+                session,
+                user_input.get(CONF_USERNAME),
+                user_input.get(CONF_PASSWORD),
+            )
             await client.async_get_stats()
         except FrigateApiClientError:
             return self._show_config_form(user_input, errors={"base": "cannot_connect"})
 
         # Search for duplicates with the same Frigate CONF_HOST value.
-        for existing_entry in self._async_current_entries(include_ignore=False):
-            if existing_entry.data.get(CONF_URL) == user_input[CONF_URL]:
-                return self.async_abort(reason="already_configured")
+        if self.source != config_entries.SOURCE_RECONFIGURE:
+            for existing_entry in self._async_current_entries(include_ignore=False):
+                if existing_entry.data.get(CONF_URL) == user_input[CONF_URL]:
+                    return self.async_abort(reason="already_configured")
 
-        return self.async_create_entry(
-            title=get_config_entry_title(user_input[CONF_URL]), data=user_input
-        )
+        if self.source == config_entries.SOURCE_RECONFIGURE:
+            return self.async_update_reload_and_abort(
+                self._get_reconfigure_entry(),
+                title=get_config_entry_title(user_input[CONF_URL]),
+                data=user_input,
+            )
+        else:
+            return self.async_create_entry(
+                title=get_config_entry_title(user_input[CONF_URL]), data=user_input
+            )
 
     def _show_config_form(
         self,
@@ -90,7 +120,13 @@ class FrigateFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required(
                         CONF_URL, default=user_input.get(CONF_URL, DEFAULT_HOST)
-                    ): str
+                    ): str,
+                    vol.Optional(
+                        CONF_USERNAME, default=user_input.get(CONF_USERNAME, "")
+                    ): str,
+                    vol.Optional(
+                        CONF_PASSWORD, default=user_input.get(CONF_PASSWORD, "")
+                    ): str,
                 }
             ),
             errors=errors,

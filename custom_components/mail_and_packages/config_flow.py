@@ -22,7 +22,6 @@ from .const import (
     CONF_AMAZON_FWDS,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    CONF_STORAGE,
     CONF_DURATION,
     CONF_FOLDER,
     CONF_GENERATE_MP4,
@@ -31,6 +30,7 @@ from .const import (
     CONF_IMAP_TIMEOUT,
     CONF_PATH,
     CONF_SCAN_INTERVAL,
+    CONF_STORAGE,
     CONF_VERIFY_SSL,
     CONFIG_VER,
     DEFAULT_ALLOW_EXTERNAL,
@@ -295,7 +295,9 @@ def _get_schema_step_storage(user_input: list, default_dict: list) -> Any:
 
     return vol.Schema(
         {
-            vol.Required(CONF_STORAGE, default=_get_default(CONF_STORAGE)): cv.string,
+            vol.Required(
+                CONF_STORAGE, default=_get_default(CONF_STORAGE, DEFAULT_STORAGE)
+            ): cv.string,
         }
     )
 
