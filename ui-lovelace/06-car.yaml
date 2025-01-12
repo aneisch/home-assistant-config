@@ -46,10 +46,13 @@ cards:
         show_header_toggle: false
         entities:
           - binary_sensor.tesla_ble
+          - button.tesla_ble_force_update_all
           - button.tesla_ble_wake_up_car
           - switch.tesla_ble_sentry_mode
           - button.tesla_ble_flash_lights
           - button.tesla_ble_honk_horn
+          - entity: lock.tesla
+            name: Tesla Door Locks
           - button.tesla_ble_lock_car
           - button.tesla_ble_unlock_car
           - button.tesla_ble_open_car_frunk

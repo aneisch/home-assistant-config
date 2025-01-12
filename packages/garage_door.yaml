@@ -22,23 +22,60 @@ automation:
         event_data:
           node_id: 39
           # Double tap up
-          value: 3
+          value_raw: 3
     action:
       - action: homeassistant.turn_on
         entity_id: switch.garage_lights
 
+  - alias: "Garage Interior Swap Lights"
+    id: "garage_interior_swap"
+    trigger:
+      - platform: event
+        event_type: zwave_js_value_notification
+        event_data:
+          # Interior door switch
+          node_id: 30
+          # Double tap up
+          value_raw: 3
+    action:
+      - action: homeassistant.turn_off
+        entity_id: switch.garage_lights
+      - action: homeassistant.turn_on
+        entity_id: switch.garage_center_leds
+
   - alias: "Turn off Garage Lights"
     id: "garge_lights_off"
     trigger:
-      platform: state
-      entity_id: binary_sensor.garage_person_occupancy
-      from: "on"
-      to: "off"
-      for: "00:05:00"
-    condition: "{{ states('switch.garage_lights') == 'on' }}"
+      - platform: state
+        alias: "Garage No Person 5min"
+        entity_id: binary_sensor.garage_person_occupancy
+        from: "on"
+        to: "off"
+        for: "00:05:00"
+      - platform: state
+        alias: "Garage No Motion 5min"
+        entity_id: binary_sensor.garage_motion
+        from: "on"
+        to: "off"
+        for: "00:10:00"
+      # Garage Switch Off Pressed
+      - device_id: b9432c1a74b8179151d0fb0688baac05
+        alias: "Garage Switch"
+        domain: zwave_js
+        type: event.value_notification.central_scene
+        property: scene
+        property_key: "001"
+        endpoint: 0
+        command_class: 91
+        subtype: Endpoint 0 Scene 001
+        trigger: device
+        value: 0
+    #condition: "{{ states('switch.garage_lights') == 'on' }}"
     action:
       action: homeassistant.turn_off
-      entity_id: switch.garage_lights
+      entity_id: 
+        - switch.garage_lights
+        - switch.garage_center_leds
 
   - alias: "Change entry switch LEDs based on garage door state"
     id: "garage_opened_switch_leds"

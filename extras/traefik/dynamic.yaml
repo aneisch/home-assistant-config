@@ -83,16 +83,6 @@ http:
         domains:
           - main: "*.home.domain.com"
 
-    tesla_proxy:
-      entrypoints:
-        - websecure
-      service: "teslaproxy"
-      rule: host(`teslaproxy.home.domain.com`)
-      tls: 
-        certresolver: le-home
-        domains:
-          - main: "*.home.domain.com"
-
     recipes:
       middlewares:
         - sablier@file
@@ -161,11 +151,6 @@ http:
       loadBalancer:
         servers:
           - url: http://10.0.1.25
-        passHostHeader: true
-    teslaproxy:
-      loadBalancer:
-        servers:
-          - url: http://10.0.0.67:8080
         passHostHeader: true
     pfsense:
       loadBalancer:

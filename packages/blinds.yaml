@@ -13,7 +13,7 @@ group:
     entities:
       - cover.dining_room_blind_left
       # Remove Center for Christmas
-      #- cover.dining_room_blind_center
+      - cover.dining_room_blind_center
       - cover.dining_room_blind_right
   guest_bedroom_blinds:
     name: Guest Bedroom Blinds
@@ -24,7 +24,7 @@ group:
     name: Office Blinds
     entities:
       # Remove Left for Christmas
-      #- cover.office_blind_left
+      - cover.office_blind_left
       - cover.office_blind_right
   master_bedroom_blinds:
     name: Master Bedroom Blinds
@@ -271,7 +271,7 @@ automation:
                 continue_on_error: true
                 target:
                   entity_id:
-                    #- cover.office_blinds # Christmas
+                    - cover.office_blinds # Christmas -- but maybe not?
                     - cover.guest_bedroom_blinds
           - conditions: "{{ trigger.id == 'late' }}"
             alias: Close Blinds Late

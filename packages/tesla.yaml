@@ -756,11 +756,11 @@ automation:
               data:
                 message: "Tesla Auto Opened Garage"
             - delay: "00:05:00"
-        - if: "{{ is_state('switch.garage_lights', 'off') }}"
+        - if: "{{ is_state('switch.garage_center_leds', 'off') }}"
           alias: Turn On Garage Lights
           then:
             - service: switch.turn_on
-              entity_id: switch.garage_lights
+              entity_id: switch.garage_center_leds
 
   - alias: "Auto Lower Charge Rate"
     id: "auto_lower_charge_rate"
@@ -912,15 +912,15 @@ automation:
       data:
         meter_entity: sensor.tesla_energy_this_month
 
-  # - alias: "AC Adjustment Near Arrival"
-  #   id: tesla_ac_adjustment_for_arrival
-  #   trigger:
-  #     platform: numeric_state
-  #     entity_id: sensor.tesla_active_route_minutes_to_arrival
-  #     below: 31
-  #   condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
-  #   action:
-  #     - action: notify.signal_homeassistant
-  #       data:
-  #         message: Adjusting AC prior to arrival based on Tesla location.
-  #     - action: rest_command.adjust_morning
+  - alias: "AC Adjustment Near Arrival"
+    id: tesla_ac_adjustment_for_arrival
+    trigger:
+      platform: numeric_state
+      entity_id: sensor.tesla_active_route_minutes_to_arrival
+      below: 31
+    condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
+    action:
+      # - action: notify.signal_homeassistant
+      #   data:
+      #     message: Adjusting AC prior to arrival based on Tesla location.
+      - action: rest_command.adjust_morning

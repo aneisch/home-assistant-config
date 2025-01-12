@@ -152,11 +152,17 @@ Occupancy Simulator:
   step_dark_off_7: light.guest_bedroom_nightstand_lamp
   step_dark_off_8: light.back_bedroom_nightstand_lamp
 
-Workbench Shelf:
+Garage Middle:
+  module: follow_me
+  class: Follow
+  leader: switch.garage_center_leds
+  follower: switch.workbench_shelf_leds
+
+Garage Main:
   module: follow_me
   class: Follow
   leader: switch.garage_lights
-  follower: switch.workbench_shelf_leds,switch.garage_highbay_light
+  follower: switch.workbench_shelf_leds,switch.garage_center_leds
 
 Bethany Office Hanging Lights:
   module: follow_me
@@ -173,32 +179,32 @@ Nexus Screen Follow:
 #############
 # Christmas #
 #############
-Christmas Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
-  time_on: sunset - 00:20:00
-  time_off: "23:00:00"
+# Christmas Lights:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
+#   time_on: sunset - 00:20:00
+#   time_off: "23:00:00"
 
-Front Porch Tree Follow:
-  module: follow_me
-  class: Follow
-  leader: switch.christmas_lights
-  follower: switch.front_porch_christmas_tree
+# Front Porch Tree Follow:
+#   module: follow_me
+#   class: Follow
+#   leader: switch.christmas_lights
+#   follower: switch.front_porch_christmas_tree
 
-Christmas Trees Follow:
-  module: follow_me
-  class: Follow
-  leader: group.christmas_trees
-  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
-  follow_off: False # Only follow state to on
+# Christmas Trees Follow:
+#   module: follow_me
+#   class: Follow
+#   leader: group.christmas_trees
+#   follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+#   follow_off: False # Only follow state to on
 
-Front House Christmas Trees Timer:
-  module: entity_timer
-  class: Timer
-  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
-  time_on: sunset - 00:20:00
-  time_off: '23:00:00'
+# Front House Christmas Trees Timer:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+#   time_on: sunset - 00:20:00
+#   time_off: '23:00:00'
 
 ############
 # Aquarium #
@@ -300,7 +306,7 @@ Backyard Flood Lights with Person Detection:
   constrain_end_time: sunrise - 01:00:00
   constrain_start_time: sunset
   constrain_input_boolean: input_boolean.backyard_floodlight_automation
-  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.back_porch_person_occupancy
+  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy
   toggle_entity: switch.backyard_flood_lights,switch.globe_lights
   # Seconds to turn entity on when triggered
   time_on: "300"
@@ -350,7 +356,8 @@ Garage Lights with Cover, Door, Motor, Person:
   module: door_open
   class: DoorLight
   trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.garage_exterior_door,binary_sensor.garage_motor_light_status,binary_sensor.garage_person_occupancy
-  toggle_entity: switch.garage_lights
+  #toggle_entity: switch.garage_lights # too bright
+  toggle_entity: switch.garage_center_leds  
   # Turn_off is handled by automation
   #time_on: '10'
 
@@ -368,7 +375,7 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
   brightness: 255
 
 Guest Light Automation Sunset:
@@ -395,7 +402,7 @@ Indoor Light Automation Sunset Smallgroup:
   class: Timer
   constrain_input_boolean: input_boolean.is_smallgroup
   time_on: "17:30:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,media_player.misc_photo_frame,group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Entryway Light Sunset Smallgroup:
@@ -410,13 +417,13 @@ Entryway Light Sunset Smallgroup:
 Front Porch Lights Sunset:
   module: entity_timer
   class: Timer
-  #entities: light.front_porch_lights,light.front_sconces # See also NodeRed # disable at Christmas and Halloween
-  entities: light.front_porch_lights # Christmas only front porch
+  entities: light.front_porch_lights,light.front_sconces # See also NodeRed # disable at Christmas and Halloween
+  #entities: light.front_porch_lights # Christmas only front porch
   #entities: light.front_porch_halloween # Halloween only LimitlessLED See also NodeRed
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
-  #brightness: 254
-  brightness: 25 # Christmas
+  brightness: 254
+  #brightness: 25 # Christmas
 
 Plant Light:
   module: entity_timer
