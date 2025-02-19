@@ -52,6 +52,7 @@ cards:
         - entity_id: "*_stream"
         - entity_id: "*contrast"
         - entity_id: "switch.kmc_multi_plug_1*"
+        - entity_id: "*home_assistant_voice_pe*"
 
     card:
       type: entities

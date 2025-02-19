@@ -29,6 +29,7 @@ services:
             - /frigate-drive:/frigate
             - /opt/frigate:/etc/frigate:ro
             - /frigate:/frigate_disk:ro
+            - /run/dbus:/run/dbus:ro
         devices:
             - /dev/zigbee
             - /dev/usb_modem_sim7080g:/dev/cellular_modem
@@ -231,7 +232,7 @@ services:
             - PUID=1000
             - PGID=1000
             - TZ=America/Chicago
-            - WHISPER_MODEL=tiny-int8
+            - WHISPER_MODEL=tiny.en
             - WHISPER_BEAM=1 #optional
             - WHISPER_LANG=en #optional
         ports:
@@ -250,23 +251,23 @@ services:
             - 127.0.0.1:10200:10200
         restart: always
 
-    openwakeword:
-        image: rhasspy/wyoming-openwakeword
-        container_name: openwakeword
-        environment:
-            - PUID=1000
-            - PGID=1000
-            - TZ=America/Chicago
-            - "PYTHONUNBUFFERED=1"
-        ports:
-            - 127.0.0.1:10400:10400
-        command: >-
-            --preload-model 'yo_homie'
-            --custom-model-dir /custom
-            --debug
-            --threshold 0.5
-            --trigger-level 2
-            --debug-probability
-        volumes:
-            - /opt/openwakeword/:/custom
-        restart: always
+    # openwakeword:
+    #     image: rhasspy/wyoming-openwakeword
+    #     container_name: openwakeword
+    #     environment:
+    #         - PUID=1000
+    #         - PGID=1000
+    #         - TZ=America/Chicago
+    #         - "PYTHONUNBUFFERED=1"
+    #     ports:
+    #         - 127.0.0.1:10400:10400
+    #     command: >-
+    #         --preload-model 'yo_homie'
+    #         --custom-model-dir /custom
+    #         --debug
+    #         --threshold 0.5
+    #         --trigger-level 2
+    #         --debug-probability
+    #     volumes:
+    #         - /opt/openwakeword/:/custom
+    #     restart: always

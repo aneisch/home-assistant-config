@@ -2,7 +2,7 @@ title: Cameras
 icon: mdi:camera
 type: panel
 cards:
-  - type: custom:frigate-card
+  - type: custom:advanced-camera-card
     cameras:
       - frigate:
           camera_name: birdseye

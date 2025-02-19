@@ -363,9 +363,9 @@ services:
         image: bbernhard/signal-cli-rest-api:latest
         restart: 'always'
         environment:
-            - MODE=native
+            - MODE=json-rpc
             - TZ=America/Chicago
-            - AUTO_RECEIVE_SCHEDULE=31 * * * *
+            #- AUTO_RECEIVE_SCHEDULE=31 * * * *
         ports:
             - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
             #- "8808:8080" 
@@ -465,43 +465,6 @@ services:
             - traefik.http.services.vrs.loadbalancer.server.port=8080
             - traefik.http.routers.vrs.service=vrs
 
-    # macos:
-    #     container_name: macos
-    #     restart: 'no'
-    #     image: sickcodes/docker-osx:naked
-    #     labels:
-    #         - com.centurylinklabs.watchtower.enable=false
-    #         # HTTPS for CF
-    #         - traefik.enable=true
-    #         - traefik.http.routers.bb.entrypoints=websecure
-    #         - traefik.http.routers.bb.tls=true
-    #         - traefik.http.routers.bb.rule=Host(`bb.domain.com`)
-    #         - traefik.http.services.bb.loadbalancer.server.port=1234
-    #         - traefik.http.routers.bb.service=bb
-    #     ports:
-    #         - 50922:10022
-    #         - 127.0.0.1:1234:1234 # Bluebubbles API
-    #         - 5999:5999 # vnc
-    #     volumes:
-    #         - /tmp/.X11-unix:/tmp/.X11-unix
-    #         - /opt/macos/mac.qcow2:/image # Backed up on portable SSD
-    #     # networks:
-    #     #     - macos_network
-    #     environment:
-    #         - DISPLAY=${DISPLAY:-:0.0}
-    #         - GENERATE_SPECIFIC=true
-    #         - DEVICE_MODEL=iMacPro1,1
-    #         - SERIAL=SERIAL
-    #         - BOARD_SERIAL=BOARD
-    #         - UUID=UUID
-    #         - MAC_ADDRESS=MAC
-    #         - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
-    #         - TZ=America/Chicago
-    #         - ADDITIONAL_PORTS=hostfwd=tcp::1234-:1234,
-    #     devices:
-    #         - /dev/kvm
-    #     user: root
-
     macos-ventura:
         container_name: macos-ventura
         restart: 'always'
@@ -545,7 +508,7 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.15.0-beta4
+        image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -701,90 +664,90 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
 
-    compreface-postgres-db:
-        image: exadel/compreface-postgres-db:latest
-        restart: always
-        container_name: "compreface-postgres-db"
-        environment:
-            - POSTGRES_USER=postgress
-            - POSTGRES_PASSWORD=password
-            - POSTGRES_DB=frs
-        volumes:
-            - /opt/compreface:/var/lib/postgresql/data
+    # compreface-postgres-db:
+    #     image: exadel/compreface-postgres-db:latest
+    #     restart: always
+    #     container_name: "compreface-postgres-db"
+    #     environment:
+    #         - POSTGRES_USER=postgress
+    #         - POSTGRES_PASSWORD=password
+    #         - POSTGRES_DB=frs
+    #     volumes:
+    #         - /opt/compreface:/var/lib/postgresql/data
 
-    compreface-admin:
-        restart: always
-        image: exadel/compreface-admin:latest
-        container_name: "compreface-admin"
-        environment:
-            - POSTGRES_USER=postgress
-            - POSTGRES_PASSWORD=password
-            - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
-            - SPRING_PROFILES_ACTIVE=dev
-            - ENABLE_EMAIL_SERVER=false
-            - ADMIN_JAVA_OPTS=-Xmx1g
-            - MAX_FILE_SIZE=5MB
-            - MAX_REQUEST_SIZE=10MB
-        depends_on:
-            - compreface-postgres-db
-            - compreface-api
+    # compreface-admin:
+    #     restart: always
+    #     image: exadel/compreface-admin:latest
+    #     container_name: "compreface-admin"
+    #     environment:
+    #         - POSTGRES_USER=postgress
+    #         - POSTGRES_PASSWORD=password
+    #         - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
+    #         - SPRING_PROFILES_ACTIVE=dev
+    #         - ENABLE_EMAIL_SERVER=false
+    #         - ADMIN_JAVA_OPTS=-Xmx1g
+    #         - MAX_FILE_SIZE=5MB
+    #         - MAX_REQUEST_SIZE=10MB
+    #     depends_on:
+    #         - compreface-postgres-db
+    #         - compreface-api
 
-    compreface-api:
-        restart: always
-        image: exadel/compreface-api:latest
-        container_name: "compreface-api"
-        depends_on:
-            - compreface-postgres-db
-        environment:
-            - POSTGRES_USER=postgress
-            - POSTGRES_PASSWORD=password
-            - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
-            - SPRING_PROFILES_ACTIVE=dev
-            - API_JAVA_OPTS=-Xmx4g
-            - SAVE_IMAGES_TO_DB=true
-            - MAX_FILE_SIZE=5MB
-            - MAX_REQUEST_SIZE=10MB
-            - CONNECTION_TIMEOUT=10000
-            - READ_TIMEOUT=60000
+    # compreface-api:
+    #     restart: always
+    #     image: exadel/compreface-api:latest
+    #     container_name: "compreface-api"
+    #     depends_on:
+    #         - compreface-postgres-db
+    #     environment:
+    #         - POSTGRES_USER=postgress
+    #         - POSTGRES_PASSWORD=password
+    #         - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
+    #         - SPRING_PROFILES_ACTIVE=dev
+    #         - API_JAVA_OPTS=-Xmx4g
+    #         - SAVE_IMAGES_TO_DB=true
+    #         - MAX_FILE_SIZE=5MB
+    #         - MAX_REQUEST_SIZE=10MB
+    #         - CONNECTION_TIMEOUT=10000
+    #         - READ_TIMEOUT=60000
 
-    compreface-fe:
-        restart: always
-        image: exadel/compreface-fe:latest
-        container_name: "compreface-ui"
-        # ports:
-        #     - "8100:80"
-        depends_on:
-            - compreface-api
-            - compreface-admin
-        environment:
-            - CLIENT_MAX_BODY_SIZE=10M
-            - PROXY_READ_TIMEOUT=60000ms
-            - PROXY_CONNECT_TIMEOUT=10000ms
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.compreface.loadbalancer.server.port=80
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.compreface_local.tls=true
-            - traefik.http.routers.compreface_local.entrypoints=websecure
-            - traefik.http.routers.compreface_local.tls.certResolver=le-home
-            - traefik.http.routers.compreface_local.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.compreface_local.rule=Host(`compreface.home.domain.com`)
-            - traefik.http.routers.compreface_local.service=compreface
+    # compreface-fe:
+    #     restart: always
+    #     image: exadel/compreface-fe:latest
+    #     container_name: "compreface-ui"
+    #     # ports:
+    #     #     - "8100:80"
+    #     depends_on:
+    #         - compreface-api
+    #         - compreface-admin
+    #     environment:
+    #         - CLIENT_MAX_BODY_SIZE=10M
+    #         - PROXY_READ_TIMEOUT=60000ms
+    #         - PROXY_CONNECT_TIMEOUT=10000ms
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.services.compreface.loadbalancer.server.port=80
+    #         # HTTPS Local Only (with 80-->443 redirect)
+    #         - traefik.http.routers.compreface_local.tls=true
+    #         - traefik.http.routers.compreface_local.entrypoints=websecure
+    #         - traefik.http.routers.compreface_local.tls.certResolver=le-home
+    #         - traefik.http.routers.compreface_local.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.compreface_local.rule=Host(`compreface.home.domain.com`)
+    #         - traefik.http.routers.compreface_local.service=compreface
 
-    compreface-core:
-        restart: always
-        image: exadel/compreface-core:latest
-        container_name: "compreface-core"
-        environment:
-            - ML_PORT=3000
-            - IMG_LENGTH_LIMIT=640
-            - UWSGI_PROCESSES=2
-            - UWSGI_THREADS=1
-        healthcheck:
-            test: curl --fail http://localhost:3000/healthcheck || exit 1
-            interval: 10s
-            retries: 0
-            timeout: 1s
+    # compreface-core:
+    #     restart: always
+    #     image: exadel/compreface-core:latest
+    #     container_name: "compreface-core"
+    #     environment:
+    #         - ML_PORT=3000
+    #         - IMG_LENGTH_LIMIT=640
+    #         - UWSGI_PROCESSES=2
+    #         - UWSGI_THREADS=1
+    #     healthcheck:
+    #         test: curl --fail http://localhost:3000/healthcheck || exit 1
+    #         interval: 10s
+    #         retries: 0
+    #         timeout: 1s
 
     double-take:
         container_name: double-take
@@ -905,22 +868,28 @@ services:
             - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
             - traefik.http.routers.teslamate_local.service=teslamate
 
-    proxy:
-        image: ghcr.io/aneisch/tesla-ble-http-proxy:latest
-        container_name: proxy
-        volumes:
-        - /opt/proxy:/key
-        - /var/run/dbus:/var/run/dbus
+    fastenhealth:
+        image: ghcr.io/fastenhealth/fasten-onprem:main
+        container_name: fastenhealth
         restart: always
-        privileged: true
-        ports:
-            - 8125:8080
-        #network_mode: host
-        cap_add:
-        - NET_ADMIN
-        - SYS_ADMIN
-        environment:
-          - logLevel=debug
+        volumes:
+            - /opt/fastenhealth/db:/opt/fasten/db
+            - /opt/fastenhealth/cache:/opt/fasten/cache
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.fastenhealth.loadbalancer.server.port=8080
+            # HTTPS for CF
+            - traefik.http.routers.fasten.entrypoints=websecure
+            - traefik.http.routers.fasten.tls=true
+            - traefik.http.routers.fasten.rule=Host(`fasten.domain.com`)
+            - traefik.http.routers.fasten.service=fastenhealth
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.fasten_local.tls=true
+            - traefik.http.routers.fasten_local.entrypoints=websecure
+            - traefik.http.routers.fasten_local.tls.certResolver=le-home
+            - traefik.http.routers.fasten_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.fasten_local.rule=Host(`fasten.home.domain.com`)
+            - traefik.http.routers.fasten_local.service=fastenhealth
 
 # networks:
 #     macos_network:

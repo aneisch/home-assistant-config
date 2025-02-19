@@ -1,5 +1,6 @@
 import time
 
+import homeassistant.util.color as color_util
 from homeassistant.components.light import (
     ColorMode,
     LightEntity,
@@ -136,6 +137,18 @@ class XLight(XEntity, LightEntity):
             )
 
         await self.async_turn_on(br1, ct1, rgb1)
+
+    @property
+    def color_temp_kelvin(self) -> int | None:
+        return color_util.color_temperature_mired_to_kelvin(self.color_temp)
+
+    @property
+    def min_color_temp_kelvin(self) -> int:
+        return color_util.color_temperature_mired_to_kelvin(self.max_mireds)
+
+    @property
+    def max_color_temp_kelvin(self) -> int:
+        return color_util.color_temperature_mired_to_kelvin(self.min_mireds)
 
 
 # noinspection PyAbstractClass, UIID36
@@ -988,6 +1001,49 @@ class XZigbeeLight(XLight):
 
             k = params["colorMode"] + "Brightness"  # cctBrightness or rgbBrightness
             params[k] = conv(brightness, 0, 255, 1, 100)
+
+        await self.ewelink.send(self.device, params)
+
+
+class XZigbeeColorTemp(XLight):
+    params = {"switch", "brightness", "colorTemp"}
+
+    _attr_max_mireds = int(1000000 / 2200)
+    _attr_min_mireds = int(1000000 / 4000)
+
+    _attr_color_mode = ColorMode.ONOFF
+    _attr_supported_color_modes = {ColorMode.COLOR_TEMP}
+
+    def set_state(self, params: dict):
+        XLight.set_state(self, params)
+
+        if "brightness" in params:
+            self._attr_brightness = conv(params["brightness"], 0, 100, 1, 255)
+
+        if "colorTemp" in params:
+            self._attr_color_temp = conv(
+                params["colorTemp"],
+                0,
+                100,
+                self._attr_max_mireds,
+                self._attr_min_mireds,
+            )
+
+    async def async_turn_on(
+        self,
+        brightness: int = None,
+        color_temp: int = None,
+        **kwargs,
+    ) -> None:
+        params = {self.param: "on"}
+
+        if brightness is not None:
+            params["brightness"] = conv(brightness, 1, 255, 0, 100)
+
+        if color_temp is not None:
+            params["colorTemp"] = conv(
+                color_temp, self._attr_max_mireds, self._attr_min_mireds, 0, 100
+            )
 
         await self.ewelink.send(self.device, params)
 

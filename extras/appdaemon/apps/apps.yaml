@@ -37,7 +37,7 @@ Set Smallgroup Boolean On:
   module: entity_timer
   class: Timer
   constrain_presence: anyone
-  constrain_days: tue
+  constrain_days: thu
   time_on: "05:00:00"
   entities: input_boolean.is_smallgroup
 
@@ -65,14 +65,14 @@ Guest Bedroom EcoSmart Zigbee Remote:
   # Button 4 is handled through HA automation
   # for blinds
 
-Kitchen Sengled Zigbee Remote:
+Garage Sengled Zigbee Remote:
   module: zigbee_remote
   class: SengledZigbeeRemote
   device_ieee: b0:ce:18:14:03:5e:06:9d
-  button_1_toggle: group.christmas
-  button_2_toggle: group.christmas
-  button_3_toggle: group.christmas
-  button_4_toggle: group.christmas
+  button_1_on: switch.garage_lights
+  button_2_on: switch.garage_center_leds
+  button_3_off: switch.garage_center_leds
+  button_4_off: switch.garage_lights
   # button_2_toggle: switch.guest_bedroom_ceiling_fan
   # button_3_toggle: light.guest_bedroom_nightstand_lamp
 
@@ -402,7 +402,7 @@ Indoor Light Automation Sunset Smallgroup:
   class: Timer
   constrain_input_boolean: input_boolean.is_smallgroup
   time_on: "17:30:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
+  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,light.living_room_can_lights,light.dining_room_light,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
   brightness: 255
 
 Entryway Light Sunset Smallgroup:

@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2025.1.2%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2025.2.4%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Most of my setup is run as Docker containers (see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list).
@@ -27,7 +27,6 @@ My Home Assistant installation runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) 
   - 2 GE 12730 / ZW4002
   - 1 Kwikset 910
   - 1 Leviton DZPA1
-  - 1 None None
   - 1 Nortek Security + Control LLC WADWAZ-1
   - 1 Nortek Security + Control LLC WAPIRZ-1
   - 1 Zooz ZAC36
@@ -35,7 +34,7 @@ My Home Assistant installation runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) 
   - 6 Zooz ZEN27
   - 6 Zooz ZEN30
   - 3 Zooz ZEN37 800LR
-  - 1 Zooz ZEN55 LR
+  - 2 Zooz ZEN55 LR
   - 4 Zooz ZEN71
   - 1 Zooz ZEN77
   - 5 Zooz ZSE42
@@ -58,57 +57,57 @@ Home Assistant and other containers have ingress handled automatically by [Traef
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 3301
-Lines of Home Assistant YAML | 11067
+Lines of ESPHome YAML | 3365
+Lines of Home Assistant YAML | 11065
 [Integrations](https://www.home-assistant.io/integrations/) in use | 68
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
  
 Description | value
 -- | --
+Entities in the [`assist_satellite`](https://www.home-assistant.io/components/assist_satellite) domain | 1
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 141
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 192
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 181
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 67
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 16
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`conversation`](https://www.home-assistant.io/components/conversation) domain | 3
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
-Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 19
+Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain | 18
 Entities in the [`datetime`](https://www.home-assistant.io/components/datetime) domain | 6
-Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 6
-Entities in the [`event`](https://www.home-assistant.io/components/event) domain | 14
+Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 7
+Entities in the [`event`](https://www.home-assistant.io/components/event) domain | 15
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
-Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 21
+Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 19
 Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 8
 Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 32
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 33
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 6
 Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 19
 Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 18
-Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
+Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 40
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 5
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 19
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 15
 Entities in the [`notify`](https://www.home-assistant.io/components/notify) domain | 2
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 22
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 4
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 54
-Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 8
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 622
+Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 11
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 612
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`stt`](https://www.home-assistant.io/components/stt) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 204
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 201
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 7
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 2
-Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 83
+Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 84
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
-Entities in the [`wake_word`](https://www.home-assistant.io/components/wake_word) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 8
-**Total state objects** | **1695**
+**Total state objects** | **1671**
 ## The HACS integrations/plugins that I use:
 
 **Appdaemon**:<br>
@@ -149,7 +148,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [PiotrMachowski/lovelace-xiaomi-vacuum-map-card](https://github.com/PiotrMachowski/lovelace-xiaomi-vacuum-map-card)<br>
 [bramkragten/weather-card](https://github.com/bramkragten/weather-card)<br>
 [custom-cards/bignumber-card](https://github.com/custom-cards/bignumber-card)<br>
-[dermotduffy/frigate-hass-card](https://github.com/dermotduffy/frigate-hass-card)<br>
+[dermotduffy/advanced-camera-card](https://github.com/dermotduffy/advanced-camera-card)<br>
 [dmulcahey/zha-network-visualization-card](https://github.com/dmulcahey/zha-network-visualization-card)<br>
 [dylandoamaral/uptime-card](https://github.com/dylandoamaral/uptime-card)<br>
 [gadgetchnnel/lovelace-card-templater](https://github.com/gadgetchnnel/lovelace-card-templater)<br>

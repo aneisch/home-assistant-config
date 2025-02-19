@@ -28,8 +28,8 @@ sensor:
         # Some calibration
         - multiply: 0.4545
         - sliding_window_moving_average:
-            window_size: 10
-            send_every: 1
+            window_size: 15
+            send_every: 2
     current_resistor: 0.001  # default 0.001
     voltage_divider: 910     # default 2351
     change_mode_every: 3     # default 8
@@ -56,7 +56,7 @@ binary_sensor:
   - platform: template
     name: "${friendly_name} Power"
     device_class: occupancy
-    lambda: if (id(power).state > 25) return true; else return false;
+    lambda: if (id(power).state > 15) return true; else return false;
 
 switch:
   - platform: gpio

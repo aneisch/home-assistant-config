@@ -97,3 +97,8 @@ cards:
     entity: sensor.washing_machine_power
     graph: line
     detail: 2
+
+  - type: sensor
+    entity: sensor.tesla_power_minute_average
+    graph: line
+    detail: 2

@@ -360,7 +360,7 @@
     for:
       hours: 0
       minutes: 0
-      seconds: 5
+      seconds: 20
   conditions:
   - condition: template
     value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
@@ -389,8 +389,8 @@
     trigger: state
     for:
       hours: 0
-      minutes: 0
-      seconds: 30
+      minutes: 1
+      seconds: 0
   conditions:
   - condition: template
     value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
@@ -744,6 +744,8 @@
     - action: notify.signal_bvst_ins
       data:
         message: '{{ trigger.json[''message''] }}'
+        data:
+          text_mode: styled
 - alias: Restart AppDaemon
   id: restart_appdaemon
   trigger:
@@ -766,23 +768,23 @@
   - delay: 00:00:45
   - action: switch.turn_on
     entity_id: switch.docker_cellular_message_relay_sim7080g
-- alias: Deep Freeze Temperature
-  id: deep_freeze_temperature
-  initial_state: true
-  trigger:
-    platform: numeric_state
-    entity_id:
+- id: deep_freeze_temperature
+  alias: Deep Freeze Temperature
+  triggers:
+  - entity_id:
     - sensor.deep_freeze_temperature
-    above: 25
+    above: 32
     for:
       minutes: 10
-  action:
+    trigger: numeric_state
+  actions:
   - action: script.notify_wrapper
     data:
       message: The deep freeze has been above 25°F for 10 minutes and is currently
         {{ trigger.to_state.state }}°F
       data:
         priority: 2
+  initial_state: true
 - alias: Garage Fan
   id: garage_fan
   initial_state: true

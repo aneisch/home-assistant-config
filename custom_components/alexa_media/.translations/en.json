@@ -6,12 +6,12 @@
       "reauth_successful": "Alexa Media Player successfully reauthenticated. Please ignore the \"Aborted\" message from HA."
     },
     "error": {
-      "2fa_key_invalid": "Invalid Built-In 2FA key",
+      "2fa_key_invalid": "Invalid Authenticator App key for Amazon 2SV",
       "connection_error": "Error connecting; check network and retry",
       "identifier_exists": "Email for Alexa URL already registered",
       "invalid_credentials": "Invalid credentials",
       "invalid_url": "URL is invalid: {message}",
-      "unable_to_connect_hass_url": "Unable to connect to Home Assistant url. Please check the External Url under Configuration -> General",
+      "unable_to_connect_hass_url": "Unable to connect to Home Assistant Local URL. Please check the URL under Settings > System > Network > Home Assistant URL > Local network",
       "unknown_error": "Unknown error: {message}"
     },
     "step": {
@@ -19,34 +19,41 @@
         "data": {
           "proxy_warning": "Ignore and Continue - I understand that no support for login issues are provided for bypassing this warning."
         },
-        "description": "The HA server cannot connect to the URL provided: {hass_url}.\n> {error}\n\nTo fix this, please confirm your **HA server** can reach {hass_url}. This field is from the External Url under Configuration -> General but you can try your internal url.\n\nIf you are **certain** your client can reach this url, you can bypass this warning.",
+        "description": "The HA server cannot connect to the URL provided: {hass_url}.\n> {error}\n\nTo fix this, please confirm your browser can reach {hass_url}. This field is from Settings > System > Network > Home Assistant URL.\n\nIf you are **certain** your browser can reach this URL, you can bypass this warning.",
         "title": "Alexa Media Player - Unable to Connect to HA URL"
       },
       "totp_register": {
         "data": {
-          "registered": "OTP from the Built-in 2FA App Key confirmed successfully."
+          "registered": "Yes, OTP code was verified"
         },
-        "description": "**{email} - alexa.{url}**  \nHave you successfully confirmed an OTP from the Built-in 2FA App Key with Amazon?  \n >OTP Code {message}",
+        "description": "**{email} - alexa.{url}**  \nHave you verified the OTP code in Amazon 2SV?  \n >OTP Code: {message}",
         "title": "Alexa Media Player - OTP Confirmation"
       },
       "user": {
         "data": {
           "debug": "Advanced debugging",
           "email": "Email Address",
-          "exclude_devices": "Excluded device (comma separated)",
+          "exclude_devices": "or Exclude these devices from all (comma separated)",
           "extended_entity_discovery": "Include devices connected via Echo",
-          "hass_url": "Url to access Home Assistant",
-          "include_devices": "Included device (comma separated)",
-          "otp_secret": "Built-in 2FA App Key (automatically generate 2FA Codes). This is not six digits long.",
+          "hass_url": "Local network URL to access Home Assistant",
+          "include_devices": "Only include these devices (comma separated)",
+          "otp_secret": "Amazon 2SV Authenticator App Key",
           "password": "Password",
-          "queue_delay": "Seconds to wait to queue commands together",
-          "scan_interval": "Seconds between scans",
+          "public_url": "Public URL shared with external hosted services",
+          "queue_delay": "Delay to queue multiple commands together (seconds)",
+          "scan_interval": "Scheduled polling interval (seconds)",
           "securitycode": "[%key_id:55616596%]",
           "url": "Amazon region domain (e.g., amazon.co.uk)"
         },
-        "description": "Please confirm the information below. For legacy configuration, disable `Use Login Proxy method` option.",
+        "description": "Required *",
         "title": "Alexa Media Player - Configuration"
       }
+    }
+  },
+  "issues": {
+    "deprecated_yaml_configuration": {
+      "description": "YAML configuration of Alexa Media Player is deprecated\nand will be removed in version 4.14.0.\nThere will be no automatic import of this.\nPlease remove it from your configuration, restart Home Assistant and use the UI to configure it instead.\nSettings > Devices & services > Integrations > ADD INTEGRATION",
+      "title": "YAML configuration is deprecated"
     }
   },
   "options": {
@@ -54,13 +61,12 @@
       "init": {
         "data": {
           "debug": "Advanced debugging",
-          "exclude_devices": "Excluded device (comma separated)",
+          "exclude_devices": "or Exclude these devices from all (comma separated)",
           "extended_entity_discovery": "Include devices connected via Echo",
-          "hass_url": "Public URL to access Home Assistant (including trailing '/')",
-          "include_devices": "Included device (comma separated)",
-          "public_url": "Public URL to access Home Assistant (including trailing '/')",
-          "queue_delay": "Seconds to wait to queue commands together",
-          "scan_interval": "Seconds between scans"
+          "include_devices": "Only include these devices (comma separated)",
+          "public_url": "Public URL shared with external hosted services",
+          "queue_delay": "Delay to queue multiple commands together (seconds)",
+          "scan_interval": "Scheduled polling frequency (seconds)"
         },
         "description": "Required *",
         "title": "Alexa Media Player - Reconfiguration"
@@ -68,20 +74,6 @@
     }
   },
   "services": {
-    "clear_history": {
-      "description": "Clear last entries from Alexa Voice history for each Alexa account.",
-      "fields": {
-        "email": {
-          "description": "Accounts to clear. Empty will clear all.",
-          "name": "Email address"
-        },
-        "entries": {
-          "description": "Number of entries to clear from 1 to 50. If empty, clear 50.",
-          "name": "Number of Entries"
-        }
-      },
-      "name": "Clear Amazon Voice History"
-    },
     "force_logout": {
       "description": "Force account to logout. Used mainly for debugging.",
       "fields": {
@@ -91,6 +83,16 @@
         }
       },
       "name": "Force Logout"
+    },
+    "restore_volume": {
+      "description": "Restore previous volume level on Alexa media player device",
+      "fields": {
+        "entity_id": {
+          "description": "Entity to restore the previous volume level on",
+          "name": "Select media player:"
+        }
+      },
+      "name": "Restore Previous Volume"
     },
     "update_last_called": {
       "description": "Forces update of last_called echo device for each Alexa account.",

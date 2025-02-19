@@ -35,6 +35,9 @@ cards:
                   animation: blink 1s linear infinite;
                   {% endif %}
                 }
+          - type: entities
+            entities:
+              - automation.tesla_auto_open_garage
 
           - type: custom:mushroom-entity-card
             entity: lock.front_door
@@ -118,6 +121,13 @@ cards:
 
           - type: custom:mushroom-entity-card
             entity: switch.garage_lights
+            icon: mdi:lightbulb
+            tap_action:
+              action: toggle
+
+
+          - type: custom:mushroom-entity-card
+            entity: switch.garage_center_leds
             icon: mdi:lightbulb
             tap_action:
               action: toggle

@@ -716,24 +716,6 @@ automation:
         data:
           message: "Tesla charge limit set to {{ states('sensor.tesla_charge_limit_soc') }}%"
 
-  - alias: "Tesla Reset Charge Limit"
-    id: "tesla_reset_charge_limit"
-    initial_state: on
-    mode: single
-    trigger:
-        platform: state
-        entity_id: device_tracker.tesla_location
-        from: "not_home"
-        to: "home"
-    action:
-      - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'on') }}"
-        timeout: 00:10:00
-      - action: number.set_value
-        data:
-          value: "70"
-        target:
-          entity_id: number.tesla_ble_charging_limit
-
   - alias: "Tesla Auto Open Garage"
     id: "tesla_auto_open_garage"
     initial_state: on

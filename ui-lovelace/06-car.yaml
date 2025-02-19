@@ -58,7 +58,6 @@ cards:
           - button.tesla_ble_open_car_frunk
           - cover.tesla_ble_trunk
           - button.tesla_ble_toggle_between_play_pause
-          - cover.tesla_ble_windows
           - switch.tesla_ble_climate
           - number.tesla_ble_climate_temp
           - button.tesla_ble_set_climate_mode_to_auto

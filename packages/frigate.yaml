@@ -167,6 +167,8 @@ automation:
           - POST
         local_only: true
     action:
+      - variables:
+          my_camera_id: camera.usps_vehicle
       - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.usps_last"
@@ -174,10 +176,10 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
       - action: camera.snapshot
         data:
-          filename: /config/media/images/{{ '{{ entity_id.entity_id }}' }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
+          filename: /config/media/images/{{ my_camera_id }}/{{ now().strftime("%Y%m%d-%H%M%S") }}.jpg
         target:
           entity_id:
-            - camera.usps_vehicle
+            - '{{ my_camera_id }}'
       - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
         then:
           - action: notify.alexa_media
@@ -267,19 +269,19 @@ automation:
         target:
           entity_id: camera.front_door_fullres
         continue_on_error: true
-      - delay: 00:00:03
+      #- delay: 00:00:03
       - action: siren.turn_on
         entity_id: siren.garage_chime_siren
         continue_on_error: true
-      - action: google_generative_ai_conversation.generate_content
-        continue_on_error: true
-        data:
-          prompt: >-
-            Very briefly describe what you see in this image from my doorbell camera.
-            Your message needs to be short to fit in a phone notification. Don't
-            describe stationary objects or buildings.
-          image_filename: /config/media/images/doorbell.jpg
-        response_variable: generated_content
+      # - action: google_generative_ai_conversation.generate_content
+      #   continue_on_error: true
+      #   data:
+      #     prompt: >-
+      #       Very briefly describe what you see in this image from my doorbell camera.
+      #       Your message needs to be short to fit in a phone notification. Don't
+      #       describe stationary objects or buildings.
+      #     image_filename: /config/media/images/.jpg
+      #   response_variable: generated_content
       - action: notify.signal_frigate
         data:
           message: >-
@@ -289,7 +291,7 @@ automation:
             Talk Live (you'll have to unmute audio, mic always live!): https://frigate.secret/live/webrtc/webrtc.html?src=front_door_twoway&media=video+audio+microphone
           data:
             attachments:
-              - /config/media/images/doorbell.jpg
+              - /config/media/images/front_door.jpg
       # Mirror to WearOS
       - action: notify.mobile_app_galaxy_watch6_kqbw
         data:
@@ -536,17 +538,17 @@ automation:
         data:
           camera: bullet
 
-  - alias: Frigate Daily Restart
-    id: "frigate_restart"
-    trigger:
-      platform: time
-      at: "09:00:00"
-    action:
-      - action: mqtt.publish
-        data:
-          qos: 0
-          retain: false
-          topic: frigate/restart
+  # - alias: Frigate Daily Restart
+  #   id: "frigate_restart"
+  #   trigger:
+  #     platform: time
+  #     at: "09:00:00"
+  #   action:
+  #     - action: mqtt.publish
+  #       data:
+  #         qos: 0
+  #         retain: false
+  #         topic: frigate/restart
 
   - alias: Frigate Healthcheck
     id: "frigate_healthcheck"
