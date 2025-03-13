@@ -318,6 +318,7 @@ automation:
           - cover.office_blind_right
           - cover.master_bedroom_blind_left
           - cover.master_bedroom_blind_right
+          - cover.master_bathroom_blinds
         to:
           - opening
           - closing

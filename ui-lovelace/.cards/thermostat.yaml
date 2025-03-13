@@ -26,6 +26,8 @@ sensors:
     name: Master
   - entity: sensor.master_closet_temperature
     name: Master Closet
+  - entity: sensor.master_bathroom_temperature
+    name: Master Bathroom
   - entity: sensor.office_temperature
     name: Office
   - entity: sensor.garage_temperature

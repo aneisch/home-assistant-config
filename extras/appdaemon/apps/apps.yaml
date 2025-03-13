@@ -176,6 +176,12 @@ Nexus Screen Follow:
   leader: binary_sensor.weasel_active
   follower: switch.nexus_7_screen
 
+Master Closet Follow:
+  module: follow_me
+  class: Follow
+  leader: switch.master_bathroom_light_main
+  follower: switch.master_closet_light
+
 #############
 # Christmas #
 #############
@@ -306,10 +312,10 @@ Backyard Flood Lights with Person Detection:
   constrain_end_time: sunrise - 01:00:00
   constrain_start_time: sunset
   constrain_input_boolean: input_boolean.backyard_floodlight_automation
-  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy
+  trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy,binary_sensor.bullet_person_occupancy
   toggle_entity: switch.backyard_flood_lights,switch.globe_lights
   # Seconds to turn entity on when triggered
-  time_on: "300"
+  time_on: "120"
 
 Doorbell Ring Light:
   module: entity_timer

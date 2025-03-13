@@ -1230,25 +1230,27 @@
 - id: '1722300479686'
   alias: Turn off Master Bathroom Lights
   description: ''
-  trigger:
-  - platform: state
-    entity_id:
+  triggers:
+  - entity_id:
     - binary_sensor.433_motion_master_bathroom
     to: 'off'
     for:
       hours: 0
       minutes: 30
       seconds: 0
-  condition:
+    trigger: state
+  conditions:
   - condition: template
     value_template: '{{ is_state("switch.master_bathroom_light_main", "on") or is_state("switch.master_bathroom_light_secondary",
       "on") }}'
-  action:
+    enabled: false
+  actions:
   - action: switch.turn_off
     target:
       entity_id:
       - switch.master_bathroom_light_main
       - switch.master_bathroom_light_secondary
+      - switch.master_closet_light
     data: {}
   mode: single
 - id: '1723658532445'

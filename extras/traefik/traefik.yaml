@@ -39,7 +39,7 @@ experimental:
   plugins:
     sablier:
       moduleName: "github.com/sablierapp/sablier"
-      version: "v1.8.1"
+      version: "v1.8.5"
 
 # log:
 #   level: DEBUG

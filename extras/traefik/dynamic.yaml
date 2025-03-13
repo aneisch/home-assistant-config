@@ -67,17 +67,11 @@ http:
         domains:
           - main: "*.home.domain.com"
 
-    teslausb:
-      service: "teslausb"
-      rule: host(`teslausb.domain.com`)
-      entryPoints:
-      - websecure
-      tls: true
-    teslausb_local:
+    teslamate-frontend-local:
       entrypoints:
         - websecure
-      service: "teslausb"
-      rule: host(`teslausb.home.domain.com`)
+      service: "teslamate-frontend"
+      rule: host(`teslamate-frontend.home.domain.com`)
       tls: 
         certresolver: le-home
         domains:
@@ -147,10 +141,10 @@ http:
         servers:
           - url: http://10.0.1.8
         passHostHeader: true
-    teslausb:
+    teslamate-frontend:
       loadBalancer:
         servers:
-          - url: http://10.0.1.25
+          - url: http://teslamate:4000
         passHostHeader: true
     pfsense:
       loadBalancer:

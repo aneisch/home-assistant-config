@@ -3,7 +3,7 @@
  * Released under the GNU General Public License v3.0
  */
 
-const version = "4.40.0";
+const version = "4.41.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -45,6 +45,7 @@ const defaultConfig = {
 	immich_api_key: "",
 	immich_album_names: [],
 	immich_shared_albums: true,
+	immich_tag_names: [],
 	immich_resolution: "preview",
 	image_fit: "cover", // cover / contain / fill
 	image_list_update_interval: 3600,
@@ -130,7 +131,7 @@ let elHass = null;
 let elHaMain = null;
 let browserId = null;
 let userId = null;
-let userName = null;
+const userName = null;
 let userDisplayname = null;
 
 const HuiView = customElements.get("hui-view");
@@ -160,6 +161,7 @@ function stringify(obj) {
 
 const logger = {
 	messages: [],
+	logLevel: "warn",
 	addMessage: function (level, args) {
 		if (!config.debug) {
 			return;
@@ -205,27 +207,25 @@ const logger = {
 		logger.addMessage("info", arguments);
 	},
 	debug: function () {
-		if (["debug"].includes(config.log_level_console)) {
+		if (["debug"].includes(logger.logLevel)) {
 			console.debug.apply(this, arguments);
 		}
 		logger.addMessage("debug", arguments);
 	},
 	info: function () {
-		if (["debug", "info"].includes(config.log_level_console)) {
+		if (["debug", "info"].includes(logger.logLevel)) {
 			console.info.apply(this, arguments);
 		}
 		logger.addMessage("info", arguments);
 	},
 	warn: function () {
-		const logLevel = config.log_level_console || "warn";
-		if (["debug", "info", "warn"].includes(logLevel)) {
+		if (["debug", "info", "warn"].includes(logger.logLevel)) {
 			console.warn.apply(this, arguments);
 		}
 		logger.addMessage("warn", arguments);
 	},
 	error: function () {
-		const logLevel = config.log_level_console || "warn";
-		if (["debug", "info", "warn", "error"].includes(logLevel)) {
+		if (["debug", "info", "warn", "error"].includes(logger.logLevel)) {
 			console.error.apply(this, arguments);
 		}
 		logger.addMessage("error", arguments);
@@ -492,8 +492,12 @@ function updateConfig() {
 	mergeConfig(config, defaultConfig);
 
 	if (Object.keys(dashboardConfig).length === 0) {
-		dashboardConfig = getHaPanelLovelaceConfig();
+		dashboardConfig = getDashboardWallpanelConfig();
+		if (Object.keys(dashboardConfig).length === 0) {
+			logger.debug("No wallpanel config found in dashboard config");
+		}
 	}
+
 	mergeConfig(config, dashboardConfig);
 
 	const paramConfig = {};
@@ -579,7 +583,12 @@ function updateConfig() {
 		config.show_images = false;
 	}
 
+	if (!oldConfig || !Object.keys(oldConfig).length) {
+		// Keep old log level to get log messages when navigating between different dashboards
+		logger.logLevel = config.log_level_console;
+	}
 	logger.debug("Wallpanel config is now:", config);
+
 	if (wallpanel) {
 		if (isActive()) {
 			wallpanel.reconfigure(oldConfig);
@@ -655,7 +664,7 @@ function getHaPanelLovelace() {
 	}
 }
 
-function getHaPanelLovelaceConfig(keys = []) {
+function getDashboardWallpanelConfig(keys = []) {
 	const pl = getHaPanelLovelace();
 	const conf = {};
 	if (pl && pl.lovelace) {
@@ -680,6 +689,7 @@ function getHaPanelLovelaceConfig(keys = []) {
 }
 
 function setSidebarVisibility(hidden) {
+	logger.debug(`setSidebarVisibility: hidden=${hidden}`);
 	try {
 		const panelLovelace = elHaMain.shadowRoot.querySelector("ha-panel-lovelace");
 		if (panelLovelace) {
@@ -714,6 +724,7 @@ function setSidebarVisibility(hidden) {
 }
 
 function setToolbarVisibility(hideToolbar, hideActionItems) {
+	logger.debug(`setToolbarVisibility: hideToolbar=${hideToolbar}, hideActionItems=${hideActionItems}`);
 	try {
 		const panelLovelace = elHaMain.shadowRoot.querySelector("ha-panel-lovelace");
 		if (!panelLovelace) {
@@ -1812,7 +1823,7 @@ class WallpanelView extends HuiView {
 
 		if (config.show_images && (!oldConfig || !oldConfig.show_images || oldConfig.image_url != config.image_url)) {
 			let switchImages = false;
-			if (oldConfig) {
+			if (oldConfig && Object.keys(oldConfig).length) {
 				switchImages = true;
 			}
 
@@ -1933,23 +1944,23 @@ class WallpanelView extends HuiView {
 		if (!img || !img.imageUrl) {
 			return;
 		}
-		let infoElement = null;
+		const infoElements = [];
 		if (this.imageOne.imageUrl == img.imageUrl) {
-			infoElement = this.imageOneInfo;
+			infoElements.push(this.imageOneInfo);
 		} else if (this.imageTwo.imageUrl == img.imageUrl) {
-			infoElement = this.imageTwoInfo;
+			infoElements.push(this.imageTwoInfo);
 		}
-		if (!infoElement) {
+		if (infoElements.length == 0) {
 			return;
 		}
 
 		if (!config.show_image_info || !config.image_info_template) {
-			infoElement.innerHTML = "";
-			infoElement.style.display = "none";
+			infoElements.forEach((infoElement) => {
+				infoElement.innerHTML = "";
+				infoElement.style.display = "none";
+			});
 			return;
 		}
-
-		infoElement.style.display = "block";
 
 		let imageInfo = imageInfoCache[img.imageUrl];
 		if (!imageInfo) {
@@ -2041,7 +2052,11 @@ class WallpanelView extends HuiView {
 			}
 			return prefix + val + suffix;
 		});
-		infoElement.innerHTML = html;
+
+		infoElements.forEach((infoElement) => {
+			infoElement.innerHTML = html;
+			infoElement.style.display = "block";
+		});
 	}
 
 	updateImageList(preload = false, preloadCallback = null) {
@@ -2201,7 +2216,8 @@ class WallpanelView extends HuiView {
 
 	updateImageListFromImmichAPI(preload, preloadCallback = null) {
 		if (!config.immich_api_key) {
-			throw "immich_api_key not configured";
+			logger.error("immich_api_key not configured");
+			return;
 		}
 		const wp = this;
 		wp.updatingImageList = true;
@@ -2209,87 +2225,143 @@ class WallpanelView extends HuiView {
 		wp.lastImageListUpdate = Date.now();
 		const urls = [];
 		const data = {};
-		const api_url = config.image_url.replace(/^immich\+/, "");
+		const apiUrl = config.image_url.replace(/^immich\+/, "");
+
+		function processAssets(assets, folderName = null) {
+			assets.forEach((asset) => {
+				logger.debug(asset);
+				if (["IMAGE", "VIDEO"].includes(asset.type)) {
+					const resolution =
+						asset.type == "VIDEO" || config.immich_resolution == "original" ? "original" : "thumbnail?size=preview";
+					const url = `${apiUrl}/assets/${asset.id}/${resolution}`;
+					data[url] = asset.exifInfo;
+					data[url]["mediaType"] = asset.type;
+					data[url]["image"] = {
+						filename: asset.originalFileName,
+						folderName: folderName
+					};
+					urls.push(url);
+				}
+			});
+		}
+
+		function processUrls() {
+			if (!wp.cancelUpdatingImageList) {
+				if (config.image_order == "random") {
+					wp.imageList = urls.sort(() => 0.5 - Math.random());
+				} else {
+					wp.imageList = urls;
+				}
+				imageInfoCache = data;
+				logger.debug("Image list from immich is now:", wp.imageList);
+				if (preload) {
+					wp.updatingImageList = false;
+					wp.preloadImages(preloadCallback);
+				}
+			}
+			wp.updatingImageList = false;
+		}
+
 		const http = new XMLHttpRequest();
 		http.responseType = "json";
-		http.open("GET", `${api_url}/albums?shared=${config.immich_shared_albums}`, true);
-		http.setRequestHeader("x-api-key", config.immich_api_key);
-		http.onload = function () {
-			const album_ids = [];
-			if (http.status == 200 || http.status === 0) {
-				const allAlbums = http.response;
-				logger.debug(`Got immich API response`, allAlbums);
-				allAlbums.forEach((album) => {
-					logger.debug(album);
-					if (config.immich_album_names.length && !config.immich_album_names.includes(album.albumName)) {
-						logger.debug("Skipping album: ", album.albumName);
-					} else {
-						logger.debug("Adding album: ", album.albumName);
-						album_ids.push(album.id);
-					}
-				});
-				if (album_ids) {
-					album_ids.forEach((album_id) => {
-						logger.debug("Fetching album metdata: ", album_id);
+		if (config.immich_tag_names && config.immich_tag_names.length) {
+			const tagNames = config.immich_tag_names.map((v) => v.toLowerCase());
+			http.open("GET", `${apiUrl}/tags`, true);
+			http.setRequestHeader("x-api-key", config.immich_api_key);
+			http.onload = function () {
+				const tagIds = [];
+				if (http.status == 200 || http.status === 0) {
+					const allTags = http.response;
+					logger.debug(`Got immich API response`, allTags);
+					allTags.forEach((tag) => {
+						logger.debug(tag);
+						if (!tagNames.includes(tag.name.toLowerCase())) {
+							logger.debug("Skipping tag: ", tag.name);
+						} else {
+							logger.debug("Adding tag: ", tag.name);
+							tagIds.push(tag.id);
+						}
+					});
+					if (tagIds.length > 0) {
 						const http2 = new XMLHttpRequest();
 						http2.responseType = "json";
-						http2.open("GET", `${api_url}/albums/${album_id}`, true);
+						http2.open("POST", `${apiUrl}/search/metadata`, true);
 						http2.setRequestHeader("x-api-key", config.immich_api_key);
+						http2.setRequestHeader("Content-Type", "application/json");
+						logger.debug("Searching asset metdata for tags: ", tagIds);
 						http2.onload = function () {
 							if (http2.status == 200 || http2.status === 0) {
-								const albumDetails = http2.response;
-								logger.debug(`Got immich API response`, albumDetails);
-								albumDetails.assets.forEach((asset) => {
-									logger.debug(asset);
-									if (["IMAGE", "VIDEO"].includes(asset.type)) {
-										const resolution =
-											asset.type == "VIDEO" || config.immich_resolution == "original"
-												? "original"
-												: "thumbnail?size=preview";
-										const url = `${api_url}/assets/${asset.id}/${resolution}`;
-										data[url] = asset.exifInfo;
-										data[url]["mediaType"] = asset.type;
-										data[url]["image"] = {
-											filename: asset.originalFileName,
-											folderName: albumDetails.albumName
-										};
-										urls.push(url);
-									}
-								});
+								const searchResults = http2.response;
+								logger.debug(`Got immich API response`, searchResults);
+								processAssets(searchResults.assets.items);
+								processUrls();
 							} else {
 								logger.error("Immich API error", http2);
 							}
-							album_ids.pop(album_id);
-							if (album_ids.length == 0) {
-								// All processed
-								if (!wp.cancelUpdatingImageList) {
-									if (config.image_order == "random") {
-										wp.imageList = urls.sort(() => 0.5 - Math.random());
-									} else {
-										wp.imageList = urls;
-									}
-									imageInfoCache = data;
-									logger.debug("Image list from immich is now:", wp.imageList);
-									if (preload) {
-										wp.updatingImageList = false;
-										wp.preloadImages(preloadCallback);
-									}
-								}
-								wp.updatingImageList = false;
-							}
 						};
-						http2.send();
-					});
+						http2.send(JSON.stringify({ tagIds: tagIds, withExif: true, size: 1000 }));
+					} else {
+						logger.error("No immich tags selected");
+						wp.updatingImageList = false;
+					}
 				} else {
-					logger.error("No immich albums selected");
+					logger.error("Immich API error", http);
 					wp.updatingImageList = false;
 				}
-			} else {
-				logger.error("Immich API error", http);
-				wp.updatingImageList = false;
-			}
-		};
-		http.send();
+			};
+			http.send({});
+		} else {
+			http.open("GET", `${apiUrl}/albums?shared=${config.immich_shared_albums}`, true);
+			http.setRequestHeader("x-api-key", config.immich_api_key);
+			http.onload = function () {
+				const albumIds = [];
+				const albumNames = (config.immich_album_names || []).map((v) => v.toLowerCase());
+				if (http.status == 200 || http.status === 0) {
+					const allAlbums = http.response;
+					logger.debug(`Got immich API response`, allAlbums);
+					allAlbums.forEach((album) => {
+						logger.debug(album);
+						if (albumNames.length && !albumNames.includes(album.albumName.toLowerCase())) {
+							logger.debug("Skipping album: ", album.albumName);
+						} else {
+							logger.debug("Adding album: ", album.albumName);
+							albumIds.push(album.id);
+						}
+					});
+					if (albumIds) {
+						albumIds.forEach((albumId) => {
+							logger.debug("Fetching album metdata: ", albumId);
+							const http2 = new XMLHttpRequest();
+							http2.responseType = "json";
+							http2.open("GET", `${apiUrl}/albums/${albumId}`, true);
+							http2.setRequestHeader("x-api-key", config.immich_api_key);
+							http2.onload = function () {
+								if (http2.status == 200 || http2.status === 0) {
+									const albumDetails = http2.response;
+									logger.debug(`Got immich API response`, albumDetails);
+									processAssets(albumDetails.assets, albumDetails.albumName);
+								} else {
+									logger.error("Immich API error", http2);
+								}
+								albumIds.pop(albumId);
+								if (albumIds.length == 0) {
+									// All processed
+									processUrls();
+								}
+							};
+							http2.send();
+						});
+					} else {
+						logger.error("No immich albums selected");
+						wp.updatingImageList = false;
+					}
+				} else {
+					logger.error("Immich API error", http);
+					wp.updatingImageList = false;
+				}
+			};
+			http.send();
+		}
 	}
 
 	fillPlaceholders(url) {
@@ -2310,7 +2382,7 @@ class WallpanelView extends HuiView {
 				const response = await fetch(url, { headers: headers || {} });
 				if (!response.ok) {
 					logger.error(`Failed to load ${elem.tagName} "${url}"`, response);
-					throw new Error(`Failed to load ${elem.tagName} "${url}": ${response.status}`);
+					return;
 				}
 				const blob = await response.blob();
 				elem.src = window.URL.createObjectURL(blob);
@@ -2318,7 +2390,8 @@ class WallpanelView extends HuiView {
 				// Setting the src attribute on an img works better because cross-origin requests aren't blocked
 				const loadEventName = { IMG: "load", VIDEO: "loadeddata", IFRAME: "load" }[elem.tagName];
 				if (!loadEventName) {
-					throw new Error(`Unsupported element tag "${elem.tagName}"`);
+					logger.error(`Unsupported element tag "${elem.tagName}"`);
+					return;
 				}
 				return new Promise((resolve, reject) => {
 					const cleanup = () => {
@@ -3121,6 +3194,7 @@ class WallpanelView extends HuiView {
 }
 
 function activateWallpanel() {
+	logger.debug("activateWallpanel");
 	let hideToolbar = config.hide_toolbar;
 	let hideActionItems = config.hide_toolbar_action_icons;
 	if (hideToolbar && !config.hide_toolbar_on_subviews && activeTab) {
@@ -3143,6 +3217,7 @@ function activateWallpanel() {
 }
 
 function deactivateWallpanel() {
+	logger.debug("deactivateWallpanel");
 	if (wallpanel.screensaverRunning()) {
 		wallpanel.stopScreensaver();
 	}
@@ -3166,11 +3241,12 @@ function reconfigure() {
 }
 
 function locationChanged() {
+	logger.debug(`Location changed from '${currentLocation}' to '${window.location.href}'`);
+
 	if (window.location.href == currentLocation) {
 		return;
 	}
 
-	logger.debug(`Location changed from '${currentLocation}' to '${window.location.href}'`);
 	currentLocation = window.location.href;
 
 	if (
@@ -3198,18 +3274,25 @@ function locationChanged() {
 			tab = path[2];
 		}
 	}
-	if (panel != activePanel) {
-		dashboardConfig = {};
-	}
+	const panelChanged = activePanel && panel != activePanel;
 	activePanel = panel;
 	activeTab = tab;
 
-	setTimeout(reconfigure, 25);
+	if (panelChanged) {
+		logger.debug("Reset dashboard config");
+		dashboardConfig = {};
+		waitForEnv(reconfigure);
+	} else {
+		reconfigure();
+	}
 }
 
-const startTime = Date.now();
-function startup() {
-	const startupSeconds = (Date.now() - startTime) / 1000;
+function waitForEnv(callback, startTime = null) {
+	const now = Date.now();
+	if (startTime === null) {
+		startTime = now;
+	}
+	const startupSeconds = (now - startTime) / 1000;
 
 	elHass = document.querySelector("body > home-assistant");
 	if (elHass) {
@@ -3217,21 +3300,32 @@ function startup() {
 	}
 	if (!elHass || !elHaMain) {
 		if (startupSeconds >= 5.0) {
-			throw new Error(
+			logger.error(
 				`Wallpanel startup failed after ${startupSeconds} seconds, element home-assistant / home-assistant-main not found.`
 			);
+			return;
 		}
-		setTimeout(startup, 100);
+		setTimeout(waitForEnv, 100, callback, startTime);
+		return;
+	}
+
+	const pl = getHaPanelLovelace();
+	if (!pl || !pl.lovelace || !pl.lovelace.config || !pl.lovelace.config) {
+		if (startupSeconds >= 5.0) {
+			logger.error(`Wallpanel startup failed after ${startupSeconds} seconds, lovelace config not found.`);
+			return;
+		}
+		setTimeout(waitForEnv, 100, callback, startTime);
 		return;
 	}
 
 	if (!window.browser_mod) {
-		let waitTime = getHaPanelLovelaceConfig(["wait_for_browser_mod_time"])["wait_for_browser_mod_time"];
+		let waitTime = getDashboardWallpanelConfig(["wait_for_browser_mod_time"])["wait_for_browser_mod_time"];
 		if (waitTime === undefined) {
 			waitTime = defaultConfig["wait_for_browser_mod_time"];
 		}
 		if (startupSeconds < waitTime) {
-			setTimeout(startup, 100);
+			setTimeout(waitForEnv, 100, callback, startTime);
 			return;
 		}
 	}
@@ -3245,91 +3339,72 @@ function startup() {
 			browserId = window.browser_mod.browserID.replace("-", "_");
 		}
 	}
-
-	function continueStartup() {
-		logger.debug(`userId: ${userId}, userName: ${userName}, userDisplayname: ${userDisplayname}`);
-		updateConfig();
-		if (!customElements.get("wallpanel-view")) {
-			customElements.define("wallpanel-view", WallpanelView);
-		}
-		wallpanel = document.createElement("wallpanel-view");
-		elHaMain.shadowRoot.appendChild(wallpanel);
-		window.addEventListener("location-changed", (event) => {
-			logger.debug("location-changed", event);
-			setTimeout(locationChanged, 25);
-		});
-		if (window.navigation) {
-			// Using navigate event because a back button on a sub-view will not produce a location-changed event
-			window.navigation.addEventListener("navigate", (event) => {
-				logger.debug("navigate", event);
-				setTimeout(locationChanged, 0);
-			});
-		}
-		elHass.__hass.connection.subscribeEvents(function (event) {
-			logger.debug("lovelace_updated", event);
-			const dashboard = event.data.url_path ? event.data.url_path : "lovelace";
-			if (dashboard == activePanel) {
-				elHass.__hass.connection
-					.sendMessagePromise({
-						type: "lovelace/config",
-						url_path: event.data.url_path
-					})
-					.then((data) => {
-						dashboardConfig = {};
-						if (data.wallpanel) {
-							for (const key in data.wallpanel) {
-								if (key in defaultConfig) {
-									dashboardConfig[key] = data.wallpanel[key];
-								}
-							}
-						}
-						reconfigure();
-					});
-			}
-		}, "lovelace_updated");
-		try {
-			locationChanged();
-		} catch {
-			setTimeout(locationChanged, 1000);
-		}
-	}
-
-	console.info(`%c🖼️ Wallpanel version ${version}`, "color: #34b6f9; font-weight: bold;");
-
-	userId = elHass.__hass.user.id;
-	userDisplayname = elHass.__hass.user.name;
-
-	if (elHass.__hass.user.is_admin) {
-		elHass.hass
-			.callWS({
-				type: "config/auth/list"
-			})
-			.then(
-				(result) => {
-					result.forEach((userInfo) => {
-						if (userInfo.id == userId) {
-							userDisplayname = userInfo.name;
-							userName = userInfo.username;
-						}
-					});
-					if (!userName) {
-						logger.error(`User ${userId} / ${userDisplayname} not found in user list`, result);
-					}
-					continueStartup();
-				},
-				(error) => {
-					logger.error("Failed to fetch user list", error);
-					continueStartup();
-				}
-			);
-	} else {
-		logger.info(`Not an admin user, setting userName to userDisplayname: ${userDisplayname}`);
-		userName = userDisplayname;
-		continueStartup();
-	}
+	callback();
 }
 
-setTimeout(startup, 0);
+function startup() {
+	userId = elHass.__hass.user.id;
+	userDisplayname = elHass.__hass.user.name;
+	logger.debug(`userId: ${userId}, userName: ${userName}, userDisplayname: ${userDisplayname}`);
+
+	updateConfig();
+
+	if (!customElements.get("wallpanel-view")) {
+		customElements.define("wallpanel-view", WallpanelView);
+	}
+	wallpanel = document.createElement("wallpanel-view");
+	elHaMain.shadowRoot.appendChild(wallpanel);
+	window.addEventListener("location-changed", (event) => {
+		let url = null;
+		try {
+			url = event.target.location.href;
+		} catch (e) {
+			logger.debug(e);
+		}
+		logger.debug("location-changed", url, event);
+		setTimeout(locationChanged, 20);
+	});
+	if (window.navigation) {
+		// Using navigate event because a back button on a sub-view will not produce a location-changed event
+		window.navigation.addEventListener("navigate", (event) => {
+			let url = null;
+			try {
+				url = event.destination.url;
+			} catch (e) {
+				logger.debug(e);
+			}
+			logger.debug("navigate", url, event);
+			setTimeout(locationChanged, 30);
+		});
+	}
+	elHass.__hass.connection.subscribeEvents(function (event) {
+		logger.debug("lovelace_updated", event);
+		const dashboard = event.data.url_path ? event.data.url_path : "lovelace";
+		if (dashboard == activePanel) {
+			elHass.__hass.connection
+				.sendMessagePromise({
+					type: "lovelace/config",
+					url_path: event.data.url_path
+				})
+				.then((data) => {
+					dashboardConfig = {};
+					if (data.wallpanel) {
+						for (const key in data.wallpanel) {
+							if (key in defaultConfig) {
+								dashboardConfig[key] = data.wallpanel[key];
+							}
+						}
+					}
+					reconfigure();
+				});
+		}
+	}, "lovelace_updated");
+
+	setTimeout(locationChanged, 0);
+}
+
+console.info(`%c🖼️ Wallpanel version ${version}`, "color: #34b6f9; font-weight: bold;");
+waitForEnv(startup);
 
 /**
  * https://github.com/exif-js/exif-js
@@ -3716,7 +3791,8 @@ function getImageData(img, callback) {
 				if (this.status == 200 || this.status === 0) {
 					handleBinaryFile(http.response);
 				} else {
-					throw "Could not load image";
+					logger.error("Could not load image");
+					return;
 				}
 				http = null;
 			};

@@ -655,7 +655,7 @@ services:
             # - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
 
     sablier:
-        image: sablierapp/sablier:1.8.1
+        image: sablierapp/sablier:1.8.5
         container_name: sablier
         restart: 'always'
         command:

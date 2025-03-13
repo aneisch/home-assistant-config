@@ -21,5 +21,6 @@ cards:
       - cover.master_bedroom_blinds
       - switch.master_bathroom_light_main
       - switch.master_bathroom_light_secondary
+      - cover.master_bathroom_blinds
 
   - !include .cards/spotify.yaml

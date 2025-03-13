@@ -4,7 +4,8 @@ substitutions:
 
 esphome:
   name: ${name}
-  platform: ESP8266
+
+esp8266:
   board: d1_mini
 
 <<: !include common.yaml
@@ -15,20 +16,26 @@ binary_sensor:
     pin: D5
     on_press:
       then:
-        if: 
-          condition:
-            light.is_on: led
-          then:
-            - light.turn_off: led
-            - homeassistant.service:
-                service: script.desk_led_white
-          else:
-            - light.turn_on: 
-                id: led
-                effect: pulse
-            # - switch.turn_on: toggle
-            - homeassistant.service:
-                service: script.desk_led_red
+        # if: 
+        #   condition:
+        #     light.is_on: led
+        #   then:
+        #     - light.turn_off: led
+        #     - homeassistant.service:
+        #         service: script.desk_led_white
+        #   else:
+        #     - light.turn_on: 
+        #         id: led
+        #         effect: pulse
+        #     # - switch.turn_on: toggle
+        #     - homeassistant.service:
+        #         service: script.desk_led_red
+
+        - light.turn_on: 
+            id: led
+            effect: pulse
+        - homeassistant.service:
+            service: script.desk_led_red
 
   - platform: homeassistant
     id: desk_led
