@@ -710,7 +710,7 @@ automation:
     trigger:
         platform: state
         entity_id: sensor.tesla_charge_limit_soc
-    condition: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] and trigger.from_state.state not in ['unknown', 'unavailable'] }}"
+    condition: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] and trigger.from_state.state not in ['unknown', 'unavailable'] and not is_state('sensor.tesla_state', 'driving') }}"
     action:
       - action: notify.signal_homeassistant
         data:

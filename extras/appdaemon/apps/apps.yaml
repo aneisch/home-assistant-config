@@ -11,7 +11,7 @@ AC Automation:
   # Below depends on the manual setting of heat or cool on the thermostat
   cool_day: "78"
   cool_night: "72"
-  cool_unoccupied: "82"
+  cool_unoccupied: "80"
   heat_day: "68"
   heat_night: "64"
   heat_unoccupied: "55"
@@ -420,15 +420,23 @@ Entryway Light Sunset Smallgroup:
   entities: light.entryway_light
   brightness: 255
 
-Front Porch Lights Sunset:
+Front Sconces Sunset:
   module: entity_timer
   class: Timer
-  entities: light.front_porch_lights,light.front_sconces # See also NodeRed # disable at Christmas and Halloween
-  #entities: light.front_porch_lights # Christmas only front porch
-  #entities: light.front_porch_halloween # Halloween only LimitlessLED See also NodeRed
+  entities: light.front_sconces # See also NodeRed # disable at Christmas and Halloween
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
   brightness: 254
+  #brightness: 25 # Christmas
+
+Front Porch Lights Sunset:
+  module: entity_timer
+  class: Timer
+  entities: light.front_porch_lights # See also NodeRed # disable at Halloween
+  #entities: light.front_porch_halloween # Halloween only LimitlessLED See also NodeRed
+  time_on: sunset - 00:20:00
+  time_off: sunrise - 00:30:00
+  brightness: 63
   #brightness: 25 # Christmas
 
 Plant Light:
