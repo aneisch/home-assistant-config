@@ -45,6 +45,7 @@ cards:
         title: Commands
         show_header_toggle: false
         entities:
+          - switch.sonoff_usb_1
           - binary_sensor.tesla_ble
           - button.tesla_ble_force_update_all
           - button.tesla_ble_wake_up_car

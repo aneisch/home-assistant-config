@@ -656,52 +656,81 @@ automation:
   #           %} {% endif %} {% if 'query' in trigger and trigger.query|length > 0 %}\n
   #           \ Query: {{ dict(trigger.query)|tojson }}\n{% endif %}"
 
-  # This allows TeslaUSB backup to complete (sentry mode on by default at home keeps the Pi powered)
-  # turn off after 15 minutes to allow backup to complete
-  - alias: Disable Sentry Mode for TeslaUSB
-    id: disable_sentry_mode_for_teslausb
+  - alias: "Tesla Tire Pressure Check on Park"
     trigger:
       - platform: state
-        entity_id: device_tracker.tesla_location
-        from: "not_home"
-        to: "home"
-        id: location
-      - platform: webhook
-        webhook_id: !secret teslausb_webhook
-        local_only: false
-        id: webhook
+        entity_id: sensor.tesla_shift_state
+        to: "P"
+    # condition:
+    #   - condition: state
+    #     entity_id: device_tracker.tesla_location
+    #     state: "home"
     action:
-      - if: "{{ trigger.id == 'webhook' }}"
-        alias: "Webhook"
-        then:
-          - choose:
-            - conditions:
-              - condition: template
-                value_template: '{{ ''including'' in trigger.json.value2 }}'
-              alias: "Started"
-              sequence:
-                - action: switch.turn_on
-                  target:
-                    entity_id: switch.tesla_ble_sentry_mode
-            - conditions:
-              - condition: template
-                value_template: '{{ ''completed'' in trigger.json.value2 }}'
-              alias: "Completed"
-              sequence:
-                - action: switch.turn_off
-                  target:
-                    entity_id: switch.tesla_ble_sentry_mode
-      - if: "{{ trigger.id == 'location' }}"
-        alias: "Location"
-        then:
-          - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'on') }}"
-            timeout: 00:05:00
-          - action: switch.turn_on
-            entity_id: switch.tesla_ble_sentry_mode
-          - delay: "00:05:00"
-          - action: switch.turn_off
-            entity_id: switch.tesla_ble_sentry_mode
-    mode: restart
+      - service: python_script.tire_pressure_check
+
+  - alias: "Tesla BLE Disconnected and Reset Sonoff USB"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.tesla_ble
+        to: "off"
+        for:
+          minutes: 10
+    action:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.sonoff_usb_1
+      - delay:
+          seconds: 5
+      - service: switch.turn_on
+        target:
+          entity_id: switch.sonoff_usb_1
+
+  # This allows TeslaUSB backup to complete (sentry mode on by default at home keeps the Pi powered)
+  # turn off after 15 minutes to allow backup to complete
+  # - alias: Disable Sentry Mode for TeslaUSB
+  #   id: disable_sentry_mode_for_teslausb
+  #   trigger:
+  #     - platform: state
+  #       entity_id: device_tracker.tesla_location
+  #       from: "not_home"
+  #       to: "home"
+  #       id: location
+  #     - platform: webhook
+  #       webhook_id: !secret teslausb_webhook
+  #       local_only: false
+  #       id: webhook
+  #   action:
+  #     - if: "{{ trigger.id == 'webhook' }}"
+  #       alias: "Webhook"
+  #       then:
+  #         - choose:
+  #           - conditions:
+  #             - condition: template
+  #               value_template: '{{ ''including'' in trigger.json.value2 }}'
+  #             alias: "Started"
+  #             sequence:
+  #               - action: switch.turn_on
+  #                 target:
+  #                   entity_id: switch.tesla_ble_sentry_mode
+  #           - conditions:
+  #             - condition: template
+  #               value_template: '{{ ''completed'' in trigger.json.value2 }}'
+  #             alias: "Completed"
+  #             sequence:
+  #               - action: switch.turn_off
+  #                 target:
+  #                   entity_id: switch.tesla_ble_sentry_mode
+  #     - if: "{{ trigger.id == 'location' }}"
+  #       alias: "Location"
+  #       then:
+  #         - wait_template: "{{ is_state('binary_sensor.tesla_doors_open', 'on') }}"
+  #           timeout: 00:05:00
+  #         - action: switch.turn_on
+  #           entity_id: switch.tesla_ble_sentry_mode
+  #         - delay: "00:05:00"
+  #         - action: switch.turn_off
+  #           entity_id: switch.tesla_ble_sentry_mode
+  #   mode: restart
 
   - alias: "Tesla Charge Limit Change Notice"
     id: "tesla_charge_limit_change_notice"
