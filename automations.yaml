@@ -448,8 +448,8 @@
     entity_id: light.andrew_desk_lamp
   - action: homeassistant.turn_off
     entity_id: switch.andrew_monitor
-- alias: Nexus off After Monitor
-  id: nexus_7_off_after_monitor
+- alias: Tablet off After Monitor
+  id: tablet_off_after_monitor
   initial_state: true
   trigger:
     platform: state
@@ -458,7 +458,7 @@
     for: 00:00:30
   action:
   - action: homeassistant.turn_off
-    entity_id: switch.nexus_7_screen
+    entity_id: switch.fire_tablet_screen
 - alias: Master Closet Light with Motion
   id: closet_motion_light
   trigger:

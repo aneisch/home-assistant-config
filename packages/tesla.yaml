@@ -790,6 +790,14 @@ automation:
           entity_id: sensor.dryer_power
           above: 1000
         - platform: numeric_state
+          id: dryer
+          entity_id: sensor.dryer_power
+          above: 3000
+        - platform: numeric_state
+          id: dryer
+          entity_id: sensor.dryer_power
+          above: 4000
+        - platform: numeric_state
           id: oven
           entity_id: sensor.oven_power
           above: 3500

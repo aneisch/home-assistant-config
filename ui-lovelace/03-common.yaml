@@ -244,7 +244,7 @@ cards:
         show_header_toggle: false
         title: Andrew's Office
         entities:
-          - switch.nexus_7_screen
+          - switch.fire_tablet_screen
           - light.andrew_desk_lamp
           - sensor.office_temperature
           - fan.office_ceiling_fan

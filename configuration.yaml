@@ -18,6 +18,7 @@ homeassistant:
     #christmas: !include packages/christmas.yaml
     # End Christmas
     # covid: !include packages/covid.yaml
+    employment: !include packages/employment.yaml
     frigate: !include packages/frigate.yaml
     door_otp: !include packages/door_otp.yaml
     garage_door: !include packages/garage_door.yaml

@@ -170,11 +170,11 @@ Bethany Office Hanging Lights:
   leader: light.bethany_desk_lamp
   follower: light.bethany_office_hanging
 
-Nexus Screen Follow:
+Tablet Screen Follow:
   module: follow_me
   class: Follow
   leader: binary_sensor.weasel_active
-  follower: switch.nexus_7_screen
+  follower: switch.fire_tablet_screen
 
 Master Closet Follow:
   module: follow_me
@@ -451,6 +451,13 @@ Plant Light Corner:
   class: Follow
   leader: switch.kmc_multi_plug_1_1
   follower: light.plant_light_corner
+
+# Sometimes the follow ^^ doesn't work. Ensure we turn off.
+Plant Light Corner Double:
+  module: entity_timer
+  class: Timer
+  time_off: sunset + 01:35:00
+  entities: light.plant_light_corner
 
 Living Room Lamp Follow:
   module: follow_me
