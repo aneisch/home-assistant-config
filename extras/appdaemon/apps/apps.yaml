@@ -33,19 +33,19 @@ Kitchen Timer Sync:
 #   # Publish to MQTT (remove mqtt entry if you don't want..)
 #   mqtt: True
 
-Set Smallgroup Boolean On:
-  module: entity_timer
-  class: Timer
-  constrain_presence: anyone
-  constrain_days: thu
-  time_on: "05:00:00"
-  entities: input_boolean.is_smallgroup
+# Set Smallgroup Boolean On:
+#   module: entity_timer
+#   class: Timer
+#   constrain_presence: anyone
+#   constrain_days: thu
+#   time_on: "05:00:00"
+#   entities: input_boolean.is_smallgroup
 
-Set Smallgroup Boolean Off:
-  module: entity_timer
-  class: Timer
-  time_off: "23:59:00"
-  entities: input_boolean.is_smallgroup
+# Set Smallgroup Boolean Off:
+#   module: entity_timer
+#   class: Timer
+#   time_off: "23:59:00"
+#   entities: input_boolean.is_smallgroup
 
 Back Bedroom Zigbee Remote:
   module: zigbee_remote

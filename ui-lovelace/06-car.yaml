@@ -47,6 +47,8 @@ cards:
         entities:
           - switch.sonoff_usb_1
           - binary_sensor.tesla_ble
+          - binary_sensor.tesla_ble_awake
+          - binary_sensor.tesla_ble_presence
           - button.tesla_ble_force_update_all
           - button.tesla_ble_wake_up_car
           - switch.tesla_ble_sentry_mode

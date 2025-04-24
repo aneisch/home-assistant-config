@@ -1,1 +1,1 @@
-import"./card-082b91a0.js";
+import"./card-807d37f1.js";

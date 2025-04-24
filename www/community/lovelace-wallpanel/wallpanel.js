@@ -3,7 +3,7 @@
  * Released under the GNU General Public License v3.0
  */
 
-const version = "4.42.0";
+const version = "4.44.0";
 const defaultConfig = {
 	enabled: false,
 	enabled_on_tabs: [],
@@ -46,11 +46,14 @@ const defaultConfig = {
 	immich_album_names: [],
 	immich_shared_albums: true,
 	immich_tag_names: [],
+	immich_persons: [],
+	immich_memories: false,
 	immich_resolution: "preview",
 	image_fit: "cover", // cover / contain / fill
 	image_list_update_interval: 3600,
 	image_order: "sorted", // sorted / random
-	image_excludes: [],
+	exclude_filenames: [], // Excluded filenames (regex)
+	exclude_media_types: [], // Exclude media types (image / video)
 	image_background: "color", // color / image
 	video_loop: false,
 	touch_zone_size_next_image: 15,
@@ -444,12 +447,19 @@ function mergeConfig(target, ...sources) {
 	const source = sources.shift();
 
 	if (isObject(target) && isObject(source)) {
-		for (const key in source) {
-			if (isObject(source[key])) {
+		for (let key in source) {
+			let val = source[key];
+			if (key == "image_excludes") {
+				logger.warn(
+					"The configuration option 'image_excludes' has been renamed to 'exclude_filenames'. Please update your wallpanel configuration accordingly."
+				);
+				key = "exclude_filenames";
+			}
+
+			if (isObject(val)) {
 				if (!target[key]) Object.assign(target, { [key]: {} });
-				mergeConfig(target[key], source[key]);
+				mergeConfig(target[key], val);
 			} else {
-				let val = source[key];
 				function replacer(match, entityId) {
 					if (!(entityId in configEntityStates)) {
 						configEntityStates[entityId] = "";
@@ -2067,33 +2077,41 @@ function initWallpanel() {
 		updateImageList(preload = false, preloadCallback = null) {
 			if (!config.image_url) return;
 
+			const wp = this;
 			let updateFunction = null;
 			if (imageSourceType() == "unsplash-api") {
-				updateFunction = this.updateImageListFromUnsplashAPI;
+				updateFunction = wp.updateImageListFromUnsplashAPI;
 			} else if (imageSourceType() == "immich-api") {
-				updateFunction = this.updateImageListFromImmichAPI;
+				updateFunction = wp.updateImageListFromImmichAPI;
 			} else if (imageSourceType() == "media-source") {
-				updateFunction = this.updateImageListFromMediaSource;
+				updateFunction = wp.updateImageListFromMediaSource;
 			} else {
 				return;
 			}
 
-			const wp = this;
-			if (this.updatingImageList) {
-				this.cancelUpdatingImageList = true;
+			function doUpdateImageList() {
+				wp.cancelUpdatingImageList = false;
+				try {
+					updateFunction.bind(wp)(preload, preloadCallback);
+				} catch (e) {
+					logger.warn("Failed to update image list, will retry in 3 seconds", e);
+					setTimeout(doUpdateImageList, 3000);
+				}
+			}
+
+			if (wp.updatingImageList) {
+				wp.cancelUpdatingImageList = true;
 				const start = Date.now();
 				function _checkUpdating() {
-					if (!this.updatingImageList || Date.now() - start >= 5000) {
-						this.cancelUpdatingImageList = false;
-						updateFunction.bind(wp)(preload, preloadCallback);
+					if (!wp.updatingImageList || Date.now() - start >= 5000) {
+						doUpdateImageList();
 					} else {
 						setTimeout(_checkUpdating, 50);
 					}
 				}
 				setTimeout(_checkUpdating, 1);
 			} else {
-				this.cancelUpdatingImageList = false;
-				updateFunction.bind(wp)(preload, preloadCallback);
+				doUpdateImageList();
 			}
 		}
 
@@ -2101,8 +2119,8 @@ function initWallpanel() {
 			const wp = this;
 			logger.debug(`findMedias: ${mediaContentId}`);
 			const excludeRegExp = [];
-			if (config.image_excludes) {
-				for (const imageExclude of config.image_excludes) {
+			if (config.exclude_filenames) {
+				for (const imageExclude of config.exclude_filenames) {
 					excludeRegExp.push(new RegExp(imageExclude));
 				}
 			}
@@ -2124,6 +2142,11 @@ function initWallpanel() {
 									}
 								}
 								if (["image", "video"].includes(child.media_class)) {
+									if (config.exclude_media_types && config.exclude_media_types.includes(child.media_class)) {
+										// Media type excluded
+										return;
+									}
+
 									//logger.debug(child);
 									return child.media_content_id;
 								}
@@ -2231,26 +2254,46 @@ function initWallpanel() {
 			const urls = [];
 			const data = {};
 			const apiUrl = config.image_url.replace(/^immich\+/, "");
+			const excludeRegExp = [];
+			if (config.exclude_filenames) {
+				for (const imageExclude of config.exclude_filenames) {
+					excludeRegExp.push(new RegExp(imageExclude));
+				}
+			}
 
 			function processAssets(assets, folderName = null) {
 				assets.forEach((asset) => {
 					logger.debug(asset);
 					const assetType = asset.type.toLowerCase();
-					if (["image", "video"].includes(assetType)) {
-						let url = `${apiUrl}/assets/${asset.id}/original`;
-						if (assetType == "video") {
-							url = `${apiUrl}/assets/${asset.id}/video/playback`;
-						} else if (config.immich_resolution == "preview") {
-							url = `${apiUrl}/assets/${asset.id}/thumbnail?size=preview`;
-						}
-						data[url] = asset.exifInfo;
-						data[url]["mediaType"] = assetType;
-						data[url]["image"] = {
-							filename: asset.originalFileName,
-							folderName: folderName
-						};
-						urls.push(url);
+					if (!["image", "video"].includes(assetType)) {
+						return;
 					}
+					if (config.exclude_media_types && config.exclude_media_types.includes(assetType)) {
+						return;
+					}
+					for (const exclude of excludeRegExp) {
+						if (exclude.test(asset.originalFileName)) {
+							return;
+						}
+					}
+
+					let resolution = "original";
+					if (config.immich_resolution == "preview") {
+						if (assetType == "video") {
+							resolution = "video/playback";
+						} else {
+							resolution = "thumbnail?size=preview";
+						}
+					}
+					const url = `${apiUrl}/assets/${asset.id}/${resolution}`;
+					data[url] = asset.exifInfo || {};
+
+					data[url]["mediaType"] = assetType;
+					data[url]["image"] = {
+						filename: asset.originalFileName,
+						folderName: folderName
+					};
+					urls.push(url);
 				});
 			}
 
@@ -2271,10 +2314,122 @@ function initWallpanel() {
 				wp.updatingImageList = false;
 			}
 
-			const http = new XMLHttpRequest();
-			http.responseType = "json";
-			if (config.immich_tag_names && config.immich_tag_names.length) {
+			if (config.immich_persons && config.immich_persons.length) {
+				const orPersonNames = [];
+				config.immich_persons.forEach((entry) => {
+					let andPersonNames = Array.isArray(entry) ? entry : [entry];
+					andPersonNames = andPersonNames.map((v) => v.toLowerCase());
+					orPersonNames.push(andPersonNames);
+				});
+				logger.debug(orPersonNames);
+				let immichPeople = [];
+				const personNameToId = {};
+
+				function fetchAssets(index = 0) {
+					const personNames = orPersonNames[index];
+					const personIds = [];
+					personNames.forEach((personName) => {
+						const personId = personNameToId[personName];
+						if (personId) {
+							personIds.push(personId);
+						} else {
+							logger.error(`Person not found in immich: ${personName}`);
+						}
+					});
+
+					function afterFetchAssets() {
+						if (index + 1 < orPersonNames.length) {
+							fetchAssets(index + 1);
+						} else {
+							processUrls();
+						}
+					}
+
+					if (personIds.length > 0) {
+						const http = new XMLHttpRequest();
+						http.responseType = "json";
+						http.open("POST", `${apiUrl}/search/metadata`, true);
+						http.setRequestHeader("x-api-key", config.immich_api_key);
+						http.setRequestHeader("Content-Type", "application/json");
+						logger.debug("Searching asset metdata for persons: ", personIds);
+						http.onload = function () {
+							if (http.status == 200 || http.status === 0) {
+								const searchResults = http.response;
+								logger.debug(`Got immich API response`, searchResults);
+								if (!searchResults.assets.count) {
+									logger.error(`No media items found in immich that contain all these people: ${personNames}`);
+								} else {
+									processAssets(searchResults.assets.items);
+								}
+							} else {
+								logger.error("Immich API error", http);
+							}
+							afterFetchAssets();
+						};
+						http.send(JSON.stringify({ personIds: personIds, withExif: true, size: 1000 }));
+					} else {
+						afterFetchAssets();
+					}
+				}
+
+				function fetchPeople(page = 1) {
+					const http = new XMLHttpRequest();
+					http.responseType = "json";
+					http.open("GET", `${apiUrl}/people?size=1000&page=${page}`, true);
+					http.setRequestHeader("x-api-key", config.immich_api_key);
+					http.onload = function () {
+						if (http.status == 200 || http.status === 0) {
+							logger.debug(`Got immich API response`, http.response);
+							immichPeople = immichPeople.concat(http.response.people);
+							if (http.response.hasNextPage) {
+								return fetchPeople(page + 1);
+							}
+							immichPeople.forEach((person) => {
+								personNameToId[person.name.toLowerCase()] = person.id;
+							});
+							fetchAssets();
+						} else {
+							logger.error("Immich API error", http);
+							wp.updatingImageList = false;
+						}
+					};
+					http.send();
+				}
+				fetchPeople();
+			} else if (config.immich_memories) {
+				const http = new XMLHttpRequest();
+				http.responseType = "json";
+				http.open("GET", `${apiUrl}/memories?type=on_this_day`, true);
+				http.setRequestHeader("x-api-key", config.immich_api_key);
+				http.setRequestHeader("Content-Type", "application/json");
+				http.onload = function () {
+					if (http.status == 200 || http.status === 0) {
+						const allMemories = http.response;
+						logger.debug(`Got immich API response`, allMemories);
+
+						const now = new Date();
+
+						allMemories
+							.filter(function (memory) {
+								const showAt = new Date(memory.showAt);
+								const hideAt = new Date(memory.hideAt);
+								return now >= showAt && now <= hideAt;
+							})
+							.forEach((memory) => {
+								logger.debug(memory);
+								processAssets(memory.assets);
+								processUrls();
+							});
+					} else {
+						logger.error("Immich API error", http);
+						wp.updatingImageList = false;
+					}
+				};
+				http.send();
+			} else if (config.immich_tag_names && config.immich_tag_names.length) {
 				const tagNames = config.immich_tag_names.map((v) => v.toLowerCase());
+				const http = new XMLHttpRequest();
+				http.responseType = "json";
 				http.open("GET", `${apiUrl}/tags`, true);
 				http.setRequestHeader("x-api-key", config.immich_api_key);
 				http.onload = function () {
@@ -2318,8 +2473,10 @@ function initWallpanel() {
 						wp.updatingImageList = false;
 					}
 				};
-				http.send({});
+				http.send();
 			} else {
+				const http = new XMLHttpRequest();
+				http.responseType = "json";
 				http.open("GET", `${apiUrl}/albums?shared=${config.immich_shared_albums}`, true);
 				http.setRequestHeader("x-api-key", config.immich_api_key);
 				http.onload = function () {
@@ -2569,8 +2726,8 @@ function initWallpanel() {
 		}
 
 		updateImageFromMediaEntity(img) {
-			const imageEntity = config.image_url.replace(/^media-entity:\/\//, "");
-			const entity = this.hass.states[imageEntity];
+			const mediaEntity = config.image_url.replace(/^media-entity:\/\//, "");
+			const entity = this.hass.states[mediaEntity];
 			if (!entity || !entity.attributes || !entity.attributes.entity_picture) {
 				return;
 			}
@@ -2728,18 +2885,18 @@ function initWallpanel() {
 			const sourceType = imageSourceType();
 
 			if (sourceType === "media-entity") {
-				const imageEntity = config.image_url.replace(/^media-entity:\/\//, "");
-				const entity = this.hass.states[imageEntity];
+				const mediaEntity = config.image_url.replace(/^media-entity:\/\//, "");
+				const entity = this.hass.states[mediaEntity];
 				if (!entity) {
 					return;
 				}
 
 				if (mediaEntityState != entity.state) {
-					logger.debug(`Media entity ${imageEntity} state has changed`);
+					logger.debug(`Media entity ${mediaEntity} state has changed`);
 				} else if (eventType == "entity_update") {
 					return;
 				} else if (config.media_entity_load_unchanged) {
-					logger.debug(`Media entity ${imageEntity} state unchanged, but media_entity_load_unchanged = true`);
+					logger.debug(`Media entity ${mediaEntity} state unchanged, but media_entity_load_unchanged = true`);
 				} else {
 					this.lastImageUpdate = Date.now();
 					this.restartProgressBarAnimation();
@@ -3261,7 +3418,7 @@ function activateWallpanel() {
 			for (let i = 0; i < pl.lovelace.rawConfig.views.length; i++) {
 				if (pl.lovelace.rawConfig.views[i].path == activeTab) {
 					if (pl.lovelace.rawConfig.views[i].subview) {
-						// Current tab is a subview
+						logger.debug(`Current tab '${activeTab}' is a subview, not hiding toolbar`);
 						hideToolbar = false;
 						hideActionItems = false;
 					}

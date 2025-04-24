@@ -472,11 +472,10 @@
   - delay: 00:05:00
   - action: homeassistant.turn_off
     entity_id: switch.master_closet_light
-- alias: Sensor Battery Alerts
-  id: sensor_battery_alert
-  trigger:
-  - platform: state
-    id: binary
+- id: sensor_battery_alert
+  alias: Sensor Battery Alerts
+  triggers:
+  - id: binary
     from: 'off'
     to: 'on'
     entity_id:
@@ -484,8 +483,8 @@
     - binary_sensor.compost_battery
     - binary_sensor.433_weather_battery
     - binary_sensor.deep_freeze_battery
-  - platform: numeric_state
-    id: value
+    trigger: state
+  - id: value
     entity_id:
     - sensor.1_battery_level
     - sensor.2_battery_level
@@ -516,7 +515,9 @@
     - sensor.netatmo_home_attic_battery_percent
     - sensor.meater_battery_level
     below: 10
-  action:
+    trigger: numeric_state
+    enabled: false
+  actions:
   - action: script.notify_wrapper
     data:
       message: "{% if trigger.id == \"value\" %}\n  {{ trigger.to_state.name }} battery

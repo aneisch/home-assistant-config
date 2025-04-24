@@ -1,0 +1,296 @@
+# https://wiki.seeedstudio.com/xiao_075inch_epaper_panel/#hardware-overview
+esphome:
+  name: epaper-display
+  friendly_name: epaper_display
+
+esp32:
+  board: esp32-c3-devkitm-1
+  framework:
+    type: arduino
+
+<<: !include common.yaml
+
+# Display info via SPI
+spi:
+  clk_pin: GPIO8
+  mosi_pin: GPIO10
+
+# When device in deep sleep mode, you can't upload a new program derectly.
+# First, make sure that device is turned on, and then press the Boot button on the back of the board.
+# Click one time Reset button and release Boot button.
+# After that, turn off the battery switch and unplug the power cable.
+# Last, replug the cable and upload a new program.
+# deep_sleep:
+#   id: deep_sleep_1
+#   run_duration: 1min  # Device wake up and run 60s (enough to pull data and update)
+#   sleep_duration: 60min  # deep sleep for 1h
+
+# interval:
+#   - interval: 59s  # run this command before the end of run_duration
+#     then:
+#       - logger.log: "Entering deep sleep now..."
+
+globals:
+  - id: wifi_status
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: first_update_done
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+wifi:
+  ssid: "SSID"
+  password: !secret wifi_password
+  on_connect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 1;
+  on_disconnect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 0;
+
+script:
+  - id: update_display
+    then:
+      - component.update: my_display
+
+interval:
+  # Condition: wifi connected && data retrieved && first time
+  - interval: 10s  # Check every second
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - lambda: "return !id(first_update_done);"
+          then:
+            - lambda: |-
+                ESP_LOGD("Display", "Updating Display...");
+            - script.execute: update_display  # Refresh immediately
+            - lambda: "id(first_update_done) = true;"
+
+# Connect to Home Assistant to get time
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+text_sensor:
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: myWeather
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: temp
+    attribute: "temperature"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: humi
+    attribute: "humidity"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: press
+    attribute: "pressure"
+  - platform: homeassistant
+    entity_id: weather.forecast_home
+    id: wind
+    attribute: "wind_speed"
+
+font:
+  - file: "fonts/Montserrat-Black.ttf"
+    id: web_font
+    size: 20
+  - file: "fonts/Montserrat-Black.ttf"
+    id: data_font
+    size: 30
+  - file: "fonts/Montserrat-Black.ttf"
+    id: sensor_font
+    size: 22
+  - file: "gfonts://Inter@700" #
+    id: font1
+    size: 24
+
+  - file: 'fonts/materialdesignicons-webfont.ttf' # Directory to save ttf file
+    id: font_mdi_large
+    size: 200
+    glyphs: &mdi-weather-glyphs # https://pictogrammers.com/library/mdi/
+      - "\U000F050F" # Thermometer
+      - "\U000F058E" # Humidity
+      - "\U000F059D" # Wind speed
+      - "\U000F0D60" # Atmospheric pressure
+      - "\U000F0590" # Cloudy weather
+      - "\U000F0596" # Rainy weather
+      - "\U000F0598" # Snowy weather
+      - "\U000F0599" # Sunny weather
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: font_weather # Copy the above icon and change the size to 40
+    size: 200
+    glyphs: *mdi-weather-glyphs
+  - file: 'fonts/materialdesignicons-webfont.ttf'
+    id: img_font_sensor # Copy the above icon and change the size to 40
+    size: 70
+    glyphs: *mdi-weather-glyphs
+
+display:
+  - platform: waveshare_epaper
+    id: my_display
+    cs_pin: GPIO3
+    dc_pin: GPIO5
+    busy_pin: GPIO4
+    reset_pin: GPIO2
+    model: 7.50inv2
+    update_interval: 50s 
+    lambda: |-
+      if(id(wifi_status) == 0){
+        it.print(230, 300, id(data_font), "WI-FI CONNECTING");
+      }else{
+        // Draw weather images here
+        std::string weather_string = id(myWeather).state.c_str();
+        if(weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring"){
+          // Draw rainy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0596");
+        }else if(weather_string == "snowy"){
+          // Draw snowy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0598");
+        }else if(weather_string == "sunny" || weather_string == "windy"){
+          // Draw sunny weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0599");
+        }else{
+          // Draw cloudy weather image
+          it.printf(120, 85, id(font_weather), TextAlign::CENTER, "\U000F0590");
+        }
+
+        auto time_now = id(homeassistant_time).now();
+        // Month conversion
+        const char* months[] = {
+          "January", "February", "March", "April", "May", "June",
+          "July", "August", "September", "October", "November", "December"
+        };
+        const char* month_str = months[time_now.month - 1];  // Month index starts from 0
+        // Get the day
+        int day = time_now.day_of_month;
+        // Draw the date
+        it.printf(250, 110, id(data_font), "%s %d", month_str, day);
+        // Get the day of the week
+        const char* days[] = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+        const char* day_of_week = days[time_now.day_of_week];
+        it.printf(250, 70, id(data_font), "%s", day_of_week);
+
+        int x = 20, y = 180, w = 180, h = 120, r = 10, thickness = 4;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Temperature
+        it.printf(x+10, y+10, id(sensor_font), "Temperature");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F050F");
+        // Get temperature data
+        it.printf(x+75,y+65, id(data_font), "%s°F", id(temp).state.c_str());
+
+        x = 220;
+        y = 180;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Humidity
+        it.printf(x+10, y+10, id(sensor_font), "Humidity");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F058E");
+        // Get humidity data
+        it.printf(x+75,y+65, id(data_font), "%s%%", id(humi).state.c_str());
+
+        x = 20;
+        y = 320;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Air Pressure
+        it.printf(x+10, y+10, id(sensor_font), "Air Pressure");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D60");
+        // Get atmospheric pressure data
+        it.printf(x+85,y+50, id(data_font), "%s", id(press).state.c_str());
+        it.printf(x+85,y+78, id(sensor_font), "inHg");
+
+        x = 220;
+        y = 320;
+        // Draw four borders
+        it.filled_rectangle(x + r, y, w - 2 * r, thickness); // Top border
+        it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness); // Bottom border
+        it.filled_rectangle(x, y + r, thickness, h - 2 * r); // Left border
+        it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r); // Right border
+        // Draw four rounded corners
+        it.filled_circle(x + r, y + r, r); // Top-left corner
+        it.filled_circle(x + w - r, y + r, r); // Top-right corner
+        it.filled_circle(x + r, y + h - r, r); // Bottom-left corner
+        it.filled_circle(x + w - r, y + h - r, r); // Bottom-right corner
+        // Fill the inside with black to form a border
+        it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_OFF);
+        // Wind Speed
+        it.printf(x+10, y+10, id(sensor_font), "Wind Speed");
+        it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F059D");
+        // Get wind speed data
+        it.printf(x+85,y+50, id(data_font), "%s", id(wind).state.c_str());
+        it.printf(x+85,y+78, id(sensor_font), "mph");
+
+        // Draw a vertical line
+        it.filled_rectangle(430, 30, 5, 430);
+        // Right section
+        it.printf(540, 40, id(data_font), "Calendar");
+      }
+
+
+# Or show image
+# http_request:
+#   verify_ssl: false
+#   timeout: 10s
+#   watchdog_timeout: 15s
+
+# online_image:
+#   - id: dashboard_image
+#     format: PNG
+#     type: BINARY
+#     buffer_size: 30000
+#     url: http://192.168.1.191:10000/todo?viewport=800x480&eink=2&invert #change this link to your screenshot link
+#     update_interval: 30s
+#     on_download_finished:
+#       - delay: 0ms
+#       - component.update: main_display
+
+# display:
+#   - platform: waveshare_epaper
+#     id: main_display
+#     cs_pin: GPIO3
+#     dc_pin: GPIO5
+#     busy_pin: GPIO4
+#     reset_pin: GPIO2
+#     model: 7.50inv2
+#     update_interval: never
+#     lambda: |-
+#       it.image(0, 0, id(dashboard_image));

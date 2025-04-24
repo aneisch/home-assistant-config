@@ -47,6 +47,17 @@ automation:
               - action: shell_command.weasel_shortcut
                 data:
                   shortcut: open-front-door-cam-weasel
+              # - action: fully_kiosk.load_url
+              #   target:
+              #     device_id: a9b4de2022c90a1541cdf60f9506bae8
+              #   data:
+              #     url: !secret frontdoor_url
+              # - delay: '00:00:30'
+              # - action: fully_kiosk.load_url
+              #   target:
+              #     device_id: a9b4de2022c90a1541cdf60f9506bae8
+              #   data:
+              #     url: http://10.0.1.22:8123/lovelace/tablet 
           - action: camera.snapshot
             data:
               filename: /config/media/images/front_door.jpg
@@ -300,11 +311,11 @@ automation:
           data:
             ttl: 0
             priority: high
-      - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
-        then:
-          - action: shell_command.weasel_shortcut
-            data:
-              shortcut: open-front-door-cam-weasel
+      # - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
+      #   then:
+      #     - action: shell_command.weasel_shortcut
+      #       data:
+      #         shortcut: open-front-door-cam-weasel
 
   - alias: Frigate Notification Snooze
     id: "frigate_notification_snooze"

@@ -54,6 +54,7 @@ cards:
         - entity_id: "*contrast"
         - entity_id: "switch.kmc_multi_plug_1*"
         - entity_id: "*home_assistant_voice_pe*"
+        - entity_id: "*refrigerator*"
 
     card:
       type: entities

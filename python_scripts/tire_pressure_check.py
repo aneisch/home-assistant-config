@@ -2,7 +2,7 @@
 
 inputs = ['sensor.tesla_tpms_pressure_fl', 'sensor.tesla_tpms_pressure_fr', 'sensor.tesla_tpms_pressure_rl', 'sensor.tesla_tpms_pressure_rr']
 pressures = []
-average_pressure_alert = 40
+average_pressure_alert = 38
 difference_alert = 2
 
 for tire in inputs:

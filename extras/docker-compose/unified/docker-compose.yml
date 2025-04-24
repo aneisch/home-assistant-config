@@ -1163,6 +1163,25 @@ services:
             - traefik.http.routers.fasten_local.rule=Host(`fasten.home.domain.com`)
             - traefik.http.routers.fasten_local.service=fastenhealth
 
+
+    n8n:
+        image: docker.n8n.io/n8nio/n8n
+        container_name: n8n
+        restart: always
+        ports:
+        - "5678:5678"
+        environment:
+        - N8N_HOST=10.0.1.22
+        - N8N_PORT=5678
+        - N8N_PROTOCOL=http
+        - NODE_ENV=production
+        - WEBHOOK_URL=http://10.0.1.22:5678/
+        - GENERIC_TIMEZONE=America/Chicago
+        - N8N_SECURE_COOKIE=false
+        volumes:
+        - /opt/n8n/home:/home/node/.n8n
+        - /opt/n8n/files:/files
+
 # networks:
 #     macos_network:
 #         driver: bridge

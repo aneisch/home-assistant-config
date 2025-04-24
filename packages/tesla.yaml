@@ -580,6 +580,7 @@ script:
               value: "82"
             target:
               entity_id: number.tesla_ble_climate_temp
+          # turn on seat and steering heat
           - action: switch.turn_on
             entity_id: switch.tesla_ble_steering_wheel_heater
           - action: select.select_option
@@ -596,6 +597,16 @@ script:
               value: "65"
             target:
               entity_id: number.tesla_ble_climate_temp
+          # turn off seat and steering heat
+          - action: switch.turn_off
+            entity_id: switch.tesla_ble_steering_wheel_heater
+          - action: select.select_option
+            data:
+              option: "off"
+            target:
+              entity_id:
+                - select.tesla_ble_heated_seat_front_right
+                - select.tesla_ble_heated_seat_front_left
       - delay: '00:10:00'
       - action: switch.turn_off
         entity_id: switch.tesla_ble_climate

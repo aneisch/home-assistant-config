@@ -273,15 +273,18 @@ automation:
                   entity_id:
                     - cover.office_blinds # Christmas -- but maybe not?
                     - cover.guest_bedroom_blinds
-          - conditions: "{{ trigger.id == 'late' }}"
-            alias: Close Blinds Late
-            sequence:
-              - action: cover.close_cover
-                continue_on_error: true
-                target:
-                  entity_id:
+                    # Moved from below
                     - cover.office_blinds
                     - cover.dining_room_blinds
+          # - conditions: "{{ trigger.id == 'late' }}"
+          #   alias: Close Blinds Late
+          #   sequence:
+          #     - action: cover.close_cover
+          #       continue_on_error: true
+          #       target:
+          #         entity_id:
+          #           - cover.office_blinds
+          #           - cover.dining_room_blinds
           - conditions: "{{ trigger.id == 'morning' }}"
             alias: Open Blinds Morning
             sequence:
