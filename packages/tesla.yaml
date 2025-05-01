@@ -9,10 +9,10 @@ mqtt:
           payload_not_available: 'false'
       device: &teslamate_device_info
         identifiers: [teslamate_car_1]
-        configuration_url: https://teslamate.zxxz.io/
+        configuration_url: !secret teslamate-frontend
         manufacturer: Tesla
         model: Model S
-        name: Tesla Model S
+        name: Tessie
       state_topic: "teslamate/cars/1/display_name"
       icon: mdi:car
 
@@ -254,14 +254,14 @@ mqtt:
       unit_of_measurement: A
       icon: mdi:lightning-bolt
 
-  - sensor:
-      name: Tesla Charger Phases
-      object_id: tesla_charger_phases
-      unique_id: teslamate_1_charger_phases
-      availability: *teslamate_availability
-      device: *teslamate_device_info
-      state_topic: "teslamate/cars/1/charger_phases"
-      icon: mdi:sine-wave
+  # - sensor:
+  #     name: Tesla Charger Phases
+  #     object_id: tesla_charger_phases
+  #     unique_id: teslamate_1_charger_phases
+  #     availability: *teslamate_availability
+  #     device: *teslamate_device_info
+  #     state_topic: "teslamate/cars/1/charger_phases"
+  #     icon: mdi:sine-wave
 
   - sensor:
       name: Tesla Charger Power
@@ -285,15 +285,15 @@ mqtt:
       unit_of_measurement: V
       icon: mdi:lightning-bolt
 
-#   - sensor:
-#       name: Tesla Scheduled Charging Start Time
-#       object_id: tesla_scheduled_charging_start_time
-#       unique_id: teslamate_1_scheduled_charging_start_time
-#       availability: *teslamate_availability
-#       device: *teslamate_device_info
-#       state_topic: "teslamate/cars/1/scheduled_charging_start_time"
-#       device_class: timestamp
-#       icon: mdi:clock-outline
+  - sensor:
+      name: Tesla Scheduled Charging Start Time
+      object_id: tesla_scheduled_charging_start_time
+      unique_id: teslamate_1_scheduled_charging_start_time
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      state_topic: "teslamate/cars/1/scheduled_charging_start_time"
+      device_class: timestamp
+      icon: mdi:clock-outline
 
   - sensor:
       name: Tesla Time To Full Charge

@@ -2,8 +2,8 @@
 
 inputs = ['sensor.tesla_tpms_pressure_fl', 'sensor.tesla_tpms_pressure_fr', 'sensor.tesla_tpms_pressure_rl', 'sensor.tesla_tpms_pressure_rr']
 pressures = []
-average_pressure_alert = 38
-difference_alert = 2
+average_pressure_alert = 37
+difference_alert = 5
 
 for tire in inputs:
     pressures.append(float(hass.states.get(tire).state))

@@ -224,6 +224,8 @@ cards:
       - sensor.tesla_miles_per_month
       - entity: sensor.tesla_est_battery_range
         name: Estimated Battery Range
+      - entity: sensor.tesla_power
+        name: Tesla Power
       # - entity: sensor.tesla_rated_battery_range
       #   name: Rated Battery Range
       # - entity: sensor.tesla_ideal_battery_range

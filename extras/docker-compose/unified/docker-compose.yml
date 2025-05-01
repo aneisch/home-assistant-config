@@ -1100,8 +1100,19 @@ services:
         cap_drop:
             - all
 
+    # teslamate-database:
+    #     image: postgres:16
+    #     container_name: teslamate-database
+    #     restart: always
+    #     environment:
+    #         - POSTGRES_USER=teslamate
+    #         - POSTGRES_PASSWORD=PW #insert your secure database password!
+    #         - POSTGRES_DB=teslamate
+    #     volumes:
+    #         - /opt/teslamate/db:/var/lib/postgresql/data
+
     teslamate-database:
-        image: postgres:16
+        image: postgres:17
         container_name: teslamate-database
         restart: always
         environment:
@@ -1109,7 +1120,7 @@ services:
             - POSTGRES_PASSWORD=PW #insert your secure database password!
             - POSTGRES_DB=teslamate
         volumes:
-            - /opt/teslamate/db:/var/lib/postgresql/data
+            - /opt/teslamate/db-new:/var/lib/postgresql/data
 
     teslamate-grafana:
         image: teslamate/grafana:latest
@@ -1162,7 +1173,6 @@ services:
             - traefik.http.routers.fasten_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.fasten_local.rule=Host(`fasten.home.domain.com`)
             - traefik.http.routers.fasten_local.service=fastenhealth
-
 
     n8n:
         image: docker.n8n.io/n8nio/n8n
