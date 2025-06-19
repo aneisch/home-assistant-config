@@ -42,6 +42,12 @@ http:
       service: plane
       rule: host(`plane.domain.com`)
       tls: true
+    solarassistant:
+      entryPoints:
+      - websecure
+      service: solarassistant
+      rule: host(`solarassistant.home.domain.com`)
+      tls: true
 
     # 
     ## Sablier-enabled routers below 
@@ -136,6 +142,11 @@ http:
     #      - main: "*.home.domain.com"
 
   services:
+    solarassistant:
+      loadBalancer:
+        servers:
+          - url: http://10.0.1.108
+        passHostHeader: true
     plane:
       loadBalancer:
         servers:

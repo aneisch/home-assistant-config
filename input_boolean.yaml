@@ -60,3 +60,6 @@ backyard_floodlight_automation:
 
 christmas_jingle:
   name: Master Wakeup/Bedtime Jingle
+
+ev_charge_override:
+  name: EV Charge Solar Automation Override

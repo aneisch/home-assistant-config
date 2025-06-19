@@ -250,8 +250,9 @@ cards:
           - fan.office_ceiling_fan
           - light.office_ceiling_fan
           # - sensor.aquarium_temperature
-          # - light.aquarium_light
-          # - switch.aquarium_co2
+          - switch.kmc_multi_plug_1_1 # Bulb
+          #- switch.kmc_multi_plug_1_3
+          - light.plant_light_corner # Led Strip
           - switch.andrew_monitor
           - entity: switch.andrew_office_speakers
             icon: mdi:speaker

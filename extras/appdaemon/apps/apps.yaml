@@ -1,5 +1,27 @@
-AC Automation:
-  module: ac_automation
+# AC Automation:
+#   module: ac_automation
+#   class: AutoAdjust
+#   constrain_input_boolean: 
+#     - input_boolean.ac_automation
+#   thermostats: climate.thermostat
+#   device_tracker: group.trackers
+#   morning_adjust_weekday: "09:00:00"
+#   morning_adjust_weekend: "11:00:00"
+#   night_adjust_weekday: "01:00:00"
+#   night_adjust_weekend: "01:00:00"
+#   midnight_adjust: "04:00:00"
+#   # Below depends on the manual setting of heat or cool on the thermostat
+#   cool_morning: "78"
+#   cool_night: "72"
+#   cool_midnight: "75"
+#   cool_unoccupied: "80"
+#   heat_morning: "66"
+#   heat_night: "64"
+#   heat_midnight: "62"
+#   heat_unoccupied: "55"
+
+AC Automation Solar:
+  module: ac_automation_solar
   class: AutoAdjust
   constrain_input_boolean: input_boolean.ac_automation
   thermostats: climate.thermostat
@@ -8,13 +30,35 @@ AC Automation:
   morning_adjust_weekend: "11:00:00"
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
-  # Below depends on the manual setting of heat or cool on the thermostat
-  cool_day: "78"
-  cool_night: "72"
+  midnight_adjust: "03:30:00"
+  cool_morning: "77"
+  cool_night: "73"
+  cool_midnight: "75" # change to this temp at midnight_adjust
   cool_unoccupied: "80"
-  heat_day: "68"
+  heat_morning: "67"
   heat_night: "64"
+  heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
+  solar_boost_threshold: 3000       # in watts (excess solar triggers this)
+  battery_boost_threshold: 95       # battery SOC for boost activation
+  cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
+  cooldown_window_start: sunrise + 02:00:00 # "10:00:00" # Override daytime temperature during this period if excess solar
+  cooldown_window_end: sunset - 01:00:00 # "17:00:00"   # Override daytime temperature during this period if excess solar
+
+EV Charge Control:
+  module: ev_charger_smart_control
+  class: EvChargerSmartControl
+  ev_switch: switch.emporia_charger
+  solar_sensor: sensor.solark_sol_ark_solar_power
+  grid_export_sensor: sensor.solark_sol_ark_grid_power
+  battery_sensor: sensor.solark_sol_ark_battery_soc
+  override_entity: input_boolean.ev_charge_override
+  amps_override_entity: input_number.tesla_charge_rate_master
+  vehicle_battery_soc: sensor.tesla_battery_level
+  battery_threshold: 90 # Only charge when home battery > this
+  min_amps: 6
+  max_amps: 40
+  debounce_minutes: 2 # the most often we'll respond to solar changes
 
 Kitchen Timer Sync:
   module: echo_timer_sync
@@ -41,11 +85,11 @@ Kitchen Timer Sync:
 #   time_on: "05:00:00"
 #   entities: input_boolean.is_smallgroup
 
-# Set Smallgroup Boolean Off:
-#   module: entity_timer
-#   class: Timer
-#   time_off: "23:59:00"
-#   entities: input_boolean.is_smallgroup
+Set Smallgroup Boolean Off:
+  module: entity_timer
+  class: Timer
+  time_off: "23:59:00"
+  entities: input_boolean.is_smallgroup
 
 Back Bedroom Zigbee Remote:
   module: zigbee_remote
@@ -218,14 +262,16 @@ Master Closet Follow:
 # Circadian Follow:
 #   module: follow_me
 #   class: Follow
-#   constrain_input_boolean: input_boolean.aquarium_automation
+#   constrain_input_boolean:
+#    - input_boolean.aquarium_automation
 #   leader: light.aquarium_light
 #   follower: switch.circadian_lighting_aquarium_circadian
 
 # CO2:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: input_boolean.aquarium_automation
+#   constrain_input_boolean:
+#    - input_boolean.aquarium_automation
 #   entities: switch.aquarium_co2
 #   time_on: "07:00:00"
 #   time_off: "16:30:00"
@@ -233,14 +279,16 @@ Master Closet Follow:
 # Aquarium Light On Morning:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: input_boolean.aquarium_automation
+#   constrain_input_boolean:
+#    - input_boolean.aquarium_automation
 #   entities: light.aquarium_light
 #   time_on: "09:00:00"
 
 # Aquarium Light Afternoon:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: input_boolean.aquarium_automation
+#   constrain_input_boolean: 
+#    - input_boolean.aquarium_automation
 #   entities: light.aquarium_light
 #   time_off: "13:00:00"
 #   time_on: "14:30:00"
@@ -248,7 +296,8 @@ Master Closet Follow:
 # Aquarium Light Off Evening:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: input_boolean.aquarium_automation
+#   constrain_input_boolean: 
+#    - input_boolean.aquarium_automation
 #   entities: light.aquarium_light
 #   time_off: "17:30:00"
 
@@ -256,9 +305,9 @@ NAS:
   module: entity_timer
   class: Timer
   entities: switch.nas
-  time_on: "03:00:00"
+  time_on: "10:00:00"
   # There is an automation to turn this off automatically after rsync
-  time_off: "05:00:00"
+  time_off: "10:15:00"
   constrain_days: wed
 
 # Dyson Charger:
@@ -311,7 +360,8 @@ Backyard Flood Lights with Person Detection:
   class: DoorLight
   constrain_end_time: sunrise - 01:00:00
   constrain_start_time: sunset
-  constrain_input_boolean: input_boolean.backyard_floodlight_automation
+  constrain_input_boolean:
+    - input_boolean.backyard_floodlight_automation
   trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy,binary_sensor.bullet_person_occupancy
   toggle_entity: switch.backyard_flood_lights,switch.globe_lights
   # Seconds to turn entity on when triggered
@@ -328,7 +378,8 @@ Doorbell Ring Light:
 Office Light at Night With Door:
   module: door_open
   class: DoorLight
-  #constrain_input_boolean: input_boolean.house_lamps_automation
+  # constrain_input_boolean:
+  #   - input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   trigger_sensor: binary_sensor.front_door
@@ -339,7 +390,8 @@ Office Light at Night With Door:
 Kitchen Light at Night With Door:
   module: door_open
   class: DoorLight
-  #constrain_input_boolean: input_boolean.house_lamps_automation
+  # constrain_input_boolean: 
+  #   - input_boolean.house_lamps_automation
   constrain_end_time: sunrise
   constrain_start_time: sunset
   trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.back_porch_door
@@ -351,7 +403,8 @@ Living Room Sconces at Night With Motion:
   module: door_open
   class: DoorLight
   constrain_end_time: sunrise
-  constrain_input_boolean: input_boolean.guest_mode
+  constrain_input_boolean: 
+    - input_boolean.guest_mode
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
   brightness: 70
@@ -378,7 +431,8 @@ Sleepy Time Lamp Automation Override:
 Indoor Light Automation Sunset:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.house_lamps_automation
+  constrain_input_boolean: 
+    - input_boolean.house_lamps_automation
   constrain_presence: anyone
   time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
@@ -398,7 +452,8 @@ Guest Light Automation Sunset:
 Cameras Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.is_smallgroup
+  constrain_input_boolean: 
+    - input_boolean.is_smallgroup
   time_off: "17:30:00"
   time_on: "21:00:00"
   entities: switch.driveway_detect,switch.front_door_detect
@@ -406,7 +461,8 @@ Cameras Smallgroup:
 Indoor Light Automation Sunset Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.is_smallgroup
+  constrain_input_boolean:
+    - input_boolean.is_smallgroup
   time_on: "17:30:00"
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,light.living_room_can_lights,light.dining_room_light,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
   brightness: 255
@@ -414,7 +470,8 @@ Indoor Light Automation Sunset Smallgroup:
 Entryway Light Sunset Smallgroup:
   module: entity_timer
   class: Timer
-  constrain_input_boolean: input_boolean.is_smallgroup
+  constrain_input_boolean: 
+    - input_boolean.is_smallgroup
   time_on: "17:30:00"
   time_off: "23:00:00"
   entities: light.entryway_light
@@ -462,7 +519,8 @@ Plant Light Corner Double:
 Living Room Lamp Follow:
   module: follow_me
   class: Follow
-  constrain_input_boolean: input_boolean.house_lamps_automation
+  constrain_input_boolean:
+    - input_boolean.house_lamps_automation
   leader: light.master_bedroom_lamps
   follower: light.living_room_lamps
 
@@ -470,11 +528,12 @@ Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
   leader: input_boolean.security_status
-  follower: input_boolean.door_notify,input_boolean.occusim
+  follower: input_boolean.door_notify #,input_boolean.occusim # only enable manually to preserve power
 
 TV Automation Smallgroup:
   module: entity_timer
-  constrain_input_boolean: input_boolean.is_smallgroup
+  constrain_input_boolean:
+    - input_boolean.is_smallgroup
   class: Timer
   time_off: "18:00:00"
   time_on: "22:00:00"
@@ -484,13 +543,15 @@ TV Automation Smallgroup:
 #   module: follow_me
 #   class: Follow
 #   constrain_presence: anyone
-#   constrain_input_boolean: input_boolean.house_lamps_automation
+#   constrain_input_boolean: 
+#    - input_boolean.house_lamps_automation
 #   leader: light.master_bedroom_lamps
 #   follower: switch.ir_candles
 
 # Pumkin Patch Smallgroup:
 #   module: entity_timer
-#   constrain_input_boolean: input_boolean.is_smallgroup
+#   constrain_input_boolean: 
+#    - input_boolean.is_smallgroup
 #   class: Timer
 #   time_off: "17:45:00"
 #   time_on: "22:00:00"
@@ -498,7 +559,8 @@ TV Automation Smallgroup:
 
 Globe Lights Smallgroup:
   module: entity_timer
-  constrain_input_boolean: input_boolean.is_smallgroup
+  constrain_input_boolean: 
+    - input_boolean.is_smallgroup
   class: Timer
   time_on: sunset - 00:20:00
   time_off: "21:30:00"

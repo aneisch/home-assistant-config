@@ -1,0 +1,10 @@
+reload:
+  name: Reload
+  description: Reload Solar Optimizer configuration
+
+reset_on_time:
+    name: Reset on time
+    description: Reset all on time for all devices
+    target:
+        entity:
+            integration: solar_optimizer

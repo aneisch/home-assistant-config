@@ -678,14 +678,12 @@
   mode: single
 - id: reset_utility_meters
   alias: Reset Utility Meters
-  trigger:
-  - platform: time
-    at: 00:00:00
+  triggers:
+  - at: 00:00:00
     enabled: true
-  condition:
-  - condition: template
-    value_template: '{{ now().day == 1 }}'
-  action:
+    trigger: time
+  conditions: []
+  actions:
   - action: python_script.utility_meter_reset
     data:
       meter_entity: sensor.water_usage
@@ -1044,23 +1042,23 @@
         the doors.''" {% endif %}
 
         '
-- alias: Doors still unlocked when no one home
-  id: doors_unlocked_noone_home
-  trigger:
-  - platform: state
-    id: alert
+- id: doors_unlocked_noone_home
+  alias: Doors still unlocked when no one home
+  triggers:
+  - id: alert
     entity_id: group.trackers
     to: not_home
-  - platform: event
-    id: respond
+    trigger: state
+  - id: respond
     event_type: mobile_app_notification_action
     event_data:
       action: confirm_lock_doors
-  condition:
+    trigger: event
+  conditions:
   - condition: state
     entity_id: lock.all_doors
     state: unlocked
-  action:
+  actions:
   - if: '{{ trigger.id == ''alert'' }}'
     then:
     - action: notify.mobile_app_andrew_phone
@@ -1074,7 +1072,9 @@
             title: Confirm
           - action: ignore_lock_doors
             title: Ignore
-  - if: '{{ trigger.id == ''respond'' }}'
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''respond'' }}'
     then:
     - action: lock.lock
       entity_id: lock.all_doors
@@ -1237,7 +1237,7 @@
     to: 'off'
     for:
       hours: 0
-      minutes: 30
+      minutes: 15
       seconds: 0
     trigger: state
   conditions:

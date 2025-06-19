@@ -1,4 +1,5 @@
 """Adds config flow for Readme."""
+
 from collections import OrderedDict
 
 import voluptuous as vol
@@ -18,9 +19,7 @@ class ReadmeFlowHandler(config_entries.ConfigFlow):
         """Initialize."""
         self._errors = {}
 
-    async def async_step_user(
-        self, user_input={}
-    ):  # pylint: disable=dangerous-default-value
+    async def async_step_user(self, user_input={}):  # pylint: disable=dangerous-default-value
         """Handle a flow initialized by the user."""
         self._errors = {}
         if self._async_current_entries():
@@ -35,13 +34,11 @@ class ReadmeFlowHandler(config_entries.ConfigFlow):
 
     async def _show_config_form(self, user_input):
         """Show the configuration form to edit data."""
-
         # Defaults
         convert = False
 
-        if user_input is not None:
-            if "convert" in user_input:
-                convert = user_input["convert"]
+        if user_input is not None and "convert" in user_input:
+            convert = user_input["convert"]
 
         data_schema = OrderedDict()
         data_schema[vol.Required("convert", default=convert)] = bool
@@ -50,7 +47,8 @@ class ReadmeFlowHandler(config_entries.ConfigFlow):
         )
 
     async def async_step_import(self, user_input):  # pylint: disable=unused-argument
-        """Import a config entry.
+        """
+        Import a config entry.
         Special type of import, we're not actually going to store any data.
         Instead, we're going to rely on the values that are in config file.
         """

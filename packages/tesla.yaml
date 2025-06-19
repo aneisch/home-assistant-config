@@ -1,3 +1,14 @@
+input_number:
+  # Emporia View, Appdaemon app, and Tesla BLE follow this
+  tesla_charge_rate_master:
+    name: Tesla Charge Rate
+    initial: 40
+    min: 5
+    max: 40
+    step: 1
+    mode: slider  # or 'box' if you want a number input box instead
+    unit_of_measurement: "A"    
+
 mqtt:
   - sensor:
       name: Tesla Display Name
@@ -786,7 +797,7 @@ automation:
 
   - alias: "Auto Lower Charge Rate"
     id: "auto_lower_charge_rate"
-    initial_state: on
+    #initial_state: on
     trigger:
         - platform: numeric_state
           id: total
@@ -897,7 +908,7 @@ automation:
 
   - alias: "Auto Raise Charge Rate"
     id: auto_raise_charge_rate
-    initial_state: on
+    #initial_state: on
     trigger:
       - platform: event
         id: finish

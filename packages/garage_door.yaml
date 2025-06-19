@@ -47,17 +47,17 @@ automation:
     id: "garge_lights_off"
     trigger:
       - platform: state
-        alias: "Garage No Person 5min"
+        alias: "Garage No Person 15min"
         entity_id: binary_sensor.garage_person_occupancy
         from: "on"
         to: "off"
-        for: "00:05:00"
+        for: "00:15:00"
       - platform: state
-        alias: "Garage No Motion 5min"
+        alias: "Garage No Motion 15min"
         entity_id: binary_sensor.garage_motion
         from: "on"
         to: "off"
-        for: "00:10:00"
+        for: "00:15:00"
       # Garage Switch Off Pressed
       - device_id: b9432c1a74b8179151d0fb0688baac05
         alias: "Garage Switch"

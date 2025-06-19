@@ -134,6 +134,21 @@
           {% endfor %}
           {{ ns.timers }}
 
+    phase_a_balance:
+      friendly_name: "Phase A Percent Of Total Load"
+      unit_of_measurement: "%"
+      value_template: "{{ (states('sensor.phase_a_power') | float / states('sensor.total_power') | float * 100) | int }}"
+
+    phase_b_balance:
+      friendly_name: "Phase B Percent Of Total Load"
+      unit_of_measurement: "%"
+      value_template: "{{ (states('sensor.phase_b_power') | float / states('sensor.total_power') | float * 100) | int }}"
+
+    phase_difference:
+      friendly_name: "Phase Difference"
+      unit_of_measurement: "%"
+      value_template: "{{ (((states('sensor.phase_a_power') | int - states('sensor.phase_b_power') | int) | abs / ((states('sensor.phase_a_power') | int + states('sensor.phase_b_power') | int) / 2) ) * 100) | round(0) }}"
+
     ac_runtime_today:
       friendly_name: "AC Runtime Today"
       unit_of_measurement: "h"

@@ -12,5 +12,11 @@
         "abort": {
             "single_instance_allowed": "Only a single configuration of Readme is allowed."
         }
+    },
+    "services": {
+        "generate": {
+            "description": "Generate the files",
+            "name": "Generate"
+        }
     }
 }

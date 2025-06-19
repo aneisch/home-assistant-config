@@ -1,0 +1,14 @@
+{
+  "domain": "solar_optimizer",
+  "name": "Solar Optimizer",
+  "codeowners": [
+    "@jmcollin78"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/jmcollin78/solar_optimizer",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/jmcollin78/solar_optimizer/issues",
+  "quality_scale": "silver",
+  "version": "3.6.0"
+}

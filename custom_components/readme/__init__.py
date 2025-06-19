@@ -4,6 +4,7 @@ Use Jinja and data from Home Assistant to generate your README.md file
 For more details about this component, please refer to
 https://github.com/custom-components/readme
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -16,14 +17,17 @@ import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 import yaml
 from homeassistant import config_entries
-from homeassistant.core import callback, HomeAssistant
+from homeassistant.components.hassio import (  # type: ignore
+    get_supervisor_info,
+)
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.hassio import is_hassio
 from homeassistant.helpers.template import AllStates
 from homeassistant.loader import Integration, IntegrationNotFound, async_get_integration
 from homeassistant.setup import async_get_loaded_integrations
 from jinja2 import Template
 
-
-from .const import DOMAIN, DOMAIN_DATA, LOGGER, STARTUP_MESSAGE
+from .const import DOMAIN, DOMAIN_DATA, LOGGER
 
 CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: vol.Schema({vol.Optional("convert_lovelace"): cv.boolean})},
@@ -36,9 +40,6 @@ async def async_setup(hass: HomeAssistant, config: dict):
     if config.get(DOMAIN) is None:
         # We get her if the integration is set up using config flow
         return True
-
-    # Print startup message
-    LOGGER.info(STARTUP_MESSAGE)
 
     # Create DATA dict
     hass.data.setdefault(DOMAIN_DATA, config[DOMAIN])
@@ -67,9 +68,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry):
             )
         return True
 
-    # Print startup message
-    LOGGER.info(STARTUP_MESSAGE)
-
     # Create DATA dict
     hass.data[DOMAIN_DATA] = config_entry.data
 
@@ -89,7 +87,6 @@ def create_initial_files(hass: HomeAssistant):
         os.mkdir(hass.config.path("templates"))
 
     if not os.path.exists(hass.config.path("templates/README.j2")):
-
         copyfile(
             hass.config.path("custom_components/readme/default.j2"),
             hass.config.path("templates/README.j2"),
@@ -100,7 +97,7 @@ async def convert_lovelace(hass: HomeAssistant):
     """Convert the lovelace configuration."""
     if os.path.exists(hass.config.path(".storage/lovelace")):
         content = (
-            json.loads(await read_file(hass, ".storage/lovelace") or {})
+            json.loads(await read_file(hass, ".storage/lovelace") or "{}")
             .get("data", {})
             .get("config", {})
         )
@@ -118,10 +115,15 @@ async def read_file(hass: HomeAssistant, path: str) -> Any:
     """Read a file."""
 
     def read():
-        with open(hass.config.path(path), "r") as open_file:
+        with open(hass.config.path(path)) as open_file:
             return open_file.read()
 
     return await hass.async_add_executor_job(read)
+
+
+class IndentDumper(yaml.Dumper):
+    def increase_indent(self, flow=False, indentless=False):
+        return super(IndentDumper, self).increase_indent(flow, False)
 
 
 async def write_file(
@@ -132,7 +134,14 @@ async def write_file(
     def write():
         with open(hass.config.path(path), "w") as open_file:
             if as_yaml:
-                yaml.dump(content, open_file, default_flow_style=False, allow_unicode=True)
+                yaml.dump(
+                    content,
+                    open_file,
+                    default_flow_style=False,
+                    allow_unicode=True,
+                    sort_keys=False,
+                    Dumper=IndentDumper,
+                )
             else:
                 open_file.write(content)
 
@@ -188,10 +197,10 @@ def get_hacs_components(hass: HomeAssistant):
 
 
 @callback
-def get_ha_installed_addons(hass: HomeAssistant) -> List[Dict[str, Any]]:
-    if not hass.components.hassio.is_hassio():
+def get_ha_installed_addons(hass: HomeAssistant) -> list[dict[str, Any]]:
+    if is_hassio(hass):
         return []
-    supervisor_info = hass.components.hassio.get_supervisor_info()
+    supervisor_info = get_supervisor_info(hass)
 
     if supervisor_info:
         return supervisor_info.get("addons", [])
@@ -218,7 +227,7 @@ def get_repository_name(repository) -> str:
 async def get_custom_integrations(hass: HomeAssistant):
     """Return a list with custom integration info."""
     custom_integrations = []
-    configured_integrations: List[
+    configured_integrations: list[
         Integration | IntegrationNotFound | BaseException
     ] = await asyncio.gather(
         *[

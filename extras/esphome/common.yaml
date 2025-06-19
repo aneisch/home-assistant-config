@@ -7,7 +7,7 @@ logger:
   level: DEBUG
 
 api:
-  #reboot_timeout: 0s # default
+  #reboot_timeout: 0s # default is 15m
   encryption:
     key: !secret encryption_key
 
@@ -15,7 +15,7 @@ ota:
   platform: esphome
   password: esphome_recovery
 
-# text_sensor:
-#   - platform: wifi_info
-#     ip_address:
-#       name: "${friendly_name} IP Address"
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP Address"

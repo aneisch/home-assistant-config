@@ -1,0 +1,282 @@
+{
+    "title": "Solar Optimizer",
+    "config": {
+        "flow_title": "Solar Optimizer configuration",
+        "step": {
+            "user": {
+                "title": "Configuration type",
+                "description": "Give the configuration type",
+                "data": {
+                    "device_type": "Device type"
+                },
+                "data_description": {
+                    "device_type": "Simple on/off device or device with variable power management"
+                }
+            },
+            "device_central": {
+                "title": "Common parameters",
+                "description": "Give the common parameters",
+                "data": {
+                    "refresh_period_sec": "Refresh period",
+                    "power_consumption_entity_id": "Net power consumption",
+                    "power_production_entity_id": "Solar power production",
+                    "subscribe_to_events": "Recalculate with every new Production/Consumption Value",
+                    "sell_cost_entity_id": "Energy sell price",
+                    "buy_cost_entity_id": "Energy buy price",
+                    "sell_tax_percent_entity_id": "Sell taxe percent",
+                    "smooth_production": "Smooth the solar production",
+                    "battery_soc_entity_id": "Battery state of charge",
+                    "battery_charge_power_entity_id": "Battery charging power",
+                    "raz_time": "Reset counter time"
+                },
+                "data_description": {
+                    "refresh_period_sec": "Even with no new data, refresh at least in with this period in seconds. Warning heavy calculations are done at each period, so keep an eye on the CPU load. Don't refresh to often",
+                    "power_consumption_entity_id": "The entity_id of the net power consumption sensor. Net power should be negative if power is exported to grid.",
+                    "power_production_entity_id": "The entity_id of the solar power production sensor.",
+                    "subscribe_to_events": "Subscribe to events to recalculate with new data, as soon as they are avalaible. Keep an eye on the CPU load.",
+                    "sell_cost_entity_id": "The entity_id which holds the current energy sell price.",
+                    "buy_cost_entity_id": "The entity_id which holds the current energy buy price.",
+                    "sell_tax_percent_entity_id": "The energy resell tax percent (0 to 100)",
+                    "smooth_production": "If checked, the solar production will be smoothed to avoid hard variation",
+                    "battery_soc_entity_id": "The entity id of the battery state of charge in %. If you don't have battery, keep it empty",
+                    "battery_charge_power_entity_id": "The entity id of the battery power net charging rate in watt. It should be negative if battery is charging and positive if battery is discharging. Keep it empty if no solar battery is used.",
+                    "raz_time": "Time to reset active time counters. Should be before first exposure to sunlight but not too early to allow enough time for night activation"
+                }
+            },
+            "device": {
+                "title": "Device parameters",
+                "description": "Give the device parameters",
+                "data": {
+                    "name": "Device name",
+                    "entity_id": "Device entity id",
+                    "power_max": "Device power",
+                    "check_usable_template": "Usable template",
+                    "check_active_template": "Active template",
+                    "duration_min": "Duration min",
+                    "duration_stop_min": "Duration stop min",
+                    "action_mode": "Action mode",
+                    "activation_service": "Activation service",
+                    "deactivation_service": "Deactivation service",
+                    "battery_soc_threshold": "Battery soc threshold",
+                    "max_on_time_per_day_min": "Max on time per day",
+                    "min_on_time_per_day_min": "Min on time per day",
+                    "offpeak_time": "Offpeak time"
+                },
+                "data_description": {
+                    "name": "The name of the device",
+                    "entity_id": "The entity_id of the device",
+                    "power_max": "The power of the device when activated. Can be a number or a template",
+                    "check_usable_template": "The template to check if the device is usable. Example `True ` or `states('sensor.my_sensor') | float > 10` (don't forgeet double accolades)",
+                    "check_active_template": "The template to check if the device is active. Keep it empty for switch type device or apparented. Example `is_state('sensor.my_sensor', 'hvac_mode', 'heat')` (with double accolades)",
+                    "duration_min": "The minimum duration of the device when turned on in minutes",
+                    "duration_stop_min": "The minimum duration of the device when turned off in minutes",
+                    "action_mode": "The action mode of the device. `service` to service call a service to turn on or off or `event` to send an event to turn on or off",
+                    "activation_service": "The service to activate the device. Example `switch/turn_on` or `climate/set_hvac_mode/hvac_mode:cool`",
+                    "deactivation_service": "The service to deactivate the device. Example `switch/turn_off` or `climate/set_hvac_mode/hvac_mode:off`. Keep it empty if the device will turn off by itself",
+                    "battery_soc_threshold": "The battery state of charge threshold to activate the device. Can be a number or a template",
+                    "max_on_time_per_day_min": "The maximum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time until max time is reached",
+                    "min_on_time_per_day_min": "The minimum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time",
+                    "offpeak_time": "The offpeak time with format HH:MM"
+                }
+            },
+            "powered_device": {
+                "title": "Powered device parameters",
+                "description": "Give the powered device parameters",
+                "data": {
+                    "name": "Device name",
+                    "entity_id": "Device entity id",
+                    "power_max": "Device max power",
+                    "power_min": "Device min power",
+                    "power_step": "Device power step",
+                    "check_usable_template": "Usable template",
+                    "check_active_template": "Active template",
+                    "duration_min": "Duration min",
+                    "duration_stop_min": "Duration stop min",
+                    "action_mode": "Action mode",
+                    "activation_service": "Activation service",
+                    "deactivation_service": "Deactivation service",
+                    "power_entity_id": "Power entity id",
+                    "duration_power_min": "Duration of power change",
+                    "change_power_service": "Power change service",
+                    "convert_power_divide_factor": "Divide factor",
+                    "battery_soc_threshold": "Battery soc threshold",
+                    "max_on_time_per_day_min": "Max on time per day",
+                    "min_on_time_per_day_min": "Min on time per day",
+                    "offpeak_time": "Offpeak time"
+                },
+                "data_description": {
+                    "name": "The name of the device",
+                    "entity_id": "The entity_id of the device",
+                    "power_max": "The power of the device when activated. Can be a number or a template",
+                    "power_min": "The min power consumption of the device when activated",
+                    "power_step": "The step of power for the device",
+                    "check_usable_template": "The template to check if the device is usable. Example `True ` or `states('sensor.my_sensor') | float > 10` (don't forgeet double accolades)",
+                    "check_active_template": "The template to check if the device is active. Keep it empty for switch type device or apparented. Example `is_state('sensor.my_sensor', 'hvac_mode', 'heat')` (with double accolades)",
+                    "duration_min": "The minimum duration of the device when turned on in minutes",
+                    "duration_stop_min": "The minimum duration of the device when turned off in minutes",
+                    "action_mode": "The action mode of the device. `service` to service call a service to turn on or off or `event` to send an event to turn on or off",
+                    "activation_service": "The service to activate the device. Example `switch/turn_on` or `climate/set_hvac_mode/hvac_mode:cool`",
+                    "deactivation_service": "The service to deactivate the device. Example `switch/turn_off` or `climate/set_hvac_mode/hvac_mode:off`",
+                    "power_entity_id": "The entity id of the power sensor",
+                    "duration_power_min": "The minimal duration of each power change in minutes",
+                    "change_power_service": "The service used to change the power. Example `number/set_value`",
+                    "convert_power_divide_factor": "The divide factor to convert power into units of the power device. If conversion from power to ampere, the divisor should be 220",
+                    "battery_soc_threshold": "The battery state of charge threshold to activate the device. Can be a number or a template",
+                    "max_on_time_per_day_min": "The maximum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time until max time is reached",
+                    "min_on_time_per_day_min": "The minimum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time",
+                    "offpeak_time": "The offpeak time with format HH:MM"
+                }
+            }
+        },
+        "error": {
+            "format_time_invalid": "Format of time should be HH:MM"
+        }
+    },
+    "options": {
+        "flow_title": "Solar Optimizer options configuration",
+        "step": {
+            "user": {
+                "title": "Configuration type",
+                "description": "Give the configuration type",
+                "data": {
+                    "device_type": "Device type"
+                },
+                "data_description": {
+                    "device_type": "Common configuration or specific device configuration"
+                }
+            },
+            "device_central": {
+                "title": "Common parameters",
+                "description": "Give the common parameters",
+                "data": {
+                    "refresh_period_sec": "Refresh period",
+                    "power_consumption_entity_id": "Net power consumption",
+                    "power_production_entity_id": "Solar power production",
+                    "subscribe_to_events": "Recalculate with every new Production/Consumption Value",
+                    "sell_cost_entity_id": "Energy sell price",
+                    "buy_cost_entity_id": "Energy buy price",
+                    "sell_tax_percent_entity_id": "Sell taxe percent",
+                    "smooth_production": "Smooth the solar production",
+                    "battery_soc_entity_id": "Battery state of charge",
+                    "battery_charge_power_entity_id": "Battery charging power",
+                    "raz_time": "Reset counter time"
+                },
+                "data_description": {
+                    "refresh_period_sec": "Even with no new data, refresh at least in with this period in seconds. Warning heavy calculations are done at each period, so keep an eye on the CPU load. Don't refresh to often",
+                    "power_consumption_entity_id": "the entity_id of the net power consumption sensor. Net power should be negative if power is exported to grid.",
+                    "power_production_entity_id": "the entity_id of the solar power production sensor.",
+                    "subscribe_to_events": "Subscribe to events to recalculate with new data, as soon as they are avalaible. Keep an eye on the CPU load.",
+                    "sell_cost_entity_id": "The entity_id which holds the current energy sell price.",
+                    "buy_cost_entity_id": "The entity_id which holds the current energy buy price.",
+                    "sell_tax_percent_entity_id": "The energy resell tax percent (0 to 100)",
+                    "smooth_production": "If checked, the solar production will be smoothed to avoid hard variation",
+                    "battery_soc_entity_id": "The entity id of the battery state of charge in %. If you don't have battery, keep it empty",
+                    "battery_charge_power_entity_id": "The entity id of the battery power net charging rate in watt. It should be negative if battery is charging and positive if battery is discharging. Keep it empty if no solar battery is used.",
+                    "raz_time": "Time to reset active time counters. Should be before first exposure to sunlight but not too early to allow enough time for night activation"
+                }
+            },
+            "device": {
+                "title": "Device parameters",
+                "description": "Give the device parameters",
+                "data": {
+                    "name": "Device name",
+                    "entity_id": "Device entity id",
+                    "power_max": "Device power",
+                    "check_usable_template": "Usable template",
+                    "check_active_template": "Active template",
+                    "duration_min": "Duration min",
+                    "duration_stop_min": "Duration stop min",
+                    "action_mode": "Action mode",
+                    "activation_service": "Activation service",
+                    "deactivation_service": "Deactivation service",
+                    "battery_soc_threshold": "Battery soc threshold",
+                    "max_on_time_per_day_min": "Max on time per day",
+                    "min_on_time_per_day_min": "Min on time per day",
+                    "offpeak_time": "Offpeak time"
+                },
+                "data_description": {
+                    "name": "The name of the device",
+                    "entity_id": "The entity_id of the device",
+                    "power_max": "The power of the device when activated. Can be a number or a template",
+                    "check_usable_template": "The template to check if the device is usable. Example `True ` or `states('sensor.my_sensor') | float > 10` (don't forgeet double accolades)",
+                    "check_active_template": "The template to check if the device is active. Keep it empty for switch type device or apparented. Example `is_state('sensor.my_sensor', 'hvac_mode', 'heat')` (with double accolades)",
+                    "duration_min": "The minimum duration of the device when turned on in minutes",
+                    "duration_stop_min": "The minimum duration of the device when turned off in minutes",
+                    "action_mode": "The action mode of the device. `service` to service call a service to turn on or off or `event` to send an event to turn on or off",
+                    "activation_service": "The service to activate the device. Example `switch/turn_on` or `climate/set_hvac_mode/hvac_mode:cool`",
+                    "deactivation_service": "The service to deactivate the device. Example `switch/turn_off` or `climate/set_hvac_mode/hvac_mode:off`. Keep it empty if the device will turn off by itself",
+                    "battery_soc_threshold": "The battery state of charge threshold to activate the device. Can be a number or a template",
+                    "max_on_time_per_day_min": "The maximum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time until max time is reached",
+                    "min_on_time_per_day_min": "The minimum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time",
+                    "offpeak_time": "The offpeak time with format HH:MM"
+                }
+            },
+            "powered_device": {
+                "title": "Powered device parameters",
+                "description": "Give the powered device parameters",
+                "data": {
+                    "name": "Device name",
+                    "entity_id": "Device entity id",
+                    "power_max": "Device max power",
+                    "power_min": "Device min power",
+                    "power_step": "Device power step",
+                    "check_usable_template": "Usable template",
+                    "check_active_template": "Active template",
+                    "duration_min": "Duration min",
+                    "duration_stop_min": "Duration stop min",
+                    "action_mode": "Action mode",
+                    "activation_service": "Activation service",
+                    "deactivation_service": "Deactivation service",
+                    "power_entity_id": "Power entity id",
+                    "duration_power_min": "Duration of power change",
+                    "change_power_service": "Power change service",
+                    "convert_power_divide_factor": "Divide factor",
+                    "battery_soc_threshold": "Battery soc threshold",
+                    "max_on_time_per_day_min": "Max on time per day",
+                    "min_on_time_per_day_min": "Min on time per day",
+                    "offpeak_time": "Offpeak time"
+                },
+                "data_description": {
+                    "name": "The name of the device",
+                    "entity_id": "The entity_id of the device",
+                    "power_max": "The power of the device when activated. Can be a number or a template",
+                    "power_min": "The min power consumption of the device when activated",
+                    "power_step": "The step of power for the device",
+                    "check_usable_template": "The template to check if the device is usable. Example `True ` or `states('sensor.my_sensor') | float > 10` (don't forgeet double accolades)",
+                    "check_active_template": "The template to check if the device is active. Keep it empty for switch type device or apparented. Example `is_state('sensor.my_sensor', 'hvac_mode', 'heat')` (with double accolades)",
+                    "duration_min": "The minimum duration of the device when turned on in minutes",
+                    "duration_stop_min": "The minimum duration of the device when turned off in minutes",
+                    "action_mode": "The action mode of the device. `service` to service call a service to turn on or off or `event` to send an event to turn on or off",
+                    "activation_service": "The service to activate the device. Example `switch/turn_on` or `climate/set_hvac_mode/hvac_mode:cool`",
+                    "deactivation_service": "The service to deactivate the device. Example `switch/turn_off` or `climate/set_hvac_mode/hvac_mode:off`",
+                    "power_entity_id": "The entity id of the power sensor",
+                    "duration_power_min": "The minimal duration of each power change in minutes",
+                    "change_power_service": "The service used to change the power. Example `number/set_value`",
+                    "convert_power_divide_factor": "The divide factor to convert power into units of the power device. If conversion from power to ampere, the divisor should be 220",
+                    "battery_soc_threshold": "The battery state of charge threshold to activate the device. Can be a number or a template",
+                    "max_on_time_per_day_min": "The maximum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time until max time is reached",
+                    "min_on_time_per_day_min": "The minimum time per day in state on in minutes. Can be a number or a template. If minium time is not reached during daylight, it will be activated during offpeak time",
+                    "offpeak_time": "The offpeak time with format HH:MM"
+                }
+            }
+        },
+        "error": {
+            "format_time_invalid": "Format of time should be HH:MM"
+        }
+    },
+    "selector": {
+        "device_type": {
+            "options": {
+                "central_config": "Common configuration",
+                "device_type": "Normal on/off device",
+                "powered_device_type": "Device with variable power"
+            }
+        },
+        "action_mode": {
+            "options": {
+                "action_call": "Action call",
+                "event": "Event"
+            }
+        }
+    }
+}

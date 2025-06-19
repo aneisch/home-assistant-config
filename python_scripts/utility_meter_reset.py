@@ -2,7 +2,15 @@ ResetEntity = data.get('cycle_reset_entity_id')
 MeterEntity = data.get('meter_entity')
 
 # Comment this out once the sensor.utilities_cycle_end is fixed
-hass.services.call("utility_meter", "calibrate", {'value': '0', 'entity_id': MeterEntity})
+# This manual workaround ensures that the meter is reset on the 1st of the month
+now = datetime.datetime.now()
+if now.day == 1:
+    hass.services.call("utility_meter", "calibrate", {'value': '0', 'entity_id': MeterEntity})
+
+###
+# Rest is ignored, see above 
+###
+
 
 # Handle Meter Reset -- Run daily at midnight via automation
 

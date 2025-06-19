@@ -4,11 +4,11 @@
 adjust_night:
   url: http://127.0.0.1:8888/api/appdaemon/adjust_night
   method: POST
-  payload: '{"type": "Adjust Night"}'
+  payload: '{}'
   content_type: 'application/json'
 
 adjust_morning:
   url: http://127.0.0.1:8888/api/appdaemon/adjust_morning
   method: POST
-  payload: '{"type": "Adjust Morning"}'
+  payload: '{}'
   content_type: 'application/json'

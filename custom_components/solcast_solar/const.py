@@ -1,0 +1,48 @@
+"""Constants for the Solcast Solar integration."""
+
+from typing import Final
+
+# Development flags
+SENSOR_UPDATE_LOGGING: Final[bool] = False
+
+# Integration constants
+API_QUOTA: Final[str] = "api_quota"
+ATTR_ENTRY_TYPE: Final[str] = "entry_type"
+ATTRIBUTION: Final[str] = "Data retrieved from Solcast"
+AUTO_UPDATE: Final[str] = "auto_update"
+BRK_ESTIMATE: Final[str] = "attr_brk_estimate"
+BRK_ESTIMATE10: Final[str] = "attr_brk_estimate10"
+BRK_ESTIMATE90: Final[str] = "attr_brk_estimate90"
+BRK_HALFHOURLY: Final[str] = "attr_brk_halfhourly"
+BRK_HOURLY: Final[str] = "attr_brk_hourly"
+BRK_SITE: Final[str] = "attr_brk_site"
+BRK_SITE_DETAILED: Final[str] = "attr_brk_detailed"
+CONFIG_DAMP: Final[str] = "config_damp"
+CONFIG_VERSION: Final[int] = 15
+CUSTOM_HOUR_SENSOR: Final[str] = "customhoursensor"
+DAMP_FACTOR: Final[str] = "damp_factor"
+DATE_FORMAT: Final[str] = "%Y-%m-%d %H:%M:%S"
+DATE_FORMAT_UTC: Final[str] = "%Y-%m-%d %H:%M:%S UTC"
+DOMAIN: Final[str] = "solcast_solar"
+ENTRY_TYPE_SERVICE: Final[str] = "service"
+EVENT_END_DATETIME: Final[str] = "end_date_time"
+EVENT_START_DATETIME: Final[str] = "start_date_time"
+EXCLUDE_SITES: Final[str] = "exclude_sites"
+HARD_LIMIT: Final[str] = "hard_limit"
+HARD_LIMIT_API: Final[str] = "hard_limit_api"
+KEY_ESTIMATE: Final[str] = "key_estimate"
+MANUFACTURER: Final[str] = "BJReplay"
+SERVICE_CLEAR_DATA: Final[str] = "clear_all_solcast_data"
+SERVICE_FORCE_UPDATE: Final[str] = "force_update_forecasts"
+SERVICE_GET_DAMPENING: Final[str] = "get_dampening"
+SERVICE_QUERY_FORECAST_DATA: Final[str] = "query_forecast_data"
+SERVICE_REMOVE_HARD_LIMIT: Final[str] = "remove_hard_limit"
+SERVICE_SET_DAMPENING: Final[str] = "set_dampening"
+SERVICE_SET_HARD_LIMIT: Final[str] = "set_hard_limit"
+SERVICE_UPDATE: Final[str] = "update_forecasts"
+TIME_FORMAT: Final[str] = "%H:%M:%S"
+SITE: Final[str] = "site"
+SITE_DAMP: Final[str] = "site_damp"
+SOLCAST_URL: Final[str] = "https://api.solcast.com.au"
+TITLE: Final[str] = "Solcast Solar"
+UNDAMPENED: Final[str] = "undampened"

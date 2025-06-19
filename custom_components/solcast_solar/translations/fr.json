@@ -1,0 +1,279 @@
+{
+    "config": {
+        "abort": {
+            "reconfigured": "Nouvelle configuration appliquée",
+            "reauth_successful": "Nouvelle clé API appliquée avec succès",
+            "single_instance_allowed": "Une seule instance Solcast autorisée"
+        },
+        "error": {
+            "api_duplicate": "Clé API en double spécifiée",
+            "api_looks_like_site": "La clé API ressemble à un identifiant de site",
+            "limit_one_or_greater": "La limite de l'API doit être égale ou supérieure à un",
+            "limit_too_many": "Il y a plus de limites d'API saisies que de clés",
+            "limit_not_number": "La limite de l'API n'est pas un nombre"
+        },
+        "step": {
+            "reauth_confirm": {
+                "data": {
+                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)"
+                },
+                "description": "Clé API du compte Solcast"
+            },
+            "reconfigure_confirm": {
+                "data": {
+                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)",
+                    "api_quota": "Quota d'API (plusieurs valeurs séparées par des virgules)",
+                    "auto_update": "Mise à jour automatique"
+                },
+                "description": "Détails du compte Solcast\n\n(S'il n'y a pas de mise à jour automatique, une automatisation est requise - voir la documentation d'intégration)"
+            },
+            "user": {
+                "data": {
+                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)",
+                    "api_quota": "Quota d'API (plusieurs valeurs séparées par des virgules)",
+                    "auto_update": "Mise à jour automatique"
+                },
+                "description": "Détails du compte Solcast\n\n(S'il n'y a pas de mise à jour automatique, une automatisation est requise - voir la documentation d'intégration)"
+            }
+        }
+    },
+    "entity": {
+        "select": {
+            "estimate_mode" : {"name": "Utiliser le champ de prévision"}
+        },
+        "sensor": {
+            "power_now_30m": {"name": "Puissance en 30 minutes"},
+            "power_now_1hr": {"name": "Puissance en 1 heure"},
+            "total_kwh_forecast_today": {"name": "Prévisions pour aujourd'hui"},
+            "peak_w_today": {"name": "Prévisions du pic aujourd'hui"},
+            "peak_w_time_today": {"name": "Heure du pic aujourd'hui"},
+            "forecast_this_hour": {"name": "Prévisions heure actuel"},
+            "get_remaining_today": {"name": "Prévisions de production  restantes aujourd'hui"},
+            "forecast_next_hour": {"name": "Prévisions pour la prochaine heure"},
+            "forecast_custom_hours": {"name": "Prévisions pour les X prochaines heures"},
+            "total_kwh_forecast_tomorrow": {"name": "Prévisions pour demain"},
+            "peak_w_tomorrow": {"name": "Prévisions du pic pour demain"},
+            "peak_w_time_tomorrow": {"name": "Heure du pic demain"},
+            "api_counter": {"name": "API utilisée"},
+            "api_limit": {"name": "Limite API"},
+            "lastupdated": {"name": "Dernière interrogation de l'API"},
+            "total_kwh_forecast_d3": {"name": "Prévision jour 3"},
+            "total_kwh_forecast_d4": {"name": "Prévision jour 4"},
+            "total_kwh_forecast_d5": {"name": "Prévision jour 5"},
+            "total_kwh_forecast_d6": {"name": "Prévision jour 6"},
+            "total_kwh_forecast_d7": {"name": "Prévision jour 7"},
+            "power_now": {"name": "Puissance maintenant"},
+            "hard_limit": {"name": "Ensemble de limites strictes"},
+            "hard_limit_api": {"name": "Ensemble de limites strictes {api_key}"}
+        }
+    },
+    "exceptions": {
+        "auto_use_force": {"message": "La mise à jour automatique est activée, ignorant l'événement de service pour la mise à jour des prévisions, utilisez plutôt Forcer la mise à jour."},
+        "auto_use_normal": {"message": "La mise à jour automatique n'est pas activée, ignorant l'événement de service pour forcer la mise à jour des prévisions, utilisez plutôt Update."},
+        "damp_not_for_site": {"message": "L'amortissement du site n'est pas défini pour {site}."},
+        "damp_use_all": {"message": "L'amortissement du site n'est pas défini pour {site}, « all » (tout) est le seul paramètre de site disponible pour l'appel de service.."},
+        "damp_no_factors": {"message": "Aucun facteur atténuant, doit être une liste de nombres séparés par des virgules entre 0,0 et 1,0."},
+        "damp_count_not_correct": {"message": "Il n’y a pas 24 ou 48 nombres séparés par des virgules entre 0,0 et 1,0."},
+        "damp_no_all_24": {"message": "Spécifier un site parmi « all » (tous) n'est pas autorisé avec 24 facteurs, supprimez le site de la demande."},
+        "damp_not_site": {"message": "Pas un site configuré."},
+        "damp_error_parsing": {"message": "Erreur lors de l'analyse des nombres séparés par des virgules du facteur d'amortissement."},
+        "damp_outside_range": {"message": "Valeur du facteur d'amortissement présente qui n'est pas comprise entre 0,0 et 1,0."},
+        "hard_empty": {"message": "Valeur limite stricte vide."},
+        "hard_too_many": {"message": "Plus de limites strictes sont spécifiées qu'il n'y a de clés API."},
+        "hard_not_positive_number": {"message": "La valeur limite stricte n’est pas un nombre positif."},
+        "init_cannot_get_sites": {"message": "Les données des sites n'ont pas pu être récupérées."},
+        "init_cannot_get_sites_cache_invalid": {"message": "Les données des sites n'ont pas pu être récupérées et le cache n'est pas valide."},
+        "init_incompatible": {"message": "Données `config/solcast.json` mises en cache incompatibles, supprimez-les."},
+        "init_key_invalid": {"message": "La clé API n'est pas valide."},
+        "init_no_sites": {"message": "Aucun site trouvé pour la clé API."},
+        "init_unknown": {"message": "Exception lors du chargement des données des sites."},
+        "init_usage_corrupt": {"message": "Les données d'utilisation sont corrompues, vérifiez ou supprimez `config/solcast-usage.json`."},
+        "integration_not_loaded": {"message": "L'intégration n'est pas chargée, n'effectue aucune action."},
+        "remove_cache_failed": {"message": "Échec de l'effacement de toutes les données Solcast."}
+    },
+    "issues": {
+        "records_missing": {
+            "title": "Prévisions manquantes",
+            "description": "Les données de prévisions futures sont manquantes, ce qui est inattendu car la mise à jour automatique est activée."
+        },
+        "records_missing_fixable": {
+            "title": "Prévisions manquantes",
+            "fix_flow": {
+                "abort": {
+                    "reconfigured": "Nouvelle configuration appliquée"
+                },
+                "step": {
+                    "offer_auto": {
+                        "data": {
+                            "auto_update": "Mise à jour automatique"
+                        },
+                        "description": "Aucune automatisation de mise à jour des prévisions n’a été exécutée. Souhaitez-vous activer la mise à jour automatique ? (En savoir plus : {learn_more})",
+                        "title": "Prévisions manquantes"
+                    }
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "reconfigured": "Nouvelle configuration appliquée"
+        },
+        "error": {
+            "api_duplicate": "Clé API en double spécifiée",
+            "api_looks_like_site": "La clé API ressemble à un identifiant de site",
+            "limit_one_or_greater": "La limite de l'API doit être égale ou supérieure à un",
+            "limit_too_many": "Il y a plus de limites d'API saisies que de clés",
+            "limit_not_number": "La limite de l'API n'est pas un nombre",
+            "custom_invalid": "Capteur personnalisé non compris entre 1 et 144",
+            "hard_not_number": "La limite dure n'est pas un nombre positif",
+            "hard_too_many": "Il y a plus de limites strictes saisies que de clés"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)",
+                    "api_quota": "Quota d'API (plusieurs valeurs séparées par des virgules)",
+                    "auto_update": "Mise à jour automatique (s'il n'y a pas de mise à jour automatique, une automatisation doit être utilisée à la place)",
+                    "customhoursensor": "Capteur personnalisé des X prochaines heures (min=1, max=144)",
+                    "hard_limit": "Limite stricte de l'onduleur en kW (voir la documentation d'intégration)",
+                    "key_estimate": "Probabilité de prévision préférée à utiliser pour les capteurs",
+                    "attr_brk_estimate10": "Activer l'estimation de 10 attributs de capteur",
+                    "attr_brk_estimate": "Activer l'estimation de 50 attributs de capteur",
+                    "attr_brk_estimate90": "Activer l'estimation de 90 attributs de capteur",
+                    "attr_brk_site": "Activer les attributs du capteur de panne de site",
+                    "attr_brk_halfhourly": "Activer les attributs de détail des prévisions demi-horaires",
+                    "attr_brk_hourly": "Activer les attributs de détail horaire des prévisions",
+                    "attr_brk_detailed": "Activer la répartition du site pour les attributs de détail demi-horaires/horaires (ceux-ci ne seront pas enregistrés dans les attributs d'état de la base de données)",
+                    "config_damp": "Modifier les facteurs d'amortissement horaires (après avoir cliqué sur soumettre)",
+                    "exclude_sites": "Site(s) à exclure du tableau de bord Énergie et des totaux des capteurs",
+                    "site_damp": "L'amortissement granulaire est défini : Effacer pour revenir à l'amortissement horaire global"
+                },
+                "description": "Options de configuration Solcast"
+            },
+            "dampen": {
+                "data": {
+                    "damp00": "00:00",
+                    "damp01": "01:00",
+                    "damp02": "02:00",
+                    "damp03": "03:00",
+                    "damp04": "04:00",
+                    "damp05": "05:00",
+                    "damp06": "06:00",
+                    "damp07": "07:00",
+                    "damp08": "08:00",
+                    "damp09": "09:00",
+                    "damp10": "10:00",
+                    "damp11": "11:00",
+                    "damp12": "12:00",
+                    "damp13": "13:00",
+                    "damp14": "14:00",
+                    "damp15": "15:00",
+                    "damp16": "16:00",
+                    "damp17": "17:00",
+                    "damp18": "18:00",
+                    "damp19": "19:00",
+                    "damp20": "20:00",
+                    "damp21": "21:00",
+                    "damp22": "22:00",
+                    "damp23": "23:00"
+                },
+                "description": "Modifier le coefficient d'amortissement horaire"
+            }
+        }
+    },
+    "selector": {
+        "auto_update": {
+            "options": {
+                "0": "Pas de mise à jour automatique des prévisions",
+                "1": "Mise à jour automatique des prévisions du lever au coucher du soleil",
+                "2": "Mise à jour automatique des prévisions sur 24 heures"
+            }
+        },
+        "key_estimate": {
+            "options": {
+                "estimate": "Génération médiane attendue (estimate)",
+                "estimate10": "Génération attendue du 10e centile (extrémité inférieure des résultats possibles, estimate10)",
+                "estimate90": "Génération attendue au 90e percentile (extrémité supérieure des résultats possibles, estimate90)"
+            }
+        }
+    },
+    "services": {
+        "update_forecasts": {
+            "name": "Mise à jour",
+            "description": "Récupère les dernières données de prévisions de Solcast."
+        },
+        "force_update_forecasts": {
+            "name": "Forcer la mise à jour",
+            "description": "Force récupère les dernières données de prévisions de Solcast."
+        },
+        "clear_all_solcast_data": {
+            "name": "Effacer toutes les données Solcast enregistrées",
+            "description": "Supprime le fichier solcast.json pour supprimer toutes les données actuelles du site solcast."
+        },
+        "query_forecast_data": {
+            "name": "Interroger les données de prévision",
+            "description": "Renvoie un ensemble de données ou une valeur pour une requête donnée.",
+            "fields": {
+                "start_date_time": {
+                    "name": "Date et heure de début",
+                    "description": "Date et heure de début des données de prévision."
+                },
+                "end_date_time": {
+                    "name": "Date et heure de fin",
+                    "description": "Date et heure de fin des données de prévision."
+                },
+                "undampened": {
+                    "name": "Non amorti",
+                    "description": "Booléen facultatif pour récupérer les prévisions non amorties"
+                },
+                "site": {
+                    "name": "Identifiant du site",
+                    "description": "Site facultatif pour récupérer les prévisions d'un site"
+                }
+            }
+        },
+        "get_dampening": {
+            "name": "Obtenez des prévisions amorties",
+            "description": "Obtenez les facteurs d’amortissement prévus.",
+            "fields": {
+                "site": {
+                    "name": "Identifiant du site",
+                    "description": "Site facultatif pour obtenir un amortissement. (Remarque : ne fonctionnera pas si l'amortissement granulaire n'est pas activé.)"
+                }
+            }
+        },
+        "set_dampening": {
+            "name": "Définir le coefficient des prévisions",
+            "description": "Définissez les facteurs d’amortissement des prévisions.",
+            "fields": {
+                "damp_factor": {
+                    "name": "Chaîne de coefficient d'amortissement",
+                    "description": "Chaîne de valeurs de facteur d'amortissement séparées par des virgules (24 ou 48 valeurs)."
+                },
+                "site": {
+                    "name": "Identifiant du site",
+                    "description": "Site facultatif pour définir l’amortissement par site. (Remarque : l'omission du site supprime l'amortissement par site, sauf si les valeurs sont 48.)"
+                }
+            }
+        },
+        "set_hard_limit": {
+            "name": "Définir la limite stricte de prévision de l'onduleur",
+            "description": "Évitez que les valeurs prévues soient supérieures à ce que l'onduleur peut produire.",
+            "fields": {
+                "hard_limit": {
+                    "name": "Valeur limite en Watts",
+                    "description": "Définissez la valeur maximale en watts que l'onduleur peut produire."
+                }
+            }
+        },
+        "remove_hard_limit": {
+            "name": "Supprimer la limite stricte de prévision de l'onduleur",
+            "description": "Supprimer la limite définie."
+        }
+    },
+    "system_health": {
+        "info": {
+            "can_reach_server": "Connexion au serveur Solcast"
+        }
+    }
+}

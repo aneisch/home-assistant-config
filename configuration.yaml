@@ -18,6 +18,7 @@ homeassistant:
     #christmas: !include packages/christmas.yaml
     # End Christmas
     # covid: !include packages/covid.yaml
+    #evcc: !include packages/evcc.yaml
     employment: !include packages/employment.yaml
     frigate: !include packages/frigate.yaml
     door_otp: !include packages/door_otp.yaml
@@ -31,6 +32,7 @@ homeassistant:
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
+    solar: !include packages/solar.yaml
     photo_frames: !include packages/photo_frames.yaml
     tesla: !include packages/tesla.yaml
     timers: !include packages/timers.yaml
@@ -356,6 +358,8 @@ lovelace:
     - url: /hacsfiles/lovelace-mushroom/mushroom.js
       type: module
     - url: /hacsfiles/frigate-hass-card/advanced-camera-card.js
+      type: module
+    - url: /hacsfiles/sunsynk-power-flow-card/sunsynk-power-flow-card.js
       type: module
 
 media_source:

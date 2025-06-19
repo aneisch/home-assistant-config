@@ -63,6 +63,7 @@ automation:
               filename: /config/media/images/front_door.jpg
             target:
               entity_id: camera.front_door_fullres
+              # http://localhost:1984/api/frame.jpeg?src=front_door_fullres changed generic camera url from this
           - delay: 00:00:03
           - action: google_generative_ai_conversation.generate_content
             continue_on_error: true

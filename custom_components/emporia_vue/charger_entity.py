@@ -1,11 +1,15 @@
 """Emporia Charger Entity."""
-from typing import Any, Optional
+
+from typing import Any
 
 from pyemvue import pyemvue
 from pyemvue.device import ChargerDevice, VueDevice
 
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.update_coordinator import (
+    CoordinatorEntity,
+    DataUpdateCoordinator,
+)
 
 from .const import DOMAIN
 
@@ -15,19 +19,20 @@ class EmporiaChargerEntity(CoordinatorEntity):
 
     def __init__(
         self,
-        coordinator,
+        coordinator: DataUpdateCoordinator[dict[str, Any]],
         vue: pyemvue.PyEmVue,
         device: VueDevice,
-        units: Optional[str],
+        units: str | None,
         device_class: str,
         enabled_default=True,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._coordinator = coordinator
-        self._device = device
-        self._vue = vue
-        self._enabled_default = enabled_default
+        self._device: VueDevice = device
+        self._device_gid = str(device.device_gid)
+        self._vue: pyemvue.PyEmVue = vue
+        self._enabled_default: bool = enabled_default
 
         self._attr_unit_of_measurement = units
         self._attr_device_class = device_class
@@ -37,7 +42,7 @@ class EmporiaChargerEntity(CoordinatorEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return self._device
+        return self._device is not None
 
     @property
     def entity_registry_enabled_default(self) -> bool:
@@ -47,7 +52,7 @@ class EmporiaChargerEntity(CoordinatorEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the state attributes of the device."""
-        data: ChargerDevice = self._coordinator.data[self._device.device_gid]
+        data: ChargerDevice = self._coordinator.data[self._device_gid]
         if data:
             return {
                 "charging_rate": data.charging_rate,
@@ -64,17 +69,15 @@ class EmporiaChargerEntity(CoordinatorEntity):
     @property
     def unique_id(self) -> str:
         """Unique ID for the charger."""
-        return f"charger.emporia_vue.{self._device.device_gid}"
+        return f"charger.emporia_vue.{self._device_gid}"
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return the device information."""
         return DeviceInfo(
-            identifiers={(DOMAIN, f"{self._device.device_gid}-1,2,3")},
+            identifiers={(DOMAIN, f"{self._device_gid}-1,2,3")},
             name=self._device.device_name,
             model=self._device.model,
             sw_version=self._device.firmware,
             manufacturer="Emporia",
         )
-
-

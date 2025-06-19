@@ -1,0 +1,30 @@
+automation:
+  - alias: Publish Grid Power to MQTT
+    trigger:
+      - platform: state
+        entity_id: sensor.total_power  # Replace with your actual PV power sensor
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: evcc/grid/power
+          payload: "{{ states('sensor.total_power') }}"
+
+  - alias: Publish Charger Status to MQTT
+    trigger:
+      - platform: state
+        entity_id: switch.emporia_charger
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: evcc/charger/status
+          payload: "{{ state_attr('switch.emporia_charger', 'status') }}"
+
+  - alias: Publish Charger Power to MQTT
+    trigger:
+      - platform: state
+        entity_id: sensor.tesla_power_minute_average
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: evcc/charger/power
+          payload: "{{ states('sensor.tesla_power_minute_average') }}"

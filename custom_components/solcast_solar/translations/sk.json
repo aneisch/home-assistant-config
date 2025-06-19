@@ -1,0 +1,280 @@
+{
+    "config": {
+        "abort": {
+            "reconfigured": "Použila sa nová konfigurácia",
+            "reauth_successful": "Nový kľúč API bol úspešne použitý",
+            "single_instance_allowed": "Povolená je iba jedna inštancia Solcast"
+        },
+        "error": {
+            "api_duplicate": "Bol zadaný duplicitný kľúč API",
+            "api_looks_like_site": "Kľúč API vyzerá ako ID lokality",
+            "limit_one_or_greater": "Limit API musí byť jeden alebo väčší",
+            "limit_too_many": "Je zadaných viac limitov API ako kľúčov",
+            "limit_not_number": "Limit API nie je číslo"
+        },
+        "step": {
+            "reauth_confirm": {
+                "data": {
+                    "api_key": "Kľúč API (viac hodnôt oddelených čiarkou)"
+                },
+                "description": "Kľúč API účtu Solcast"
+            },
+            "reconfigure_confirm": {
+                "data": {
+                    "api_key": "Kľúč API (viac hodnôt oddelených čiarkou)",
+                    "api_quota": "Kvóta rozhrania API (voliteľne čiarkou oddelené viaceré hodnoty pre každý kľúč)",
+                    "auto_update": "Automatická aktualizácia"
+                },
+                "description": "Podrobnosti o účte Solcast\n\n(Ak nie je automatická aktualizácia, potom je potrebná automatizácia – pozrite si integračnú dokumentáciu)"
+            },
+            "user": {
+                "data": {
+                    "api_key": "Kľúč API (viac hodnôt oddelených čiarkou)",
+                    "api_quota": "Kvóta rozhrania API (voliteľne čiarkou oddelené viaceré hodnoty pre každý kľúč)",
+                    "auto_update": "Automatická aktualizácia"
+                },
+                "description": "Podrobnosti o účte Solcast\n\n(Ak nie je automatická aktualizácia, potom je potrebná automatizácia – pozrite si integračnú dokumentáciu)"
+            }
+        }
+    },
+    "entity": {
+        "select": {
+            "estimate_mode" : {"name": "Použiť pole predpovede"}
+        },
+        "sensor": {
+            "power_now_30m": {"name": "Výkon za 30 minút"},
+            "power_now_1hr": {"name": "Výkon za 1 hodinu"},
+            "total_kwh_forecast_today": {"name": "Predpoveď dnes"},
+            "peak_w_today": {"name": "Predpoveď špičky dnes"},
+            "peak_w_time_today": {"name": "Čas špičky dnes"},
+            "forecast_this_hour": {"name": "Predpoveď túto hodinu"},
+            "get_remaining_today": {"name": "Predpoveď zostávajúca dnes"},
+            "forecast_next_hour": {"name": "Predpoveď ďalšie hodina"},
+            "forecast_custom_hours": {"name": "Predpoveď najbližších X hodín"},
+            "total_kwh_forecast_tomorrow": {"name": "Prepoveď zajtra"},
+            "peak_w_tomorrow": {"name": "Predpoveď špička zajtra"},
+            "peak_w_time_tomorrow": {"name": "Čas špičky zajtra"},
+            "api_counter": {"name": "Použité API"},
+            "api_limit": {"name": "Limit API"},
+            "lastupdated": {"name": "API naposledy dotazované"},
+            "total_kwh_forecast_d3": {"name": "Predpoveď deň 3"},
+            "total_kwh_forecast_d4": {"name": "Prepoveď deň 4"},
+            "total_kwh_forecast_d5": {"name": "Predpoveď deň 5"},
+            "total_kwh_forecast_d6": {"name": "Predpoveď deň 6"},
+            "total_kwh_forecast_d7": {"name": "Predpoveď deň 7"},
+            "power_now": {"name": "Výkon teraz"},
+            "hard_limit": {"name": "Tvrdý limit nastavený"},
+            "hard_limit_api": {"name": "Tvrdý limit nastavený {api_key}"}
+        }
+    },
+    "exceptions": {
+        "auto_use_force": {"message": "Automatická aktualizácia je povolená, pri aktualizácii prognózy sa ignoruje udalosť služby, namiesto toho použite vynútenie aktualizácie."},
+        "auto_use_normal": {"message": "Automatická aktualizácia nie je povolená, pri vynútenej aktualizácii prognózy ignorujete udalosť služby, namiesto toho použite Aktualizovať."},
+        "damp_not_for_site": {"message": "Tlmenie stránok nie je nastavené pre {site}."},
+        "damp_use_all": {"message": "Tlmenie stránky nie je nastavené pre {site}, 'all' je jediný dostupný parameter stránky pre servisné volanie."},
+        "damp_no_factors": {"message": "Žiadne tlmiace faktory, musí to byť čiarkami oddelený zoznam čísel medzi 0,0 a 1,0."},
+        "damp_count_not_correct": {"message": "Medzi 0,0 a 1,0 nie je 24 alebo 48 čiarkami oddelených čísel."},
+        "damp_no_all_24": {"message": "Zadanie stránky „všetky“ nie je povolené s 24 faktormi, odstráňte stránku zo žiadosti."},
+        "damp_not_site": {"message": "Nie je to nakonfigurovaná lokalita."},
+        "damp_error_parsing": {"message": "Chyba pri analýze tlmiaceho faktora oddelených čiarkami."},
+        "damp_outside_range": {"message": "Prítomná hodnota faktora tlmenia, ktorá nie je medzi 0,0 a 1,0."},
+        "hard_empty": {"message": "Prázdna hodnota pevného limitu."},
+        "hard_too_many": {"message": "Je špecifikovaných viac tvrdých limitov, ako existuje kľúčov API."},
+        "hard_not_positive_number": {"message": "Hodnota pevného limitu nie je kladné číslo."},
+        "init_cannot_get_sites": {"message": "Údaje stránok sa nepodarilo načítať."},
+        "init_cannot_get_sites_cache_invalid": {"message": "Údaje stránok sa nepodarilo načítať a vyrovnávacia pamäť je neplatná."},
+        "init_incompatible": {"message": "Údaje súboru `config/solcast.json` vo vyrovnávacej pamäti sú nekompatibilné, odstráňte ich."},
+        "init_key_invalid": {"message": "Kľúč API je neplatný."},
+        "init_no_sites": {"message": "Nenašli sa žiadne stránky pre kľúč API."},
+        "init_unknown": {"message": "Výnimka pri načítavaní údajov stránok."},
+        "init_usage_corrupt": {"message": "Údaje o používaní sú poškodené, skontrolujte alebo odstráňte súbor `config/solcast-usage.json`."},
+        "integration_not_loaded": {"message": "Integrácia nie je načítaná, nevykonáva akciu."},
+        "remove_cache_failed": {"message": "Vymazanie všetkých údajov Solcast zlyhalo."}
+    },
+    "issues": {
+        "records_missing": {
+            "title": "Predpovede do budúcnosti chýbajú",
+            "description": "Údaje budúcej prognózy chýbajú, čo je neočakávané, pretože je povolená automatická aktualizácia."
+        },
+        "records_missing_fixable": {
+            "title": "Predpovede do budúcnosti chýbajú",
+            "fix_flow": {
+                "abort": {
+                    "reconfigured": "Použila sa nová konfigurácia"
+                },
+                "step": {
+                    "offer_auto": {
+                        "data": {
+                            "auto_update": "Automatická aktualizácia"
+                        },
+                        "description": "Automatizácia aktualizácie prognózy nebola spustená. Chcete povoliť automatickú aktualizáciu? (Viac informácií: {learn_more})",
+                        "title": "Predpovede do budúcnosti chýbajú"
+                    }
+                }
+            }
+        }
+    },
+    "options": {
+        "abort": {
+            "reconfigured": "Použila sa nová konfigurácia"
+        },
+        "error": {
+            "api_duplicate": "Bol zadaný duplicitný kľúč API",
+            "api_looks_like_site": "Kľúč API vyzerá ako ID lokality",
+            "limit_one_or_greater": "Limit API musí byť jeden alebo väčší",
+            "limit_too_many": "Je zadaných viac limitov API ako kľúčov",
+            "limit_not_number": "Limit API nie je číslo",
+            "custom_invalid": "Vlastný snímač nie medzi 1 a 144",
+            "hard_not_number": "Pevný limit nie je kladné číslo",
+            "hard_too_many": "Je zadaných viac tvrdých limitov ako kľúčov"
+        },
+        "step": {
+            "init": {
+                "data": {
+                    "api_key": "Kľúč API (viac hodnôt oddelených čiarkou)",
+                    "api_quota": "Kvóta rozhrania API (voliteľne čiarkou oddelené viaceré hodnoty pre každý kľúč)",
+                    "auto_update": "Automatická aktualizácia (ak nie je automatická aktualizácia, musíte namiesto nej použiť automatizáciu)",
+                    "customhoursensor": "Vlastný senzor ďalších X hodín (min=1, max=144)",
+                    "hard_limit": "Pevný limit meniča vo kilowattov (pozri integračnú dokumentáciu)",
+                    "key_estimate": "Preferovaná pravdepodobnosť použitia pre senzory",
+                    "attr_brk_estimate10": "Povoliť odhad 10 atribútov senzora",
+                    "attr_brk_estimate": "Povoliť odhad 50 atribútov senzora",
+                    "attr_brk_estimate90": "Povoliť odhad 90 atribútov senzora",
+                    "attr_brk_site": "Povoliť atribúty senzora rozdelenia stránok",
+                    "attr_brk_halfhourly": "Povoliť polhodinové podrobné atribúty prognózy",
+                    "attr_brk_hourly": "Povoliť hodinové podrobné atribúty prognózy",
+                    "attr_brk_detailed": "Povoliť rozdelenie stránok pre polhodinové/hodinové atribúty podrobností (tieto sa neuložia do atribútov stavu databázy)",
+                    "config_damp": "Upravte hodinové faktory tlmenia (po kliknutí na odoslať)",
+                    "exclude_sites": "Lokality, ktoré sa majú vylúčiť zo súčtu energie a senzorov",
+                    "site_damp": "Granulované tlmenie je nastavené: Clear pre návrat k celkovému hodinovému tlmeniu"
+
+                },
+                "description": "Solcast možnosti konfigurácie"
+            },
+            "dampen": {
+                "data": {
+                    "damp00": "00:00",
+                    "damp01": "01:00",
+                    "damp02": "02:00",
+                    "damp03": "03:00",
+                    "damp04": "04:00",
+                    "damp05": "05:00",
+                    "damp06": "06:00",
+                    "damp07": "07:00",
+                    "damp08": "08:00",
+                    "damp09": "09:00",
+                    "damp10": "10:00",
+                    "damp11": "11:00",
+                    "damp12": "12:00",
+                    "damp13": "13:00",
+                    "damp14": "14:00",
+                    "damp15": "15:00",
+                    "damp16": "16:00",
+                    "damp17": "17:00",
+                    "damp18": "18:00",
+                    "damp19": "19:00",
+                    "damp20": "20:00",
+                    "damp21": "21:00",
+                    "damp22": "22:00",
+                    "damp23": "23:00"
+                },
+                "description": "Upravte hodinový faktor tlmenia"
+            }
+        }
+    },
+    "selector": {
+        "auto_update": {
+            "options": {
+                "0": "Žiadna automatická aktualizácia predpovedí",
+                "1": "Automatická aktualizácia predpovedí od východu do západu slnka",
+                "2": "Automatická aktualizácia predpovedí počas 24 hodín"
+            }
+        },
+        "key_estimate": {
+            "options": {
+                "estimate": "Stredná očakávaná generácia (estimate)",
+                "estimate10": "10. percentil očakávanej generácie (dolný koniec možných výsledkov, estimate10)",
+                "estimate90": "90. percentil očakávanej generácie (horný koniec možných výsledkov, estimate90)"
+            }
+        }
+    },
+    "services": {
+        "update_forecasts": {
+            "name": "Aktualizácia",
+            "description": "Načítava najnovšie predpovede zo Solcastu."
+        },
+        "force_update_forecasts": {
+            "name": "Vynútiť Aktualizácia",
+            "description": "Force načítava najnovšie predpovede zo Solcastu."
+        },
+        "clear_all_solcast_data": {
+            "name": "Vymažte všetky uložené údaje Solcast",
+            "description": "Odstráni súbor solcast.json a odstráni všetky aktuálne údaje lokality solcast."
+        },
+        "query_forecast_data": {
+            "name": "Dopytujte údaje predpovede",
+            "description": "Vráti množinu údajov alebo hodnotu pre daný dotaz.",
+            "fields": {
+                "start_date_time": {
+                    "name": "Dátum začiatku a čas",
+                    "description": "Dopyt na udalosti s údajmi prognózy od dátumu a času."
+                },
+                "end_date_time": {
+                    "name": "Dátum ukončenia čas",
+                    "description": "Dopytujte udalosti predpovede údajov o aktuálnom čase."
+                },
+                "undampened": {
+                    "name": "Netlmené",
+                    "description": "Voliteľná booleovská hodnota na získanie netlmenej predpovede"
+                },
+                "site": {
+                    "name": "ID lokality",
+                    "description": "Voliteľná lokalita na získanie prognózy jednej lokality"
+                }
+            }
+        },
+        "get_dampening": {
+            "name": "Získajte tlmenie predpovedí",
+            "description": "Získajte predpovedané tlmiace faktory.",
+            "fields": {
+                "site": {
+                    "name": "ID lokality",
+                    "description": "Voliteľné miesto na tlmenie. (Poznámka: Nebude fungovať, ak nie je povolené granulárne tlmenie.)"
+                }
+            }
+        },
+        "set_dampening": {
+            "name": "Nastavte tlmenie predpovedí",
+            "description": "Nastavte faktory tlmenia prognózy.",
+            "fields": {
+                "damp_factor": {
+                    "name": "Tlmiaci reťazec",
+                    "description": "Reťazec hodnôt tlmiaceho faktora oddelený čiarkou (24 alebo 48 hodnôt)."
+                },
+                "site": {
+                    "name": "ID lokality",
+                    "description": "Voliteľné miesto na nastavenie tlmenia na mieste. (Poznámka: Vynechaním lokality sa vymaže tlmenie pre jednotlivé lokality, pokiaľ nie sú hodnoty 48.)"
+                }
+            }
+        },
+        "set_hard_limit": {
+            "name": "Nastavte pevný limit predpovede meniča",
+            "description": "Zabráňte tomu, aby boli predpovedané hodnoty vyššie, ako dokáže menič produkovať.",
+            "fields": {
+                "hard_limit": {
+                    "name": "Limitná hodnota vo wattoch",
+                    "description": "Nastavte maximálnu hodnotu vo wattoch, ktorú môže menič produkovať."
+                }
+            }
+        },
+        "remove_hard_limit": {
+            "name": "Odstráňte pevný limit predpovede meniča",
+            "description": "Odstráňte nastavený limit."
+        }
+    },
+    "system_health": {
+        "info": {
+            "can_reach_server": "Solcast server pripojenie"
+        }
+    }
+}

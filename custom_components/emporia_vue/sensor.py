@@ -20,7 +20,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 # def setup_platform(hass, config, add_entities, discovery_info=None):
@@ -57,7 +57,7 @@ async def async_setup_entry(
         )
 
 
-class CurrentVuePowerSensor(CoordinatorEntity, SensorEntity):
+class CurrentVuePowerSensor(CoordinatorEntity, SensorEntity):  # type: ignore
     """Representation of a Vue Sensor's current power."""
 
     def __init__(self, coordinator, identifier) -> None:
@@ -116,7 +116,7 @@ class CurrentVuePowerSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def last_reset(self) -> datetime | None:
-        """The time when the daily/monthly sensor was reset. Midnight local time."""
+        """Reset time of the daily/monthly sensor. Midnight local time."""
         if self._id in self.coordinator.data:
             return self.coordinator.data[self._id]["reset"]
         return None
@@ -131,10 +131,16 @@ class CurrentVuePowerSensor(CoordinatorEntity, SensorEntity):
 
     @property
     def unique_id(self) -> str:
-        """Unique ID for the sensor."""
+        """Return the Unique ID for the sensor."""
         if self._scale == Scale.MINUTE.value:
-            return f"sensor.emporia_vue.instant.{self._channel.device_gid}-{self._channel.channel_num}"
-        return f"sensor.emporia_vue.{self._scale}.{self._channel.device_gid}-{self._channel.channel_num}"
+            return (
+                "sensor.emporia_vue.instant."
+                f"{self._channel.device_gid}-{self._channel.channel_num}"
+            )
+        return (
+            f"sensor.emporia_vue.{self._scale}."
+            f"{self._channel.device_gid}-{self._channel.channel_num}"
+        )
 
     def scale_usage(self, usage):
         """Scales the usage to the correct timescale and magnitude."""
@@ -155,7 +161,7 @@ class CurrentVuePowerSensor(CoordinatorEntity, SensorEntity):
             Scale.SECOND.value,
             Scale.MINUTES_15.value,
         )
-    
+
     def scale_readable(self):
         """Return a human readable scale."""
         if self._scale == Scale.MINUTE.value:

@@ -507,8 +507,8 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        #image: ghcr.io/blakeblackshear/frigate:stable
-        image: ghcr.io/blakeblackshear/frigate:0.15.0
+        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta2
+        #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
@@ -664,91 +664,6 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
 
-    # compreface-postgres-db:
-    #     image: exadel/compreface-postgres-db:latest
-    #     restart: always
-    #     container_name: "compreface-postgres-db"
-    #     environment:
-    #         - POSTGRES_USER=postgress
-    #         - POSTGRES_PASSWORD=password
-    #         - POSTGRES_DB=frs
-    #     volumes:
-    #         - /opt/compreface:/var/lib/postgresql/data
-
-    # compreface-admin:
-    #     restart: always
-    #     image: exadel/compreface-admin:latest
-    #     container_name: "compreface-admin"
-    #     environment:
-    #         - POSTGRES_USER=postgress
-    #         - POSTGRES_PASSWORD=password
-    #         - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
-    #         - SPRING_PROFILES_ACTIVE=dev
-    #         - ENABLE_EMAIL_SERVER=false
-    #         - ADMIN_JAVA_OPTS=-Xmx1g
-    #         - MAX_FILE_SIZE=5MB
-    #         - MAX_REQUEST_SIZE=10MB
-    #     depends_on:
-    #         - compreface-postgres-db
-    #         - compreface-api
-
-    # compreface-api:
-    #     restart: always
-    #     image: exadel/compreface-api:latest
-    #     container_name: "compreface-api"
-    #     depends_on:
-    #         - compreface-postgres-db
-    #     environment:
-    #         - POSTGRES_USER=postgress
-    #         - POSTGRES_PASSWORD=password
-    #         - POSTGRES_URL=jdbc:postgresql://compreface-postgres-db:5432/frs
-    #         - SPRING_PROFILES_ACTIVE=dev
-    #         - API_JAVA_OPTS=-Xmx4g
-    #         - SAVE_IMAGES_TO_DB=true
-    #         - MAX_FILE_SIZE=5MB
-    #         - MAX_REQUEST_SIZE=10MB
-    #         - CONNECTION_TIMEOUT=10000
-    #         - READ_TIMEOUT=60000
-
-    # compreface-fe:
-    #     restart: always
-    #     image: exadel/compreface-fe:latest
-    #     container_name: "compreface-ui"
-    #     # ports:
-    #     #     - "8100:80"
-    #     depends_on:
-    #         - compreface-api
-    #         - compreface-admin
-    #     environment:
-    #         - CLIENT_MAX_BODY_SIZE=10M
-    #         - PROXY_READ_TIMEOUT=60000ms
-    #         - PROXY_CONNECT_TIMEOUT=10000ms
-    #     labels:
-    #         - traefik.enable=true
-    #         - traefik.http.services.compreface.loadbalancer.server.port=80
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.compreface_local.tls=true
-    #         - traefik.http.routers.compreface_local.entrypoints=websecure
-    #         - traefik.http.routers.compreface_local.tls.certResolver=le-home
-    #         - traefik.http.routers.compreface_local.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.compreface_local.rule=Host(`compreface.home.domain.com`)
-    #         - traefik.http.routers.compreface_local.service=compreface
-
-    # compreface-core:
-    #     restart: always
-    #     image: exadel/compreface-core:latest
-    #     container_name: "compreface-core"
-    #     environment:
-    #         - ML_PORT=3000
-    #         - IMG_LENGTH_LIMIT=640
-    #         - UWSGI_PROCESSES=2
-    #         - UWSGI_THREADS=1
-    #     healthcheck:
-    #         test: curl --fail http://localhost:3000/healthcheck || exit 1
-    #         interval: 10s
-    #         retries: 0
-    #         timeout: 1s
-
     double-take:
         container_name: double-take
         image: jakowenko/double-take
@@ -827,17 +742,6 @@ services:
             - /opt/teslamate/teslamate:/opt/app/import
         cap_drop:
             - all
-
-    # teslamate-database:
-    #     image: postgres:16
-    #     container_name: teslamate-database
-    #     restart: always
-    #     environment:
-    #         - POSTGRES_USER=teslamate
-    #         - POSTGRES_PASSWORD=PW #insert your secure database password!
-    #         - POSTGRES_DB=teslamate
-    #     volumes:
-    #         - /opt/teslamate/db:/var/lib/postgresql/data
 
     teslamate-database:
         image: postgres:17
@@ -919,6 +823,19 @@ services:
         volumes:
         - /opt/n8n/home:/home/node/.n8n
         - /opt/n8n/files:/files
+
+    evcc:
+        command:
+        - evcc
+        container_name: evcc
+        image: evcc/evcc:latest
+        ports:
+        - 7070:7070/tcp
+        - 8887:8887/tcp
+        volumes:
+        - /opt/evcc/evcc.yaml:/etc/evcc.yaml
+        - /opt/evcc/.evcc:/root/.evcc
+        restart: unless-stopped
 
 # networks:
 #     macos_network:

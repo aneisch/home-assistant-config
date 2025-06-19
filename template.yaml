@@ -42,6 +42,24 @@
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 
+- trigger:
+    - trigger: time_pattern
+      minutes: /30
+  action:
+    - action: nws.get_forecasts_extra
+      data:
+        type: twice_daily
+      target:
+        entity_id: weather.kcll_daynight
+      response_variable: twice_daily
+  sensor:
+    - name: Forecast Twice Daily
+      unique_id: forecast_twice_daily
+      state: "{{ twice_daily['weather.kcll_daynight'].forecast[0].short_forecast }}"
+      attributes:
+        detailed_description: "{{ twice_daily['weather.kcll_daynight'].forecast[0].detailed_description }}"
+
+
 # Rain
 # - trigger:
 #     - platform: mqtt

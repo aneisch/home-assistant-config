@@ -120,7 +120,8 @@ services:
 
     appdaemon:
         container_name: appdaemon
-        image: acockburn/appdaemon:dev
+        #image: acockburn/appdaemon:latest
+        image: ghcr.io/aneisch/appdaemon:dev # Custom based on commit 1b1f6ed (bug was introduced later causing constraints to be ignored) https://github.com/AppDaemon/appdaemon/actions/workflows/build-deploy.yml?page=
         healthcheck:
             test: "curl -sf http://localhost:8888"
             interval: 60s

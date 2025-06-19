@@ -1,15 +1,15 @@
 # Updating this with cronjob
-- platform: local_file
-  file_path: /tmp/radar.gif
-  name: Weather Radar
+# - platform: local_file
+#   file_path: /tmp/radar.gif
+#   name: Weather Radar
 
-- platform: local_file
-  file_path: /config/images/mail_and_packages/overlay.png
-  name: mail_usps
+# - platform: local_file
+#   file_path: /config/images/mail_and_packages/overlay.png
+#   name: mail_usps
 
-- platform: local_file
-  file_path: /config/media/images/logo.jpg
-  name: usps_vehicle
+# - platform: local_file
+#   file_path: /config/media/images/logo.jpg
+#   name: usps_vehicle
 
 
 #- platform: mjpeg

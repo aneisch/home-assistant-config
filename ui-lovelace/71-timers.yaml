@@ -16,11 +16,28 @@ cards:
               card_mod:
                   style: |
                     ha-card {
-                      font-size: 65px !important;
+                      font-size: 40px !important;
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_1_name')}}
+                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set parsed = raw | from_json %}
+                {% set ms = parsed[0][1]['originalDurationInMillis'] %}
+                {% set total_seconds = ms // 1000 %}
+                {% set hours = total_seconds // 3600 %}
+                {% set minutes = (total_seconds % 3600) // 60 %}
+                {% set seconds = total_seconds % 60 %}
+                {% set result = "" %}
+                {% if hours > 0 %}
+                  {% set result = result ~ hours ~ "h " %}
+                {% endif %}
+                {% if minutes > 0 %}
+                  {% set result = result ~ minutes ~ "m " %}
+                {% endif %}
+                {% if seconds > 0 or result == "" %}
+                  {% set result = result ~ seconds ~ "s" %}
+                {% endif %}
+                **{{ states('input_text.kitchen_alexa_1_name')}}** ({{ result.strip() }}) started {{ states.timer.kitchen_alexa_1.last_updated | as_timestamp | timestamp_custom('%-I:%M %p', true) }}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_1
@@ -46,11 +63,28 @@ cards:
               card_mod:
                   style: |
                     ha-card {
-                      font-size: 65px !important;
+                      font-size: 40px !important;
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_2_name')}}
+                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set parsed = raw | from_json %}
+                {% set ms = parsed[1][1]['originalDurationInMillis'] %}
+                {% set total_seconds = ms // 1000 %}
+                {% set hours = total_seconds // 3600 %}
+                {% set minutes = (total_seconds % 3600) // 60 %}
+                {% set seconds = total_seconds % 60 %}
+                {% set result = "" %}
+                {% if hours > 0 %}
+                  {% set result = result ~ hours ~ "h " %}
+                {% endif %}
+                {% if minutes > 0 %}
+                  {% set result = result ~ minutes ~ "m " %}
+                {% endif %}
+                {% if seconds > 0 or result == "" %}
+                  {% set result = result ~ seconds ~ "s" %}
+                {% endif %}
+                **{{ states('input_text.kitchen_alexa_2_name')}}** ({{ result.strip() }}) started {{ states.timer.kitchen_alexa_2.last_updated | as_timestamp | timestamp_custom('%-I:%M %p', true) }}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_2
@@ -76,11 +110,28 @@ cards:
               card_mod:
                   style: |
                     ha-card {
-                      font-size: 65px !important;
+                      font-size: 40px !important;
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_3_name')}}
+                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set parsed = raw | from_json %}
+                {% set ms = parsed[2][1]['originalDurationInMillis'] %}
+                {% set total_seconds = ms // 1000 %}
+                {% set hours = total_seconds // 3600 %}
+                {% set minutes = (total_seconds % 3600) // 60 %}
+                {% set seconds = total_seconds % 60 %}
+                {% set result = "" %}
+                {% if hours > 0 %}
+                  {% set result = result ~ hours ~ "h " %}
+                {% endif %}
+                {% if minutes > 0 %}
+                  {% set result = result ~ minutes ~ "m " %}
+                {% endif %}
+                {% if seconds > 0 or result == "" %}
+                  {% set result = result ~ seconds ~ "s" %}
+                {% endif %}
+                **{{ states('input_text.kitchen_alexa_3_name')}}** ({{ result.strip() }}) started {{ states.timer.kitchen_alexa_3.last_updated | as_timestamp | timestamp_custom('%-I:%M %p', true) }}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_3
@@ -106,11 +157,28 @@ cards:
               card_mod:
                   style: |
                     ha-card {
-                      font-size: 65px !important;
+                      font-size: 40px !important;
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_4_name')}}
+                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set parsed = raw | from_json %}
+                {% set ms = parsed[3][1]['originalDurationInMillis'] %}
+                {% set total_seconds = ms // 1000 %}
+                {% set hours = total_seconds // 3600 %}
+                {% set minutes = (total_seconds % 3600) // 60 %}
+                {% set seconds = total_seconds % 60 %}
+                {% set result = "" %}
+                {% if hours > 0 %}
+                  {% set result = result ~ hours ~ "h " %}
+                {% endif %}
+                {% if minutes > 0 %}
+                  {% set result = result ~ minutes ~ "m " %}
+                {% endif %}
+                {% if seconds > 0 or result == "" %}
+                  {% set result = result ~ seconds ~ "s" %}
+                {% endif %}
+                **{{ states('input_text.kitchen_alexa_4_name')}}** ({{ result.strip() }}) started {{ states.timer.kitchen_alexa_4.last_updated | as_timestamp | timestamp_custom('%-I:%M %p', true) }}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_4
@@ -136,11 +204,28 @@ cards:
               card_mod:
                   style: |
                     ha-card {
-                      font-size: 65px !important;
+                      font-size: 40px !important;
                       text-align: center;
                     }
               content: |
-                {{ states('input_text.kitchen_alexa_5_name')}}
+                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set parsed = raw | from_json %}
+                {% set ms = parsed[4][1]['originalDurationInMillis'] %}
+                {% set total_seconds = ms // 1000 %}
+                {% set hours = total_seconds // 3600 %}
+                {% set minutes = (total_seconds % 3600) // 60 %}
+                {% set seconds = total_seconds % 60 %}
+                {% set result = "" %}
+                {% if hours > 0 %}
+                  {% set result = result ~ hours ~ "h " %}
+                {% endif %}
+                {% if minutes > 0 %}
+                  {% set result = result ~ minutes ~ "m " %}
+                {% endif %}
+                {% if seconds > 0 or result == "" %}
+                  {% set result = result ~ seconds ~ "s" %}
+                {% endif %}
+                **{{ states('input_text.kitchen_alexa_5_name')}}** ({{ result.strip() }}) started {{ states.timer.kitchen_alexa_5.last_updated | as_timestamp | timestamp_custom('%-I:%M %p', true) }}
             - title: hi
               type: custom:flipdown-timer-card
               entity: timer.kitchen_alexa_5
