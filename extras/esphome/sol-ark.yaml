@@ -7,6 +7,8 @@ substitutions:
   devicename: "solark"
   device_description: "SolArk RS485 Logger"
   friendly_name: "Sol-Ark"
+  import_rate: "0.1362" # kWh
+  export_rate: "0.0568" # kWh
 
 esphome:
   name: ${devicename}
@@ -931,6 +933,34 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+
+  # All time cost is held in a Home Assistant utility meter
+  - platform: template
+    name: "${friendly_name} Day Grid Import Cost"
+    id: inverter_esphome_day_grid_import_cost
+    unit_of_measurement: "$"
+    icon: "mdi:currency-usd"
+    lambda: |-
+      if (id(inverter_esphome_day_grid_import).has_state()) {
+        return id(inverter_esphome_day_grid_import).state * ${import_rate};
+      } else {
+        return NAN;
+      }
+    update_interval: 60s
+
+  # All time credit is held in a Home Assistant utility meter
+  - platform: template
+    name: "${friendly_name} Day Grid Export Credit"
+    id: inverter_esphome_day_grid_export_credit
+    unit_of_measurement: "$"
+    icon: "mdi:currency-usd"
+    lambda: |-
+      if (id(inverter_esphome_day_grid_export).has_state()) {
+        return id(inverter_esphome_day_grid_export).state * ${export_rate};
+      } else {
+        return NAN;
+      }
+    update_interval: 60s
 
   - platform: modbus_controller            # 078 Total Grid Import
     modbus_controller_id: inverter

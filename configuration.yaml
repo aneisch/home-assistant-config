@@ -361,6 +361,8 @@ lovelace:
       type: module
     - url: /hacsfiles/sunsynk-power-flow-card/sunsynk-power-flow-card.js
       type: module
+    - url: /hacsfiles/flex-horseshoe-card/flex-horseshoe-card.js
+      type: module
 
 media_source:
 
@@ -556,11 +558,11 @@ wemo:
   static:
     - 10.0.1.48
 
-utility_meter:
-  electric_utilities_monthly:
-    source: sensor.total_daily_energy
-    name: Monthly Energy
-    cron: "0 22 L * *"
+# utility_meter:
+#   electric_utilities_monthly:
+#     source: sensor.total_daily_energy
+#     name: Monthly Energy
+#     cron: "0 22 L * *"
 
 zha:
   #enable_quirks: true

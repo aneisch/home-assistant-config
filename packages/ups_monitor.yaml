@@ -1,21 +1,27 @@
 automation:
-  - alias: "UPS Alert"
-    id: "ups_alert"
+  - alias: "Electric Outage Alert"
+    id: "electric_outage_alert"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
         from: "ONLINE"
+      - platform: state
+        entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+        to: "off"
     action:
       - action: notify.cellular_message
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
-  - alias: "UPS Recovery"
-    id: "ups_recovery"
+  - alias: "Electric Outage Recovery"
+    id: "electric_outage_recovery"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
         to: "ONLINE"
+      - platform: state
+        entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+        to: "on"
     action:
       - action: notify.cellular_message
         data:

@@ -25,13 +25,14 @@ class AutoAdjust(hass.Hass):
 
         # Debounce window and boost status
         self.boost_active = False
-        self.debounce_handle = None
         self.should_boost = None
         self.boost_debounce_handle = None
 
-        # Listen to solar and load changes
+        # Listen to solar, load, SOC changes
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_solar_power")
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_load_power")
+        self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_battery_soc")
+
 
         # Presence detection
         if "device_tracker" in self.args:
@@ -51,6 +52,8 @@ class AutoAdjust(hass.Hass):
             solar_power = float(self.get_state("sensor.solark_sol_ark_solar_power") or 0)
             load_power = float(self.get_state("sensor.solark_sol_ark_load_power") or 0)
             battery_soc = float(self.get_state("sensor.solark_sol_ark_battery_soc") or 0)
+            self.excess_solar = excess_solar
+            self.battery_soc = battery_soc
         
         except (TypeError, ValueError):
             self.log("Skipping boost evaluation due to invalid sensor data", level="WARNING")
@@ -61,8 +64,9 @@ class AutoAdjust(hass.Hass):
         start = self.parse_time(self.args["cooldown_window_start"])
         end = self.parse_time(self.args["cooldown_window_end"])
 
-        # Ignore boost if not within manual override window
+        # Ignore boost if not within boost window
         if not (start <= now <= end):
+            self.boost_active = False
             return
 
         eligible = (
@@ -80,9 +84,9 @@ class AutoAdjust(hass.Hass):
     def commit_boost_change(self, kwargs):
         if self.should_boost != self.boost_active:
             if self.should_boost:
-                self.log(f"Boost Activated: Excess = {excess_solar} and Battery SOC = {battery_soc}%")
+                self.log(f"Boost Activated: Excess: {self.excess_solar} Battery SOC {self.battery_soc}%")
             else:
-                self.log(f"Boost Deactivated: Excess = {excess_solar} and Battery SOC = {battery_soc}%")
+                self.log(f"Boost Deactivated: Excess: {self.excess_solar} Battery SOC: {self.battery_soc}%")
 
             self.boost_active = self.should_boost
             self.adjust_morning()  # apply new temp
@@ -90,7 +94,7 @@ class AutoAdjust(hass.Hass):
 
     def adjust_temp(self, kwargs):
         for tstat in self.split_device_list(self.args["thermostats"]):
-            self.log(f"Calling Temperature Change: {kwargs['temp']}")
+            #self.log(f"Calling Temperature Change: {kwargs['temp']}")
             self.call_service("climate/set_temperature", entity_id=tstat, temperature=kwargs["temp"])
 
     def presence_adjust(self, entity, attribute, old, new, kwargs):
@@ -132,7 +136,7 @@ class AutoAdjust(hass.Hass):
         self._adjust_period("midnight")
 
     def _adjust_period(self, label):
-        self.log(f"Adjust period '{label}'")
+        #self.log(f"Adjust period '{label}'")
 
         tracker_state = self.get_state(self.args["device_tracker"])
         mode = self.get_state("sensor.thermostat_operating_mode").lower()
@@ -145,18 +149,16 @@ class AutoAdjust(hass.Hass):
 
         if mode == "heat":
             temp = self.args[f"heat_{label}"] if occupied else self.args["heat_unoccupied"]
-            self.run_in(self.adjust_temp, 1, temp=temp)
 
         elif mode == "cool":
-            # BoostGoo mode if active and morning and someone home
+            # Boost mode if active and "morning" and someone home
             if self.boost_active and label == "morning" and occupied:
                 temp = float(self.args[f"cool_{label}"]) - float(self.args.get("cool_boost_offset", 2))
-                self.log(f"Boost Applied")
             else:
                 temp = self.args[f"cool_{label}"] if occupied else self.args["cool_unoccupied"]
-                self.log(f"Boost Not Applied")
 
-            self.run_in(self.adjust_temp, 1, temp=temp)
+        self.log(f"Adjust period: '{label}' Mode: '{mode}' Temperature: '{temp}' Boost: '{self.boost_active}'")
+        self.run_in(self.adjust_temp, 1, temp=temp)
 
     # API-compliant wrappers
     def api_adjust_morning(self, *kwargs):

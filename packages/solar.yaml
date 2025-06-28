@@ -11,18 +11,29 @@
 #     cycle: monthly
 #     net_consumption: true
 
-#automation:
-  # EV
-    # Disable EV charger when on to battery
-    # Disable EV charger when home battery needs charge (SOC < 90%?)
-      # Depends on how quickly battery can recharge, need to think through this
-    # Enable EV charger (limited rate?) when on solar (and sufficient capacity)
-    # Enable EV charger for limited time when solar unavailable if batter < 30
-
-  # Alerts
-    # Alert if Dryer turns on while on battery
-    # Alert if grid outage
-    # Alert if fault
+automation:
+  # Nightly Grid Data to Google Sheet
+  # Long term daily statistics, ROI, etc are calculated here
+  - alias: Log Solar Data to Google Sheets
+    trigger:
+      - platform: time
+        at: "23:59:00"
+    action:
+      - service: google_sheets.append_sheet
+        data:
+          worksheet: "Data"
+          config_entry: 01JYQN4AYGRQ9S6WQBJV4T4CBW
+          data:
+            Date: "{{ now().strftime('%m-%d-%Y') }}"
+            Day Grid Import kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_import'), default=0) }}"
+            Day Grid Export kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_export'), default=0) }}"
+            Day PV Production kWh: "{{ float(states('sensor.solark_sol_ark_day_pv_energy'), default=0) }}"
+            Day Battery Charge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_charge'), default=0) }}"
+            Day Battery Discharge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_discharge'), default=0) }}"
+            Day Total Load Energy kWh: "{{ float(states('sensor.solark_sol_ark_day_load_energy'), default=0) }}"
+            Day EV kWh: "{{ float(states('sensor.tesla_energy_today'), default=0) }}"
+            Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy'), default=0) + float(states('sensor.attic_hvac_daily_energy'), default=0) }}"
+            Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy'), default=0) - float(states('sensor.solark_sol_ark_day_grid_import'), default=0) }}"
 
 sensor:
   - platform: template

@@ -605,7 +605,7 @@ script:
           - delay: '00:00:05'
           - action: number.set_value
             data:
-              value: "65"
+              value: "75"
             target:
               entity_id: number.tesla_ble_climate_temp
           # turn off seat and steering heat
@@ -664,6 +664,20 @@ timer:
     restore: true
 
 automation:
+  - alias: Tesla BLE - Hourly Refresh
+    description: Press force update and turn on polling every hour
+    trigger:
+      - platform: time_pattern
+        minutes: "0"
+    action:
+      - service: button.press
+        target:
+          entity_id: button.tesla_ble_force_update_all
+      - service: switch.turn_on
+        target:
+          entity_id: switch.tesla_ble_state_polling
+    mode: single
+
   # - alias: TeslaUSB Webhook
   #   id: "TeslaUSB Webhook"
   #   trigger:

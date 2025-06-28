@@ -300,7 +300,6 @@ cards:
           - weather.kcll_daynight
           - sensor.433_weather_temperature
           - sensor.433_weather_humidity
-          - sensor.precip_probability
           - sun.sun
           - sensor.moon
           # - sensor.rain_total

@@ -24,9 +24,9 @@ substitutions:
 # black wire to breaker 33
 # red wire to breaker 35
 
-# Probe 1 = breaker 5+7 (2x mult) - phase a - dryer
-# Probe 2 = breaker 2+4 (2x mult) - phase a - HVAC
-# probe 3 = breaker 9+11 (2x mult) - phase a - Oven
+# Probe 1 = breaker 5+7 (2x mult) - phase a/b - dryer
+# Probe 2 = breaker 2+4 (2x mult) - phase a/b - HVAC
+# probe 3 = breaker 9+11 (2x mult) - phase a/b - Oven
 # probe 4 = breaker 10 - phase a - dishwasher
 # probe 5 = breaker 18 - phase a - kitchen coffee
 # probe 6 = breaker 14 - phase a - refrigerator

@@ -77,6 +77,23 @@ automation:
         - switch.garage_lights
         - switch.garage_center_leds
 
+  - alias: Turn off garage LEDs when doors close
+    trigger:
+      - platform: state
+        entity_id: cover.garage_door
+        to: 'closed'
+      - platform: state
+        entity_id: binary_sensor.garage_interior_door
+        to: 'off'
+    action:
+      - delay: "00:00:10"
+      - if: "{{ is_state('binary_sensor.garage_person_occupancy', 'off')}}"
+        then:
+          - service: switch.turn_off
+            target:
+              entity_id: switch.garage_center_leds
+
+
   - alias: "Change entry switch LEDs based on garage door state"
     id: "garage_opened_switch_leds"
     trigger:

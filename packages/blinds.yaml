@@ -304,7 +304,8 @@ automation:
                     continue_on_error: true
                     target:
                       entity_id:
-                        - cover.guest_bedroom_blinds
+                        # - cover.guest_bedroom_blinds  # too hot outside. Leave these down.
+                        - cover.office_blinds # duplicate placeholder
 
   - alias: "Manually Update Blind State"
     id: manually_update_blind_state

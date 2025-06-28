@@ -30,10 +30,10 @@ AC Automation Solar:
   morning_adjust_weekend: "11:00:00"
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
-  midnight_adjust: "03:30:00"
-  cool_morning: "77"
+  midnight_adjust: "02:30:00"
+  cool_morning: "78"
   cool_night: "73"
-  cool_midnight: "75" # change to this temp at midnight_adjust
+  cool_midnight: "76" # change to this temp at midnight_adjust
   cool_unoccupied: "80"
   heat_morning: "67"
   heat_night: "64"
@@ -42,8 +42,8 @@ AC Automation Solar:
   solar_boost_threshold: 3000       # in watts (excess solar triggers this)
   battery_boost_threshold: 95       # battery SOC for boost activation
   cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cooldown_window_start: sunrise + 02:00:00 # "10:00:00" # Override daytime temperature during this period if excess solar
-  cooldown_window_end: sunset - 01:00:00 # "17:00:00"   # Override daytime temperature during this period if excess solar
+  cooldown_window_start: sunrise + 05:00:00 # "10:00:00" # Override daytime temperature during this period if excess solar and SOC above threshold
+  cooldown_window_end: sunset - 01:00:00 # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
 
 EV Charge Control:
   module: ev_charger_smart_control
@@ -218,7 +218,7 @@ Tablet Screen Follow:
   module: follow_me
   class: Follow
   leader: binary_sensor.weasel_active
-  follower: switch.fire_tablet_screen
+  follower: switch.fire_tablet_screen,media_player.office_photo_frame
 
 Master Closet Follow:
   module: follow_me
