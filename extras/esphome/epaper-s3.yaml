@@ -1,0 +1,258 @@
+substitutions:
+  name: epaper_s3
+  cs_pin: GPIO34 #aka ss #Orange
+  dc_pin: GPIO33 # Green
+  busy_pin: GPIO37 # Purple
+  reset_pin: GPIO38 # White
+  clk_pin: GPIO36 # Yellow
+  mosi_pin: GPIO35 # DIN # Blue
+
+esphome:
+  name: ${name}
+  platformio_options:
+    board_build.arduino.memory_type: qio_qspi
+    board_upload.ram_size: 327680
+    board_upload_maximum_size: 4193404
+    board_upload_speed: 460800
+    build_flags: [
+      "-DBOARD_HAS_PSRAM",
+      "-DARDUINO_LOLIN_S3_MINI",
+      "-DARDUINO_USB_MODE=1"
+      ]
+  on_boot:
+    priority: 250.0
+    then:
+      - component.update: eink_display
+
+esp32:
+  board: lolin_s3_mini
+  variant: esp32s3
+  flash_size: 4MB
+  framework:
+    type: arduino
+    version: 2.0.14
+    platform_version: 6.6.0
+
+## Everything below is generic
+
+wifi:
+  networks:
+  # - ssid: "SSID"
+  #   password: !secret wifi_password
+  - ssid: "SSID"
+    password: !secret wifi_password_two
+  ap:
+    ssid: "Stock Fallback AP"
+  on_connect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 1;
+      - delay: 5s
+      - component.update: eink_display
+  on_disconnect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 0 ;
+      - component.update: eink_display
+
+captive_portal:
+
+ota:
+  platform: esphome
+  password: esphome_recovery
+
+logger:
+  level: DEBUG
+
+web_server:
+  local: true
+
+globals:
+  - id: wifi_status
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: first_update_done
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+font:
+  - file: "fonts/Montserrat-Black.ttf"
+    id: ticker_font
+    size: 20
+  - file: "fonts/Montserrat-Black.ttf"
+    id: wifi_font
+    size: 12
+  - file: "fonts/Montserrat-Black.ttf"
+    id: price_font
+    size: 50
+
+spi:
+  clk_pin: ${clk_pin} # Yellow
+  mosi_pin: ${mosi_pin} # DIN # Blue
+
+http_request:
+  useragent: esphome/device
+  verify_ssl: false
+  timeout: 10s
+
+number:
+  - platform: template
+    name: "Update Interval (Seconds)"
+    id: update_interval
+    optimistic: true
+    min_value: 30
+    max_value: 3600
+    step: 1
+    initial_value: 120
+    restore_value: true
+    mode: box
+
+text:
+  - platform: template
+    name: "Price JSON Endpoint"
+    id: price_url
+    optimistic: true
+    restore_value: True
+    initial_value: !secret epaper_price
+    min_length: 0
+    max_length: 200
+    mode: text
+
+text_sensor:
+  - platform: template
+    name: "Price"
+    id: price
+  - platform: template
+    name: "Symbol"
+    id: symbol  
+  - platform: template
+    name: "WiFi Mode"
+    id: wifi_mode
+    lambda: |-   
+      #ifdef USE_ESP32
+      wifi_mode_t mode;
+      esp_wifi_get_mode(&mode);
+      if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) {
+        return {"AP"};
+      } else {
+        return {"STA"};
+      }
+      #else
+      return {"N/A"};
+      #endif
+    update_interval: 1s
+
+script:
+  - id: fetch_and_update
+    then:
+      - http_request.get:
+          url: !lambda 'return id(price_url).state.c_str();'
+          capture_response: true
+          on_response:
+            then:
+              - if:
+                  condition:
+                      lambda: return response->status_code == 200;
+                  then:
+                    - lambda: |-
+                        ESP_LOGD("main","Fetch got: %s", body);
+                        json::parse_json(body, [](JsonObject root) -> bool {
+                            if (root["price"]) {
+                                id(price).publish_state(root["price"]);
+                                id(symbol).publish_state(root["symbol"]);
+                                return true;
+                            }
+                            else {
+                              ESP_LOGD("main","Missing price and/or symbol key in json!");
+                              return false;
+                            }
+                        });
+                    - component.update: eink_display
+
+                  else:
+                    - logger.log:
+                        format: "Error: Response status: %d, message %s"
+                        args: [ 'response->status_code', 'body.c_str()' ]
+
+interval:
+  # Initial Update at Boot and Connected
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - lambda: "return !id(first_update_done);"
+          then:
+            - lambda: |-
+                ESP_LOGD("Display", "Triggered initial display update...");
+            - lambda: "id(first_update_done) = true;"
+            - script.execute: fetch_and_update
+
+  # Subsequent Updates - Selectable interval for fetech
+  - interval: 1s
+    then:
+      - lambda: |-
+          static int counter = 0;
+          counter++;
+          if (counter >= id(update_interval).state && id(wifi_status) == 1) {
+            counter = 0;
+            ESP_LOGD("Display", "Triggered update on interval...");
+            id(fetch_and_update).execute();
+          }
+
+  # Update wifi status so we can display AP info if fallback
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+          then:
+            - lambda: |-
+                ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
+                  id(wifi_status),
+                  id(wifi_mode).state.c_str());  
+          else:
+            - delay: 5s
+            - lambda: |-
+                ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
+                  id(wifi_status),
+                  id(wifi_mode).state.c_str());
+            - component.update: eink_display
+
+display:
+  - platform: waveshare_epaper
+    # 212x104 resolution
+    id: eink_display
+    cs_pin: ${cs_pin} #aka ss #Orange
+    dc_pin: ${dc_pin} # Green
+    busy_pin: ${busy_pin} # Purple
+    reset_pin: ${reset_pin} # White
+    model: 2.13in-ttgo-b74
+    full_update_every: 1
+    update_interval: never # Update from interval or automation only
+    rotation: 270°
+    lambda: |-
+      // Trying to connect to WiFi
+      if(id(wifi_status) == 0 and id(wifi_mode).state == "STA" ){
+        it.printf(125, 50, id(ticker_font), TextAlign::CENTER, "WiFi connecting");      
+        it.printf(125, 90, id(ticker_font), TextAlign::CENTER, "60s timeout...");      
+      }
+
+      // Can't connect to WiFi, in AP mode
+      if(id(wifi_status) == 0 and id(wifi_mode).state == "AP" ){
+        it.printf(125, 10, id(ticker_font), TextAlign::CENTER, "Configure WiFi");      
+        it.printf(125, 35, id(ticker_font), TextAlign::CENTER, "by connecting to");      
+        it.printf(125, 65, id(ticker_font), TextAlign::CENTER, "'Stock Fallback AP'");    
+        it.printf(125, 95, id(wifi_font), TextAlign::CENTER, "You may need to browse to:");      
+        it.printf(125, 110, id(wifi_font), TextAlign::CENTER, "http://192.168.4.1 after connecting");      
+
+      // Normal active WiFi connection
+      }
+      if(id(wifi_status) == 1 and id(wifi_mode).state == "STA" ){
+      it.printf(125, 50, id(price_font), TextAlign::CENTER, "$%s", id(price).state.c_str());
+      it.printf(125, 110, id(ticker_font), TextAlign::CENTER, "%s", id(symbol).state.c_str());
+      }

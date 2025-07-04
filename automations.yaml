@@ -827,6 +827,7 @@
       message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
         '
+  - action: shell_command.trust_signal_identities
 - id: coffee_maker_alarm_clock
   alias: Coffee Maker on With Alarm Clock
   trigger:

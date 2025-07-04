@@ -1,0 +1,5 @@
+substitutions:
+  name: stock_ticker_display_me
+
+packages:
+  shared: !include stock_ticker_main.yaml

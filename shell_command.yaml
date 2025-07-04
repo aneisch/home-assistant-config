@@ -24,6 +24,9 @@ turn_on_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Service
 
 turn_off_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Services/Mirror\ Off.workflow'
 
+# If signal device changes the identity goes to untrusted and messages don't go through to that recipient
+trust_signal_identities: ssh nuc '/opt/homeassistant/scripts/trust_signal_identities.sh' 
+
 weasel_shortcut: ssh weasel 'shortcuts run "{{ shortcut }}"'
 
 sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'

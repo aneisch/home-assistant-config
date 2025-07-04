@@ -226,7 +226,7 @@ cards:
           - cover.dining_room_blind_left
           - cover.dining_room_blind_center
           - cover.dining_room_blind_right
-          - light.curio_cabinet
+          #- light.curio_cabinet
           - switch.coffee_maker_power_without_cleaning
           - switch.coffee_maker_power_with_cleaning
       - type: conditional

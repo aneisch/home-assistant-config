@@ -31,7 +31,7 @@ AC Automation Solar:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "02:30:00"
-  cool_morning: "78"
+  cool_morning: "80"
   cool_night: "73"
   cool_midnight: "76" # change to this temp at midnight_adjust
   cool_unoccupied: "80"
@@ -437,6 +437,7 @@ Indoor Light Automation Sunset:
   time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
   brightness: 255
+
 
 Guest Light Automation Sunset:
   module: entity_timer

@@ -11,7 +11,7 @@ import asyncio
 import json
 import os
 from shutil import copyfile
-from typing import Any, Dict, List
+from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
@@ -198,7 +198,7 @@ def get_hacs_components(hass: HomeAssistant):
 
 @callback
 def get_ha_installed_addons(hass: HomeAssistant) -> list[dict[str, Any]]:
-    if is_hassio(hass):
+    if not is_hassio(hass):
         return []
     supervisor_info = get_supervisor_info(hass)
 

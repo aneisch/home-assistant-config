@@ -641,7 +641,7 @@ services:
             #- AUTO_RECEIVE_SCHEDULE=31 * * * *
         ports:
             - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
-            #- "8808:8080" 
+            #- "8800:8080" 
         volumes:
             - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
         labels:
@@ -780,7 +780,7 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta3
+        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta2
         #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:

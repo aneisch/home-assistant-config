@@ -1,0 +1,352 @@
+substitutions:
+  name: stock_ticker_display_main
+  clk_pin: GPIO2 # Yellow
+  mosi_pin: GPIO4 # Blue
+  cs_pin: GPIO6 # Orange
+  dc_pin: GPIO10 # Green
+  busy_pin: GPIO3 # Purple
+  reset_pin: GPIO5 # White
+
+esphome:
+  name: ${name}
+  on_boot:
+    priority: 250.0
+    then:
+      - component.update: eink_display
+
+esp32:
+  board: lolin_c3_mini
+  variant: esp32c3
+  framework:
+    type: arduino
+
+wifi:
+  # Define some testing networks and ensure vaiable updated with WiFi status
+  networks:
+  - ssid: !secret wifi_ssid
+    password: !secret wifi_password
+  - ssid: !secret wifi_ssid_two
+    password: !secret wifi_password_two
+  ap:
+    ssid: "Stock Fallback AP"
+  on_connect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 1;
+      - delay: 5s
+      - component.update: eink_display
+  on_disconnect:
+    then:
+      - lambda: |-
+          id(wifi_status) = 0 ;
+      - component.update: eink_display
+
+# Redirect to WiFi credential input if in AP
+captive_portal:
+
+time:
+  - platform: sntp
+    timezone: "America/New_York"
+    id: time_et
+
+# Allow WiFi OTA firmware update
+ota:
+  platform: esphome
+  password: esphome_recovery
+
+logger:
+  level: DEBUG
+
+# Enable web server for config change and log view
+web_server:
+  local: true
+
+# Global variables used in scripts and automations
+globals:
+  - id: wifi_status
+    type: int
+    restore_value: no
+    initial_value: "0"
+  - id: first_update_done
+    type: bool
+    restore_value: no
+    initial_value: "false"
+
+font:
+  - file: "fonts/Montserrat-Black.ttf"
+    id: ticker_font
+    size: 20
+  - file: "fonts/Montserrat-Black.ttf"
+    id: wifi_font
+    size: 12
+  - file: "fonts/Montserrat-Black.ttf"
+    id: price_font
+    size: 50
+
+# Define SPI ports
+spi:
+  clk_pin: ${clk_pin} # Yellow
+  mosi_pin: ${mosi_pin} # DIN # Blue
+
+# Details for HTTP request component
+http_request:
+  useragent: esphome/device
+  verify_ssl: false
+  timeout: 10s
+
+# Selectable update interval (use web frontend)
+number:
+  - platform: template
+    name: "Update Interval (Seconds)"
+    id: update_interval
+    optimistic: true
+    min_value: 30
+    max_value: 3600
+    step: 1
+    initial_value: 120
+    restore_value: true
+    mode: box
+
+# Updatable web endpoint for pricing, ticker lookup (use web front end)
+text:
+  - platform: template
+    name: "Price JSON Endpoint"
+    id: price_url
+    optimistic: true
+    restore_value: True
+    initial_value: !secret epaper_price
+    min_length: 0
+    max_length: 200
+    mode: text
+
+# Text sensors to hold values for display or automation
+text_sensor:
+  - platform: template
+    name: "Last Update ET"
+    id: timestamp_eastern_time
+    lambda: |-
+      time_t rawtime = strtoul(id(timestamp).state.c_str(), nullptr, 10);
+      char buffer[32];
+      setenv("TZ", "EST5EDT,M3.2.0,M11.1.0", 1);  // Eastern Time with DST rules
+      tzset();
+      struct tm * timeinfo = localtime(&rawtime);
+      strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
+      return std::string(buffer);
+  - platform: template
+    name: "Last Update Epoch"
+    id: timestamp
+    on_value:
+      then:
+        - component.update: timestamp_eastern_time
+  - platform: template
+    name: "Price"
+    id: price
+  - platform: template
+    name: "Symbol"
+    id: symbol  
+  - platform: template
+    name: "Change PCT"
+    id: change_pct  
+  - platform: template
+    name: "WiFi Mode"
+    id: wifi_mode
+    lambda: |-   
+      #ifdef USE_ESP32
+      wifi_mode_t mode;
+      esp_wifi_get_mode(&mode);
+      if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) {
+        return {"AP"};
+      } else {
+        return {"STA"};
+      }
+      #else
+      return {"N/A"};
+      #endif
+    update_interval: 1s
+
+switch:
+  - platform: template
+    name: "Limit Updates to Market Hours"
+    id: limit_hours_switch
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_ON
+
+script:
+  # Fetch ticker info from http endpoint and update sensor values from fetched JSON
+  - id: fetch_and_update
+    then:
+      - http_request.get:
+          url: !lambda 'return id(price_url).state.c_str();'
+          capture_response: true
+          on_response:
+            then:
+              - if:
+                  condition:
+                      lambda: return response->status_code == 200;
+                  then:
+                    - lambda: |-
+                        if (body.length() == 0) {
+                          ESP_LOGW("main", "HTTP response body is empty — skipping parse.");
+                          id(timestamp).publish_state("N/A");
+                          id(symbol).publish_state("N/A");
+                          id(price).publish_state("?.??");
+                          id(change_pct).publish_state("?.??");
+                          return;
+                        }
+
+                        ESP_LOGD("main","Fetch got: %s", body.c_str());
+                        json::parse_json(body, [](JsonObject root) -> bool {
+                          bool valid = true;
+
+                          // Last Update
+                          if (root.containsKey("timestamp")) {
+                            id(timestamp).publish_state(root["timestamp"].as<std::string>());
+                          } else {
+                            ESP_LOGW("main", "Missing key: timestamp");
+                            id(timestamp).publish_state("N/A");
+                            valid = false;
+                          }
+
+                          // Symbol
+                          if (root.containsKey("symbol")) {
+                            id(symbol).publish_state(root["symbol"].as<std::string>());
+                          } else {
+                            ESP_LOGW("main", "Missing key: symbol");
+                            id(symbol).publish_state("N/A");
+                            valid = false;
+                          }
+
+                          // Price
+                          if (root.containsKey("price")) {
+                            id(price).publish_state(root["price"].as<std::string>());
+                          } else {
+                            ESP_LOGW("main", "Missing key: price");
+                            id(price).publish_state("?.??");
+                            valid = false;
+                          }
+
+                          // Change Percentage
+                          if (root.containsKey("changesPercentage")) {
+                            // Round to two decimals (optional)
+                            float pct = root["changesPercentage"].as<float>();
+                            char formatted[16];
+                            snprintf(formatted, sizeof(formatted), "%.2f", pct);
+                            id(change_pct).publish_state(std::string(formatted));
+                          } else {
+                            ESP_LOGW("main", "Missing key: changesPercentage");
+                            id(change_pct).publish_state("?.??");
+                            valid = false;
+                          }
+
+                          return valid;
+                        });
+                    - component.update: eink_display
+                  else:
+                    - logger.log:
+                        format: "Error: Response status: %d, message %s"
+                        args: [ 'response->status_code', 'body.c_str()' ]
+
+interval:
+  # Initial Update at Boot and Connected
+  - interval: 5s
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+              - lambda: "return !id(first_update_done);"
+          then:
+            - lambda: |-
+                ESP_LOGD("Display", "Triggered initial display update...");
+            - lambda: "id(first_update_done) = true;"
+            - script.execute: fetch_and_update
+
+  # Subsequent Updates - Selectable interval for fetch - only update during market hours
+  - interval: 1s
+    then:
+      - if:
+          condition:
+            lambda: |-
+              // Allow us to override market hours update block
+              if (!id(limit_hours_switch).state) {
+                ESP_LOGD("main", "Hour limit is disabled, proceeding.");
+                return true;
+              }
+
+              auto now = id(time_et).now();
+              if (!now.is_valid()) return false;
+
+              // Only allow Mon–Fri (0=Sun, 1=Mon, ..., 6=Sat)
+              if (now.day_of_week < 1 || now.day_of_week > 5) {
+                ESP_LOGD("main", "Weekend — skipping.");
+                return false;
+              }
+
+              // Compare time to see if the market is open
+              int minutes_since_midnight = now.hour * 60 + now.minute;
+              // 8:30 AM = 510, 4:00 PM = 960
+              return minutes_since_midnight >= 510 && minutes_since_midnight <= 960;
+          then:
+            - lambda: |-
+                static int counter = 0;
+                counter++;
+                if (counter >= id(update_interval).state && id(wifi_status) == 1) {
+                  counter = 0;
+                  ESP_LOGD("Display", "Triggered update on interval...");
+                  id(fetch_and_update).execute();
+                }
+          else:
+            - logger.log: "Outside of allowed time window"
+
+  # Update wifi status so we can display AP info or connection attempt
+  - interval: 10s
+    then:
+      - if:
+          condition:
+            and:
+              - wifi.connected:
+          then:
+            - lambda: |-
+                ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
+                  id(wifi_status),
+                  id(wifi_mode).state.c_str());  
+          else:
+            - delay: 5s
+            - lambda: |-
+                ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
+                  id(wifi_status),
+                  id(wifi_mode).state.c_str());
+            - component.update: eink_display
+
+display:
+  - platform: waveshare_epaper
+    id: eink_display
+    cs_pin: ${cs_pin} #aka ss #Orange
+    dc_pin: ${dc_pin} # Green
+    busy_pin: ${busy_pin} # Purple
+    reset_pin: ${reset_pin} # White
+    model: 2.13in-ttgo-b74
+    full_update_every: 1
+    update_interval: never # Update from interval or automation only
+    rotation: 270°
+    lambda: |-
+      // Trying to connect to WiFi
+      if(id(wifi_status) == 0 and id(wifi_mode).state == "STA" ){
+        it.printf(125, 50, id(ticker_font), TextAlign::CENTER, "WiFi connecting");      
+        it.printf(125, 90, id(ticker_font), TextAlign::CENTER, "60s timeout...");      
+      }
+
+      // Can't connect to WiFi, in AP mode
+      if(id(wifi_status) == 0 and id(wifi_mode).state == "AP" ){
+        it.printf(125, 10, id(ticker_font), TextAlign::CENTER, "Configure WiFi");      
+        it.printf(125, 35, id(ticker_font), TextAlign::CENTER, "by connecting to");      
+        it.printf(125, 65, id(ticker_font), TextAlign::CENTER, "'Stock Fallback AP'");    
+        it.printf(125, 95, id(wifi_font), TextAlign::CENTER, "You may need to browse to:");      
+        it.printf(125, 110, id(wifi_font), TextAlign::CENTER, "http://192.168.4.1 after connecting");     
+      }
+ 
+      // Normal active WiFi connection
+      if(id(wifi_status) == 1 and id(wifi_mode).state == "STA" ){
+        it.printf(125, 50, id(price_font), TextAlign::CENTER, "$%s", id(price).state.c_str());
+        it.printf(125, 110, id(ticker_font), TextAlign::CENTER, "%s %s%%", id(symbol).state.c_str(), id(change_pct).state.c_str());
+      }
