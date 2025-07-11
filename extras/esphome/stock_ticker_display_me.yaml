@@ -1,5 +1,10 @@
 substitutions:
   name: stock_ticker_display_me
 
+api:
+  #reboot_timeout: 0s # default is 15m
+  encryption:
+    key: !secret encryption_key
+
 packages:
   shared: !include stock_ticker_main.yaml

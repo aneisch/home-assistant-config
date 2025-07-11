@@ -247,6 +247,7 @@ cards:
           - switch.fire_tablet_screen
           - light.andrew_desk_lamp
           - sensor.office_temperature
+          - sensor.netatmo_home_indoor_co2
           - fan.office_ceiling_fan
           - light.office_ceiling_fan
           # - sensor.aquarium_temperature

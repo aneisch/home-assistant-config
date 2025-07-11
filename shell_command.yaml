@@ -29,4 +29,4 @@ trust_signal_identities: ssh nuc '/opt/homeassistant/scripts/trust_signal_identi
 
 weasel_shortcut: ssh weasel 'shortcuts run "{{ shortcut }}"'
 
-sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
+#sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'

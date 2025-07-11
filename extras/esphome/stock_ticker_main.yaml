@@ -33,12 +33,14 @@ wifi:
     then:
       - lambda: |-
           id(wifi_status) = 1;
+          id(eink_display).set_full_update_every(1);
       - delay: 5s
       - component.update: eink_display
   on_disconnect:
     then:
       - lambda: |-
           id(wifi_status) = 0 ;
+          id(eink_display).set_full_update_every(1);
       - component.update: eink_display
 
 # Redirect to WiFi credential input if in AP
@@ -71,16 +73,32 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
+  - id: last_symbol
+    type: std::string
+    initial_value: '""'
+  - id: last_price
+    type: std::string
+    initial_value: '""'
+  - id: last_change_pct
+    type: std::string
+    initial_value: '""'
+  - id: last_timestamp
+    type: std::string
+    initial_value: '""'
+  - id: last_period
+    type: std::string
+    initial_value: '""'
+
 
 font:
   - file: "fonts/Montserrat-Black.ttf"
-    id: ticker_font
+    id: medium
     size: 20
   - file: "fonts/Montserrat-Black.ttf"
-    id: wifi_font
+    id: small
     size: 12
   - file: "fonts/Montserrat-Black.ttf"
-    id: price_font
+    id: large
     size: 50
 
 # Define SPI ports
@@ -94,16 +112,17 @@ http_request:
   verify_ssl: false
   timeout: 10s
 
-# Selectable update interval (use web frontend)
+# Selectable fetch interval (use web frontend to modify)
+# Fetch data and update display if fetched values change
 number:
   - platform: template
-    name: "Update Interval (Seconds)"
+    name: "Refresh Interval (Seconds)"
     id: update_interval
     optimistic: true
     min_value: 30
     max_value: 3600
-    step: 1
-    initial_value: 120
+    step: 10
+    initial_value: 30
     restore_value: true
     mode: box
 
@@ -122,22 +141,11 @@ text:
 # Text sensors to hold values for display or automation
 text_sensor:
   - platform: template
-    name: "Last Update ET"
-    id: timestamp_eastern_time
-    lambda: |-
-      time_t rawtime = strtoul(id(timestamp).state.c_str(), nullptr, 10);
-      char buffer[32];
-      setenv("TZ", "EST5EDT,M3.2.0,M11.1.0", 1);  // Eastern Time with DST rules
-      tzset();
-      struct tm * timeinfo = localtime(&rawtime);
-      strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", timeinfo);
-      return std::string(buffer);
-  - platform: template
-    name: "Last Update Epoch"
+    name: "Last Update"
     id: timestamp
-    on_value:
-      then:
-        - component.update: timestamp_eastern_time
+  - platform: template
+    name: "Market Period"
+    id: period
   - platform: template
     name: "Price"
     id: price
@@ -152,17 +160,20 @@ text_sensor:
     id: wifi_mode
     lambda: |-   
       #ifdef USE_ESP32
+      static std::string last_mode;
       wifi_mode_t mode;
       esp_wifi_get_mode(&mode);
-      if (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) {
-        return {"AP"};
+      std::string new_mode = (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) ? "AP" : "STA";
+      if (new_mode != last_mode) {
+        last_mode = new_mode;
+        return new_mode;
       } else {
-        return {"STA"};
+        return {};
       }
       #else
       return {"N/A"};
       #endif
-    update_interval: 1s
+    update_interval: 5s
 
 switch:
   - platform: template
@@ -172,7 +183,15 @@ switch:
     restore_mode: RESTORE_DEFAULT_ON
 
 script:
-  # Fetch ticker info from http endpoint and update sensor values from fetched JSON
+  - id: partial_update
+    then:
+      - lambda: 'id(eink_display).set_full_update_every(50);'
+      - component.update: eink_display
+      - delay: 300ms
+      - component.update: eink_display
+      - delay: 300ms
+      - component.update: eink_display
+
   - id: fetch_and_update
     then:
       - http_request.get:
@@ -182,11 +201,11 @@ script:
             then:
               - if:
                   condition:
-                      lambda: return response->status_code == 200;
+                    lambda: return response->status_code == 200;
                   then:
                     - lambda: |-
-                        if (body.length() == 0) {
-                          ESP_LOGW("main", "HTTP response body is empty — skipping parse.");
+                        if (body.length() <= 0) {
+                          ESP_LOGW("main", "HTTP response body is empty or unknown length — skipping parse.");
                           id(timestamp).publish_state("N/A");
                           id(symbol).publish_state("N/A");
                           id(price).publish_state("?.??");
@@ -194,56 +213,64 @@ script:
                           return;
                         }
 
-                        ESP_LOGD("main","Fetch got: %s", body.c_str());
-                        json::parse_json(body, [](JsonObject root) -> bool {
-                          bool valid = true;
+                        ESP_LOGD("main", "Raw response: %s", body.c_str());
 
-                          // Last Update
-                          if (root.containsKey("timestamp")) {
-                            id(timestamp).publish_state(root["timestamp"].as<std::string>());
-                          } else {
-                            ESP_LOGW("main", "Missing key: timestamp");
-                            id(timestamp).publish_state("N/A");
-                            valid = false;
-                          }
+                        bool changed = false;
+                        bool valid = true;
 
-                          // Symbol
-                          if (root.containsKey("symbol")) {
-                            id(symbol).publish_state(root["symbol"].as<std::string>());
-                          } else {
-                            ESP_LOGW("main", "Missing key: symbol");
-                            id(symbol).publish_state("N/A");
-                            valid = false;
-                          }
+                        bool parsed = json::parse_json(body, [&](JsonObject root) -> bool {
+                          auto update_if_changed = [&](const char* key, std::string &current, std::string &last, TextSensor *sensor) {
+                            if (root.containsKey(key)) {
+                              current = root[key].as<std::string>();
+                              if (current != last) {
+                                sensor->publish_state(current);
+                                last = current;
+                                changed = true;
+                              }
+                            } else {
+                              ESP_LOGW("main", "Missing key: %s", key);
+                              current = "N/A";
+                              sensor->publish_state(current);
+                              // DO NOT update last = current; allow recovery
+                              changed = true;
+                              valid = false;
+                            }
+                          };
 
-                          // Price
-                          if (root.containsKey("price")) {
-                            id(price).publish_state(root["price"].as<std::string>());
-                          } else {
-                            ESP_LOGW("main", "Missing key: price");
-                            id(price).publish_state("?.??");
-                            valid = false;
-                          }
+                          std::string curr_sym, curr_price, curr_pct, curr_time, curr_period;
 
-                          // Change Percentage
-                          if (root.containsKey("changesPercentage")) {
-                            // Round to two decimals (optional)
-                            float pct = root["changesPercentage"].as<float>();
-                            char formatted[16];
-                            snprintf(formatted, sizeof(formatted), "%.2f", pct);
-                            id(change_pct).publish_state(std::string(formatted));
-                          } else {
-                            ESP_LOGW("main", "Missing key: changesPercentage");
-                            id(change_pct).publish_state("?.??");
-                            valid = false;
-                          }
+                          update_if_changed("symbol", curr_sym, id(last_symbol), id(symbol));
+                          update_if_changed("latestPrice", curr_price, id(last_price), id(price));
+                          update_if_changed("changePercentage", curr_pct, id(last_change_pct), id(change_pct));
+                          update_if_changed("timestamp", curr_time, id(last_timestamp), id(timestamp));
+                          update_if_changed("period", curr_period, id(last_period), id(period));
 
                           return valid;
                         });
-                    - component.update: eink_display
+
+                        if (!parsed) {
+                          ESP_LOGE("main", "Failed to parse JSON — possible Cloudflare block or malformed response.");
+                          return;
+                        }
+
+                        if (changed) {
+                          // Full refresh on first update
+                          if (id(first_update_done) != true){
+                            ESP_LOGD("main", "First update — fully refreshing display");
+                            id(eink_display).update();
+                          }
+                          // Partial refresh on all subsequent
+                          else {
+                            ESP_LOGD("main", "Data changed — partially refreshing display");
+                            // Call Partial Update Script
+                            id(partial_update).execute();
+                          }
+                        } else {
+                          ESP_LOGD("main", "No data changes — skipping display update");
+                        }
                   else:
                     - logger.log:
-                        format: "Error: Response status: %d, message %s"
+                        format: "Error: Response status: %d, body: %s"
                         args: [ 'response->status_code', 'body.c_str()' ]
 
 interval:
@@ -258,11 +285,13 @@ interval:
           then:
             - lambda: |-
                 ESP_LOGD("Display", "Triggered initial display update...");
-            - lambda: "id(first_update_done) = true;"
             - script.execute: fetch_and_update
+            - lambda: "id(first_update_done) = true;"
 
   # Subsequent Updates - Selectable interval for fetch - only update during market hours
-  - interval: 1s
+  # 5s interval so we can increase a counter to check whether we need to refresh the display
+  # Must update the counter at bottom of interval lambda to increment by this interval as well
+  - interval: 10s
     then:
       - if:
           condition:
@@ -276,40 +305,58 @@ interval:
               auto now = id(time_et).now();
               if (!now.is_valid()) return false;
 
-              // Only allow Mon–Fri (0=Sun, 1=Mon, ..., 6=Sat)
-              if (now.day_of_week < 1 || now.day_of_week > 5) {
-                ESP_LOGD("main", "Weekend — skipping.");
+              // Normalize day of week: 0 = Sunday, ..., 6 = Saturday
+              // Force DOW into 0–6 range and fix known offset
+              int dow = (now.day_of_week + 6) % 7;
+              const char* days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+
+              // Now dow is: 0=Sun, 1=Mon, ..., 5=Fri, 6=Sat
+              if (dow < 1 || dow > 5) {
+                ESP_LOGD("main", "Weekend — skipping. Now: %04d-%02d-%02d %02d:%02d:%02d — %s (dow=%d)",
+                now.year, now.month, now.day_of_month,
+                now.hour, now.minute, now.second,
+                days[dow], dow);
                 return false;
               }
 
-              // Compare time to see if the market is open
+              // Allow from 8:00 AM (480) to 8:05 PM (1205) for pre and post market on weekdays
               int minutes_since_midnight = now.hour * 60 + now.minute;
-              // 8:30 AM = 510, 4:00 PM = 960
-              return minutes_since_midnight >= 510 && minutes_since_midnight <= 960;
+              if (minutes_since_midnight >= 480 && minutes_since_midnight <= 1205) {
+                ESP_LOGD("main", "Weekday — evaluating changes. Now: %04d-%02d-%02d %02d:%02d:%02d — %s (dow=%d)",
+                  now.year, now.month, now.day_of_month,
+                  now.hour, now.minute, now.second,
+                  days[dow], dow);
+                return true;
+              }
+
+              // Didn't return, so weekday outside of hours
+              ESP_LOGD("main", "Weekday outside of hours - skipping. Now: %04d-%02d-%02d %02d:%02d:%02d — %s (dow=%d)",
+                now.year, now.month, now.day_of_month,
+                now.hour, now.minute, now.second,
+                days[dow], dow);
+              return false;
           then:
             - lambda: |-
                 static int counter = 0;
-                counter++;
+                counter+=10;
+                counter = std::min(counter, 100000); 
                 if (counter >= id(update_interval).state && id(wifi_status) == 1) {
                   counter = 0;
                   ESP_LOGD("Display", "Triggered update on interval...");
                   id(fetch_and_update).execute();
                 }
-          else:
-            - logger.log: "Outside of allowed time window"
 
   # Update wifi status so we can display AP info or connection attempt
   - interval: 10s
     then:
       - if:
           condition:
-            and:
-              - wifi.connected:
+            - wifi.connected:
           then:
-            - lambda: |-
-                ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
-                  id(wifi_status),
-                  id(wifi_mode).state.c_str());  
+            # - lambda: |-
+            #     ESP_LOGD("main", "Wifi Status: %d Wifi Mode: %s",
+            #       id(wifi_status),
+            #       id(wifi_mode).state.c_str());  
           else:
             - delay: 5s
             - lambda: |-
@@ -326,27 +373,32 @@ display:
     busy_pin: ${busy_pin} # Purple
     reset_pin: ${reset_pin} # White
     model: 2.13in-ttgo-b74
+    # Default/at boot do full display update everytime, this is modified elsewhere
     full_update_every: 1
     update_interval: never # Update from interval or automation only
     rotation: 270°
     lambda: |-
       // Trying to connect to WiFi
       if(id(wifi_status) == 0 and id(wifi_mode).state == "STA" ){
-        it.printf(125, 50, id(ticker_font), TextAlign::CENTER, "WiFi connecting");      
-        it.printf(125, 90, id(ticker_font), TextAlign::CENTER, "60s timeout...");      
+        it.printf(125, 50, id(medium), TextAlign::CENTER, "WiFi connecting");      
+        it.printf(125, 90, id(medium), TextAlign::CENTER, "60s timeout...");      
       }
 
       // Can't connect to WiFi, in AP mode
       if(id(wifi_status) == 0 and id(wifi_mode).state == "AP" ){
-        it.printf(125, 10, id(ticker_font), TextAlign::CENTER, "Configure WiFi");      
-        it.printf(125, 35, id(ticker_font), TextAlign::CENTER, "by connecting to");      
-        it.printf(125, 65, id(ticker_font), TextAlign::CENTER, "'Stock Fallback AP'");    
-        it.printf(125, 95, id(wifi_font), TextAlign::CENTER, "You may need to browse to:");      
-        it.printf(125, 110, id(wifi_font), TextAlign::CENTER, "http://192.168.4.1 after connecting");     
+        it.printf(125, 10, id(medium), TextAlign::CENTER, "Configure WiFi");      
+        it.printf(125, 35, id(medium), TextAlign::CENTER, "by connecting to");      
+        it.printf(125, 65, id(medium), TextAlign::CENTER, "'Stock Fallback AP'");    
+        it.printf(125, 95, id(small), TextAlign::CENTER, "You may need to browse to:");      
+        it.printf(125, 110, id(small), TextAlign::CENTER, "http://192.168.4.1 after connecting");     
       }
  
       // Normal active WiFi connection
       if(id(wifi_status) == 1 and id(wifi_mode).state == "STA" ){
-        it.printf(125, 50, id(price_font), TextAlign::CENTER, "$%s", id(price).state.c_str());
-        it.printf(125, 110, id(ticker_font), TextAlign::CENTER, "%s %s%%", id(symbol).state.c_str(), id(change_pct).state.c_str());
+        it.printf(125, 50, id(large), TextAlign::CENTER, "$%s", id(price).state.c_str());
+        // Show pre-market / post-market tag
+        if (id(period).state == "pre-market" || id(period).state == "after-hours") {
+          it.printf(125, 87, id(small), TextAlign::CENTER, "%s", id(period).state.c_str());
+        }
+        it.printf(125, 110, id(medium), TextAlign::CENTER, "%s %s%%", id(symbol).state.c_str(), id(change_pct).state.c_str());
       }

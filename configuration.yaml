@@ -558,6 +558,12 @@ wemo:
   static:
     - 10.0.1.48
 
+yahoofinance:
+  symbols:
+    - !secret stock_one
+  scan_interval:
+    minutes: 1
+
 # utility_meter:
 #   electric_utilities_monthly:
 #     source: sensor.total_daily_energy

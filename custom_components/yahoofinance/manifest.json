@@ -1,0 +1,12 @@
+{
+  "domain": "yahoofinance",
+  "name": "Yahoo Finance",
+  "documentation": "https://github.com/iprak/yahoofinance",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": [
+    "@iprak"
+  ],
+  "issue_tracker": "https://github.com/iprak/yahoofinance/issues",
+  "version": "1.3.1"
+}

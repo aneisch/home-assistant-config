@@ -584,8 +584,11 @@ services:
             - traefik.enable=true
             - traefik.http.routers.nginx.entrypoints=websecure
             - traefik.http.routers.nginx.tls=true
-            - traefik.http.routers.nginx.rule=Host(`heatmap.domain.com`)
+            - traefik.http.routers.nginx.rule=Host(`heatmap.domain.com`) || Host(`stock.aneis.ch`)
             - traefik.http.services.nginx.loadbalancer.server.port=8080
+            # This is required so ESPHome gets a content-length header (if it's compressed/chunked it won't and will fail)
+            - traefik.http.middlewares.no_compress.headers.customrequestheaders.Accept-Encoding=''
+            - traefik.http.routers.nginx.middlewares=no_compress@docker
             - traefik.http.routers.nginx.service=nginx
 
     traefik:
