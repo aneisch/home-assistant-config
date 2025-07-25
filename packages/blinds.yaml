@@ -276,6 +276,7 @@ automation:
                     # Moved from below
                     - cover.office_blinds
                     - cover.dining_room_blinds
+                    - cover.master_bedroom_blinds
           # - conditions: "{{ trigger.id == 'late' }}"
           #   alias: Close Blinds Late
           #   sequence:

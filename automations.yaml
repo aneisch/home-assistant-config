@@ -240,19 +240,6 @@
       data:
         type: tts
       message: Help is on the way
-- alias: Bluebubbles Server Webhook
-  id: bluebubbles_server_webhook
-  initial_state: true
-  trigger:
-    platform: webhook
-    webhook_id: SECRET
-    local_only: false
-  action:
-  - action: input_text.set_value
-    target:
-      entity_id: input_text.bluebubbles_url
-    data:
-      value: '{{ trigger.json.data }}'
 - alias: Cellular Message Health
   id: cellular_message_health
   trigger:
@@ -615,11 +602,14 @@
             ''home'') %}1{% else %}0{% endif %}'
 - id: webhook_debugger
   alias: Webhook Debugger
-  trigger:
-  - platform: webhook
-    webhook_id: hihihi
+  triggers:
+  - webhook_id: hihihi
     local_only: false
-  action:
+    trigger: webhook
+    allowed_methods:
+    - POST
+    - PUT
+  actions:
   - action: persistent_notification.create
     data:
       message: "{% if 'data' in trigger %}\n  Data: {{ dict(trigger.data)|tojson }}\n{%
@@ -659,6 +649,18 @@
   action:
   - action: homeassistant.turn_on
     entity_id: switch.docker_watchtower
+- id: watchtower_notifications
+  alias: Watchtower Notifications
+  triggers:
+  - webhook_id: watchtower_notifications
+    local_only: false
+    trigger: webhook
+    allowed_methods:
+    - POST
+  actions:
+  - action: notify.signal_homeassistant
+    data:
+      message: "{{ trigger.json.message }}"
 - id: update_utility_costs
   alias: Update Utility Costs
   trigger:
@@ -1004,20 +1006,6 @@
         message: 'Rain started!
 
           '
-- alias: Frozen Refrigerator
-  id: frozen_refrigerator
-  trigger:
-  - platform: numeric_state
-    entity_id: sensor.refrigerator_power
-    above: 50
-    for: 03:00:00
-  action:
-  - action: notify.signal_homeassistant
-    data:
-      message: 'Refrigerator power consumption >50W for three hours. Is it frozen
-        up?
-
-        '
 - alias: House secure at night reminder
   id: house_secure_night_reminder
   trigger:
@@ -1276,3 +1264,26 @@
 
         '
   mode: single
+- id: '1752592390722'
+  alias: ESPHome Device Offline Notification
+  description: ESPHome Device Unavailable for 1 Minute
+  triggers:
+  - entity_id:
+    - binary_sensor.solark_sol_ark_grid_connected_status
+    - binary_sensor.garage_interior_door
+    - sensor.emporia_view_emporia_view_ip_address
+    to:
+    - unavailable
+    - unknown
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    trigger: state
+  actions:
+  - action: script.notify_wrapper
+    data:
+      message: '{{ state_attr(trigger.entity_id,''friendly_name'') }} {{ trigger.to_state.state
+        }} for 1 minute.'
+  mode: parallel
+  max: 10

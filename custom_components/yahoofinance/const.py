@@ -147,12 +147,13 @@ GET_CRUMB_URL: Final = "https://query2.finance.yahoo.com/v1/test/getcrumb"
 INITIAL_REQUEST_HEADERS: Final = {
     "accept": "text/html,application/xhtml+xml,application/xml",
     "accept-language": "en-US,en;q=0.9",
+    "user-agent": "Mozilla/5.0",
 }
 """ Headers for INITIAL_URL. The limited headers are an attempt to avoid `Got more than 8190 byte` error. """
 
 USER_AGENTS_FOR_XHR: Final = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
     "Mozilla/5.0",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
 ]
 
 XHR_REQUEST_HEADERS: Final = {

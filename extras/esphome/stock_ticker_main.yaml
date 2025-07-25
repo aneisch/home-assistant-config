@@ -53,8 +53,9 @@ time:
 
 # Allow WiFi OTA firmware update
 ota:
-  platform: esphome
-  password: esphome_recovery
+  - platform: esphome
+    password: esphome_recovery
+  - platform: web_server  # Add this for web-based OTA uploads
 
 logger:
   level: DEBUG
@@ -73,22 +74,6 @@ globals:
     type: bool
     restore_value: no
     initial_value: "false"
-  - id: last_symbol
-    type: std::string
-    initial_value: '""'
-  - id: last_price
-    type: std::string
-    initial_value: '""'
-  - id: last_change_pct
-    type: std::string
-    initial_value: '""'
-  - id: last_timestamp
-    type: std::string
-    initial_value: '""'
-  - id: last_period
-    type: std::string
-    initial_value: '""'
-
 
 font:
   - file: "fonts/Montserrat-Black.ttf"
@@ -219,14 +204,12 @@ script:
                         bool valid = true;
 
                         bool parsed = json::parse_json(body, [&](JsonObject root) -> bool {
-                          auto update_if_changed = [&](const char* key, std::string &current, std::string &last, TextSensor *sensor) {
+                          auto update_if_changed = [&](const char* key, std::string &current, TextSensor *sensor) {
                             if (root.containsKey(key)) {
                               current = root[key].as<std::string>();
-                              if (current != last) {
-                                sensor->publish_state(current);
-                                last = current;
-                                changed = true;
-                              }
+                              sensor->publish_state(current);
+                              changed = true;
+
                             } else {
                               ESP_LOGW("main", "Missing key: %s", key);
                               current = "N/A";
@@ -239,11 +222,11 @@ script:
 
                           std::string curr_sym, curr_price, curr_pct, curr_time, curr_period;
 
-                          update_if_changed("symbol", curr_sym, id(last_symbol), id(symbol));
-                          update_if_changed("latestPrice", curr_price, id(last_price), id(price));
-                          update_if_changed("changePercentage", curr_pct, id(last_change_pct), id(change_pct));
-                          update_if_changed("timestamp", curr_time, id(last_timestamp), id(timestamp));
-                          update_if_changed("period", curr_period, id(last_period), id(period));
+                          update_if_changed("symbol", curr_sym, id(symbol));
+                          update_if_changed("latestPrice", curr_price, id(price));
+                          update_if_changed("changePercentage", curr_pct, id(change_pct));
+                          update_if_changed("timestamp", curr_time, id(timestamp));
+                          update_if_changed("period", curr_period, id(period));
 
                           return valid;
                         });

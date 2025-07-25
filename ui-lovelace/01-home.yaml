@@ -312,8 +312,8 @@ cards:
           # - sensor.neighbor_rain_total
           # - sensor.neighbor_rain_last_1_hour
           # - sensor.neighbor_rain_last_24_hours
-          - sensor.netatmo_home_rain_sum_rain_last_hour_inches
-          - sensor.netatmo_home_rain_sum_rain_today_inches
+          # - sensor.netatmo_home_rain_sum_rain_last_hour_inches
+          # - sensor.netatmo_home_rain_sum_rain_today_inches
           - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
           - sensor.deep_freeze_temperature

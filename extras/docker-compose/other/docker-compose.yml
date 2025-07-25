@@ -239,17 +239,18 @@ services:
         environment:
             - WATCHTOWER_CLEANUP=true
             - WATCHTOWER_NO_STARTUP_MESSAGE=true
-            - WATCHTOWER_NOTIFICATIONS_LEVEL=info
             - WATCHTOWER_INCLUDE_STOPPED=true
-            - WATCHTOWER_NOTIFICATIONS=email
-            - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
-            - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
-            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
-            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
-            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
-            - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
-            - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
-            - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
+            - WATCHTOWER_NOTIFICATION_URL=generic://10.0.1.22:8123/api/webhook/watchtower_notifications?disabletls=yes
+            - 'WATCHTOWER_NOTIFICATION_TEMPLATE={"message":"NUC {{range .}}{{.Message}}\n{{end}}"}'
+            # - WATCHTOWER_NOTIFICATIONS=email
+            # - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
         #command: --schedule "00 00 12 * * *"
         command: --run-once
 
@@ -511,7 +512,7 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta2
+        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta4
         #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:

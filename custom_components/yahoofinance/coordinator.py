@@ -101,7 +101,9 @@ class CrumbCoordinator:
                 return None
 
         if self.cookies_missing():
-            LOGGER.error("Attempting to get crumb but have no cookies")
+            LOGGER.warning(
+                "Attempting to get crumb but have no cookies, the operation might fail"
+            )
 
         await self.try_crumb_page()
         return self.crumb
@@ -312,7 +314,7 @@ class CrumbCoordinator:
         """Build consent form data from response content."""
         pattern = r'<input.*?type="hidden".*?name="(.*?)".*?value="(.*?)".*?>'
         matches = re.findall(pattern, content)
-        basic_data = {"reject": "reject"}
+        basic_data = {"reject": "reject"}  # From "Reject" submit button
         additional_data = dict(matches)
         return {**basic_data, **additional_data}
 

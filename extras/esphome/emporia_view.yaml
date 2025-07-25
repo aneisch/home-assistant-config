@@ -143,7 +143,7 @@ sensor:
   - platform: template
     name: "Total Power"
     lambda: return id(phase_a_power).state + id(phase_b_power).state;
-    update_interval: 1s
+    update_interval: 5s
     id: total_power
     unit_of_measurement: "W"
   - platform: total_daily_energy

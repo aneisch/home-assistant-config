@@ -93,20 +93,20 @@ text_sensor:
   - platform: homeassistant
     entity_id: weather.kcll_daynight
     id: myWeather
-  # - platform: homeassistant
-  #   entity_id: sensor.433_weather_temperature
-  #   id: temp
   - platform: homeassistant
-    entity_id: weather.kcll_daynight
+    entity_id: sensor.433_weather_temperature
     id: temp
-    attribute: "temperature"
   # - platform: homeassistant
-  #   entity_id: sensor.433_weather_humidity
-  #   id: humi
+  #   entity_id: weather.kcll_daynight
+  #   id: temp
+  #   attribute: "temperature"
   - platform: homeassistant
-    entity_id: weather.kcll_daynight
+    entity_id: sensor.433_weather_humidity
     id: humi
-    attribute: "humidity"
+  # - platform: homeassistant
+  #   entity_id: weather.kcll_daynight
+  #   id: humi
+  #   attribute: "humidity"
   - platform: homeassistant
     entity_id: weather.kcll_daynight
     id: press
