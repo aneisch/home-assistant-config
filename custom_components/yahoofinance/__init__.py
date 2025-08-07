@@ -14,6 +14,7 @@ from homeassistant.const import CONF_SCAN_INTERVAL, SERVICE_RELOAD, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import discovery, entity_registry as er
+from homeassistant.helpers.aiohttp_client import async_create_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.reload import async_integration_yaml_config
@@ -46,6 +47,7 @@ from .const import (
     HASS_DATA_COORDINATORS,
     LOGGER,
     MANUAL_SCAN_INTERVAL,
+    MAX_LINE_SIZE,
     MINIMUM_SCAN_INTERVAL,
     SERVICE_REFRESH,
 )
@@ -219,8 +221,13 @@ async def _async_process_yaml(hass: HomeAssistant, config: ConfigType) -> None:
     }
 
     async def _setup_coordinators(now=None) -> None:
+        # Testing showed that the response header for initial request can up to 40KB
+        websession = async_create_clientsession(
+            hass, max_field_size=MAX_LINE_SIZE, max_line_size=MAX_LINE_SIZE
+        )
+
         # Using a static instance to keep the last successful cookies.
-        crumb_coordinator = CrumbCoordinator.get_static_instance(hass)
+        crumb_coordinator = CrumbCoordinator.get_static_instance(hass, websession)
 
         crumb = await crumb_coordinator.try_get_crumb_cookies()  # Get crumb first
         if crumb is None:
@@ -237,7 +244,7 @@ async def _async_process_yaml(hass: HomeAssistant, config: ConfigType) -> None:
                 symbols,
             )
             coordinator = YahooSymbolUpdateCoordinator(
-                symbols, hass, key_scan_interval, crumb_coordinator
+                symbols, hass, key_scan_interval, crumb_coordinator, websession
             )
             coordinators[key_scan_interval] = coordinator
 

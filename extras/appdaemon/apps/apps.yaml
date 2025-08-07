@@ -39,6 +39,7 @@ AC Automation Solar:
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
+  grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 3000       # in watts (excess solar triggers this)
   battery_boost_threshold: 95       # battery SOC for boost activation
   cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
@@ -48,9 +49,12 @@ AC Automation Solar:
 EV Charge Control:
   module: ev_charger_smart_control
   class: EvChargerSmartControl
+  constrain_person: anyone
   ev_switch: switch.emporia_charger
+  ev_device_tracker: device_tracker.tesla_location
   solar_sensor: sensor.solark_sol_ark_solar_power
   grid_export_sensor: sensor.solark_sol_ark_grid_power
+  grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   battery_sensor: sensor.solark_sol_ark_battery_soc
   override_entity: input_boolean.ev_charge_override
   amps_override_entity: input_number.tesla_charge_rate_master
@@ -80,7 +84,7 @@ Kitchen Timer Sync:
 # Set Smallgroup Boolean On:
 #   module: entity_timer
 #   class: Timer
-#   constrain_presence: anyone
+#   constrain_person: anyone
 #   constrain_days: thu
 #   time_on: "05:00:00"
 #   entities: input_boolean.is_smallgroup
@@ -217,6 +221,7 @@ Bethany Office Hanging Lights:
 Tablet Screen Follow:
   module: follow_me
   class: Follow
+  constrain_person: anyone
   leader: binary_sensor.weasel_active
   follower: switch.fire_tablet_screen,media_player.office_photo_frame
 
@@ -316,7 +321,7 @@ NAS:
 #   entities: switch.garage_dyson
 #   time_on: "15:00:00"
 #   time_off: "18:00:00"
-#   constrain_presence: anyone
+#   constrain_person: anyone
 
 AC Filter Change:
   module: countdown_notify
@@ -433,7 +438,7 @@ Indoor Light Automation Sunset:
   class: Timer
   constrain_input_boolean: 
     - input_boolean.house_lamps_automation
-  constrain_presence: anyone
+  constrain_person: anyone
   time_on: sunset - 00:20:00
   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
   brightness: 255
@@ -445,7 +450,7 @@ Guest Light Automation Sunset:
   constrain_input_boolean: 
     - input_boolean.house_lamps_automation
     - input_boolean.guest_mode
-  constrain_presence: anyone
+  constrain_person: anyone
   time_on: sunset - 00:20:00
   entities: light.guest_bedroom_nightstand_lamp,light.back_bedroom_nightstand_lamp,light.back_bedroom_dresser_lamp
   brightness: 255
@@ -543,7 +548,7 @@ TV Automation Smallgroup:
 # Candles Follow:
 #   module: follow_me
 #   class: Follow
-#   constrain_presence: anyone
+#   constrain_person: anyone
 #   constrain_input_boolean: 
 #    - input_boolean.house_lamps_automation
 #   leader: light.master_bedroom_lamps

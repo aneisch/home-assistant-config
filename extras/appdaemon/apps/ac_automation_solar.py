@@ -33,7 +33,6 @@ class AutoAdjust(hass.Hass):
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_load_power")
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_battery_soc")
 
-
         # Presence detection
         if "device_tracker" in self.args:
             self.listen_state(self.presence_adjust, self.args["device_tracker"])

@@ -76,13 +76,22 @@ globals:
     initial_value: "false"
 
 font:
-  - file: "fonts/Montserrat-Black.ttf"
+  - file:
+      type: gfonts
+      family: Montserrat
+      weight: 900
     id: medium
     size: 20
-  - file: "fonts/Montserrat-Black.ttf"
+  - file:
+      type: gfonts
+      family: Montserrat
+      weight: 900
     id: small
     size: 12
-  - file: "fonts/Montserrat-Black.ttf"
+  - file:
+      type: gfonts
+      family: Montserrat
+      weight: 900
     id: large
     size: 50
 

@@ -17,7 +17,6 @@ import aiohttp
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import event
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
@@ -54,7 +53,7 @@ class CrumbCoordinator:
     preferred_user_agent = ""
     """The preferred (last successeful) user agent."""
 
-    def __init__(self, hass: HomeAssistant) -> None:
+    def __init__(self, hass: HomeAssistant, websession: aiohttp.ClientSession) -> None:
         """Initialize."""
 
         self.cookies: SimpleCookie[str] = None
@@ -67,12 +66,15 @@ class CrumbCoordinator:
         """Crumb retry request delay."""
 
         self._crumb_retry_count = 0
+        self._websession = websession
 
     @staticmethod
-    def get_static_instance(hass: HomeAssistant) -> CrumbCoordinator:
-        """Return the static CrumbCoordinator instance."""
+    def get_static_instance(
+        hass: HomeAssistant, websession: aiohttp.ClientSession
+    ) -> CrumbCoordinator:
+        """Get the singleton static CrumbCoordinator instance."""
         if CrumbCoordinator._instance is None:
-            CrumbCoordinator._instance = CrumbCoordinator(hass)
+            CrumbCoordinator._instance = CrumbCoordinator(hass, websession)
         return CrumbCoordinator._instance
 
     def reset(self) -> None:
@@ -116,11 +118,10 @@ class CrumbCoordinator:
 
         """
 
-        websession = async_get_clientsession(self._hass)
         LOGGER.debug("Navigating to base page %s", url)
 
         try:
-            async with websession.get(
+            async with self._websession.get(
                 url,
                 headers=INITIAL_REQUEST_HEADERS,
                 timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
@@ -162,13 +163,13 @@ class CrumbCoordinator:
     async def process_consent(self, consent_data: ConsentData) -> bool:
         """Process GDPR consent."""
 
-        websession = async_get_clientsession(self._hass)
+        # websession = async_get_clientsession(self._hass)
         form_data = self.build_consent_form_data(consent_data.consent_content)
         LOGGER.debug("Posting consent %s", str(form_data))
 
         try:
             async with asyncio.timeout(REQUEST_TIMEOUT):
-                response = await websession.post(
+                response = await self._websession.post(
                     consent_data.consent_post_url,
                     data=form_data,
                     headers=INITIAL_REQUEST_HEADERS,
@@ -212,14 +213,13 @@ class CrumbCoordinator:
         """Try to get crumb from the end point."""
 
         LOGGER.info("Accessing crumb page")
-        websession = async_get_clientsession(self._hass)
         timeout = aiohttp.ClientTimeout(total=REQUEST_TIMEOUT)
         last_status = 0
 
         for user_agent in USER_AGENTS_FOR_XHR:
             headers = {**XHR_REQUEST_HEADERS, "user-agent": user_agent}
 
-            async with websession.get(
+            async with self._websession.get(
                 GET_CRUMB_URL, headers=headers, timeout=timeout, cookies=self.cookies
             ) as response:
                 last_status = response.status
@@ -375,12 +375,13 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         hass: HomeAssistant,
         update_interval: timedelta,
         cc: CrumbCoordinator,
+        webSession: aiohttp.ClientSession,
     ) -> None:
         """Initialize."""
         self._symbols = symbols
         self.data = None
         self.loop = hass.loop
-        self.websession = async_get_clientsession(hass)
+        self.websession = webSession
         self._failure_update_interval = timedelta(seconds=FAILURE_ASYNC_REQUEST_REFRESH)
         self._cc = cc
 
@@ -515,7 +516,7 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
                 # Reset crumb so that it gets recalculated
                 if finance_error_code == "Unauthorized":
-                    LOGGER.log("Resetting crumbs")
+                    LOGGER.info("Resetting crumbs")
                     self._cc.reset()
 
             else:

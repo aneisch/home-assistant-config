@@ -512,7 +512,7 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:0.16.0-beta4
+        image: ghcr.io/blakeblackshear/frigate:0.16.0-rc2
         #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:

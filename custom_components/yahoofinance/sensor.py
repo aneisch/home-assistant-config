@@ -41,6 +41,7 @@ from .const import (
     DATA_CURRENCY_SYMBOL,
     DATA_DIVIDEND_DATE,
     DATA_FINANCIAL_CURRENCY,
+    DATA_LONG_NAME,
     DATA_MARKET_STATE,
     DATA_POST_MARKET_TIME,
     DATA_PRE_MARKET_TIME,
@@ -100,7 +101,9 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
     _currency = DEFAULT_CURRENCY
     _icon = None
     _market_price = None
-    _short_name = None
+    _long_name = None
+    _short_name: str | None = None
+    _symbol: str
     _target_currency = None
     _original_currency = None
     _last_available_timer = None
@@ -202,7 +205,13 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
     def name(self) -> str:
         """Return the name of the sensor."""
         if self._short_name is not None:
-            return self._short_name
+            # In UK regions, shortName was reported to be the same as symbol.
+            # Falling to longName if that is available in that case.
+            if self._short_name.lower() == self._symbol.lower():
+                if self._long_name is not None:
+                    return self._long_name
+            else:
+                return self._short_name
 
         return self._symbol
 
@@ -344,6 +353,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         conversion = self._get_target_currency_conversion()
 
         self._short_name = symbol_data[DATA_SHORT_NAME]
+        self._long_name = symbol_data[DATA_LONG_NAME]
 
         market_price = symbol_data[DATA_REGULAR_MARKET_PRICE]
         self._market_price = self.safe_convert(market_price, conversion)

@@ -10,9 +10,11 @@ class EvChargerSmartControl(hass.Hass):
         self.solar_sensor = self.args["solar_sensor"]
         self.battery_sensor = self.args["battery_sensor"]
         self.grid_export_sensor = self.args["grid_export_sensor"]
+        self.grid_state_sensor = self.args["grid_state_sensor"]
         self.override_entity = self.args.get("override_entity", "input_boolean.ev_charge_override")
         self.amps_override_entity = self.args.get("amps_override_entity", "input_number.ev_charge_amps_override")
         self.vehicle_battery_soc = self.args["vehicle_battery_soc"]
+        self.ev_device_tracker = self.args["ev_device_tracker"]
 
         self.min_amps = int(self.args.get("min_amps", 6))
         self.max_amps = int(self.args.get("max_amps", 40))
@@ -24,15 +26,27 @@ class EvChargerSmartControl(hass.Hass):
         self.last_update_ts = 0  # time.time() format
 
         # Listen for changes
+        self.listen_state(self.evaluate_conditions, self.ev_device_tracker)
         self.listen_state(self.evaluate_conditions, self.vehicle_battery_soc)
         self.listen_state(self.evaluate_conditions, self.solar_sensor)
         self.listen_state(self.evaluate_conditions, self.grid_export_sensor)
+        self.listen_state(self.evaluate_conditions, self.grid_state_sensor)
         self.listen_state(self.evaluate_conditions, self.battery_sensor)
         self.listen_state(self.evaluate_conditions, self.override_entity)
         self.listen_state(self.evaluate_conditions, self.amps_override_entity)
         self.evaluate_conditions(None, None, None, None, None)
 
     def evaluate_conditions(self, entity, attribute, old, new, kwargs):
+        # Disable/enable charging with grid availability
+        if entity == self.grid_state_sensor:
+            if new == "off":
+                self.log("Grid offline - disabling EV charging")
+                self._set_charger_state(False, now)
+                return
+            elif new == "on":
+                self.log("Grid online - enabling EV charging")
+                self._set_charger_state(True, now)
+
         now = datetime.now()
         # Only debounce solar changes, not override boolean or override rate
         if now - self.last_change < timedelta(minutes=self.debounce_minutes) and entity not in [self.amps_override_entity, self.override_entity]:
@@ -44,7 +58,7 @@ class EvChargerSmartControl(hass.Hass):
             vehicle_soc = float(self.get_state(self.vehicle_battery_soc))
             if vehicle_soc < 30:
                 amps = self.max_amps
-                self.log(f"Vehicle SoC low ({vehicle_soc}%) - charging at max rate: {amps}A")
+                self.log(f"Vehicle SoC low < 30% ({vehicle_soc}%) - charging at max rate: {amps}A")
                 self._set_charger_amps_and_state(amps, True, now)
                 return
         except (TypeError, ValueError):
@@ -110,6 +124,7 @@ class EvChargerSmartControl(hass.Hass):
         elif home_battery_soc < self.battery_threshold: #and surplus <= 0:
             self.log("Home battery low - disabling EV charging")
             self._set_charger_state(False, now)
+            return
 
         # # Home battery below threshold with some surplus
         # else:

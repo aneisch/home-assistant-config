@@ -1,0 +1,25 @@
+# Display some things in red if conditions are met
+type: vertical-stack
+cards:
+  # Flume sensor disconnected
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.flume_sensor_home_connectivity
+        state: 'off'
+    card:
+      type: markdown
+      content: |
+        <font color='red'>Flume Sensor Disconnected</font>
+  # Camera detection Disabled
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.any_object_detection_disabled
+        state: 'on'
+    card:
+      type: markdown
+      content: |
+        {% for camera in ["front_door","garage","driveway","back_porch"] %}
+        {% if is_state('switch.' + camera + "_detect", "off") %}  
+          <font color='red'>{{ state_attr('camera.' + camera, 'friendly_name') }} Object Detection is Off</font>
+        {% endif %}
+        {% endfor %}

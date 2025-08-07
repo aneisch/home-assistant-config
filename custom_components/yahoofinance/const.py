@@ -29,6 +29,7 @@ DATA_CURRENCY_SYMBOL: Final = "currency"
 DATA_FINANCIAL_CURRENCY: Final = "financialCurrency"
 DATA_QUOTE_TYPE: Final = "quoteType"
 DATA_QUOTE_SOURCE_NAME: Final = "quoteSourceName"
+DATA_LONG_NAME: Final = "longName"
 DATA_SHORT_NAME: Final = "shortName"
 DATA_MARKET_STATE: Final = "marketState"
 DATA_DIVIDEND_DATE: Final = "dividendDate"
@@ -132,6 +133,7 @@ STRING_DATA_KEYS: Final = [
     DATA_FINANCIAL_CURRENCY,
     DATA_QUOTE_TYPE,
     DATA_QUOTE_SOURCE_NAME,
+    DATA_LONG_NAME,
     DATA_SHORT_NAME,
     DATA_MARKET_STATE,
 ]
@@ -181,6 +183,9 @@ CRUMB_RETRY_DELAY_429: Final = 60
 
 TOO_MANY_CRUMB_RETRY_FAILURES_DELAY: Final = 300
 TOO_MANY_CRUMB_RETRY_FAILURES_COUNT: Final = 5
+
+MAX_LINE_SIZE: Final = 8190 * 5
+"""Overide the default aiohttp max line size to avoid `Got more than 8190 byte` error."""
 
 CURRENCY_CODES: Final = {
     "aud": "$",

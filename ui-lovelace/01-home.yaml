@@ -5,7 +5,7 @@ cards:
   - !include .cards/grill.yaml
   - !include .cards/water_flow.yaml
   - !include .cards/water_flow_s3.yaml
-  - !include .cards/camera_detect.yaml
+  - !include .cards/alerts.yaml
   - !include .cards/is_smallgroup.yaml
 
   - type: custom:vertical-stack-in-card
@@ -275,21 +275,24 @@ cards:
 
   - type: entities
     entities:
-      - entity: input_text.kitchen_frame_url
-        name: 'Enter URL Here:'
-        type: 'custom:text-input-row'
-      - action_name: Launch URL
+      - action_name: Launch Fotoo
         icon: 'mdi:voice'
         name: ' '
-        service: script.photo_frame_launch_url
         type: call-service
+        service: script.photo_frame_launch_fotoo
         service_data:
-          entity_id: media_player.kitchen_photo_frame
-      - action_name: Launch Mealie
+          entity_id: 
+            - media_player.kitchen_photo_frame
+            - media_player.office_photo_frame
+      - action_name: Launch Timers
         icon: 'mdi:voice'
         name: ' '
-        service: script.photo_frame_launch_mealie
         type: call-service
+        service: script.photo_frame_launch_timers
+        service_data:
+          entity_id: 
+            - media_player.kitchen_photo_frame
+            - media_player.office_photo_frame
 
   - type: custom:vertical-stack-in-card
     cards:
