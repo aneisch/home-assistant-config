@@ -255,11 +255,11 @@ cards:
         name: Rear Right Tire Pressure
       - entity: sensor.tesla_active_route_destination
         name: Active Route Destination
-      - entity: sensor.tesla_active_route_energy_at_arrival
-        name: Active Route Energy at Arrival
+      # - entity: sensor.tesla_active_route_energy_at_arrival
+      #   name: Active Route Energy at Arrival
       - entity: sensor.tesla_active_route_distance_to_arrival_mi
         name: Active Route Distance to Arrival (mi)
       - entity: sensor.tesla_active_route_minutes_to_arrival
         name: Active Route Minutes to Arrival
-      - entity: sensor.tesla_active_route_traffic_minutes_delay
-        name: Active Route Traffic Minutes Delay
+      # - entity: sensor.tesla_active_route_traffic_minutes_delay
+      #   name: Active Route Traffic Minutes Delay

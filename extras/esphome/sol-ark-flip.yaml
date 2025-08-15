@@ -30,12 +30,12 @@ esp32:
 
 <<: !include common.yaml
 
-# Enable webserver
-# web_server:
-#   port: 80
-#   version: 2
-#   #log: false
-#   ota: false
+#Enable webserver
+web_server:
+  port: 80
+  version: 2
+  log: false
+  ota: false
 
 # Enable time component to reset energy at midnight
 # https://esphome.io/components/time.html#home-assistant-time-source
@@ -87,6 +87,13 @@ light:
     pin: 8
     restore_mode: RESTORE_AND_OFF
     num_leds: 1
+    effects:
+      - pulse:
+          name: Breathe
+          transition_length: 2s
+          update_interval: 2s
+          min_brightness: 10%
+          max_brightness: 80%
 
 #Set the interval to sync your inverter time with HA or comment out to disable 
 interval:
@@ -190,7 +197,7 @@ sensor:
       - lambda: return x * (9.0/5.0) + 32.0;
     unit_of_measurement: "°F"
 
-  - platform: modbus_controller            # 182 Battery Temperature
+  - platform: modbus_controller            # 182 Battery Temperature - this is wrong -103f
     modbus_controller_id: inverter
     name: "${friendly_name} Battery Temperature"
     id: inverter_esphome_battery_temperature
@@ -523,7 +530,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
 
-  - platform: modbus_controller            # 167 Grid L1 Power
+  - platform: modbus_controller            # 167 Grid L1 Power - this is wrong, negative when imoprting?
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L1 Power"
     id: inverter_esphome_grid_power_l1_167
@@ -535,7 +542,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
 
-  - platform: modbus_controller            # 168 Grid L2 Power
+  - platform: modbus_controller            # 168 Grid L2 Power - this is wrong, negative when imoprting?
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L2 Power"
     id: inverter_esphome_grid_power_l2_168
@@ -967,6 +974,7 @@ sensor:
     id: inverter_esphome_day_grid_import_cost
     unit_of_measurement: "$"
     icon: "mdi:currency-usd"
+    accuracy_decimals: 2
     lambda: |-
       if (id(inverter_esphome_day_grid_import).has_state()) {
         return id(inverter_esphome_day_grid_import).state * ${import_rate};
@@ -980,6 +988,7 @@ sensor:
     name: "${friendly_name} Day Grid Export Credit"
     id: inverter_esphome_day_grid_export_credit
     unit_of_measurement: "$"
+    accuracy_decimals: 2
     icon: "mdi:currency-usd"
     lambda: |-
       if (id(inverter_esphome_day_grid_export).has_state()) {
@@ -1043,7 +1052,7 @@ sensor:
     state_class: total_increasing
     value_type: U_DWORD_R
     filters:
-      - multiply: 0.1
+      - multiply: 0.001
 
   - platform: modbus_controller            # 096 Total PV Energy
     modbus_controller_id: inverter
@@ -1051,12 +1060,12 @@ sensor:
     id: inverter_esphome_total_pv_energy
     register_type: holding
     address: 96
-    unit_of_measurement: "kWh"
+    unit_of_measurement: "Wh"
     accuracy_decimals: 2
     device_class: energy
     state_class: total_increasing
     filters:
-      - multiply: 0.1
+      - multiply: 0.001
     value_type: U_DWORD_R  
 
   - platform: modbus_controller            # 108 Day PV Energy
@@ -1125,7 +1134,7 @@ sensor:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Grid Import Energy
+  - platform: total_daily_energy           # Day Grid Import Energy - this is wrong, shows 0 (because it's via CT)
     name: "${friendly_name} Day Grid Import Energy Local"
     power_id: inverter_esphome_grid_ct_power_import
     unit_of_measurement: 'kWh'
@@ -1137,7 +1146,7 @@ sensor:
       # Multiplication factor from W to kW is 0.001
       - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Grid Export Energy
+  - platform: total_daily_energy           # Day Grid Export Energy - this is wrong, shows 0 (because it's via CT)
     name: "${friendly_name} Day Grid Export Energy Local"
     power_id: inverter_esphome_grid_ct_power_export
     unit_of_measurement: 'kWh'
@@ -1151,22 +1160,22 @@ sensor:
 
 ############################################### TEMPERATURE ################################################
 
-  - platform: modbus_controller            # 090 DC Transformer Temperature
-    modbus_controller_id: inverter
-    name: "${friendly_name} DC Transformer Temperature"
-    id: inverter_esphome_dc_transformer_temperature
-    register_type: holding
-    address: 090
-    unit_of_measurement: "°C"
-    accuracy_decimals: 1
-    device_class: temperature
-    state_class: measurement
-    value_type: S_WORD
-    filters:
-      - offset: -1000
-      - multiply:  0.1
+  # - platform: modbus_controller            # 090 DC Transformer Temperature - this is wrong -220.7F - Not used in 15k according to https://github.com/chuyskywalker/solark-esphome/blob/main/gen_sa_yaml.py#L302
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} DC Transformer Temperature"
+  #   id: inverter_esphome_dc_transformer_temperature
+  #   register_type: holding
+  #   address: 090
+  #   unit_of_measurement: "°C"
+  #   accuracy_decimals: 1
+  #   device_class: temperature
+  #   state_class: measurement
+  #   value_type: S_WORD
+  #   filters:
+  #     - offset: -1000
+  #     - multiply:  0.1
 
-  - platform: modbus_controller            # 091 Radiator Temperature
+  - platform: modbus_controller            # 091 Radiator Temperature - this is wrong -62.7F?
     modbus_controller_id: inverter
     name: "${friendly_name} Radiator Temperature"
     id: inverter_esphome_radiator_temperature
@@ -1177,9 +1186,14 @@ sensor:
     device_class: temperature
     state_class: measurement
     value_type: S_WORD
+    # filters:
+    #   - offset: -1000
+    #   - multiply:  0.1
     filters:
-      - offset: -1000
-      - multiply:  0.1
+    - calibrate_linear:
+      - 438 -> -56.2
+      - 1000 -> 0
+      - 1505 -> 50.5
 
 ################################################ READ SETTINGS #############################################
 
@@ -1768,13 +1782,26 @@ text_sensor:
                   red: 0%
                   green: 100%
                   blue: 0%
+                  effect: none
             else:
-              - light.turn_on:
-                  id: onboard_rgb
-                  brightness: 20%
-                  red: 100%
-                  green: 0%
-                  blue: 0%
+              - if:
+                  condition:
+                    lambda: 'return x == "standby";'
+                  then:
+                    - light.turn_on:
+                        id: onboard_rgb
+                        red: 0%
+                        green: 100%
+                        blue: 0%
+                        effect: Breathe
+                  else:
+                    - light.turn_on:
+                        id: onboard_rgb
+                        brightness: 20%
+                        red: 100%
+                        green: 0%
+                        blue: 0%
+                        effect: none
 
   - platform: template                     # Prog Time 1 Friendly Name
     name: "${friendly_name} Time Slot 1"

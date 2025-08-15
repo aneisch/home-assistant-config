@@ -10,6 +10,7 @@ from threading import Thread
 from typing import Optional
 from urllib.parse import urljoin
 
+import aiohttp
 import jwt
 import requests
 from aiohttp import web
@@ -25,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 DOMAIN = "webrtc"
 
-BINARY_VERSION = "1.9.4"
+BINARY_VERSION = "1.9.9"
 
 SYSTEM = {
     "Windows": {"AMD64": "go2rtc_win64.zip", "ARM64": "go2rtc_win_arm64.zip"},
@@ -126,7 +127,11 @@ async def init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
     random url to avoid problems with the cache. But chromecast don't support
     extra JS urls and can't load custom card.
     """
-    resources: ResourceStorageCollection = hass.data["lovelace"]["resources"]
+    lovelace = hass.data["lovelace"]
+    resources: ResourceStorageCollection = (
+        lovelace.resources if hasattr(lovelace, "resources") else lovelace["resources"]
+    )
+
     # force load storage
     await resources.async_get_info()
 
@@ -207,6 +212,24 @@ def api_streams(hass: HomeAssistant) -> str:
     entry = hass.data[DOMAIN]
     go_url = "http://localhost:1984/" if isinstance(entry, Server) else entry
     return urljoin(go_url, "api/streams")
+
+
+# copied from homeassistant.components.hassio.ingress import _websocket_forward
+async def websocket_forward(ws_from, ws_to) -> None:
+    try:
+        async for msg in ws_from:
+            if msg.type is aiohttp.WSMsgType.TEXT:
+                await ws_to.send_str(msg.data)
+            elif msg.type is aiohttp.WSMsgType.BINARY:
+                await ws_to.send_bytes(msg.data)
+            elif msg.type is aiohttp.WSMsgType.PING:
+                await ws_to.ping()
+            elif msg.type is aiohttp.WSMsgType.PONG:
+                await ws_to.pong()
+            elif ws_to.closed:
+                await ws_to.close(code=ws_to.close_code, message=msg.extra)  # type: ignore[arg-type]
+    except Exception as e:
+        _LOGGER.debug(f"WebSocket forward exception: {repr(e)}")
 
 
 class Server(Thread):

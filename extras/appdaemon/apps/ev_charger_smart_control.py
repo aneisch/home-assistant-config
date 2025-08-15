@@ -37,6 +37,8 @@ class EvChargerSmartControl(hass.Hass):
         self.evaluate_conditions(None, None, None, None, None)
 
     def evaluate_conditions(self, entity, attribute, old, new, kwargs):
+        now = datetime.now()
+
         # Disable/enable charging with grid availability
         if entity == self.grid_state_sensor:
             if new == "off":
@@ -47,7 +49,6 @@ class EvChargerSmartControl(hass.Hass):
                 self.log("Grid online - enabling EV charging")
                 self._set_charger_state(True, now)
 
-        now = datetime.now()
         # Only debounce solar changes, not override boolean or override rate
         if now - self.last_change < timedelta(minutes=self.debounce_minutes) and entity not in [self.amps_override_entity, self.override_entity]:
             self.log("Debounce active - skipping evaluation")

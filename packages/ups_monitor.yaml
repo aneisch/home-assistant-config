@@ -8,6 +8,7 @@ automation:
       - platform: state
         entity_id: binary_sensor.solark_sol_ark_grid_connected_status
         to: "off"
+    condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
       - action: script.notify_wrapper
         data:

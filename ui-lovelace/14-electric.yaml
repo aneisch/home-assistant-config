@@ -102,3 +102,116 @@ cards:
     entity: sensor.tesla_power_minute_average
     graph: line
     detail: 2
+
+  - type: custom:sunsynk-power-flow-card
+    cardstyle: compact
+    large_font: true
+    show_solar: true
+    panel_mode: true
+    card_height: 100%
+    inverter:
+      modern: true
+      colour: "#959595"
+      # autarky: power #default unneeded 
+    solar:
+      mppts: 2
+      show_daily: true
+      colour: "#F4C430"
+      animation_speed: 9
+      max_power: 12960
+      pv1_name: String 1
+      pv2_name: String 2
+      display_mode: 2
+      auto_scale: true
+      #pv2_max_power: 5000
+      #pv1_max_power: 5000
+      efficiency: 3
+    battery:
+      energy: 28680
+      shutdown_soc: sensor.solark_sol_ark_battery_capacity_shutdown
+      show_daily: true
+      colour: pink
+      animation_speed: 6
+      max_power: 4100
+      auto_scale: true
+      #show_absolute: true
+      animate: true
+      path_threshold: 90
+    load:
+      show_aux: false
+      show_daily: true
+      animation_speed: 8
+      max_power: 25000
+      load1_name: AC
+      load1_icon: mdi:climate
+      load2_name: EV
+      load2_icon: mdi:lightning-bolt
+      # load3_name: Dishwasher
+      # load3_icon: mdi:dishwasher
+      # load4_name: Aircon
+      # load4_icon: mdi:air-conditioner
+      auto_scale: true
+      path_threshold: 90
+      additional_loads: 2
+      #off_threshold: 3
+    grid:
+      show_daily_buy: true
+      invert_grid: true
+      no_grid_colour:
+        - 125
+        - 125
+        - 125
+      animation_speed: 8
+      max_power: 20000
+      auto_scale: true
+      grid_off_colour:
+        - 122
+        - 0
+        - 0
+      grid_name: ""
+    entities:
+      use_timer_248: switch.solark_sol_ark_toggle_system_timer
+      priority_load_243: switch.solark_sol_ark_toggle_priority_load
+      day_battery_charge_70: sensor.solark_sol_ark_day_battery_charge
+      day_battery_discharge_71: sensor.solark_sol_ark_day_battery_discharge
+      day_load_energy_84: sensor.solark_sol_ark_day_load_energy
+      day_grid_import_76: sensor.solark_sol_ark_day_grid_import
+      day_grid_export_77: sensor.solark_sol_ark_day_grid_export
+      day_pv_energy_108: sensor.solark_sol_ark_day_pv_energy
+      inverter_voltage_154: sensor.solark_sol_ark_inverter_voltage
+      load_frequency_192: sensor.solark_sol_ark_load_frequency
+      inverter_current_164: sensor.solark_sol_ark_inverter_current
+      inverter_power_175: sensor.solark_sol_ark_inverter_power
+      #grid_power_169: sensor.solark_sol_ark_grid_power
+      battery_voltage_183: sensor.solark_sol_ark_battery_voltage
+      battery_soc_184: sensor.solark_sol_ark_battery_soc
+      battery_power_190: sensor.solark_sol_ark_battery_power
+      battery_current_191: sensor.solark_sol_ark_battery_current
+      essential_power: sensor.solark_sol_ark_load_power
+      grid_ct_power_172: sensor.solark_sol_ark_grid_power
+      #grid_ct_power_172: sensor.solark_sol_ark_grid_ct_power
+      pv1_power_186: sensor.solark_sol_ark_pv1_power
+      pv1_voltage_109: sensor.solark_sol_ark_pv1_voltage
+      pv1_current_110: sensor.solark_sol_ark_pv1_current
+      pv2_power_187: sensor.solark_sol_ark_pv2_power
+      pv2_voltage_111: sensor.solark_sol_ark_pv2_voltage
+      pv2_current_112: sensor.solark_sol_ark_pv2_current
+      grid_connected_status_194: binary_sensor.solark_sol_ark_grid_connected_status
+      inverter_status_59: sensor.solark_sol_ark_overall_state
+      aux_power_166: sensor.solark_sol_ark_aux_power
+      remaining_solar: sensor.solcast_pv_forecast_forecast_remaining_today
+      # battery_temp_182: sensor.solark_sol_ark_battery_temperature
+      # radiator_temp_91: sensor.solark_sol_ark_radiator_temperature
+      # dc_transformer_temp_90: sensor.solark_sol_ark_dc_transformer_temperature
+      prog1_time: sensor.solark_sol_ark_time_slot_1
+      prog1_capacity: number.solark_sol_ark_prog1_capacity
+      prog1_charge: switch.solark_sol_ark_prog1_grid_charge
+      environment_temp: sensor.433_weather_temperature
+      essential_load1: sensor.ac_compressor_power
+      essential_load1_extra: sensor.ac_compressor_daily_energy
+      essential_load2: sensor.tesla_power_minute_average
+      essential_load2_extra: sensor.tesla_energy_today
+    dynamic_line_width: true
+    wide: false
+    view_layout:
+      grid-area: flow

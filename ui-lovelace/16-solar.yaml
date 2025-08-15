@@ -1,4 +1,5 @@
 # https://slipx06.github.io/sunsynk-power-flow-card/examples/sunsynk.html
+# https://slipx06.github.io/sunsynk-power-flow-card/configuration.html
 
 title: Solar
 visible: true
@@ -57,6 +58,7 @@ cards:
       #off_threshold: 3
     grid:
       show_daily_buy: true
+      invert_grid: true
       no_grid_colour:
         - 125
         - 125
@@ -82,13 +84,13 @@ cards:
       load_frequency_192: sensor.solark_sol_ark_load_frequency
       inverter_current_164: sensor.solark_sol_ark_inverter_current
       inverter_power_175: sensor.solark_sol_ark_inverter_power
-      grid_power_169: sensor.solark_sol_ark_grid_power
+      #grid_power_169: sensor.solark_sol_ark_grid_power
       battery_voltage_183: sensor.solark_sol_ark_battery_voltage
       battery_soc_184: sensor.solark_sol_ark_battery_soc
       battery_power_190: sensor.solark_sol_ark_battery_power
       battery_current_191: sensor.solark_sol_ark_battery_current
       essential_power: sensor.solark_sol_ark_load_power
-      #nonessential_power: sensor.solark_sol_ark_nonessential_power_1
+      grid_ct_power_172: sensor.solark_sol_ark_grid_power
       #grid_ct_power_172: sensor.solark_sol_ark_grid_ct_power
       pv1_power_186: sensor.solark_sol_ark_pv1_power
       pv1_voltage_109: sensor.solark_sol_ark_pv1_voltage
@@ -100,9 +102,9 @@ cards:
       inverter_status_59: sensor.solark_sol_ark_overall_state
       aux_power_166: sensor.solark_sol_ark_aux_power
       remaining_solar: sensor.solcast_pv_forecast_forecast_remaining_today
-      battery_temp_182: sensor.solark_sol_ark_battery_temperature
-      radiator_temp_91: sensor.solark_sol_ark_radiator_temperature
-      dc_transformer_temp_90: sensor.solark_sol_ark_dc_transformer_temperature
+      # battery_temp_182: sensor.solark_sol_ark_battery_temperature
+      # radiator_temp_91: sensor.solark_sol_ark_radiator_temperature
+      # dc_transformer_temp_90: sensor.solark_sol_ark_dc_transformer_temperature
       prog1_time: sensor.solark_sol_ark_time_slot_1
       prog1_capacity: number.solark_sol_ark_prog1_capacity
       prog1_charge: switch.solark_sol_ark_prog1_grid_charge

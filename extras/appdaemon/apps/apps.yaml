@@ -34,22 +34,21 @@ AC Automation Solar:
   cool_morning: "80"
   cool_night: "73"
   cool_midnight: "76" # change to this temp at midnight_adjust
-  cool_unoccupied: "80"
+  cool_unoccupied: "82"
   heat_morning: "67"
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 3000       # in watts (excess solar triggers this)
-  battery_boost_threshold: 95       # battery SOC for boost activation
+  battery_boost_threshold: 90       # battery SOC for boost activation
   cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cooldown_window_start: sunrise + 05:00:00 # "10:00:00" # Override daytime temperature during this period if excess solar and SOC above threshold
-  cooldown_window_end: sunset - 01:00:00 # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
+  cooldown_window_start: '12:00:00' # Override daytime temperature during this period if excess solar and SOC above threshold
+  cooldown_window_end: '18:00:00' # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
 
 EV Charge Control:
   module: ev_charger_smart_control
   class: EvChargerSmartControl
-  constrain_person: anyone
   ev_switch: switch.emporia_charger
   ev_device_tracker: device_tracker.tesla_location
   solar_sensor: sensor.solark_sol_ark_solar_power

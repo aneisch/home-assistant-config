@@ -264,19 +264,43 @@ class XEnergySensorPOWR3(XEnergySensor, SensorEntity):
 class XEnergyTotal(XSensor):
     _attr_device_class = SensorDeviceClass.ENERGY
     _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
-    _attr_state_class = SensorStateClass.TOTAL
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
 
 
-class XTemperatureNS(XSensor):
+def parse_float(v: int | float | str):
+    return float(v) if isinstance(v, str) else v
+
+
+class XTempCorrection(XSensor):
     params = {"temperature", "tempCorrection"}
     uid = "temperature"
 
     def set_state(self, params: dict = None, value: float = None):
-        if params:
-            # cache updated in XClimateNS entity
-            cache = self.device["params"]
-            value = cache["temperature"] + cache.get("tempCorrection", 0)
-        XSensor.set_state(self, value=value)
+        try:
+            if (cache := self.device["params"]) != params:
+                cache.update(params)
+            value = parse_float(cache["temperature"])
+            if v := cache.get("tempCorrection"):
+                value += parse_float(v)
+            XSensor.set_state(self, value=value)
+        except:
+            pass
+
+
+class XHumCorrection(XSensor):
+    params = {"humidity", "humCorrection"}
+    uid = "humidity"
+
+    def set_state(self, params: dict = None, value: float = None):
+        try:
+            if (cache := self.device["params"]) != params:
+                cache.update(params)
+            value = parse_float(cache["humidity"])
+            if v := cache.get("humCorrection"):
+                value += parse_float(v)
+            XSensor.set_state(self, value=value)
+        except:
+            pass
 
 
 class XOutdoorTempNS(XSensor):
@@ -361,3 +385,28 @@ class XUnknown(XEntity, SensorEntity):
 
         if self.hass:
             self._async_write_ha_state()
+
+
+class XHexVoltageTRVZB(XSensor):
+    _attr_device_class = SensorDeviceClass.VOLTAGE
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
+
+    def set_state(self, params: dict = None, value: float = None):
+        try:
+            value = int(params[self.param], 16) * 0.001
+
+            if value != 0:
+                XSensor.set_state(self, value=value)
+        except Exception:
+            XSensor.set_state(self)
+
+
+class XTodayWaterUsage(XSensor):
+    params = {"todayWaterUsage", "TodayWaterUsage"}
+    uid = "water"
+
+    def set_state(self, params: dict = None, value: float = None):
+        # https://github.com/AlexxIT/SonoffLAN/issues/1497
+        # https://github.com/AlexxIT/SonoffLAN/issues/1608
+        value = next(params[k] for k in self.params if k in params)
+        XSensor.set_state(self, value=value)

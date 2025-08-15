@@ -39,7 +39,7 @@ substitutions:
 # probe 13 = breaker 28 - phase b - kitchen, garage lights, backyard flood
 # probe 14 = breaker 30 - phase a - garage outlet (freezer)
 # probe 15 = breaker 33 - phase a - master bath
-# probe 16 = breaker 35 - phase b - attic HVAC 
+# probe 16 = breaker 35 - phase b - attic HVAC <-- I will probably move this to 33 to balance load
 
 esphome:
   name: ${name}

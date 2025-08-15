@@ -50,15 +50,15 @@ class AutoAdjust(hass.Hass):
         try:
             solar_power = float(self.get_state("sensor.solark_sol_ark_solar_power") or 0)
             load_power = float(self.get_state("sensor.solark_sol_ark_load_power") or 0)
+            excess_solar = solar_power - load_power
             battery_soc = float(self.get_state("sensor.solark_sol_ark_battery_soc") or 0)
             self.excess_solar = excess_solar
             self.battery_soc = battery_soc
         
         except (TypeError, ValueError):
-            self.log("Skipping boost evaluation due to invalid sensor data", level="WARNING")
+            self.log("Invalid sensor data", level="WARNING")
             return
 
-        excess_solar = solar_power - load_power
         now = datetime.datetime.now().time()
         start = self.parse_time(self.args["cooldown_window_start"])
         end = self.parse_time(self.args["cooldown_window_end"])
@@ -68,10 +68,14 @@ class AutoAdjust(hass.Hass):
             self.boost_active = False
             return
 
+        self.log("Evaluating boost", level="WARNING")
+
         eligible = (
             excess_solar > float(self.args["solar_boost_threshold"])
             and battery_soc > float(self.args["battery_boost_threshold"])
         )
+        self.log(f"Result {eligible}", level="WARNING")
+
 
         # If eligibility state changed, debounce the *action*
         if eligible != self.should_boost:
@@ -125,16 +129,16 @@ class AutoAdjust(hass.Hass):
         else:
             return start <= x or x <= end
 
-    def adjust_morning(self, *args):
-        self._adjust_period("morning")
+    def adjust_morning(self, *args, **kwargs):
+        self._adjust_period("morning", force=kwargs.get("force", False))
 
-    def adjust_night(self, *args):
-        self._adjust_period("night")
+    def adjust_night(self, *args, **kwargs):
+        self._adjust_period("night", force=kwargs.get("force", False))
 
-    def adjust_midnight(self, *args):
-        self._adjust_period("midnight")
+    def adjust_midnight(self, *args, **kwargs):
+        self._adjust_period("midnight", force=kwargs.get("force", False))
 
-    def _adjust_period(self, label):
+    def _adjust_period(self, label, force=False):
         #self.log(f"Adjust period '{label}'")
 
         tracker_state = self.get_state(self.args["device_tracker"])
@@ -143,7 +147,7 @@ class AutoAdjust(hass.Hass):
         if mode == "off":
             return
 
-        occupied = tracker_state == "home"
+        occupied = tracker_state == "home" or force
         suffix = "Unoccupied" if not occupied else label.capitalize()
 
         if mode == "heat":
@@ -160,14 +164,15 @@ class AutoAdjust(hass.Hass):
         self.run_in(self.adjust_temp, 1, temp=temp)
 
     # API-compliant wrappers
-    def api_adjust_morning(self, *kwargs):
-        self.adjust_morning()
+    # We always force the change if called via API (bypassing occupancy requirement)
+    def api_adjust_morning(self, *args, **kwargs):
+        self.adjust_morning(force=True)
         return "OK", 200
 
-    def api_adjust_night(self, *kwargs):
-        self.adjust_night()
+    def api_adjust_night(self, *args, **kwargs):
+        self.adjust_night(force=True)
         return "OK", 200
 
-    def api_adjust_midnight(self, *kwargs):
-        self.adjust_midnight()
+    def api_adjust_midnight(self, *args, **kwargs):
+        self.adjust_midnight(force=True)
         return "OK", 200

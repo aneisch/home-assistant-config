@@ -24,12 +24,14 @@ sensors:
     name: Kitchen
   - entity: sensor.master_bedroom_temperature
     name: Master
+    decimals: 2
   - entity: sensor.master_closet_temperature
     name: Master Closet
   - entity: sensor.master_bathroom_temperature
     name: Master Bathroom
   - entity: sensor.office_temperature
     name: Office
+    decimals: 2
   - entity: sensor.garage_temperature
     name: Garage
   - entity: sensor.water_shutoff_air_temperature

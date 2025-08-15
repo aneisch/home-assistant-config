@@ -25,15 +25,15 @@ automation:
           config_entry: 01JYQN4AYGRQ9S6WQBJV4T4CBW
           data:
             Date: "{{ now().strftime('%m-%d-%Y') }}"
-            Day Grid Import kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_import'), default=0) }}"
-            Day Grid Export kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_export'), default=0) }}"
-            Day PV Production kWh: "{{ float(states('sensor.solark_sol_ark_day_pv_energy'), default=0) }}"
-            Day Battery Charge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_charge'), default=0) }}"
-            Day Battery Discharge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_discharge'), default=0) }}"
-            Day Total Load Energy kWh: "{{ float(states('sensor.solark_sol_ark_day_load_energy'), default=0) }}"
-            Day EV kWh: "{{ float(states('sensor.tesla_energy_today'), default=0) }}"
-            Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy'), default=0) + float(states('sensor.attic_hvac_daily_energy'), default=0) }}"
-            Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy'), default=0) - float(states('sensor.solark_sol_ark_day_grid_import'), default=0) }}"
+            Day Grid Import kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
+            Day Grid Export kWh: "{{ float(states('sensor.solark_sol_ark_day_grid_export', rounded=True), default=0) }}"
+            Day PV Production kWh: "{{ float(states('sensor.solark_sol_ark_day_pv_energy', rounded=True), default=0) }}"
+            Day Battery Charge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_charge', rounded=True), default=0) }}"
+            Day Battery Discharge kWh: "{{ float(states('sensor.solark_sol_ark_day_battery_discharge', rounded=True), default=0) }}"
+            Day Total Load Energy kWh: "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) }}"
+            Day EV kWh: "{{ float(states('sensor.tesla_energy_today', rounded=True), default=0) }}"
+            Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy', rounded=True), default=0) + float(states('sensor.attic_hvac_daily_energy', rounded=True), default=0) }}"
+            Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy_local', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
 
 sensor:
   - platform: template
