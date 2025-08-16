@@ -56,8 +56,8 @@ Home Assistant and other containers have ingress handled automatically by [Traef
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 8517
-Lines of Home Assistant YAML | 11932
+Lines of ESPHome YAML | 6562
+Lines of Home Assistant YAML | 11933
 [Integrations](https://www.home-assistant.io/integrations/) in use | 72
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -66,10 +66,10 @@ Description | value
 -- | --
 Entities in the [`ai_task`](https://www.home-assistant.io/components/ai_task) domain | 2
 Entities in the [`assist_satellite`](https://www.home-assistant.io/components/assist_satellite) domain | 1
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 154
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 177
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 155
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 172
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 62
-Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 13
+Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 11
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
 Entities in the [`conversation`](https://www.home-assistant.io/components/conversation) domain | 3
 Entities in the [`counter`](https://www.home-assistant.io/components/counter) domain | 1
@@ -79,7 +79,7 @@ Entities in the [`device_tracker`](https://www.home-assistant.io/components/devi
 Entities in the [`event`](https://www.home-assistant.io/components/event) domain | 17
 Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 19
-Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 7
+Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 6
 Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 33
 Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 33
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 7
@@ -88,18 +88,18 @@ Entities in the [`input_text`](https://www.home-assistant.io/components/input_te
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 5
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 14
-Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 25
+Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 21
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 4
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 54
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 14
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 740
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 710
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 1
 Entities in the [`stt`](https://www.home-assistant.io/components/stt) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 198
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 194
 Entities in the [`text`](https://www.home-assistant.io/components/text) domain | 2
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 7
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 2
@@ -107,7 +107,7 @@ Entities in the [`update`](https://www.home-assistant.io/components/update) doma
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 8
-**Total state objects** | **1814**
+**Total state objects** | **1769**
 ## The HACS integrations/plugins that I use:
 
 **Appdaemon**:<br>

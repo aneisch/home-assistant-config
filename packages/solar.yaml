@@ -40,13 +40,11 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.solark_sol_ark_overall_state
-        from: "normal"
-    condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
+    #condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
       - action: script.notify_wrapper
         data:
-          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
-
+          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
 sensor:
   - platform: template

@@ -1,33 +1,34 @@
 automation:
-  - alias: "Electric Outage Alert"
-    id: "electric_outage_alert"
+  # - alias: "Electric Outage Alert"
+  #   id: "electric_outage_alert"
+  #   trigger:
+  #     - platform: state
+  #       entity_id: sensor.ups_status
+  #       from: "ONLINE"
+  #     - platform: state
+  #       entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+  #       to: "off"
+  #   condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
+  #   action:
+  #     - action: script.notify_wrapper
+  #       data:
+  #         message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+
+  - alias: "Electric Outage and Recovery"
+    id: "electric_outage_and_recovery"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        from: "ONLINE"
+        #to: "ONLINE"
       - platform: state
         entity_id: binary_sensor.solark_sol_ark_grid_connected_status
-        to: "off"
+        #to: "on"
     condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
       - action: script.notify_wrapper
         data:
-          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
-
-  - alias: "Electric Outage Recovery"
-    id: "electric_outage_recovery"
-    trigger:
-      - platform: state
-        entity_id: sensor.ups_status
-        to: "ONLINE"
-      - platform: state
-        entity_id: binary_sensor.solark_sol_ark_grid_connected_status
-        to: "on"
-    action:
-      - action: script.notify_wrapper
-        data:
           message: >
-            {% if trigger.from_state.state == "ONBATT" %}
+            {% if trigger.from_state.state in ["ONBATT", "off"] %}
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}. Outaged lasted {{ time_since(trigger.from_state.last_changed) }}
             {% else %}
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}

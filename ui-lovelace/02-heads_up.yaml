@@ -17,6 +17,7 @@ cards:
           state: "on"
       exclude:
         - entity_id: "*tesla_ble_*"
+        - entity_id: "*sol_ark*"
         - entity_id: "switch.emporia_charger"
         - entity_id: "*polling"
         - entity_id: "*_pre_release"

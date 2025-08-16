@@ -505,8 +505,8 @@ Front Porch Lights Sunset:
 Plant Light:
   module: entity_timer
   class: Timer
-  time_on: sunrise + 00:30:00
-  time_off: sunset + 01:30:00
+  time_on: sunrise 
+  time_off: sunset
   entities: switch.kmc_multi_plug_1_1
 
 Plant Light Corner:
@@ -519,7 +519,7 @@ Plant Light Corner:
 Plant Light Corner Double:
   module: entity_timer
   class: Timer
-  time_off: sunset + 01:35:00
+  time_off: sunset + 00:01:00
   entities: light.plant_light_corner
 
 Living Room Lamp Follow:

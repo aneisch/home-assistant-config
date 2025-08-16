@@ -572,19 +572,19 @@ sensor:
       - multiply: 0.1
     value_type: U_WORD 
 
-  - platform: modbus_controller            # 160 Grid Current
-    modbus_controller_id: inverter
-    name: "${friendly_name} Grid Current"
-    id: inverter_esphome_grid_current
-    register_type: holding
-    address: 160
-    unit_of_measurement: "A"
-    accuracy_decimals: 1
-    device_class: current
-    state_class: measurement
-    value_type: S_WORD
-    filters:
-      - multiply: 0.01
+  # - platform: modbus_controller            # 160 Grid Current
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Grid Current"
+  #   id: inverter_esphome_grid_current
+  #   register_type: holding
+  #   address: 160
+  #   unit_of_measurement: "A"
+  #   accuracy_decimals: 1
+  #   device_class: current
+  #   state_class: measurement
+  #   value_type: S_WORD
+  #   filters:
+  #     - multiply: 0.01
 
   - platform: modbus_controller            # 172 Grid CT Power
     modbus_controller_id: inverter
