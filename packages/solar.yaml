@@ -33,7 +33,20 @@ automation:
             Day Total Load Energy kWh: "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) }}"
             Day EV kWh: "{{ float(states('sensor.tesla_energy_today', rounded=True), default=0) }}"
             Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy', rounded=True), default=0) + float(states('sensor.attic_hvac_daily_energy', rounded=True), default=0) }}"
-            Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy_local', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
+            Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
+
+  - alias: "Inverter State Change"
+    id: "inverter_state_alert"
+    trigger:
+      - platform: state
+        entity_id: sensor.solark_sol_ark_overall_state
+        from: "normal"
+    condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
+    action:
+      - action: script.notify_wrapper
+        data:
+          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+
 
 sensor:
   - platform: template

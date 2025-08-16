@@ -8,8 +8,9 @@ class EvChargerSmartControl(hass.Hass):
     def initialize(self):
         self.ev_switch = self.args["ev_switch"]  # e.g. switch.emporia_charger
         self.solar_sensor = self.args["solar_sensor"]
-        self.battery_sensor = self.args["battery_sensor"]
-        self.grid_export_sensor = self.args["grid_export_sensor"]
+        self.load_sensor = self.args["load_sensor"]
+        self.battery_sensor = self.args["battery_soc_sensor"]
+        #self.grid_export_sensor = self.args["grid_export_sensor"]
         self.grid_state_sensor = self.args["grid_state_sensor"]
         self.override_entity = self.args.get("override_entity", "input_boolean.ev_charge_override")
         self.amps_override_entity = self.args.get("amps_override_entity", "input_number.ev_charge_amps_override")
@@ -29,7 +30,7 @@ class EvChargerSmartControl(hass.Hass):
         self.listen_state(self.evaluate_conditions, self.ev_device_tracker)
         self.listen_state(self.evaluate_conditions, self.vehicle_battery_soc)
         self.listen_state(self.evaluate_conditions, self.solar_sensor)
-        self.listen_state(self.evaluate_conditions, self.grid_export_sensor)
+        #self.listen_state(self.evaluate_conditions, self.grid_export_sensor)
         self.listen_state(self.evaluate_conditions, self.grid_state_sensor)
         self.listen_state(self.evaluate_conditions, self.battery_sensor)
         self.listen_state(self.evaluate_conditions, self.override_entity)
@@ -38,6 +39,7 @@ class EvChargerSmartControl(hass.Hass):
 
     def evaluate_conditions(self, entity, attribute, old, new, kwargs):
         now = datetime.now()
+        
 
         # Disable/enable charging with grid availability
         if entity == self.grid_state_sensor:
@@ -45,7 +47,7 @@ class EvChargerSmartControl(hass.Hass):
                 self.log("Grid offline - disabling EV charging")
                 self._set_charger_state(False, now)
                 return
-            elif new == "on":
+            elif new == "on" and old == "off":
                 self.log("Grid online - enabling EV charging")
                 self._set_charger_state(True, now)
 
@@ -81,17 +83,20 @@ class EvChargerSmartControl(hass.Hass):
 
         # General Logic
         try:
-            solar = float(self.get_state(self.solar_sensor))
-            grid_export = float(self.get_state(self.grid_export_sensor))
+            solar_power = float(self.get_state(self.solar_sensor))
+            load_power = float(self.get_state(self.load_sensor))
+            #grid_export = float(self.get_state(self.grid_export_sensor))
             home_battery_soc = float(self.get_state(self.battery_sensor))
         except (TypeError, ValueError):
             self.log(f"Invalid solar sensor data, skipping evaluation and making no changes - EV charger {self.get_state(self.ev_switch).upper()} {self.get_state(self.ev_switch, attribute='charging_rate')}A")
             return
 
-        surplus = grid_export if grid_export > 0 else 0
+        excess_solar = solar_power - load_power
+
+        #surplus = grid_export if grid_export > 0 else 0
         #volts = 240 # used to scale rate
 
-        self.log(f"Solar: {solar}W, Grid Export: {grid_export}W, Battery SoC: {home_battery_soc}%, Surplus: {surplus}W")
+        self.log(f"Solar: {solar_power}, Load: {load_power}, Excess: {excess_solar}, Battery SoC: {home_battery_soc}%")
 
         # Home battery above threshold
         if home_battery_soc >= self.battery_threshold:
@@ -104,18 +109,7 @@ class EvChargerSmartControl(hass.Hass):
             #     self.log(f"Battery healthy - scaling amps: {amps}A")
 
             amps = compute_charging_amps(
-                measured_surplus=surplus,
-                current_amps=self.last_amps,
-                volts=240,
-                surplus_floor=-300,
-                scale_factor=180,
-                bias_offset=0,
-                rounding='ceil',
-                max_amps=self.max_amps,
-                min_amps=self.min_amps,
-                min_change=1.0,
-                last_update_time=self.last_update_ts,
-                hold_duration=30
+                self
             )
 
             self.log(f"Home battery SOC healthy - scaling amps based on solar excess: {amps}A")
@@ -123,8 +117,10 @@ class EvChargerSmartControl(hass.Hass):
 
         # Home battery below threshold
         elif home_battery_soc < self.battery_threshold: #and surplus <= 0:
-            self.log("Home battery low - disabling EV charging")
-            self._set_charger_state(False, now)
+            current_state = self.get_state(self.ev_switch)
+            if current_state == "on":
+                self.log("Home battery low - disabling EV charging")
+                self._set_charger_state(False, now)
             return
 
         # # Home battery below threshold with some surplus
@@ -140,9 +136,8 @@ class EvChargerSmartControl(hass.Hass):
         #     self._set_charger_amps_and_state(amps, True, now)
 
     def compute_charging_amps(
-        measured_surplus,
-        current_amps,
-        volts,
+        self,
+        volts=240,
         surplus_floor=-300,
         scale_factor=180,
         bias_offset=0,
@@ -153,8 +148,15 @@ class EvChargerSmartControl(hass.Hass):
         last_update_time=None,
         hold_duration=30
     ):
+        solar_power = float(self.get_state(self.solar_sensor))
+        load_power = float(self.get_state(self.load_sensor))
+        excess_solar = solar_power - load_power
+
+        current_amps = self.last_amps  # use tracked value
+
         # Predict surplus as if charger wasn't pulling current
-        predicted_surplus = measured_surplus + (current_amps * volts)
+        predicted_surplus = excess_solar + (current_amps * volts)
+        self.log(f"PPPP {predicted_surplus}A")
 
         # Cap at floor
         usable_surplus = max(predicted_surplus, surplus_floor)
@@ -188,6 +190,7 @@ class EvChargerSmartControl(hass.Hass):
         # We don't have a direct way to get current amps, so just always call service to set amps
         # Set charger amps via service call
         self.log(f"Setting EV charger amps to {amps}A")
+        return
         self.call_service(
             "emporia_vue/set_charger_current",
             entity_id=self.ev_switch,
@@ -210,9 +213,11 @@ class EvChargerSmartControl(hass.Hass):
         current_state = self.get_state(self.ev_switch)
         if charger_on and current_state != "on":
             self.log("Turning ON EV charger")
+            return
             self.turn_on(self.ev_switch)
             self.last_change = now
         elif not charger_on and current_state != "off":
             self.log("Turning OFF EV charger")
+            return
             self.turn_off(self.ev_switch)
             self.last_change = now

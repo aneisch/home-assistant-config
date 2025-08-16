@@ -65,6 +65,8 @@ DEFAULT_CONF_NO_UNIT: Final = False
 
 DEFAULT_NUMERIC_DATA_GROUP: Final = "default"
 
+EVENT_DATA_UPDATED: Final = "yahoofinance_data_updated"
+
 # Data keys grouped into categories. The values for the categories except for
 # DEFAULT_NUMERIC_DATA_GROUP can be conditionally pulled into attributes. The
 # first value of the set is the key and the second boolean value indicates if

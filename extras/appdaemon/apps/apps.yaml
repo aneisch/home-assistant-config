@@ -41,7 +41,7 @@ AC Automation Solar:
   heat_unoccupied: "55"
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 3000       # in watts (excess solar triggers this)
-  battery_boost_threshold: 90       # battery SOC for boost activation
+  battery_boost_threshold: 98       # battery SOC for boost activation
   cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cooldown_window_start: '12:00:00' # Override daytime temperature during this period if excess solar and SOC above threshold
   cooldown_window_end: '18:00:00' # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
@@ -52,13 +52,14 @@ EV Charge Control:
   ev_switch: switch.emporia_charger
   ev_device_tracker: device_tracker.tesla_location
   solar_sensor: sensor.solark_sol_ark_solar_power
-  grid_export_sensor: sensor.solark_sol_ark_grid_power
+  load_sensor: sensor.solark_sol_ark_load_power
+  #grid_export_sensor: sensor.solark_sol_ark_grid_power
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
-  battery_sensor: sensor.solark_sol_ark_battery_soc
+  battery_soc_sensor: sensor.solark_sol_ark_battery_soc
   override_entity: input_boolean.ev_charge_override
   amps_override_entity: input_number.tesla_charge_rate_master
   vehicle_battery_soc: sensor.tesla_battery_level
-  battery_threshold: 90 # Only charge when home battery > this
+  battery_threshold: 98 # Only charge when home battery > this
   min_amps: 6
   max_amps: 40
   debounce_minutes: 2 # the most often we'll respond to solar changes

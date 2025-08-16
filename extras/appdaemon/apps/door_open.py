@@ -13,7 +13,7 @@ class DoorLight(hass.Hass):
                 self.listen_state(self.state_change, sensor)
 
     def state_change(self, entity, attribute, old, new, kwargs):
-        self.log(f"{entity} changed from {old} to {new} at {self.time()}")
+        #self.log(f"{entity} changed from {old} to {new} at {self.time()}")
 
         # If door opened or sensor triggered
         if old in ["off", "closed"] and new in ["on", "open"]:

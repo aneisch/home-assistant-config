@@ -1152,7 +1152,7 @@ sensor:
     value_type: S_WORD
     filters:
       - offset: -1000
-      - multiply:  0.1
+      - multiply:  -0.1
 
 ################################################ READ SETTINGS #############################################
 

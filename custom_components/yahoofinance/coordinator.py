@@ -25,6 +25,7 @@ from .const import (
     CRUMB_RETRY_DELAY,
     CRUMB_RETRY_DELAY_429,
     DATA_REGULAR_MARKET_PRICE,
+    EVENT_DATA_UPDATED,
     GET_CRUMB_URL,
     INITIAL_REQUEST_HEADERS,
     INITIAL_URL,
@@ -597,6 +598,7 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         else:
             LOGGER.debug("Data = %s", result)
 
+        self.hass.bus.fire(EVENT_DATA_UPDATED, {"symbols": ",".join(self._symbols)})
         return data
 
     def process_json_result(self, result) -> tuple[bool, dict[str, Any]]:

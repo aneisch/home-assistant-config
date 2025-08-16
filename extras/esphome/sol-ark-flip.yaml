@@ -12,15 +12,15 @@ substitutions:
 
 esphome:
   name: ${devicename}
-  on_boot:
-    priority: 250.0
-    then:
-      - light.turn_on: 
-          id: onboard_rgb
-          brightness: 20%
-          green: 0%
-          red: 100%
-          blue: 0%
+  # on_boot:
+  #   priority: 250.0
+  #   then:
+  #     - light.turn_on: 
+  #         id: onboard_rgb
+  #         brightness: 20%
+  #         green: 0%
+  #         red: 100%
+  #         blue: 0%
 
 # python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
 esp32:
@@ -35,7 +35,11 @@ web_server:
   port: 80
   version: 2
   log: false
-  ota: false
+
+# ota:
+#   - platform: web_server
+#   - platform: esphome
+#     password: esphome_recovery
 
 # Enable time component to reset energy at midnight
 # https://esphome.io/components/time.html#home-assistant-time-source
@@ -79,21 +83,21 @@ light:
   #   id: stats_led
   #   pin: 10
 
-  - platform: esp32_rmt_led_strip
-    id: onboard_rgb
-    rgb_order: GRB
-    #rmt_channel: 0
-    chipset: ws2812    
-    pin: 8
-    restore_mode: RESTORE_AND_OFF
-    num_leds: 1
-    effects:
-      - pulse:
-          name: Breathe
-          transition_length: 2s
-          update_interval: 2s
-          min_brightness: 10%
-          max_brightness: 80%
+  # - platform: esp32_rmt_led_strip
+  #   id: onboard_rgb
+  #   rgb_order: GRB
+  #   #rmt_channel: 0
+  #   chipset: ws2812    
+  #   pin: 8
+  #   restore_mode: RESTORE_AND_OFF
+  #   num_leds: 1
+  #   effects:
+  #     - pulse:
+  #         name: Breathe
+  #         transition_length: 2s
+  #         update_interval: 2s
+  #         min_brightness: 10%
+  #         max_brightness: 80%
 
 #Set the interval to sync your inverter time with HA or comment out to disable 
 interval:
@@ -164,13 +168,13 @@ binary_sensor:
     register_type: holding
     address: 194
 
-  - platform: modbus_controller           # 280 Gen Peak Shaving Status
-    modbus_controller_id: inverter
-    name: "${friendly_name} Gen Peak Shaving Status"
-    id: inverter_esphome_gen_peak_shaving_status
-    register_type: holding
-    address: 280
-    bitmask: 0x10
+  # - platform: modbus_controller           # 280 Gen Peak Shaving Status
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Gen Peak Shaving Status"
+  #   id: inverter_esphome_gen_peak_shaving_status
+  #   register_type: holding
+  #   address: 280
+  #   bitmask: 0x10
 
   - platform: modbus_controller           # 280 Grid Peak Shaving Status
     modbus_controller_id: inverter
@@ -209,7 +213,7 @@ sensor:
     state_class: measurement
     value_type: U_WORD 
     filters:
-      - offset: -1000
+      #- offset: -1000
       - multiply: 0.1
 
   - platform: modbus_controller            # 183 Battery Voltage
@@ -261,8 +265,8 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     internal: true
-    lambda: |-
-      if (x > 0) return 0; else return x *-1;
+    # lambda: |-
+    #   if (x > 0) return 0; else return x *-1;
 
   - platform: modbus_controller            # Battery Power DisCharge only needed if you want to calculate Daily Energy Totals using ESPHome
     modbus_controller_id: inverter
@@ -276,8 +280,8 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     internal: true
-    lambda: |-
-      if (x < 0) return 0; else return x;
+    # lambda: |-
+    #   if (x < 0) return 0; else return x;
 
 ######################################################################################################
 
@@ -295,64 +299,64 @@ sensor:
     filters:
       - multiply: 0.01
 
-  - platform: modbus_controller            # 314 Battery Charge Limit Current
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Charge Limit Current"
-    id: inverter_esphome_battery_charge_limit_current
-    register_type: holding
-    address: 314
-    unit_of_measurement: "A"
-    accuracy_decimals: 0
-    device_class: current
-    state_class: measurement
-    value_type: S_WORD
+  # - platform: modbus_controller            # 314 Battery Charge Limit Current
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Charge Limit Current"
+  #   id: inverter_esphome_battery_charge_limit_current
+  #   register_type: holding
+  #   address: 314
+  #   unit_of_measurement: "A"
+  #   accuracy_decimals: 0
+  #   device_class: current
+  #   state_class: measurement
+  #   value_type: S_WORD
 
-  - platform: modbus_controller            # 315 Battery Discharge Limit Current
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Discharge Limit Current"
-    id: inverter_esphome_battery_discharge_limit_current
-    register_type: holding
-    address: 315
-    unit_of_measurement: "A"
-    accuracy_decimals: 0
-    device_class: current
-    state_class: measurement
-    value_type: S_WORD
+  # - platform: modbus_controller            # 315 Battery Discharge Limit Current
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Discharge Limit Current"
+  #   id: inverter_esphome_battery_discharge_limit_current
+  #   register_type: holding
+  #   address: 315
+  #   unit_of_measurement: "A"
+  #   accuracy_decimals: 0
+  #   device_class: current
+  #   state_class: measurement
+  #   value_type: S_WORD
 
 # Battery capacity (if managed by BMS)
 
-  - platform: modbus_controller            # 217 Battery Capacity Shutdown
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Capacity Shutdown"
-    id: inverter_esphome_battery_capacity_shutdown
-    register_type: holding
-    address: 217
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    device_class: battery
-    value_type: S_WORD
+  # - platform: modbus_controller            # 217 Battery Capacity Shutdown
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Capacity Shutdown"
+  #   id: inverter_esphome_battery_capacity_shutdown
+  #   register_type: holding
+  #   address: 217
+  #   unit_of_measurement: "%"
+  #   accuracy_decimals: 0
+  #   device_class: battery
+  #   value_type: S_WORD
 
-  - platform: modbus_controller            # 218 Battery Restart Capacity
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Restart Capacity"
-    id: inverter_esphome_battery_restart_capacity
-    register_type: holding
-    address: 218
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    device_class: battery
-    value_type: S_WORD
+  # - platform: modbus_controller            # 218 Battery Restart Capacity
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Restart Capacity"
+  #   id: inverter_esphome_battery_restart_capacity
+  #   register_type: holding
+  #   address: 218
+  #   unit_of_measurement: "%"
+  #   accuracy_decimals: 0
+  #   device_class: battery
+  #   value_type: S_WORD
 
-  - platform: modbus_controller            # 219 Battery Low Capacity
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Low Capacity"
-    id: inverter_esphome_battery_low_capacity
-    register_type: holding
-    address: 219
-    unit_of_measurement: "%"
-    accuracy_decimals: 0
-    device_class: battery
-    value_type: S_WORD
+  # - platform: modbus_controller            # 219 Battery Low Capacity
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Low Capacity"
+  #   id: inverter_esphome_battery_low_capacity
+  #   register_type: holding
+  #   address: 219
+  #   unit_of_measurement: "%"
+  #   accuracy_decimals: 0
+  #   device_class: battery
+  #   value_type: S_WORD
 
 # # Battery voltage (if managed by voltage only)
 
@@ -489,18 +493,18 @@ sensor:
     value_type: U_WORD
     state_class: measurement
 
-  - platform: template                     # Inverter Rated Power
-    name: "${friendly_name} Rated Power"
-    id: inverter_esphome_rated_power
-    unit_of_measurement: "W"
-    accuracy_decimals: 0
-    device_class: power
-    lambda: |-
-      uint16_t low =  id(reg_16_raw).state;
-      uint16_t high =  id(reg_17_raw).state;
-      return ( high << 16 | low);
-    filters:
-      - multiply: 0.1
+  # - platform: template                     # Inverter Rated Power
+  #   name: "${friendly_name} Rated Power"
+  #   id: inverter_esphome_rated_power
+  #   unit_of_measurement: "W"
+  #   accuracy_decimals: 0
+  #   device_class: power
+  #   lambda: |-
+  #     uint16_t low =  id(reg_16_raw).state;
+  #     uint16_t high =  id(reg_17_raw).state;
+  #     return ( high << 16 | low);
+  #   filters:
+  #     - multiply: 0.1
 
 
 ############################################### GRID ##################################################
@@ -889,7 +893,7 @@ sensor:
     name: "${friendly_name} Day Battery Charge"
     id: inverter_esphome_day_battery_charge
     register_type: holding
-    address: 70
+    address: 71
     unit_of_measurement: "kWh"
     accuracy_decimals: 1
     device_class: energy
@@ -903,7 +907,7 @@ sensor:
     name: "${friendly_name} Day Battery Discharge"
     id: inverter_esphome_day_battery_discharge
     register_type: holding
-    address: 71
+    address: 70
     unit_of_measurement: "kWh"
     accuracy_decimals: 1
     device_class: energy
@@ -912,33 +916,33 @@ sensor:
     filters:
       - multiply: 0.1
 
-  - platform: modbus_controller            # 072 Total Battery Charge
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total Battery Charge"
-    id: inverter_esphome_total_battery_charge
-    register_type: holding
-    address: 72
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 1
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_DWORD_R
-    filters:
-     - multiply: 0.1
+  # - platform: modbus_controller            # 072 Total Battery Charge
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total Battery Charge"
+  #   id: inverter_esphome_total_battery_charge
+  #   register_type: holding
+  #   address: 72
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 1
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   value_type: U_DWORD_R
+  #   filters:
+  #    - multiply: 0.001
 
-  - platform: modbus_controller            # 074 Total Battery Discharge
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total Battery Discharge"
-    id: inverter_esphome_total_battery_discharge
-    register_type: holding
-    address: 74
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 0
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_DWORD_R
-    filters:
-     - multiply: 0.1
+  # - platform: modbus_controller            # 074 Total Battery Discharge
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total Battery Discharge"
+  #   id: inverter_esphome_total_battery_discharge
+  #   register_type: holding
+  #   address: 74
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 0
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   value_type: U_DWORD_R
+  #   filters:
+  #    - multiply: 0.001
 
   - platform: modbus_controller            # 076 Day Grid Import
     modbus_controller_id: inverter
@@ -998,33 +1002,33 @@ sensor:
       }
     update_interval: 60s
 
-  - platform: modbus_controller            # 078 Total Grid Import
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total Grid Import"
-    id: inverter_esphome_total_grid_import
-    register_type: holding
-    address: 78
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_WORD
-    filters:
-      - multiply: 0.1
+  # - platform: modbus_controller            # 078 Total Grid Import
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total Grid Import"
+  #   id: inverter_esphome_total_grid_import
+  #   register_type: holding
+  #   address: 78
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 2
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   value_type: U_WORD
+  #   filters:
+  #     - multiply: 0.1
 
-  - platform: modbus_controller            # 081 Total Grid Export
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total Grid Export"
-    id: inverter_esphome_total_grid_export
-    register_type: holding
-    address: 81
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_WORD
-    filters:
-      - multiply: 0.1
+  # - platform: modbus_controller            # 081 Total Grid Export
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total Grid Export"
+  #   id: inverter_esphome_total_grid_export
+  #   register_type: holding
+  #   address: 81
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 2
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   value_type: U_WORD
+  #   filters:
+  #     - multiply: 0.1
 
   - platform: modbus_controller            # 084 Day Load Energy
     modbus_controller_id: inverter
@@ -1040,33 +1044,33 @@ sensor:
       - multiply: 0.1
     value_type: U_WORD
 
-  - platform: modbus_controller            # 085 Total Load Energy
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total Load Energy"
-    id: inverter_esphome_total_load_energy
-    register_type: holding
-    address: 85
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_DWORD_R
-    filters:
-      - multiply: 0.001
+  # - platform: modbus_controller            # 085 Total Load Energy
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total Load Energy"
+  #   id: inverter_esphome_total_load_energy
+  #   register_type: holding
+  #   address: 85
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 2
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   value_type: U_DWORD_R
+  #   filters:
+  #     - multiply: 0.001
 
-  - platform: modbus_controller            # 096 Total PV Energy
-    modbus_controller_id: inverter
-    name: "${friendly_name} Total PV Energy"
-    id: inverter_esphome_total_pv_energy
-    register_type: holding
-    address: 96
-    unit_of_measurement: "Wh"
-    accuracy_decimals: 2
-    device_class: energy
-    state_class: total_increasing
-    filters:
-      - multiply: 0.001
-    value_type: U_DWORD_R  
+  # - platform: modbus_controller            # 096 Total PV Energy
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Total PV Energy"
+  #   id: inverter_esphome_total_pv_energy
+  #   register_type: holding
+  #   address: 96
+  #   unit_of_measurement: "Wh"
+  #   accuracy_decimals: 2
+  #   device_class: energy
+  #   state_class: total_increasing
+  #   filters:
+  #     - multiply: 0.001
+  #   value_type: U_DWORD_R  
 
   - platform: modbus_controller            # 108 Day PV Energy
     modbus_controller_id: inverter
@@ -1086,77 +1090,77 @@ sensor:
 ##### Calculates daily energy instead of relying on the inverter registers
 ##### You can comment these out if not needed
 
-  - platform: total_daily_energy           # Day PV Energy
-    name: "${friendly_name} Day PV Energy Local"
-    power_id: inverter_esphome_pv_total
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day PV Energy
+  #   name: "${friendly_name} Day PV Energy Local"
+  #   power_id: inverter_esphome_pv_total
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Battery Charge Energy
-    name: "${friendly_name} Day Battery Charge Energy Local"
-    power_id: inverter_esphome_battery_power_charge
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day Battery Charge Energy
+  #   name: "${friendly_name} Day Battery Charge Energy Local"
+  #   power_id: inverter_esphome_battery_power_charge
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Battery DisCharge Energy
-    name: "${friendly_name} Day Battery Discharge Energy Local"
-    power_id: inverter_esphome_battery_power_discharge
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day Battery DisCharge Energy
+  #   name: "${friendly_name} Day Battery Discharge Energy Local"
+  #   power_id: inverter_esphome_battery_power_discharge
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Load Energy
-    name: "${friendly_name} Day Load Energy Local"
-    power_id: inverter_esphome_load_power
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day Load Energy
+  #   name: "${friendly_name} Day Load Energy Local"
+  #   power_id: inverter_esphome_load_power
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Grid Import Energy - this is wrong, shows 0 (because it's via CT)
-    name: "${friendly_name} Day Grid Import Energy Local"
-    power_id: inverter_esphome_grid_ct_power_import
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day Grid Import Energy - this is wrong, shows 0 (because it's via CT)
+  #   name: "${friendly_name} Day Grid Import Energy Local"
+  #   power_id: inverter_esphome_grid_ct_power_import
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
-  - platform: total_daily_energy           # Day Grid Export Energy - this is wrong, shows 0 (because it's via CT)
-    name: "${friendly_name} Day Grid Export Energy Local"
-    power_id: inverter_esphome_grid_ct_power_export
-    unit_of_measurement: 'kWh'
-    state_class: total_increasing
-    device_class: energy
-    accuracy_decimals: 3
-    restore: true
-    filters:
-      # Multiplication factor from W to kW is 0.001
-      - multiply: 0.001
+  # - platform: total_daily_energy           # Day Grid Export Energy - this is wrong, shows 0 (because it's via CT)
+  #   name: "${friendly_name} Day Grid Export Energy Local"
+  #   power_id: inverter_esphome_grid_ct_power_export
+  #   unit_of_measurement: 'kWh'
+  #   state_class: total_increasing
+  #   device_class: energy
+  #   accuracy_decimals: 3
+  #   restore: true
+  #   filters:
+  #     # Multiplication factor from W to kW is 0.001
+  #     - multiply: 0.001
 
 ############################################### TEMPERATURE ################################################
 
@@ -1186,25 +1190,25 @@ sensor:
     device_class: temperature
     state_class: measurement
     value_type: S_WORD
-    # filters:
-    #   - offset: -1000
-    #   - multiply:  0.1
     filters:
-    - calibrate_linear:
-      - 438 -> -56.2
-      - 1000 -> 0
-      - 1505 -> 50.5
+    #   - offset: -1000
+      - multiply:  0.1
+    # filters:
+    # - calibrate_linear:
+    #   - 438 -> -56.2
+    #   - 1000 -> 0
+    #   - 1505 -> 50.5
 
 ################################################ READ SETTINGS #############################################
 
-  - platform: modbus_controller            # 250 Prog1 Time
-    modbus_controller_id: inverter
-    name: "${friendly_name} Prog1 Time"
-    id: inverter_esphome_system_mode_time1
-    register_type: holding
-    skip_updates: ${settings_skipped_updates}
-    address: 250
-    icon: "mdi:clock"
+  # - platform: modbus_controller            # 250 Prog1 Time
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Prog1 Time"
+  #   id: inverter_esphome_system_mode_time1
+  #   register_type: holding
+  #   skip_updates: ${settings_skipped_updates}
+  #   address: 250
+  #   icon: "mdi:clock"
 
   # - platform: modbus_controller            # 251 Prog2 Time
   #   modbus_controller_id: inverter
@@ -1363,7 +1367,7 @@ switch:
   - platform: modbus_controller            # 247 Toggle Solar Sell
     use_write_multiple: true
     modbus_controller_id: inverter
-    name: "${friendly_name} Toggle Solar sell"
+    name: "${friendly_name} Solar sell"
     id: inverter_esphome_toggle_solar_sell
     register_type: holding
     address: 247
@@ -1373,7 +1377,7 @@ switch:
   - platform: modbus_controller            # 248 Toggle System Timer
     use_write_multiple: true
     modbus_controller_id: inverter
-    name: "${friendly_name} Toggle System TOU" 
+    name: "${friendly_name} System TOU" 
     id: inverter_esphome_toggle_Time_of_Use
     register_type: holding
     address: 248
@@ -1390,15 +1394,15 @@ switch:
 #     bitmask: 1
 #     icon: "mdi:toggle-switch"
 
-  - platform: modbus_controller            # 274 Prog1 Charge
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    name: "${friendly_name} Prog1 Grid Charge"
-    id: inverter_esphome_toggle_grid_charge_time1
-    register_type: holding
-    address: 274
-    bitmask: 1
-    icon: "mdi:toggle-switch"
+  # - platform: modbus_controller            # 274 Prog1 Charge
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Prog1 Grid Charge"
+  #   id: inverter_esphome_toggle_grid_charge_time1
+  #   register_type: holding
+  #   address: 274
+  #   bitmask: 1
+  #   icon: "mdi:toggle-switch"
 
 #   - platform: modbus_controller            # 275 Prog2 Charge
 #     modbus_controller_id: inverter
@@ -1451,17 +1455,17 @@ switch:
 #     icon: "mdi:toggle-switch"
 
 number:
-  - platform: modbus_controller            # 268 Prog1 Capacity
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_set_soc_time1
-    name: "${friendly_name} Prog1 Capacity"
-    unit_of_measurement: "%"
-    address: 268
-    min_value: 0
-    max_value: 100
-    step: 5
-    value_type: U_WORD  
+#   - platform: modbus_controller            # 268 Prog1 Capacity
+#     use_write_multiple: true
+#     modbus_controller_id: inverter
+#     id: inverter_esphome_set_soc_time1
+#     name: "${friendly_name} Prog1 Capacity"
+#     unit_of_measurement: "%"
+#     address: 268
+#     min_value: 0
+#     max_value: 100
+#     step: 5
+#     value_type: U_WORD  
 
 #   - platform: modbus_controller            # 269 Prog2 Capacity
 #     use_write_multiple: true
@@ -1523,17 +1527,17 @@ number:
 #     step: 5
 #     value_type: U_WORD  
 
-  - platform: modbus_controller            # 256 Prog1 Power
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_set_power_time1
-    name: "${friendly_name} Prog1 Power"
-    unit_of_measurement: "W"
-    address: 256
-    min_value: 0
-    max_value: 8000
-    step: 100
-    value_type: U_WORD  
+  # - platform: modbus_controller            # 256 Prog1 Power
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_set_power_time1
+  #   name: "${friendly_name} Prog1 Power"
+  #   unit_of_measurement: "W"
+  #   address: 256
+  #   min_value: 0
+  #   max_value: 8000
+  #   step: 100
+  #   value_type: U_WORD  
 
 #   - platform: modbus_controller            # 257 Prog2 Power
 #     use_write_multiple: true
@@ -1595,20 +1599,20 @@ number:
 #     step: 100
 #     value_type: U_WORD  
 
-  - platform: modbus_controller            # 262 Prog1 Voltage
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_set_voltage_time1
-    name: "${friendly_name} Prog1 Voltage"
-    unit_of_measurement: "V"
-    address: 262
-    min_value: 41
-    max_value: 60
-    step: 0.1
-    value_type: U_WORD
-    lambda: "return  x * 0.01; "
-    write_lambda: |-
-      return x * 100 ;
+  # - platform: modbus_controller            # 262 Prog1 Voltage
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_set_voltage_time1
+  #   name: "${friendly_name} Prog1 Voltage"
+  #   unit_of_measurement: "V"
+  #   address: 262
+  #   min_value: 41
+  #   max_value: 60
+  #   step: 0.1
+  #   value_type: U_WORD
+  #   lambda: "return  x * 0.01; "
+  #   write_lambda: |-
+  #    return x * 100 ;
 
 #   - platform: modbus_controller            # 263 Prog2 Voltage
 #     use_write_multiple: true
@@ -1685,41 +1689,41 @@ number:
 #     write_lambda: |-
 #       return x * 100 ;
 
-  - platform: modbus_controller            # 230 Grid Charge Battery current
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_grid_charge_bat_current
-    name: "${friendly_name} Grid Charge Battery current"
-    unit_of_measurement: "A"
-    address: 230
-    min_value: 0
-    max_value: 185
-    step: 5
-    value_type: U_WORD  
+  # - platform: modbus_controller            # 230 Grid Charge Battery current
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_grid_charge_bat_current
+  #   name: "${friendly_name} Grid Charge Battery current"
+  #   unit_of_measurement: "A"
+  #   address: 230
+  #   min_value: 0
+  #   max_value: 185
+  #   step: 5
+  #   value_type: U_WORD  
 
-  - platform: modbus_controller            # 210 Battery Max Charge current
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_bat_max_charge_current
-    name: "${friendly_name} Battery Max Charge current"
-    unit_of_measurement: "A"
-    address: 210
-    min_value: 0
-    max_value: 185
-    step: 5
-    value_type: U_WORD  
+  # - platform: modbus_controller            # 210 Battery Max Charge current
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_bat_max_charge_current
+  #   name: "${friendly_name} Battery Max Charge current"
+  #   unit_of_measurement: "A"
+  #   address: 210
+  #   min_value: 0
+  #   max_value: 185
+  #   step: 5
+  #   value_type: U_WORD  
 
-  - platform: modbus_controller            # 211 Battery Max Discharge current
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    id: inverter_esphome_bat_max_discharge_current
-    name: "${friendly_name} Battery Max Discharge current"
-    unit_of_measurement: "A"
-    address: 211
-    min_value: 0
-    max_value: 185
-    step: 5
-    value_type: U_WORD  
+  # - platform: modbus_controller            # 211 Battery Max Discharge current
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_bat_max_discharge_current
+  #   name: "${friendly_name} Battery Max Discharge current"
+  #   unit_of_measurement: "A"
+  #   address: 211
+  #   min_value: 0
+  #   max_value: 185
+  #   step: 5
+  #   value_type: U_WORD  
 
   # - platform: modbus_controller            # 293 Grid Peak Shaving Power
   #   use_write_multiple: true
@@ -1733,17 +1737,17 @@ number:
   #   step: 500
   #   value_type: U_WORD
 
-  - platform: modbus_controller            # 245 Max Sell Power
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    name: "${friendly_name} Max Sell power"
-    id: inverter_max_sell_power
-    address: 245
-    unit_of_measurement: "W"
-    min_value: 0
-    max_value: 8000
-    step: 500
-    value_type: U_WORD
+  # - platform: modbus_controller            # 245 Max Sell Power
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Max Sell power"
+  #   id: inverter_max_sell_power
+  #   address: 245
+  #   unit_of_measurement: "W"
+  #   min_value: 0
+  #   max_value: 8000
+  #   step: 500
+  #   value_type: U_WORD
 
 ################################################ TEXT SENSORS ##################################################
 
@@ -1770,55 +1774,55 @@ text_sensor:
         case 4: return std::string("fault");
         default: return std::string("unknown");
       }
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return x == "normal";'
-            then:
-              - light.turn_on:
-                  id: onboard_rgb
-                  brightness: 20%
-                  red: 0%
-                  green: 100%
-                  blue: 0%
-                  effect: none
-            else:
-              - if:
-                  condition:
-                    lambda: 'return x == "standby";'
-                  then:
-                    - light.turn_on:
-                        id: onboard_rgb
-                        red: 0%
-                        green: 100%
-                        blue: 0%
-                        effect: Breathe
-                  else:
-                    - light.turn_on:
-                        id: onboard_rgb
-                        brightness: 20%
-                        red: 100%
-                        green: 0%
-                        blue: 0%
-                        effect: none
+    # on_value:
+    #   then:
+    #     - if:
+    #         condition:
+    #           lambda: 'return x == "normal";'
+    #         then:
+    #           - light.turn_on:
+    #               id: onboard_rgb
+    #               brightness: 20%
+    #               red: 0%
+    #               green: 100%
+    #               blue: 0%
+    #               effect: none
+    #         else:
+    #           - if:
+    #               condition:
+    #                 lambda: 'return x == "standby";'
+    #               then:
+    #                 - light.turn_on:
+    #                     id: onboard_rgb
+    #                     red: 0%
+    #                     green: 100%
+    #                     blue: 0%
+    #                     effect: Breathe
+    #               else:
+    #                 - light.turn_on:
+    #                     id: onboard_rgb
+    #                     brightness: 20%
+    #                     red: 100%
+    #                     green: 0%
+    #                     blue: 0%
+    #                     effect: none
 
-  - platform: template                     # Prog Time 1 Friendly Name
-    name: "${friendly_name} Time Slot 1"
-    id: inverter_esphome_time_slot_1
-    icon: "mdi:clock"
-    lambda: |-
-        int minutes, hours;
-        if (id(inverter_esphome_system_mode_time1).state) {
-        minutes = static_cast<int>(id(inverter_esphome_system_mode_time1).state) % 100;
-        hours = static_cast<int>(id(inverter_esphome_system_mode_time1).state) / 100;
-        } else {
-          minutes = 0;
-          hours = 0;
-        }
-        char formatted_time[6];
-        snprintf(formatted_time, sizeof(formatted_time), "%02d:%02d", hours, minutes);
-        return esphome::optional<std::string>(formatted_time);
+  # - platform: template                     # Prog Time 1 Friendly Name
+  #   name: "${friendly_name} Time Slot 1"
+  #   id: inverter_esphome_time_slot_1
+  #   icon: "mdi:clock"
+  #   lambda: |-
+  #       int minutes, hours;
+  #       if (id(inverter_esphome_system_mode_time1).state) {
+  #       minutes = static_cast<int>(id(inverter_esphome_system_mode_time1).state) % 100;
+  #       hours = static_cast<int>(id(inverter_esphome_system_mode_time1).state) / 100;
+  #       } else {
+  #         minutes = 0;
+  #         hours = 0;
+  #       }
+  #       char formatted_time[6];
+  #       snprintf(formatted_time, sizeof(formatted_time), "%02d:%02d", hours, minutes);
+  #       return esphome::optional<std::string>(formatted_time);
 
   # - platform: template                     # Prog Time 2 Friendly Name
   #   name: "${friendly_name} Time Slot 2"
@@ -1905,69 +1909,69 @@ text_sensor:
   #       snprintf(formatted_time, sizeof(formatted_time), "%02d:%02d", hours, minutes);
   #       return esphome::optional<std::string>(formatted_time);
 
-  - platform: modbus_controller            # 003-007 Inverter HEX Serial Number
-    modbus_controller_id: inverter
-    id: inverter_esphome_serial
-    register_type: holding
-    skip_updates: ${settings_skipped_updates}
-    raw_encode: HEXBYTES
-    address: 003
-    register_count: 5
-    response_size: 10
-    internal: true
+  # - platform: modbus_controller            # 003-007 Inverter HEX Serial Number
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_serial
+  #   register_type: holding
+  #   skip_updates: ${settings_skipped_updates}
+  #   raw_encode: HEXBYTES
+  #   address: 003
+  #   register_count: 5
+  #   response_size: 10
+  #   internal: true
 
 
-  - platform: template                     # Inverter ASCII Serial Number
-    name: "${friendly_name} Serial"
-    id: inverter_esphome_ascii_serial
-    icon: "mdi:text"
-    lambda: |-
-      std::string hexData = id(inverter_esphome_serial).state;
+  # - platform: template                     # Inverter ASCII Serial Number
+  #   name: "${friendly_name} Serial"
+  #   id: inverter_esphome_ascii_serial
+  #   icon: "mdi:text"
+  #   lambda: |-
+  #     std::string hexData = id(inverter_esphome_serial).state;
 
-      // Convert hex-encoded string to ASCII
-      std::string asciiData;
-      for (size_t i = 0; i < hexData.length(); i += 2) {
-        std::string byte = hexData.substr(i, 2);
-        char chr = static_cast<char>(std::stoi(byte, nullptr, 16));
-        asciiData.push_back(chr);
-      }
+  #     // Convert hex-encoded string to ASCII
+  #     std::string asciiData;
+  #     for (size_t i = 0; i < hexData.length(); i += 2) {
+  #       std::string byte = hexData.substr(i, 2);
+  #       char chr = static_cast<char>(std::stoi(byte, nullptr, 16));
+  #       asciiData.push_back(chr);
+  #     }
 
-      return asciiData;
+  #     return asciiData;
 
-  - platform: modbus_controller            # 013 Inverter MCU Firmware Version
-    modbus_controller_id: inverter
-    id: inverter_esphome_MCU_version_13
-    register_type: holding
-    skip_updates: ${settings_skipped_updates}
-    raw_encode: HEXBYTES
-    address: 013
-    internal: true
+  # - platform: modbus_controller            # 013 Inverter MCU Firmware Version
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_MCU_version_13
+  #   register_type: holding
+  #   skip_updates: ${settings_skipped_updates}
+  #   raw_encode: HEXBYTES
+  #   address: 013
+  #   internal: true
 
-  - platform: modbus_controller            # 015 Inverter MCU Firmware Version
-    modbus_controller_id: inverter
-    id: inverter_esphome_MCU_version_15
-    register_type: holding
-    skip_updates: ${settings_skipped_updates}
-    raw_encode: HEXBYTES
-    address: 015
-    internal: true
+  # - platform: modbus_controller            # 015 Inverter MCU Firmware Version
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_MCU_version_15
+  #   register_type: holding
+  #   skip_updates: ${settings_skipped_updates}
+  #   raw_encode: HEXBYTES
+  #   address: 015
+  #   internal: true
 
-  - platform: template                      # 015-013 Inverter MCU version
-    name: "${friendly_name} MCU Version"
-    id: inverter_esphome_main_version
-    icon: "mdi:text"
-    lambda: |-
-      return id( inverter_esphome_MCU_version_15).state + "-" + id(inverter_esphome_MCU_version_13).state;
+  # - platform: template                      # 015-013 Inverter MCU version
+  #   name: "${friendly_name} MCU Version"
+  #   id: inverter_esphome_main_version
+  #   icon: "mdi:text"
+  #   lambda: |-
+  #     return id( inverter_esphome_MCU_version_15).state + "-" + id(inverter_esphome_MCU_version_13).state;
 
-  - platform: modbus_controller             # 016 Inverter LCD Firmware Version
-    modbus_controller_id: inverter
-    id: inverter_esphome_comm_lcd_firmware_16
-    name: "${friendly_name} COMM Version"
-    register_type: holding
-    skip_updates: ${settings_skipped_updates}
-    raw_encode: HEXBYTES
-    icon: "mdi:text"
-    address: 016
+  # - platform: modbus_controller             # 016 Inverter LCD Firmware Version
+  #   modbus_controller_id: inverter
+  #   id: inverter_esphome_comm_lcd_firmware_16
+  #   name: "${friendly_name} COMM Version"
+  #   register_type: holding
+  #   skip_updates: ${settings_skipped_updates}
+  #   raw_encode: HEXBYTES
+  #   icon: "mdi:text"
+  #   address: 016
 
 ################################################ SELECT SENSORS ################################################
 
@@ -2062,32 +2066,32 @@ select:
   #     //ESP_LOGE("main","Modbus write to write = %d", modified);
   #     return modified;
 
-  - platform: modbus_controller            #274 Select Prog1 Charge Option
-    use_write_multiple: true
-    modbus_controller_id: inverter
-    name: "${friendly_name} Prog1 Charge Option"
-    id: inverter_esphome_select_system_mode_charge_option_time_1
-    address: 274
-    value_type: U_WORD
-    optionsmap:
-      "No Grid or Gen": 0
-      "Allow Grid": 1
-      "Allow Gen": 2
-      "Allow Grid & Gen": 3
-    lambda: |-
-      if ((x & 0x0003) == 0)
-        return  std::string("No Grid or Gen");
-      if ((x & 0x0003) == 1)
-        return  std::string("Allow Grid");
-      if ((x & 0x0003) == 2)
-        return  std::string("Allow Gen");
-      if ((x & 0x0003) == 3)
-        return  std::string("Allow Grid & Gen");
-      return {};
-    write_lambda: |-
-      uint16_t unmodified =  id(reg_274_raw).state;
-      uint16_t modified = ((unmodified & ~0x0003) | value);
-      return modified;
+  # - platform: modbus_controller            #274 Select Prog1 Charge Option
+  #   use_write_multiple: true
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Prog1 Charge Option"
+  #   id: inverter_esphome_select_system_mode_charge_option_time_1
+  #   address: 274
+  #   value_type: U_WORD
+  #   optionsmap:
+  #     "No Grid or Gen": 0
+  #     "Allow Grid": 1
+  #     "Allow Gen": 2
+  #     "Allow Grid & Gen": 3
+  #   lambda: |-
+  #     if ((x & 0x0003) == 0)
+  #       return  std::string("No Grid or Gen");
+  #     if ((x & 0x0003) == 1)
+  #       return  std::string("Allow Grid");
+  #     if ((x & 0x0003) == 2)
+  #       return  std::string("Allow Gen");
+  #     if ((x & 0x0003) == 3)
+  #       return  std::string("Allow Grid & Gen");
+  #     return {};
+  #   write_lambda: |-
+  #     uint16_t unmodified =  id(reg_274_raw).state;
+  #     uint16_t modified = ((unmodified & ~0x0003) | value);
+  #     return modified;
 
   # - platform: modbus_controller            #275  Select Prog2 Charge Option
   #   use_write_multiple: true

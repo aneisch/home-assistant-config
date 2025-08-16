@@ -68,13 +68,11 @@ class AutoAdjust(hass.Hass):
             self.boost_active = False
             return
 
-        self.log("Evaluating boost", level="WARNING")
-
         eligible = (
             excess_solar > float(self.args["solar_boost_threshold"])
             and battery_soc > float(self.args["battery_boost_threshold"])
         )
-        self.log(f"Result {eligible}", level="WARNING")
+        self.log(f"Boost Evaluation Result: {eligible} - Excess: {excess_solar} Battery SOC {battery_soc}%", level="WARNING")
 
 
         # If eligibility state changed, debounce the *action*
@@ -94,10 +92,9 @@ class AutoAdjust(hass.Hass):
             self.boost_active = self.should_boost
             self.adjust_morning()  # apply new temp
 
-
     def adjust_temp(self, kwargs):
         for tstat in self.split_device_list(self.args["thermostats"]):
-            #self.log(f"Calling Temperature Change: {kwargs['temp']}")
+            self.log(f"Calling Temperature Change: {kwargs['temp']}")
             self.call_service("climate/set_temperature", entity_id=tstat, temperature=kwargs["temp"])
 
     def presence_adjust(self, entity, attribute, old, new, kwargs):
