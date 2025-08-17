@@ -1,16 +1,3 @@
-# utility_meter:
-#   monthly_grid_consumption:
-#     name: Monthly Grid Consumption # Positive or Negative Monthly Grid Usage
-#     source: # grid power sensor?
-#     cycle: monthly
-#     net_consumption: true
-
-#   monthly_grid_sell:
-#     name: Monthly Grid Sell # kWh sold to grid
-#     source: # grid power sensor?
-#     cycle: monthly
-#     net_consumption: true
-
 automation:
   # Nightly Grid Data to Google Sheet
   # Long term daily statistics, ROI, etc are calculated here
@@ -44,7 +31,7 @@ automation:
     action:
       - action: script.notify_wrapper
         data:
-          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.to_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
 sensor:
   - platform: template

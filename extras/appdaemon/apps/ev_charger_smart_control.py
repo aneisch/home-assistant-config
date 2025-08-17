@@ -99,7 +99,7 @@ class EvChargerSmartControl(hass.Hass):
         self.log(f"Solar: {solar_power}, Load: {load_power}, Excess: {excess_solar}, Battery SoC: {home_battery_soc}%")
 
         # Home battery above threshold
-        if home_battery_soc >= self.battery_threshold:
+        if home_battery_soc > self.battery_threshold: # Fix this because SOC will never be over 100
             # if self.min_amps <= amps_override <= self.max_amps:
             #     amps = int(amps_override)
             #     self.log(f"Battery healthy with amps override: charging at {amps}A")
@@ -116,7 +116,7 @@ class EvChargerSmartControl(hass.Hass):
             self._set_charger_amps_and_state(amps, True, now)
 
         # Home battery below threshold
-        elif home_battery_soc < self.battery_threshold: #and surplus <= 0:
+        elif home_battery_soc <= self.battery_threshold: #and surplus <= 0:
             current_state = self.get_state(self.ev_switch)
             if current_state == "on":
                 self.log("Home battery low - disabling EV charging")

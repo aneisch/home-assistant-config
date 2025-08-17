@@ -177,8 +177,41 @@ script:
         data:
           command: "input tap 50 200" # tap on screen to make fullscreen
 
+  photo_frame_launch_solar:
+    mode: 'restart'
+    sequence:
+      - action: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          # https://xdaforums.com/t/how-to-load-full-desktop-websites-permanently-in-chrome-for-android.3771982/post-78875887
+          command: "am start -a com.google.android.apps.chrome.ACTION_CLOSE_TABS -n com.android.chrome/org.chromium.chrome.browser.ChromeTabbedActivity"
+      - action: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "am start -n com.android.chrome/com.google.android.apps.chrome.Main -a android.intent.action.VIEW -d 'http://10.0.1.22:8123/lovelace/13?wp_enabled=true'"
+      - delay: "00:00:15"
+      - action: androidtv.adb_command
+        target:
+          entity_id: "{{ entity_id }}"
+        data:
+          command: "input tap 50 200" # tap on screen to make fullscreen
+
   kitchen_launch_timers:
     sequence:
       - action: script.photo_frame_launch_timers
         data:
           entity_id: media_player.kitchen_photo_frame
+
+  kitchen_launch_solar:
+    sequence:
+      - action: script.photo_frame_launch_solar
+        data:
+          entity_id: media_player.kitchen_photo_frame
+
+  office_launch_solar:
+    sequence:
+      - action: script.photo_frame_launch_solar
+        data:
+          entity_id: media_player.office_photo_frame

@@ -23,13 +23,9 @@ from homeassistant.util import dt as dt_util
 from . import convert_to_float
 from .const import (
     ATTR_CURRENCY_SYMBOL,
-    ATTR_DIVIDEND_DATE,
     ATTR_MARKET_STATE,
-    ATTR_POST_MARKET_TIME,
-    ATTR_PRE_MARKET_TIME,
     ATTR_QUOTE_SOURCE_NAME,
     ATTR_QUOTE_TYPE,
-    ATTR_REGULAR_MARKET_TIME,
     ATTR_SYMBOL,
     ATTR_TRENDING,
     ATTRIBUTION,
@@ -39,18 +35,15 @@ from .const import (
     CONF_SYMBOLS,
     CURRENCY_CODES,
     DATA_CURRENCY_SYMBOL,
-    DATA_DIVIDEND_DATE,
     DATA_FINANCIAL_CURRENCY,
     DATA_LONG_NAME,
     DATA_MARKET_STATE,
-    DATA_POST_MARKET_TIME,
-    DATA_PRE_MARKET_TIME,
     DATA_QUOTE_SOURCE_NAME,
     DATA_QUOTE_TYPE,
     DATA_REGULAR_MARKET_PREVIOUS_CLOSE,
     DATA_REGULAR_MARKET_PRICE,
-    DATA_REGULAR_MARKET_TIME,
     DATA_SHORT_NAME,
+    DATE_DATA_KEYS,
     DEFAULT_CURRENCY,
     DEFAULT_NUMERIC_DATA_GROUP,
     DOMAIN,
@@ -59,6 +52,7 @@ from .const import (
     LOGGER,
     NUMERIC_DATA_GROUPS,
     PERCENTAGE_DATA_KEYS_NEEDING_MULTIPLICATION,
+    TIME_DATA_KEYS,
 )
 from .coordinator import YahooSymbolUpdateCoordinator
 from .dataclasses import SymbolDefinition
@@ -155,9 +149,10 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         # pylint: disable=consider-using-dict-items
 
         # Initialize all numeric attributes which we want to include to None
-        for group in NUMERIC_DATA_GROUPS:
-            if group == DEFAULT_NUMERIC_DATA_GROUP or domain_config.get(group, True):
-                for value in NUMERIC_DATA_GROUPS[group]:
+        for group, group_items in NUMERIC_DATA_GROUPS.items():
+            # All optional features data items are excluded by default
+            if group == DEFAULT_NUMERIC_DATA_GROUP or domain_config.get(group, False):
+                for value in group_items:
                     self._numeric_data_to_include.append(value)
 
                     key = value[0]
@@ -396,29 +391,21 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
             DATA_MARKET_STATE
         ]
 
-        self._attr_extra_state_attributes[ATTR_DIVIDEND_DATE] = (
-            self.convert_timestamp_to_datetime(
-                symbol_data.get(DATA_DIVIDEND_DATE), "date"
-            )
-        )
+        for key in DATE_DATA_KEYS:
+            if key in self._attr_extra_state_attributes:
+                self._attr_extra_state_attributes[key] = (
+                    self.convert_timestamp_to_datetime(
+                        self._attr_extra_state_attributes[key], "date"
+                    )
+                )
 
-        self._attr_extra_state_attributes[ATTR_REGULAR_MARKET_TIME] = (
-            self.convert_timestamp_to_datetime(
-                symbol_data.get(DATA_REGULAR_MARKET_TIME), "dateTime"
-            )
-        )
-
-        self._attr_extra_state_attributes[ATTR_POST_MARKET_TIME] = (
-            self.convert_timestamp_to_datetime(
-                symbol_data.get(DATA_POST_MARKET_TIME), "dateTime"
-            )
-        )
-
-        self._attr_extra_state_attributes[ATTR_PRE_MARKET_TIME] = (
-            self.convert_timestamp_to_datetime(
-                symbol_data.get(DATA_PRE_MARKET_TIME), "dateTime"
-            )
-        )
+        for key in TIME_DATA_KEYS:
+            if key in self._attr_extra_state_attributes:
+                self._attr_extra_state_attributes[key] = (
+                    self.convert_timestamp_to_datetime(
+                        self._attr_extra_state_attributes[key], "dateTime"
+                    )
+                )
 
         # Use target_currency if we have conversion data. Otherwise keep using the
         # currency from data.

@@ -30,25 +30,29 @@ cards:
       efficiency: 3
     battery:
       energy: 28680
-      shutdown_soc: 20
+      shutdown_soc: 15
       invert_flow: true
       colour: purple
       animation_speed: 6
       auto_scale: true
-      animate: true
+      animate: false
       path_threshold: 90
     load:
       show_aux: false
       show_daily: true
       animation_speed: 8
       max_power: 25000
-      load1_name: AC
-      load1_icon: mdi:climate
-      load2_name: EV
-      load2_icon: mdi:lightning-bolt
+      load3_name: Compressor
+      load3_icon: mdi:air-conditioner
+      load1_name: Tesla
+      load1_icon: mdi:ev-station
+      load2_name: Dryer
+      load2_icon: mdi:tumble-dryer
+      load4_name: Fan
+      load4_icon: mdi:fan
       auto_scale: true
       path_threshold: 90
-      additional_loads: 2
+      additional_loads: 4
       #off_threshold: 3
     grid:
       show_daily_buy: true
@@ -104,10 +108,15 @@ cards:
       # prog1_capacity: number.solark_sol_ark_prog1_capacity
       # prog1_charge: switch.solark_sol_ark_prog1_grid_charge
       environment_temp: sensor.433_weather_temperature
-      essential_load1: sensor.ac_compressor_power
-      essential_load1_extra: sensor.ac_compressor_daily_energy
-      essential_load2: sensor.tesla_power_minute_average
-      essential_load2_extra: sensor.tesla_energy_today
+      essential_load1: sensor.tesla_power_minute_average
+      essential_load1_extra: sensor.tesla_energy_today
+      essential_load2: sensor.dryer_power
+      essential_load2_extra: sensor.dryer_daily_energy
+      essential_load3: sensor.ac_compressor_power
+      essential_load3_extra: sensor.ac_compressor_daily_energy
+      essential_load4: sensor.attic_hvac_power
+      essential_load4_extra: sensor.attic_hvac_daily_energy
+
     dynamic_line_width: true
     wide: true
     view_layout:

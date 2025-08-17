@@ -70,7 +70,7 @@ class AutoAdjust(hass.Hass):
 
         eligible = (
             excess_solar > float(self.args["solar_boost_threshold"])
-            and battery_soc > float(self.args["battery_boost_threshold"])
+            and battery_soc > float(self.args["battery_boost_threshold"]) # Fix this because SOC will never be over 100
         )
         self.log(f"Boost Evaluation Result: {eligible} - Excess: {excess_solar} Battery SOC {battery_soc}%", level="WARNING")
 

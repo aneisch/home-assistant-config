@@ -16,7 +16,7 @@ if MeterEntity == "sensor.electricity_usage":
     computed_electricity_cost = round(7 + ((float(inputState)) * current_cost), 2)
 
     # Set State
-    service_data = {"entity_id": "input_text.electricity_cost_monthly_emporia", "value": computed_electricity_cost}
+    service_data = {"entity_id": "input_text.electricity_cost_monthly", "value": computed_electricity_cost}
     hass.services.call("input_text", "set_value", service_data)
 
 elif MeterEntity == "sensor.tesla_energy_this_month":

@@ -101,7 +101,7 @@ cards:
       - type: sensor
         entity: sensor.electricity_usage
         graph: line
-        name: Cycle Electricity Emporia
+        name: Cycle Electricity Import
         detail: 1
         hours_to_show: 24
         unit: kWh
@@ -112,13 +112,13 @@ cards:
 
           Monthly Tesla Home Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
 
-          Monthly Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly_emporia') }}
+          Monthly Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
 
           Monthly Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Monthly Water + Sewer + Electric: ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly_emporia') | float)) | round(2) }}
+          Monthly Water + Sewer + Electric: ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float)) | round(2) }}
 
           Cycle Ends: {{ states('sensor.utilities_cycle_end') }}
       - type: sensor

@@ -22,6 +22,7 @@ from homeassistant.helpers.typing import ConfigType
 
 from .const import (
     CONF_DECIMAL_PLACES,
+    CONF_INCLUDE_DIVIDEND_VALUES,
     CONF_INCLUDE_FIFTY_DAY_VALUES,
     CONF_INCLUDE_FIFTY_TWO_WEEK_VALUES,
     CONF_INCLUDE_POST_VALUES,
@@ -33,6 +34,7 @@ from .const import (
     CONF_SYMBOLS,
     CONF_TARGET_CURRENCY,
     DEFAULT_CONF_DECIMAL_PLACES,
+    DEFAULT_CONF_INCLUDE_DIVIDEND_VALUES,
     DEFAULT_CONF_INCLUDE_FIFTY_DAY_VALUES,
     DEFAULT_CONF_INCLUDE_FIFTY_TWO_WEEK_VALUES,
     DEFAULT_CONF_INCLUDE_POST_VALUES,
@@ -119,6 +121,10 @@ CONFIG_SCHEMA = vol.Schema(
                 vol.Optional(
                     CONF_INCLUDE_FIFTY_TWO_WEEK_VALUES,
                     default=DEFAULT_CONF_INCLUDE_FIFTY_TWO_WEEK_VALUES,
+                ): cv.boolean,
+                vol.Optional(
+                    CONF_INCLUDE_DIVIDEND_VALUES,
+                    default=DEFAULT_CONF_INCLUDE_DIVIDEND_VALUES,
                 ): cv.boolean,
             }
         )
