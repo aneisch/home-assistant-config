@@ -23,11 +23,12 @@ automation:
             Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
 
   - alias: "Inverter State Change"
+    mode: queued
     id: "inverter_state_alert"
     trigger:
       - platform: state
         entity_id: sensor.solark_sol_ark_overall_state
-    #condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
+    condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown'] and trigger.to_state.state not in ['unavailable'] }}"
     action:
       - action: script.notify_wrapper
         data:

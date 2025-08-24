@@ -1,13 +1,21 @@
 input_number:
   # Emporia View, Appdaemon app, and Tesla BLE follow this
   tesla_charge_rate_master:
-    name: Tesla Charge Rate
+    name: Emporia Tesla Charge Rate
     initial: 40
-    min: 5
+    min: 6
     max: 40
     step: 1
     mode: slider  # or 'box' if you want a number input box instead
-    unit_of_measurement: "A"    
+    unit_of_measurement: "A"  
+  tesla_solar_target_soc_limit:
+    name: EV Charge Solar SOC Target
+    min: 50
+    max: 100
+    step: 1
+    mode: slider  # or 'box' if you want a number input box instead
+    unit_of_measurement: "%"  
+
 
 mqtt:
   - sensor:
@@ -664,6 +672,33 @@ timer:
     restore: true
 
 automation:
+  - alias: "Set Emporia Charger Current from Slider"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: input_number.tesla_charge_rate_master
+    condition: []
+    action:
+      - service: emporia_vue.set_charger_current
+        data:
+          current: "{{ states('input_number.tesla_charge_rate_master') | int }}"
+        target:
+          entity_id: switch.emporia_charger
+
+  - alias: "Sync Tesla Charge Rate Slider with Charger"
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: switch.emporia_charger
+        attribute: charging_rate
+    condition: []
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.tesla_charge_rate_master
+        data:
+          value: "{{ state_attr('switch.emporia_charger', 'charging_rate') | int }}"
+
   - alias: Tesla BLE - Hourly Refresh
     description: Press force update and turn on polling every hour
     trigger:

@@ -275,6 +275,16 @@ cards:
 
   - type: entities
     entities:
+      - action_name: All Off
+        icon: 'mdi:voice'
+        name: ' '
+        type: call-service
+        service: media_player.turn_off
+        service_data:
+          entity_id: 
+            - media_player.misc_photo_frame
+            - media_player.office_photo_frame
+            - media_player.kitchen_photo_frame
       - action_name: Launch Fotoo
         icon: 'mdi:voice'
         name: ' '
@@ -289,6 +299,15 @@ cards:
         name: ' '
         type: call-service
         service: script.photo_frame_launch_timers
+        service_data:
+          entity_id: 
+            - media_player.kitchen_photo_frame
+            - media_player.office_photo_frame
+      - action_name: Launch Solar
+        icon: 'mdi:voice'
+        name: ' '
+        type: call-service
+        service: script.photo_frame_launch_solar
         service_data:
           entity_id: 
             - media_player.kitchen_photo_frame

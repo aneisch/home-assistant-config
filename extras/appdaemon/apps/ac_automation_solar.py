@@ -54,7 +54,7 @@ class AutoAdjust(hass.Hass):
             battery_soc = float(self.get_state("sensor.solark_sol_ark_battery_soc") or 0)
             self.excess_solar = excess_solar
             self.battery_soc = battery_soc
-        
+
         except (TypeError, ValueError):
             self.log("Invalid sensor data", level="WARNING")
             return
@@ -63,24 +63,31 @@ class AutoAdjust(hass.Hass):
         start = self.parse_time(self.args["cooldown_window_start"])
         end = self.parse_time(self.args["cooldown_window_end"])
 
-        # Ignore boost if not within boost window
         if not (start <= now <= end):
             self.boost_active = False
             return
 
         eligible = (
             excess_solar > float(self.args["solar_boost_threshold"])
-            and battery_soc > float(self.args["battery_boost_threshold"]) # Fix this because SOC will never be over 100
+            and battery_soc >= float(self.args["battery_boost_threshold"])  # allow equality
         )
-        self.log(f"Boost Evaluation Result: {eligible} - Excess: {excess_solar} Battery SOC {battery_soc}%", level="WARNING")
+        #self.log(f"Boost Evaluation Result: {eligible} - Excess: {excess_solar} Battery SOC {battery_soc}%", level="INFO")
 
-
-        # If eligibility state changed, debounce the *action*
         if eligible != self.should_boost:
+            self.log(f"Eligibility changed --> {eligible} (was {self.should_boost})", level="INFO")
             self.should_boost = eligible
+
+            # Cancel any pending debounce
             if self.boost_debounce_handle:
                 self.cancel_timer(self.boost_debounce_handle)
-            self.boost_debounce_handle = self.run_in(self.commit_boost_change, 600)  # 10 minutes
+                self.boost_debounce_handle = None
+
+            if eligible:
+                # Immediate ON
+                self.commit_boost_change({})
+            else:
+                # Delay OFF
+                self.boost_debounce_handle = self.run_in(self.commit_boost_change, 300)  # 5 minutes
 
     def commit_boost_change(self, kwargs):
         if self.should_boost != self.boost_active:

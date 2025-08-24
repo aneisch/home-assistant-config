@@ -27,24 +27,29 @@ AC Automation Solar:
   thermostats: climate.thermostat
   device_tracker: group.trackers
   morning_adjust_weekday: "09:00:00"
-  morning_adjust_weekend: "11:00:00"
+  morning_adjust_weekend: "10:00:00"
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "02:00:00"
-  cool_morning: "80"
-  cool_night: "73"
-  cool_midnight: "76" # change to this temp at midnight_adjust
+  cool_morning: "82"
+  cool_night: "74"
+  cool_midnight: "77" # change to this temp at midnight_adjust
   cool_unoccupied: "82"
   heat_morning: "67"
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
-  solar_boost_threshold: 3000       # in watts (excess solar triggers this)
+  solar_boost_threshold: 4000       # in watts (excess solar triggers this)
   battery_boost_threshold: 100       # battery SOC for boost activation
   cool_boost_offset: 5              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cooldown_window_start: '12:00:00' # Override daytime temperature during this period if excess solar and SOC above threshold
   cooldown_window_end: '18:00:00' # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
+
+solar_ev_charger:
+  module: ev
+  class: SolarEVCharger
+  constrain_input_boolean: input_boolean.ev_charge_override,off
 
 # EV Charge Control:
 #   module: ev_charger_smart_control

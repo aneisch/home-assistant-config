@@ -534,7 +534,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
 
-  - platform: modbus_controller            # 167 Grid L1 Power - this is wrong, negative when imoprting?
+  - platform: modbus_controller            # 167 Grid L1 Power
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L1 Power"
     id: inverter_esphome_grid_power_l1_167
@@ -546,7 +546,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
 
-  - platform: modbus_controller            # 168 Grid L2 Power - this is wrong, negative when imoprting?
+  - platform: modbus_controller            # 168 Grid L2 Power
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L2 Power"
     id: inverter_esphome_grid_power_l2_168
@@ -1176,7 +1176,7 @@ sensor:
   #   state_class: measurement
   #   value_type: S_WORD
   #   filters:
-  #     - offset: -1000
+  #     # - offset: -1000
   #     - multiply:  0.1
 
   - platform: modbus_controller            # 091 Radiator Temperature - this is wrong -62.7F?

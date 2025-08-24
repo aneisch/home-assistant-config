@@ -15,15 +15,17 @@ automation:
   #         message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
   - alias: "Electric Outage and Recovery"
+    mode: queued
     id: "electric_outage_and_recovery"
     trigger:
       - platform: state
         entity_id: sensor.ups_status
-        #to: "ONLINE"
       - platform: state
         entity_id: binary_sensor.solark_sol_ark_grid_connected_status
-        #to: "on"
-    #condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
+        to:
+          - "on"
+          - "off"
+    condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
       - action: script.notify_wrapper
         data:

@@ -94,6 +94,7 @@ cards:
           - switch.emporia_charger
           - switch.tesla_ble_charger
           - input_boolean.ev_charge_override
+          - input_number.tesla_solar_target_soc_limit
           - input_number.tesla_charge_rate_master
           - entity: sensor.tesla_charger_actual_current
             name: Charging Current
@@ -125,6 +126,23 @@ cards:
         cards:
           - type: vertical-stack
             cards:
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "50"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('sensor.tesla_charge_limit_soc','50') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "50"
+                  target:
+                    entity_id: number.tesla_ble_charging_limit
               - type: custom:mushroom-template-card
                 primary: "Charge Limit"
                 secondary: "70"
@@ -161,6 +179,23 @@ cards:
                     entity_id: number.tesla_ble_charging_limit
           - type: vertical-stack
             cards:
+              - type: custom:mushroom-template-card
+                primary: "Charge Limit"
+                secondary: "60"
+                card_mod:
+                  style: |
+                    ha-card {
+                      {% if is_state('sensor.tesla_charge_limit_soc','60') %}
+                      background: gray;
+                      {% endif %}
+                    }
+                tap_action:
+                  action: call-service
+                  service: number.set_value
+                  data:
+                    value: "60"
+                  target:
+                    entity_id: number.tesla_ble_charging_limit
               - type: custom:mushroom-template-card
                 primary: "Charge Limit"
                 secondary: "80"

@@ -8,12 +8,18 @@ import json
 import logging
 from typing import Any
 
+from homeassistant.components.sensor import (
+    SensorDeviceClass,
+    SensorEntity,
+    SensorStateClass,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_URL,
     PERCENTAGE,
     UnitOfSoundPressure,
     UnitOfTemperature,
+    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
@@ -34,7 +40,7 @@ from . import (
     get_zones,
     verify_frigate_version,
 )
-from .const import ATTR_CONFIG, ATTR_COORDINATOR, DOMAIN, FPS, MS, NAME, S
+from .const import ATTR_CONFIG, ATTR_COORDINATOR, DOMAIN, FPS, MS, NAME
 from .icons import (
     ICON_CORAL,
     ICON_FACE,
@@ -48,8 +54,6 @@ from .icons import (
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
-CAMERA_FPS_TYPES = ["camera", "detection", "process", "skipped"]
-
 
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
@@ -60,8 +64,11 @@ async def async_setup_entry(
 
     entities: list[FrigateEntity] = []
     for key, value in coordinator.data.items():
-        if key == "detection_fps":
-            entities.append(FrigateFpsSensor(coordinator, entry))
+
+        if key.endswith("_fps"):
+            entities.append(
+                FrigateFpsSensor(coordinator, entry, fps_type=key.removesuffix("_fps"))
+            )
         elif key == "detectors":
             for name in value.keys():
                 entities.append(DetectorSpeedSensor(coordinator, entry, name))
@@ -87,12 +94,11 @@ async def async_setup_entry(
                     CameraProcessCpuSensor(coordinator, entry, camera, "ffmpeg")
                 )
         elif key == "cameras":
-            for name in value.keys():
+            for name, cam in value.items():
                 entities.extend(
-                    [
-                        CameraFpsSensor(coordinator, entry, name, t)
-                        for t in CAMERA_FPS_TYPES
-                    ]
+                    CameraFpsSensor(coordinator, entry, name, k.removesuffix("_fps"))
+                    for k in cam
+                    if k.endswith("_fps")
                 )
 
                 if frigate_config["cameras"][name]["audio"]["enabled_in_config"]:
@@ -136,25 +142,35 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class FrigateFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]):
+class FrigateFpsSensor(
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
+):
     """Frigate Sensor class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    _attr_name = "Detection fps"
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
-        self, coordinator: FrigateDataUpdateCoordinator, config_entry: ConfigEntry
+        self,
+        coordinator: FrigateDataUpdateCoordinator,
+        config_entry: ConfigEntry,
+        fps_type: str = "detection",
     ) -> None:
         """Construct a FrigateFpsSensor."""
         FrigateEntity.__init__(self, config_entry)
         CoordinatorEntity.__init__(self, coordinator)
+        self._fps_type = fps_type
         self._attr_entity_registry_enabled_default = False
+
+    @property
+    def name(self) -> str:
+        return f"{self._fps_type} fps"
 
     @property
     def unique_id(self) -> str:
         """Return a unique ID to use for this entity."""
         return get_frigate_entity_unique_id(
-            self._config_entry.entry_id, "sensor_fps", "detection"
+            self._config_entry.entry_id, "sensor_fps", self._fps_type
         )
 
     @property
@@ -169,10 +185,10 @@ class FrigateFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
         }
 
     @property
-    def state(self) -> int | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> int | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
-            data = self.coordinator.data.get("detection_fps")
+            data = self.coordinator.data.get(f"{self._fps_type}_fps")
             if data is not None:
                 try:
                     return round(float(data))
@@ -181,8 +197,8 @@ class FrigateFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
         return None
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
         return FPS
 
     @property
@@ -192,7 +208,7 @@ class FrigateFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
 
 
 class FrigateStatusSensor(
-    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
 ):
     """Frigate Status Sensor class."""
 
@@ -226,8 +242,8 @@ class FrigateStatusSensor(
         }
 
     @property
-    def state(self) -> str:
-        """Return the state of the sensor."""
+    def native_value(self) -> str:
+        """Return the value of the sensor."""
         return str(self.coordinator.server_status)
 
     @property
@@ -237,11 +253,13 @@ class FrigateStatusSensor(
 
 
 class FrigateUptimeSensor(
-    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
 ):
     """Frigate Uptime Sensor class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_name = "Uptime"
 
     def __init__(
@@ -271,8 +289,8 @@ class FrigateUptimeSensor(
         }
 
     @property
-    def state(self) -> int | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> int | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = self.coordinator.data.get("service", {}).get("uptime", 0)
             try:
@@ -282,9 +300,9 @@ class FrigateUptimeSensor(
         return None
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
-        return S
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
+        return UnitOfTime.SECONDS
 
     @property
     def icon(self) -> str:
@@ -293,11 +311,13 @@ class FrigateUptimeSensor(
 
 
 class DetectorSpeedSensor(
-    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
 ):
     """Frigate Detector Speed class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.DURATION
 
     def __init__(
         self,
@@ -335,8 +355,8 @@ class DetectorSpeedSensor(
         return f"{get_friendly_name(self._detector_name)} inference speed"
 
     @property
-    def state(self) -> int | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> int | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = (
                 self.coordinator.data.get("detectors", {})
@@ -351,8 +371,8 @@ class DetectorSpeedSensor(
         return None
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
         return MS
 
     @property
@@ -361,10 +381,13 @@ class DetectorSpeedSensor(
         return ICON_SPEEDOMETER
 
 
-class GpuLoadSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]):
+class GpuLoadSensor(
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
+):
     """Frigate GPU Load class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -398,8 +421,8 @@ class GpuLoadSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinato
         }
 
     @property
-    def state(self) -> float | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> float | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = (
                 self.coordinator.data.get("gpu_usages", {})
@@ -418,9 +441,9 @@ class GpuLoadSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinato
         return None
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
-        return "%"
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
+        return PERCENTAGE
 
     @property
     def icon(self) -> str:
@@ -428,10 +451,13 @@ class GpuLoadSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinato
         return ICON_SPEEDOMETER
 
 
-class CameraFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]):
+class CameraFpsSensor(
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
+):
     """Frigate Camera Fps class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -476,21 +502,19 @@ class CameraFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordina
         return f"{self._fps_type} fps"
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
         return FPS
 
     @property
-    def state(self) -> int | None:
-        """Return the state of the sensor."""
-
+    def native_value(self) -> int | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = (
                 self.coordinator.data.get("cameras", {})
                 .get(self._cam_name, {})
                 .get(f"{self._fps_type}_fps")
             )
-
             if data is not None:
                 try:
                     return round(float(data))
@@ -504,8 +528,13 @@ class CameraFpsSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordina
         return ICON_SPEEDOMETER
 
 
-class CameraSoundSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]):
+class CameraSoundSensor(
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
+):
     """Frigate Camera Sound Level class."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.SOUND_PRESSURE
 
     def __init__(
         self,
@@ -548,21 +577,19 @@ class CameraSoundSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordi
         return "sound level"
 
     @property
-    def unit_of_measurement(self) -> Any:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> Any:
+        """Return the native unit of measurement of the sensor."""
         return UnitOfSoundPressure.DECIBEL
 
     @property
-    def state(self) -> int | None:
-        """Return the state of the sensor."""
-
+    def native_value(self) -> int | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = (
                 self.coordinator.data.get("cameras", {})
                 .get(self._cam_name, {})
                 .get("audio_dBFS")
             )
-
             if data is not None:
                 try:
                     return round(float(data))
@@ -576,8 +603,10 @@ class CameraSoundSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordi
         return ICON_WAVEFORM
 
 
-class FrigateObjectCountSensor(FrigateMQTTEntity):
+class FrigateObjectCountSensor(FrigateMQTTEntity, SensorEntity):
     """Frigate Motion Sensor class."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -647,13 +676,13 @@ class FrigateObjectCountSensor(FrigateMQTTEntity):
         return f"{get_friendly_name(self._obj_name)} count"
 
     @property
-    def state(self) -> int:
-        """Return true if the binary sensor is on."""
+    def native_value(self) -> int:
+        """Return the value of the sensor."""
         return self._state
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
         return "objects"
 
     @property
@@ -662,8 +691,10 @@ class FrigateObjectCountSensor(FrigateMQTTEntity):
         return self._icon
 
 
-class FrigateActiveObjectCountSensor(FrigateMQTTEntity):
+class FrigateActiveObjectCountSensor(FrigateMQTTEntity, SensorEntity):
     """Frigate Motion Sensor class."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -734,13 +765,13 @@ class FrigateActiveObjectCountSensor(FrigateMQTTEntity):
         return f"{get_friendly_name(self._obj_name)} active count".title()
 
     @property
-    def state(self) -> int:
-        """Return true if the binary sensor is on."""
+    def native_value(self) -> int:
+        """Return the value of the sensor."""
         return self._state
 
     @property
-    def unit_of_measurement(self) -> str:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> str:
+        """Return the native unit of measurement of the sensor."""
         return "objects"
 
     @property
@@ -749,10 +780,14 @@ class FrigateActiveObjectCountSensor(FrigateMQTTEntity):
         return self._icon
 
 
-class DeviceTempSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]):
+class DeviceTempSensor(
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
+):
     """Frigate Coral Temperature Sensor class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
 
     def __init__(
         self,
@@ -790,8 +825,8 @@ class DeviceTempSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
         return f"{get_friendly_name(self._name)} temperature"
 
     @property
-    def state(self) -> float | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> float | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             data = (
                 self.coordinator.data.get("service", {})
@@ -805,8 +840,8 @@ class DeviceTempSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
         return None
 
     @property
-    def unit_of_measurement(self) -> Any:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> Any:
+        """Return the native unit of measurement of the sensor."""
         return UnitOfTemperature.CELSIUS
 
     @property
@@ -816,11 +851,12 @@ class DeviceTempSensor(FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordin
 
 
 class CameraProcessCpuSensor(
-    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator]
+    FrigateEntity, CoordinatorEntity[FrigateDataUpdateCoordinator], SensorEntity
 ):
     """Cpu usage for camera processes class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(
         self,
@@ -861,8 +897,8 @@ class CameraProcessCpuSensor(
         }
 
     @property
-    def state(self) -> float | None:
-        """Return the state of the sensor."""
+    def native_value(self) -> float | None:
+        """Return the value of the sensor."""
         if self.coordinator.data:
             pid_key = (
                 "pid" if self._process_type == "detect" else f"{self._process_type}_pid"
@@ -887,8 +923,8 @@ class CameraProcessCpuSensor(
         return None
 
     @property
-    def unit_of_measurement(self) -> Any:
-        """Return the unit of measurement of the sensor."""
+    def native_unit_of_measurement(self) -> Any:
+        """Return the native unit of measurement of the sensor."""
         return PERCENTAGE
 
     @property
@@ -897,7 +933,7 @@ class CameraProcessCpuSensor(
         return ICON_CORAL
 
 
-class FrigateRecognizedFaceSensor(FrigateMQTTEntity):
+class FrigateRecognizedFaceSensor(FrigateMQTTEntity, SensorEntity):
     """Frigate Recognized Face Sensor class."""
 
     def __init__(
@@ -990,8 +1026,8 @@ class FrigateRecognizedFaceSensor(FrigateMQTTEntity):
         return "Last Recognized Face"
 
     @property
-    def state(self) -> str:
-        """Return true if the binary sensor is on."""
+    def native_value(self) -> str:
+        """Return the value of the sensor."""
         return str(self._state).title()
 
     @property
@@ -1000,7 +1036,7 @@ class FrigateRecognizedFaceSensor(FrigateMQTTEntity):
         return ICON_FACE
 
 
-class FrigateRecognizedPlateSensor(FrigateMQTTEntity):
+class FrigateRecognizedPlateSensor(FrigateMQTTEntity, SensorEntity):
     """Frigate Recognized License Plate Sensor class."""
 
     def __init__(
@@ -1096,8 +1132,8 @@ class FrigateRecognizedPlateSensor(FrigateMQTTEntity):
         return "Last Recognized Plate"
 
     @property
-    def state(self) -> str:
-        """Return true if the binary sensor is on."""
+    def native_value(self) -> str:
+        """Return the value of the sensor."""
         return self._state
 
     @property
