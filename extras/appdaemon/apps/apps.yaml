@@ -43,7 +43,7 @@ AC Automation Solar:
   solar_boost_threshold: 2000       # in watts (excess solar triggers this)
   battery_boost_threshold: 95       # battery SOC for boost activation
   cool_boost_offset: 10             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cool_boost_unoccupied_offset: 5   # Amount to boost if unoccupied
+  cool_boost_unoccupied_offset: 7   # Amount to boost if unoccupied
   cooldown_window_start: '13:00:00' # Override daytime temperature during this period if excess solar and SOC above threshold
   cooldown_window_end: '18:00:00' # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
 
