@@ -12,6 +12,7 @@ substitutions:
 
 esphome:
   name: ${devicename}
+  # Tesla BLE
   # on_boot:
   #   priority: 250.0
   #   then:
@@ -1455,77 +1456,77 @@ switch:
 #     icon: "mdi:toggle-switch"
 
 number:
-#   - platform: modbus_controller            # 268 Prog1 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time1
-#     name: "${friendly_name} Prog1 Capacity"
-#     unit_of_measurement: "%"
-#     address: 268
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 268 Prog1 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time1
+    name: "${friendly_name} Prog1 Capacity"
+    unit_of_measurement: "%"
+    address: 268
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
-#   - platform: modbus_controller            # 269 Prog2 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time2
-#     name: "${friendly_name} Prog2 Capacity"
-#     unit_of_measurement: "%"
-#     address: 269
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 269 Prog2 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time2
+    name: "${friendly_name} Prog2 Capacity"
+    unit_of_measurement: "%"
+    address: 269
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
-#   - platform: modbus_controller            # 270 Prog3 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time3
-#     name: "${friendly_name} Prog3 Capacity"
-#     unit_of_measurement: "%"
-#     address: 270
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 270 Prog3 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time3
+    name: "${friendly_name} Prog3 Capacity"
+    unit_of_measurement: "%"
+    address: 270
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
-#   - platform: modbus_controller            # 271 Prog4 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time4
-#     name: "${friendly_name} Prog4 Capacity"
-#     unit_of_measurement: "%"
-#     address: 271
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 271 Prog4 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time4
+    name: "${friendly_name} Prog4 Capacity"
+    unit_of_measurement: "%"
+    address: 271
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
-#   - platform: modbus_controller            # 272 Prog5 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time5
-#     name: "${friendly_name} Prog5 Capacity"
-#     unit_of_measurement: "%"
-#     address: 272
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 272 Prog5 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time5
+    name: "${friendly_name} Prog5 Capacity"
+    unit_of_measurement: "%"
+    address: 272
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
-#   - platform: modbus_controller            # 273 Prog6 Capacity
-#     use_write_multiple: true
-#     modbus_controller_id: inverter
-#     id: inverter_esphome_set_soc_time6
-#     name: "${friendly_name} Prog6 Capacity"
-#     unit_of_measurement: "%"
-#     address: 273
-#     min_value: 0
-#     max_value: 100
-#     step: 5
-#     value_type: U_WORD  
+  - platform: modbus_controller            # 273 Prog6 Capacity
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_set_soc_time6
+    name: "${friendly_name} Prog6 Capacity"
+    unit_of_measurement: "%"
+    address: 273
+    min_value: 0
+    max_value: 100
+    step: 5
+    value_type: U_WORD  
 
   # - platform: modbus_controller            # 256 Prog1 Power
   #   use_write_multiple: true

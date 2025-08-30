@@ -174,8 +174,8 @@ class XLight57(XLight):
     def set_state(self, params: dict):
         XLight.set_state(self, params)
         # fix https://github.com/AlexxIT/SonoffLAN/issues/1637
-        if (v := params.get("channel0")) and isinstance(v, int):
-            self._attr_brightness = conv(v, 25, 255, 1, 255)
+        if "channel0" in params:
+            self._attr_brightness = conv(int(params["channel0"]), 25, 255, 1, 255)
 
     def get_params(self, brightness, color_temp, rgb_color, effect) -> dict:
         if brightness:
@@ -823,6 +823,10 @@ class XLightB02(XLight):
 
         self._attr_effect = params["ltype"]
 
+        # fix https://github.com/AlexxIT/SonoffLAN/issues/1649
+        if self.effect not in params:
+            return
+
         state = params[self.effect]
         if "br" in state:
             self._attr_brightness = conv(state["br"], self.min_br, self.max_br, 1, 255)
@@ -1232,8 +1236,8 @@ class XT5Light(XOnOffLight):
             )
 
     async def async_turn_on(self, effect: str = None, **kwargs) -> None:
-        if value := T5_EFFECTS.get(effect):
-            await self.ewelink.send(self.device, {"lightMode": value})
+        if effect and effect in T5_EFFECTS:
+            await self.ewelink.send(self.device, {"lightMode": T5_EFFECTS[effect]})
 
         await self.ewelink.send(self.device, {"lightSwitch": "on"})
 

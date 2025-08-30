@@ -16,6 +16,10 @@ ac_automation:
   name: AC Automation
   icon: mdi:fan
 
+ac_boost_feature_evaluation:
+  name: AC Boost Feature Evaluation
+  icon: mdi:fan
+
 ac_change_notification:
   name: AC Change Notification
   icon: mdi:alert-circle

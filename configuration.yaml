@@ -261,6 +261,7 @@ logger:
   #default: debug
   default: error
   logs:
+    #custom_components.solcast_solar: debug
     #homeassistant.components.recorder: debug
     #pyhap: debug
     #homeassistant.core: warn
