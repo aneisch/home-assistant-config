@@ -1,7 +1,7 @@
 - platform: orvibo
   switches:
-    # - host: 10.0.0.21
-    #   name: "Andrew Monitor" # Now sitting on office shelf
+    - host: 10.0.0.21
+      name: "Orvibo 1"
     - host: 10.0.0.14
       name: "Garage Fan"
 

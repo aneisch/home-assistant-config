@@ -30,28 +30,29 @@ AC Automation Solar:
   morning_adjust_weekend: "10:00:00"
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
-  midnight_adjust: "02:00:00"
-  cool_morning: "82"
+  midnight_adjust: "04:00:00"
+  cool_morning: "78"
   cool_night: "74"
-  cool_midnight: "77" # change to this temp at midnight_adjust
-  cool_unoccupied: "82"
+  cool_midnight: "76" # change to this temp at midnight_adjust
+  cool_unoccupied: "80"
   heat_morning: "67"
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
-  solar_boost_threshold: 2000       # in watts (excess solar triggers this)
+  solar_boost_threshold: 600       # ~about what AC uses
   battery_boost_threshold: 95       # battery SOC for boost activation
-  cool_boost_offset: 10             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cool_boost_unoccupied_offset: 7   # Amount to boost if unoccupied
-  cooldown_window_start: '13:00:00' # Override daytime temperature during this period if excess solar and SOC above threshold
-  cooldown_window_end: '18:00:00' # "17:00:00"   # Override daytime temperature during this period if excess solar and SOC above threshold
+  cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
+  cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
+  cooldown_window_start_offset: "-03:00:00"   # 3 hours before sunset
+  cooldown_window_end_offset: "-01:00:00"     # 1 hour before sunset
 
-solar_ev_charger:
+Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  constrain_input_boolean: input_boolean.ev_charge_override,off
-  home_battery_min_soc: 20
+  constrain_presence: anyone
+  home_battery_min_soc: 95
+  buffer_watts: 500
 
 # EV Charge Control:
 #   module: ev_charger_smart_control
@@ -446,10 +447,10 @@ Indoor Light Automation Sunset:
   constrain_input_boolean: 
     - input_boolean.house_lamps_automation
   constrain_person: anyone
-  time_on: sunset - 00:20:00
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
+  time_on: sunset
+  #entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
+  entities: light.living_room_lamps, group.under_cabinet_lights
   brightness: 255
-
 
 Guest Light Automation Sunset:
   module: entity_timer
@@ -462,33 +463,33 @@ Guest Light Automation Sunset:
   entities: light.guest_bedroom_nightstand_lamp,light.back_bedroom_nightstand_lamp,light.back_bedroom_dresser_lamp
   brightness: 255
 
-Cameras Smallgroup:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: 
-    - input_boolean.is_smallgroup
-  time_off: "17:30:00"
-  time_on: "21:00:00"
-  entities: switch.driveway_detect,switch.front_door_detect
+# Cameras Smallgroup:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: 
+#     - input_boolean.is_smallgroup
+#   time_off: "17:30:00"
+#   time_on: "21:00:00"
+#   entities: switch.driveway_detect,switch.front_door_detect
 
-Indoor Light Automation Sunset Smallgroup:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean:
-    - input_boolean.is_smallgroup
-  time_on: "17:30:00"
-  entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,light.living_room_can_lights,light.dining_room_light,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
-  brightness: 255
+# Indoor Light Automation Sunset Smallgroup:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean:
+#     - input_boolean.is_smallgroup
+#   time_on: "17:30:00"
+#   entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,light.living_room_can_lights,light.dining_room_light,media_player.misc_photo_frame #,group.christmas_trees #,switch.ir_candles
+#   brightness: 255
 
-Entryway Light Sunset Smallgroup:
-  module: entity_timer
-  class: Timer
-  constrain_input_boolean: 
-    - input_boolean.is_smallgroup
-  time_on: "17:30:00"
-  time_off: "23:00:00"
-  entities: light.entryway_light
-  brightness: 255
+# Entryway Light Sunset Smallgroup:
+#   module: entity_timer
+#   class: Timer
+#   constrain_input_boolean: 
+#     - input_boolean.is_smallgroup
+#   time_on: "17:30:00"
+#   time_off: "23:00:00"
+#   entities: light.entryway_light
+#   brightness: 255
 
 Front Sconces Sunset:
   module: entity_timer
@@ -570,14 +571,14 @@ TV Automation Smallgroup:
 #   time_on: "22:00:00"
 #   entities: switch.ir_candles
 
-Globe Lights Smallgroup:
-  module: entity_timer
-  constrain_input_boolean: 
-    - input_boolean.is_smallgroup
-  class: Timer
-  time_on: sunset - 00:20:00
-  time_off: "21:30:00"
-  entities: switch.globe_lights
+# Globe Lights Smallgroup:
+#   module: entity_timer
+#   constrain_input_boolean: 
+#     - input_boolean.is_smallgroup
+#   class: Timer
+#   time_on: sunset - 00:20:00
+#   time_off: "21:30:00"
+#   entities: switch.globe_lights
 
 # Turn on focus mode when desk LED on
 Mac Focus Mode Follow Desk LED:

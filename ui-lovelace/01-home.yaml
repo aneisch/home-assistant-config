@@ -208,7 +208,7 @@ cards:
       - input_boolean.ac_automation
       - input_boolean.ac_boost_feature_evaluation
       - input_boolean.ac_change_notification
-      - input_select.solar_tou_mode
+      - select.solark_sol_ark_tou_schedule
       # - input_boolean.aquarium_automation
       - input_boolean.occusim
       - input_boolean.guest_mode

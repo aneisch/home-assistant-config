@@ -4,10 +4,24 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-from datetime import datetime as dt, timedelta
+from datetime import UTC, datetime as dt, timedelta
+from enum import Enum
 import logging
+from pathlib import Path
 from typing import Any
 
+from watchdog.events import (
+    DirCreatedEvent,
+    DirDeletedEvent,
+    DirModifiedEvent,
+    FileCreatedEvent,
+    FileDeletedEvent,
+    FileModifiedEvent,
+    FileSystemEventHandler,
+)
+from watchdog.observers import Observer
+
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryAuthFailed, ServiceValidationError
 from homeassistant.helpers.event import (
@@ -17,8 +31,9 @@ from homeassistant.helpers.event import (
 from homeassistant.helpers.sun import get_astral_event_next
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DATE_FORMAT, DOMAIN, TIME_FORMAT
+from .const import DATE_FORMAT, DOMAIN, GET_ACTUALS, SITE_DAMP, TIME_FORMAT
 from .solcastapi import SolcastApi
+from .util import AutoUpdate
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -31,23 +46,34 @@ DAYS = [
     "total_kwh_forecast_d6",
     "total_kwh_forecast_d7",
 ]
-NO_ATTRIBUTES = ["api_counter", "api_limit", "lastupdated"]
+NO_ATTRIBUTES = ["api_counter", "api_limit", "dampen", "lastupdated"]
+
+
+class DampeningEvent(Enum):
+    """Dampening file event types."""
+
+    NO_EVENT = 0
+    CREATE = 1
+    UPDATE = 2
+    DELETE = 3
 
 
 class SolcastUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data."""
 
-    def __init__(self, hass: HomeAssistant, solcast: SolcastApi, version: str) -> None:
+    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry, solcast: SolcastApi, version: str) -> None:
         """Initialise the coordinator.
 
         Public variables at the top, protected variables (those prepended with _ after).
 
         Arguments:
             hass (HomeAssistant): The Home Assistant instance.
+            config_entry (ConfigEntry): The configuration entry for the Solcast Solar integration.
             solcast (SolcastApi): The Solcast API instance.
             version (str): The integration version from manifest.json.
 
         """
+        self.dampening_event_received: DampeningEvent = DampeningEvent.NO_EVENT
         self.divisions: int = 0
         self.hass: HomeAssistant = hass
         self.interval_just_passed: dt | None
@@ -55,6 +81,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
         self.tasks: dict[str, Any] = {}
         self.version: str = version
 
+        self._damp_file = f"{self.hass.config.config_dir}/solcast-dampening.json"
         self._date_changed: bool = False
         self._data_updated: bool = False
         self._intervals: list[dt] = []
@@ -65,6 +92,8 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
         self._sunset: dt
         self._sunset_tomorrow: dt
         self._sunset_yesterday: dt
+        self._update_actuals: bool = False
+        self._update_auto_dampen: bool = False
         self._update_sequence: list[int] = []
 
         # First list item is the sensor value method, additional items are only used for sensor attributes.
@@ -83,6 +112,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             "api_counter": [{"method": self.solcast.get_api_used_count}],
             "api_limit": [{"method": self.solcast.get_api_limit}],
             "lastupdated": [{"method": self.solcast.get_last_updated}],
+            "dampen": [{"method": self.solcast.get_dampen}],
         }
         self.__get_value |= {
             day: [
@@ -92,7 +122,12 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             for ahead, day in enumerate(DAYS)
         }
 
-        super().__init__(hass, _LOGGER, name=DOMAIN)
+        super().__init__(
+            hass,
+            _LOGGER,
+            config_entry=config_entry,
+            name=DOMAIN,
+        )
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Update data via library.
@@ -119,21 +154,152 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
         self.tasks["midnight_update"] = async_track_utc_time_change(
             self.hass, self.__update_utc_midnight_usage_sensor_data, hour=0, minute=0, second=0
         )
+        if not self.solcast.options.auto_dampen:
+            watchdog_start_task = asyncio.create_task(self.watch_for_dampening_file())
+            self.tasks["watchdog_start"] = watchdog_start_task.cancel
+            watchdog_task = asyncio.create_task(self.watch_dampening_file())
+            self.tasks["watchdog"] = watchdog_task.cancel
+        else:
+            _LOGGER.debug("Not monitoring dampening file, auto-dampening is enabled")
         for timer in sorted(self.tasks):
             _LOGGER.debug("Running task %s", timer)
 
         return True
 
-    async def update_integration_listeners(self, _: dt | None = None) -> None:
+    class DampeningStartEventHandler(FileSystemEventHandler):
+        """Handle start dampening monitoring."""
+
+        def __init__(self, coordinator: SolcastUpdateCoordinator) -> None:
+            """Init."""
+
+            self._coordinator = coordinator
+            super().__init__()
+
+        def on_created(self, event: DirCreatedEvent | FileCreatedEvent):
+            """File has been created in the config directory."""
+            if isinstance(event, FileCreatedEvent) and self._coordinator.tasks.get("watchdog") is None:
+                self._coordinator.dampening_event_received = DampeningEvent.CREATE
+
+    async def watch_for_dampening_file(self):
+        """Watch for granular dampening JSON file modification."""
+
+        try:
+            event_handler = self.DampeningStartEventHandler(self)
+            observer = Observer()
+            observer.schedule(event_handler, path=self.hass.config.config_dir, recursive=False)
+            observer.start()
+
+            try:
+                while True:
+                    await asyncio.sleep(1)
+                    if self.dampening_event_received == DampeningEvent.CREATE and Path(self._damp_file).exists():
+                        self.dampening_event_received = DampeningEvent.UPDATE
+                        watchdog_task = asyncio.create_task(self.watch_dampening_file())
+                        self.tasks["watchdog"] = watchdog_task.cancel
+                        _LOGGER.debug("Running task watchdog")
+            finally:
+                observer.stop()
+                observer.join()
+        finally:
+            self.dampening_event_received = DampeningEvent.NO_EVENT
+            _LOGGER.debug("Cancelled task watchdog_start")
+            self.tasks.pop("watchdog_start", None)
+
+    class DampeningEventHandler(FileSystemEventHandler):
+        """Handle granular dampening JSON file modification."""
+
+        def __init__(self, coordinator: SolcastUpdateCoordinator) -> None:
+            """Init."""
+            self._coordinator = coordinator
+            super().__init__()
+
+        def on_deleted(self, event: DirDeletedEvent | FileDeletedEvent) -> None:
+            """Dampening file has been deleted."""
+            self._coordinator.dampening_event_received = DampeningEvent.DELETE
+
+        def on_modified(self, event: DirModifiedEvent | FileModifiedEvent) -> None:
+            """Dampening file has been modified."""
+            if isinstance(event, FileModifiedEvent) and self._coordinator.dampening_event_received != DampeningEvent.UPDATE:
+                self._coordinator.dampening_event_received = DampeningEvent.UPDATE
+
+    async def watch_dampening_file(self):
+        """Watch for granular dampening JSON file modification."""
+
+        try:
+            event_handler = self.DampeningEventHandler(self)
+            observer = Observer()
+            try:
+                observer.schedule(event_handler, path=self._damp_file, recursive=False)
+                observer.start()
+            except Exception as e:  # noqa: BLE001
+                _LOGGER.debug("Not monitoring %s: %s", self._damp_file, str(e).replace("Errno ", ""))
+                return
+
+            try:
+                while True and self.dampening_event_received != DampeningEvent.DELETE:
+                    await asyncio.sleep(1)
+                    if (
+                        self.dampening_event_received == DampeningEvent.UPDATE
+                        and self.solcast.granular_dampening_mtime != Path(self._damp_file).stat().st_mtime
+                    ):
+                        self.dampening_event_received = DampeningEvent.NO_EVENT
+                        _LOGGER.debug("Granular dampening mtime changed")
+                        await self.solcast.refresh_granular_dampening_data()
+                        await self.solcast.apply_forward_dampening()
+                        _LOGGER.debug("Recalculate forecasts and refresh sensors")
+                        await self.solcast.build_forecast_data()
+                        self.set_data_updated(True)
+                        await self.update_integration_listeners()
+                        self.set_data_updated(False)
+                if self.dampening_event_received == DampeningEvent.DELETE:
+                    _LOGGER.debug("Granular dampening file deleted, no longer monitoring %s for changes", self._damp_file)
+                    self.granular_dampening = {}
+                    entry = self.solcast.entry
+                    opt = self.solcast.entry_options
+                    opt[SITE_DAMP] = False  # Clear "hidden" option.
+                    self.solcast.set_allow_granular_dampening_reset(True)
+                    if entry is not None:
+                        self.hass.config_entries.async_update_entry(entry, options=opt)
+            finally:
+                observer.stop()
+                observer.join()
+        finally:
+            self.dampening_event_received = DampeningEvent.NO_EVENT
+            _LOGGER.debug("Cancelled task watchdog")
+            if self.tasks.get("watchdog") is not None:
+                self.tasks.pop("watchdog")
+
+    async def update_integration_listeners(self, called_at: dt | None = None) -> None:
         """Get updated sensor values."""
 
         current_day = dt.now(self.solcast.options.tz).day
         self._date_changed = current_day != self._last_day
         if self._date_changed:
-            _LOGGER.debug("Date has changed, recalculate splines and set up auto-updates")
+            _LOGGER.debug(
+                "Date has changed, recalculating splines, %ssetting up auto-updates%s%s",
+                "not " if self.solcast.options.auto_update == AutoUpdate.NONE else "",
+                ", updating estimated actuals" if self.solcast.options.get_actuals else "",
+                " and generation data" if self.solcast.options.generation_entities else "",
+            )
             self._last_day = current_day
             await self.__update_midnight_spline_recalculate()
             self.__auto_update_setup()
+
+            if self.solcast.options.generation_entities:
+                await self.solcast.get_pv_generation()
+
+            if self.solcast.options.get_actuals:
+                self._update_actuals = True
+
+            if self.solcast.options.auto_dampen:
+                self._update_auto_dampen = True
+
+        if self._update_actuals and called_at is not None and called_at.minute == 20:
+            self._update_actuals = False
+            await self.service_event_force_update_estimates()
+        if self._update_auto_dampen and called_at is not None and called_at.minute == 50:
+            self._update_auto_dampen = False
+            await self.solcast.model_automated_dampening()
 
         self.async_update_listeners()
 
@@ -169,7 +335,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
 
     async def __check_forecast_fetch(self, _: dt | None = None) -> None:
         """Check for an auto forecast update event."""
-        if self.solcast.options.auto_update:
+        if self.solcast.options.auto_update != AutoUpdate.NONE:
             if len(self._intervals) > 0:
                 _now = self.solcast.get_real_now_utc().replace(microsecond=0)
                 _from = _now.replace(minute=int(_now.minute / 5) * 5, second=0)
@@ -210,13 +376,21 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
         await self.solcast.check_data_records()
         await self.solcast.recalculate_splines()
 
+    async def __update_estimated_actuals_history(self) -> None:
+        """Update estimated actuals using the API."""
+        _LOGGER.debug("Started task actuals")
+        await self.solcast.update_estimated_actuals()
+        await self.solcast.build_actual_data()
+        _LOGGER.debug("Completed task actuals")
+        self.tasks.pop("actuals", None)
+
     def __auto_update_setup(self, init: bool = False) -> None:
         """Set up of auto-updates."""
         match self.solcast.options.auto_update:
-            case 1:
+            case AutoUpdate.DAYLIGHT:
                 self.__get_sun_rise_set()
                 self.__calculate_forecast_updates(init=init)
-            case 2:
+            case AutoUpdate.ALL_DAY:
                 self._sunrise_yesterday = self.solcast.get_day_start_utc(future=-1)
                 self._sunset_yesterday = self.solcast.get_day_start_utc()
                 self._sunrise = self._sunset_yesterday
@@ -276,7 +450,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
                 if init:
                     _LOGGER.debug(
                         "Auto update forecasts %s",
-                        "over 24 hours" if self.solcast.options.auto_update > 1 else "between sunrise and sunset",
+                        "over 24 hours" if self.solcast.options.auto_update == AutoUpdate.ALL_DAY else "between sunrise and sunset",
                     )
             if sunrise == self._sunrise:
                 just_passed = "Unknown"
@@ -318,17 +492,18 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
     def _get_auto_update_details(self) -> dict[str, Any]:
         """Return attributes for the last updated sensor."""
 
-        failure_count = {
+        base: dict[str, int | dt] = {
+            "last_attempt": self.solcast.get_last_attempt(),
             "failure_count_today": self.solcast.get_failures_last_24h(),
             "failure_count_7_day": self.solcast.get_failures_last_7d(),
         }
-        if self.solcast.options.auto_update > 0:
-            return failure_count | {
+        if self.solcast.options.auto_update != AutoUpdate.NONE:
+            return base | {
                 "next_auto_update": self._intervals[0],
                 "auto_update_divisions": self.divisions,
                 "auto_update_queue": self._intervals[:48],
             }
-        return failure_count
+        return base
 
     async def __forecast_update(self, force: bool = False, completion: str = "", need_history_hours: int = 0) -> None:
         """Get updated forecast data."""
@@ -353,6 +528,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             with contextlib.suppress(Exception):
                 # Clean up a task created by a service call action
                 self.tasks.pop("forecast_update")
+                await self.solcast.build_actual_data()
 
     async def service_event_update(self, **kwargs: dict[str, Any]) -> None:
         """Get updated forecast data when requested by a service call.
@@ -368,7 +544,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             if self.solcast.reauth_required:
                 raise ConfigEntryAuthFailed(translation_domain=DOMAIN, translation_key="init_key_invalid")
 
-            if self.solcast.options.auto_update > 0 and "ignore_auto_enabled" not in kwargs:
+            if self.solcast.options.auto_update != AutoUpdate.NONE and "ignore_auto_enabled" not in kwargs:
                 raise ServiceValidationError(translation_domain=DOMAIN, translation_key="auto_use_force")
             update_kwargs: dict[str, Any] = {
                 "completion": "Completed task update" if not kwargs.get("completion") else kwargs["completion"],
@@ -377,7 +553,7 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             task = asyncio.create_task(self.__forecast_update(**update_kwargs))
             self.tasks["forecast_update"] = task.cancel
         else:
-            _LOGGER.warning("Forecast update already requested, ignoring")
+            _LOGGER.warning("Forecast update already in progress, ignoring")
 
     async def service_event_force_update(self) -> None:
         """Force the update of forecast data when requested by a service call. Ignores API usage/limit counts.
@@ -390,12 +566,28 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             if self.solcast.reauth_required:
                 raise ConfigEntryAuthFailed(translation_domain=DOMAIN, translation_key="init_key_invalid")
 
-            if self.solcast.options.auto_update == 0:
+            if self.solcast.options.auto_update == AutoUpdate.NONE:
                 raise ServiceValidationError(translation_domain=DOMAIN, translation_key="auto_use_normal")
             task = asyncio.create_task(self.__forecast_update(force=True, completion="Completed task force_update"))
             self.tasks["forecast_update"] = task.cancel
         else:
-            _LOGGER.warning("Forecast update already requested, ignoring")
+            _LOGGER.warning("Forecast update already in progress, ignoring service action")
+
+    async def service_event_force_update_estimates(self) -> None:
+        """Force the update of estimated actual data when requested by a service call. Ignores API usage/limit counts.
+
+        Raises:
+            ServiceValidationError: Notify Home Assistant that an error has occurred.
+
+        """
+        if not self.solcast.entry_options[GET_ACTUALS]:
+            _LOGGER.debug("Estimated actuals not enabled, ignoring service action")
+            raise ServiceValidationError(translation_domain=DOMAIN, translation_key="actuals_not_enabled")
+        if self.tasks.get("actuals") is None:
+            task = asyncio.create_task(self.__update_estimated_actuals_history())
+            self.tasks["actuals"] = task.cancel
+        else:
+            _LOGGER.warning("Estimated actuals update already in progress, ignoring service action")
 
     async def service_event_delete_old_solcast_json_file(self) -> None:
         """Delete the solcast.json file when requested by a service call."""
@@ -410,6 +602,10 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
     async def service_query_forecast_data(self, *args: Any) -> tuple[dict[str, Any], ...]:
         """Return forecast data requested by a service call."""
         return await self.solcast.get_forecast_list(*args)
+
+    async def service_query_estimate_data(self, *args: Any) -> tuple[dict[str, Any], ...]:
+        """Return estimated actual data requested by a service call."""
+        return await self.solcast.get_estimate_list(*args)
 
     def get_solcast_sites(self) -> list[Any]:
         """Return the active solcast sites.
@@ -507,8 +703,33 @@ class SolcastUpdateCoordinator(DataUpdateCoordinator):
             )
             if to_return is not None:
                 ret.update(to_return)
+
+        if key == "dampen":
+            if self.solcast.entry_options[SITE_DAMP]:
+                # Granular dampening
+                ret["integration_automated"] = self.solcast.options.auto_dampen
+                ret["last_updated"] = dt.fromtimestamp(self.solcast.granular_dampening_mtime).replace(microsecond=0).astimezone(UTC)
+                ret["factors"] = [
+                    {
+                        "interval": f"{i // 2:02d}:{i % 2 * 30:02d}",
+                        "factor": f,
+                    }
+                    for i, f in enumerate(self.solcast.granular_dampening.get("all", []))
+                ]
+            else:
+                ret["integration_automated"] = False
+                ret["last_updated"] = None
+                ret["factors"] = [
+                    {
+                        "interval": i,
+                        "factor": f,
+                    }
+                    for i, f in self.solcast.options.dampening.items()
+                ]
+
         if key == "lastupdated":
             ret.update(self._get_auto_update_details())
+
         return ret
 
     def get_site_sensor_value(self, roof_id: str, key: str) -> float | None:

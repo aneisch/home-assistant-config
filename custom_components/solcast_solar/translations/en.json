@@ -1,16 +1,16 @@
 {
     "config": {
         "abort": {
-            "reconfigured": "New configuration applied successfully",
             "reauth_successful": "New API key applied successfully",
+            "reconfigured": "New configuration applied successfully",
             "single_instance_allowed": "Only one Solcast instance allowed"
         },
         "error": {
             "api_duplicate": "Duplicate API key specified",
             "api_looks_like_site": "API key looks like a site ID",
+            "limit_not_number": "API limit is not a number",
             "limit_one_or_greater": "API limit must be one or greater",
-            "limit_too_many": "There are more API limit counts entered than keys",
-            "limit_not_number": "API limit is not a number"
+            "limit_too_many": "There are more API limit counts entered than keys"
         },
         "step": {
             "reauth_confirm": {
@@ -39,65 +39,165 @@
     },
     "entity": {
         "select": {
-            "estimate_mode" : {"name": "Use Forecast Field"}
+            "estimate_mode": {
+                "name": "Use Forecast Field"
+            }
         },
         "sensor": {
-            "power_now_30m": {"name": "Power in 30 Minutes"},
-            "power_now_1hr": {"name": "Power in 1 Hour"},
-            "total_kwh_forecast_today": {"name": "Forecast Today"},
-            "peak_w_today": {"name": "Peak Forecast Today"},
-            "peak_w_time_today": {"name": "Peak Time Today"},
-            "forecast_this_hour": {"name": "Forecast This Hour"},
-            "get_remaining_today": {"name": "Forecast Remaining Today"},
-            "forecast_next_hour": {"name": "Forecast Next Hour"},
-            "forecast_custom_hours": {"name": "Forecast Next X Hours"},
-            "total_kwh_forecast_tomorrow": {"name": "Forecast Tomorrow"},
-            "peak_w_tomorrow": {"name": "Peak Forecast Tomorrow"},
-            "peak_w_time_tomorrow": {"name": "Peak Time Tomorrow"},
-            "api_counter": {"name": "API Used"},
-            "api_limit": {"name": "API Limit"},
-            "lastupdated": {"name": "API Last Polled"},
-            "total_kwh_forecast_d3": {"name": "Forecast Day 3"},
-            "total_kwh_forecast_d4": {"name": "Forecast Day 4"},
-            "total_kwh_forecast_d5": {"name": "Forecast Day 5"},
-            "total_kwh_forecast_d6": {"name": "Forecast Day 6"},
-            "total_kwh_forecast_d7": {"name": "Forecast Day 7"},
-            "power_now": {"name": "Power Now"},
-            "hard_limit": {"name": "Hard Limit Set"},
-            "hard_limit_api": {"name": "Hard Limit Set {api_key}"}
+            "api_counter": {
+                "name": "API Used"
+            },
+            "api_limit": {
+                "name": "API Limit"
+            },
+            "dampen": {
+                "name": "Dampening"
+            },
+            "forecast_custom_hours": {
+                "name": "Forecast Next X Hours"
+            },
+            "forecast_next_hour": {
+                "name": "Forecast Next Hour"
+            },
+            "forecast_this_hour": {
+                "name": "Forecast This Hour"
+            },
+            "get_remaining_today": {
+                "name": "Forecast Remaining Today"
+            },
+            "hard_limit": {
+                "name": "Hard Limit Set"
+            },
+            "hard_limit_api": {
+                "name": "Hard Limit Set {api_key}"
+            },
+            "lastupdated": {
+                "name": "API Last Polled"
+            },
+            "peak_w_time_today": {
+                "name": "Peak Time Today"
+            },
+            "peak_w_time_tomorrow": {
+                "name": "Peak Time Tomorrow"
+            },
+            "peak_w_today": {
+                "name": "Peak Forecast Today"
+            },
+            "peak_w_tomorrow": {
+                "name": "Peak Forecast Tomorrow"
+            },
+            "power_now": {
+                "name": "Power Now"
+            },
+            "power_now_1hr": {
+                "name": "Power in 1 Hour"
+            },
+            "power_now_30m": {
+                "name": "Power in 30 Minutes"
+            },
+            "total_kwh_forecast_d3": {
+                "name": "Forecast Day 3"
+            },
+            "total_kwh_forecast_d4": {
+                "name": "Forecast Day 4"
+            },
+            "total_kwh_forecast_d5": {
+                "name": "Forecast Day 5"
+            },
+            "total_kwh_forecast_d6": {
+                "name": "Forecast Day 6"
+            },
+            "total_kwh_forecast_d7": {
+                "name": "Forecast Day 7"
+            },
+            "total_kwh_forecast_today": {
+                "name": "Forecast Today"
+            },
+            "total_kwh_forecast_tomorrow": {
+                "name": "Forecast Tomorrow"
+            }
         }
     },
     "exceptions": {
-        "auto_use_force": {"message": "Auto-update is enabled, ignoring service event for forecast update, use Force Update instead."},
-        "auto_use_normal": {"message": "Auto-update is not enabled, ignoring service event for force forecast update, use Update instead."},
-        "damp_count_not_correct": {"message": "There are not 24 or 48 comma separated numbers between 0.0 and 1.0."},
-        "damp_error_parsing": {"message": "Error parsing dampening factor comma separated numbers."},
-        "damp_no_all_24": {"message": "Specifying a site of 'all' is not allowed with 24 factors, remove site from the request."},
-        "damp_no_factors": {"message": "No dampening factors, must be a comma separated list of numbers between 0.0 and 1.0."},
-        "damp_not_for_site": {"message": "Site dampening is not set for {site}."},
-        "damp_not_site": {"message": "Not a configured site."},
-        "damp_outside_range": {"message": "Dampening factor value present that is not between 0.0 and 1.0."},
-        "damp_use_all": {"message": "Site dampening is not set for {site}, 'all' is the only available site parameter for the service call."},
-        "hard_empty": {"message": "Empty hard limit value."},
-        "hard_not_positive_number": {"message": "Hard limit value is not a positive number."},
-        "hard_too_many": {"message": "More hard limits are specified than there are API keys."},
-        "init_cannot_get_sites": {"message": "Sites data could not be retrieved."},
-        "init_cannot_get_sites_cache_invalid": {"message": "Sites data could not be retrieved and cache is invalid."},
-        "init_incompatible": {"message": "Cached `config/solcast.json` data incompatible. Delete it."},
-        "init_key_invalid": {"message": "API key is invalid."},
-        "init_no_sites": {"message": "No sites found for API key."},
-        "init_unknown": {"message": "Exception loading sites data."},
-        "init_usage_corrupt": {"message": "Usage data is corrupt, check or delete `config/solcast-usage.json`."},
-        "integration_not_loaded": {"message": "Integration not loaded, not performing action."},
-        "remove_cache_failed": {"message": "Clear all Solcast data failed."}
+        "actuals_not_enabled": {
+            "message": "Estimated actuals acquisition is not enabled."
+        },
+        "auto_use_force": {
+            "message": "Auto-update is enabled, ignoring service event for forecast update, use Force Update instead."
+        },
+        "auto_use_normal": {
+            "message": "Auto-update is not enabled, ignoring service event for force forecast update, use Update instead."
+        },
+        "damp_auto_enabled": {
+            "message": "Automated dampening is enabled, not setting manual dampening factors."
+        },
+        "damp_count_not_correct": {
+            "message": "There are not 24 or 48 comma separated numbers between 0.0 and 1.0."
+        },
+        "damp_error_parsing": {
+            "message": "Error parsing dampening factor comma separated numbers."
+        },
+        "damp_no_all_24": {
+            "message": "Specifying a site of 'all' is not allowed with 24 factors, remove site from the request."
+        },
+        "damp_no_factors": {
+            "message": "No dampening factors, must be a comma separated list of numbers between 0.0 and 1.0."
+        },
+        "damp_not_for_site": {
+            "message": "Site dampening is not set for {site}."
+        },
+        "damp_not_site": {
+            "message": "Not a configured site."
+        },
+        "damp_outside_range": {
+            "message": "Dampening factor value present that is not between 0.0 and 1.0."
+        },
+        "damp_use_all": {
+            "message": "Site dampening is not set for {site}, 'all' is the only available site parameter for the service call."
+        },
+        "hard_empty": {
+            "message": "Empty hard limit value."
+        },
+        "hard_not_positive_number": {
+            "message": "Hard limit value is not a positive number."
+        },
+        "hard_too_many": {
+            "message": "More hard limits are specified than there are API keys."
+        },
+        "init_cannot_get_sites": {
+            "message": "Sites data could not be retrieved."
+        },
+        "init_cannot_get_sites_cache_invalid": {
+            "message": "Sites data could not be retrieved and cache is invalid."
+        },
+        "init_incompatible": {
+            "message": "Cached `config/solcast.json` data incompatible. Delete it."
+        },
+        "init_key_invalid": {
+            "message": "API key is invalid."
+        },
+        "init_no_sites": {
+            "message": "No sites found for API key."
+        },
+        "init_unknown": {
+            "message": "Exception loading sites data."
+        },
+        "init_usage_corrupt": {
+            "message": "Usage data is corrupt, check or delete `config/solcast-usage.json`."
+        },
+        "integration_not_loaded": {
+            "message": "Integration not loaded, not performing action."
+        },
+        "remove_cache_failed": {
+            "message": "Clear all Solcast data failed."
+        }
     },
     "issues": {
         "records_missing": {
-            "title": "Future forecasts missing",
-            "description": "Future forecast data is missing, which is unexpected because auto-update is enabled."
+            "description": "Future forecast data is missing, which is unexpected because auto-update is enabled.",
+            "title": "Future forecasts missing"
         },
         "records_missing_fixable": {
-            "title": "Future forecasts missing",
             "fix_flow": {
                 "abort": {
                     "reconfigured": "New configuration applied successfully"
@@ -111,7 +211,16 @@
                         "title": "Future forecasts missing"
                     }
                 }
-            }
+            },
+            "title": "Future forecasts missing"
+        },
+        "unusual_azimuth_northern": {
+            "description": "The azimuth for site {site} is unusual for the latitude of this northern hemisphere rooftop. Should this be {proposal} instead of {extant}? (Ignore the issue if the site is facing towards North.)",
+            "title": "Unusual azimuth"
+        },
+        "unusual_azimuth_southern": {
+            "description": "The azimuth for site {site} is unusual for the latitude of this southern hemisphere rooftop. Should this be {proposal} instead of {extant}? (Ignore the issue if the site is facing towards South.)",
+            "title": "Unusual azimuth"
         }
     },
     "options": {
@@ -119,16 +228,22 @@
             "reconfigured": "New configuration applied successfully"
         },
         "error": {
+            "actuals_not_enabled": "Estimated actuals acquisition is not enabled",
+            "actuals_without_get": "Estimated actuals cannot be used without getting them",
             "api_duplicate": "Duplicate API key specified",
             "api_looks_like_site": "API key looks like a site ID",
-            "limit_one_or_greater": "API limit must be one or greater",
-            "limit_too_many": "There are more API limit counts entered than keys",
-            "limit_not_number": "API limit is not a number",
             "custom_invalid": "Custom sensor not between 1 and 144",
+            "dampen_without_actuals": "Estimated actuals must be selected to use auto-dampening",
+            "dampen_without_generation": "At least one PV generation Wh/kWh sensor must be specified to use auto-dampening",
+            "export_multiple_entities": "Site export entity must be a single entity, not multiple entities",
+            "export_no_entity": "Site export entity must be specified if site export limit is set",
             "hard_not_number": "Hard limit is not a positive number",
-            "hard_too_many": "There are more hard limits entered than keys"
+            "hard_too_many": "There are more hard limits entered than keys",
+            "limit_not_number": "API limit is not a number",
+            "limit_one_or_greater": "API limit must be one or greater",
+            "limit_too_many": "There are more API limit counts entered than keys"
         },
-       "step": {
+        "step": {
             "dampen": {
                 "data": {
                     "damp00": "00:00",
@@ -169,13 +284,19 @@
                     "attr_brk_halfhourly": "Enable forecast half-hourly detail attributes",
                     "attr_brk_hourly": "Enable forecast hourly detail attributes",
                     "attr_brk_site": "Enable site breakdown sensor attributes",
+                    "auto_dampen": "Auto-dampen (requires estimated actuals and PV generation entity, see integration documentation)",
                     "auto_update": "Auto-update (if no auto-update then an automation must be used instead)",
                     "config_damp": "Modify the hourly dampening factors (after clicking submit)",
                     "customhoursensor": "Custom next X hours sensor (min=1, max=144)",
-                    "hard_limit_api": "Inverter hard limit in kW (see integration documentation)",
-                    "key_estimate": "Preferred forecast likelihood to use for sensors",
                     "exclude_sites": "Site(s) to exclude from the Energy dashboard and sensor totals",
-                    "site_damp": "Granular dampening is set: Clear to revert to overall hourly dampening"
+                    "generation_entities": "PV generation entity/entities for automated dampening (kWh, total increasing)",
+                    "get_actuals": "Estimated actuals updated at midnight (see integration documentation, uses one API call per site per day, so a reduced API limit is needed with this option enabled)",
+                    "hard_limit_api": "Inverter hard limit in kW (see integration documentation, comma separate multiple values for each key)",
+                    "key_estimate": "Preferred forecast likelihood to use for sensors",
+                    "site_damp": "Granular dampening is set: Clear to revert to overall hourly dampening",
+                    "site_export_entity": "Optional site export entity for automated dampening (kWh, total increasing)",
+                    "site_export_limit": "Site export limit if site export is specified (kW)",
+                    "use_actuals": "Forecast history to show on the Energy dashboard"
                 },
                 "description": "Solcast configuration options"
             }
@@ -187,6 +308,13 @@
                 "0": "No automatic update of forecasts",
                 "1": "Automatic update of forecasts from sunrise to sunset",
                 "2": "Automatic update of forecasts over 24 hours"
+            }
+        },
+        "energy_history": {
+            "options": {
+                "0": "Forecasts",
+                "1": "Estimated actuals",
+                "2": "Dampened estimated actuals"
             }
         },
         "key_estimate": {
@@ -202,6 +330,10 @@
             "description": "Deletes the solcast.json file to remove all current solcast site data.",
             "name": "Clear all saved Solcast data"
         },
+        "force_update_estimates": {
+            "description": "Force fetches the latest estimated actual data from Solcast.",
+            "name": "Force Update Estimated Actuals"
+        },
         "force_update_forecasts": {
             "description": "Force fetches the latest forecasts data from Solcast.",
             "name": "Force Update"
@@ -215,6 +347,20 @@
                 }
             },
             "name": "Get forecasts dampening"
+        },
+        "query_estimate_data": {
+            "description": "Return a data set for a given query.",
+            "fields": {
+                "end_date_time": {
+                    "description": "Query estimated actual data events up to date time.",
+                    "name": "End date time"
+                },
+                "start_date_time": {
+                    "description": "Query estimated actual data events from date time.",
+                    "name": "Start date time"
+                }
+            },
+            "name": "Query estimated actual data"
         },
         "query_forecast_data": {
             "description": "Return a data set for a given query.",

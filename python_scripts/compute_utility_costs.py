@@ -5,9 +5,9 @@ inputState = hass.states.get(MeterEntity).state
 Electric:
 1. Service charge: $7.00 per month; plus
 2. Energy charge: $0.1187 per kWh for all kWh; plus
-3. Transmission Delivery Adjustment: $0.0175 per kWh.
+3. Transmission Delivery Adjustment: $0.0169 per kWh.
 '''
-current_cost = 0.1187 + 0.0175
+current_cost = 0.1187 + 0.0169
 
 if MeterEntity == "sensor.electricity_usage":
     #hass.bus.fire("debug", {"wow": ""})

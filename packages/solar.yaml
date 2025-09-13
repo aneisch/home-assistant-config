@@ -4,7 +4,7 @@ automation:
   - alias: Log Solar Data to Google Sheets
     trigger:
       - platform: time
-        at: "23:59:00"
+        at: "23:58:00"
     action:
       - service: google_sheets.append_sheet
         data:
@@ -21,6 +21,7 @@ automation:
             Day EV kWh: "{{ float(states('sensor.tesla_energy_today', rounded=True), default=0) }}"
             Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy', rounded=True), default=0) + float(states('sensor.attic_hvac_daily_energy', rounded=True), default=0) }}"
             Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
+            Day Peak Output: "{{ float(states('input_number.day_solar_power_peak'), default=0) }}"
 
   - alias: "Inverter State Change"
     mode: queued
@@ -34,24 +35,17 @@ automation:
         data:
           message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
 
-  - alias: "Handle Solar TOU Mode Change"
+  - alias: "Lock in daily solar max sensor"
+    mode: single
     trigger:
-      - platform: state
-        entity_id: input_select.solar_tou_mode
+      - platform: time
+        at: "23:50:00"
     action:
-      - choose:
-          - conditions:
-              - condition: state
-                entity_id: input_select.solar_tou_mode
-                state: "Normal TOU"
-            sequence:
-              - service: script.solar_tou_normal_soc
-          - conditions:
-              - condition: state
-                entity_id: input_select.solar_tou_mode
-                state: "Full Day Minimum"
-            sequence:
-              - service: script.solar_tou_allow_all_day_minimum_soc
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.day_solar_power_peak
+        data:
+          value: "{{ states('sensor.solar_power_max_today_live') | float(0) }}"
 
 template:
   - trigger:
@@ -63,68 +57,68 @@ template:
         unit_of_measurement: "kWh"
         state: >
           {{ states('sensor.solark_sol_ark_day_pv_energy') | float(0) }}
+  - trigger:
+      - platform: state
+        entity_id: sensor.solark_sol_ark_solar_power
+      - platform: time
+        at: "00:00:00"
+    sensor:
+      - name: "Solar Power Max Today (live)"
+        unique_id: solar_power_max_today_live
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% if trigger.platform == 'time' %}
+            0
+          {% else %}
+            {% set current = states('sensor.solark_sol_ark_solar_power') | float(0) %}
+            {% set prev = (this.state | float(0)) if this.state not in ['unknown','unavailable','none'] else 0 %}
+            {{ [prev, current] | max }}
+          {% endif %}
 
-input_select:
-  solar_tou_mode:
-    name: "Solar TOU Schedule"
-    options:
-      - "Normal TOU"
-      - "Full Day Minimum"
+input_number:
+  day_solar_power_peak:
+    name: Day Solar Power Peak Output
+    min: 0
+    max: 15000   # adjust for your array size
+    unit_of_measurement: "W"
 
 script:
-  # Allow battery to be drawn to minimum all day
-  solar_tou_allow_all_day_minimum_soc:
-    alias: "Set Sol-Ark TOU Capacities to 20%"
+  solar_summary_alexa_response:
     sequence:
-      - service: number.set_value
+      - service: conversation.process
         data:
-          value: 20
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog1_capacity
-            - number.solark_sol_ark_prog2_capacity
-            - number.solark_sol_ark_prog3_capacity
-            - number.solark_sol_ark_prog4_capacity
-            - number.solark_sol_ark_prog5_capacity
-            - number.solark_sol_ark_prog6_capacity
+          agent_id: conversation.chatgpt
+          text: >-
+            You will the question 'how is solar looking' in a friendly, succinct spoken
+            report. Be sure include info about battery percent.
+            
+            If the sun is up, include information about how the solar forecast
+            looks,current production, and total production for the day.
 
-  # Ensure battery will charge on ramped SOC schedule
-  solar_tou_normal_soc:
-    alias: "Set Sol-Ark TOU Capacities to normal daily ramp"
-    sequence:
-      - service: number.set_value
+            
+            If the sun has set, summarize how we produced today, but no need to
+            tell me that we aren't currently producing. 
+
+            Regardless, also tell about grid import and export, both in kWH as well as cost.
+            
+            Don't prompt the user for followups or offer to provide more details. Also, always convert watts to kW.
+        response_variable: convo
+      - action: notify.alexa_media_kitchen
         data:
-          value: 20
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog1_capacity
-      - service: number.set_value
-        data:
-          value: 70
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog2_capacity
-      - service: number.set_value
-        data:
-          value: 80
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog3_capacity
-      - service: number.set_value
-        data:
-          value: 95
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog4_capacity
-            - number.solark_sol_ark_prog5_capacity
-      - service: number.set_value
-        data:
-          value: 15
-        target:
-          entity_id:
-            - number.solark_sol_ark_prog6_capacity
+          data:
+            type: tts
+          message: '{{ convo.response.speech.plain.speech }}'
 
 sensor:
+  - platform: statistics
+    name: "Daily Solar Production 60d Average"
+    entity_id: sensor.solar_production_daily_total
+    state_characteristic: mean
+    max_age:
+      days: 1
+
   - platform: statistics
     name: "Daily Solar Production 7d Average"
     entity_id: sensor.solar_production_daily_total

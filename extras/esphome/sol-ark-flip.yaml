@@ -7,7 +7,7 @@ substitutions:
   devicename: "solark"
   device_description: "SolArk RS485 Logger"
   friendly_name: "Sol-Ark"
-  import_rate: "0.1362" # kWh
+  import_rate: "0.1356" # kWh
   export_rate: "0.0568" # kWh
 
 esphome:
@@ -1977,6 +1977,41 @@ text_sensor:
 ################################################ SELECT SENSORS ################################################
 
 select:
+  # Set TOU Capacities
+  - platform: template
+    name: "${friendly_name} TOU Schedule"
+    id: inverter_soc_mode
+    optimistic: true
+    options:
+      - "Normal TOU"
+      - "Full Day Minimum"
+    set_action:
+      - lambda: |-
+          auto call1 = id(inverter_esphome_set_soc_time1).make_call();
+          auto call2 = id(inverter_esphome_set_soc_time2).make_call();
+          auto call3 = id(inverter_esphome_set_soc_time3).make_call();
+          auto call4 = id(inverter_esphome_set_soc_time4).make_call();
+          auto call5 = id(inverter_esphome_set_soc_time5).make_call();
+          auto call6 = id(inverter_esphome_set_soc_time6).make_call();
+
+          if (x == "Normal TOU") {
+            call1.set_value(20); call1.perform();
+            call2.set_value(70); call2.perform();
+            call3.set_value(80); call3.perform();
+            call4.set_value(95); call4.perform();
+            call5.set_value(95); call5.perform();
+            call6.set_value(15); call6.perform();
+            ESP_LOGI("soc_mode", "Applied Normal TOU profile");
+          } else if (x == "Full Day Minimum") {
+            call1.set_value(20); call1.perform();
+            call2.set_value(20); call2.perform();
+            call3.set_value(20); call3.perform();
+            call4.set_value(20); call4.perform();
+            call5.set_value(20); call5.perform();
+            call6.set_value(20); call6.perform();
+            ESP_LOGI("soc_mode", "Applied Full Day Minimum profile");
+          }
+
   - platform: modbus_controller            #243 Select Energy Patern
     use_write_multiple: true
     modbus_controller_id: inverter

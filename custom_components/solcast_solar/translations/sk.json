@@ -39,57 +39,158 @@
     },
     "entity": {
         "select": {
-            "estimate_mode" : {"name": "Použiť pole predpovede"}
+            "estimate_mode": {
+                "name": "Použiť pole predpovede"
+            }
         },
         "sensor": {
-            "power_now_30m": {"name": "Výkon za 30 minút"},
-            "power_now_1hr": {"name": "Výkon za 1 hodinu"},
-            "total_kwh_forecast_today": {"name": "Predpoveď dnes"},
-            "peak_w_today": {"name": "Predpoveď špičky dnes"},
-            "peak_w_time_today": {"name": "Čas špičky dnes"},
-            "forecast_this_hour": {"name": "Predpoveď túto hodinu"},
-            "get_remaining_today": {"name": "Predpoveď zostávajúca dnes"},
-            "forecast_next_hour": {"name": "Predpoveď ďalšie hodina"},
-            "forecast_custom_hours": {"name": "Predpoveď najbližších X hodín"},
-            "total_kwh_forecast_tomorrow": {"name": "Prepoveď zajtra"},
-            "peak_w_tomorrow": {"name": "Predpoveď špička zajtra"},
-            "peak_w_time_tomorrow": {"name": "Čas špičky zajtra"},
-            "api_counter": {"name": "Použité API"},
-            "api_limit": {"name": "Limit API"},
-            "lastupdated": {"name": "API naposledy dotazované"},
-            "total_kwh_forecast_d3": {"name": "Predpoveď deň 3"},
-            "total_kwh_forecast_d4": {"name": "Prepoveď deň 4"},
-            "total_kwh_forecast_d5": {"name": "Predpoveď deň 5"},
-            "total_kwh_forecast_d6": {"name": "Predpoveď deň 6"},
-            "total_kwh_forecast_d7": {"name": "Predpoveď deň 7"},
-            "power_now": {"name": "Výkon teraz"},
-            "hard_limit": {"name": "Tvrdý limit nastavený"},
-            "hard_limit_api": {"name": "Tvrdý limit nastavený {api_key}"}
+            "dampen": {
+                "name": "Tlmenie"
+            },
+            "power_now_30m": {
+                "name": "Výkon za 30 minút"
+            },
+            "power_now_1hr": {
+                "name": "Výkon za 1 hodinu"
+            },
+            "total_kwh_forecast_today": {
+                "name": "Predpoveď dnes"
+            },
+            "peak_w_today": {
+                "name": "Predpoveď špičky dnes"
+            },
+            "peak_w_time_today": {
+                "name": "Čas špičky dnes"
+            },
+            "forecast_this_hour": {
+                "name": "Predpoveď túto hodinu"
+            },
+            "get_remaining_today": {
+                "name": "Predpoveď zostávajúca dnes"
+            },
+            "forecast_next_hour": {
+                "name": "Predpoveď ďalšie hodina"
+            },
+            "forecast_custom_hours": {
+                "name": "Predpoveď najbližších X hodín"
+            },
+            "total_kwh_forecast_tomorrow": {
+                "name": "Prepoveď zajtra"
+            },
+            "peak_w_tomorrow": {
+                "name": "Predpoveď špička zajtra"
+            },
+            "peak_w_time_tomorrow": {
+                "name": "Čas špičky zajtra"
+            },
+            "api_counter": {
+                "name": "Použité API"
+            },
+            "api_limit": {
+                "name": "Limit API"
+            },
+            "lastupdated": {
+                "name": "API naposledy dotazované"
+            },
+            "total_kwh_forecast_d3": {
+                "name": "Predpoveď deň 3"
+            },
+            "total_kwh_forecast_d4": {
+                "name": "Prepoveď deň 4"
+            },
+            "total_kwh_forecast_d5": {
+                "name": "Predpoveď deň 5"
+            },
+            "total_kwh_forecast_d6": {
+                "name": "Predpoveď deň 6"
+            },
+            "total_kwh_forecast_d7": {
+                "name": "Predpoveď deň 7"
+            },
+            "power_now": {
+                "name": "Výkon teraz"
+            },
+            "hard_limit": {
+                "name": "Tvrdý limit nastavený"
+            },
+            "hard_limit_api": {
+                "name": "Tvrdý limit nastavený {api_key}"
+            }
         }
     },
     "exceptions": {
-        "auto_use_force": {"message": "Automatická aktualizácia je povolená, pri aktualizácii prognózy sa ignoruje udalosť služby, namiesto toho použite vynútenie aktualizácie."},
-        "auto_use_normal": {"message": "Automatická aktualizácia nie je povolená, pri vynútenej aktualizácii prognózy ignorujete udalosť služby, namiesto toho použite Aktualizovať."},
-        "damp_not_for_site": {"message": "Tlmenie stránok nie je nastavené pre {site}."},
-        "damp_use_all": {"message": "Tlmenie stránky nie je nastavené pre {site}, 'all' je jediný dostupný parameter stránky pre servisné volanie."},
-        "damp_no_factors": {"message": "Žiadne tlmiace faktory, musí to byť čiarkami oddelený zoznam čísel medzi 0,0 a 1,0."},
-        "damp_count_not_correct": {"message": "Medzi 0,0 a 1,0 nie je 24 alebo 48 čiarkami oddelených čísel."},
-        "damp_no_all_24": {"message": "Zadanie stránky „všetky“ nie je povolené s 24 faktormi, odstráňte stránku zo žiadosti."},
-        "damp_not_site": {"message": "Nie je to nakonfigurovaná lokalita."},
-        "damp_error_parsing": {"message": "Chyba pri analýze tlmiaceho faktora oddelených čiarkami."},
-        "damp_outside_range": {"message": "Prítomná hodnota faktora tlmenia, ktorá nie je medzi 0,0 a 1,0."},
-        "hard_empty": {"message": "Prázdna hodnota pevného limitu."},
-        "hard_too_many": {"message": "Je špecifikovaných viac tvrdých limitov, ako existuje kľúčov API."},
-        "hard_not_positive_number": {"message": "Hodnota pevného limitu nie je kladné číslo."},
-        "init_cannot_get_sites": {"message": "Údaje stránok sa nepodarilo načítať."},
-        "init_cannot_get_sites_cache_invalid": {"message": "Údaje stránok sa nepodarilo načítať a vyrovnávacia pamäť je neplatná."},
-        "init_incompatible": {"message": "Údaje súboru `config/solcast.json` vo vyrovnávacej pamäti sú nekompatibilné, odstráňte ich."},
-        "init_key_invalid": {"message": "Kľúč API je neplatný."},
-        "init_no_sites": {"message": "Nenašli sa žiadne stránky pre kľúč API."},
-        "init_unknown": {"message": "Výnimka pri načítavaní údajov stránok."},
-        "init_usage_corrupt": {"message": "Údaje o používaní sú poškodené, skontrolujte alebo odstráňte súbor `config/solcast-usage.json`."},
-        "integration_not_loaded": {"message": "Integrácia nie je načítaná, nevykonáva akciu."},
-        "remove_cache_failed": {"message": "Vymazanie všetkých údajov Solcast zlyhalo."}
+        "actuals_not_enabled": {
+            "message": "Získanie odhadovaných skutočných hodnôt nie je povolené."
+        },
+        "auto_use_force": {
+            "message": "Automatická aktualizácia je povolená, pri aktualizácii prognózy sa ignoruje udalosť služby, namiesto toho použite vynútenie aktualizácie."
+        },
+        "auto_use_normal": {
+            "message": "Automatická aktualizácia nie je povolená, pri vynútenej aktualizácii prognózy ignorujete udalosť služby, namiesto toho použite Aktualizovať."
+        },
+        "damp_auto_enabled": {
+            "message": "Automatizované tlmenie je povolené, nenastavujú sa manuálne tlmiace faktory."
+        },
+        "damp_not_for_site": {
+            "message": "Tlmenie stránok nie je nastavené pre {site}."
+        },
+        "damp_use_all": {
+            "message": "Tlmenie stránky nie je nastavené pre {site}, 'all' je jediný dostupný parameter stránky pre servisné volanie."
+        },
+        "damp_no_factors": {
+            "message": "Žiadne tlmiace faktory, musí to byť čiarkami oddelený zoznam čísel medzi 0,0 a 1,0."
+        },
+        "damp_count_not_correct": {
+            "message": "Medzi 0,0 a 1,0 nie je 24 alebo 48 čiarkami oddelených čísel."
+        },
+        "damp_no_all_24": {
+            "message": "Zadanie stránky „všetky“ nie je povolené s 24 faktormi, odstráňte stránku zo žiadosti."
+        },
+        "damp_not_site": {
+            "message": "Nie je to nakonfigurovaná lokalita."
+        },
+        "damp_error_parsing": {
+            "message": "Chyba pri analýze tlmiaceho faktora oddelených čiarkami."
+        },
+        "damp_outside_range": {
+            "message": "Prítomná hodnota faktora tlmenia, ktorá nie je medzi 0,0 a 1,0."
+        },
+        "hard_empty": {
+            "message": "Prázdna hodnota pevného limitu."
+        },
+        "hard_too_many": {
+            "message": "Je špecifikovaných viac tvrdých limitov, ako existuje kľúčov API."
+        },
+        "hard_not_positive_number": {
+            "message": "Hodnota pevného limitu nie je kladné číslo."
+        },
+        "init_cannot_get_sites": {
+            "message": "Údaje stránok sa nepodarilo načítať."
+        },
+        "init_cannot_get_sites_cache_invalid": {
+            "message": "Údaje stránok sa nepodarilo načítať a vyrovnávacia pamäť je neplatná."
+        },
+        "init_incompatible": {
+            "message": "Údaje súboru `config/solcast.json` vo vyrovnávacej pamäti sú nekompatibilné, odstráňte ich."
+        },
+        "init_key_invalid": {
+            "message": "Kľúč API je neplatný."
+        },
+        "init_no_sites": {
+            "message": "Nenašli sa žiadne stránky pre kľúč API."
+        },
+        "init_unknown": {
+            "message": "Výnimka pri načítavaní údajov stránok."
+        },
+        "init_usage_corrupt": {
+            "message": "Údaje o používaní sú poškodené, skontrolujte alebo odstráňte súbor `config/solcast-usage.json`."
+        },
+        "integration_not_loaded": {
+            "message": "Integrácia nie je načítaná, nevykonáva akciu."
+        },
+        "remove_cache_failed": {
+            "message": "Vymazanie všetkých údajov Solcast zlyhalo."
+        }
     },
     "issues": {
         "records_missing": {
@@ -112,6 +213,14 @@
                     }
                 }
             }
+        },
+        "unusual_azimuth_northern": {
+            "title": "Nezvyčajný azimut",
+            "description": "Azimut lokality {site} je pre zemepisnú šírku tejto strechy na severnej pologuli nezvyčajný. Malo by to byť {proposal} namiesto {extant}? (Ak je lokalita orientovaná na sever, problém ignorujte.)"
+        },
+        "unusual_azimuth_southern": {
+            "title": "Nezvyčajný azimut",
+            "description": "Azimut lokality {site} je pre zemepisnú šírku tejto strechy na južnej pologuli nezvyčajný. Malo by to byť {proposal} namiesto {extant}? (Ak je lokalita orientovaná na juh, tento problém ignorujte.)"
         }
     },
     "options": {
@@ -119,12 +228,18 @@
             "reconfigured": "Použila sa nová konfigurácia"
         },
         "error": {
+            "actuals_not_enabled": "Získanie odhadovaných skutočných hodnôt nie je povolené",
+            "actuals_without_get": "Odhadované skutočné hodnoty nie je možné použiť bez ich získania",
             "api_duplicate": "Bol zadaný duplicitný kľúč API",
             "api_looks_like_site": "Kľúč API vyzerá ako ID lokality",
+            "custom_invalid": "Vlastný snímač nie medzi 1 a 144",
+            "dampen_without_actuals": "Na použitie automatického tlmenia je potrebné vybrať odhadované skutočné hodnoty",
+            "dampen_without_generation": "Pre použitie automatického tlmenia musí byť špecifikovaný aspoň jeden snímač Wh/kWh pre výrobu FV energie",
+            "export_multiple_entities": "Export lokality musí byť jedna entita, nie viacero entít",
+            "export_no_entity": "Export lokality musí byť špecifikovaný, ak je nastavený limit exportu lokality",
             "limit_one_or_greater": "Limit API musí byť jeden alebo väčší",
             "limit_too_many": "Je zadaných viac limitov API ako kľúčov",
             "limit_not_number": "Limit API nie je číslo",
-            "custom_invalid": "Vlastný snímač nie medzi 1 a 144",
             "hard_not_number": "Pevný limit nie je kladné číslo",
             "hard_too_many": "Je zadaných viac tvrdých limitov ako kľúčov"
         },
@@ -133,10 +248,6 @@
                 "data": {
                     "api_key": "Kľúč API (viac hodnôt oddelených čiarkou)",
                     "api_quota": "Kvóta rozhrania API (voliteľne čiarkou oddelené viaceré hodnoty pre každý kľúč)",
-                    "auto_update": "Automatická aktualizácia (ak nie je automatická aktualizácia, musíte namiesto nej použiť automatizáciu)",
-                    "customhoursensor": "Vlastný senzor ďalších X hodín (min=1, max=144)",
-                    "hard_limit": "Pevný limit meniča vo kilowattov (pozri integračnú dokumentáciu)",
-                    "key_estimate": "Preferovaná pravdepodobnosť použitia pre senzory",
                     "attr_brk_estimate10": "Povoliť odhad 10 atribútov senzora",
                     "attr_brk_estimate": "Povoliť odhad 50 atribútov senzora",
                     "attr_brk_estimate90": "Povoliť odhad 90 atribútov senzora",
@@ -144,10 +255,19 @@
                     "attr_brk_halfhourly": "Povoliť polhodinové podrobné atribúty prognózy",
                     "attr_brk_hourly": "Povoliť hodinové podrobné atribúty prognózy",
                     "attr_brk_detailed": "Povoliť rozdelenie stránok pre polhodinové/hodinové atribúty podrobností (tieto sa neuložia do atribútov stavu databázy)",
+                    "auto_dampen": "Automatické tlmenie (vyžaduje odhadované skutočné hodnoty a entitu generovania FV, pozri dokumentáciu k integrácii)",
+                    "auto_update": "Automatická aktualizácia (ak nie je automatická aktualizácia, musíte namiesto nej použiť automatizáciu)",
                     "config_damp": "Upravte hodinové faktory tlmenia (po kliknutí na odoslať)",
+                    "customhoursensor": "Vlastný senzor ďalších X hodín (min=1, max=144)",
                     "exclude_sites": "Lokality, ktoré sa majú vylúčiť zo súčtu energie a senzorov",
-                    "site_damp": "Granulované tlmenie je nastavené: Clear pre návrat k celkovému hodinovému tlmeniu"
-
+                    "generation_entities": "Entita/entity výroby FV energie pre automatické tlmenie (kWh, celkový nárast)",
+                    "get_actuals": "Odhadované skutočné hodnoty sa aktualizujú o polnoci (pozri dokumentáciu k integrácii, používa jednu API volanie na lokalitu za deň, takže je potrebné znížiť limit API s touto možnosťou povolenou)",
+                    "hard_limit_api": "Pevný limit meniča vo kilowattov (pozri integračnú dokumentáciu)",
+                    "key_estimate": "Preferovaná pravdepodobnosť použitia pre senzory",
+                    "site_damp": "Granulované tlmenie je nastavené: Clear pre návrat k celkovému hodinovému tlmeniu",
+                    "site_export_entity": "Voliteľná entita exportu lokality pre automatické tlmenie (kWh, celkový nárast)",
+                    "site_export_limit": "Limit exportu lokality, ak je export lokality špecifikovaný (kW)",
+                    "use_actuals": "História predpovedí na zobrazenie na paneli Energy"
                 },
                 "description": "Solcast možnosti konfigurácie"
             },
@@ -190,6 +310,13 @@
                 "2": "Automatická aktualizácia predpovedí počas 24 hodín"
             }
         },
+        "energy_history": {
+            "options": {
+                "0": "Predpovede",
+                "1": "Odhadované skutočnosti",
+                "2": "Zjemnené odhadované skutočnosti"
+            }
+        },
         "key_estimate": {
             "options": {
                 "estimate": "Stredná očakávaná generácia (estimate)",
@@ -203,6 +330,10 @@
             "name": "Aktualizácia",
             "description": "Načítava najnovšie predpovede zo Solcastu."
         },
+        "force_update_estimates": {
+            "description": "Vynúti načítanie najnovších odhadovaných skutočných údajov zo Solcastu.",
+            "name": "Vynútiť aktualizáciu odhadovaných skutočností"
+        },
         "force_update_forecasts": {
             "name": "Vynútiť Aktualizácia",
             "description": "Force načítava najnovšie predpovede zo Solcastu."
@@ -210,6 +341,20 @@
         "clear_all_solcast_data": {
             "name": "Vymažte všetky uložené údaje Solcast",
             "description": "Odstráni súbor solcast.json a odstráni všetky aktuálne údaje lokality solcast."
+        },
+        "query_estimate_data": {
+            "description": "Vráti množinu údajov alebo hodnotu pre daný dotaz.",
+            "fields": {
+                "end_date_time": {
+                    "description": "Interroga udalosti s údajmi o skutočnosti až do času ukončenia.",
+                    "name": "Čas ukončenia"
+                },
+                "start_date_time": {
+                    "description": "Interroga udalosti s údajmi o skutočnosti od času začiatku.",
+                    "name": "Čas začiatku"
+                }
+            },
+            "name": "Dotaz odhadovaných skutočných údajov"
         },
         "query_forecast_data": {
             "name": "Dopytujte údaje predpovede",

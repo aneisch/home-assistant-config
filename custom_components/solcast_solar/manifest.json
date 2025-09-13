@@ -21,7 +21,7 @@
   "requirements": [
     "aiohttp>=3.8.5",
     "aiofiles>=23.2.0",
-    "datetime>=4.3"
+    "watchdog>=6.0.0"
   ],
-  "version": "v4.3.5"
+  "version": "v4.4.0"
 }

@@ -1,17 +1,23 @@
+"""Utility functions for the BHyve integration."""
+
+from datetime import datetime
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.util import dt
 
 from .const import CONF_DEVICES
 
 
-def orbit_time_to_local_time(timestamp: str):
-    """Converts the Orbit API timestamp to local time."""
+def orbit_time_to_local_time(timestamp: str | None) -> datetime | None:
+    """Convert the Orbit API timestamp to local time."""
     if timestamp is not None:
-        return dt.as_local(dt.parse_datetime(timestamp))
+        parsed = dt.parse_datetime(timestamp)
+        if parsed is not None:
+            return dt.as_local(parsed)
     return None
 
 
-def filter_configured_devices(entry: ConfigEntry, all_devices):
+def filter_configured_devices(entry: ConfigEntry, all_devices: list) -> list:
     """Filter the device list to those that are enabled in options."""
     filtered_devices = [
         d for d in all_devices if str(d["id"]) in entry.options[CONF_DEVICES]

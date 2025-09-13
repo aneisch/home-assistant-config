@@ -1,7 +1,9 @@
 """Support for Orbit BHyve irrigation devices."""
-import logging
-import voluptuous as vol
 
+import logging
+from typing import Any
+
+import voluptuous as vol
 from homeassistant.config_entries import SOURCE_IMPORT, ConfigEntry
 from homeassistant.const import (
     CONF_PASSWORD,
@@ -17,12 +19,15 @@ from homeassistant.exceptions import (
 )
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers.entity import DeviceInfo, Entity
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.typing import ConfigType
+
+from custom_components.bhyve.pybhyve.typings import BHyveDevice
 
 from .const import (
     DOMAIN,
@@ -33,13 +38,13 @@ from .const import (
     SIGNAL_UPDATE_DEVICE,
     SIGNAL_UPDATE_PROGRAM,
 )
-from .util import filter_configured_devices
-from .pybhyve import Client
+from .pybhyve import BHyveClient
 from .pybhyve.errors import AuthenticationError, BHyveError
+from .util import filter_configured_devices
 
 _LOGGER = logging.getLogger(__name__)
 
-CONFIG_SCHEMA = vol.Schema(
+CONFIG_SCHEMA: vol.Schema = vol.Schema(
     cv.deprecated(DOMAIN),
     {
         DOMAIN: vol.Schema(
@@ -74,7 +79,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up BHyve from a config entry."""
 
-    async def async_update_callback(data):
+    async def async_update_callback(data: dict) -> None:
         event = data.get("event")
         device_id = None
         program_id = None
@@ -94,7 +99,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 hass, SIGNAL_UPDATE_PROGRAM.format(program_id), program_id, data
             )
 
-    client = Client(
+    client = BHyveClient(
         entry.data[CONF_USERNAME],
         entry.data[CONF_PASSWORD],
         session=async_get_clientsession(hass),
@@ -102,15 +107,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         if await client.login() is False:
-            raise ConfigEntryAuthFailed()
+            msg = "Invalid credentials"
+            raise ConfigEntryAuthFailed(msg)
 
         client.listen(hass.loop, async_update_callback)
         all_devices = await client.devices
         programs = await client.timer_programs
     except AuthenticationError as err:
-        raise ConfigEntryAuthFailed() from err
+        raise ConfigEntryAuthFailed(err) from err
     except BHyveError as err:
-        raise ConfigEntryNotReady() from err
+        raise ConfigEntryNotReady(err) from err
 
     # Filter the device list to those that are enabled in options
     devices = filter_configured_devices(entry, all_devices)
@@ -147,16 +153,16 @@ class BHyveEntity(Entity):
 
     def __init__(
         self,
-        hass,
-        bhyve,
-        device,
-        name,
-        icon,
-        device_class=None,
-    ):
+        hass: HomeAssistant,
+        bhyve: BHyveClient,
+        device: BHyveDevice,
+        name: str,
+        icon: str,
+        device_class: str | None = None,
+    ) -> None:
         """Initialize the sensor."""
         self._hass = hass
-        self._bhyve: Client = bhyve
+        self._bhyve: BHyveClient = bhyve
         self._device_class = device_class
 
         self._name = name
@@ -165,9 +171,9 @@ class BHyveEntity(Entity):
         self._available = False
         self._attrs = {}
 
-        self._device_id = device.get("id")
-        self._device_type = device.get("type")
-        self._device_name = device.get("name")
+        self._device_id: str = device.get("id", "")
+        self._device_type: str = device.get("type", "")
+        self._device_name: str = device.get("name", "")
 
         self._attr_device_info = DeviceInfo(
             identifiers={(DOMAIN, self._device_id)},
@@ -180,37 +186,37 @@ class BHyveEntity(Entity):
         )
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return True if entity is available."""
         return self._available
 
     @property
-    def device_class(self):
+    def device_class(self) -> str | None:
         """Return the device class."""
         return self._device_class
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict:
         """Return the device state attributes."""
         return self._attrs
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the sensor."""
         return f"{self._name}"
 
     @property
-    def icon(self):
+    def icon(self) -> str:
         """Icon to use in the frontend, if any."""
         return self._icon
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """Disable polling."""
         return False
 
     @property
-    def device_info(self) -> DeviceInfo:
+    def device_info(self) -> DeviceInfo | None:
         """Return device registry information for this entity."""
         return self._attr_device_info
 
@@ -220,25 +226,26 @@ class BHyveWebsocketEntity(BHyveEntity):
 
     def __init__(
         self,
-        hass,
-        bhyve,
-        device,
-        name,
-        icon,
-        device_class=None,
-    ):
+        hass: HomeAssistant,
+        bhyve: BHyveClient,
+        device: BHyveDevice,
+        name: str,
+        icon: str,
+        device_class: Any = None,
+    ) -> None:
+        """Initialise the websocket entity."""
         self._async_unsub_dispatcher_connect = None
         self._ws_unprocessed_events = []
         super().__init__(hass, bhyve, device, name, icon, device_class)
 
-    def _on_ws_data(self, data):
+    def _on_ws_data(self, _data: dict) -> None:
         pass
 
-    def _should_handle_event(self, event_name, data):
-        """True if the websocket event should be handled."""
+    def _should_handle_event(self, _event_name: str, _data: dict) -> bool:
+        """Handle all events."""
         return True
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         """Retrieve latest state."""
         ws_updates = list(self._ws_unprocessed_events)
         self._ws_unprocessed_events[:] = []
@@ -252,27 +259,28 @@ class BHyveDeviceEntity(BHyveWebsocketEntity):
 
     def __init__(
         self,
-        hass,
-        bhyve,
-        device,
-        name,
-        icon,
-        device_class=None,
-    ):
+        hass: HomeAssistant,
+        bhyve: BHyveClient,
+        device: BHyveDevice,
+        name: str,
+        icon: str,
+        device_class: str | None = None,
+    ) -> None:
         """Initialize the sensor."""
-
         self._mac_address = device.get("mac_address")
 
         super().__init__(hass, bhyve, device, name, icon, device_class)
 
         self._setup(device)
 
-    def _setup(self, device):
+    def _setup(self, device: Any) -> None:
         pass
 
-    async def _refetch_device(self, force_update=False):
+    async def _refetch_device(self, *, force_update: bool = False) -> None:
         try:
-            device = await self._bhyve.get_device(self._device_id, force_update)
+            device = await self._bhyve.get_device(
+                self._device_id, force_update=force_update
+            )
             if not device:
                 _LOGGER.info("No device found with id %s", self._device_id)
                 self._available = False
@@ -283,27 +291,24 @@ class BHyveDeviceEntity(BHyveWebsocketEntity):
         except BHyveError as err:
             _LOGGER.warning("Unable to retreive data for %s: %s", self.name, err)
 
-    async def _fetch_device_history(self, force_update=False):
-        try:
-            return await self._bhyve.get_device_history(self._device_id, force_update)
-
-        except BHyveError as err:
-            raise (err)
-
-    @property
-    def unique_id(self):
-        """Return a unique, unchanging string that represents this sensor."""
-        raise HomeAssistantError(
-            f"{self.__class__.__name__} does not define a unique_id"
+    async def _fetch_device_history(self, *, force_update: bool = False) -> dict | None:
+        return await self._bhyve.get_device_history(
+            self._device_id, force_update=force_update
         )
 
-    async def async_added_to_hass(self):
+    @property
+    def unique_id(self) -> str:
+        """Return a unique, unchanging string that represents this sensor."""
+        msg = f"{self.__class__.__name__} does not define a unique_id"
+        raise HomeAssistantError(msg)
+
+    async def async_added_to_hass(self) -> None:
         """Register callbacks."""
 
         @callback
-        def update(device_id, data):
+        def update(_device_id: str, data: dict) -> None:
             """Update the state."""
-            event = data.get("event")
+            event = data.get("event", "")
             if event == "device_disconnected":
                 _LOGGER.warning(
                     "Device %s disconnected and is no longer available", self.name
@@ -320,20 +325,23 @@ class BHyveDeviceEntity(BHyveWebsocketEntity):
                     str(data),
                 )
                 self._ws_unprocessed_events.append(data)
-                self.async_schedule_update_ha_state(True)
+                self.async_schedule_update_ha_state(True)  # noqa: FBT003
 
         self._async_unsub_dispatcher_connect = async_dispatcher_connect(
             self.hass, SIGNAL_UPDATE_DEVICE.format(self._device_id), update
         )
 
-    async def async_will_remove_from_hass(self):
+    async def async_will_remove_from_hass(self) -> None:
         """Disconnect dispatcher listener when removed."""
         if self._async_unsub_dispatcher_connect:
             self._async_unsub_dispatcher_connect()
 
-    async def set_manual_preset_runtime(self, minutes: int):
-        """Sets the default watering runtime for the device."""
+    async def set_manual_preset_runtime(self, minutes: int) -> None:
+        """
+        Set the default watering runtime for the device.
+
         # {event: "set_manual_preset_runtime", device_id: "abc", seconds: 900}
+        """
         payload = {
             "event": EVENT_SET_MANUAL_PRESET_TIME,
             "device_id": self._device_id,
@@ -342,17 +350,19 @@ class BHyveDeviceEntity(BHyveWebsocketEntity):
         _LOGGER.info("Setting manual preset runtime: %s", payload)
         await self._bhyve.send_message(payload)
 
-    async def enable_rain_delay(self, hours: int = 24):
+    async def enable_rain_delay(self, hours: int = 24) -> None:
         """Enable rain delay."""
         await self._set_rain_delay(hours)
 
-    async def disable_rain_delay(self):
+    async def disable_rain_delay(self) -> None:
         """Disable rain delay."""
         await self._set_rain_delay(0)
 
-    async def _set_rain_delay(self, hours: int):
+    async def _set_rain_delay(self, hours: int) -> None:
         try:
+            """
             # {event: "rain_delay", device_id: "abc", delay: 48}
+            """
             payload = {
                 "event": EVENT_RAIN_DELAY,
                 "device_id": self._device_id,
@@ -363,4 +373,4 @@ class BHyveDeviceEntity(BHyveWebsocketEntity):
 
         except BHyveError as err:
             _LOGGER.warning("Failed to send to BHyve websocket message %s", err)
-            raise (err)
+            raise BHyveError(err) from err

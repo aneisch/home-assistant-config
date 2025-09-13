@@ -36,7 +36,8 @@ SENSORS: dict[str, dict[str, Any]] = {
             translation_key="api_counter",
             name="API Used",
             entity_category=EntityCategory.DIAGNOSTIC,
-        )
+        ),
+        "attribution": False,
     },
     "api_limit": {
         "description": SensorEntityDescription(
@@ -44,7 +45,18 @@ SENSORS: dict[str, dict[str, Any]] = {
             translation_key="api_limit",
             name="API Limit",
             entity_category=EntityCategory.DIAGNOSTIC,
-        )
+        ),
+        "attribution": False,
+    },
+    "dampen": {
+        "description": SensorEntityDescription(
+            key="dampen",
+            translation_key="dampen",
+            name="Dampening",
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        "attribution": False,
+        "enabled_by_default": False,
     },
     "forecast_this_hour": {
         "description": SensorEntityDescription(
@@ -94,7 +106,8 @@ SENSORS: dict[str, dict[str, Any]] = {
             translation_key="lastupdated",
             name="API Last Polled",
             entity_category=EntityCategory.DIAGNOSTIC,
-        )
+        ),
+        "attribution": False,
     },
     "peak_w_time_today": {
         "description": SensorEntityDescription(
@@ -271,6 +284,7 @@ def get_sensor_update_policy(key: str) -> SensorUpdatePolicy:
 
     """
     if key in (
+        "dampen",
         "forecast_this_hour",
         "forecast_next_hour",
         "forecast_custom_hours",
@@ -302,31 +316,39 @@ async def async_setup_entry(
     entities: list[RooftopSensor | SolcastSensor] = []
 
     for sensor in SENSORS.values():
-        sen = SolcastSensor(coordinator, sensor["description"], entry, sensor.get("enabled_by_default", True))
+        sen = SolcastSensor(
+            coordinator,
+            entry,
+            sensor,
+        )
         entities.append(sen)
 
     hard_limits = coordinator.solcast.options.hard_limit.split(",")
     if len(hard_limits) == 1:
-        k = SensorEntityDescription(
-            key="hard_limit",
-            translation_key="hard_limit",
-            name="Hard Limit Set",
-            entity_category=EntityCategory.DIAGNOSTIC,
-        )
-        sen = SolcastSensor(coordinator, k, entry)
+        k = {
+            "description": SensorEntityDescription(
+                key="hard_limit",
+                translation_key="hard_limit",
+                name="Hard Limit Set",
+                entity_category=EntityCategory.DIAGNOSTIC,
+            )
+        }
+        sen = SolcastSensor(coordinator, entry, k)
         entities.append(sen)
         expecting_limits = ["hard_limit"]
     else:
         for api_key in coordinator.solcast.options.api_key.split(","):
-            k = SensorEntityDescription(
-                key="hard_limit_" + api_key[-6:],
-                translation_key="hard_limit_api",
-                translation_placeholders={
-                    "api_key": "*" * 6 + api_key[-6:],
-                },
-                entity_category=EntityCategory.DIAGNOSTIC,
-            )
-            sen = SolcastSensor(coordinator, k, entry)
+            k = {
+                "description": SensorEntityDescription(
+                    key="hard_limit_" + api_key[-6:],
+                    translation_key="hard_limit_api",
+                    translation_placeholders={
+                        "api_key": "*" * 6 + api_key[-6:],
+                    },
+                    entity_category=EntityCategory.DIAGNOSTIC,
+                )
+            }
+            sen = SolcastSensor(coordinator, entry, k)
             entities.append(sen)
         expecting_limits = [f"hard_limit_{api_key[-6:]}" for api_key in coordinator.solcast.options.api_key.split(",")]
     # Clean up any orphaned hard limit sensors.
@@ -338,19 +360,21 @@ async def async_setup_entry(
             _LOGGER.warning("Cleaning up orphaned %s", entity.entity_id)
 
     for site in coordinator.get_solcast_sites():
-        k = SensorEntityDescription(
-            key=site["resource_id"],
-            translation_key="site_data",
-            name=site["name"],
-            device_class=SensorDeviceClass.ENERGY,
-            native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
-            suggested_display_precision=2,
-        )
+        k = {
+            "description": SensorEntityDescription(
+                key=site["resource_id"],
+                translation_key="site_data",
+                name=site["name"],
+                device_class=SensorDeviceClass.ENERGY,
+                native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+                suggested_display_precision=2,
+            )
+        }
         site_sen = RooftopSensor(
             key="site_data",
             coordinator=coordinator,
-            entity_description=k,
             entry=entry,
+            sensor=k,
             rooftop_id=site["resource_id"],
         )
         entities.append(site_sen)
@@ -361,34 +385,33 @@ async def async_setup_entry(
 class SolcastSensor(CoordinatorEntity, SensorEntity):
     """Representation of a Solcast sensor device."""
 
-    _attr_attribution = ATTRIBUTION
     _attr_has_entity_name = True
 
     def __init__(
         self,
         coordinator: SolcastUpdateCoordinator,
-        entity_description: SensorEntityDescription,
         entry: ConfigEntry,
-        enabled_by_default: bool = True,
+        sensor: dict[str, Any],
     ) -> None:
         """Initialise the sensor.
 
         Arguments:
             coordinator (SolcastUpdateCoordinator): The integration coordinator instance.
-            entity_description (SensorEntityDescription): The details of the entity.
             entry (ConfigEntry): The integration entry instance, contains the configuration.
-            enabled_by_default (bool): The default state of the sensor.
+            sensor (dict[str, Any]): The details of the entity.
 
         """
         super().__init__(coordinator)
 
-        self.entity_description = entity_description
+        self.entity_description = sensor["description"]
         self._attr_extra_state_attributes = {}
-        self._attr_unique_id = f"{entity_description.key}"
+        self._attr_unique_id = f"{self.entity_description.key}"
         self._coordinator = coordinator
-        self._attr_entity_registry_enabled_default = enabled_by_default
+        self._attr_entity_registry_enabled_default = sensor.get("enabled_by_default", True)
         self._sensor_data = None
-        self._update_policy = get_sensor_update_policy(entity_description.key)
+        self._update_policy = get_sensor_update_policy(self.entity_description.key)
+        if sensor.get("attribution", True):
+            self._attr_attribution = ATTRIBUTION
 
         try:
             self._sensor_data = self._coordinator.get_sensor_value(self.entity_description.key)
@@ -410,18 +433,20 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
     async def async_added_to_hass(self) -> None:
         """Entity about to be added to hass, so set recorder excluded attributes."""
         await super().async_added_to_hass()
-        if self.entity_id.startswith("sensor.solcast_pv_forecast_api_last_polled"):
+
+        if self.entity_description.key == "lastupdated":
             self._state_info["unrecorded_attributes"] = frozenset(["next_auto_update", "auto_update_divisions", "auto_update_queue"])
-        elif (
-            self.entity_id.startswith("sensor.solcast_pv_forecast_forecast_today")
-            or self.entity_id.startswith("sensor.solcast_pv_forecast_forecast_tomorrow")
-            or self.entity_id.startswith("sensor.solcast_pv_forecast_forecast_day")
-        ):
+
+        elif str(self.entity_description.key).startswith("total_kwh_forecast"):
             exclude = ["detailedForecast", "detailedHourly"]
             if self._coordinator.solcast.options.attr_brk_site_detailed:
                 for s in self._coordinator.solcast.sites:
                     exclude.append("detailedForecast_" + s["resource_id"].replace("-", "_"))
                     exclude.append("detailedHourly_" + s["resource_id"].replace("-", "_"))
+            self._state_info["unrecorded_attributes"] = self._state_info["unrecorded_attributes"] | frozenset(exclude)
+
+        elif self.entity_description.key == "dampen":
+            exclude = ["factors"]
             self._state_info["unrecorded_attributes"] = self._state_info["unrecorded_attributes"] | frozenset(exclude)
 
     @property
@@ -496,8 +521,8 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         *,
         key: str,
         coordinator: SolcastUpdateCoordinator,
-        entity_description: SensorEntityDescription,
         entry: ConfigEntry,
+        sensor: dict[str, SensorEntityDescription],
         rooftop_id: str,
     ) -> None:
         """Initialise the sensor.
@@ -505,14 +530,14 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         Arguments:
             key (str): The sensor name.
             coordinator (SolcastUpdateCoordinator): The integration coordinator instance.
-            entity_description (SensorEntityDescription): The details of the entity.
             entry (ConfigEntry): The integration entry instance, contains the configuration.
+            sensor (dict[str, SensorEntityDescription]): The details of the entity.
             rooftop_id (str): The site name to use as the senor name.
 
         """
         super().__init__(coordinator)
 
-        self.entity_description = entity_description
+        self.entity_description = sensor["description"]
         self._key = key
         self._coordinator = coordinator
         self._rooftop_id = rooftop_id  # entity_description.
@@ -537,7 +562,7 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
             configuration_url="https://toolkit.solcast.com.au/",
         )
 
-        self._unique_id = f"solcast_api_{entity_description.name}"
+        self._unique_id = f"solcast_api_{sensor['description'].name}"
 
     @property
     def available(self) -> bool:  # type: ignore[explicit-override]  # Explicitly overridden because parent is a cached property

@@ -3,9 +3,9 @@
   "name": "Orbit B-hyve",
   "codeowners": ["@sebr"],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/sebr/bhyve-home-assistant/blob/main/README.md",
+  "integration_type": "hub",
   "iot_class": "cloud_push",
-  "requirements": [],
-  "version": "3.2.5"
+  "issue_tracker": "https://github.com/sebr/bhyve-home-assistant/issues",
+  "version": "3.3.0"
 }

@@ -63,6 +63,7 @@ cards:
       #off_threshold: 3
     grid:
       show_daily_buy: true
+      show_daily_sell: true
       #invert_grid: true
       no_grid_colour:
         - 125
@@ -72,6 +73,7 @@ cards:
       max_power: 20000
       auto_scale: true
       grid_off_colour:
+      max_sell_power: 13000
         - 122
         - 0
         - 0
@@ -81,6 +83,7 @@ cards:
       # priority_load_243: switch.solark_sol_ark_toggle_priority_load
       # day_battery_charge_70: sensor.solark_sol_ark_day_battery_charge
       # day_battery_discharge_71: sensor.solark_sol_ark_day_battery_discharge
+      #solar_sell_247: switch.solark_sol_ark_solar_sell
       battery_voltage_183: sensor.solark_sol_ark_battery_voltage
       battery_soc_184: sensor.solark_sol_ark_battery_soc
       battery_power_190: sensor.solark_sol_ark_battery_power
@@ -125,8 +128,7 @@ cards:
       essential_load4_extra: sensor.attic_hvac_daily_energy
       essential_load5: sensor.oven_power
       essential_load5_extra: sensor.oven_daily_energy
-
-    dynamic_line_width: true
+      dynamic_line_width: true
     wide: true
     view_layout:
       grid-area: flow

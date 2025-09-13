@@ -1,4 +1,5 @@
 """Define constants for the BHyve component."""
+
 DOMAIN = "bhyve"
 MANUFACTURER = "Orbit BHyve"
 

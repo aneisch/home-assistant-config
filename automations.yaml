@@ -660,7 +660,7 @@
   actions:
   - action: notify.signal_homeassistant
     data:
-      message: "{{ trigger.json.message }}"
+      message: '{{ trigger.json.message }}'
 - id: update_utility_costs
   alias: Update Utility Costs
   trigger:
@@ -1287,3 +1287,32 @@
         }} for 1 minute.'
   mode: parallel
   max: 10
+- id: '1757355386706'
+  alias: Dryer Completed Notification
+  triggers:
+  - entity_id: sensor.dryer_power
+    below: 10
+    for: 00:01:00
+    trigger: numeric_state
+  actions:
+  - data:
+      message: The dryer has finished!
+    action: notify.signal_homeassistant
+  - if:
+    - condition: state
+      entity_id: input_boolean.goodnight
+      state: 'off'
+    - condition: numeric_state
+      entity_id: sensor.solark_sol_ark_solar_power
+      above: 5000
+    then:
+    - data:
+        target:
+        - media_player.kitchen
+        - media_player.living_room
+        - media_player.master
+        message: The dryer has finished!
+        data:
+          type: announce
+      action: notify.alexa_media
+  mode: single

@@ -157,7 +157,8 @@ services:
     thermostat_api_server:
         container_name: thermostat_api_server
         restart: always
-        image: ghcr.io/aneisch/thermostat_api_server:latest
+        image: thermostat_api_server
+        #image: ghcr.io/aneisch/thermostat_api_server:latest
         volumes:
             - /etc/localtime:/etc/localtime:ro
         # ports:

@@ -73,6 +73,7 @@ smart_home:
       - script.master_bedroom_wakeup
       - script.too_cold
       - script.too_hot
+      - script.solar_summary_alexa_response
       - script.vacuum_clean_kitchen
       - script.vacuum_clean_living_room
       - script.vacuum_clean_dining_room
