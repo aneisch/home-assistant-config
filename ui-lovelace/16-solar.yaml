@@ -32,7 +32,7 @@ cards:
       efficiency: 1
     battery:
       energy: 28680
-      shutdown_soc: 20
+      shutdown_soc: 15
       invert_flow: true
       colour: purple
       charge_colour: green
@@ -95,7 +95,7 @@ cards:
       day_pv_energy_108: sensor.solark_sol_ark_day_pv_energy
       # load_frequency_192: sensor.solark_sol_ark_load_frequency
       # inverter_voltage_154: sensor.solark_sol_ark_inverter_voltage
-      # inverter_current_164: sensor.solark_sol_ark_inverter_current
+      inverter_current_164: sensor.solark_sol_ark_inverter_current
       # inverter_power_175: sensor.solark_sol_ark_inverter_power
       # grid_power_169: sensor.solark_sol_ark_grid_power
       essential_power: sensor.solark_sol_ark_load_power

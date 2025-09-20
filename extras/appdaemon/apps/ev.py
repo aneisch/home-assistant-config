@@ -39,6 +39,10 @@ class SolarEVCharger(hass.Hass):
         if self.get_state(self.entities["override_boolean"]) == "on":
             return
 
+        if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
+            #self.log("No Vehicle Connected")
+            return
+
         if self.eval_locked:
             return
 

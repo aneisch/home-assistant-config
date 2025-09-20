@@ -117,3 +117,13 @@ master_bathroom_lights:
   entities:
     - switch.master_bathroom_light_main
     - switch.master_bathroom_light_secondary
+
+all_fans:
+  name: All Fans
+  entities:
+    - fan.living_room_ceiling_fan
+    - switch.master_bedroom_ceiling_fan
+    - fan.office_ceiling_fan
+    - switch.back_bedroom_ceiling_fan
+    - switch.bethany_office_ceiling_fan
+    - switch.guest_bedroom_ceiling_fan

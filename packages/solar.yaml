@@ -112,12 +112,12 @@ script:
           message: '{{ convo.response.speech.plain.speech }}'
 
 sensor:
-  - platform: statistics
-    name: "Daily Solar Production 60d Average"
-    entity_id: sensor.solar_production_daily_total
-    state_characteristic: mean
-    max_age:
-      days: 1
+  # - platform: statistics
+  #   name: "Daily Solar Production 60d Average"
+  #   entity_id: sensor.solar_production_daily_total
+  #   state_characteristic: mean
+  #   max_age:
+  #     days: 1
 
   - platform: statistics
     name: "Daily Solar Production 7d Average"

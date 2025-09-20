@@ -25,11 +25,11 @@ class AutoAdjust(hass.Hass):
         #self.run_daily(self.adjust_midnight, self.midnight_adjust, constrain_input_boolean="input_boolean.guest_mode,off")
         self.run_daily(self.adjust_midnight, self.midnight_adjust)
 
-
         # Debounce window and boost status
         self.boost_active = None
         self.should_boost = None
         self.boost_debounce_handle = None
+        self.midnight_scheduled_handle = None
 
         # Listen to solar, load, SOC changes
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_solar_power")
@@ -82,16 +82,20 @@ class AutoAdjust(hass.Hass):
         start = sunset + datetime.timedelta(seconds=start_offset)
         end   = sunset + datetime.timedelta(seconds=end_offset)
 
-        # Rule 1: Boost only allowed within window. If active and window ends → deactivate immediately.
-        if not (start <= now <= end) or not self.grid_online() or self.get_state("input_boolean.ac_boost_feature_evaluation") == "off":
+        # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
+        #self.log(f"Start: {start} - End: {end} - Sunset: {sunset}")
+        if not (start <= now <= end) or not self.grid_online():
+            #self.log("Rule 0.1")
+            #self.log(f"{start} -- {end}")
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})
                 self.log("Boost deactivated: outside allowed window or grid offline")
             return
 
-        # Rule 2: Allow disabling the feature by boolean
+        # Rule 0.2: Allow disabling the feature by boolean
         if self.get_state("input_boolean.ac_boost_feature_evaluation") == "off":
+            #self.log("Rule 0.2")
             if self.boost_debounce_handle:
                 self.cancel_timer(self.boost_debounce_handle)
                 self.boost_debounce_handle = None
@@ -106,37 +110,44 @@ class AutoAdjust(hass.Hass):
             ac_power = int(float(self.get_state("sensor.ac_compressor_power")) +
                         float(self.get_state("sensor.attic_hvac_power")))
             battery_soc = float(self.get_state("sensor.solark_sol_ark_battery_soc") or 0)
-
-            # Adjust load depending on AC state
-            if grid_power < 0:  # exporting
-                if ac_running:
-                    # Rule 4: Don’t let AC running disable boost → ignore AC load when already running
-                    adjusted_load = max(0, load_power - ac_power)
-                else:
-                    # If AC is off, test whether solar can also handle turning it on
-                    adjusted_load = load_power + 4500
-                excess_solar = solar_power - adjusted_load
-            else:
-                adjusted_load = 0
-                excess_solar = 0
-
-            self.excess_solar = excess_solar
-            self.battery_soc = battery_soc
-
         except (TypeError, ValueError):
             self.log("Invalid sensor data", level="WARNING")
             return
 
+        # Adjust load depending on AC state
+        if grid_power < -50:  # exporting
+            #self.log("Rule 1")
+            if ac_running:
+                #self.log("Rule 1.1")
+                # Rule 4: Don’t let AC running disable boost → ignore AC load when already running
+                adjusted_load = max(0, load_power - ac_power)
+            else:
+                #self.log("Rule 1.2")
+                # If AC is off, test whether solar can also handle turning it on
+                adjusted_load = load_power + 4500
+            excess_solar = solar_power - adjusted_load
+        else:
+            #self.log("Rule 2")
+            adjusted_load = 0
+            excess_solar = 0
+
+        self.excess_solar = excess_solar
+        self.battery_soc = battery_soc
+
         # Rule 3: Only activate if there is enough solar + buffer threshold
-        solar_threshold = float(self.args["solar_boost_threshold"])
-        battery_threshold = float(self.args["battery_boost_threshold"])
+        # solar_threshold = float(self.args["solar_boost_threshold"])
+        # battery_threshold = float(self.args["battery_boost_threshold"])
+
+        # We need to produce at least what the AC is currently drawing to be eligible for boost
+        required_solar = ac_power + float(self.args["solar_boost_threshold"])
 
         eligible = (
-            excess_solar > solar_threshold and
-            battery_soc >= battery_threshold
+            solar_power >= required_solar and
+            excess_solar > float(self.args["solar_boost_threshold"]) and
+            battery_soc >= float(self.args["battery_boost_threshold"])
         )
 
-        self.log(f"Boost Evaluation Result: {eligible} - Solar: {solar_power}W - Load: {load_power}W - Adjusted Load: {adjusted_load}W - Calculated Excess: {excess_solar}W - Battery SOC {battery_soc}%", level="INFO")
+        #self.log(f"Boost Evaluation Result: {eligible} - Solar: {solar_power}W - Load: {load_power}W - Adjusted Load: {adjusted_load}W - Calculated Excess: {excess_solar}W - Battery SOC {battery_soc}%", level="INFO")
 
         if eligible != self.should_boost:
             self.log(f"Eligibility changed --> {eligible} (was {self.should_boost})", level="INFO")
@@ -158,15 +169,15 @@ class AutoAdjust(hass.Hass):
 
     def commit_boost_change(self, kwargs):
         self.log("evaluating")
-        if self.should_boost != self.boost_active:
-            if self.should_boost:
-                self.log(f"Boost Activated")
-                self.set_state("input_boolean.ac_is_boosting", state="on")
-            else:
-                self.log(f"Boost Deactivated")
-                self.set_state("input_boolean.ac_is_boosting", state="off")
-            self.boost_active = self.should_boost
-            self.adjust_morning()  # apply new temp
+        #if self.should_boost != self.boost_active:
+        if self.should_boost:
+            self.log(f"Boost Activated")
+            self.set_state("input_boolean.ac_is_boosting", state="on")
+        else:
+            self.log(f"Boost Deactivated")
+            self.set_state("input_boolean.ac_is_boosting", state="off")
+        self.boost_active = self.should_boost
+        self.adjust_morning()  # apply new temp
 
     def adjust_temp(self, kwargs):
         for tstat in self.split_device_list(self.args["thermostats"]):
@@ -195,7 +206,10 @@ class AutoAdjust(hass.Hass):
         self._adjust_period("morning", force=kwargs.get("force", False))
 
     def adjust_night(self, *args, **kwargs):
-        self._adjust_period("night", force=kwargs.get("force", False))
+        if self.get_state("input_boolean.goodnight") == "off":
+            self._adjust_period("night", force=kwargs.get("force", False))
+        else:
+            self.log("Not transitioning to 'night' due to input_boolean.goodnight == on")
 
     def adjust_midnight(self, *args, **kwargs):
         self._adjust_period("midnight", force=kwargs.get("force", False))
@@ -203,8 +217,9 @@ class AutoAdjust(hass.Hass):
     def _adjust_period(self, label, force=False):
         tracker_state = self.get_state(self.args["device_tracker"])
         mode = self.get_state("sensor.thermostat_operating_mode").lower()
-
-        occupied = tracker_state == "home" or force
+        guest_mode = self.get_state("input_boolean.guest_mode") == "on"
+        
+        occupied = tracker_state == "home" or guest_mode or force
 
         if mode == "off":
             return
