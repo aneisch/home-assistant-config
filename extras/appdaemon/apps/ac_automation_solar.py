@@ -53,7 +53,7 @@ class AutoAdjust(hass.Hass):
         state = self.get_state(self.args["grid_state_sensor"])
         return state == "on" or state == "true"
 
-    def parse_offset(offset_str):
+    def parse_offset(self, offset_str):
         """Parses HH:MM:SS (with optional '-') into seconds."""
         sign = -1 if offset_str.startswith("-") else 1
         h, m, s = [int(x) for x in offset_str.strip("-").split(":")]
@@ -66,10 +66,10 @@ class AutoAdjust(hass.Hass):
         end_offset_str   = self.args.get("cooldown_window_end_offset", "-00:30:00")
 
         try:
-            start_offset = parse_offset(start_offset_str)
-            end_offset   = parse_offset(end_offset_str)
-        except Exception:
-            self.log(f"Invalid offset format: {start_offset_str}, {end_offset_str}", level="WARNING")
+            start_offset = self.parse_offset(start_offset_str)
+            end_offset   = self.parse_offset(end_offset_str)
+        except Exception as e:
+            self.log(f"Invalid offset format: {e} {start_offset_str}, {end_offset_str}", level="WARNING")
             return
 
         # Get today's sunset
@@ -86,7 +86,7 @@ class AutoAdjust(hass.Hass):
         #self.log(f"Start: {start} - End: {end} - Sunset: {sunset}")
         if not (start <= now <= end) or not self.grid_online():
             #self.log("Rule 0.1")
-            #self.log(f"{start} -- {end}")
+            self.log(f"{start} -- {end}")
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})

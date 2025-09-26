@@ -114,8 +114,8 @@ cards:
       # battery_temp_182: sensor.solark_sol_ark_battery_temperature
       # radiator_temp_91: sensor.solark_sol_ark_radiator_temperature
       dc_transformer_temp_90: sensor.solark_sol_ark_radiator_temperature
-      # prog1_time: sensor.solark_sol_ark_time_slot_1
-      # prog1_capacity: number.solark_sol_ark_prog1_capacity
+      #prog1_time: sensor.solark_sol_ark_time_slot_1
+      #prog1_capacity: number.solark_sol_ark_prog1_capacity
       # prog1_charge: switch.solark_sol_ark_prog1_grid_charge
       environment_temp: sensor.433_weather_temperature
       essential_load1: sensor.tesla_power_minute_average

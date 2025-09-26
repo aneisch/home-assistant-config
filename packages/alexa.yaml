@@ -41,3 +41,13 @@ script:
         entity_id: '{{ states("input_select.target_echo") }}'
         media_content_id: "stop"
         media_content_type: custom
+
+template:
+  - sensor:
+      - name: Last Called Alexa
+        state: |-
+          {{ expand(integration_entities('alexa_media') | select('search', 'media_player'))
+          | selectattr('attributes.last_called', 'eq', True) | map(attribute='entity_id') | first }}
+        availability: |-
+          {{ expand(integration_entities('alexa_media') | select('search', 'media_player'))
+          | selectattr('attributes.last_called','eq',True) | first is defined }}

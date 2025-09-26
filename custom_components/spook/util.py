@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import importlib
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.const import (
@@ -19,8 +20,14 @@ from homeassistant.const import (
     CONF_THEN,
     ENTITY_MATCH_ALL,
     ENTITY_MATCH_NONE,
+    EVENT_COMPONENT_LOADED,
+    EVENT_HOMEASSISTANT_START,
+    Platform,
 )
-from homeassistant.core import callback, valid_entity_id
+from homeassistant.core import (
+    callback,
+    valid_entity_id,
+)
 from homeassistant.helpers import (
     area_registry as ar,
     config_validation as cv,
@@ -34,13 +41,186 @@ from homeassistant.helpers.template import Template
 from .const import DOMAIN, LOGGER
 
 if TYPE_CHECKING:
-    from collections.abc import Iterable, Sequence
+    from collections.abc import Callable, Iterable, Sequence
     from types import ModuleType
 
     from homeassistant.config_entries import ConfigEntry
-    from homeassistant.const import Platform
     from homeassistant.core import HomeAssistant
     from homeassistant.helpers.entity_platform import AddEntitiesCallback
+
+
+# Entity domains to ignore when filtering unknown entities
+IGNORED_ENTITY_DOMAINS = (
+    "device_tracker.",
+    "group.",
+    "persistent_notification.",
+    "scene.",
+)
+
+# Additional known domains that are not in the Platform enum
+ADDITIONAL_DOMAINS = [
+    "alert",
+    "automation",
+    "counter",
+    "group",
+    "input_boolean",
+    "input_button",
+    "input_datetime",
+    "input_number",
+    "input_select",
+    "input_text",
+    "person",
+    "plant",
+    "proximity",
+    "schedule",
+    "script",
+    "sun",
+    "tag",
+    "timer",
+    "zone",
+]
+
+# Build a list of all known domains
+KNOWN_DOMAINS = [platform.value for platform in Platform] + ADDITIONAL_DOMAINS
+
+# Home Assistant core entity ID validation patterns (from homeassistant/core.py)
+_OBJECT_ID = r"(?!_)[\da-z_]+(?<!_)"
+# Modified _DOMAIN pattern to only match known domains
+_DOMAIN = r"(?:" + "|".join(KNOWN_DOMAINS) + r")"
+ENTITY_ID_PATTERN = _DOMAIN + r"\." + _OBJECT_ID
+
+# Template function names that accept entity IDs as first parameter
+_ENTITY_FUNCTIONS = [
+    "states",
+    "is_state",
+    "state_attr",
+    "is_state_attr",
+    "has_value",
+    "state_translated",
+    "device_id",
+    "device_name",
+    "device_attr",
+    "is_device_attr",
+    "config_entry_id",
+    "area_id",
+    "area_name",
+    "floor_id",
+    "floor_name",
+    "is_hidden_entity",
+    "expand",
+    "distance",
+    "closest",
+]
+
+# Build regex patterns using Home Assistant's core validation patterns
+ENTITY_ID_TEMPLATE_PATTERNS = [
+    # Template functions with entity ID as first parameter
+    rf"(?:{'|'.join(_ENTITY_FUNCTIONS)})\s*\(\s*['\"]({ENTITY_ID_PATTERN})['\"]",
+    # Direct entity state access patterns (states.domain.entity)
+    rf"states\.({_DOMAIN})\.({_OBJECT_ID})(?:\.state|\.attributes)",
+    # Entity IDs in any quoted context (captures all entity IDs in lists, etc.)
+    rf"['\"]({ENTITY_ID_PATTERN})['\"]",
+    # Entity IDs followed by filter functions (entity_id | function)
+    rf"['\"]({ENTITY_ID_PATTERN})['\"](?:\s*\|\s*(?:{'|'.join(_ENTITY_FUNCTIONS)}))",
+]
+
+_CACHED_ALL_ENTITY_IDS: set[str] | None = None
+_UNSUB_CACHE_INVALIDATION: Callable[[], None] | None = None
+
+
+@callback
+def _clear_all_entity_ids_cache(*_args: Any) -> None:
+    """Clear the cached set of all entity IDs."""
+    # pylint: disable-next=global-statement
+    global _CACHED_ALL_ENTITY_IDS  # noqa: PLW0603
+    LOGGER.debug("Clearing all_entity_ids cache.")
+    _CACHED_ALL_ENTITY_IDS = None
+
+
+def async_setup_all_entity_ids_cache_invalidation(
+    hass: HomeAssistant,
+) -> Callable[[], None]:
+    """Set up event listeners to invalidate the all_entity_ids cache.
+
+    Returns a callable to unsubscribe the listeners.
+    """
+    # pylint: disable-next=global-statement
+    global _UNSUB_CACHE_INVALIDATION  # noqa: PLW0603
+
+    if _UNSUB_CACHE_INVALIDATION is not None:
+        LOGGER.debug(
+            "Spook's entity ID cache invalidation already set up. Skipping.",
+        )
+        return _UNSUB_CACHE_INVALIDATION
+
+    LOGGER.debug("Setting up Spook's all_entity_ids cache invalidation listeners.")
+
+    # Listen for entity registry updates
+    unsub_registry_update = hass.bus.async_listen(
+        er.EVENT_ENTITY_REGISTRY_UPDATED, _clear_all_entity_ids_cache
+    )
+    # Listen for Home Assistant start to ensure cache is clear then
+    unsub_hass_start = hass.bus.async_listen_once(
+        EVENT_HOMEASSISTANT_START, _clear_all_entity_ids_cache
+    )
+    # Listen for components loading
+    unsub_component_loaded = hass.bus.async_listen(
+        EVENT_COMPONENT_LOADED, _clear_all_entity_ids_cache
+    )
+
+    # Perform an initial clear, just in case.
+    _clear_all_entity_ids_cache()
+
+    def _unsubscribe_listeners() -> None:
+        # pylint: disable-next=global-statement
+        global _UNSUB_CACHE_INVALIDATION  # noqa: PLW0603
+        LOGGER.debug(
+            "Unsubscribing from Spook's all_entity_ids cache invalidation listeners.",
+        )
+        unsub_registry_update()
+        unsub_hass_start()
+        unsub_component_loaded()
+        _UNSUB_CACHE_INVALIDATION = None  # Mark as unsubscribed
+
+    _UNSUB_CACHE_INVALIDATION = _unsubscribe_listeners
+    return _unsubscribe_listeners
+
+
+@callback
+def async_get_all_entity_ids(
+    hass: HomeAssistant, *, include_all_none: bool = False
+) -> set[str]:
+    """Return all entity IDs, known to Home Assistant, using a cache."""
+    # pylint: disable-next=global-statement
+    global _CACHED_ALL_ENTITY_IDS  # noqa: PLW0603
+
+    if _CACHED_ALL_ENTITY_IDS is None:
+        LOGGER.debug(
+            "Spook's all_entity_ids cache is empty, populating...",
+        )
+        entity_registry = er.async_get(hass)
+        entity_ids_from_registry = {
+            entity.entity_id for entity in entity_registry.entities.values()
+        }
+        entity_ids_from_states = hass.states.async_entity_ids()
+
+        combined_entity_ids = entity_ids_from_registry.union(entity_ids_from_states)
+
+        # Filter out ignored domains
+        _CACHED_ALL_ENTITY_IDS = {
+            entity_id
+            for entity_id in combined_entity_ids
+            if not entity_id.startswith(IGNORED_ENTITY_DOMAINS)
+        }
+        LOGGER.debug(
+            "Spook's all_entity_ids cache populated with %s entities",
+            len(_CACHED_ALL_ENTITY_IDS),
+        )
+
+    # Return a copy from the cache, optionally adding ALL/NONE
+    if include_all_none:
+        return _CACHED_ALL_ENTITY_IDS.union({ENTITY_MATCH_ALL, ENTITY_MATCH_NONE})
+    return _CACHED_ALL_ENTITY_IDS.copy()
 
 
 async def async_forward_setup_entry(
@@ -136,34 +316,6 @@ def unlink_sub_integrations(hass: HomeAssistant) -> None:
 
 
 @callback
-def async_ensure_template_environments_exists(hass: HomeAssistant) -> None:
-    """Ensure default template environments exist.
-
-    Spook wants to patch the template environment to allow for custom filters.
-    To make this easier, we need to ensure the default template environments
-    exist before we patch them.
-    """
-    if "template.environment" not in hass.data:
-        template = Template("OMG Puppies!", hass)
-        # pylint: disable-next=protected-access
-        assert template._env  # noqa: SLF001, S101
-
-    if "template.environment_limited" not in hass.data:
-        template = Template("OMG Puppies!", hass)
-        # pylint: disable-next=protected-access
-        template._limited = True  # noqa: SLF001
-        # pylint: disable-next=protected-access
-        assert template._env  # noqa: SLF001, S101
-
-    if "template.environment_strict" not in hass.data:
-        template = Template("OMG Puppies!", hass)
-        # pylint: disable-next=protected-access
-        template._strict = True  # noqa: SLF001
-        # pylint: disable-next=protected-access
-        assert template._env  # noqa: SLF001, S101
-
-
-@callback
 def async_get_all_area_ids(hass: HomeAssistant) -> set[str]:
     """Return all area IDs, known to Home Assistant."""
     area_registry = ar.async_get(hass)
@@ -207,49 +359,34 @@ def async_filter_known_device_ids(
 
 
 @callback
-def async_get_all_entity_ids(
-    hass: HomeAssistant, *, include_all_none: bool = False
-) -> set[str]:
-    """Return all entity IDs, known to Home Assistant."""
-    entity_registry = er.async_get(hass)
-
-    entity_ids = {
-        entity.entity_id for entity in entity_registry.entities.values()
-    }.union(hass.states.async_entity_ids())
-
-    if include_all_none:
-        return entity_ids.union({ENTITY_MATCH_ALL, ENTITY_MATCH_NONE})
-
-    return entity_ids
-
-
-@callback
 def async_filter_known_entity_ids(
     hass: HomeAssistant,
     entity_ids: Iterable[str],
     known_entity_ids: set[str] | None = None,
 ) -> set[str]:
-    """Filter out known entity IDs."""
+    """Filter out known entity IDs.
+
+    This callback version skips template processing. For template support,
+    use async_filter_known_entity_ids_with_templates instead.
+    """
     if known_entity_ids is None:
         known_entity_ids = async_get_all_entity_ids(hass)
 
-    return {
-        entity_id
-        for entity_id in entity_ids
-        if (
-            isinstance(entity_id, str)
-            and not entity_id.startswith(
-                (
-                    "device_tracker.",
-                    "group.",
-                    "persistent_notification.",
-                    "scene.",
-                ),
-            )
-            and entity_id not in known_entity_ids
-            and valid_entity_id(entity_id)
-        )
-    }
+    result = set()
+    for entity_id_raw in entity_ids:
+        if not isinstance(entity_id_raw, str):
+            continue
+
+        # Process any comma-separated entity lists
+        for entity_id in split_comma_separated_entity_ids(entity_id_raw):
+            if (
+                not entity_id.startswith(IGNORED_ENTITY_DOMAINS)
+                and entity_id not in known_entity_ids
+                and valid_entity_id(entity_id)
+            ):
+                result.add(entity_id)
+
+    return result
 
 
 @callback
@@ -322,6 +459,241 @@ def async_filter_known_services(
         for service in services - known_services
         if isinstance(service, str) and service
     }
+
+
+def is_template_string(value: str) -> bool:
+    """Check if a string looks like a Jinja2 template."""
+    if not isinstance(value, str):
+        return False
+    return ("{{" in value and "}}" in value) or ("{%" in value and "%}" in value)
+
+
+async def async_extract_entities_from_template_string(
+    hass: HomeAssistant, template_str: str
+) -> set[str]:
+    """Extract entity IDs from a template string using regex analysis.
+
+    This function uses regex patterns based on Home Assistant's core validation
+    patterns to find entity IDs referenced in template functions.
+    """
+    if not is_template_string(template_str):
+        return set()
+
+    entities = set()
+
+    # Use regex patterns to find entities
+    try:
+        regex_entities = extract_entities_from_template_regex(hass, template_str)
+        entities.update(regex_entities)
+    # pylint: disable-next=broad-exception-caught
+    except Exception as exc:  # noqa: BLE001 - Keep broad for unexpected regex issues
+        LOGGER.debug(
+            "Failed to extract entities from template '%s...' using regex.",
+            template_str[:50],
+            exc_info=exc,  # Pass the exception for logging
+        )
+
+    return entities
+
+
+def extract_entities_from_template_regex(
+    hass: HomeAssistant, template_str: str
+) -> set[str]:
+    """Extract entity IDs from template string using regex patterns.
+
+    This function uses regex patterns based on Home Assistant's core validation
+    patterns to find entity IDs referenced in template functions. It's designed
+    to complement the RenderInfo analysis by catching entities that might be
+    missed by template parsing.
+    """
+    if not isinstance(template_str, str):
+        return set()
+
+    entities = set()
+    # Number of capture groups in states.domain.entity pattern
+    domain_entity_groups = 2
+
+    for pattern in ENTITY_ID_TEMPLATE_PATTERNS:
+        matches = re.findall(pattern, template_str, re.IGNORECASE)
+        for match in matches:
+            # Handle the states.domain.entity pattern that captures (domain, object_id)
+            if isinstance(match, tuple) and len(match) == domain_entity_groups:
+                entity_id = f"{match[0]}.{match[1]}"
+            else:
+                entity_id = match
+
+            # For each entity ID (which might be comma-separated), add all valid ones
+            for individual_id in split_comma_separated_entity_ids(entity_id):
+                if valid_entity_id(individual_id):
+                    entities.add(individual_id)
+
+    # Filter out known services to avoid false positives
+    known_services = async_get_all_services(hass)
+    return entities - known_services
+
+
+async def _process_template_object(
+    hass: HomeAssistant,
+    template: Template,
+    known_entity_ids: set[str],
+    unknown_entities: set[str],
+) -> None:
+    """Process a Template object and add unknown entities to the set."""
+    template_entities = set()
+
+    # Use regex patterns on the template string
+    try:
+        if hasattr(template, "template") and template.template:
+            regex_entities = extract_entities_from_template_regex(
+                hass, template.template
+            )
+            template_entities.update(regex_entities)
+    # pylint: disable-next=broad-exception-caught
+    except Exception:  # noqa: BLE001
+        LOGGER.debug("Error in regex entity extraction for Template object")
+
+    # Check if any of the template entities are unknown
+    for template_entity in template_entities:
+        if template_entity not in known_entity_ids:
+            unknown_entities.add(template_entity)
+
+
+async def _process_template_string(
+    hass: HomeAssistant,
+    template_str: str,
+    known_entity_ids: set[str],
+    unknown_entities: set[str],
+) -> None:
+    """Process a template string and add unknown entities to the set."""
+    template_entities = await async_extract_entities_from_template_string(
+        hass, template_str
+    )
+    # Check if any of the template entities are unknown
+    for template_entity in template_entities:
+        # Handle comma-separated entity lists
+        for entity_id in split_comma_separated_entity_ids(template_entity):
+            if (
+                entity_id not in known_entity_ids
+                and valid_entity_id(entity_id)
+                and not entity_id.startswith(IGNORED_ENTITY_DOMAINS)
+            ):
+                unknown_entities.add(entity_id)
+
+
+async def async_filter_known_entity_ids_with_templates(
+    hass: HomeAssistant,
+    entity_ids: Iterable[str],
+    known_entity_ids: set[str] | None = None,
+) -> set[str]:
+    """Async version that can process templates to extract entity dependencies.
+
+    This function processes both regular entity IDs and template strings,
+    extracting entity dependencies from templates using RenderInfo.
+    """
+    if known_entity_ids is None:
+        known_entity_ids = async_get_all_entity_ids(hass)
+
+    unknown_entities = set()
+
+    for entity_id_raw in entity_ids:
+        # Handle Template objects
+        if isinstance(entity_id_raw, Template):
+            await _process_template_object(
+                hass, entity_id_raw, known_entity_ids, unknown_entities
+            )
+            continue
+
+        if not isinstance(entity_id_raw, str):
+            continue
+
+        # Check if this looks like a template string
+        if is_template_string(entity_id_raw):
+            await _process_template_string(
+                hass, entity_id_raw, known_entity_ids, unknown_entities
+            )
+        else:
+            # Process as regular entity ID(s), handling comma-separated lists
+            for entity_id in split_comma_separated_entity_ids(entity_id_raw):
+                if (
+                    not entity_id.startswith(IGNORED_ENTITY_DOMAINS)
+                    and entity_id not in known_entity_ids
+                    and valid_entity_id(entity_id)
+                ):
+                    # Process as regular entity ID
+                    unknown_entities.add(entity_id)
+
+    return unknown_entities
+
+
+def split_comma_separated_entity_ids(entity_id: str) -> list[str]:
+    """Split comma-separated entity IDs into a list of individual entity IDs.
+
+    Handles both comma-separated entity IDs like "light.living_room,light.kitchen"
+    and single entity IDs. Returns a list containing all individual entity IDs.
+    """
+    if not entity_id or not isinstance(entity_id, str):
+        return []
+
+    # Check if the string contains commas
+    if "," in entity_id:
+        # Split by comma and strip whitespace
+        items = [item.strip() for item in entity_id.split(",") if item.strip()]
+        if len(items) > 1:
+            LOGGER.debug(
+                "Split comma-separated entity IDs: %s into %s", entity_id, items
+            )
+        return items
+
+    # Return the original entity ID in a list if it's not comma-separated
+    return [entity_id]
+
+
+def extract_template_strings_from_config(
+    config: Any, strings: list[str] | None = None
+) -> list[str]:
+    """Recursively extract template strings from configuration data."""
+    if strings is None:
+        strings = []
+
+    if isinstance(config, str):
+        if is_template_string(config):  # Uses the util's is_template_string
+            strings.append(config)
+    elif isinstance(config, dict):
+        for value in config.values():
+            extract_template_strings_from_config(value, strings)
+    elif isinstance(config, (list, tuple)):
+        for item in config:
+            extract_template_strings_from_config(item, strings)
+    return strings
+
+
+async def async_extract_entities_from_config(
+    hass: HomeAssistant, config: Any
+) -> set[str]:
+    """Extract entity IDs referenced in templates within a configuration structure."""
+    entities = set()
+    if not config:
+        return entities
+
+    template_strings = extract_template_strings_from_config(config)
+    for template_str in template_strings:
+        try:
+            # async_extract_entities_from_template_string already handles
+            # TemplateError and other exceptions internally, logging them.
+            referenced_entities = await async_extract_entities_from_template_string(
+                hass, template_str
+            )
+            entities.update(referenced_entities)
+        # pylint: disable-next=broad-exception-caught
+        except Exception as exc:  # noqa: BLE001 - Keep broad for unexpected issues
+            # This catch is a safeguard; internal function should handle most.
+            LOGGER.debug(
+                "Unexpected error extracting entities from template string "
+                "'%s...' in config: %s",
+                template_str[:50],
+                exc,  # Pass the exception for logging
+            )
+    return entities
 
 
 @callback

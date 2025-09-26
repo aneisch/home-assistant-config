@@ -41,7 +41,7 @@ AC Automation Solar:
   heat_unoccupied: "55"
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
-  battery_boost_threshold: 95       # battery SOC for boost activation
+  battery_boost_threshold: 98       # battery SOC for boost activation
   cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_unoccupied_offset: 4   # Amount to boost if unoccupied
   cooldown_window_start_offset: "-07:00:00"   # 7 hours before sunset
@@ -51,8 +51,13 @@ Solar EV Charger:
   module: ev
   class: SolarEVCharger
   constrain_presence: anyone
-  home_battery_min_soc: 60
+  home_battery_min_soc: 98
   buffer_watts: 500
+
+Auto Dehumidifer:
+  module: dehumidifer
+  class: SolarHumidifier
+  constrain_input_boolean: input_boolean.auto_dehumidifer
 
 # EV Charge Control:
 #   module: ev_charger_smart_control

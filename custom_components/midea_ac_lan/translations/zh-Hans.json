@@ -1,0 +1,758 @@
+{
+  "config": {
+    "error": {
+      "preset_account": "预置账户登录失败，请报告此问题",
+      "login_failed": "登录失败, 用户名或密码错",
+      "no_devices": "未在网络上发现可用新设备",
+      "device_exist": "设备已经存在, 请添加其它设备",
+      "config_incorrect": "配置信息不正确, 请检查后重新输入",
+      "connect_error": "无法连接到指定设备",
+      "invalid_token": "Token或Key格式不正确"
+    },
+    "step": {
+      "user": {
+        "data": {
+          "way": "添加方式"
+        },
+        "description": "选择添加设备的方式",
+        "title": "添加新设备"
+      },
+      "login": {
+        "data": {
+          "account": "账号",
+          "password": "密码"
+        },
+        "description": "登录并保存你的美的账户，仅用于获取添加设备时设备信息\n添加设备完成后，你可以删除该配置",
+        "title": "登录"
+      },
+      "discovery": {
+        "description": "输入设备的IP地址, 输入\"auto\"自动搜索设备\n你也可以使用IP地址在指定网络中搜索, 比如`192.168.1.255`",
+        "title": "搜索",
+        "data": {
+          "ip_address": "IP地址"
+        }
+      },
+      "list": {
+        "description": "{table}",
+        "title": "设备"
+      },
+      "auto": {
+        "data": {
+          "device": "设备"
+        },
+        "description": "选择设备并添加",
+        "title": "发现新设备"
+      },
+      "manually": {
+        "data": {
+          "name": "名称(如客厅空调)",
+          "device_id": "设备编号",
+          "type": "设备类型",
+          "ip_address": "IP地址",
+          "port": "端口",
+          "model": "型号",
+          "subtype": "子型号",
+          "protocol": "协议版本",
+          "token": "Token",
+          "key": "Key"
+        },
+        "description": "配置设备参数",
+        "title": "新设备"
+      }
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "bar_door": {
+        "name": "吧台门状态"
+      },
+      "bar_door_overtime": {
+        "name": "吧台门超时"
+      },
+      "bathing_working": {
+        "name": "淋浴工作状态"
+      },
+      "bottom_compartment_cooling": {
+        "name": "下层冷却"
+      },
+      "bottom_compartment_door": {
+        "name": "下层门状态"
+      },
+      "bottom_compartment_preheating": {
+        "name": "下层预热"
+      },
+      "burning_state": {
+        "name": "燃烧状态"
+      },
+      "cleaning_reminder": {
+        "name": "清洁提示"
+      },
+      "compressor_status": {
+        "name": "压缩机状态"
+      },
+      "cooking": {
+        "name": "烹饪中"
+      },
+      "filter_change_reminder": {
+        "name": "滤芯更换提醒"
+      },
+      "filter_cleaning_reminder": {
+        "name": "滤芯清洁提醒"
+      },
+      "finished": {
+        "name": "完成"
+      },
+      "flex_zone_door": {
+        "name": "变温区门状态"
+      },
+      "flex_zone_door_overtime": {
+        "name": "变温区门超时"
+      },
+      "freezer_door": {
+        "name": "冷冻室门状态"
+      },
+      "freezer_door_overtime": {
+        "name": "冷冻室门超时"
+      },
+      "full_dust": {
+        "name": "尘满"
+      },
+      "heating": {
+        "name": "加热"
+      },
+      "heating_working": {
+        "name": "取暖工作状态"
+      },
+      "keep_warm": {
+        "name": "保温"
+      },
+      "lid_status": {
+        "name": "盖子状态"
+      },
+      "middle_compartment_cooling": {
+        "name": "中层冷却"
+      },
+      "middle_compartment_door": {
+        "name": "中层门状态"
+      },
+      "middle_compartment_preheating": {
+        "name": "中层预热"
+      },
+      "oilcup_full": {
+        "name": "油杯满提示"
+      },
+      "protection": {
+        "name": "安全防护"
+      },
+      "refrigerator_door": {
+        "name": "冷藏室门状态"
+      },
+      "refrigerator_door_overtime": {
+        "name": "冷藏室门超时"
+      },
+      "rinse_aid": {
+        "name": "漂洗剂不足"
+      },
+      "salt": {
+        "name": "软水盐不足"
+      },
+      "seat_status": {
+        "name": "入座状态"
+      },
+      "status_dhw": {
+        "name": "DHW状态"
+      },
+      "status_heating": {
+        "name": "加热状态"
+      },
+      "status_ibh": {
+        "name": "IBH状态"
+      },
+      "status_tbh": {
+        "name": "TBH状态"
+      },
+      "tank_ejected": {
+        "name": "水箱弹出"
+      },
+      "tank_full": {
+        "name": "水箱状态"
+      },
+      "top_compartment_cooling": {
+        "name": "上层冷却"
+      },
+      "top_compartment_door": {
+        "name": "上层门状态"
+      },
+      "top_compartment_preheating": {
+        "name": "上层预热"
+      },
+      "water_change_reminder": {
+        "name": "换水提醒"
+      },
+      "water_shortage": {
+        "name": "缺水"
+      },
+      "with_pressure": {
+        "name": "带压中"
+      },
+      "zone1_room_temp_mode": {
+        "name": "区域1室温模式"
+      },
+      "zone1_water_temp_mode": {
+        "name": "区域1水温模式"
+      },
+      "zone2_room_temp_mode": {
+        "name": "区域2室温模式"
+      },
+      "zone2_water_temp_mode": {
+        "name": "区域2水温模式"
+      }
+    },
+    "climate": {
+      "climate_zone1": {
+        "name": "区域1恒温器"
+      },
+      "climate_zone2": {
+        "name": "区域2恒温器"
+      }
+    },
+    "fan": {
+      "fresh_air": {
+        "name": "新风"
+      }
+    },
+    "lock": {
+      "child_lock": {
+        "name": "童锁"
+      }
+    },
+    "number": {
+      "dry_level": {
+        "name": "烘干档位"
+      },
+      "heating_level": {
+        "name": "加热档位"
+      },
+      "seat_temp_level": {
+        "name": "座温档位"
+      },
+      "water_temp_level": {
+        "name": "水温档位"
+      },
+      "fan_speed": {
+        "name": "风速百分比"
+      }
+    },
+    "select": {
+      "detect_mode": {
+        "name": "检测模式"
+      },
+      "direction": {
+        "name": "摇摆方向"
+      },
+      "fan_speed": {
+        "name": "风速设定"
+      },
+      "mode": {
+        "name": "模式"
+      },
+      "oscillation_angle": {
+        "name": "水平摆头角度"
+      },
+      "oscillation_mode": {
+        "name": "水平摆头模式"
+      },
+      "screen_display": {
+        "name": "屏幕显示"
+      },
+      "silent_level": {
+        "name": "静音级别"
+      },
+      "tilting_angle": {
+        "name": "垂直摆头角度"
+      },
+      "water_level_set": {
+        "name": "水位设定"
+      }
+    },
+    "sensor": {
+      "bathing_leaving_temperature": {
+        "name": "淋浴出水温度"
+      },
+      "bottom_compartment_remaining": {
+        "name": "下层剩余时间"
+      },
+      "bottom_compartment_status": {
+        "name": "下层状态"
+      },
+      "bottom_compartment_temperature": {
+        "name": "下层温度"
+      },
+      "bottom_temperature": {
+        "name": "底部温度"
+      },
+      "bright": {
+        "name": "亮碟剂档位"
+      },
+      "compressor_temperature": {
+        "name": "压缩机温度"
+      },
+      "condenser_temperature": {
+        "name": "冷凝器温度"
+      },
+      "current_energy_consumption": {
+        "name": "当前能耗"
+      },
+      "current_temperature": {
+        "name": "当前温度"
+      },
+      "dehydration_speed": {
+        "name": "脱水速度"
+      },
+      "dehydration_time": {
+        "name": "脱水时间档位"
+      },
+      "dehydration_time_value": {
+        "name": "脱水时间值"
+      },
+      "wash_time_value": {
+        "name": "洗涤时间值"
+      },
+      "stains": {
+        "name": "污渍"
+      },
+      "dirty_degree": {
+        "name": "脏度"
+      },
+      "intensity": {
+        "name": "强度"
+      },
+      "dryness_level": {
+        "name": "干燥档位"
+      },
+      "dry_temperature": {
+        "name": "干燥温度"
+      },
+      "door_warn": {
+        "name": "开门警告"
+      },
+      "ai_switch": {
+        "name": "AI开关"
+      },
+      "material": {
+        "name": "材质"
+      },
+      "water_box": {
+        "name": "水箱"
+      },
+      "energy_consumption": {
+        "name": "能耗"
+      },
+      "error_code": {
+        "name": "错误码"
+      },
+      "fan_level": {
+        "name": "当前风扇档位"
+      },
+      "filter_life": {
+        "name": "滤芯寿命"
+      },
+      "filter1_days": {
+        "name": "滤芯1可用天数"
+      },
+      "filter1_life": {
+        "name": "滤芯1剩余寿命"
+      },
+      "filter2_days": {
+        "name": "滤芯2可用天数"
+      },
+      "filter2_life": {
+        "name": "滤芯2剩余寿命"
+      },
+      "filter3_days": {
+        "name": "滤芯3可用天数"
+      },
+      "filter3_life": {
+        "name": "滤芯3剩余寿命"
+      },
+      "flex_zone_actual_temp": {
+        "name": "变温区实际温度"
+      },
+      "flex_zone_setting_temp": {
+        "name": "变温区设置温度"
+      },
+      "freezer_actual_temp": {
+        "name": "冷冻室实际温度"
+      },
+      "freezer_setting_temp": {
+        "name": "冷冻室设置温度"
+      },
+      "hcho": {
+        "name": "甲醛"
+      },
+      "heating_leaving_temperature": {
+        "name": "取暖出水温度"
+      },
+      "heating_power": {
+        "name": "加热功率"
+      },
+      "heating_time_remaining": {
+        "name": "加热剩余时间"
+      },
+      "in_tds": {
+        "name": "进水TDS"
+      },
+      "indoor_humidity": {
+        "name": "室内湿度"
+      },
+      "indoor_temperature": {
+        "name": "室内温度"
+      },
+      "keep_warm_remaining": {
+        "name": "保温剩余时间"
+      },
+      "keep_warm_time": {
+        "name": "保温时间"
+      },
+      "middle_compartment_remaining": {
+        "name": "中层剩余时间"
+      },
+      "middle_compartment_status": {
+        "name": "中层状态"
+      },
+      "middle_compartment_temperature": {
+        "name": "中层温度"
+      },
+      "mode": {
+        "name": "模式"
+      },
+      "out_tds": {
+        "name": "出水TDS"
+      },
+      "outdoor_temperature": {
+        "name": "室外温度"
+      },
+      "program": {
+        "name": "程序"
+      },
+      "progress": {
+        "name": "当前程序"
+      },
+      "realtime_power": {
+        "name": "实时功率"
+      },
+      "refrigerator_actual_temp": {
+        "name": "冷藏室实际温度"
+      },
+      "refrigerator_setting_temp": {
+        "name": "冷藏室设置温度"
+      },
+      "right_flex_zone_actual_temp": {
+        "name": "右变温区实际温度"
+      },
+      "right_flex_zone_setting_temp": {
+        "name": "右变温区设置温度"
+      },
+      "rinse_count": {
+        "name": "漂洗次数"
+      },
+      "rinse_level": {
+        "name": "漂洗档位"
+      },
+      "seat_temperature": {
+        "name": "当前座温"
+      },
+      "soak_time": {
+        "name": "浸泡时间"
+      },
+      "softener": {
+        "name": "柔顺剂"
+      },
+      "softwater": {
+        "name": "软水盐档位"
+      },
+      "status": {
+        "name": "状态"
+      },
+      "storage_remaining": {
+        "name": "保管剩余时间"
+      },
+      "tank": {
+        "name": "水箱水位"
+      },
+      "tank_actual_temperature": {
+        "name": "水箱实际温度"
+      },
+      "target_temperature": {
+        "name": "设定温度"
+      },
+      "time_remaining": {
+        "name": "剩余时间"
+      },
+      "top_compartment_remaining": {
+        "name": "上层剩余时间"
+      },
+      "top_compartment_status": {
+        "name": "上层状态"
+      },
+      "top_compartment_temperature": {
+        "name": "上层温度"
+      },
+      "top_temperature": {
+        "name": "顶部温度"
+      },
+      "total_energy_consumption": {
+        "name": "总能耗"
+      },
+      "total_produced_energy": {
+        "name": "总计产生能量"
+      },
+      "tvoc": {
+        "name": "TVOC"
+      },
+      "wash_level": {
+        "name": "洗涤档位"
+      },
+      "wash_strength": {
+        "name": "洗涤强度"
+      },
+      "wash_time": {
+        "name": "洗涤时间档位"
+      },
+      "detergent": {
+        "name": "洗涤剂"
+      },
+      "water_consumption": {
+        "name": "总耗水量"
+      },
+      "water_level": {
+        "name": "水位"
+      },
+      "water_temperature": {
+        "name": "水温"
+      },
+      "working_time": {
+        "name": "工作时间"
+      }
+    },
+    "switch": {
+      "anion": {
+        "name": "负离子开关"
+      },
+      "aux_heating": {
+        "name": "电辅热"
+      },
+      "boost_mode": {
+        "name": "强劲模式"
+      },
+      "breezeless": {
+        "name": "无风感"
+      },
+      "comfort_mode": {
+        "name": "舒省模式"
+      },
+      "cold_water_single": {
+        "name": "单次零冷水"
+      },
+      "cold_water_dot": {
+        "name": "点动零冷水"
+      },
+      "dhw_power": {
+        "name": "生活热水电源开关"
+      },
+      "disinfect": {
+        "name": "消毒"
+      },
+      "dry": {
+        "name": "干燥"
+      },
+      "eco_mode": {
+        "name": "ECO模式"
+      },
+      "fast_dhw": {
+        "name": "快速生活热水"
+      },
+      "foam_shield": {
+        "name": "泡沫盾"
+      },
+      "frost_protect": {
+        "name": "防霜冻"
+      },
+      "heating_power": {
+        "name": "加热",
+        "_comments": "E2 加热功率, E6 加热开关"
+      },
+      "indirect_wind": {
+        "name": "防直吹"
+      },
+      "light": {
+        "name": "灯光"
+      },
+      "link_to_ac": {
+        "name": "空调联动开关"
+      },
+      "main_light": {
+        "name": "主灯"
+      },
+      "main_power": {
+        "name": "主电源"
+      },
+      "natural_wind": {
+        "name": "自然风"
+      },
+      "night_light": {
+        "name": "夜灯"
+      },
+      "oscillate": {
+        "name": "摆头开关"
+      },
+      "power": {
+        "name": "电源开关"
+      },
+      "powerful_purify": {
+        "name": "强净开关"
+      },
+      "prompt_tone": {
+        "name": "提示音"
+      },
+      "screen_display": {
+        "name": "屏幕显示"
+      },
+      "screen_display_alternate": {
+        "name": "屏幕显示备用开关"
+      },
+      "sensor_light": {
+        "name": "感应夜灯"
+      },
+      "silent_mode": {
+        "name": "静音模式"
+      },
+      "sleep_mode": {
+        "name": "睡眠模式"
+      },
+      "smart_eye": {
+        "name": "智慧眼"
+      },
+      "smart_volume": {
+        "name": "智能变容"
+      },
+      "smelly_sensor": {
+        "name": "异味感应"
+      },
+      "standby": {
+        "name": "待机"
+      },
+      "start": {
+        "name": "启动"
+      },
+      "storage": {
+        "name": "保管开关"
+      },
+      "swing": {
+        "name": "摆风开关"
+      },
+      "swing_horizontal": {
+        "name": "水平摆风"
+      },
+      "swing_vertical": {
+        "name": "垂直摆风"
+      },
+      "tbh": {
+        "name": "TBH"
+      },
+      "variable_heating": {
+        "name": "变频加热"
+      },
+      "ventilation": {
+        "name": "换气"
+      },
+      "whole_tank_heating": {
+        "name": "全胆速热"
+      },
+      "zero_cold_pulse": {
+        "name": "零冷水(点动)"
+      },
+      "zero_cold_water": {
+        "name": "零冷水"
+      },
+      "zone1_curve": {
+        "name": "区域1曲线"
+      },
+      "zone1_power": {
+        "name": "区域1恒温器开关"
+      },
+      "zone2_curve": {
+        "name": "区域2曲线"
+      },
+      "zone2_power": {
+        "name": "区域2恒温器开关"
+      }
+    },
+    "water_heater": {
+      "domestic_hot_water": {
+        "name": "生活热水"
+      },
+      "bathing": {
+        "name": "淋浴"
+      },
+      "heating": {
+        "name": "加热"
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "ip_address": "IP地址",
+          "refresh_interval": "刷新间隔(设0为不进行主动刷新)",
+          "sensors": "扩展传感器",
+          "switches": "扩展控制",
+          "customize": "自定义"
+        },
+        "title": "配置"
+      }
+    },
+    "abort": {
+      "account_option": "账户配置不支持此操作.\n点击\"添加设备\"完成添加新设备的操作"
+    }
+  },
+  "services": {
+    "set_attribute": {
+      "name": "设置属性",
+      "description": "设置设备的属性值",
+      "fields": {
+        "device_id": {
+          "name": "设备编码",
+          "description": "设备编码(Device ID)"
+        },
+        "attribute": {
+          "name": "属性",
+          "description": "要设置的属性名称"
+        },
+        "value": {
+          "name": "值",
+          "description": "要设置的属性值"
+        }
+      }
+    },
+    "send_command": {
+      "name": "自定义命令",
+      "description": "向设备发送一个自定义命令",
+      "fields": {
+        "device_id": {
+          "name": "设备编码",
+          "description": "设备编码(Device ID)"
+        },
+        "cmd_type": {
+          "name": "命令类型",
+          "description": "命令类型，可以为2(查询)或3(设置)"
+        },
+        "cmd_body": {
+          "name": "命令体",
+          "description": "命令的消息体(不包括前部的MSmart协议头及后部的校验码)"
+        }
+      }
+    }
+  }
+}

@@ -105,7 +105,7 @@ script:
             
             Don't prompt the user for followups or offer to provide more details. Also, always convert watts to kW.
         response_variable: convo
-      - action: notify.alexa_media_kitchen
+      - action: notify.alexa_media_last_called
         data:
           data:
             type: tts

@@ -32,7 +32,7 @@ class SolarEVCharger(hass.Hass):
 
         # Safe startup
         self.set_charge_rate(self.min_amps, disable=True)
-        self.log("SolarEVCharger initialized.")
+        self.log("SolarEVCharger initialized")
 
     def evaluate_charging(self, entity, attribute, old, new, kwargs):
         # Allow manual override
@@ -97,15 +97,18 @@ class SolarEVCharger(hass.Hass):
 
         if disable:
             if present_limit != 50 or present_rate != self.min_amps:
-                self.log(f"Disabling charging.")
+                self.log(f"Disabling charging")
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=50)
                 self.set_value(self.entities["charge_rate"], self.min_amps)
                 self.notify_handler = self.run_in(self._enable_notice, 30)
         else:
+            if self.get_state("switch.emporia_charger") == "off":
+                self.turn_on("switch.emporia_charger")
+                self.log("Turned on switch.emporia_charger")
             if present_rate != amps:
                 self.set_value(self.entities["charge_rate"], amps)
-                self.log(f"Set charge rate to {amps}A (SOC limit {target_soc}%).")
+                self.log(f"Set charge rate to {amps}A (SOC limit {target_soc}%)")
             if present_limit != target_soc:
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=target_soc)

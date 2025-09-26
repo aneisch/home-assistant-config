@@ -19,15 +19,16 @@ from homeassistant.helpers import issue_registry as ir
 from .const import DOMAIN, LOGGER, PLATFORMS
 from .repairs import SpookRepairManager
 from .services import SpookServiceManager
-from .templating import SpookTemplateFunctionManager
 from .util import (
-    async_ensure_template_environments_exists,
     async_forward_setup_entry,
+    async_setup_all_entity_ids_cache_invalidation,
     link_sub_integrations,
     unlink_sub_integrations,
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import Event, HomeAssistant
 
@@ -77,16 +78,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             translation_key="restart_required",
         )
 
-    # Ensure template environments exists
-    async_ensure_template_environments_exists(hass)
-
     # Forward async_setup_entry to ectoplasms
     await async_forward_setup_entry(hass, entry)
-
-    # Set up templating
-    templating = SpookTemplateFunctionManager(hass)
-    await templating.async_setup()
-    entry.async_on_unload(templating.async_on_unload)
 
     # Set up services
     services = SpookServiceManager(hass)
@@ -96,18 +89,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Who you gonna call? SpookRepairManager!
     repairs = SpookRepairManager(hass)
 
+    _ghost_busters_unsub: Callable[[], None] | None = None
+
     async def _ghost_busters(_: Event) -> None:
         """Send them in, time for some ghost chasing."""
         await repairs.async_setup()
         entry.async_on_unload(repairs.async_on_unload)
 
+    @callback
+    def _unsubscribe_ghost_busters() -> None:
+        """Unsubscribe the ghost busters listener."""
+        if _ghost_busters_unsub:
+            try:
+                _ghost_busters_unsub()
+            except ValueError:
+                LOGGER.debug(
+                    "Failed to unsubscribe _ghost_busters listener, "
+                    "it might have already been removed or never registered.",
+                )
+
     # Wait until Home Assistant is started, before doing repairs
-    entry.async_on_unload(
-        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, _ghost_busters),
+    _ghost_busters_unsub = hass.bus.async_listen_once(
+        EVENT_HOMEASSISTANT_STARTED, _ghost_busters
     )
+    entry.async_on_unload(_unsubscribe_ghost_busters)
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    # Set up the all entity ids cache invalidation
+    entry.async_on_unload(async_setup_all_entity_ids_cache_invalidation(hass))
 
     # Yay, we didn't got spooked!
     return True

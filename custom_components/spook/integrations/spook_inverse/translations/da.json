@@ -4,26 +4,26 @@
             "switch": {
                 "data": {
                     "name": "Navn",
-                    "hide_source": "Skjul kilde entitet",
-                    "entity_id": "Kilde entitet"
+                    "hide_source": "Skjul kildeenhed",
+                    "entity_id": "Kildeenhed"
                 },
-                "title": "Vend om 👻"
+                "title": "Invertér 👻"
             },
             "binary_sensor": {
                 "data": {
-                    "hide_source": "Skjul kilde entitet",
+                    "hide_source": "Skjul kildeenhed",
                     "name": "Navn",
-                    "entity_id": "Kilde entitet"
+                    "entity_id": "Kildeenhed"
                 },
-                "title": "Vend om 👻"
+                "title": "Invertér 👻"
             },
             "user": {
-                "description": "Denne hjælper tillader at omvende logikken for en entitet. Fx. omvende åben/luk eller til/fra på binære sensorer og afbrydere.",
+                "description": "Denne hjælper tillader dig at inverterer logikken for en enhed. Fx. fra åben til lukket eller fra tændt til slukket på binære sensorer og afbrydere.",
                 "menu_options": {
-                    "binary_sensor": "Vend en binær sensor om",
-                    "switch": "Vend en afbryder om"
+                    "binary_sensor": "Inverter en binær sensor",
+                    "switch": "Inverter en afbryder"
                 },
-                "title": "Vend om 👻"
+                "title": "Inverter 👻"
             }
         }
     },
@@ -31,21 +31,21 @@
         "step": {
             "binary_sensor": {
                 "data": {
-                    "entity_id": "Kilde entitet",
+                    "entity_id": "Kildeenhed",
                     "name": "Navn",
-                    "hide_source": "Skjul kilde entitet"
+                    "hide_source": "Skjul kildeenhed"
                 },
-                "title": "Vend om 👻"
+                "title": "Inverter 👻"
             },
             "switch": {
                 "data": {
-                    "entity_id": "Kilde entitet",
+                    "entity_id": "Kildeenhed",
                     "name": "Navn",
-                    "hide_source": "Skjul kilde entitet"
+                    "hide_source": "Skjul kildeenhed"
                 },
-                "title": "Vend om 👻"
+                "title": "Inverter 👻"
             }
         }
     },
-    "title": "Vend om 👻"
+    "title": "Inverter 👻"
 }

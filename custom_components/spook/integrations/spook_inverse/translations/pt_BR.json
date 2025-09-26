@@ -23,7 +23,7 @@
                     "switch": "Inverter um interruptor"
                 },
                 "title": "Inverso 👻",
-                "description": "Esse ajudante permite você inverter o comportamento de uma entidade. Por exemplo, inverter aberto/fechado ou on/off de sensores binarios e interruptores."
+                "description": "Esse ajudante permite você inverter o comportamento de uma entidade. Por exemplo, inverter aberto/fechado ou on/off de sensores binários e interruptores."
             }
         }
     },

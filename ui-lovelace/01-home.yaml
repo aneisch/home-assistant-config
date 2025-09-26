@@ -207,6 +207,7 @@ cards:
       - input_boolean.door_notify
       - input_boolean.ac_automation
       - input_boolean.ac_boost_feature_evaluation
+      - input_boolean.auto_dehumidifier
       - group.all_fans
       - input_boolean.ac_change_notification
       - select.solark_sol_ark_tou_schedule

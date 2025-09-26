@@ -1,326 +1,331 @@
 {
-    "entity": {
-        "sensor": {
-            "homeassistant_siren": {
-                "name": "Σειρήνες"
-            },
-            "homeassistant_water_heater": {
-                "name": "Θερμοσίφωνες"
-            },
-            "homeassistant_device_tracker": {
-                "name": "Εντοπιστής συσκευών"
-            },
-            "homeassistant_light": {
-                "name": "Φώτα"
-            },
-            "homeassistant_input_number": {
-                "name": "Αριθμοί"
-            },
-            "homeassistant_button": {
-                "name": "Κουμπιά"
-            },
-            "homeassistant_cover": {
-                "name": "Κάλυμμα"
-            },
-            "homeassistant_area": {
-                "name": "Περιοχές"
-            },
-            "homeassistant_datetime": {
-                "name": "Ημερομηνία/ώρες"
-            },
-            "homeassistant_number": {
-                "name": "Αριθμοί"
-            },
-            "homeassistant_switch": {
-                "name": "Διακόπτες"
-            },
-            "homeassistant_tts": {
-                "name": "Κείμενο σε ομιλία"
-            },
-            "homeassistant_text": {
-                "name": "Κείμενα"
-            },
-            "homeassistant_script": {
-                "name": "Σενάρια"
-            },
-            "homeassistant_input_boolean": {
-                "name": "Διακόπτες"
-            },
-            "homeassistant_sensor": {
-                "name": "Αισθητήρες"
-            },
-            "repairs_ignored_issues": {
-                "name": "Αγνοημένα"
-            },
-            "homeassistant_humidifier": {
-                "name": "Υγραντήρες"
-            },
-            "homeassistant_update": {
-                "name": "Ενημέρωση"
-            },
-            "homeassistant_persistent_notification": {
-                "name": "Μόνιμες ειδοποιήσεις"
-            },
-            "homeassistant_custom_component": {
-                "name": "Προσαρμοσμένες ενσωματώσεις"
-            },
-            "homeassistant_input_datetime": {
-                "name": "Ημερομηνία ή/και ώρα"
-            },
-            "homeassistant_weather": {
-                "name": "Καιρός"
-            },
-            "homeassistant_input_text": {
-                "name": "Κείμενα"
-            },
-            "homeassistant_fan": {
-                "name": "Ανεμιστήρες"
-            },
-            "homeassistant_sun": {
-                "name": "Ηλιοι"
-            },
-            "homeassistant_input_button": {
-                "name": "Κουμπιά"
-            },
-            "homeassistant_climate": {
-                "name": "Κλίμα"
-            },
-            "homeassistant_person": {
-                "name": "Ατομα"
-            },
-            "homeassistant_stt": {
-                "name": "Ομιλία σε κείμενο"
-            },
-            "homeassistant_image": {
-                "name": "Εικόνες"
-            },
-            "homeassistant_date": {
-                "name": "Ημερομηνίες"
-            },
-            "homeassistant_entities": {
-                "name": "Οντότητες"
-            },
-            "homeassistant_camera": {
-                "name": "Κάμερες"
-            },
-            "homeassistant_input_select": {
-                "name": "Αναπτυσσόμενα μενού"
-            },
-            "homeassistant_select": {
-                "name": "Επιλέγει"
-            },
-            "repairs_active_issues": {
-                "name": "Ενεργό"
-            },
-            "homeassistant_remote": {
-                "name": "Τηλεχειριστήρια"
-            },
-            "homeassistant_device": {
-                "name": "Συσκευές"
-            },
-            "homeassistant_zone": {
-                "name": "Ζώνες"
-            },
-            "homeassistant_air_quality": {
-                "name": "Ποιότητα αέρα"
-            },
-            "homeassistant_automation": {
-                "name": "Αυτοματισμοί"
-            },
-            "homeassistant_binary_sensor": {
-                "name": "Δυαδικοί αισθητήρες"
-            },
-            "homeassistant_lock": {
-                "name": "Κλειδαριές"
-            },
-            "homeassistant_alarm_control_panel": {
-                "name": "Πίνακες ελέγχου συναγερμού"
-            },
-            "repairs_total_issues": {
-                "name": "Σύνολο"
-            },
-            "homeassistant_calendar": {
-                "name": "Ημερολόγια"
-            },
-            "homeassistant_vacuum": {
-                "name": "Σκούπες"
-            },
-            "homeassistant_scene": {
-                "name": "Σκηνές"
-            },
-            "homeassistant_integration": {
-                "name": "Ενσωματώσεις"
-            },
-            "homeassistant_time": {
-                "name": "Χρόνος"
-            },
-            "homeassistant_media_player": {
-                "name": "Συσκευές αναπαραγωγής"
-            }
-        },
-        "switch": {
-            "cloud_alexa_report_state": {
-                "name": "Alexa αναφορά κατάστασης"
-            },
-            "cloud_google_report_state": {
-                "name": "Αναφορά κατάστασης του Βοηθού Google"
-            },
-            "cloud_remote": {
-                "name": "Τηλεχειριστήριο"
-            }
-        },
-        "button": {
-            "repairs_ignore_all": {
-                "name": "Αγνόηση όλων"
-            },
-            "homeassistant_reload": {
-                "name": "Επαναφόρτωση"
-            },
-            "homeassistant_restart": {
-                "name": "Επανεκκίνηση"
-            },
-            "repairs_unignore_all": {
-                "name": "Αφαίρεση όλων από τα αγνοημένα"
-            }
-        },
-        "event": {
-            "repairs_event": {
-                "state_attributes": {
-                    "event_type": {
-                        "state": {
-                            "update": "Το ζήτημα ενημερώθηκε",
-                            "create": "Το ζήτημα δημιουργήθηκε",
-                            "remove": "Το ζήτημα καταργήθηκε"
-                        }
-                    },
-                    "domain": {
-                        "name": "Εκδότης ζητήματος"
-                    },
-                    "issue_id": {
-                        "name": "ID ζητήματος"
-                    }
-                }
-            }
-        }
+  "config": {
+    "abort": {
+      "already_spooked": "Yeah... well... no. K, thx, bye!"
     },
-    "config": {
-        "abort": {
-            "already_spooked": "Ναι... καλά... όχι, K, thx, bye!"
-        },
-        "step": {
-            "user": {
-                "description": "Διαβάσατε το readme; Διαβάσατε την άδεια; Είστε πραγματικά σίγουροι;"
-            },
-            "choice_restart": {
-                "menu_options": {
-                    "restart_now": "Επανεκκίνηση τώρα",
-                    "restart_later": "Επανεκκίνηση αργότερα"
-                },
-                "description": "Για να ολοκληρωθεί η ρύθμιση του Spook, πρέπει να γίνει επανεκκίνηση του Home Assistant.\n\nΘέλετε να κάνετε επανεκκίνηση του Home Assistant τώρα;"
-            }
+    "step": {
+      "user": {
+        "description": "Did you read the readme? Did you read the license? Are you really sure?"
+      },
+      "choice_restart": {
+        "description": "In order for Spook to finish setting up, Home Assistant needs to be restarted.\n\nDo you want to restart Home Assistant now?",
+        "menu_options": {
+          "restart_now": "Restart now",
+          "restart_later": "Restart later"
         }
-    },
-    "issues": {
-        "lovelace_unknown_entity_references": {
-            "title": "Αγνωστες οντότητες που χρησιμοποιούνται σε: {dashboard}",
-            "description": "Το Spook βρήκε ένα φάντασμα στα ταμπλό σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στο παρακάτω ταμπλό:\n\n[{dashboard}]({edit})\n\nΑυτό το ταμπλό αναφέρει τις ακόλουθες οντότητες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{entities}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε το ταμπλό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων οντοτήτων.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "integration_unknown_source": {
-            "description": "Ο Spook έχει βρει ένα φάντασμα στους ολοκληρωμένους βοηθούς του Riemann\n\nΕνώ επιπλέουν γύρω, ο Spook πέρασε το μονοπάτι με τον ακόλουθο βοηθό:\n\n{helper} (`{entity_id}`)\n\nΑυτός ο βοηθός έχει μια οντότητα πηγή άγνωστη στο Home Assistant:\n\n`{source}`\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, επεξεργαστείτε τον βοηθό και προσαρμόστε την οντότητα προέλευσης (ή αφαιρέστε τον βοηθό) και επανεκκινήστε το Home Assistant.\n\nΣπέρμα, όχι το φόρο τιμής σου.",
-            "title": "Αγνωστη πηγή: {helper}"
-        },
-        "automation_unknown_device_references": {
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες συσκευές, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{devices}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων συσκευών.\n\nSpook 👻 Ο φιλαράκος σου.",
-            "title": "Αγνωστες συσκευές που χρησιμοποιούνται σε: {automation}"
-        },
-        "user_issue": {
-            "fix_flow": {
-                "step": {
-                    "confirm": {
-                        "title": "{title}",
-                        "description": "{description}"
-                    }
-                }
-            },
-            "title": "{title}"
-        },
-        "switch_as_x_unknown_source": {
-            "title": "Αγνωστη πηγή: {helper}",
-            "description": "Η Spook έχει βρει ένα φάντασμα στο διακόπτη σας ως βοηθοί X\n\nΕνώ επιπλέουν γύρω, ο Spook πέρασε το μονοπάτι με τον ακόλουθο βοηθό:\n\n{helper} (`{entity_id}`)\n\nΑυτός ο βοηθός έχει μια οντότητα αλλαγής πηγής άγνωστη στο Home Assistant:\n\n`{source}`\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, επεξεργαστείτε τον βοηθό και προσαρμόστε την οντότητα προέλευσης (ή αφαιρέστε τον βοηθό) και επανεκκινήστε το Home Assistant.\n\nΣπέρμα, όχι το φόρο τιμής σου."
-        },
-        "script_unknown_device_references": {
-            "title": "Αγνωστες συσκευές που χρησιμοποιούνται σε: {script}",
-            "description": "Ο Spook έχει βρει ένα φάντασμα στα σενάρια σας\n\nΕνώ επιπλέουν γύρω, ο Spook πέρασε το μονοπάτι με το ακόλουθο σενάριο:\n\n[{script}]({edit}) (`{entity_id}`)\n\nΑυτό το σενάριο αναφέρει τις ακόλουθες συσκευές, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{devices}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [edit the script]({edit}) και αφαιρέστε τη χρήση αυτών των μη υφιστάμενων συσκευών.\n\nΣπέρμα, όχι το φόρο τιμής σου."
-        },
-        "script_unknown_area_references": {
-            "description": "Ο Spook έχει βρει ένα φάντασμα στα σενάρια σας\n\nΕνώ επιπλέουν γύρω, ο Spook πέρασε το μονοπάτι με το ακόλουθο σενάριο:\n\n[{script}]({edit}) (`{entity_id}`)\n\nΑυτό το σενάριο αναφέρει τις ακόλουθες περιοχές, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{areas}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα,  [edit the script]({edit}) και αφαιρέστε τη χρήση αυτών των μη υφιστάμενων περιοχών.\n\nΣπέρμα, όχι το φόρο τιμής σου.",
-            "title": "Αγνωστες περιοχές που χρησιμοποιούνται σε: {script}"
-        },
-        "automation_unknown_area_references": {
-            "title": "Αγνωστες περιοχές που χρησιμοποιούνται σε: {automation}",
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες περιοχές, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{areas}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων περιοχών.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "restart_required": {
-            "fix_flow": {
-                "step": {
-                    "confirm_restart": {
-                        "description": "Για να ολοκληρωθεί η ρύθμιση του Spook 👻, πρέπει να γίνει επανεκκίνηση του Home Assistant.\n\nΕπιλέξτε Υποβολή για επανεκκίνηση του Home Assistant τώρα.",
-                        "title": "Απαιτείται επανεκκίνηση"
-                    }
-                }
-            },
-            "title": "Απαιτείται επανεκκίνηση"
-        },
-        "script_unknown_entity_references": {
-            "title": "Αγνωστες οντότητες που χρησιμοποιούνται σε: {script}",
-            "description": "Ο Spook έχει βρει ένα φάντασμα στα σενάρια σας\n\nΕνώ επιπλέουν γύρω, ο Spook πέρασε το μονοπάτι με το ακόλουθο σενάριο:\n\n[{script}]({edit}) (`{entity_id}`)\n\nΑυτό το σενάριο αναφέρει τις ακόλουθες οντότητες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{entities}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα,  [edit the script]({edit}) και αφαιρέστε τη χρήση αυτών των μη υπαρχουσών οντοτήτων.\n\nΣπέρμα, όχι το φόρο τιμής σου."
-        },
-        "automation_unknown_entity_references": {
-            "title": "Αγνωστες οντότητες που χρησιμοποιούνται σε: {automation}",
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες οντότητες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{entities}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων οντοτήτων.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "group_unknown_members": {
-            "title": "Αγνωστα μέλη ομάδας στο: {group}",
-            "description": "Το Spook βρήκε ένα φάντασμα στις ομάδες σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στην παρακάτω ομάδα:\n\n{group} (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες συσκευές, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{entities}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, επεξεργαστείτε την ομάδα, καταργήστε τη χρήση αυτών των ανύπαρκτων οντοτήτων και κάντε επανεκκίνηση του Home Assistant.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "scene_unknown_entity_references": {
-            "description": "Ο Spook βρήκε ένα φάντασμα στις σκηνές σας 👻\n\nΕνώ επέπλεε, ο Spook διασταυρώθηκε με την ακόλουθη σκηνή:\n\n[{scene}]({edit})\n\nΑυτή η σκηνή αναφέρεται στις ακόλουθες οντότητες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{entities}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα,  [edit the scene]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων οντοτήτων.\n\nΤρομάζω 👻 Δεν είναι το σπίτι σου.",
-            "title": "Αγνωστες οντότητες που χρησιμοποιούνται σε: {scene}"
-        },
-        "utility_meter_unknown_source": {
-            "title": "Αγνωστη πηγή: {helper}"
-        },
-        "proximity_unknown_ignored_zones": {
-            "description": "Το Spook βρήκε ένα φάντασμα στη διαμόρφωση της εγγύτητάς σας 👻\n\nΕνώ πετούσε, το Spook διέσχισε το μονοπάτι με την ακόλουθη διαμόρφωση εγγύτητας:\n\n{name}\n\nΑυτή η διαμόρφωση αγνοεί ζώνες που είναι άγνωστες στο Home Assistant:\n\n{zones}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, επεξεργαστείτε τη διαμόρφωση και αφαιρέστε αυτή/αυτές τις ζώνες.\n\nΑπό το Spook 👻 όχι το σπιτάκι σας.",
-            "title": "Αγνωστες αγνοημένες ζώνες: {name}"
-        },
-        "automation_unknown_service_references": {
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες υπηρεσίες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{services}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων υπηρεσιών\n\nSpook 👻 Ο φιλαράκος σου.",
-            "title": "Αγνωστες υπηρεσίες που χρησιμοποιούνται σε: {automation}"
-        },
-        "proximity_unknown_tracked_entities": {
-            "title": "Αγνωστες οντότητες που ιχνηλατήθηκαν: {name}"
-        },
-        "proximity_unknown_zone": {
-            "title": "Αγνωστη ζώνη: {zone}",
-            "description": "Το Spook βρήκε ένα φάντασμα στη διαμόρφωση εγγύτητάς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στην παρακάτω διαμόρφωση εγγύτητας:\n\n{name}\n\nΑυτή η διαμόρφωση βασίζεται σε μια ζώνη που είναι άγνωστη στο Home Assistant:\n\n`{zone}`\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, καθώς δεν μπορείτε να αλλάξετε τη ζώνη μιας διαμόρφωσης εγγύτητας, η μόνη σας επιλογή είναι να καταργήσετε αυτή τη συγκεκριμένη υπόσταση ενσωμάτωσης εγγύτητας.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "trend_unknown_source": {
-            "title": "Αγνωστη πηγή: {helper}"
-        },
-        "automation_unknown_floor_references": {
-            "title": "Αγνωστοι όροφοι που χρησιμοποιούνται σε: {automation}",
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τους ακόλουθους ορόφους, οι οποίοι είναι άγνωστοι στο Home Assistant:\n\n{floors}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων ορόφων.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "automation_unknown_label_references": {
-            "title": "Αγνωστες ετικέτες που χρησιμοποιούνται σε: {automation}",
-            "description": "Το Spook βρήκε ένα φάντασμα στους αυτοματισμούς σας 👻\n\nΕνώ πετούσε τριγύρω, το Spook έπεσε πάνω στον παρακάτω αυτοματισμό:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nΑυτός ο αυτοματισμός αναφέρει τις ακόλουθες ετικέτες, οι οποίες είναι άγνωστες στο Home Assistant:\n\n{labels}\n\n\n\nΓια να διορθώσετε αυτό το σφάλμα, [επεξεργαστείτε τον αυτοματισμό]({edit}) και καταργήστε τη χρήση αυτών των ανύπαρκτων ετικετών.\n\nSpook 👻 Ο φιλαράκος σου."
-        },
-        "script_unknown_floor_references": {
-            "title": "Αγνωστοι όροφοι που χρησιμοποιούνται σε: {script}"
-        },
-        "script_unknown_label_references": {
-            "title": "Αγνωστες ετικέτες που χρησιμοποιούνται σε: {script}"
-        }
+      }
     }
+  },
+  "entity": {
+    "button": {
+      "homeassistant_reload": {
+        "name": "Reload"
+      },
+      "homeassistant_restart": {
+        "name": "Restart"
+      },
+      "repairs_ignore_all": {
+        "name": "Ignore all"
+      },
+      "repairs_unignore_all": {
+        "name": "Unignore all"
+      }
+    },
+    "event": {
+      "repairs_event": {
+        "state_attributes": {
+          "event_type": {
+            "state": {
+              "create": "Issue created",
+              "remove": "Issue removed",
+              "update": "Issue updated"
+            }
+          },
+          "domain": {
+            "name": "Issue issuer"
+          },
+          "issue_id": {
+            "name": "Issue ID"
+          }
+        }
+      }
+    },
+    "sensor": {
+      "homeassistant_air_quality": {
+        "name": "Ποιότητα αέρα"
+      },
+      "homeassistant_alarm_control_panel": {
+        "name": "Πίνακες ελέγχου συναγερμού"
+      },
+      "homeassistant_area": {
+        "name": "Περιοχές"
+      },
+      "homeassistant_automation": {
+        "name": "Αυτοματισμοί"
+      },
+      "homeassistant_binary_sensor": {
+        "name": "Δυαδικοί αισθητήρες"
+      },
+      "homeassistant_button": {
+        "name": "Κουμπιά"
+      },
+      "homeassistant_calendar": {
+        "name": "Ημερολόγια"
+      },
+      "homeassistant_camera": {
+        "name": "Κάμερες"
+      },
+      "homeassistant_climate": {
+        "name": "Κλίμα"
+      },
+      "homeassistant_cover": {
+        "name": "Κάλυμμα"
+      },
+      "homeassistant_custom_component": {
+        "name": "Προσαρμοσμένες ενσωματώσεις"
+      },
+      "homeassistant_date": {
+        "name": "Ημερομηνίες"
+      },
+      "homeassistant_datetime": {
+        "name": "Ημερομηνία/ώρες"
+      },
+      "homeassistant_device": {
+        "name": "Συσκευές"
+      },
+      "homeassistant_device_tracker": {
+        "name": "Εντοπιστής συσκευών"
+      },
+      "homeassistant_entities": {
+        "name": "Οντότητες"
+      },
+      "homeassistant_fan": {
+        "name": "Ανεμιστήρες"
+      },
+      "homeassistant_humidifier": {
+        "name": "Υγραντήρες"
+      },
+      "homeassistant_image": {
+        "name": "Εικόνες"
+      },
+      "homeassistant_input_boolean": {
+        "name": "Διακόπτες"
+      },
+      "homeassistant_input_button": {
+        "name": "Κουμπιά"
+      },
+      "homeassistant_input_datetime": {
+        "name": "Ημερομηνία ή/και ώρα"
+      },
+      "homeassistant_input_number": {
+        "name": "Αριθμοί"
+      },
+      "homeassistant_input_select": {
+        "name": "Αναπτυσσόμενα μενού"
+      },
+      "homeassistant_input_text": {
+        "name": "Κείμενα"
+      },
+      "homeassistant_integration": {
+        "name": "Ενσωματώσεις"
+      },
+      "homeassistant_light": {
+        "name": "Φώτα"
+      },
+      "homeassistant_lock": {
+        "name": "Κλειδαριές"
+      },
+      "homeassistant_media_player": {
+        "name": "Συσκευές αναπαραγωγής"
+      },
+      "homeassistant_number": {
+        "name": "Αριθμοί"
+      },
+      "homeassistant_persistent_notification": {
+        "name": "Μόνιμες ειδοποιήσεις"
+      },
+      "homeassistant_person": {
+        "name": "Ατομα"
+      },
+      "homeassistant_remote": {
+        "name": "Τηλεχειριστήρια"
+      },
+      "homeassistant_scene": {
+        "name": "Σκηνές"
+      },
+      "homeassistant_script": {
+        "name": "Σενάρια"
+      },
+      "homeassistant_select": {
+        "name": "Επιλέγει"
+      },
+      "homeassistant_sensor": {
+        "name": "Αισθητήρες"
+      },
+      "homeassistant_siren": {
+        "name": "Σειρήνες"
+      },
+      "homeassistant_stt": {
+        "name": "Ομιλία σε κείμενο"
+      },
+      "homeassistant_sun": {
+        "name": "Ηλιοι"
+      },
+      "homeassistant_switch": {
+        "name": "Διακόπτες"
+      },
+      "homeassistant_text": {
+        "name": "Κείμενα"
+      },
+      "homeassistant_time": {
+        "name": "Χρόνος"
+      },
+      "homeassistant_tts": {
+        "name": "Κείμενο σε ομιλία"
+      },
+      "homeassistant_update": {
+        "name": "Ενημέρωση"
+      },
+      "homeassistant_vacuum": {
+        "name": "Σκούπες"
+      },
+      "homeassistant_water_heater": {
+        "name": "Θερμοσίφωνες"
+      },
+      "homeassistant_weather": {
+        "name": "Καιρός"
+      },
+      "homeassistant_zone": {
+        "name": "Ζώνες"
+      },
+      "repairs_total_issues": {
+        "name": "Σύνολο"
+      },
+      "repairs_ignored_issues": {
+        "name": "Αγνοημένα"
+      },
+      "repairs_active_issues": {
+        "name": "Ενεργό"
+      }
+    },
+    "switch": {
+      "cloud_alexa_report_state": {
+        "name": "Alexa αναφορά κατάστασης"
+      },
+      "cloud_google_report_state": {
+        "name": "Αναφορά κατάστασης του Βοηθού Google"
+      },
+      "cloud_remote": {
+        "name": "Τηλεχειριστήριο"
+      }
+    }
+  },
+  "issues": {
+    "automation_unknown_area_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
+      "title": "Unknown areas used in: {automation}"
+    },
+    "automation_unknown_device_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
+      "title": "Unknown devices used in: {automation}"
+    },
+    "automation_unknown_entity_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+      "title": "Unknown entities used in: {automation}"
+    },
+    "automation_unknown_floor_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
+      "title": "Unknown floors used in: {automation}"
+    },
+    "automation_unknown_label_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
+      "title": "Unknown labels used in: {automation}"
+    },
+    "automation_unknown_service_references": {
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following actions, which are unknown to Home Assistant:\n\n{services}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
+      "title": "Unknown actions used in: {automation}"
+    },
+    "group_unknown_members": {
+      "description": "Spook has found a ghost in your groups 👻\n\nWhile floating around, Spook crossed path with the following group:\n\n{group} (`{entity_id}`)\n\nThis group has members, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, edit the group, remove the use of these non-existing entities and restart Home Assistant.\n\nSpook 👻 Your homie.",
+      "title": "Unknown group members in: {group}"
+    },
+    "integration_unknown_source": {
+      "description": "Spook has found a ghost in your Riemann sum integral helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
+      "title": "Unknown source: {helper}"
+    },
+    "lovelace_unknown_entity_references": {
+      "description": "Spook has found a ghost in your dashboards 👻\n\nWhile floating around, Spook crossed path with the following dashboard:\n\n[{dashboard}]({edit})\n\nThis dashboard references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the dashboard]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+      "title": "Unknown entities used in: {dashboard}"
+    },
+    "proximity_unknown_ignored_zones": {
+      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is ignoring zones that are unknown to Home Assistant:\n\n{zones}\n\n\n\nTo fix this error, edit the configuration and remove this/these zones.\n\nSpook 👻 Your homie.",
+      "title": "Unknown ignored zones: {name}"
+    },
+    "proximity_unknown_tracked_entities": {
+      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is tracking persons or devices trackers that are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, edit the configuration and remove this/these entities.\n\nSpook 👻 Your homie.",
+      "title": "Unknown tracked entities: {name}"
+    },
+    "proximity_unknown_zone": {
+      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is based on a zone that is unknown to Home Assistant:\n\n`{zone}`\n\n\n\nTo fix this error, as you can't change the zone of a proximity configuration, the only option is to remove this specific proximity integration instance.\n\nSpook 👻 Your homie.",
+      "title": "Unknown zone: {zone}"
+    },
+    "scene_unknown_entity_references": {
+      "description": "Spook has found a ghost in your scenes 👻\n\nWhile floating around, Spook crossed path with the following scene:\n\n[{scene}]({edit})\n\nThis scene references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the scene]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+      "title": "Unknown entities used in: {scene}"
+    },
+    "script_unknown_area_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
+      "title": "Unknown areas used in: {script}"
+    },
+    "script_unknown_device_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
+      "title": "Unknown devices used in: {script}"
+    },
+    "script_unknown_entity_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+      "title": "Unknown entities used in: {script}"
+    },
+    "script_unknown_floor_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
+      "title": "Unknown floors used in: {script}"
+    },
+    "script_unknown_label_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
+      "title": "Unknown labels used in: {script}"
+    },
+    "switch_as_x_unknown_source": {
+      "description": "Spook has found a ghost in your Switch as X helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source switch entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
+      "title": "Unknown source: {helper}"
+    },
+    "utility_meter_unknown_source": {
+      "description": "Spook has found a ghost in your utility meter helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
+      "title": "Unknown source: {helper}"
+    },
+    "trend_unknown_source": {
+      "description": "Spook has found a ghost in your trend helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
+      "title": "Unknown source: {helper}"
+    },
+    "user_issue": {
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "description": "{description}",
+            "title": "{title}"
+          }
+        }
+      },
+      "title": "{title}"
+    },
+    "restart_required": {
+      "title": "Restart required",
+      "fix_flow": {
+        "step": {
+          "confirm_restart": {
+            "title": "Restart required",
+            "description": "In order for Spook 👻 to finish setting up, Home Assistant needs to be restarted.\n\nSelect submit to restart Home Assistant now."
+          }
+        }
+      }
+    }
+  }
 }

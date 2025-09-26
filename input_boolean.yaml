@@ -12,6 +12,10 @@ cellular_message_test_pending:
 # Used by Alexa routine to publish motion detection status
 kitchen_motion:
 
+auto_dehumidifier:
+  name: Dehumidifer Automation
+  icon: mdi:cloud-percent
+
 ac_automation:
   name: AC Automation
   icon: mdi:fan

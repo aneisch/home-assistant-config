@@ -49,6 +49,7 @@ homeassistant:
     - "/tmp"
   allowlist_external_urls:
     - "http://localhost:8123/api/frigate/notifications"
+    - !secret go2rtc_base_url
   media_dirs:
     audio: media/audio/
     video: media/video/

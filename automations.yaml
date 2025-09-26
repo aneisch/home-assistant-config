@@ -146,8 +146,8 @@
   - action: script.notify_wrapper
     data:
       message: '{% if trigger.entity_id == ''sensor.thermostat_setpoint'' %}Setpoint{%
-        elif trigger.entity_id == ''sensor.thermostat_mode'' %}Mode{% endif %}: {{
-        states(''sensor.thermostat_setpoint'') }}. Mode: {{ states(''sensor.thermostat_operating_mode'')
+        elif trigger.entity_id == ''sensor.thermostat_operating_mode'' %}Mode{% endif
+        %}: {{ states(''sensor.thermostat_setpoint'') }}. Mode: {{ states(''sensor.thermostat_operating_mode'')
         }}'
 - alias: HTML5 or Android push notification action button clicked
   id: html5_android_push
@@ -706,21 +706,33 @@
     data_template:
       entity_id: camera.mail_usps
       file_path: '{{ states(''sensor.mail_image_system_path'') }}'
-- alias: Fingerprint Door Unlock
-  id: fingerprint_door_unlock
-  trigger:
-    platform: state
-    entity_id: sensor.fingerprint_state
+- id: fingerprint_door_unlock
+  alias: Fingerprint Door Unlock
+  description: ''
+  triggers:
+  - entity_id: sensor.fingerprint_state
     to: Authorized finger
-  condition: '{{ states(''sensor.fingerprint_last_finger_id'') in [''1'',''2''] }}'
-  action:
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''sensor.fingerprint_last_finger_id'') in [''1.0'',''2.0'']
+      }}'
+  actions:
   - action: lock.unlock
-    entity_id: lock.back_door
+    data: {}
+    target:
+      entity_id: lock.tesla
   - action: script.notify_wrapper
     data:
       message: Front door unlocked by {% if states('sensor.fingerprint_last_finger_id')
         == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id')
         == '2' %}Andrew left index{% else %}Unknown{% endif %}!
+    enabled: false
+  - action: button.press
+    metadata: {}
+    data: {}
+    target:
+      entity_id: button.tesla_ble_remote_start_car
 - alias: Signal Webhook Message BVST
   id: signal_webhook_message_bvst
   mode: queued
@@ -941,7 +953,8 @@
     at: '10:00:00'
   condition:
   - condition: template
-    value_template: '{{ states(''switch.coffee_maker'') == ''on'' }}'
+    value_template: '{{ states(''switch.coffee_maker_power_with_cleaning'') == ''on''
+      }}'
   action:
   - action: switch.turn_off
     data: {}
