@@ -56,8 +56,8 @@ Home Assistant and other containers have ingress handled automatically by [Traef
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 6150
-Lines of Home Assistant YAML | 12064
+Lines of ESPHome YAML | 6176
+Lines of Home Assistant YAML | 12087
 [Integrations](https://www.home-assistant.io/integrations/) in use | 73
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37

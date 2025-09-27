@@ -1,0 +1,37 @@
+substitutions:
+  name: d1_sht_1
+  friendly_name: "D1 SHT 1"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: d1_mini
+
+<<: !include common.yaml
+  
+i2c:
+  sda: D2
+  scl: D1
+  scan: False
+  
+sensor:
+  - platform: sht3xd
+    temperature:
+      name: "${friendly_name} Temperature"
+      filters:
+        - lambda: return (roundf((x * (9.0/5.0) + 32.0) * 100.0)) / 100.0;
+        - round: 2
+      unit_of_measurement: "°F"
+    humidity:
+      name: "${friendly_name} Humidity"
+      accuracy_decimals: 2
+      filters:
+        - round: 2
+    address: 0x45
+    update_interval: 60s
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"

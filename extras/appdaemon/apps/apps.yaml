@@ -31,10 +31,10 @@ AC Automation Solar:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "04:00:00"
-  cool_morning: "78"
+  cool_morning: "80"
   cool_night: "74"
   cool_midnight: "76" # change to this temp at midnight_adjust
-  cool_unoccupied: "80"
+  cool_unoccupied: "82"
   heat_morning: "67"
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
@@ -55,9 +55,9 @@ Solar EV Charger:
   buffer_watts: 500
 
 Auto Dehumidifer:
-  module: dehumidifer
+  module: dehumidifier
   class: SolarHumidifier
-  constrain_input_boolean: input_boolean.auto_dehumidifer
+  constrain_input_boolean: input_boolean.auto_dehumidifier
 
 # EV Charge Control:
 #   module: ev_charger_smart_control

@@ -30,7 +30,23 @@ esp32:
   framework:
     type: esp-idf
 
-<<: !include common.yaml
+# Common settings to all my devices
+wifi:
+  ssid: "SSID"
+  password: !secret wifi_password
+  reboot_timeout: 300s
+
+logger:
+  level: DEBUG
+
+api:
+  reboot_timeout: 600s
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  platform: esphome
+  password: esphome_recovery
 
 #Enable webserver
 web_server:
@@ -1749,6 +1765,7 @@ select:
     options:
       - "Normal TOU"
       - "Full Day Minimum"
+      - "Grid Outage"
     set_action:
       - lambda: |-
           auto call1 = id(inverter_esphome_set_soc_time1).make_call();
@@ -1767,13 +1784,21 @@ select:
             call6.set_value(15); call6.perform();
             ESP_LOGI("soc_mode", "Applied Normal TOU profile");
           } else if (x == "Full Day Minimum") {
-            call1.set_value(20); call1.perform();
-            call2.set_value(20); call2.perform();
-            call3.set_value(20); call3.perform();
-            call4.set_value(20); call4.perform();
-            call5.set_value(20); call5.perform();
+            call1.set_value(15); call1.perform();
+            call2.set_value(15); call2.perform();
+            call3.set_value(15); call3.perform();
+            call4.set_value(15); call4.perform();
+            call5.set_value(15); call5.perform();
             call6.set_value(15); call6.perform();
             ESP_LOGI("soc_mode", "Applied Full Day Minimum profile");
+          } else if (x == "Grid Outage") {
+            call1.set_value(10); call1.perform();
+            call2.set_value(10); call2.perform();
+            call3.set_value(10); call3.perform();
+            call4.set_value(10); call4.perform();
+            call5.set_value(10); call5.perform();
+            call6.set_value(10); call6.perform();
+            ESP_LOGI("soc_mode", "Applied Grid Outage profile");
           }
 
   - platform: modbus_controller            #243 Select Energy Patern

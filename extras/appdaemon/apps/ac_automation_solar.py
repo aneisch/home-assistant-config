@@ -85,8 +85,7 @@ class AutoAdjust(hass.Hass):
         # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
         #self.log(f"Start: {start} - End: {end} - Sunset: {sunset}")
         if not (start <= now <= end) or not self.grid_online():
-            #self.log("Rule 0.1")
-            self.log(f"{start} -- {end}")
+            self.log("Rule 0.1")
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})
@@ -95,7 +94,7 @@ class AutoAdjust(hass.Hass):
 
         # Rule 0.2: Allow disabling the feature by boolean
         if self.get_state("input_boolean.ac_boost_feature_evaluation") == "off":
-            #self.log("Rule 0.2")
+            self.log("Rule 0.2")
             if self.boost_debounce_handle:
                 self.cancel_timer(self.boost_debounce_handle)
                 self.boost_debounce_handle = None
@@ -115,19 +114,19 @@ class AutoAdjust(hass.Hass):
             return
 
         # Adjust load depending on AC state
-        if grid_power < -50:  # exporting
-            #self.log("Rule 1")
+        if grid_power < -100:  # exporting
+            self.log("Rule 1")
             if ac_running:
-                #self.log("Rule 1.1")
+                self.log("Rule 1.1")
                 # Rule 4: Don’t let AC running disable boost → ignore AC load when already running
                 adjusted_load = max(0, load_power - ac_power)
             else:
-                #self.log("Rule 1.2")
+                self.log("Rule 1.2")
                 # If AC is off, test whether solar can also handle turning it on
                 adjusted_load = load_power + 4500
             excess_solar = solar_power - adjusted_load
         else:
-            #self.log("Rule 2")
+            self.log("Rule 2")
             adjusted_load = 0
             excess_solar = 0
 
@@ -147,7 +146,7 @@ class AutoAdjust(hass.Hass):
             battery_soc >= float(self.args["battery_boost_threshold"])
         )
 
-        #self.log(f"Boost Evaluation Result: {eligible} - Solar: {solar_power}W - Load: {load_power}W - Adjusted Load: {adjusted_load}W - Calculated Excess: {excess_solar}W - Battery SOC {battery_soc}%", level="INFO")
+        self.log(f"Boost Evaluation Result: {eligible} - Solar: {solar_power}W - Load: {load_power}W - Adjusted Load: {adjusted_load}W - Calculated Excess: {excess_solar}W - Battery SOC {battery_soc}%", level="INFO")
 
         if eligible != self.should_boost:
             self.log(f"Eligibility changed --> {eligible} (was {self.should_boost})", level="INFO")

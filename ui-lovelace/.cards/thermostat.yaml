@@ -18,7 +18,7 @@ sensors:
     name: Thermostat
   - entity: sensor.front_door_temperature
     name: Entryway
-  - entity: sensor.netatmo_home_indoor_temperature
+  - entity: sensor.d1_sht_1_d1_sht_1_temperature
     name: Living Room
   - entity: sensor.kitchen_temperature
     name: Kitchen
@@ -29,7 +29,7 @@ sensors:
     name: Master Closet
   - entity: sensor.master_bathroom_temperature
     name: Master Bathroom
-  - entity: sensor.office_temperature
+  - entity: ensor.netatmo_home_indoor_temperature
     name: Office
     decimals: 2
   - entity: sensor.garage_temperature

@@ -47,6 +47,30 @@ automation:
         data:
           value: "{{ states('sensor.solar_power_max_today_live') | float(0) }}"
 
+  - alias: Sol-Ark TOU Override on Grid Outage
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+        to: "off"
+    action:
+      - variables:
+          previous_schedule: "{{ states('select.solark_sol_ark_tou_schedule') }}"
+      - service: select.select_option
+        target:
+          entity_id: select.solark_sol_ark_tou_schedule
+        data:
+          option: "Grid Outage"
+      - wait_for_trigger:
+          - platform: state
+            entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+            to: "on"
+      - service: select.select_option
+        target:
+          entity_id: select.solark_sol_ark_tou_schedule
+        data:
+          option: "{{ previous_schedule }}"
+
 template:
   - trigger:
       - platform: time
