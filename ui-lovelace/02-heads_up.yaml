@@ -16,6 +16,7 @@ cards:
         - entity_id: "group.under_cabinet_lights"
           state: "on"
       exclude:
+        - entity_id: "*outdoor_ge_2*"
         - entity_id: "*tesla_ble_*"
         - entity_id: "*sol_ark*"
         - entity_id: "switch.emporia_charger"

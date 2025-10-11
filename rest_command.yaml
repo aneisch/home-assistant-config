@@ -12,3 +12,9 @@ adjust_morning:
   method: POST
   payload: '{}'
   content_type: 'application/json'
+
+adjust_force_eval:
+  url: http://127.0.0.1:8888/api/appdaemon/evaluate_now
+  method: POST
+  payload: '{}'
+  content_type: 'application/json'

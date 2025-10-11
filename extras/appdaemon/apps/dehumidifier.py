@@ -18,7 +18,8 @@ class SolarHumidifier(hass.Hass):
         occupied = self.get_state("group.trackers") == "home"
 
         # Turn on if lots of solar or if switching to unoccupied (and solar)
-        if solar >= 1000 or (not occupied and solar >= 1000):
+        #if solar >= 1000 or (not occupied and solar >= 1000):
+        if not occupied and solar >= 1000:
             # Conditions met → turn ON
             if self.get_state("humidifier.151732606535142_humidifier") != "on":
                 self.call_service("humidifier/turn_on",

@@ -109,13 +109,13 @@
 #     hours: 1
 #   precision: 3
 
-- platform: statistics
-  name: "Phase Imbalance (5m Avg)"
-  entity_id: sensor.phase_difference
-  state_characteristic: mean
-  max_age:
-    minutes: 15
-  sampling_size: 900
+# - platform: statistics
+#   name: "Phase Imbalance (5m Avg)"
+#   entity_id: sensor.phase_difference
+#   state_characteristic: mean
+#   max_age:
+#     minutes: 15
+#   sampling_size: 900
 
 #############
 # TEMPLATES #
@@ -142,65 +142,65 @@
           {% endfor %}
           {{ ns.timers }}
 
-    # 50% is perfectly balanced
-    phase_a_balance:
-      friendly_name: "Phase A Percent Of Total Load"
-      unit_of_measurement: "%"
-      value_template: >
-          {% set a = states('sensor.phase_a_power') | float(0) %}
-          {% set b = states('sensor.phase_b_power') | float(0) %}
-          {% set total = (a | abs) + (b | abs) %}
-          {% if total == 0 %}
-            0
-          {% else %}
-            {{ ((a | abs) / total * 100) | round(0) }}
-          {% endif %}
+    # # 50% is perfectly balanced
+    # phase_a_balance:
+    #   friendly_name: "Phase A Percent Of Total Load"
+    #   unit_of_measurement: "%"
+    #   value_template: >
+    #       {% set a = states('sensor.phase_a_power') | float(0) %}
+    #       {% set b = states('sensor.phase_b_power') | float(0) %}
+    #       {% set total = (a | abs) + (b | abs) %}
+    #       {% if total == 0 %}
+    #         0
+    #       {% else %}
+    #         {{ ((a | abs) / total * 100) | round(0) }}
+    #       {% endif %}
 
-    # 50% is perfectly balanced
-    phase_b_balance:
-      friendly_name: "Phase B Percent Of Total Load"
-      unit_of_measurement: "%"
-      value_template: >
-          {% set a = states('sensor.phase_a_power') | float(0) %}
-          {% set b = states('sensor.phase_b_power') | float(0) %}
-          {% set total = (a | abs) + (b | abs) %}
-          {% if total == 0 %}
-            0
-          {% else %}
-            {{ ((b | abs) / total * 100) | round(0) }}
-          {% endif %}
+    # # 50% is perfectly balanced
+    # phase_b_balance:
+    #   friendly_name: "Phase B Percent Of Total Load"
+    #   unit_of_measurement: "%"
+    #   value_template: >
+    #       {% set a = states('sensor.phase_a_power') | float(0) %}
+    #       {% set b = states('sensor.phase_b_power') | float(0) %}
+    #       {% set total = (a | abs) + (b | abs) %}
+    #       {% if total == 0 %}
+    #         0
+    #       {% else %}
+    #         {{ ((b | abs) / total * 100) | round(0) }}
+    #       {% endif %}
 
-    # 0% is perfectly balanced, 100% is one phase carrying all load
-    phase_difference:
-      friendly_name: "Phase Imbalance"
-      unit_of_measurement: "%"
-      value_template: >
-          {% set a = states('sensor.phase_a_power') | float(0) %}
-          {% set b = states('sensor.phase_b_power') | float(0) %}
-          {% set avg = ((a | abs) + (b | abs)) / 2 %}
-          {% if avg == 0 %}
-            0
-          {% else %}
-            {{ (((a | abs) - (b | abs)) | abs / avg * 100) | round(0) }}
-          {% endif %}
+    # # 0% is perfectly balanced, 100% is one phase carrying all load
+    # phase_difference:
+    #   friendly_name: "Phase Imbalance"
+    #   unit_of_measurement: "%"
+    #   value_template: >
+    #       {% set a = states('sensor.phase_a_power') | float(0) %}
+    #       {% set b = states('sensor.phase_b_power') | float(0) %}
+    #       {% set avg = ((a | abs) + (b | abs)) / 2 %}
+    #       {% if avg == 0 %}
+    #         0
+    #       {% else %}
+    #         {{ (((a | abs) - (b | abs)) | abs / avg * 100) | round(0) }}
+    #       {% endif %}
 
-    phase_difference_5min_avg:
-      friendly_name: "Phase Imbalance Average"
-      unit_of_measurement: "%"
-      value_template: >
-          {% set mean = state_attr('sensor.phase_load_imbalance_5m_avg', 'mean') %}
-          {{ (mean | float(0)) | round(0) }}
+    # phase_difference_5min_avg:
+    #   friendly_name: "Phase Imbalance Average"
+    #   unit_of_measurement: "%"
+    #   value_template: >
+    #       {% set mean = state_attr('sensor.phase_load_imbalance_5m_avg', 'mean') %}
+    #       {{ (mean | float(0)) | round(0) }}
 
-    estimated_neutral_current:
-      friendly_name: "Estimated Neutral Current"
-      unit_of_measurement: "A"
-      value_template: >
-        {% set a_w = states('sensor.phase_a_power')|float(0) | abs %}
-        {% set b_w = states('sensor.phase_b_power')|float(0) | abs %}
-        {% set v_ln = 120.0 %}  {# or states('sensor.line_voltage_ln')|float(120) #}
-        {% if v_ln == 0 %} 0 {% else %}
-          {{ ((a_w / v_ln) - (b_w / v_ln)) | abs | round(2) }}
-        {% endif %}
+    # estimated_neutral_current:
+    #   friendly_name: "Estimated Neutral Current"
+    #   unit_of_measurement: "A"
+    #   value_template: >
+    #     {% set a_w = states('sensor.phase_a_power')|float(0) | abs %}
+    #     {% set b_w = states('sensor.phase_b_power')|float(0) | abs %}
+    #     {% set v_ln = 120.0 %}  {# or states('sensor.line_voltage_ln')|float(120) #}
+    #     {% if v_ln == 0 %} 0 {% else %}
+    #       {{ ((a_w / v_ln) - (b_w / v_ln)) | abs | round(2) }}
+    #     {% endif %}
 
     ac_runtime_today:
       friendly_name: "AC Runtime Today"

@@ -7,6 +7,7 @@ substitutions:
   devicename: "solark"
   device_description: "SolArk RS485 Logger"
   friendly_name: "Sol-Ark"
+  # Be sure to keep these updated to calculate export-offset and daily import/export totals
   import_rate: "0.1356" # kWh
   export_rate: "0.0568" # kWh
 
@@ -847,6 +848,20 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+
+  # Calculate how many kWh of import our export has offset (no net-metering)
+  - platform: template
+    name: "${friendly_name} Day Grid Export Offset"
+    id: inverter_esphome_day_grid_export_offset
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    lambda: |-
+      if (id(inverter_esphome_day_grid_import).has_state()) {
+        return id(inverter_esphome_day_grid_export).state * (${export_rate}/${import_rate});
+      } else {
+        return NAN;
+      }
+    update_interval: 300s
 
   # All time cost is held in a Home Assistant utility meter
   - platform: template
@@ -1765,7 +1780,6 @@ select:
     options:
       - "Normal TOU"
       - "Full Day Minimum"
-      - "Grid Outage"
     set_action:
       - lambda: |-
           auto call1 = id(inverter_esphome_set_soc_time1).make_call();
@@ -1791,14 +1805,6 @@ select:
             call5.set_value(15); call5.perform();
             call6.set_value(15); call6.perform();
             ESP_LOGI("soc_mode", "Applied Full Day Minimum profile");
-          } else if (x == "Grid Outage") {
-            call1.set_value(10); call1.perform();
-            call2.set_value(10); call2.perform();
-            call3.set_value(10); call3.perform();
-            call4.set_value(10); call4.perform();
-            call5.set_value(10); call5.perform();
-            call6.set_value(10); call6.perform();
-            ESP_LOGI("soc_mode", "Applied Grid Outage profile");
           }
 
   - platform: modbus_controller            #243 Select Energy Patern

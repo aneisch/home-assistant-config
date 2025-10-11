@@ -174,7 +174,7 @@ cards:
         }
     entity: vacuum.roborock_s4
     map_source:
-      camera: camera.xiaomi_cloud_map_extractor
+      camera: camera.roxie_live_map
     calibration_source:
       camera: true
     map_locked: true

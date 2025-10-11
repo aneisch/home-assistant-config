@@ -16,13 +16,17 @@ i2c:
   scan: False
   
 sensor:
+  - platform: template
+    name: "${friendly_name} Temperature"
+    unit_of_measurement: "°F"
+    lambda: |-
+      // Convert Celsius to Fahrenheit
+      float f = id(temp_c).state * (9.0/5.0) + 32.0;
+      // Truncate to 2 decimals
+      return int(f * 100.0) / 100.0;
   - platform: sht3xd
     temperature:
-      name: "${friendly_name} Temperature"
-      filters:
-        - lambda: return (roundf((x * (9.0/5.0) + 32.0) * 100.0)) / 100.0;
-        - round: 2
-      unit_of_measurement: "°F"
+      id: temp_c
     humidity:
       name: "${friendly_name} Humidity"
       accuracy_decimals: 2

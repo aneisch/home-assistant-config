@@ -103,7 +103,23 @@ cards:
         graph: line
         name: Cycle Electricity Import
         detail: 1
-        hours_to_show: 24
+        hours_to_show: 72
+        unit: kWh
+        icon: mdi:flash
+      - type: sensor
+        entity: sensor.electricity_sell_offset
+        graph: line
+        name: Cycle Electricity Export Offset
+        detail: 1
+        hours_to_show: 72
+        unit: kWh
+        icon: mdi:flash
+      - type: sensor
+        entity: sensor.electricity_sell
+        graph: line
+        name: Cycle Electricity Export
+        detail: 1
+        hours_to_show: 72
         unit: kWh
         icon: mdi:flash
       - type: markdown
@@ -114,20 +130,22 @@ cards:
 
           Monthly Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 
+          Monthly Electric Credit Grid: ${{ states('input_text.electricity_sell_monthly') }}
+
+          Monthly Electric Net Cost Grid: ${{ ((states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) }}
+
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
 
           Monthly Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Monthly Water + Sewer + Electric: ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float)) | round(2) }}
-
-          Cycle Ends: {{ states('sensor.utilities_cycle_end') }}
-      - type: sensor
-        entity: sensor.s3_water_usage
-        graph: line
-        name: S3 Monthly Water
-        detail: 2
-        hours_to_show: 730
-        icon: mdi:water
+          Monthly Water + Sewer + Electric (+fee): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) + 7 }}
+      # - type: sensor
+      #   entity: sensor.s3_water_usage
+      #   graph: line
+      #   name: S3 Monthly Water
+      #   detail: 2
+      #   hours_to_show: 730
+      #   icon: mdi:water
       - type: sensor
         entity: sensor.flume_monthly_water_usage
         graph: line

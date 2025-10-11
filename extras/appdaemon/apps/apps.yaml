@@ -23,7 +23,7 @@
 AC Automation Solar:
   module: ac_automation_solar
   class: AutoAdjust
-  constrain_input_boolean: input_boolean.ac_automation
+  constrain_input_boolean: input_boolean.ac_automation # This makes AC totally manual if on
   thermostats: climate.thermostat
   device_tracker: group.trackers
   morning_adjust_weekday: "08:30:00"
@@ -31,26 +31,31 @@ AC Automation Solar:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "04:00:00"
-  cool_morning: "80"
+  cool_morning: "82"
   cool_night: "74"
   cool_midnight: "76" # change to this temp at midnight_adjust
   cool_unoccupied: "82"
+  guest_cool_morning: "77" # applied if guest_mode on
+  # guest_cool_night: "74" # optional, defaults to non-guest
+  # guest_cool_midnight: "76" # optional, defaults to non-guest
   heat_morning: "67"
   heat_night: "64"
   heat_midnight: "62" # change to this temp at midnight_adjust
   heat_unoccupied: "55"
+  # guest_heat_morning: "67" # optional, defaults to non-guest
+  # guest_heat_night: "64" # optional, defaults to non-guest
+  # guest_heat_midnight: "62" # optional, defaults to non-guest
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
   battery_boost_threshold: 98       # battery SOC for boost activation
   cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cool_boost_unoccupied_offset: 4   # Amount to boost if unoccupied
-  cooldown_window_start_offset: "-07:00:00"   # 7 hours before sunset
+  cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
+  cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
   cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
 
 Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  constrain_presence: anyone
   home_battery_min_soc: 98
   buffer_watts: 500
 
@@ -84,15 +89,6 @@ Kitchen Timer Sync:
   timer_prefix: kitchen_alexa
   # how many timer. entities are in home assistant?
   timer_count: 5
-
-# Timer:
-#   module: timer
-#   class: Timer
-#   timer_entity: sensor.kitchen_next_timer
-#   # what entity will hold the countdown state?
-#   countdown_destination_entity: sensor.kitchen_timer_countdown
-#   # Publish to MQTT (remove mqtt entry if you don't want..)
-#   mqtt: True
 
 # Set Smallgroup Boolean On:
 #   module: entity_timer
@@ -180,38 +176,38 @@ Minimote Non-Morning:
   scene_7_toggle: light.master_bedroom_lamps
   #scene_8_on: script.appdaemon_ac_night
 
-Occupancy Simulator:
-  module: occusim
-  class: OccuSim
-  enable: input_boolean.occusim
-  reset_time: 02:00:00
-  dump_times: "1"
-  log_msg: "1"
-  step_evening_name: Evening
-  step_evening_start: sunset - 00:30:00
-  # step_night_name: Night
-  # step_night_start: "23:59:59"
+# Occupancy Simulator:
+#   module: occusim
+#   class: OccuSim
+#   enable: input_boolean.occusim
+#   reset_time: 02:00:00
+#   dump_times: "1"
+#   log_msg: "1"
+#   step_evening_name: Evening
+#   step_evening_start: sunset - 00:30:00
+#   # step_night_name: Night
+#   # step_night_start: "23:59:59"
 
-  # Turn on some devices in the evening
-  step_evening_on_1: light.master_bedroom_lamps
-  step_evening_on_2: light.kitchen_table_light
-  step_evening_on_3: light.andrew_desk_lamp
-  #step_evening_on_4: light.office_ceiling_fan
-  step_evening_on_7: light.guest_bedroom_nightstand_lamp
-  step_evening_on_8: light.back_bedroom_nightstand_lamp
-  step_evening_on_9: switch.master_bathroom_light_secondary
+#   # Turn on some devices in the evening
+#   step_evening_on_1: light.master_bedroom_lamps
+#   step_evening_on_2: light.kitchen_table_light
+#   step_evening_on_3: light.andrew_desk_lamp
+#   #step_evening_on_4: light.office_ceiling_fan
+#   step_evening_on_7: light.guest_bedroom_nightstand_lamp
+#   step_evening_on_8: light.back_bedroom_nightstand_lamp
+#   step_evening_on_9: switch.master_bathroom_light_secondary
 
-  # Ensure all off late
-  step_dark_name: Dark
-  step_dark_start: "23:30:00"
-  step_dark_off_1: light.master_bedroom_lamps
-  step_dark_off_2: light.dining_room_light
-  step_dark_off_3: light.kitchen_table_light
-  step_dark_off_5: light.andrew_desk_lamp
-  step_dark_off_6: switch.master_bathroom_light_secondary
-  #step_dark_off_6: light.office_ceiling_fan
-  step_dark_off_7: light.guest_bedroom_nightstand_lamp
-  step_dark_off_8: light.back_bedroom_nightstand_lamp
+#   # Ensure all off late
+#   step_dark_name: Dark
+#   step_dark_start: "23:30:00"
+#   step_dark_off_1: light.master_bedroom_lamps
+#   step_dark_off_2: light.dining_room_light
+#   step_dark_off_3: light.kitchen_table_light
+#   step_dark_off_5: light.andrew_desk_lamp
+#   step_dark_off_6: switch.master_bathroom_light_secondary
+#   #step_dark_off_6: light.office_ceiling_fan
+#   step_dark_off_7: light.guest_bedroom_nightstand_lamp
+#   step_dark_off_8: light.back_bedroom_nightstand_lamp
 
 Garage Middle:
   module: follow_me
@@ -243,6 +239,12 @@ Master Closet Follow:
   class: Follow
   leader: switch.master_bathroom_light_main
   follower: switch.master_closet_light
+
+Dehumidifier Follow:
+  module: follow_me
+  class: Follow
+  leader: humidifier.151732606535142_humidifier
+  follower: fan.living_room_ceiling_fan
 
 #############
 # Christmas #
@@ -336,32 +338,12 @@ NAS:
 #   time_off: "18:00:00"
 #   constrain_person: anyone
 
-AC Filter Change:
-  module: countdown_notify
-  class: Notify
-  countdown_entity: sensor.ac_filter_change
-  notification_days: 0,-7,-14 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: False # An optional argument, if true we will continue to notify after 0
-  notify: pushover # The name of the notify service
-  message: "It's time to change the AC filter!"
-
-Andrew Vehicle:
-  module: countdown_notify
-  class: Notify
-  countdown_entity: sensor.andrew_vehicle_registration
-  notification_days: 7,0,-7,-14 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: False # An optional argument, if true we will continue to notify after 0
-  notify: pushover # The name of the notify service
-  message: "It's time to renew Andrew's vehicle registration!"
-
-Bethany Vehicle:
-  module: countdown_notify
-  class: Notify
-  countdown_entity: sensor.bethany_vehicle_registration
-  notification_days: 7,0,-7,-14 # A mandatory list of when to notify, can be 1 or more value, eg: 1,2,7,30
-  notify_overdue: False # An optional argument, if true we will continue to notify after 0
-  notify: pushover # The name of the notify service
-  message: "It's time to renew Bethany's vehicle registration!"
+Dehumidifer Guest Mode Follow:
+  module: follow_me
+  class: Follow
+  leader: input_boolean.guest_mode
+  follower: input_boolean.auto_dehumidifier
+  invert: True
 
 Garage Exterior Light at Night With Door:
   module: door_open
@@ -465,7 +447,7 @@ Guest Light Automation Sunset:
     - input_boolean.guest_mode
   constrain_person: anyone
   time_on: sunset - 00:20:00
-  entities: light.guest_bedroom_nightstand_lamp,light.back_bedroom_nightstand_lamp,light.back_bedroom_dresser_lamp
+  entities: light.back_bedroom_nightstand_lamp,light.back_bedroom_dresser_lamp #,light.guest_bedroom_nightstand_lamp
   brightness: 255
 
 # Cameras Smallgroup:
@@ -515,25 +497,27 @@ Front Porch Lights Sunset:
   brightness: 63
   #brightness: 25 # Christmas
 
-Plant Light:
-  module: entity_timer
-  class: Timer
-  time_on: sunrise 
-  time_off: sunset - 00:30:00
-  entities: switch.kmc_multi_plug_1_1
+###### Plant is outside RN
+# Plant Light:
+#   module: entity_timer
+#   class: Timer
+#   time_on: sunrise 
+#   time_off: sunset - 00:30:00
+#   entities: switch.kmc_multi_plug_1_1
 
-Plant Light Corner:
-  module: follow_me
-  class: Follow
-  leader: switch.kmc_multi_plug_1_1
-  follower: light.plant_light_corner
+# Plant Light Corner:
+#   module: follow_me
+#   class: Follow
+#   leader: switch.kmc_multi_plug_1_1
+#   follower: light.plant_light_corner
 
-# Sometimes the follow ^^ doesn't work. Ensure we turn off.
-Plant Light Corner Double:
-  module: entity_timer
-  class: Timer
-  time_off: sunset - 00:31:00
-  entities: light.plant_light_corner
+# # Sometimes the follow ^^ doesn't work. Ensure we turn off.
+# Plant Light Corner Double:
+#   module: entity_timer
+#   class: Timer
+#   time_off: sunset - 00:31:00
+#   entities: light.plant_light_corner
+###### Plant is outside RN
 
 Living Room Lamp Follow:
   module: follow_me
@@ -549,14 +533,14 @@ Door Notification and Occusim Security Follow:
   leader: input_boolean.security_status
   follower: input_boolean.door_notify #,input_boolean.occusim # only enable manually to preserve power
 
-TV Automation Smallgroup:
-  module: entity_timer
-  constrain_input_boolean:
-    - input_boolean.is_smallgroup
-  class: Timer
-  time_off: "18:00:00"
-  time_on: "22:00:00"
-  entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
+# TV Automation Smallgroup:
+#   module: entity_timer
+#   constrain_input_boolean:
+#     - input_boolean.is_smallgroup
+#   class: Timer
+#   time_off: "18:00:00"
+#   time_on: "22:00:00"
+#   entities: automation.turn_off_speakers_when_tv_or_xbox_powers_off
 
 # Candles Follow:
 #   module: follow_me

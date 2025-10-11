@@ -7,14 +7,14 @@ type: panel
 cards:
   - type: custom:sunsynk-power-flow-card
     cardstyle: compact
-    large_font: false
+    large_font: true
     show_solar: true
     panel_mode: true
     card_height: 100%
     inverter:
       modern: true
+      model: deye
       colour: "#959595"
-      autarky: no #default unneeded 
     solar:
       mppts: 2
       show_daily: true

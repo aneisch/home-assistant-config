@@ -8,6 +8,7 @@ class AutoAdjust(hass.Hass):
         self.register_endpoint(self.api_adjust_morning, "adjust_morning")
         self.register_endpoint(self.api_adjust_night, "adjust_night")
         self.register_endpoint(self.api_adjust_midnight, "adjust_midnight")
+        self.register_endpoint(self.api_evaluate_now, "evaluate_now")
 
         # Parse time strings
         self.morning_adjust_weekday = self.parse_time(self.args["morning_adjust_weekday"])
@@ -59,6 +60,17 @@ class AutoAdjust(hass.Hass):
         h, m, s = [int(x) for x in offset_str.strip("-").split(":")]
         return sign * (h * 3600 + m * 60 + s)
 
+    def get_sunset_today(self):
+        now = datetime.datetime.now()
+        next_sunset = self.sunset()  # always returns the next one (could be tomorrow)
+        prev_sunrise = self.sunrise()  # the most recent sunrise
+
+        # If the next sunset is more than 12h away, it's likely tomorrow's
+        if (next_sunset - now).total_seconds() > 12 * 3600:
+            # Compute yesterday's by subtracting one day
+            return next_sunset - datetime.timedelta(days=1)
+        return next_sunset
+
     def evaluate_boost_conditions(self):
         now = datetime.datetime.now()
         # Read offsets from args
@@ -73,23 +85,28 @@ class AutoAdjust(hass.Hass):
             return
 
         # Get today's sunset
-        sunset = self.sunset()
-        if sunset is None:
-            self.log("Sunset time unavailable", level="WARNING")
-            return
+        sunset = self.get_sunset_today()
 
         # Apply offsets (still datetime)
         start = sunset + datetime.timedelta(seconds=start_offset)
         end   = sunset + datetime.timedelta(seconds=end_offset)
+        self.log(f"{now} - {start} - {end}")
+
+        # Check EV Charging
+        try:
+            ev_is_charging = self.get_state("switch.emporia_charger", attribute='status') == "Charging"
+        except:
+            ev_is_charging = False
 
         # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
-        #self.log(f"Start: {start} - End: {end} - Sunset: {sunset}")
-        if not (start <= now <= end) or not self.grid_online():
-            self.log("Rule 0.1")
+        # If grid outage --> Deactivate boost immediately 
+        # If EV charging --> Deactivate immediately
+        if not (start <= now <= end) or not self.grid_online() or ev_is_charging:
+            self.log(f"Rule 0.1 - In Window: {start <= now <= end} - Grid On: {self.grid_online()} - EV Charging: {ev_is_charging}")
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})
-                self.log("Boost deactivated: outside allowed window or grid offline")
+                self.log("Boost deactivated: outside allowed window, grid offline, or EV charging")
             return
 
         # Rule 0.2: Allow disabling the feature by boolean
@@ -114,7 +131,7 @@ class AutoAdjust(hass.Hass):
             return
 
         # Adjust load depending on AC state
-        if grid_power < -100:  # exporting
+        if grid_power < -500:  # exporting
             self.log("Rule 1")
             if ac_running:
                 self.log("Rule 1.1")
@@ -164,7 +181,7 @@ class AutoAdjust(hass.Hass):
             else:
                 # Delay OFF
                 self.log(f"Boost Deactivation Scheduled")
-                self.boost_debounce_handle = self.run_in(self.commit_boost_change, 300)  # 5 minutes
+                self.boost_debounce_handle = self.run_in(self.commit_boost_change, 150)  # 2.5 minutes
 
     def commit_boost_change(self, kwargs):
         self.log("evaluating")
@@ -217,36 +234,48 @@ class AutoAdjust(hass.Hass):
         tracker_state = self.get_state(self.args["device_tracker"])
         mode = self.get_state("sensor.thermostat_operating_mode").lower()
         guest_mode = self.get_state("input_boolean.guest_mode") == "on"
-        
         occupied = tracker_state == "home" or guest_mode or force
 
         if mode == "off":
             return
 
-        # Set unoccupied if grid outage
+        # If grid is offline, always fall back to unoccupied temps
         if not self.grid_online():
             if mode == "heat":
-                temp = self.args["heat_unoccupied"]
-            else:  # cool
-                temp = self.args["cool_unoccupied"]
+                temp = self.args.get("guest_heat_unoccupied" if guest_mode else "heat_unoccupied")
+            else:
+                temp = self.args.get("guest_cool_unoccupied" if guest_mode else "cool_unoccupied")
             self.log(f"Grid offline, forcing unoccupied temp: {temp} ({mode})")
             self.run_in(self.adjust_temp, 1, temp=temp)
             return
 
+        # --- HEAT MODE ---
         if mode == "heat":
-            temp = self.args[f"heat_{label}"] if occupied else self.args["heat_unoccupied"]
+            prefix = "guest_heat_" if guest_mode else "heat_"
+            if occupied:
+                temp = self.args.get(f"{prefix}{label}", self.args[f"heat_{label}"])
+            else:
+                temp = self.args.get(f"{prefix}unoccupied", self.args["heat_unoccupied"])
 
-        # Handle cool mode, including boost mode for occupied and unoccupied
+        # --- COOL MODE ---
         elif mode == "cool":
+            prefix = "guest_cool_" if guest_mode else "cool_"
+
             if self.boost_active and label == "morning":
                 if occupied:
-                    temp = int(self.args[f"cool_{label}"]) - int(self.args.get("cool_boost_offset"))
+                    base_temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"])
+                    temp = int(base_temp) - int(self.args.get("cool_boost_offset", 0))
                 else:
-                    temp = int(self.args["cool_unoccupied"]) - int(self.args.get("cool_boost_unoccupied_offset"))
+                    base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
+                    temp = int(base_temp) - int(self.args.get("cool_boost_unoccupied_offset", 0))
             else:
-                temp = self.args[f"cool_{label}"] if occupied else self.args["cool_unoccupied"]
+                temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"]) if occupied \
+                    else self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
 
-        self.log(f"Adjust period: '{mode}_{label if occupied else 'unoccupied'}' Mode: '{mode}' Temperature: '{temp}' Boost: '{self.boost_active}'")
+        self.log(
+            f"Adjust period: '{mode}_{label if occupied else 'unoccupied'}' "
+            f"Mode: '{mode}' Temp: '{temp}' Boost: '{self.boost_active}' Guest: {guest_mode}"
+        )
         self.run_in(self.adjust_temp, 1, temp=temp)
 
     # API-compliant wrappers
@@ -276,4 +305,18 @@ class AutoAdjust(hass.Hass):
 
     def api_adjust_midnight(self, *args, **kwargs):
         self.adjust_midnight(force=True)
+        return "OK", 200
+
+    def api_evaluate_now(self, *args, **kwargs):
+        """Force re-evaluation of current occupancy/time period conditions."""
+        now = datetime.datetime.now().time()
+        self.log("API: Forced evaluation of current period")
+
+        if self.time_in_range(self.midnight_adjust, self.morning_adjust_weekday, now):
+            self._adjust_period("midnight", force=True)
+        elif self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, now):
+            self._adjust_period("morning", force=True)
+        else:
+            self._adjust_period("night", force=True)
+
         return "OK", 200

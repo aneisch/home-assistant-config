@@ -47,29 +47,70 @@ automation:
         data:
           value: "{{ states('sensor.solar_power_max_today_live') | float(0) }}"
 
-  - alias: Sol-Ark TOU Override on Grid Outage
-    mode: single
+  - alias: Sol-Ark Overrides on Grid Outage
+    id: "solark_grid_outage"
+    mode: restart
     trigger:
       - platform: state
         entity_id: binary_sensor.solark_sol_ark_grid_connected_status
         to: "off"
     action:
       - variables:
-          previous_schedule: "{{ states('select.solark_sol_ark_tou_schedule') }}"
-      - service: select.select_option
-        target:
-          entity_id: select.solark_sol_ark_tou_schedule
-        data:
-          option: "Grid Outage"
+          timeout_minutes: >
+            {% if states('sensor.solark_sol_ark_battery_soc')|int >= 70 %}
+              240          
+            {% elif states('sensor.solark_sol_ark_battery_soc')|int >= 50 %}
+              180
+            {% elif states('sensor.solark_sol_ark_battery_soc')|int >= 30 %}
+              150
+            {% elif states('sensor.solark_sol_ark_battery_soc')|int >= 20 %}
+              30
+            {% else %}
+              6
+            {% endif %}
       - wait_for_trigger:
           - platform: state
             entity_id: binary_sensor.solark_sol_ark_grid_connected_status
             to: "on"
-      - service: select.select_option
-        target:
-          entity_id: select.solark_sol_ark_tou_schedule
+        timeout: 
+          minutes: "{{ timeout_minutes }}"
+        continue_on_timeout: true
+      - if: "{{ is_state('binary_sensor.solark_sol_ark_grid_connected_status','off') }}"
+        then:
+          - variables:
+              previous_climate_mode: "{{ states('climate.thermostat') }}"
+          - service: script.notify_wrapper
+            data:
+              message: "Turned HVAC off due to extended grid outage"
+          - service: climate.set_hvac_mode
+            target:
+              entity_id: climate.thermostat
+            data:
+              hvac_mode: "off"
+          - wait_for_trigger:
+              - platform: state
+                entity_id: binary_sensor.solark_sol_ark_grid_connected_status
+                to: "on"
+          - service: climate.set_hvac_mode
+            target:
+              entity_id: climate.thermostat
+            data:
+              hvac_mode: "{{ previous_climate_mode }}"
+          - service: rest_command.adjust_force_eval
+
+  - alias: Home Battery Charged Notification
+    id: home_battery_charged_notification
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.solark_sol_ark_battery_soc
+        above: 97
+    action:
+      - action: notify.alexa_media_kitchen
         data:
-          option: "{{ previous_schedule }}"
+          data:
+            type: tts
+            method: speak
+          message: <audio src="soundbank://soundlibrary/alarms/chimes_and_bells/chimes_bells_04"/>
 
 template:
   - trigger:
@@ -100,6 +141,12 @@ template:
             {% set prev = (this.state | float(0)) if this.state not in ['unknown','unavailable','none'] else 0 %}
             {{ [prev, current] | max }}
           {% endif %}
+  - sensor:
+      - name: "SolArk L1_L2_abs_diff"
+        unit_of_measurement: "V"
+        state: >
+          {{ (states('sensor.solark_sol_ark_grid_l1_voltage')|float(0) - states('sensor.solark_sol_ark_grid_l2_voltage')|float(0)) | abs | round(3) }}
+
 
 input_number:
   day_solar_power_peak:

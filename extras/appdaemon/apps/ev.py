@@ -23,11 +23,12 @@ class SolarEVCharger(hass.Hass):
             "charge_limit": "number.tesla_ble_charging_limit",
             "target_soc": "input_number.tesla_solar_target_soc_limit",
             "vehicle_soc": "sensor.tesla_battery_level",
-            "override_boolean": "input_boolean.ev_charge_override"
+            "override_boolean": "input_boolean.ev_charge_override",
+            "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status"
         }
 
         # Listen to changes
-        for sensor in ["solar", "home_soc", "load", "target_soc"]:
+        for sensor in ["solar", "home_soc", "load", "target_soc", "grid_status"]:
             self.listen_state(self.evaluate_charging, self.entities[sensor])
 
         # Safe startup
@@ -35,15 +36,30 @@ class SolarEVCharger(hass.Hass):
         self.log("SolarEVCharger initialized")
 
     def evaluate_charging(self, entity, attribute, old, new, kwargs):
+        #details = self.get_state("person", namespace=None, copy=True)
+        #self.log(any(state['state'] == 'home' for state in details.values()))
+        #self.log("Eval called")
+        # Disable all charging if grid outage
+        if entity == "binary_sensor.solark_sol_ark_grid_connected_status":
+            if old == "on" and new == "off":
+                self.turn_off("switch.emporia_charger")
+                self.log("Turned off switch.emporia_charger due to grid outage")
+            # if old == "off" and new == "on":
+            #     self.turn_off("switch.emporia_charger")
+            #     self.log("Turned on switch.emporia_charger due to grid outage")
+
         # Allow manual override
         if self.get_state(self.entities["override_boolean"]) == "on":
+            self.log("Overridden")
+
             return
 
         if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
-            #self.log("No Vehicle Connected")
+            self.log("No Vehicle Connected")
             return
 
         if self.eval_locked:
+            self.log("Eval Locked")
             return
 
         try:
@@ -57,17 +73,22 @@ class SolarEVCharger(hass.Hass):
             self.log(f"Invalid sensor reading: {e}", level="WARNING")
             return
 
-        #self.log(f"{home_soc} {vehicle_soc} {solar_watts} {load_watts} {present_rate} {target_soc}")
-
         # Block charging if battery too low or vehicle full
         if home_soc < self.min_home_soc:
             self.set_charge_rate(self.min_amps, disable=True)
+            return
+
+        # Don't bother evaluating if we are charged already
+        if vehicle_soc >= target_soc:
+            self.log("Already fully charged")
             return
 
         # Compute available amps from solar
         ev_power = present_rate * self.volts
         excess_watts = max(0, solar_watts - (load_watts - ev_power) - self.buffer_watts)
         target_amps = max(self.min_amps, min(self.max_amps, excess_watts // self.volts))
+
+        self.log(f"Home: {home_soc}% -- Solar: {solar_watts}W -- Load: {load_watts}W -- Vehicle: {vehicle_soc} --> {target_soc} -- Rate: {present_rate} --> {target_amps}")
 
         if target_amps > self.min_amps:
             self.set_charge_rate(target_amps)

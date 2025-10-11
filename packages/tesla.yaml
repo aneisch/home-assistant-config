@@ -16,11 +16,10 @@ input_number:
     mode: slider  # or 'box' if you want a number input box instead
     unit_of_measurement: "%"  
 
-
 mqtt:
   - sensor:
       name: Tesla Display Name
-      object_id: tesla_display_name # entity_id
+      default_entity_id: tesla_display_name # entity_id
       unique_id: teslamate_1_display_name # internal id, used for device grouping
       availability: &teslamate_availability
         - topic: teslamate/cars/1/healthy
@@ -37,7 +36,7 @@ mqtt:
 
   - device_tracker:
       name: Tesla Location
-      object_id: tesla_location
+      default_entity_id: tesla_location
       unique_id: teslamate_1_location
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -46,7 +45,7 @@ mqtt:
       
   - device_tracker:
       name: Tesla Active route location
-      object_id: tesla_active_route_location
+      default_entity_id: tesla_active_route_location
       unique_id: teslamate_1_active_route_location
       availability: &teslamate_active_route_availability
         - topic: "teslamate/cars/1/active_route"
@@ -58,7 +57,7 @@ mqtt:
 
   - sensor:
       name: Tesla State
-      object_id: tesla_state
+      default_entity_id: tesla_state
       unique_id: teslamate_1_state
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -67,7 +66,7 @@ mqtt:
 
   - sensor:
       name: Tesla Since
-      object_id: tesla_since
+      default_entity_id: tesla_since
       unique_id: teslamate_1_since
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -77,7 +76,7 @@ mqtt:
 
   - sensor:
       name: Tesla Version
-      object_id: tesla_version
+      default_entity_id: tesla_version
       unique_id: teslamate_1_version
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -86,7 +85,7 @@ mqtt:
 
   - sensor:
       name: Tesla Update Version
-      object_id: tesla_update_version
+      default_entity_id: tesla_update_version
       unique_id: teslamate_1_update_version
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -95,7 +94,7 @@ mqtt:
 
   - sensor:
       name: Tesla Geofence
-      object_id: tesla_geofence
+      default_entity_id: tesla_geofence
       unique_id: teslamate_1_geofence
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -104,7 +103,7 @@ mqtt:
 
   - sensor:
       name: Tesla Shift State
-      object_id: tesla_shift_state
+      default_entity_id: tesla_shift_state
       unique_id: teslamate_1_shift_state
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -113,7 +112,7 @@ mqtt:
 
   - sensor:
       name: Tesla Power
-      object_id: tesla_power
+      default_entity_id: tesla_power
       unique_id: teslamate_1_power
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -124,7 +123,7 @@ mqtt:
 
   - sensor:
       name: Tesla Speed
-      object_id: tesla_speed
+      default_entity_id: tesla_speed
       unique_id: teslamate_1_speed
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -135,7 +134,7 @@ mqtt:
 
 #   - sensor:
 #       name: Tesla Heading
-#       object_id: tesla_heading
+#       default_entity_id: tesla_heading
 #       unique_id: teslamate_1_heading
 #       availability: *teslamate_availability
 #       device: *teslamate_device_info
@@ -145,7 +144,7 @@ mqtt:
 
   - sensor:
       name: Tesla Elevation
-      object_id: tesla_elevation
+      default_entity_id: tesla_elevation
       unique_id: teslamate_1_elevation
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -156,7 +155,7 @@ mqtt:
 
   - sensor:
       name: Tesla Inside Temp
-      object_id: tesla_inside_temp
+      default_entity_id: tesla_inside_temp
       unique_id: teslamate_1_inside_temp
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -167,7 +166,7 @@ mqtt:
 
   - sensor:
       name: Tesla Outside Temp
-      object_id: tesla_outside_temp
+      default_entity_id: tesla_outside_temp
       unique_id: teslamate_1_outside_temp
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -178,7 +177,7 @@ mqtt:
 
   - sensor:
       name: Tesla Odometer
-      object_id: tesla_odometer
+      default_entity_id: tesla_odometer
       unique_id: teslamate_1_odometer
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -189,7 +188,7 @@ mqtt:
 
   - sensor:
       name: Tesla Est Battery Range
-      object_id: tesla_est_battery_range
+      default_entity_id: tesla_est_battery_range
       unique_id: teslamate_1_est_battery_range
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -200,7 +199,7 @@ mqtt:
 
   - sensor:
       name: Tesla Rated Battery Range
-      object_id: tesla_rated_battery_range
+      default_entity_id: tesla_rated_battery_range
       unique_id: teslamate_1_rated_battery_range
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -211,7 +210,7 @@ mqtt:
 
   - sensor:
       name: Tesla Ideal Battery Range
-      object_id: tesla_ideal_battery_range
+      default_entity_id: tesla_ideal_battery_range
       unique_id: teslamate_1_ideal_battery_range
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -222,7 +221,7 @@ mqtt:
 
   - sensor:
       name: Tesla Battery Level
-      object_id: tesla_battery_level
+      default_entity_id: tesla_battery_level
       unique_id: teslamate_1_battery_level
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -233,7 +232,7 @@ mqtt:
       
   - sensor:
       name: Tesla Usable Battery Level
-      object_id: tesla_usable_battery_level
+      default_entity_id: tesla_usable_battery_level
       unique_id: teslamate_1_usable_battery_level
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -243,7 +242,7 @@ mqtt:
 
   - sensor:
       name: Tesla Charge Energy Added
-      object_id: tesla_charge_energy_added
+      default_entity_id: tesla_charge_energy_added
       unique_id: teslamate_1_charge_energy_added
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -254,7 +253,7 @@ mqtt:
 
   - sensor:
       name: Tesla Charge Limit Soc
-      object_id: tesla_charge_limit_soc
+      default_entity_id: tesla_charge_limit_soc
       unique_id: teslamate_1_charge_limit_soc
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -264,7 +263,7 @@ mqtt:
 
   - sensor:
       name: Tesla Charger Actual Current
-      object_id: tesla_charger_actual_current
+      default_entity_id: tesla_charger_actual_current
       unique_id: teslamate_1_charger_actual_current
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -275,7 +274,7 @@ mqtt:
 
   # - sensor:
   #     name: Tesla Charger Phases
-  #     object_id: tesla_charger_phases
+  #     default_entity_id: tesla_charger_phases
   #     unique_id: teslamate_1_charger_phases
   #     availability: *teslamate_availability
   #     device: *teslamate_device_info
@@ -284,7 +283,7 @@ mqtt:
 
   - sensor:
       name: Tesla Charger Power
-      object_id: tesla_charger_power
+      default_entity_id: tesla_charger_power
       unique_id: teslamate_1_charger_power
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -295,7 +294,7 @@ mqtt:
 
   - sensor:
       name: Tesla Charger Voltage
-      object_id: tesla_charger_voltage
+      default_entity_id: tesla_charger_voltage
       unique_id: teslamate_1_charger_voltage
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -306,7 +305,7 @@ mqtt:
 
   - sensor:
       name: Tesla Scheduled Charging Start Time
-      object_id: tesla_scheduled_charging_start_time
+      default_entity_id: tesla_scheduled_charging_start_time
       unique_id: teslamate_1_scheduled_charging_start_time
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -316,7 +315,7 @@ mqtt:
 
   - sensor:
       name: Tesla Time To Full Charge
-      object_id: tesla_time_to_full_charge
+      default_entity_id: tesla_time_to_full_charge
       unique_id: teslamate_1_time_to_full_charge
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -326,7 +325,7 @@ mqtt:
 
   - sensor:
       name: Tesla TPMS Pressure Front Left
-      object_id: tesla_tpms_pressure_fl
+      default_entity_id: tesla_tpms_pressure_fl
       unique_id: teslamate_1_tpms_pressure_fl
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -337,7 +336,7 @@ mqtt:
 
   - sensor:
       name: Tesla TPMS Pressure Front Right
-      object_id: tesla_tpms_pressure_fr
+      default_entity_id: tesla_tpms_pressure_fr
       unique_id: teslamate_1_tpms_pressure_fr
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -348,7 +347,7 @@ mqtt:
 
   - sensor:
       name: Tesla TPMS Pressure Rear Left
-      object_id: tesla_tpms_pressure_rl
+      default_entity_id: tesla_tpms_pressure_rl
       unique_id: teslamate_1_tpms_pressure_rl
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -359,7 +358,7 @@ mqtt:
 
   - sensor:
       name: Tesla TPMS Pressure Rear Right
-      object_id: tesla_tpms_pressure_rr
+      default_entity_id: tesla_tpms_pressure_rr
       unique_id: teslamate_1_tpms_pressure_rr
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -370,7 +369,7 @@ mqtt:
 
   - sensor:
       name: Tesla Active route destination
-      object_id: tesla_active_route_destination
+      default_entity_id: tesla_active_route_destination
       unique_id: teslamate_1_active_route_destination
       availability: *teslamate_active_route_availability
       device: *teslamate_device_info
@@ -380,7 +379,7 @@ mqtt:
 
   - sensor:
       name: Tesla Active route energy at arrival
-      object_id: tesla_active_route_energy_at_arrival
+      default_entity_id: tesla_active_route_energy_at_arrival
       unique_id: teslamate_1_active_route_energy_at_arrival
       availability: *teslamate_active_route_availability
       device: *teslamate_device_info
@@ -391,7 +390,7 @@ mqtt:
 
   - sensor:
       name: Tesla Active route distance to arrival (mi)
-      object_id: tesla_active_route_distance_to_arrival_mi
+      default_entity_id: tesla_active_route_distance_to_arrival_mi
       unique_id: teslamate_1_active_route_distance_to_arrival_mi
       availability: *teslamate_active_route_availability
       device: *teslamate_device_info
@@ -402,7 +401,7 @@ mqtt:
 
   - sensor:
       name: Tesla Active route minutes to arrival
-      object_id: tesla_active_route_minutes_to_arrival
+      default_entity_id: tesla_active_route_minutes_to_arrival
       unique_id: teslamate_1_active_route_minutes_to_arrival
       availability: *teslamate_active_route_availability
       device: *teslamate_device_info
@@ -413,7 +412,7 @@ mqtt:
 
   - sensor:
       name: Tesla Active route traffic minutes delay
-      object_id: tesla_active_route_traffic_minutes_delay
+      default_entity_id: tesla_active_route_traffic_minutes_delay
       unique_id: teslamate_1_active_route_traffic_minutes_delay
       availability: *teslamate_active_route_availability
       device: *teslamate_device_info
@@ -424,7 +423,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Healthy
-      object_id: tesla_healthy
+      default_entity_id: tesla_healthy
       unique_id: teslamate_1_healthy
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -435,7 +434,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Update Available
-      object_id: tesla_update_available
+      default_entity_id: tesla_update_available
       unique_id: teslamate_1_update_available
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -446,7 +445,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Locked
-      object_id: tesla_locked
+      default_entity_id: tesla_locked
       unique_id: teslamate_1_locked
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -457,7 +456,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Sentry Mode
-      object_id: tesla_sentry_mode
+      default_entity_id: tesla_sentry_mode
       unique_id: teslamate_1_sentry_mode
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -468,7 +467,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Windows Open
-      object_id: tesla_windows_open
+      default_entity_id: tesla_windows_open
       unique_id: teslamate_1_windows_open
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -480,7 +479,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Doors Open
-      object_id: tesla_doors_open
+      default_entity_id: tesla_doors_open
       unique_id: teslamate_1_doors_open
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -492,7 +491,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Trunk Open
-      object_id: tesla_trunk_open
+      default_entity_id: tesla_trunk_open
       unique_id: teslamate_1_trunk_open
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -504,7 +503,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Frunk Open
-      object_id: tesla_frunk_open
+      default_entity_id: tesla_frunk_open
       unique_id: teslamate_1_frunk_open
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -516,7 +515,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Is User Present
-      object_id: tesla_is_user_present
+      default_entity_id: tesla_is_user_present
       unique_id: teslamate_1_is_user_present
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -528,7 +527,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Is Climate On
-      object_id: tesla_is_climate_on
+      default_entity_id: tesla_is_climate_on
       unique_id: teslamate_1_is_climate_on
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -539,7 +538,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Is Preconditioning
-      object_id: tesla_is_preconditioning
+      default_entity_id: tesla_is_preconditioning
       unique_id: teslamate_1_is_preconditioning
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -550,7 +549,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Plugged In
-      object_id: tesla_plugged_in
+      default_entity_id: tesla_plugged_in
       unique_id: teslamate_1_plugged_in
       availability: *teslamate_availability
       device: *teslamate_device_info
@@ -562,7 +561,7 @@ mqtt:
 
   - binary_sensor:
       name: Tesla Charge Port Door OPEN
-      object_id: tesla_charge_port_door_open
+      default_entity_id: tesla_charge_port_door_open
       unique_id: teslamate_1_charge_port_door_open
       availability: *teslamate_availability
       device: *teslamate_device_info

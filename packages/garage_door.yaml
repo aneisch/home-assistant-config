@@ -45,19 +45,20 @@ automation:
 
   - alias: "Turn off Garage Lights"
     id: "garge_lights_off"
+    mode: restart
     trigger:
       - platform: state
-        alias: "Garage No Person 15min"
+        alias: "Garage No Person 10min"
         entity_id: binary_sensor.garage_person_occupancy
         from: "on"
         to: "off"
-        for: "00:15:00"
+        for: "00:10:00"
       - platform: state
         alias: "Garage No Motion 15min"
         entity_id: binary_sensor.garage_motion
         from: "on"
         to: "off"
-        for: "00:15:00"
+        for: "00:05:00"
       # Garage Switch Off Pressed
       - device_id: b9432c1a74b8179151d0fb0688baac05
         alias: "Garage Switch"
@@ -70,7 +71,6 @@ automation:
         subtype: Endpoint 0 Scene 001
         trigger: device
         value: 0
-    #condition: "{{ states('switch.garage_lights') == 'on' }}"
     action:
       action: homeassistant.turn_off
       entity_id: 
@@ -78,6 +78,7 @@ automation:
         - switch.garage_center_leds
 
   - alias: Turn off garage LEDs when doors close
+    mode: restart
     trigger:
       - platform: state
         entity_id: cover.garage_door
@@ -86,13 +87,13 @@ automation:
         entity_id: binary_sensor.garage_interior_door
         to: 'off'
     action:
-      - delay: "00:00:10"
+      - delay: "00:15:00"
       - if: "{{ is_state('binary_sensor.garage_person_occupancy', 'off')}}"
         then:
-          - service: switch.turn_off
-            target:
-              entity_id: switch.garage_center_leds
-
+          - action: homeassistant.turn_off
+            entity_id: 
+              - switch.garage_lights
+              - switch.garage_center_leds
 
   - alias: "Change entry switch LEDs based on garage door state"
     id: "garage_opened_switch_leds"

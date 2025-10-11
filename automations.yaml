@@ -663,12 +663,12 @@
       message: '{{ trigger.json.message }}'
 - id: update_utility_costs
   alias: Update Utility Costs
-  trigger:
-  - platform: time_pattern
-    hours: /12
-  - platform: time
-    at: '23:59:30'
-  action:
+  triggers:
+  - trigger: time_pattern
+    minutes: '10'
+  - at: '23:59:30'
+    trigger: time
+  actions:
   - action: python_script.compute_utility_costs
     data:
       meter_entity: sensor.water_usage
@@ -677,6 +677,10 @@
     action: python_script.compute_utility_costs
     data:
       meter_entity: sensor.electricity_usage
+  - alias: Electricity Credit
+    action: python_script.compute_utility_costs
+    data:
+      meter_entity: sensor.electricity_sell
   mode: single
 - id: reset_utility_meters
   alias: Reset Utility Meters
@@ -693,6 +697,14 @@
   - action: python_script.utility_meter_reset
     data:
       meter_entity: sensor.electricity_usage
+      cycle_reset_entity_id: sensor.utilities_cycle_end
+  - action: python_script.utility_meter_reset
+    data:
+      meter_entity: sensor.electricity_sell
+      cycle_reset_entity_id: sensor.utilities_cycle_end
+  - action: python_script.utility_meter_reset
+    data:
+      meter_entity: sensor.electricity_sell_offset
       cycle_reset_entity_id: sensor.utilities_cycle_end
 - alias: Update USPS Mail Camera Path on Hass Restart
   id: usps_mail_path_update
@@ -717,17 +729,18 @@
   - condition: template
     value_template: '{{ states(''sensor.fingerprint_last_finger_id'') in [''1.0'',''2.0'']
       }}'
+    enabled: false
   actions:
+  - action: script.notify_wrapper
+    data:
+      message: Tesla unlocked and started by {% if states('sensor.fingerprint_last_finger_id')
+        in ['1.0','2.0'] %}Andrew{% elif states('sensor.fingerprint_last_finger_id')
+        == '3.0' %}Bethany{% else %}Unknown{% endif %}!
+    enabled: true
   - action: lock.unlock
     data: {}
     target:
       entity_id: lock.tesla
-  - action: script.notify_wrapper
-    data:
-      message: Front door unlocked by {% if states('sensor.fingerprint_last_finger_id')
-        == '1' %}Andrew right index{% elif states('sensor.fingerprint_last_finger_id')
-        == '2' %}Andrew left index{% else %}Unknown{% endif %}!
-    enabled: false
   - action: button.press
     metadata: {}
     data: {}
@@ -1318,6 +1331,7 @@
     - condition: numeric_state
       entity_id: sensor.solark_sol_ark_solar_power
       above: 5000
+      enabled: false
     then:
     - data:
         target:
@@ -1328,4 +1342,30 @@
         data:
           type: announce
       action: notify.alexa_media
+  mode: single
+- id: '1760050617150'
+  alias: Receive Guests While Away
+  description: ''
+  triggers:
+  - trigger: time
+    at: 08:00:00
+  conditions:
+  - alias: October 17
+    condition: template
+    value_template: '{{ now().month == 10 and now().day == 17 }}'
+  actions:
+  - alias: Turn Things Off
+    action: homeassistant.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+      - input_boolean.security_status
+      - input_boolean.ac_boost_feature_evaluation
+  - action: homeassistant.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id: input_boolean.guest_mode
+    alias: Turn on Guest Mode
   mode: single

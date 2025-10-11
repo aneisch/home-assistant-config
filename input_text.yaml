@@ -1,12 +1,11 @@
-# 01/24/2024
-# electricity_cost_monthly:
-#   name: "Electricity Cost"
-
 electricity_cost_monthly_tesla:
   name: "Tesla Electricity Cost"
 
-electricity_cost_monthly_emporia:
+electricity_cost_monthly:
   name: "Electricity Cost"
+
+electricity_sell_monthly:
+  name: "Electricity Credit"
 
 water_cost_monthly:
   name: "Water Cost"

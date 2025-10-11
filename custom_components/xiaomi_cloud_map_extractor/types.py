@@ -1,9 +1,15 @@
-from typing import Any, Dict, List, Tuple, Union
+from __future__ import annotations
 
-Color = Union[Tuple[int, int, int], Tuple[int, int, int, int]]
-Colors = Dict[str, Color]
-Drawables = List[str]
-Texts = List[Any]
-Sizes = Dict[str, float]
-ImageConfig = Dict[str, Any]
-CalibrationPoints = List[Dict[str, Dict[str, Union[float, int]]]]
+from dataclasses import dataclass
+
+from homeassistant.config_entries import ConfigEntry
+
+from .coordinator import XiaomiCloudMapExtractorDataUpdateCoordinator
+
+
+@dataclass
+class XiaomiCloudMapExtractorRuntimeData:
+    coordinator: XiaomiCloudMapExtractorDataUpdateCoordinator
+
+
+type XiaomiCloudMapExtractorConfigEntry = ConfigEntry[XiaomiCloudMapExtractorRuntimeData]
