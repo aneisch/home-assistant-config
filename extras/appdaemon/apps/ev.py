@@ -11,8 +11,9 @@ class SolarEVCharger(hass.Hass):
         self.cooldown = int(self.args.get("cooldown", 15))  # seconds
 
         # State
-        self.eval_locked = False
+        self.eval_locked = True
         self.notify_handler = None
+        self.emporia_status = None
 
         # Entities
         self.entities = {
@@ -32,26 +33,27 @@ class SolarEVCharger(hass.Hass):
             self.listen_state(self.evaluate_charging, self.entities[sensor])
 
         # Safe startup
-        self.set_charge_rate(self.min_amps, disable=True)
+        #self.set_charge_rate(self.min_amps, disable=True) # not sure why this was in place. Removed
         self.log("SolarEVCharger initialized")
 
     def evaluate_charging(self, entity, attribute, old, new, kwargs):
-        #details = self.get_state("person", namespace=None, copy=True)
-        #self.log(any(state['state'] == 'home' for state in details.values()))
-        #self.log("Eval called")
-        # Disable all charging if grid outage
+        # Disable all charging if grid outage, regardless if EV charge intelligence on
         if entity == "binary_sensor.solark_sol_ark_grid_connected_status":
             if old == "on" and new == "off":
+                self.emporia_prior_status = self.get_state("switch.emporia_charger")
                 self.turn_off("switch.emporia_charger")
                 self.log("Turned off switch.emporia_charger due to grid outage")
-            # if old == "off" and new == "on":
-            #     self.turn_off("switch.emporia_charger")
-            #     self.log("Turned on switch.emporia_charger due to grid outage")
+
+            if old == "off" and new == "on":
+                if self.emporia_prior_status == "on":
+                    self.turn_on("switch.emporia_charger")
+                    self.log("Turned on switch.emporia_charger due to grid restoration")
+                else:
+                    self.log(f"switch.emporia_charger not turned back on with grid restoration due to previous state [{self.emporia_prior_status}]")
 
         # Allow manual override
         if self.get_state(self.entities["override_boolean"]) == "on":
             self.log("Overridden")
-
             return
 
         if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
