@@ -167,7 +167,7 @@ services:
             - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
             - MQTT_SERVER=10.0.1.22
             - TZ=America/Chicago
-            - LOG_LEVEL=INFO
+            - LOG_LEVEL=DEBUG
         depends_on:
             - mosquitto
         labels:

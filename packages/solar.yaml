@@ -2,6 +2,7 @@ automation:
   # Nightly Grid Data to Google Sheet
   # Long term daily statistics, ROI, etc are calculated here
   - alias: Log Solar Data to Google Sheets
+    id: "google_sheet_solar_update"
     trigger:
       - platform: time
         at: "23:58:00"

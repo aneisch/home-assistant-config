@@ -49,6 +49,7 @@ AC Automation Solar:
   solar_boost_threshold: 700
   battery_boost_threshold: 98       # battery SOC for boost activation
   cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
+  cool_boost_offset_guest: 5
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
   cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
   cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
@@ -176,38 +177,38 @@ Minimote Non-Morning:
   scene_7_toggle: light.master_bedroom_lamps
   #scene_8_on: script.appdaemon_ac_night
 
-# Occupancy Simulator:
-#   module: occusim
-#   class: OccuSim
-#   enable: input_boolean.occusim
-#   reset_time: 02:00:00
-#   dump_times: "1"
-#   log_msg: "1"
-#   step_evening_name: Evening
-#   step_evening_start: sunset - 00:30:00
-#   # step_night_name: Night
-#   # step_night_start: "23:59:59"
+Occupancy Simulator:
+  module: occusim
+  class: OccuSim
+  enable: input_boolean.occusim
+  reset_time: 02:00:00
+  dump_times: "1"
+  log_msg: "1"
+  step_evening_name: Evening
+  step_evening_start: sunset
+  # step_night_name: Night
+  # step_night_start: "23:59:59"
 
-#   # Turn on some devices in the evening
-#   step_evening_on_1: light.master_bedroom_lamps
-#   step_evening_on_2: light.kitchen_table_light
-#   step_evening_on_3: light.andrew_desk_lamp
-#   #step_evening_on_4: light.office_ceiling_fan
-#   step_evening_on_7: light.guest_bedroom_nightstand_lamp
-#   step_evening_on_8: light.back_bedroom_nightstand_lamp
-#   step_evening_on_9: switch.master_bathroom_light_secondary
+  # Turn on some devices in the evening
+  step_evening_on_1: light.master_bedroom_lamps
+  step_evening_on_2: light.kitchen_table_light
+  step_evening_on_3: light.andrew_desk_lamp
+  #step_evening_on_4: light.office_ceiling_fan
+  step_evening_on_7: light.guest_bedroom_nightstand_lamp
+  step_evening_on_8: light.back_bedroom_nightstand_lamp
+  step_evening_on_9: switch.master_bathroom_light_secondary
 
-#   # Ensure all off late
-#   step_dark_name: Dark
-#   step_dark_start: "23:30:00"
-#   step_dark_off_1: light.master_bedroom_lamps
-#   step_dark_off_2: light.dining_room_light
-#   step_dark_off_3: light.kitchen_table_light
-#   step_dark_off_5: light.andrew_desk_lamp
-#   step_dark_off_6: switch.master_bathroom_light_secondary
-#   #step_dark_off_6: light.office_ceiling_fan
-#   step_dark_off_7: light.guest_bedroom_nightstand_lamp
-#   step_dark_off_8: light.back_bedroom_nightstand_lamp
+  # Ensure all off late
+  step_dark_name: Dark
+  step_dark_start: "23:30:00"
+  step_dark_off_1: light.master_bedroom_lamps
+  #step_dark_off_2: light.dining_room_light
+  step_dark_off_3: light.kitchen_table_light
+  step_dark_off_5: light.andrew_desk_lamp
+  step_dark_off_6: switch.master_bathroom_light_secondary
+  #step_dark_off_6: light.office_ceiling_fan
+  step_dark_off_7: light.guest_bedroom_nightstand_lamp
+  step_dark_off_8: light.back_bedroom_nightstand_lamp
 
 Garage Middle:
   module: follow_me
@@ -531,7 +532,7 @@ Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
   leader: input_boolean.security_status
-  follower: input_boolean.door_notify #,input_boolean.occusim # only enable manually to preserve power
+  follower: input_boolean.door_notify, input_boolean.occusim # only enable manually to preserve power
 
 # TV Automation Smallgroup:
 #   module: entity_timer

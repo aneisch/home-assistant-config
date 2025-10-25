@@ -554,32 +554,53 @@
   - delay: 00:01:00
   - action: homeassistant.turn_off
     entity_id: input_boolean.compost_turn
-- alias: Internet Reachability GSM Alert
-  id: internet_gsm_alert
-  trigger:
-  - platform: state
-    entity_id: binary_sensor.internet_reachability
+- id: internet_gsm_alert
+  alias: Internet Reachability GSM Alert
+  description: ''
+  triggers:
+  - entity_id: binary_sensor.internet_reachability
     from: 'on'
     to: 'off'
     id: binary
-  - platform: state
-    entity_id: binary_sensor.internet_reachability
+    trigger: state
+  - entity_id: binary_sensor.internet_reachability
     from: 'off'
     to: 'on'
     id: binary
-  - platform: state
-    id: gateway
+    trigger: state
+  - id: gateway
     entity_id: sensor.pfsense_gateway_wan_dhcp
     from: 'True'
     to: 'False'
-  - platform: state
-    id: gateway
+    trigger: state
+  - id: gateway
     entity_id: sensor.pfsense_gateway_wan_dhcp
     from: 'False'
     to: 'True'
-  action:
-  - if: '{{ trigger.id == ''binary'' }}'
+    trigger: state
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''binary'' }}'
     then:
+    - alias: Z-Wave Siren Speak Alert
+      if:
+      - condition: template
+        value_template: '{{ is_state(''person.andrew'', ''home'') and is_state(''input_boolean.goodnight'',
+          ''off'') }}'
+      then:
+      - action: siren.turn_on
+        target:
+          entity_id: siren.siren_chime_play_tone
+        data:
+          tone: '{% if trigger.from_state.state == ''on'' %} {{ state_attr(''siren.siren_chime_play_tone'',
+            ''available_tones'') |dictsort |selectattr(''1'', ''search'', ''internet_outage.mp3'')
+            |map(attribute=''0'') |first }} {% else %} {{ state_attr(''siren.siren_chime_play_tone'',
+            ''available_tones'') |dictsort |selectattr(''1'', ''search'', ''internet_recovered.mp3'')
+            |map(attribute=''0'') |first }} {% endif %}
+
+            '
+          volume_level: 0.5
     - action: notify.cellular_message
       data:
         message: '{% if trigger.from_state.state == "on" %} Home internet is down
@@ -589,7 +610,9 @@
         data:
           priority: '{% if now().hour > 9 and now().hour < 22 and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
-  - if: '{{ trigger.id == ''gateway'' }}'
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''gateway'' }}'
     then:
     - action: notify.cellular_message
       data:
@@ -1342,13 +1365,21 @@
         data:
           type: announce
       action: notify.alexa_media
+    - action: siren.turn_on
+      target:
+        entity_id: siren.siren_chime_play_tone
+      data:
+        tone: '{{ state_attr(''siren.siren_chime_play_tone'', ''available_tones'')
+          |dictsort |selectattr(''1'', ''search'', ''dryer_finished.mp3'') |map(attribute=''0'')
+          |first }}'
+        volume_level: 0.5
   mode: single
 - id: '1760050617150'
   alias: Receive Guests While Away
   description: ''
   triggers:
   - trigger: time
-    at: 08:00:00
+    at: '12:00:00'
   conditions:
   - alias: October 17
     condition: template
@@ -1362,10 +1393,12 @@
       entity_id:
       - input_boolean.security_status
       - input_boolean.ac_boost_feature_evaluation
-  - action: homeassistant.turn_on
+      - input_boolean.auto_dehumidifier
+  - alias: Turn Things On
+    action: homeassistant.turn_on
     metadata: {}
     data: {}
     target:
-      entity_id: input_boolean.guest_mode
-    alias: Turn on Guest Mode
+      entity_id:
+      - input_boolean.guest_mode
   mode: single

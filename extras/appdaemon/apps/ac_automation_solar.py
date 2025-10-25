@@ -264,7 +264,10 @@ class AutoAdjust(hass.Hass):
             if self.boost_active and label == "morning":
                 if occupied:
                     base_temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"])
-                    temp = int(base_temp) - int(self.args.get("cool_boost_offset", 0))
+                    if guest_mode:
+                        temp = int(base_temp) - int(self.args.get("cool_boost_offset_guest", 0))
+                    else:
+                        temp = int(base_temp) - int(self.args.get("cool_boost_offset", 0))
                 else:
                     base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
                     temp = int(base_temp) - int(self.args.get("cool_boost_unoccupied_offset", 0))

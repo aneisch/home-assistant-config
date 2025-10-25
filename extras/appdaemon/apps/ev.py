@@ -11,7 +11,7 @@ class SolarEVCharger(hass.Hass):
         self.cooldown = int(self.args.get("cooldown", 15))  # seconds
 
         # State
-        self.eval_locked = True
+        self.eval_locked = False
         self.notify_handler = None
         self.emporia_status = None
 
@@ -53,15 +53,13 @@ class SolarEVCharger(hass.Hass):
 
         # Allow manual override
         if self.get_state(self.entities["override_boolean"]) == "on":
+            self.eval_locked = False
             self.log("Overridden")
             return
 
         if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
+            self.eval_locked = False
             self.log("No Vehicle Connected")
-            return
-
-        if self.eval_locked:
-            self.log("Eval Locked")
             return
 
         try:
@@ -75,14 +73,20 @@ class SolarEVCharger(hass.Hass):
             self.log(f"Invalid sensor reading: {e}", level="WARNING")
             return
 
-        # Block charging if battery too low or vehicle full
+        # Block charging if home battery too low
         if home_soc < self.min_home_soc:
+            self.eval_locked = False
             self.set_charge_rate(self.min_amps, disable=True)
             return
 
         # Don't bother evaluating if we are charged already
-        if vehicle_soc >= target_soc:
-            self.log("Already fully charged")
+        # if vehicle_soc >= target_soc:
+        #     self.eval_locked = False
+        #     self.log("Already fully charged")
+        #     return
+
+        if self.eval_locked:
+            self.log("Eval Locked")
             return
 
         # Compute available amps from solar

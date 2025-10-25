@@ -60,6 +60,7 @@ from .const import (
     SITE_EXPORT_ENTITY,
     SITE_EXPORT_LIMIT,
     USE_ACTUALS,
+    WINTER_TIME,
 )
 from .util import (
     Api,
@@ -74,7 +75,8 @@ from .util import (
     UsageStatus,
     cubic_interp,
     diff,
-    find_percentile,
+    interquartile_bounds,
+    percentile,
 )
 
 API: Final = Api.HOBBYIST  # The API to use. Presently only the hobbyist API is allowed for hobbyist accounts.
@@ -516,7 +518,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         def set_sites(response_json: dict[str, Any], api_key: str) -> None:
             sites_data = response_json
             _LOGGER.debug(
-                "Sites data received %s",
+                "Sites data %s",
                 self.__redact_msg_api_key(self.__redact_lat_lon(str(sites_data)), api_key),
             )
             for site in sites_data["sites"]:
@@ -910,6 +912,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             _LOGGER.warning
                             if issue_registry.async_get_issue(DOMAIN, "unusual_azimuth_northern") is None
                             and issue_registry.async_get_issue(DOMAIN, "unusual_azimuth_southern") is None
+                            and not self._dismissal.get(site, False)
                             else _LOGGER.debug
                         )
                         log(self.__redact_lat_lon_simple(f"Unusual azimuth {azimuth} for site {site}, latitude {v['latitude']}"))
@@ -1702,9 +1705,17 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         }
         return {k: v for k, v in result.items() if v is not None}
 
-    def is_dst(self, interval: dict[str, Any]) -> bool | None:
-        """Return whether an interval is daylight savings time."""
-        return (interval["period_start"].astimezone(self._tz).dst() == timedelta(hours=1)) if interval["period_start"] is not None else None
+    def dst(self, dt_obj: dt | None = None) -> bool:
+        """Return whether a given date is daylight savings time, or for zones using Winter time whether standard time."""
+        result = False
+        if dt_obj is not None:
+            delta = timedelta(hours=1) if str(self.options.tz) not in WINTER_TIME else timedelta(hours=0)
+            result = dt_obj.astimezone(self._tz).dst() == delta
+        return result
+
+    def is_interval_dst(self, interval: dict[str, Any]) -> bool:
+        """Return whether an interval is daylight savings time, or for zones using Winter time whether standard time."""
+        return self.dst(interval["period_start"].astimezone(self._tz))
 
     def get_day_start_utc(self, future: int = 0) -> dt:
         """Datetime helper.
@@ -2446,7 +2457,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         return conversion_factor
 
-    async def get_pv_generation(self) -> None:
+    async def get_pv_generation(self) -> None:  # noqa: C901
         """Get PV generation from external entity/entities.
 
         Sensors must be increasing energy values (may reset at midnight), and the entities must have state history.
@@ -2454,7 +2465,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Very large units of measurement are not supported (e.g. GWh, TWh) because of precision loss.
         """
 
-        _EXCESSIVE_FACTOR = 3
         start_time = time.time()
 
         # Load the generation history.
@@ -2484,7 +2494,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     self.get_day_start_utc(future=(-1 * day)),
                     entity,
                 )
-                if entity_history.get(entity) and len(entity_history[entity]):
+                if entity_history.get(entity) and len(entity_history[entity]) > 4:
                     _LOGGER.debug("Retrieved day %d PV generation data from entity: %s", -1 + day * -1, entity)
 
                     # Get the conversion factor for the entity to convert to kWh.
@@ -2502,31 +2512,157 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                         0.0,
                         *diff([float(e.state) * conversion_factor for e in entity_history[entity] if e.state.replace(".", "").isnumeric()]),
                     ]
+                    sample_generation_time: list[dt] = [
+                        e.last_updated.astimezone(datetime.UTC) for e in entity_history[entity] if e.state.replace(".", "").isnumeric()
+                    ]
+                    sample_timedelta: list[int] = [
+                        0,
+                        *diff(
+                            [
+                                (
+                                    e.last_updated.astimezone(datetime.UTC)
+                                    - (self.get_day_start_utc(future=(-1 * day)) - timedelta(days=1))
+                                ).total_seconds()
+                                for e in entity_history[entity]
+                                if e.state.replace(".", "").isnumeric()
+                            ]
+                        ),
+                    ]
+
+                    # Detemine generation-consistent or time-consistent increments, and the inter-quartile upper bound for ignoring excessive jumps.
+                    uniform_increment = False
+                    non_zero_samples = sorted([round(sample, 5) for sample in sample_generation if sample > 0.0003])
+                    if percentile(non_zero_samples, 25) == percentile(non_zero_samples, 75):
+                        uniform_increment = True
+                    else:
+                        non_zero_samples = sorted([sample for sample in sample_timedelta if sample > 0])
+                    _, upper = interquartile_bounds(non_zero_samples, factor=(1.5 if uniform_increment else 2.2))
+                    upper += 0.1 if uniform_increment else 1
+                    _LOGGER.debug(
+                        f"%s increments detected for entity: %s, outlier upper bound: {'%.3f kWh' if uniform_increment else '%d seconds'}",  # noqa: G004
+                        "Generation-consistent" if uniform_increment else "Time-consistent",
+                        entity,
+                        upper,
+                    )
+
                     # Build generation values for each interval, ignoring any excessive jumps.
-                    non_zero_generation = sorted([kWh for kWh in sample_generation if kWh > 0])
-                    typical_gen = find_percentile(non_zero_generation, 90)
-                    _LOGGER.debug("Typical generation jump: %.3f kWh", typical_gen)
-                    for interval, kWh in zip(sample_time, sample_generation, strict=True):
-                        if kWh <= typical_gen * _EXCESSIVE_FACTOR:  # Ignore excessive jumps.
-                            generation_intervals[interval] += kWh
-                        else:
-                            _LOGGER.debug(
-                                "Ignoring excessive PV generation jump of %.3f kWh in interval %s from entity: %s",
-                                kWh,
-                                interval.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M"),
-                                entity,
-                            )
+                    ignored: dict[dt, bool] = {}
+                    last_interval: dt | None = None
+                    if (
+                        len(sample_time) == len(sample_generation)
+                        and len(sample_time) == len(sample_generation_time)
+                        and len(sample_time) == len(sample_timedelta)
+                    ):
+                        for interval, kWh, report_time, time_delta in zip(
+                            sample_time, sample_generation, sample_generation_time, sample_timedelta, strict=True
+                        ):
+                            if interval != last_interval:
+                                # Only check the first sample of each interval for an excessive jump
+                                last_interval = interval
+                                if uniform_increment:
+                                    if round(kWh, 4) > upper:  # Ignore excessive jumps.
+                                        ignored[interval] = True
+                                    else:
+                                        generation_intervals[interval] += kWh
+                                elif time_delta > upper and kWh > 0.0003:  # Ignore excessive jumps.
+                                    if kWh <= 0.14:  # Small increments are probably valid
+                                        generation_intervals[interval] += kWh
+                                    else:
+                                        ignored[interval] = True
+                                else:
+                                    generation_intervals[interval] += kWh
+                                if ignored.get(interval):
+                                    # Invalidate both this interval and the previous one because errant sample straddles the half-hour boundary.
+                                    ignored[interval - timedelta(minutes=30)] = True
+                                    _LOGGER.debug(
+                                        "Ignoring excessive PV generation jump of %.3f kWh, time delta %d seconds, at %s from entity: %s; Invalidating intervals %s and %s",
+                                        kWh,
+                                        time_delta,
+                                        report_time.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M:%S"),
+                                        entity,
+                                        (interval - timedelta(minutes=30)).astimezone(self.options.tz).strftime("%H:%M"),
+                                        interval.astimezone(self.options.tz).strftime("%H:%M"),
+                                    )
+                            else:
+                                generation_intervals[interval] += kWh
+                        for interval in ignored:
+                            generation_intervals[interval] = 0.0
                 else:
-                    _LOGGER.debug("No day %d PV generation data from entity: %s (%s)", -1 + day * -1, entity, entity_history.get(entity))
+                    _LOGGER.debug(
+                        "No day %d PV generation data (or barely any) from entity: %s (%s)",
+                        -1 + day * -1,
+                        entity,
+                        entity_history.get(entity),
+                    )
             for i, gen in generation_intervals.items():
                 generation_intervals[i] = round(gen, 3)
 
-            # Detect site export limiting
             export_limiting: dict[dt, bool] = {
                 self.get_day_start_utc(future=(-1 * day)) - timedelta(days=1) + timedelta(minutes=minute): False
                 for minute in range(0, 1440, 30)
             }
 
+            # Identify intervals intentionally disabled by the user.
+            platforms = ["sensor", "binary_sensor"]
+            find_entity = "solcast_suppress_auto_dampening"
+            entity = ""
+            found = False
+            for p in platforms:
+                entity = f"{p}.{find_entity}"
+                r_entity = entity_registry.async_get(entity)
+                if r_entity is not None and r_entity.disabled_by is None:
+                    found = True
+                    break
+            if found:
+                _LOGGER.debug("Suppression entity %s exists", entity)
+                entity_history = await get_instance(self.hass).async_add_executor_job(
+                    state_changes_during_period,
+                    self.hass,
+                    self.get_day_start_utc(future=(-1 * day)) - timedelta(days=1),
+                    self.get_day_start_utc(future=(-1 * day)),
+                    entity,
+                )
+                if entity_history.get(entity) and len(entity_history[entity]):
+                    entity_state: dict[dt, bool] = {}
+                    state = False
+                    for e in entity_history[entity]:
+                        if e.state not in ("on", "off", "1", "0", "true", "false", "True", "False"):
+                            continue
+                        interval = e.last_updated.astimezone(datetime.UTC).replace(
+                            minute=e.last_updated.astimezone(datetime.UTC).minute // 30 * 30, second=0, microsecond=0
+                        )
+                        if e.state in ("on", "1", "true", "True"):
+                            state = True
+                            if not entity_state.get(interval):
+                                entity_state[interval] = state
+                                if state and entity_state.get(interval + timedelta(minutes=30)) is not None:
+                                    entity_state.pop(interval + timedelta(minutes=30))
+                            _LOGGER.debug(
+                                "Interval %s state change %s at %s",
+                                interval.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M"),
+                                entity_state[interval],
+                                e.last_updated.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M"),
+                            )
+                        elif state:
+                            state = False
+                            entity_state[interval + timedelta(minutes=30)] = False
+                            _LOGGER.debug(
+                                "Interval %s state change %s at %s",
+                                (interval + timedelta(minutes=30)).astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M"),
+                                entity_state[interval + timedelta(minutes=30)],
+                                e.last_updated.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M"),
+                            )
+                    state = False
+                    for interval in export_limiting:
+                        if entity_state.get(interval) is not None:
+                            state = entity_state[interval]
+                        export_limiting[interval] = state
+                        if state:
+                            _LOGGER.debug(
+                                "Auto-dampen suppressed for interval %s", interval.astimezone(self.options.tz).strftime("%Y-%m-%d %H:%M")
+                            )
+
+            # Detect site export limiting
             if self.options.site_export_limit > 0 and self.options.site_export_entity != "":
                 _INTERVAL = 5
 
@@ -2603,7 +2739,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
     def adjusted_interval(self, interval: dict[str, Any]) -> int:
         """Adjust a forecast/actual interval as standard time."""
-        offset = 1 if self.is_dst(interval) else 0
+        offset = 1 if self.is_interval_dst(interval) else 0
         return (
             ((interval["period_start"].astimezone(self._tz).hour - offset) * 2 + interval["period_start"].astimezone(self._tz).minute // 30)
             if interval["period_start"].astimezone(self._tz).hour - offset >= 0
@@ -2612,7 +2748,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
     def adjusted_interval_dt(self, interval: dt) -> int:
         """Adjust a datetime as standard time."""
-        offset = 1 if interval.astimezone(self._tz).dst() == timedelta(hours=1) else 0
+        offset = 1 if self.dst(interval.astimezone(self._tz)) else 0
         return (
             ((interval.astimezone(self._tz).hour - offset) * 2 + interval.astimezone(self._tz).minute // 30)
             if interval.astimezone(self._tz).hour - offset >= 0
@@ -2628,6 +2764,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         if not self.options.auto_dampen and not force:
             _LOGGER.debug("Automated dampening is not enabled, skipping model_automated_dampening()")
             return
+
+        MODEL_DAYS = 14  # Number of days over which to model
+        MINIMUM_INTERVALS = 1  # Minimum number of matching intervals to consider dampening
 
         start_time = time.time()
 
@@ -2657,7 +2796,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 return
             start, end = self.__get_list_slice(
                 self._data_actuals["siteinfo"][site["resource_id"]]["forecasts"],
-                self._data_generation["generation"][0]["period_start"],
+                self.get_day_start_utc() - timedelta(days=MODEL_DAYS),  # self._data_generation["generation"][0]["period_start"],
                 self.get_day_start_utc(),
                 search_past=True,
             )
@@ -2671,7 +2810,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 else:
                     actuals[period_start] = actual["pv_estimate"] * 0.5
 
-        # Collect top intervals from the past fourteen days.
+        # Collect top intervals from the past MODEL_DAYS days.
         self._peak_intervals = dict.fromkeys(range(48), 0.0)
         for period_start, actual in actuals.items():
             interval = self.adjusted_interval_dt(period_start)
@@ -2694,15 +2833,14 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             generation_samples: list[float] = [
                 generation.get(timestamp, 0.0) for timestamp in matching if generation.get(timestamp, 0.0) != 0.0
             ]
-            if len(matching) > 0 and len(generation_samples) > 0:  # and len(generation_samples) > len(matching) / 2:
+            if len(matching) > 0 and len(generation_samples) > 0:
                 peak = max(generation_samples)
 
                 interval_time = f"{
                     interval // 2
                     + (
                         1
-                        if dt.now(self._tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0).dst()
-                        == timedelta(hours=1)
+                        if self.dst(dt.now(self._tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0))
                         else 0
                     ):02}:{30 * (interval % 2):02}"
                 _LOGGER.debug(
@@ -2713,13 +2851,20 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     ", ".join([date.astimezone(self._tz).strftime(DATE_MONTH_DAY) for date in matching]),
                 )
                 _LOGGER.debug("Interval %s max generation: %.3f, %s", interval_time, peak, generation_samples)
-                if peak < self._peak_intervals[interval]:
-                    factor = (peak / self._peak_intervals[interval]) if self._peak_intervals[interval] != 0 else 0.0
-                    if factor < noise:
-                        _LOGGER.debug("Auto-dampen factor for %s is %.3f", interval_time, factor)
-                        dampening[interval] = round(factor, 3)
+                msg = f"Not enough matching intervals for {interval_time} to determine dampening"
+                log_msg = True
+                if len(matching) > MINIMUM_INTERVALS:
+                    if peak < self._peak_intervals[interval]:
+                        factor = (peak / self._peak_intervals[interval]) if self._peak_intervals[interval] != 0 else 0.0
+                        if factor < noise:
+                            msg = f"Auto-dampen factor for {interval_time} is {factor:.3f}"
+                            dampening[interval] = round(factor, 3)
+                        else:
+                            msg = f"Ignoring insignificant factor for {interval_time} of {factor:.3f}"
                     else:
-                        _LOGGER.debug("Ignoring insignificant factor for %s of %.3f", interval_time, factor)
+                        log_msg = False
+                if log_msg:
+                    _LOGGER.debug(msg)
 
         if dampening != self.granular_dampening.get("all"):
             self.granular_dampening["all"] = dampening
@@ -3136,12 +3281,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     )
 
             await self.sort_and_prune(site["resource_id"], self._data, 730, forecasts)
-            _LOGGER.debug(
-                "Forecasts dictionary length for %s is %s (%s un-dampened)",
-                site["resource_id"],
-                len(forecasts),
-                len(self._data_undampened["siteinfo"][site["resource_id"]]["forecasts"]),
-            )
 
     async def sort_and_prune(self, site: str | None, data: dict[str, Any], past_days: int, forecasts: dict[Any, Any]) -> None:
         """Sort and prune a forecast list."""
@@ -3623,6 +3762,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             commencing: datetime.date,
             actuals: dict[dt, dict[str, dt | float]],
             sites_hard_limit: defaultdict[str, dict[str, dict[dt, Any]]],
+            log_dictionary_length: bool = False,
         ) -> list[Any]:
             nonlocal build_success
 
@@ -3667,7 +3807,12 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                             "period_start": period_start,
                                             "pv_estimate": site_actuals[period_start]["pv_estimate"],
                                         }
-                        # site_data_forecasts[resource_id] = sorted(site_actuals.values(), key=itemgetter("period_start"))
+                        if log_dictionary_length:
+                            _LOGGER.debug(
+                                "Estimated actuals dictionary length for %s is %s",
+                                resource_id,
+                                len(self._data_actuals["siteinfo"][resource_id]["forecasts"]),
+                            )
                 return sorted(actuals.values(), key=itemgetter("period_start"))
             except Exception as e:  # noqa: BLE001
                 _LOGGER.error("Exception in build_data_actuals(): %s: %s", e, traceback.format_exc())
@@ -3680,6 +3825,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             commencing,
             actuals,
             self._sites_hard_limit,
+            log_dictionary_length=True,
         )
         self._data_estimated_actuals_dampened = await build_data_actuals(
             self._data_actuals_dampened,
@@ -3708,10 +3854,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         forecasts: dict[dt, dict[str, dt | float]] = {}
         forecasts_undampened: dict[dt, dict[str, dt | float]] = {}
 
-        self._data_forecasts = []
-        self._data_forecasts_undampened = []
-
-        build_success = True
+        build_success = True  # Be optimistic
 
         async def build_data(  # noqa: C901
             data: dict[str, Any],
@@ -3899,6 +4042,12 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             if tally is not None:
                                 siteinfo["tally"] = rounded_tally
                             self._tally[resource_id] = rounded_tally
+                            _LOGGER.debug(
+                                "Forecasts dictionary length for %s is %s (%s un-dampened)",
+                                resource_id,
+                                len(forecasts),
+                                len(self._data_undampened["siteinfo"][resource_id]["forecasts"]),
+                            )
                 if update_tally:
                     self._data_forecasts = sorted(forecasts.values(), key=itemgetter("period_start"))
                 else:
@@ -3957,17 +4106,13 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         return index
 
     async def check_data_records(self) -> None:
-        """Log whether all records are present for each day.
+        """Log whether all records are present for each day."""
 
-        Returns:
-            bool: A flag indicating success or failure.
-
-        """
         contiguous: int = 0
         contiguous_start_date: Any = None
         contiguous_end_date: Any = None
         all_records_good = True
-        summer_time_transitioning = False
+        time_transitioning = False
         interval_assessment: dict[datetime.date, Any] = {}
 
         # The latest period is used to determine whether any history should be updated on stale start.
@@ -3979,15 +4124,15 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             start_index, end_index = self.__get_list_slice(self._data_forecasts, start_utc, end_utc)
 
             expected_intervals = 48
-            _is_dst: bool | None = None
-            for interval in range(start_index, end_index):
-                if interval == start_index:
-                    _is_dst = self.is_dst(self._data_forecasts[interval])
-                else:
-                    is_daylight = self.is_dst(self._data_forecasts[interval])
-                    if is_daylight is not None and is_daylight != _is_dst:
-                        summer_time_transitioning = True
-                        expected_intervals = 50 if _is_dst else 46
+            _is_dst: bool | None = (
+                self.is_interval_dst(self._data_forecasts[start_index]) if start_index < len(self._data_forecasts) else None
+            )
+            for interval in range(start_index, min(len(self._data_forecasts), start_index + 8)):
+                is_daylight = self.is_interval_dst(self._data_forecasts[interval])
+                if is_daylight != _is_dst:
+                    time_transitioning = True
+                    expected_intervals = 50 if _is_dst else 46
+                    break
             intervals = end_index - start_index
             forecasts_date = dt.now(self._tz).date() + timedelta(days=future_day)
 
@@ -4012,8 +4157,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 contiguous = set_assessment(forecasts_date, expected_intervals, intervals, contiguous, False)
             if future_day == 0 and interval_assessment[forecasts_date]["correct"]:
                 contiguous_start_date = forecasts_date
-        if summer_time_transitioning:
-            _LOGGER.debug("Transitioning between summer/standard time")
+        if time_transitioning:
+            _LOGGER.debug("Transitioning between %s time", "standard/Summer" if str(self._tz) not in WINTER_TIME else "standard/Winter")
         if contiguous > 1:
             _LOGGER.debug(
                 "Forecast data from %s to %s contains all intervals",
@@ -4055,7 +4200,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 raise_issue: str | None
                 raise_issue = "records_missing_fixable" if self.entry.options["auto_update"] == AutoUpdate.NONE else "records_missing"
                 # If auto-update is enabled yet the prior forecast update was manual then do not raise an issue.
-                raise_issue = None if self._data["auto_updated"] == 0 and self.entry.options["auto_update"] != 0 else raise_issue
+                raise_issue = (
+                    None if self._data["auto_updated"] == 0 and self.entry.options["auto_update"] != AutoUpdate.NONE else raise_issue
+                )
                 if raise_issue is not None and issue_registry.async_get_issue(DOMAIN, raise_issue) is None:
                     _LOGGER.warning("Raise issue `%s` for missing forecast data", raise_issue)
                     ir.async_create_issue(
