@@ -664,11 +664,11 @@ script:
 #   driverTemp: 25
 #   passengerTemp: 22
 
-timer:
-  tesla_charge_backoff:
-    name: Tesla Charge Backoff
-    duration: "00:30:00"
-    restore: true
+# timer:
+#   tesla_charge_backoff:
+#     name: Tesla Charge Backoff
+#     duration: "00:30:00"
+#     restore: true
 
 automation:
   - alias: "Set Emporia Charger Current from Slider"
@@ -737,23 +737,6 @@ automation:
     #     state: "home"
     action:
       - service: python_script.tire_pressure_check
-
-  - alias: "Tesla BLE Disconnected and Reset Sonoff USB"
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.tesla_ble
-        to: "off"
-        for:
-          minutes: 10
-    action:
-      - service: switch.turn_off
-        target:
-          entity_id: switch.sonoff_usb_1
-      - delay:
-          seconds: 5
-      - service: switch.turn_on
-        target:
-          entity_id: switch.sonoff_usb_1
 
   # This allows TeslaUSB backup to complete (sentry mode on by default at home keeps the Pi powered)
   # turn off after 15 minutes to allow backup to complete

@@ -158,6 +158,8 @@ class CrumbCoordinator:
             LOGGER.error("Timed out accessing initial url. %s", ex)
         except aiohttp.ClientError as ex:
             LOGGER.error("Error accessing initial url. %s", ex)
+        except Exception as ex:
+            LOGGER.error("Unexpected error accessing initial url. %s", ex)
 
         return ConsentData()
 

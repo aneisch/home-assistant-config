@@ -47,7 +47,7 @@ AC Automation Solar:
   # guest_heat_midnight: "62" # optional, defaults to non-guest
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
-  battery_boost_threshold: 98       # battery SOC for boost activation
+  battery_boost_threshold: 99       # battery SOC for boost activation
   cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 5
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
@@ -58,7 +58,7 @@ Solar EV Charger:
   module: ev
   class: SolarEVCharger
   home_battery_min_soc: 98
-  buffer_watts: 500
+  buffer_watts: 250
 
 Auto Dehumidifer:
   module: dehumidifier
@@ -505,6 +505,13 @@ Front Porch Lights Sunset:
 #   time_on: sunrise 
 #   time_off: sunset - 00:30:00
 #   entities: switch.kmc_multi_plug_1_1
+
+Garage Plant Light:
+  module: entity_timer
+  class: Timer
+  time_on: sunrise + 00:30:00
+  time_off: sunset - 00:30:00
+  entities: switch.orvibo_1
 
 # Plant Light Corner:
 #   module: follow_me

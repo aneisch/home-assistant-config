@@ -44,7 +44,7 @@ wifi:
 # Last, replug the cable and upload a new program.
 deep_sleep:
   id: deep_sleep_1
-  run_duration: 1min #10min  # Device wake up and run 60s (enough to pull data and update)
+  run_duration: 1min # Device wake up and run 60s (enough to pull data and update)
   sleep_duration: 30min  # deep sleep for 30min
 
 interval:
@@ -529,7 +529,7 @@ display:
           it.printf(x+10, y+10, id(sensor_font), "Production");
           it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D9B");
           // Get data
-          it.printf(x+85,y+50, id(data_font), "%s", id(production).state.c_str());
+          it.printf(x+85, y+50, id(data_font), "%.1f", atof(id(production).state.c_str()));
           it.printf(x+85,y+78, id(sensor_font), "kWh");
 
           // Draw four borders
@@ -549,7 +549,7 @@ display:
           it.printf(x+10, y+10, id(sensor_font), "Export");
           it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F0D9B");
           // Get data
-          it.printf(x+85,y+50, id(data_font), "%s", id(grid_export).state.c_str());
+          it.printf(x+85,y+50, id(data_font),  "%.1f", atof(id(grid_export).state.c_str()));
           it.printf(x+85,y+78, id(sensor_font), "kWh");
 
           // Draw four borders
@@ -569,7 +569,7 @@ display:
           it.printf(x+10, y+10, id(sensor_font), "Battery");
           it.printf(x+45, y+75, id(img_font_sensor), TextAlign::CENTER, "\U000F008B");
           // Get data
-          it.printf(x+85,y+50, id(data_font), "%s", id(battery).state.c_str());
+          it.printf(x+85, y+50, id(data_font), "%.0f", atof(id(battery).state.c_str()));
           it.printf(x+85,y+78, id(sensor_font), "%%");
 
 

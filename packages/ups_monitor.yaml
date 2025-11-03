@@ -20,30 +20,39 @@ automation:
     trigger:
       - platform: state
         entity_id: sensor.ups_status
+        id: ups
       - platform: state
+        id: inverter_grid
         entity_id:
           - binary_sensor.solark_sol_ark_grid_connected_status
           - binary_sensor.siren_chime_ac_mains
         to:
           - "on"
           - "off"
+      - platform: numeric_state
+        entity_id: sensor.solark_sol_ark_grid_voltage
+        below: 10
+        id: grid_voltage
     condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
-      - action: siren.turn_on
-        target:
-          entity_id: siren.siren_chime_play_tone
-        data:
-          volume_level: 0.5
-          tone: >
-            {% if trigger.from_state.state in ["ONBATT", "off"] %}
-              {{ state_attr('siren.siren_chime_play_tone',
-            'available_tones') |dictsort |selectattr('1', 'search',
-            'grid_recovered') |map(attribute='0') |first }}
-            {% else %}
-              {{ state_attr('siren.siren_chime_play_tone',
-            'available_tones') |dictsort |selectattr('1', 'search',
-            'grid_outage') |map(attribute='0') |first }}            
-            {% endif %}
+      # Only speak alert if outage detected by UPS or grid truly is out (as opposed to temporary inverter disconnect)
+      - if: "{{ is_state('input_boolean.goodnight', 'off') and trigger.id in ['ups', 'grid_voltage'] }}"
+        then:
+          - action: siren.turn_on
+            target:
+              entity_id: siren.siren_chime_play_tone
+            data:
+              volume_level: 0.5
+              tone: >
+                {% if trigger.from_state.state in ["ONBATT", "off"] %}
+                  {{ state_attr('siren.siren_chime_play_tone',
+                'available_tones') |dictsort |selectattr('1', 'search',
+                'grid_recovered') |map(attribute='0') |first }}
+                {% else %}
+                  {{ state_attr('siren.siren_chime_play_tone',
+                'available_tones') |dictsort |selectattr('1', 'search',
+                'grid_outage') |map(attribute='0') |first }}            
+                {% endif %}
       - action: script.notify_wrapper
         data:
           message: >

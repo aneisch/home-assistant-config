@@ -45,7 +45,7 @@ cards:
         title: Commands
         show_header_toggle: false
         entities:
-          - switch.sonoff_usb_1
+          #- switch.sonoff_usb_1
           - binary_sensor.tesla_ble
           - binary_sensor.tesla_ble_awake
           - binary_sensor.tesla_ble_presence
@@ -100,9 +100,9 @@ cards:
             name: Charging Current
           - entity: sensor.tesla_charge_limit_soc
             name: Charge Limit
-          - entity: sensor.tesla_time_to_full_charge
-            name: Time To Full Charge
-          - timer.tesla_charge_backoff
+          # - entity: sensor.tesla_time_to_full_charge
+          #   name: Time To Full Charge
+          # - timer.tesla_charge_backoff
           - entity: number.tesla_ble_charging_current
             name: BLE Current Limit
           - entity: number.tesla_ble_charging_limit

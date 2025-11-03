@@ -1,32 +1,12 @@
-# Now in UI
-# - platform: systemmonitor
-#   scan_interval:
-#     seconds: 60
-#   resources:
-#     - type: disk_use_percent
-#       arg: /home
-#     - type: disk_use_percent
-#       arg: /
-#     - type: disk_use_percent
-#       arg: /frigate_disk
-#     - type: memory_use_percent
-#     - type: network_in
-#       arg: eno1
-#     - type: network_out
-#       arg: eno1
-#     - type: last_boot
-#     - type: processor_use
-#     - type: load_1m
-#     - type: load_5m
-#     - type: load_15m
-
 - platform: pfsense_gateways
   host: 10.0.1.1
   name: pfSense gateway
   # https://github.com/alexpmorris/pfsense-status-gateways-json
+  # This depends on manual file creation on pfsense itself. See above link
   key: !secret pfsense_json_key
   monitored_gateway_interfaces:
     - wan
+    - opt3 # WWAN
 
 - platform: history_stats
   name: ac_runtime_today_cool
@@ -92,30 +72,6 @@
   state_characteristic: mean
   max_age:
     minutes: 5
-
-# - platform: statistics
-#   name: "Neighbor Rain Last 24 Hours"
-#   entity_id: sensor.neighbor_rain_total
-#   state_characteristic: change
-#   max_age:
-#     hours: 24
-#   precision: 3
-
-# - platform: statistics
-#   name: "Neighbor Rain Last 1 Hour"
-#   entity_id: sensor.neighbor_rain_total
-#   state_characteristic: change
-#   max_age:
-#     hours: 1
-#   precision: 3
-
-# - platform: statistics
-#   name: "Phase Imbalance (5m Avg)"
-#   entity_id: sensor.phase_difference
-#   state_characteristic: mean
-#   max_age:
-#     minutes: 15
-#   sampling_size: 900
 
 #############
 # TEMPLATES #
@@ -308,14 +264,3 @@
         {% else %}
           {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability'] }}
         {% endif %}
-
-    # electricity_price:
-    #   friendly_name: "Electricity Price per kWH"
-    #   unit_of_measurement: "USD/kWh"
-    #   icon_template: mdi:currency-usd
-    #   value_template: >
-    #     {% if now().month >= 5 and now().month <= 10 %}
-    #     {{ 0.1187 + 0.0166 }}
-    #     {% else %}
-    #     {{ 0.1136 + 0.0166 }}
-    #     {% endif %}

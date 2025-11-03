@@ -7,7 +7,23 @@ automation:
       - platform: time
         at: "23:58:00"
     action:
+      - service: notify.send_message
+        alias: "Log to /config/solar_log.txt"
+        continue_on_error: true
+        target:
+          entity_id: notify.solar_log
+        data:
+          message: >-
+            {{ now().strftime('%m-%d-%Y') }},
+            {{ states('sensor.solark_sol_ark_day_pv_energy') }},
+            {{ states('sensor.solark_sol_ark_day_grid_import') }},
+            {{ states('sensor.solark_sol_ark_day_grid_export') }},
+            {{ states('sensor.solark_sol_ark_day_load_energy') }},
+            {{ states('sensor.tesla_energy_today') }},
+            {{ states('sensor.ac_compressor_daily_energy') }},
+            {{ states('sensor.attic_hvac_daily_energy') }}
       - service: google_sheets.append_sheet
+        alias: "Log to Google Sheet"
         data:
           worksheet: "Data"
           config_entry: 01JYQN4AYGRQ9S6WQBJV4T4CBW

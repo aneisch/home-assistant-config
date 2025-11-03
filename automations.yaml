@@ -554,8 +554,8 @@
   - delay: 00:01:00
   - action: homeassistant.turn_off
     entity_id: input_boolean.compost_turn
-- id: internet_gsm_alert
-  alias: Internet Reachability GSM Alert
+- id: internet_reachability_alert
+  alias: Internet Reachability Alert
   description: ''
   triggers:
   - entity_id: binary_sensor.internet_reachability
@@ -567,16 +567,6 @@
     from: 'off'
     to: 'on'
     id: binary
-    trigger: state
-  - id: gateway
-    entity_id: sensor.pfsense_gateway_wan_dhcp
-    from: 'True'
-    to: 'False'
-    trigger: state
-  - id: gateway
-    entity_id: sensor.pfsense_gateway_wan_dhcp
-    from: 'False'
-    to: 'True'
     trigger: state
   actions:
   - if:
@@ -610,6 +600,7 @@
         data:
           priority: '{% if now().hour > 9 and now().hour < 22 and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
+      enabled: false
   - if:
     - condition: template
       value_template: '{{ trigger.id == ''gateway'' }}'
@@ -623,6 +614,7 @@
         data:
           priority: '{% if now().hour > 9 and now().hour < 22  and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
+      enabled: false
 - id: webhook_debugger
   alias: Webhook Debugger
   triggers:
@@ -1318,15 +1310,15 @@
   description: ESPHome Device Unavailable for 1 Minute
   triggers:
   - entity_id:
-    - binary_sensor.solark_sol_ark_grid_connected_status
-    - binary_sensor.garage_interior_door
+    - sensor.solark_sol_ark_ip_address
+    - sensor.door_sensor_door_sensor_ip_address
     - sensor.emporia_view_emporia_view_ip_address
     to:
     - unavailable
     - unknown
     for:
       hours: 0
-      minutes: 1
+      minutes: 5
       seconds: 0
     trigger: state
   actions:
@@ -1339,10 +1331,19 @@
 - id: '1757355386706'
   alias: Dryer Completed Notification
   triggers:
-  - entity_id: sensor.dryer_power
-    below: 10
-    for: 00:01:00
+  - entity_id:
+    - sensor.dryer_power
+    below: 25
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+      milliseconds: 0
     trigger: numeric_state
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state.state != ''unavailable'' }}'
+    alias: Not previously unavailable
   actions:
   - data:
       message: The dryer has finished!
@@ -1351,10 +1352,6 @@
     - condition: state
       entity_id: input_boolean.goodnight
       state: 'off'
-    - condition: numeric_state
-      entity_id: sensor.solark_sol_ark_solar_power
-      above: 5000
-      enabled: false
     then:
     - data:
         target:
@@ -1402,3 +1399,56 @@
       entity_id:
       - input_boolean.guest_mode
   mode: single
+- id: '1761590240993'
+  alias: Washer Completed Notification
+  description: ''
+  triggers:
+  - entity_id:
+    - sensor.washing_machine_power
+    below: 10
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    trigger: numeric_state
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state.state != ''unavailable'' }}'
+    alias: Not previously unavailable
+  actions:
+  - data:
+      message: The washer has finished!
+    action: notify.signal_homeassistant
+  - if:
+    - condition: state
+      entity_id: input_boolean.goodnight
+      state: 'off'
+    then:
+    - action: siren.turn_on
+      target:
+        entity_id: siren.siren_chime_play_tone
+      data:
+        tone: '{{ state_attr(''siren.siren_chime_play_tone'', ''available_tones'')
+          |dictsort |selectattr(''1'', ''search'', ''washer_finished.mp3'') |map(attribute=''0'')
+          |first }}'
+        volume_level: 0.5
+  mode: single
+- id: '1761687935807'
+  alias: Tesla BLE Pi Offline Notify
+  description: ''
+  triggers:
+  - entity_id:
+    - binary_sensor.tesla_ble
+    to: 'off'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    trigger: state
+  conditions: []
+  actions:
+  - action: script.notify_wrapper
+    data:
+      message: The Tesla BLE Pi is offline
+  mode: single
+  initial_state: true

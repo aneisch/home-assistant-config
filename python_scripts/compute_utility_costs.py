@@ -57,11 +57,11 @@ elif MeterEntity == "sensor.water_usage":
         computed_sewer_cost = computed_sewer_cost + (tier2sewerusage / 1000) * tier2sewer
 
     # Water consumption
-    tier1rate = 2.75
-    tier2rate = 3.60
-    tier3rate = 4.40
-    tier4rate = 5.20
-    tier5rate = 6.05
+    tier1rate = 3.00
+    tier2rate = 3.95
+    tier3rate = 4.85
+    tier4rate = 5.70
+    tier5rate = 6.65
 
     tier1usage = min(10000, unaccountedusage)
     unaccountedusage = unaccountedusage - tier1usage

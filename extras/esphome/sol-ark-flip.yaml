@@ -394,7 +394,7 @@ sensor:
 
   - platform: modbus_controller            # 164 Inverter Current
     modbus_controller_id: inverter
-    name: "${friendly_name} Inverter Current"
+    name: "${friendly_name} Inverter Output Current"
     id: inverter_esphome_inverter_current
     register_type: holding
     address: 164

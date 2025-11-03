@@ -210,7 +210,7 @@ cards:
       - input_boolean.auto_dehumidifier
       - group.all_fans
       - input_boolean.ac_change_notification
-      - select.solark_sol_ark_tou_schedule
+      # - select.solark_sol_ark_tou_schedule
       # - input_boolean.aquarium_automation
       - input_boolean.occusim
       - input_boolean.guest_mode
