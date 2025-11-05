@@ -50,7 +50,7 @@ jobs:
 
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
           homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
-          python -m homeassistant --config "/config" --script check_config
+          python -m homeassistant --config /config --script check_config
 
   # Call Home Assistant Webook to notify of completion and allow HASS to decide what to do
   hass-callback:
