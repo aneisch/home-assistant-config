@@ -46,19 +46,30 @@ from .const import (
     BRK_SITE,
     BRK_SITE_DETAILED,
     CUSTOM_HOUR_SENSOR,
+    DAMPENING_INSIGNIFICANT,
+    DAMPENING_LOG_DELTA_CORRECTIONS,
+    DAMPENING_MINIMUM_GENERATION,
+    DAMPENING_MINIMUM_INTERVALS,
+    DAMPENING_MODEL_DAYS,
+    DAMPENING_NO_LIMITING_CONSISTENCY,
     DATE_FORMAT,
     DATE_MONTH_DAY,
     DOMAIN,
     EXCLUDE_SITES,
+    FORECAST_DAY_SENSORS,
     FORECAST_DAYS,
     GENERATION_ENTITIES,
+    GENERATION_HISTORY_LOAD_DAYS,
     GENERATION_VERSION,
     GET_ACTUALS,
     HARD_LIMIT_API,
+    HISTORY_MAX,
     KEY_ESTIMATE,
+    SENSOR_UPDATE_LOGGING,
     SITE_DAMP,
     SITE_EXPORT_ENTITY,
     SITE_EXPORT_LIMIT,
+    SOLCAST_URL,
     USE_ACTUALS,
     WINTER_TIME,
 )
@@ -123,6 +134,24 @@ FRESH_DATA: dict[str, Any] = {
     "version": JSON_VERSION,
 }
 
+ADVANCED_OPTIONS_DEFAULTS: dict[str, Any] = {
+    "automated_dampening_delta_adjustment_model": 0,
+    "automated_dampening_generation_history_load_days": GENERATION_HISTORY_LOAD_DAYS,
+    "automated_dampening_ignore_intervals": [],
+    "automated_dampening_insignificant_factor": DAMPENING_INSIGNIFICANT,
+    "automated_dampening_minimum_matching_generation": DAMPENING_MINIMUM_GENERATION,
+    "automated_dampening_minimum_matching_intervals": DAMPENING_MINIMUM_INTERVALS,
+    "automated_dampening_model_days": DAMPENING_MODEL_DAYS,
+    "automated_dampening_no_delta_corrections": not DAMPENING_LOG_DELTA_CORRECTIONS,
+    "automated_dampening_no_limiting_consistency": DAMPENING_NO_LIMITING_CONSISTENCY,
+    "entity_logging": SENSOR_UPDATE_LOGGING,
+    "forecast_day_entities": FORECAST_DAY_SENSORS,
+    "forecast_future_days": FORECAST_DAYS,
+    "forecast_history_max_days": HISTORY_MAX,
+    "reload_on_advanced_change": False,
+    "solcast_url": SOLCAST_URL,
+}
+
 _LOGGER = logging.getLogger(__name__)
 
 # Return the function name at a specified caller depth. 0=current, 1=caller, 2=caller of caller, etc.
@@ -179,6 +208,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         """
 
+        self.advanced_options: dict[str, Any] = {}
         self.auto_update_divisions: int = 0
         self.custom_hour_sensor: int = options.custom_hour_sensor
         self.damp: dict[str, float] = options.dampening
@@ -202,6 +232,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.usage_status: UsageStatus = UsageStatus.UNKNOWN
 
         file_path = Path(options.file_path)
+        self.set_default_advanced_options()
 
         self._aiohttp_session = aiohttp_session
         self._api_limit: dict[str, int] = {}
@@ -228,6 +259,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self._filename = options.file_path
         self._filename_actuals = f"{file_path.parent / file_path.stem}-actuals{file_path.suffix}"
         self._filename_actuals_dampened = f"{file_path.parent / file_path.stem}-actuals-dampened{file_path.suffix}"
+        self._filename_advanced = f"{file_path.parent / file_path.stem}-advanced{file_path.suffix}"
+        self._filename_dampening = f"{file_path.parent / file_path.stem}-dampening{file_path.suffix}"
         self._filename_generation = f"{file_path.parent / file_path.stem}-generation{file_path.suffix}"
         self._filename_undampened = f"{file_path.parent / file_path.stem}-undampened{file_path.suffix}"
         self._forecasts_moment: dict[str, dict[str, list[float]]] = {}
@@ -297,6 +330,117 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.hard_limit = self.options.hard_limit
         self._use_forecast_confidence = f"pv_{self.options.key_estimate}"
         self.estimate_set = self.__get_estimate_set(self.options)
+
+    async def read_advanced_options(self) -> bool:
+        """Read advanced JSON file options, validate and set them."""
+
+        change = False
+        if Path(self._filename_advanced).exists():
+            _LOGGER.debug("Advanced options file %s exists", self._filename_advanced)
+            async with aiofiles.open(self._filename_advanced) as file:
+                try:
+                    response_json: dict[str, Any] = json.loads(await file.read())
+                    value: int | float | str | list[str] | None
+                    new_value: int | float | str | list[str]
+                    options_present = response_json.keys()
+                    for option, new_value in response_json.items():
+                        value = self.advanced_options.get(option)
+                        if value is None:
+                            _LOGGER.error("Unknown advanced option ignored: %s", option)
+                            continue
+                        if new_value != value:
+                            valid = True
+                            if isinstance(new_value, type(value)):
+                                match option:
+                                    case "automated_dampening_ignore_intervals":
+                                        if isinstance(new_value, list):
+                                            seen: list[str] = []
+                                            t: str
+                                            for t in new_value:
+                                                if re.match(r"^([01]?[0-9]|2[0-3]):[03]{1}0$", t) is None:
+                                                    _LOGGER.error("Invalid time in advanced option %s: %s", option, t)
+                                                    valid = False
+                                                    continue
+                                                if t in seen:
+                                                    _LOGGER.error("Duplicate time in advanced option %s: %s", option, t)
+                                                    valid = False
+                                                    continue
+                                                seen.append(t)
+                                    case (
+                                        "automated_dampening_minimum_matching_generation"
+                                        | "automated_dampening_minimum_matching_intervals"
+                                        | "automated_dampening_model_days"
+                                        | "automated_dampening_generation_history_load_days"
+                                    ):
+                                        least = (
+                                            1
+                                            if option
+                                            in [
+                                                "automated_dampening_generation_history_load_days",
+                                                "automated_dampening_minimum_matching_generation",
+                                            ]
+                                            else 2
+                                        )
+                                        if isinstance(new_value, int) and (new_value < least or new_value > 21):
+                                            _LOGGER.error(
+                                                "Invalid value for advanced option %s: %s (must be %d-21)", option, new_value, least
+                                            )
+                                            valid = False
+                                    case "automated_dampening_insignificant_factor":
+                                        if isinstance(new_value, float) and (new_value < 0.0 or new_value > 1.0):
+                                            _LOGGER.error("Invalid value for advanced option %s: %s (must be 0.0-1.0)", option, new_value)
+                                            valid = False
+                                    case "forecast_history_max_days":
+                                        if isinstance(new_value, int) and (new_value < 22 or new_value > 3650):
+                                            _LOGGER.error("Invalid value for advanced option %s: %s (must be 22-3650)", option, new_value)
+                                            valid = False
+                                    case "forecast_day_entities" | "forecast_future_days":
+                                        if isinstance(new_value, int) and (new_value < 8 or new_value > 14):
+                                            _LOGGER.error("Invalid value for advanced option %s: %s (must be 8-14)", option, new_value)
+                                            valid = False
+                                    case _:
+                                        pass
+                            else:
+                                _LOGGER.error("Type mismatch for advanced option %s: should be %s", option, type(value).__name__)
+                                valid = False
+                            if valid:
+                                self.advanced_options[option] = new_value
+                                _LOGGER.debug("Advanced option set %s: %s", option, new_value)
+                                change = True
+                    for option, value in self.advanced_options.items():
+                        if option not in options_present:
+                            default = ADVANCED_OPTIONS_DEFAULTS[option]
+                            if value != default:
+                                self.advanced_options[option] = default
+                                _LOGGER.debug("Advanced option default set %s: %s", option, default)
+                except json.decoder.JSONDecodeError:
+                    _LOGGER.error("JSONDecodeError, advanced options ignored: %s", self._filename_advanced)
+        return change
+
+    def get_filename_advanced(self) -> str:
+        """Return the advanced configuration filename."""
+        return self._filename_advanced
+
+    def log_advanced_options(self) -> None:
+        """Log the advanced options that are set differently to their defaults."""
+
+        for key, value in ADVANCED_OPTIONS_DEFAULTS.items():
+            if key not in self.advanced_options or self.advanced_options.get(key) != value:
+                _LOGGER.debug("Advanced option set %s: %s", key, self.advanced_options.get(key))
+
+    def set_default_advanced_options(self) -> None:
+        """Set the default advanced options."""
+
+        initial = not self.advanced_options
+        for key, value in ADVANCED_OPTIONS_DEFAULTS.items():
+            if key not in self.advanced_options or self.advanced_options.get(key) != value:
+                self.advanced_options[key] = value
+                if not initial:
+                    _LOGGER.debug("Advanced option default set %s: %s", key, value)
+
+    def get_filename_dampening(self) -> str:
+        """Return the dampening configuration filename."""
+        return self._filename_dampening
 
     def __get_estimate_set(self, options: ConnectionOptions) -> list[str]:
         estimate_set: list[str] = []
@@ -417,18 +561,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         """
         return f"{self._config_dir}/solcast-sites{'' if not self.__is_multi_key() else '-' + api_key}.json"
 
-    def get_granular_dampening_filename(self) -> str:
-        """Build a fully qualified site dampening filename.
-
-        Arguments:
-            legacy (bool): Return the name of the legacy per-site dampening file.
-
-        Returns:
-            str: A fully qualified cache filename.
-
-        """
-        return f"{self._config_dir}/solcast-dampening.json"
-
     async def serialise_data(self, data: dict[str, Any], filename: str) -> bool:
         """Serialize data to file.
 
@@ -456,7 +588,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 log_file.get(filename, "unknown"),
             )
             return True
-        _LOGGER.error("Not serialising empty data for %s", filename)
+        _LOGGER.warning("Not serialising empty data for %s", filename)
         return False
 
     def __redact_lat_lon_simple(self, s: str) -> str:
@@ -574,7 +706,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 success = False
 
                 if not prior_crash:
-                    url = f"{self.options.host}/rooftop_sites"
+                    url = f"{self.advanced_options['solcast_url']}/rooftop_sites"
                     params = {"format": "json", "api_key": api_key}
                     _LOGGER.debug("Connecting to %s?format=json&api_key=%s", url, self.__redact_api_key(api_key))
                     response: ClientResponse = await self._aiohttp_session.get(url=url, params=params, headers=self.headers, ssl=False)
@@ -1076,7 +1208,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
     async def serialise_granular_dampening(self):
         """Serialise the site dampening file."""
-        filename = self.get_granular_dampening_filename()
+        filename = self.get_filename_dampening()
         _LOGGER.debug("Writing granular dampening to %s", filename)
         payload = json.dumps(
             self.granular_dampening,
@@ -1115,7 +1247,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         error = False
         return_value = False
         mtime = True
-        filename = self.get_granular_dampening_filename()
+        filename = self.get_filename_dampening()
         try:
             if not Path(filename).is_file():
                 self.granular_dampening = {}
@@ -1164,8 +1296,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
     async def refresh_granular_dampening_data(self) -> None:
         """Load granular dampening data if the file has changed."""
-        if Path(self.get_granular_dampening_filename()).is_file():
-            mtime = Path(self.get_granular_dampening_filename()).stat().st_mtime
+        if Path(self.get_filename_dampening()).is_file():
+            mtime = Path(self.get_filename_dampening()).stat().st_mtime
             if mtime != self.granular_dampening_mtime:
                 await self.granular_dampening_data()
                 _LOGGER.info("Granular dampening loaded")
@@ -2469,7 +2601,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         # Load the generation history.
         generation: dict[dt, dict[str, Any]] = {generated["period_start"]: generated for generated in self._data_generation["generation"]}
-        days = 1 if len(generation) > 0 else 7
+        days = 1 if len(generation) > 0 else self.advanced_options["automated_dampening_generation_history_load_days"]
 
         entity_registry = er.async_get(self.hass)
 
@@ -2755,7 +2887,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             else 0
         )
 
-    async def model_automated_dampening(self, force: bool = False) -> None:
+    async def model_automated_dampening(self, force: bool = False) -> None:  # noqa: C901
         """Model the automated dampening of the forecast data.
 
         Look for consistently low PV generation in consistently high estimated actual intervals.
@@ -2764,19 +2896,28 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         if not self.options.auto_dampen and not force:
             _LOGGER.debug("Automated dampening is not enabled, skipping model_automated_dampening()")
             return
-
-        MODEL_DAYS = 14  # Number of days over which to model
-        MINIMUM_INTERVALS = 1  # Minimum number of matching intervals to consider dampening
+        _LOGGER.debug("Modelling automated dampening factors")
 
         start_time = time.time()
 
+        ignored_intervals: list[int] = []  # Intervals to ignore in local time zone
+        for time_string in self.advanced_options["automated_dampening_ignore_intervals"]:
+            hour, minute = map(int, time_string.split(":"))
+            interval = hour * 2 + minute // 30
+            ignored_intervals.append(interval)
+
         export_limited_intervals = dict.fromkeys(range(48), False)
-        for gen in self._data_generation["generation"]:
-            if gen["export_limiting"]:
-                export_limited_intervals[self.adjusted_interval(gen)] = True
+        if not self.advanced_options["automated_dampening_no_limiting_consistency"]:
+            for gen in self._data_generation["generation"]:
+                if gen["export_limiting"]:
+                    export_limited_intervals[self.adjusted_interval(gen)] = True
+
         generation: dict[dt, float] = {}
         for gen in self._data_generation["generation"]:
-            if not export_limited_intervals[self.adjusted_interval(gen)]:
+            if not self.advanced_options["automated_dampening_no_limiting_consistency"]:
+                if not export_limited_intervals[self.adjusted_interval(gen)]:
+                    generation[gen["period_start"]] = gen["generation"]
+            elif not gen["export_limiting"]:
                 generation[gen["period_start"]] = gen["generation"]
 
         actuals: OrderedDict[dt, float] = OrderedDict()
@@ -2796,7 +2937,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 return
             start, end = self.__get_list_slice(
                 self._data_actuals["siteinfo"][site["resource_id"]]["forecasts"],
-                self.get_day_start_utc() - timedelta(days=MODEL_DAYS),  # self._data_generation["generation"][0]["period_start"],
+                self.get_day_start_utc() - timedelta(days=self.advanced_options["automated_dampening_model_days"]),
                 self.get_day_start_utc(),
                 search_past=True,
             )
@@ -2826,23 +2967,20 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         # Defaults.
         dampening: list[float] = [1.0] * 48
-        noise = 0.95
 
         # Check the generation for each interval and determine if it is consistently lower than the peak.
         for interval, matching in matching_intervals.items():
             generation_samples: list[float] = [
                 generation.get(timestamp, 0.0) for timestamp in matching if generation.get(timestamp, 0.0) != 0.0
             ]
-            if len(matching) > 0 and len(generation_samples) > 0:
-                peak = max(generation_samples)
-
-                interval_time = f"{
-                    interval // 2
-                    + (
-                        1
-                        if self.dst(dt.now(self._tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0))
-                        else 0
-                    ):02}:{30 * (interval % 2):02}"
+            dst_offset = (
+                1 if self.dst(dt.now(self._tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0)) else 0
+            )
+            interval_time = f"{interval // 2 + (dst_offset):02}:{30 * (interval % 2):02}"
+            if interval + dst_offset * 2 in ignored_intervals:
+                _LOGGER.debug("Interval %s is intentionally ignored, skipping", interval_time)
+                continue
+            if len(matching) > 0:
                 _LOGGER.debug(
                     "Interval %s has peak estimated actual %.3f and %d matching intervals: %s",
                     interval_time,
@@ -2850,17 +2988,21 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     len(matching),
                     ", ".join([date.astimezone(self._tz).strftime(DATE_MONTH_DAY) for date in matching]),
                 )
+                peak = max(generation_samples) if len(generation_samples) > 0 else 0.0
                 _LOGGER.debug("Interval %s max generation: %.3f, %s", interval_time, peak, generation_samples)
                 msg = f"Not enough matching intervals for {interval_time} to determine dampening"
                 log_msg = True
-                if len(matching) > MINIMUM_INTERVALS:
+                if len(matching) >= self.advanced_options["automated_dampening_minimum_matching_intervals"]:
                     if peak < self._peak_intervals[interval]:
-                        factor = (peak / self._peak_intervals[interval]) if self._peak_intervals[interval] != 0 else 0.0
-                        if factor < noise:
-                            msg = f"Auto-dampen factor for {interval_time} is {factor:.3f}"
-                            dampening[interval] = round(factor, 3)
+                        if len(generation_samples) >= self.advanced_options["automated_dampening_minimum_matching_generation"]:
+                            factor = (peak / self._peak_intervals[interval]) if self._peak_intervals[interval] != 0 else 0.0
+                            if factor >= self.advanced_options["automated_dampening_insignificant_factor"]:
+                                msg = f"Ignoring insignificant factor for {interval_time} of {factor:.3f}"
+                            else:
+                                msg = f"Auto-dampen factor for {interval_time} is {factor:.3f}"
+                                dampening[interval] = round(factor, 3)
                         else:
-                            msg = f"Ignoring insignificant factor for {interval_time} of {factor:.3f}"
+                            msg = f"Not enough reliable generation samples for {interval_time} to determine dampening ({len(generation_samples)})"
                     else:
                         log_msg = False
                 if log_msg:
@@ -2936,7 +3078,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     round(actual["pv_estimate"], 4),
                 )
 
-            await self.sort_and_prune(site["resource_id"], self._data_actuals, 730, actuals)
+            await self.sort_and_prune(site["resource_id"], self._data_actuals, self.advanced_options["forecast_history_max_days"], actuals)
             _LOGGER.debug("Estimated actuals dictionary for site %s length %s", site["resource_id"], len(actuals))
 
         if status == DataCallStatus.SUCCESS and dampen_yesterday:
@@ -2984,7 +3126,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             ),
                         )
 
-                    await self.sort_and_prune(site["resource_id"], self._data_actuals_dampened, 730, extant_actuals)
+                    await self.sort_and_prune(
+                        site["resource_id"], self._data_actuals_dampened, self.advanced_options["forecast_history_max_days"], extant_actuals
+                    )
 
         if status != DataCallStatus.SUCCESS:
             _LOGGER.error("Update estimated actuals failed: %s", reason)
@@ -3176,19 +3320,29 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         if site == "all" and self.options.auto_dampen and self.granular_dampening.get("all"):
             interval = self.adjusted_interval_dt(period_start)
             factor = self.granular_dampening["all"][interval]
-            if self._peak_intervals[interval] > 0 and interval_pv50 > 0 and factor < 1.0:
-                # Adjust the factor based on forecast vs. peak interval logarithmically.
-                factor_pre_adjustment = factor
-                factor = max(factor, min(1, factor + ((1 - factor) * (math.log(self._peak_intervals[interval]) - math.log(interval_pv50)))))
-                if record_adjustment and period_start.astimezone(self._tz).date() == dt.now(self._tz).date():
-                    _LOGGER.debug(
-                        "Adjusted granular dampening factor for %s is %.3f (was %.3f, peak %.3f, interval pv50 %.3f)",
-                        period_start.astimezone(self._tz).strftime(DATE_FORMAT),
-                        factor,
-                        factor_pre_adjustment,
-                        self._peak_intervals[interval],
-                        interval_pv50,
-                    )
+            if (
+                not self.advanced_options["automated_dampening_no_delta_corrections"]
+                and self._peak_intervals[interval] > 0
+                and interval_pv50 > 0
+                and factor < 1.0
+            ):
+                match self.advanced_options["automated_dampening_delta_adjustment_model"]:
+                    case _:
+                        # Adjust the factor based on forecast vs. peak interval delta-logarithmically.
+                        factor_pre_adjustment = factor
+                        factor = max(
+                            factor, min(1, factor + ((1 - factor) * (math.log(self._peak_intervals[interval]) - math.log(interval_pv50))))
+                        )
+                        if record_adjustment and period_start.astimezone(self._tz).date() == dt.now(self._tz).date():
+                            _LOGGER.debug(
+                                "Adjusted granular dampening factor for %s is %.3f (was %.3f, peak %.3f, interval pv50 %.3f)",
+                                period_start.astimezone(self._tz).strftime(DATE_FORMAT),
+                                factor,
+                                factor_pre_adjustment,
+                                self._peak_intervals[interval],
+                                interval_pv50,
+                            )
+
         return factor
 
     def __get_dampening_factor(self, site: str | None, period_start: dt, interval_pv50: float, record_adjustment: bool = False) -> float:
@@ -3280,7 +3434,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                         round(forecast["pv_estimate90"], 4),
                     )
 
-            await self.sort_and_prune(site["resource_id"], self._data, 730, forecasts)
+            await self.sort_and_prune(site["resource_id"], self._data, self.advanced_options["forecast_history_max_days"], forecasts)
 
     async def sort_and_prune(self, site: str | None, data: dict[str, Any], past_days: int, forecasts: dict[Any, Any]) -> None:
         """Sort and prune a forecast list."""
@@ -3314,7 +3468,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             tuple[DataCallStatus, str]: A flag indicating success, failure or abort, and a reason for failure.
 
         """
-        last_day = self.get_day_start_utc(future=FORECAST_DAYS)
+        last_day = self.get_day_start_utc(future=self.advanced_options["forecast_future_days"])
         hours = math.ceil((last_day - self.get_now_utc()).total_seconds() / 3600)
         _LOGGER.debug(
             "Polling API for site %s, last day %s, %d hours",
@@ -3377,7 +3531,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     round(actual["pv_estimate"], 4),
                 )
 
-            await self.sort_and_prune(site, self._data_actuals, 730, actuals)
+            await self.sort_and_prune(site, self._data_actuals, self.advanced_options["forecast_history_max_days"], actuals)
 
             self._data_actuals["last_updated"] = dt.now(datetime.UTC).replace(microsecond=0)
             self._data_actuals["last_attempt"] = dt.now(datetime.UTC).replace(microsecond=0)
@@ -3502,7 +3656,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 async with asyncio.timeout(900):
                     if self._api_used[api_key] < self._api_limit[api_key] or force:
                         # if API == Api.HOBBYIST:
-                        url = f"{self.options.host}/rooftop_sites/{site}/{path}"
+                        url = f"{self.advanced_options['solcast_url']}/rooftop_sites/{site}/{path}"
                         params: dict[str, str | int] = {"format": "json", "api_key": api_key, "hours": hours}
 
                         tries = 10
@@ -3666,7 +3820,10 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         )
         forecasts_start, _ = self.__get_list_slice(self._data_forecasts, self.get_day_start_utc(), search_past=True)
         actuals_start, actuals_end = self.__get_list_slice(
-            _data, self.get_day_start_utc() - timedelta(days=730), self.get_day_start_utc(), search_past=True
+            _data,
+            self.get_day_start_utc() - timedelta(days=self.advanced_options["forecast_history_max_days"]),
+            self.get_day_start_utc(),
+            search_past=True,
         )
         return {
             "wh_hours": OrderedDict(
@@ -3746,7 +3903,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             bool: A flag indicating success or failure.
 
         """
-        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=730)
+        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options["forecast_history_max_days"])
         last_day: datetime.date = dt.now(self._tz).date()
 
         actuals: dict[dt, dict[str, dt | float]] = {}
@@ -3846,9 +4003,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         """
         today: datetime.date = dt.now(self._tz).date()
-        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=730)
+        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options["forecast_history_max_days"])
         commencing_undampened: datetime.date = dt.now(self._tz).date() - timedelta(days=14)
-        last_day: datetime.date = dt.now(self._tz).date() + timedelta(days=FORECAST_DAYS)
+        last_day: datetime.date = dt.now(self._tz).date() + timedelta(days=self.advanced_options["forecast_future_days"])
         logged_hard_limit: list[str] = []
 
         forecasts: dict[dt, dict[str, dt | float]] = {}
@@ -4118,7 +4275,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         # The latest period is used to determine whether any history should be updated on stale start.
         self.latest_period = self._data_forecasts[-1]["period_start"] if len(self._data_forecasts) > 0 else None
 
-        for future_day in range(FORECAST_DAYS):
+        for future_day in range(self.advanced_options["forecast_future_days"]):
             start_utc = self.get_day_start_utc(future=future_day)
             end_utc = self.get_day_start_utc(future=future_day + 1)
             start_index, end_index = self.__get_list_slice(self._data_forecasts, start_utc, end_utc)
@@ -4167,7 +4324,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             )
         else:
             contiguous_end_date = None
-        if contiguous < FORECAST_DAYS:
+        if contiguous < self.advanced_options["forecast_future_days"]:
             for day, assessment in OrderedDict(sorted(interval_assessment.items(), key=lambda k: k[0])).items():
                 if contiguous_end_date is not None and day <= contiguous_end_date:
                     continue
@@ -4178,12 +4335,14 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             day.strftime("%Y-%m-%d"),
                         )
                     case _:
-                        (_LOGGER.debug if contiguous == FORECAST_DAYS - 1 else _LOGGER.warning)(
+                        (_LOGGER.debug if contiguous == self.advanced_options["forecast_future_days"] - 1 else _LOGGER.warning)(
                             "Forecast data for %s contains %d of %d intervals%s",
                             day.strftime("%Y-%m-%d"),
                             assessment["intervals"],
                             assessment["expected_intervals"],
-                            ", which may be expected" if contiguous == FORECAST_DAYS - 1 else ", so is missing forecast data",
+                            ", which may be expected"
+                            if contiguous == self.advanced_options["forecast_future_days"] - 1
+                            else ", so is missing forecast data",
                         )
         issue_registry = ir.async_get(self.hass)
 
@@ -4194,7 +4353,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     _LOGGER.debug("Remove issue for %s", check_issue)
                     ir.async_delete_issue(self.hass, DOMAIN, check_issue)
 
-        if 0 < contiguous < FORECAST_DAYS - 1:
+        if 0 < contiguous < self.advanced_options["forecast_future_days"] - 1:
             if self.entry is not None:
                 # If auto-update is enabled then raise an un-fixable issue, otherwise raise a fixable issue.
                 raise_issue: str | None
@@ -4219,6 +4378,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     )
                 if not raise_issue:
                     _remove_issues()
-        if contiguous >= FORECAST_DAYS - 1:
+        if contiguous >= self.advanced_options["forecast_future_days"] - 1:
             # If data is all (or mostly) present then remove any relevant issues.
             _remove_issues()

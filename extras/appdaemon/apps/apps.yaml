@@ -510,7 +510,7 @@ Garage Plant Light:
   module: entity_timer
   class: Timer
   time_on: sunrise + 00:30:00
-  time_off: sunset - 00:30:00
+  time_off: sunset - 01:00:00
   entities: switch.orvibo_1
 
 # Plant Light Corner:

@@ -600,7 +600,7 @@
         data:
           priority: '{% if now().hour > 9 and now().hour < 22 and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
-      enabled: false
+      enabled: true
   - if:
     - condition: template
       value_template: '{{ trigger.id == ''gateway'' }}'
@@ -614,7 +614,7 @@
         data:
           priority: '{% if now().hour > 9 and now().hour < 22  and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
-      enabled: false
+      enabled: true
 - id: webhook_debugger
   alias: Webhook Debugger
   triggers:

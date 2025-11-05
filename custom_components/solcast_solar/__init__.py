@@ -338,6 +338,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:  #
 
     hass.data[DOMAIN]["presumed_dead"] = True  # Presumption that init will not be successful.
     solcast = SolcastApi(aiohttp_client.async_get_clientsession(hass), options, hass, entry)
+    await solcast.read_advanced_options()
 
     solcast.headers = get_session_headers(version)
     await solcast.get_sites_and_usage(prior_crash=prior_crash)
@@ -830,7 +831,7 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
             reload = True
             if hass.data[DOMAIN]["entry_options"].get(AUTO_DAMPEN, False):
                 # Turning auto-dampening off, so reset the granular dampening file content.
-                path = Path(coordinator.solcast.get_granular_dampening_filename())
+                path = Path(coordinator.solcast.get_filename_dampening())
                 _LOGGER.debug("Unlink %s", path)
                 if path.exists():
                     path.unlink()
@@ -840,7 +841,7 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
             if not entry.options[SITE_DAMP]:
                 if coordinator.solcast.allow_granular_dampening_reset():
                     coordinator.solcast.granular_dampening = {}
-                    path = Path(coordinator.solcast.get_granular_dampening_filename())
+                    path = Path(coordinator.solcast.get_filename_dampening())
                     if path.exists():
                         path.unlink()
             await coordinator.solcast.apply_forward_dampening()
