@@ -71,3 +71,6 @@ christmas_jingle:
 
 ev_charge_override:
   name: EV Charge Solar Automation Override
+
+ev_charge_prioritize_vehicle_over_home_battery:
+  name: Prioritize Vehicle over Home Battery Charging

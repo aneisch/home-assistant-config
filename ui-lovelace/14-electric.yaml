@@ -28,6 +28,11 @@ cards:
     detail: 2
 
   - type: sensor
+    entity: sensor.refrigerator_power
+    graph: line
+    detail: 2Wa
+
+  - type: sensor
     entity: sensor.kitchen_coffee_power
     graph: line
     detail: 2
@@ -74,11 +79,6 @@ cards:
 
   - type: sensor
     entity: sensor.phase_b_power
-    graph: line
-    detail: 2
-
-  - type: sensor
-    entity: sensor.refrigerator_power
     graph: line
     detail: 2
 

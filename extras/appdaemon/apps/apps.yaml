@@ -49,7 +49,7 @@ AC Automation Solar:
   solar_boost_threshold: 700
   battery_boost_threshold: 99       # battery SOC for boost activation
   cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cool_boost_offset_guest: 5
+  cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
   cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
   cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
@@ -57,7 +57,7 @@ AC Automation Solar:
 Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  home_battery_min_soc: 98
+  home_battery_min_soc: 97
   buffer_watts: 250
 
 Auto Dehumidifer:
@@ -250,6 +250,9 @@ Dehumidifier Follow:
 #############
 # Christmas #
 #############
+
+# Also uncomment the right line in Indoor Light Automation Sunset
+
 # Christmas Lights:
 #   module: entity_timer
 #   class: Timer
@@ -257,25 +260,25 @@ Dehumidifier Follow:
 #   time_on: sunset - 00:20:00
 #   time_off: "23:00:00"
 
-# Front Porch Tree Follow:
-#   module: follow_me
-#   class: Follow
-#   leader: switch.christmas_lights
-#   follower: switch.front_porch_christmas_tree
+Front Porch Tree Follow:
+  module: follow_me
+  class: Follow
+  leader: switch.christmas_lights
+  follower: switch.front_porch_christmas_tree
 
-# Christmas Trees Follow:
-#   module: follow_me
-#   class: Follow
-#   leader: group.christmas_trees
-#   follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
-#   follow_off: False # Only follow state to on
+Christmas Trees Follow:
+  module: follow_me
+  class: Follow
+  leader: group.christmas_trees
+  follower: switch.dining_room_christmas_tree,switch.office_christmas_tree,switch.master_bedroom_christmas_tree
+  follow_off: False # Only follow state to on
 
-# Front House Christmas Trees Timer:
-#   module: entity_timer
-#   class: Timer
-#   entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
-#   time_on: sunset - 00:20:00
-#   time_off: '23:00:00'
+Front House Christmas Trees Timer:
+  module: entity_timer
+  class: Timer
+  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+  time_on: sunset - 00:20:00
+  time_off: '23:00:00'
 
 ############
 # Aquarium #
@@ -436,8 +439,11 @@ Indoor Light Automation Sunset:
     - input_boolean.house_lamps_automation
   constrain_person: anyone
   time_on: sunset
-  #entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet #,group.christmas #,switch.ir_candles
-  entities: light.living_room_lamps, group.under_cabinet_lights
+  # entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas #,switch.ir_candles # Commented for electricity savings
+  # Start Christmas
+  entities: light.living_room_lamps, group.under_cabinet_lights,group.christmas
+  # End Christmas
+  # entities: light.living_room_lamps, group.under_cabinet_lights
   brightness: 255
 
 Guest Light Automation Sunset:

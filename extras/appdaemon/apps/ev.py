@@ -18,6 +18,7 @@ class SolarEVCharger(hass.Hass):
         # Entities
         self.entities = {
             "home_soc": "sensor.solark_sol_ark_battery_soc",
+            "ev_charge_prioritization": "input_boolean.ev_charge_prioritize_vehicle_over_home_battery",
             "solar": "sensor.solark_sol_ark_solar_power",
             "load": "sensor.solark_sol_ark_load_power",
             "charge_rate": "input_number.tesla_charge_rate_master",
@@ -57,6 +58,12 @@ class SolarEVCharger(hass.Hass):
             self.log("Overridden")
             return
 
+        # Only process if grid online (and override off ^)
+        if self.get_state(self.entities["grid_status"]) == "off":
+            self.log("Not calculating due to grid outage")
+            return
+
+        # Reset eval_locked state when nothing connected
         if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
             self.eval_locked = False
             self.log("No Vehicle Connected")
@@ -64,6 +71,7 @@ class SolarEVCharger(hass.Hass):
 
         try:
             home_soc = int(float(self.get_state(self.entities["home_soc"])))
+            ev_prioritization = self.get_state(self.entities["ev_charge_prioritization"])
             vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
             solar_watts = int(float(self.get_state(self.entities["solar"])))
             load_watts = int(float(self.get_state(self.entities["load"])))
@@ -74,7 +82,9 @@ class SolarEVCharger(hass.Hass):
             return
 
         # Block charging if home battery too low
-        if home_soc < self.min_home_soc:
+        # Allow charging with home battery below min_home_soc if EV is prioritized and home_soc is > 50
+        if (ev_prioritization == "off" and home_soc < self.min_home_soc) or (ev_prioritization == "on" and home_soc < 50):
+            self.log("Blocked")
             self.eval_locked = False
             self.set_charge_rate(self.min_amps, disable=True)
             return

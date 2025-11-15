@@ -138,7 +138,7 @@ cards:
 
           Monthly Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Monthly Water + Sewer + Electric (+fee): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) + 7 }}
+          Monthly Water + Sewer + Electric (+fee): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 }}
       # - type: sensor
       #   entity: sensor.s3_water_usage
       #   graph: line
@@ -213,7 +213,7 @@ cards:
       - switch.docker_plex
       - switch.docker_portainer
       - switch.docker_sqliteweb
-      - switch.docker_vrs
+      #- switch.docker_vrs
       - switch.docker_watchtower
 
 

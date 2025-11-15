@@ -57,6 +57,8 @@ cards:
         - entity_id: "switch.kmc_multi_plug_1*"
         - entity_id: "*home_assistant_voice_pe*"
         - entity_id: "*refrigerator*"
+        - entity_id: "switch.wyze_plug_3_relay2" # office flume
+        - entity_id: "switch.orvibo_1" # garage plant light
 
     card:
       type: entities

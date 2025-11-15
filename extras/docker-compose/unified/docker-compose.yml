@@ -716,71 +716,32 @@ services:
             - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
             - traefik.http.routers.sqliteweb.service=sqliteweb
 
-    vrs:
-        container_name: vrs
-        restart: 'always'
-        image: mikenye/virtualradarserver
-        # ports:
-        #     - '1234:8080'
-        environment:
-            - USERNAME=aneisch
-            - PASSWORD=PASSWORD
-            - TZ=America/Chicago
-        volumes:
-            - /opt/vrs/config:/config
-        labels:
-            # HTTPS for CF
-            - traefik.enable=true
-            - traefik.http.routers.vrs.entrypoints=websecure
-            - traefik.http.middlewares.vrs-redirect.redirectregex.regex=^https://vrs.domain.com/$$
-            - traefik.http.middlewares.vrs-redirect.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/desktop.html
-            - traefik.http.middlewares.vrs-redirect-admin.redirectregex.regex=^https://vrs.domain.com/admin$$
-            - traefik.http.middlewares.vrs-redirect-admin.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/WebAdmin/DatabaseWriterPluginOptions.html
-            - "traefik.http.middlewares.vrs.chain.middlewares=vrs-redirect@docker,vrs-redirect-admin@docker" # combine the two in a chain
-            - "traefik.http.routers.vrs.middlewares=vrs@docker" # apply the chain
-            - traefik.http.routers.vrs.tls=true
-            - traefik.http.routers.vrs.rule=Host(`vrs.domain.com`)
-            - traefik.http.services.vrs.loadbalancer.server.port=8080
-            - traefik.http.routers.vrs.service=vrs
-
-    macos-ventura:
-        # Maybe unnecessary -- using openbubbles
-        container_name: macos-ventura
-        restart: 'always'
-        image: sickcodes/docker-osx:naked
-        labels:
-            - com.centurylinklabs.watchtower.enable=false
-            # HTTPS for CF
-            - traefik.enable=true
-            - traefik.http.routers.bb.entrypoints=websecure
-            - traefik.http.routers.bb.tls=true
-            - traefik.http.routers.bb.rule=Host(`bb.domain.com`)
-            - traefik.http.services.bb.loadbalancer.server.port=1234
-            - traefik.http.routers.bb.service=bb
-        ports:
-            - 50922:10022
-            - 1234:1234 # Bluebubbles API
-            - 5999:5999 # vnc
-        volumes:
-            - /tmp/.X11-unix:/tmp/.X11-unix
-            - /opt/macos/macos_ventura.qcow2:/image # Backed up on portable SSD
-        network_mode: host
-        environment:
-            - DISPLAY=${DISPLAY:-:0.0}
-            - GENERATE_SPECIFIC=true
-            - DEVICE_MODEL=iMacPro1,1
-            - SERIAL=SERIAL
-            - BOARD_SERIAL=SERIAL
-            - UUID=7UUID
-            - MAC_ADDRESS=MAC
-            - WIDTH=1920
-            - HEIGHT=1080
-            - EXTRA=-display none -vnc 0.0.0.0:99,password-secret=secvnc0 -object secret,id=secvnc0,data=vncpass
-            - TZ=America/Chicago
-            - ADDITIONAL_PORTS=hostfwd=tcp::1234-:1234,
-        devices:
-            - /dev/kvm
-        user: root
+    # vrs:
+    #     container_name: vrs
+    #     restart: 'always'
+    #     image: mikenye/virtualradarserver
+    #     # ports:
+    #     #     - '1234:8080'
+    #     environment:
+    #         - USERNAME=aneisch
+    #         - PASSWORD=PASSWORD
+    #         - TZ=America/Chicago
+    #     volumes:
+    #         - /opt/vrs/config:/config
+    #     labels:
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.routers.vrs.entrypoints=websecure
+    #         - traefik.http.middlewares.vrs-redirect.redirectregex.regex=^https://vrs.domain.com/$$
+    #         - traefik.http.middlewares.vrs-redirect.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/desktop.html
+    #         - traefik.http.middlewares.vrs-redirect-admin.redirectregex.regex=^https://vrs.domain.com/admin$$
+    #         - traefik.http.middlewares.vrs-redirect-admin.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/WebAdmin/DatabaseWriterPluginOptions.html
+    #         - "traefik.http.middlewares.vrs.chain.middlewares=vrs-redirect@docker,vrs-redirect-admin@docker" # combine the two in a chain
+    #         - "traefik.http.routers.vrs.middlewares=vrs@docker" # apply the chain
+    #         - traefik.http.routers.vrs.tls=true
+    #         - traefik.http.routers.vrs.rule=Host(`vrs.domain.com`)
+    #         - traefik.http.services.vrs.loadbalancer.server.port=8080
+    #         - traefik.http.routers.vrs.service=vrs
 
     frigate:
         container_name: frigate
@@ -943,65 +904,65 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
 
-    double-take:
-        container_name: double-take
-        image: jakowenko/double-take
-        restart: unless-stopped
-        volumes:
-            - /opt/doubletake:/.storage
-        # ports:
-        #     - 3100:3000
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.doubletake.loadbalancer.server.port=3000
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.doubletake_local.tls=true
-            - traefik.http.routers.doubletake_local.entrypoints=websecure
-            - traefik.http.routers.doubletake_local.tls.certResolver=le-home
-            - traefik.http.routers.doubletake_local.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.doubletake_local.rule=Host(`doubletake.home.domain.com`)
-            - traefik.http.routers.doubletake_local.service=doubletake
+    # double-take:
+    #     container_name: double-take
+    #     image: jakowenko/double-take
+    #     restart: unless-stopped
+    #     volumes:
+    #         - /opt/doubletake:/.storage
+    #     # ports:
+    #     #     - 3100:3000
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.services.doubletake.loadbalancer.server.port=3000
+    #         # HTTPS Local Only (with 80-->443 redirect)
+    #         - traefik.http.routers.doubletake_local.tls=true
+    #         - traefik.http.routers.doubletake_local.entrypoints=websecure
+    #         - traefik.http.routers.doubletake_local.tls.certResolver=le-home
+    #         - traefik.http.routers.doubletake_local.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.doubletake_local.rule=Host(`doubletake.home.domain.com`)
+    #         - traefik.http.routers.doubletake_local.service=doubletake
 
-    guacd:
-        image: guacamole/guacd
-        container_name: guacd
-        restart: unless-stopped
-        security_opt:
-            - no-new-privileges:true
+    # guacd:
+    #     image: guacamole/guacd
+    #     container_name: guacd
+    #     restart: unless-stopped
+    #     security_opt:
+    #         - no-new-privileges:true
 
-    guacamole:
-        image: guacamole/guacamole:latest
-        container_name: guacamole
-        restart: unless-stopped
-        depends_on:
-            - guacd
-        security_opt:
-            - no-new-privileges:true
-        environment:
-            GUACD_HOSTNAME: guacd
-            MYSQL_HOSTNAME: mariadb
-            MYSQL_PORT: 3306
-            MYSQL_DATABASE: guacamole
-            MYSQL_USER: guacamole
-            MYSQL_PASSWORD: Dimmed3
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.guacamole.loadbalancer.server.port=8080
-            # HTTPS for CF
-            - traefik.http.routers.guacamole.entrypoints=websecure
-            - traefik.http.routers.guacamole.tls=true
-            - traefik.http.routers.guacamole.rule=Host(`guacamole.domain.com`)
-            - traefik.http.routers.guacamole.middlewares=add-guacamole
-            - traefik.http.routers.guacamole.service=guacamole
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.guacamole_local.tls=true
-            - traefik.http.routers.guacamole_local.entrypoints=websecure
-            - traefik.http.routers.guacamole_local.tls.certResolver=le-home
-            - traefik.http.routers.guacamole_local.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.guacamole_local.rule=Host(`guacamole.home.domain.com`)
-            - traefik.http.routers.guacamole_local.middlewares=add-guacamole
-            - traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole
-            - traefik.http.routers.guacamole_local.service=guacamole
+    # guacamole:
+    #     image: guacamole/guacamole:latest
+    #     container_name: guacamole
+    #     restart: unless-stopped
+    #     depends_on:
+    #         - guacd
+    #     security_opt:
+    #         - no-new-privileges:true
+    #     environment:
+    #         GUACD_HOSTNAME: guacd
+    #         MYSQL_HOSTNAME: mariadb
+    #         MYSQL_PORT: 3306
+    #         MYSQL_DATABASE: guacamole
+    #         MYSQL_USER: guacamole
+    #         MYSQL_PASSWORD: Dimmed3
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.services.guacamole.loadbalancer.server.port=8080
+    #         # HTTPS for CF
+    #         - traefik.http.routers.guacamole.entrypoints=websecure
+    #         - traefik.http.routers.guacamole.tls=true
+    #         - traefik.http.routers.guacamole.rule=Host(`guacamole.domain.com`)
+    #         - traefik.http.routers.guacamole.middlewares=add-guacamole
+    #         - traefik.http.routers.guacamole.service=guacamole
+    #         # HTTPS Local Only (with 80-->443 redirect)
+    #         - traefik.http.routers.guacamole_local.tls=true
+    #         - traefik.http.routers.guacamole_local.entrypoints=websecure
+    #         - traefik.http.routers.guacamole_local.tls.certResolver=le-home
+    #         - traefik.http.routers.guacamole_local.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.guacamole_local.rule=Host(`guacamole.home.domain.com`)
+    #         - traefik.http.routers.guacamole_local.middlewares=add-guacamole
+    #         - traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole
+    #         - traefik.http.routers.guacamole_local.service=guacamole
 
     teslamate:
         image: teslamate/teslamate:latest
@@ -1062,59 +1023,22 @@ services:
             - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
             - traefik.http.routers.teslamate_local.service=teslamate
 
-    fastenhealth:
-        image: ghcr.io/fastenhealth/fasten-onprem:main
-        container_name: fastenhealth
-        restart: always
+    staff_learner:
+        container_name: staff_learner # /opt/github/staff_3
+        image: staff_learner
+        restart: unless-stopped
         volumes:
-            - /opt/fastenhealth/db:/opt/fasten/db
-            - /opt/fastenhealth/cache:/opt/fasten/cache
+            - /etc/localtime:/etc/localtime:ro  # Time sync
         labels:
             - traefik.enable=true
-            - traefik.http.services.fastenhealth.loadbalancer.server.port=8080
-            # HTTPS for CF
-            - traefik.http.routers.fasten.entrypoints=websecure
-            - traefik.http.routers.fasten.tls=true
-            - traefik.http.routers.fasten.rule=Host(`fasten.domain.com`)
-            - traefik.http.routers.fasten.service=fastenhealth
+            - traefik.http.services.staff_learner.loadbalancer.server.port=8000
             # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.fasten_local.tls=true
-            - traefik.http.routers.fasten_local.entrypoints=websecure
-            - traefik.http.routers.fasten_local.tls.certResolver=le-home
-            - traefik.http.routers.fasten_local.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.fasten_local.rule=Host(`fasten.home.domain.com`)
-            - traefik.http.routers.fasten_local.service=fastenhealth
-
-    n8n:
-        image: docker.n8n.io/n8nio/n8n
-        container_name: n8n
-        restart: always
-        ports:
-        - "5678:5678"
-        environment:
-        - N8N_HOST=10.0.1.22
-        - N8N_PORT=5678
-        - N8N_PROTOCOL=http
-        - NODE_ENV=production
-        - WEBHOOK_URL=http://10.0.1.22:5678/
-        - GENERIC_TIMEZONE=America/Chicago
-        - N8N_SECURE_COOKIE=false
-        volumes:
-        - /opt/n8n/home:/home/node/.n8n
-        - /opt/n8n/files:/files
-
-    evcc:
-        command:
-        - evcc
-        container_name: evcc
-        image: evcc/evcc:latest
-        ports:
-        - 7070:7070/tcp
-        - 8887:8887/tcp
-        volumes:
-        - /opt/evcc/evcc.yaml:/etc/evcc.yaml
-        - /opt/evcc/.evcc:/root/.evcc
-        restart: unless-stopped
+            - traefik.http.routers.staff_learner.tls=true
+            - traefik.http.routers.staff_learner.entrypoints=websecure
+            - traefik.http.routers.staff_learner.tls.certResolver=le-home
+            - traefik.http.routers.staff_learner.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.staff_learner.rule=Host(`staff_learner.home.domain.com`)
+            - traefik.http.routers.staff_learner.service=staff_learner
 
 # networks:
 #     macos_network:

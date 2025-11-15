@@ -75,16 +75,16 @@ cards:
   - type: vertical-stack
     title: Charging
     cards:
-      - type: horizontal-stack
-        cards:
-        - type: gauge
-          entity: sensor.phase_a_power
-          min: 100
-          max: 25000 
-        - type: gauge
-          entity: sensor.phase_b_power
-          min: 100
-          max: 25000
+      # - type: horizontal-stack
+      #   cards:
+        # - type: gauge
+        #   entity: sensor.phase_a_power
+        #   min: 100
+        #   max: 25000 
+        # - type: gauge
+        #   entity: sensor.phase_b_power
+        #   min: 100
+        #   max: 25000
       - type: gauge
         entity: sensor.total_power
         min: 200
@@ -94,6 +94,7 @@ cards:
           - switch.emporia_charger
           - switch.tesla_ble_charger
           - input_boolean.ev_charge_override
+          - input_boolean.ev_charge_prioritize_vehicle_over_home_battery
           - input_number.tesla_solar_target_soc_limit
           - input_number.tesla_charge_rate_master
           - entity: sensor.tesla_charger_actual_current

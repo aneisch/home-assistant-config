@@ -1,13 +1,14 @@
-# Don't forget to uncomment references to Christmas in Appdaemon apps.yaml
-# grep all YAML files for "christmas"
 ###
 # In group.yaml be sure to uncomment:
 #  - group.christmas 
 #  - switch.dining_room_christmas_tree
 #  - switch.office_christmas_tree
-###
-### 
-# Be sure to also uncomment references to christmas in scripts.yaml
+# Uncomment references to christmas in scripts.yaml
+# Uncomment the package christmas.yaml in configuration.yaml
+# Uncomment references to Christmas in Appdaemon apps.yaml
+# Uncomment references in lovelace "common"
+# Re-enable devices related to Christmas (esphome ones primarily)
+# Grep all YAML files for "Start Christmas" for good measure
 ###
 
 automation:

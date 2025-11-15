@@ -219,7 +219,7 @@ cards:
       - automation.lower_and_raise_blinds
       - input_boolean.backyard_floodlight_automation
       # Start Christmas
-      #- input_boolean.christmas_jingle
+      - input_boolean.christmas_jingle
       # End Christmas
 
   - type: entities

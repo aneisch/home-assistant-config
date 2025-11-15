@@ -15,19 +15,19 @@ home_empty:
           - group.master_bathroom_lights
           - group.common_areas
           # Start Christmas
-          #- switch.master_bedroom_christmas_tree #manually turn off because of goodnight script
+          - switch.master_bedroom_christmas_tree #manually turn off because of goodnight script
           # End Christmas
           - media_player.kitchen_photo_frame
           - media_player.office_photo_frame
           - media_player.misc_photo_frame
     # Start Christmas
     # If before dark, turn off christmas trees in front 
-    # - if: "{{ now().hour < 16 }}"
-    #   then:
-    #     - action: switch.turn_off
-    #       entity_id:
-    #         - switch.office_christmas_tree
-    #         - switch.dining_room_christmas_tree
+    - if: "{{ now().hour < 16 }}"
+      then:
+        - action: switch.turn_off
+          entity_id:
+            - switch.office_christmas_tree
+            - switch.dining_room_christmas_tree
     # End Christmas
 
 
@@ -56,8 +56,8 @@ home_occupied:
             entity_id:
               - group.under_cabinet_lights
               # Start Christmas
-              # - group.christmas # Christmas -- FYI: dining, office, master tree follow 'on' via appdaemon
-              # - switch.master_bedroom_christmas_tree # Christmas -- we manually turn on because of goodnight script
+              - group.christmas # Christmas -- FYI: dining, office, master tree follow 'on' via appdaemon
+              - switch.master_bedroom_christmas_tree # Christmas -- we manually turn on because of goodnight script
               # End Christmas
     - action: media_player.turn_on
       entity_id: 
@@ -119,13 +119,13 @@ security_arm:
 master_bedroom_wakeup:
   sequence:
     # Start Christmas
-    # - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
-    #   then:
-    #     - if: "{{ now().hour < 11 }}"
-    #       then:
-    #         - action: script.turn_on
-    #           entity_id:
-    #             - script.christmas_wakeup
+    - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
+      then:
+        - if: "{{ now().hour < 11 }}"
+          then:
+            - action: script.turn_on
+              entity_id:
+                - script.christmas_wakeup
     # End Christmas
     - action: cover.open_cover
       entity_id: cover.master_bedroom_blinds
@@ -145,7 +145,7 @@ master_bedroom_wakeup:
     - action: homeassistant.turn_on
       entity_id: 
         # Start Christmas
-        #- group.christmas
+        - group.christmas
         # End Christmas
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
@@ -155,10 +155,10 @@ master_bedroom_bedtime:
     - action: cover.close_cover
       entity_id: cover.master_bedroom_blinds
     # Start Christmas
-    # - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
-    #   then:
-    #     - action: script.turn_on # Calling this way allows the sequence to continue without blocking
-    #       entity_id: script.christmas_goodnight
+    - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
+      then:
+        - action: script.turn_on # Calling this way allows the sequence to continue without blocking
+          entity_id: script.christmas_goodnight
     # End Christmas
     - action: script.appdaemon_ac_night
     - action: switch.turn_on #revert this
