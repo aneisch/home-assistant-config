@@ -1,16 +1,17 @@
 {
     "config": {
         "abort": {
-            "reconfigured": "Nueva configuración aplicada exitosamente",
+            "internal_error": "Se produjo un error interno",
             "reauth_successful": "Nueva clave API aplicada exitosamente",
+            "reconfigured": "Nueva configuración aplicada exitosamente",
             "single_instance_allowed": "Solo se permite una instancia de Solcast"
         },
         "error": {
             "api_duplicate": "Se especificó una clave API duplicada",
             "api_looks_like_site": "La clave API parece un ID de sitio",
+            "limit_not_number": "El límite de API no es un número",
             "limit_one_or_greater": "El límite de API debe ser uno o mayor",
-            "limit_too_many": "Se ingresaron más recuentos de límites de API que claves",
-            "limit_not_number": "El límite de API no es un número"
+            "limit_too_many": "Se ingresaron más recuentos de límites de API que claves"
         },
         "step": {
             "reauth_confirm": {
@@ -44,53 +45,68 @@
             }
         },
         "sensor": {
-            "dampen": {
-                "name": "Factores de amortiguación"
-            },
-            "power_now_30m": {
-                "name": "Energía en 30 minutos"
-            },
-            "power_now_1hr": {
-                "name": "Poder en 1 hora"
-            },
-            "total_kwh_forecast_today": {
-                "name": "Pronóstico hoy"
-            },
-            "peak_w_today": {
-                "name": "Pronóstico máximo hoy"
-            },
-            "peak_w_time_today": {
-                "name": "Hora pico hoy"
-            },
-            "forecast_this_hour": {
-                "name": "Pronosticar esta hora"
-            },
-            "get_remaining_today": {
-                "name": "Pronóstico del tiempo restante para hoy"
-            },
-            "forecast_next_hour": {
-                "name": "Pronóstico de la próxima hora"
-            },
-            "forecast_custom_hours": {
-                "name": "Pronóstico próximas X horas"
-            },
-            "total_kwh_forecast_tomorrow": {
-                "name": "Pronóstico mañana"
-            },
-            "peak_w_tomorrow": {
-                "name": "Pronóstico máximo mañana"
-            },
-            "peak_w_time_tomorrow": {
-                "name": "Hora pico mañana"
-            },
             "api_counter": {
                 "name": "API utilizada"
             },
             "api_limit": {
                 "name": "Límite de API"
             },
-            "lastupdated": {
+            "dampen": {
+                "name": "Factores de amortiguación"
+            },
+            "forecast_custom_hours": {
+                "name": "Pronóstico próximas X horas"
+            },
+            "forecast_next_hour": {
+                "name": "Pronóstico de la próxima hora"
+            },
+            "forecast_remaining_today": {
+                "name": "Pronóstico del tiempo restante para hoy"
+            },
+            "forecast_this_hour": {
+                "name": "Pronosticar esta hora"
+            },
+            "hard_limit": {
+                "name": "Conjunto de límites estrictos"
+            },
+            "hard_limit_api": {
+                "name": "Conjunto de límites estrictos {api_key}"
+            },
+            "last_updated": {
                 "name": "API encuestada por última vez"
+            },
+            "peak_w_time_today": {
+                "name": "Hora pico hoy"
+            },
+            "peak_w_time_tomorrow": {
+                "name": "Hora pico mañana"
+            },
+            "peak_w_today": {
+                "name": "Pronóstico máximo hoy"
+            },
+            "peak_w_tomorrow": {
+                "name": "Pronóstico máximo mañana"
+            },
+            "power_now": {
+                "name": "Poder ahora"
+            },
+            "power_now_1hr": {
+                "name": "Poder en 1 hora"
+            },
+            "power_now_30m": {
+                "name": "Energía en 30 minutos"
+            },
+            "total_kwh_forecast_d10": {
+                "name": "Pronóstico día 10"
+            },
+            "total_kwh_forecast_d11": {
+                "name": "Pronóstico día 11"
+            },
+            "total_kwh_forecast_d12": {
+                "name": "Pronóstico día 12"
+            },
+            "total_kwh_forecast_d13": {
+                "name": "Pronóstico día 13"
             },
             "total_kwh_forecast_d3": {
                 "name": "Pronóstico día 3"
@@ -113,26 +129,11 @@
             "total_kwh_forecast_d9": {
                 "name": "Pronóstico día 9"
             },
-            "total_kwh_forecast_d10": {
-                "name": "Pronóstico día 10"
+            "total_kwh_forecast_today": {
+                "name": "Pronóstico hoy"
             },
-            "total_kwh_forecast_d11": {
-                "name": "Pronóstico día 11"
-            },
-            "total_kwh_forecast_d12": {
-                "name": "Pronóstico día 12"
-            },
-            "total_kwh_forecast_d13": {
-                "name": "Pronóstico día 13"
-            },
-            "power_now": {
-                "name": "Poder ahora"
-            },
-            "hard_limit": {
-                "name": "Conjunto de límites estrictos"
-            },
-            "hard_limit_api": {
-                "name": "Conjunto de límites estrictos {api_key}"
+            "total_kwh_forecast_tomorrow": {
+                "name": "Pronóstico mañana"
             }
         }
     },
@@ -211,12 +212,15 @@
         }
     },
     "issues": {
+        "api_unavailable": {
+            "description": "La API de Solcast ha informado repetidamente el estado `429 / Inténtelo de nuevo más tarde` durante una actualización.\n\n* No intente solucionar esta situación.\n* No cambie su clave API.\n* Evite reiniciar la integración\n* Esto no es un problema de integración y se resolverá por sí solo. No cambies nada.\n\n(Para suprimir este problema, cree una opción de configuración avanzada api_raise_issue y configúrela en false.)",
+            "title": "Solcast API temporalmente no disponible"
+        },
         "records_missing": {
-            "title": "Faltan previsiones de futuro",
-            "description": "Faltan datos de pronóstico futuro, lo cual es inesperado porque la actualización automática está habilitada."
+            "description": "Faltan los datos de pronóstico futuro, lo cual es inesperado porque la actualización automática está activada. Investiga la causa examinando el registro de Home Assistant. Lee las preguntas frecuentes de solución de problemas antes de plantear un problema de integración.",
+            "title": "Faltan previsiones de futuro"
         },
         "records_missing_fixable": {
-            "title": "Faltan previsiones de futuro",
             "fix_flow": {
                 "abort": {
                     "reconfigured": "Nueva configuración aplicada exitosamente"
@@ -230,19 +234,25 @@
                         "title": "Faltan previsiones de futuro"
                     }
                 }
-            }
+            },
+            "title": "Faltan previsiones de futuro"
+        },
+        "records_missing_unfixable": {
+            "description": "Faltan datos de pronóstico futuro, lo cual es inesperado. Verifique los registros.",
+            "title": "Faltan previsiones de futuro"
         },
         "unusual_azimuth_northern": {
-            "title": "Azimut inusual",
-            "description": "El azimut del sitio {site} es inusual para la latitud de este tejado del hemisferio norte. ¿Debería ser {proposal} en lugar de {extant}? (Ignore el problema si el sitio está orientado hacia el norte)."
+            "description": "El azimut del sitio {site} es inusual para la latitud de este tejado del hemisferio norte. ¿Debería ser {proposal} en lugar de {extant}? (Ignore el problema si el sitio está orientado hacia el norte).",
+            "title": "Azimut inusual"
         },
         "unusual_azimuth_southern": {
-            "title": "Azimut inusual",
-            "description": "El acimut del sitio {site} es inusual para la latitud de este tejado del hemisferio sur. ¿Debería ser {proposal} en lugar de {extant}? (Ignore el problema si el sitio está orientado hacia el sur)."
+            "description": "El acimut del sitio {site} es inusual para la latitud de este tejado del hemisferio sur. ¿Debería ser {proposal} en lugar de {extant}? (Ignore el problema si el sitio está orientado hacia el sur).",
+            "title": "Azimut inusual"
         }
     },
     "options": {
         "abort": {
+            "internal_error": "Se produjo un error interno",
             "reconfigured": "Nueva configuración aplicada exitosamente"
         },
         "error": {
@@ -255,11 +265,11 @@
             "dampen_without_generation": "Se debe especificar al menos un sensor Wh/kWh/MWh de generación fotovoltaica para utilizar la amortiguación automática",
             "export_multiple_entities": "La entidad de exportación del sitio debe ser una sola entidad, no varias entidades",
             "export_no_entity": "La entidad de exportación del sitio debe ser especificada si se establece un límite de exportación del sitio",
-            "limit_one_or_greater": "El límite de API debe ser uno o mayor",
-            "limit_too_many": "Se ingresaron más recuentos de límites de API que claves",
-            "limit_not_number": "El límite de API no es un número",
             "hard_not_number": "El límite duro no es un número positivo",
-            "hard_too_many": "Se introducen más límites duros que claves"
+            "hard_too_many": "Se introducen más límites duros que claves",
+            "limit_not_number": "El límite de API no es un número",
+            "limit_one_or_greater": "El límite de API debe ser uno o mayor",
+            "limit_too_many": "Se ingresaron más recuentos de límites de API que claves"
         },
         "step": {
             "dampen": {

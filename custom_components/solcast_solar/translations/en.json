@@ -1,6 +1,7 @@
 {
     "config": {
         "abort": {
+            "internal_error": "Internal error occurred",
             "reauth_successful": "New API key applied successfully",
             "reconfigured": "New configuration applied successfully",
             "single_instance_allowed": "Only one Solcast instance allowed"
@@ -59,11 +60,11 @@
             "forecast_next_hour": {
                 "name": "Forecast Next Hour"
             },
+            "forecast_remaining_today": {
+                "name": "Forecast Remaining Today"
+            },
             "forecast_this_hour": {
                 "name": "Forecast This Hour"
-            },
-            "get_remaining_today": {
-                "name": "Forecast Remaining Today"
             },
             "hard_limit": {
                 "name": "Hard Limit Set"
@@ -71,7 +72,7 @@
             "hard_limit_api": {
                 "name": "Hard Limit Set {api_key}"
             },
-            "lastupdated": {
+            "last_updated": {
                 "name": "API Last Polled"
             },
             "peak_w_time_today": {
@@ -206,13 +207,20 @@
         "integration_not_loaded": {
             "message": "Integration not loaded, not performing action."
         },
+        "integration_prior_crash": {
+            "message": "Integration failed to load previously, trying again after a delay."
+        },
         "remove_cache_failed": {
             "message": "Clear all Solcast data failed."
         }
     },
     "issues": {
+        "api_unavailable": {
+            "description": "The Solcast API has reported `429 / Try again later` status repeatedly during an update.\n\n* Do not attempt to fix this situation.\n* Do not change your API key.\n* Avoid restarting the integration\n* This is not an integration issue and will resolve itself. Change nothing.\n\n(To suppress this issue, create an advanced configuration option api_raise_issue and set it to false.)",
+            "title": "Solcast API temporarily unavailable"
+        },
         "records_missing": {
-            "description": "Future forecast data is missing, which is unexpected because auto-update is enabled.",
+            "description": "Future forecast data is missing, which is unexpected because auto-update is enabled. Investigate the cause by examining the Home Assistant log. Read the troubleshooting FAQ before raising an integration issue.",
             "title": "Future forecasts missing"
         },
         "records_missing_fixable": {
@@ -232,6 +240,10 @@
             },
             "title": "Future forecasts missing"
         },
+        "records_missing_unfixable": {
+            "description": "Future forecast data is missing, which is unexpected. Check the logs.",
+            "title": "Future forecasts missing"
+        },
         "unusual_azimuth_northern": {
             "description": "The azimuth for site {site} is unusual for the latitude of this northern hemisphere rooftop. Should this be {proposal} instead of {extant}? (Ignore the issue if the site is facing towards North.)",
             "title": "Unusual azimuth"
@@ -243,6 +255,7 @@
     },
     "options": {
         "abort": {
+            "internal_error": "Internal error occurred",
             "reconfigured": "New configuration applied successfully"
         },
         "error": {

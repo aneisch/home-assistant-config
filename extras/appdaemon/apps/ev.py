@@ -69,16 +69,22 @@ class SolarEVCharger(hass.Hass):
             self.log("No Vehicle Connected")
             return
 
+        # Separate this check because sometimes TeslaMate data is unavailable, in that case, default to 50%
+        try:
+            vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
+        except:
+            self.log(f"Invalid Vehicle SOC reading: {e}", level="WARNING")
+            vehicle_soc = 50
+
         try:
             home_soc = int(float(self.get_state(self.entities["home_soc"])))
             ev_prioritization = self.get_state(self.entities["ev_charge_prioritization"])
-            vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
             solar_watts = int(float(self.get_state(self.entities["solar"])))
             load_watts = int(float(self.get_state(self.entities["load"])))
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
             target_soc = int(float(self.get_state(self.entities["target_soc"])))
         except (TypeError, ValueError) as e:
-            self.log(f"Invalid sensor reading: {e}", level="WARNING")
+            self.log(f"Invalid other reading: {e}", level="ERROR")
             return
 
         # Block charging if home battery too low

@@ -1,16 +1,17 @@
 {
     "config": {
         "abort": {
-            "reconfigured": "Nouvelle configuration appliquée",
+            "internal_error": "Une erreur interne est survenue",
             "reauth_successful": "Nouvelle clé API appliquée avec succès",
+            "reconfigured": "Nouvelle configuration appliquée",
             "single_instance_allowed": "Une seule instance Solcast autorisée"
         },
         "error": {
             "api_duplicate": "Clé API en double spécifiée",
             "api_looks_like_site": "La clé API ressemble à un identifiant de site",
+            "limit_not_number": "La limite de l'API n'est pas un nombre",
             "limit_one_or_greater": "La limite de l'API doit être égale ou supérieure à un",
-            "limit_too_many": "Il y a plus de limites d'API saisies que de clés",
-            "limit_not_number": "La limite de l'API n'est pas un nombre"
+            "limit_too_many": "Il y a plus de limites d'API saisies que de clés"
         },
         "step": {
             "reauth_confirm": {
@@ -44,53 +45,68 @@
             }
         },
         "sensor": {
-            "dampen": {
-                "name": "Amortissement"
-            },
-            "power_now_30m": {
-                "name": "Puissance en 30 minutes"
-            },
-            "power_now_1hr": {
-                "name": "Puissance en 1 heure"
-            },
-            "total_kwh_forecast_today": {
-                "name": "Prévisions pour aujourd'hui"
-            },
-            "peak_w_today": {
-                "name": "Prévisions du pic aujourd'hui"
-            },
-            "peak_w_time_today": {
-                "name": "Heure du pic aujourd'hui"
-            },
-            "forecast_this_hour": {
-                "name": "Prévisions heure actuel"
-            },
-            "get_remaining_today": {
-                "name": "Prévisions de production  restantes aujourd'hui"
-            },
-            "forecast_next_hour": {
-                "name": "Prévisions pour la prochaine heure"
-            },
-            "forecast_custom_hours": {
-                "name": "Prévisions pour les X prochaines heures"
-            },
-            "total_kwh_forecast_tomorrow": {
-                "name": "Prévisions pour demain"
-            },
-            "peak_w_tomorrow": {
-                "name": "Prévisions du pic pour demain"
-            },
-            "peak_w_time_tomorrow": {
-                "name": "Heure du pic demain"
-            },
             "api_counter": {
                 "name": "API utilisée"
             },
             "api_limit": {
                 "name": "Limite API"
             },
-            "lastupdated": {
+            "dampen": {
+                "name": "Amortissement"
+            },
+            "forecast_custom_hours": {
+                "name": "Prévisions pour les X prochaines heures"
+            },
+            "forecast_next_hour": {
+                "name": "Prévisions pour la prochaine heure"
+            },
+            "forecast_remaining_today": {
+                "name": "Prévisions de production  restantes aujourd'hui"
+            },
+            "forecast_this_hour": {
+                "name": "Prévisions heure actuel"
+            },
+            "hard_limit": {
+                "name": "Ensemble de limites strictes"
+            },
+            "hard_limit_api": {
+                "name": "Ensemble de limites strictes {api_key}"
+            },
+            "last_updated": {
                 "name": "Dernière interrogation de l'API"
+            },
+            "peak_w_time_today": {
+                "name": "Heure du pic aujourd'hui"
+            },
+            "peak_w_time_tomorrow": {
+                "name": "Heure du pic demain"
+            },
+            "peak_w_today": {
+                "name": "Prévisions du pic aujourd'hui"
+            },
+            "peak_w_tomorrow": {
+                "name": "Prévisions du pic pour demain"
+            },
+            "power_now": {
+                "name": "Puissance maintenant"
+            },
+            "power_now_1hr": {
+                "name": "Puissance en 1 heure"
+            },
+            "power_now_30m": {
+                "name": "Puissance en 30 minutes"
+            },
+            "total_kwh_forecast_d10": {
+                "name": "Prévision jour 10"
+            },
+            "total_kwh_forecast_d11": {
+                "name": "Prévision jour 11"
+            },
+            "total_kwh_forecast_d12": {
+                "name": "Prévision jour 12"
+            },
+            "total_kwh_forecast_d13": {
+                "name": "Prévision jour 13"
             },
             "total_kwh_forecast_d3": {
                 "name": "Prévision jour 3"
@@ -113,26 +129,11 @@
             "total_kwh_forecast_d9": {
                 "name": "Prévision jour 9"
             },
-            "total_kwh_forecast_d10": {
-                "name": "Prévision jour 10"
+            "total_kwh_forecast_today": {
+                "name": "Prévisions pour aujourd'hui"
             },
-            "total_kwh_forecast_d11": {
-                "name": "Prévision jour 11"
-            },
-            "total_kwh_forecast_d12": {
-                "name": "Prévision jour 12"
-            },
-            "total_kwh_forecast_d13": {
-                "name": "Prévision jour 13"
-            },
-            "power_now": {
-                "name": "Puissance maintenant"
-            },
-            "hard_limit": {
-                "name": "Ensemble de limites strictes"
-            },
-            "hard_limit_api": {
-                "name": "Ensemble de limites strictes {api_key}"
+            "total_kwh_forecast_tomorrow": {
+                "name": "Prévisions pour demain"
             }
         }
     },
@@ -149,38 +150,38 @@
         "damp_auto_enabled": {
             "message": "L'amortissement automatique est activé, pas de définition de facteurs d'amortissement manuels."
         },
-        "damp_not_for_site": {
-            "message": "L'amortissement du site n'est pas défini pour {site}."
-        },
-        "damp_use_all": {
-            "message": "L'amortissement du site n'est pas défini pour {site}, « all » (tout) est le seul paramètre de site disponible pour l'appel de service.."
-        },
-        "damp_no_factors": {
-            "message": "Aucun facteur atténuant, doit être une liste de nombres séparés par des virgules entre 0,0 et 1,0."
-        },
         "damp_count_not_correct": {
             "message": "Il n’y a pas 24 ou 48 nombres séparés par des virgules entre 0,0 et 1,0."
-        },
-        "damp_no_all_24": {
-            "message": "Spécifier un site parmi « all » (tous) n'est pas autorisé avec 24 facteurs, supprimez le site de la demande."
-        },
-        "damp_not_site": {
-            "message": "Pas un site configuré."
         },
         "damp_error_parsing": {
             "message": "Erreur lors de l'analyse des nombres séparés par des virgules du facteur d'amortissement."
         },
+        "damp_no_all_24": {
+            "message": "Spécifier un site parmi « all » (tous) n'est pas autorisé avec 24 facteurs, supprimez le site de la demande."
+        },
+        "damp_no_factors": {
+            "message": "Aucun facteur atténuant, doit être une liste de nombres séparés par des virgules entre 0,0 et 1,0."
+        },
+        "damp_not_for_site": {
+            "message": "L'amortissement du site n'est pas défini pour {site}."
+        },
+        "damp_not_site": {
+            "message": "Pas un site configuré."
+        },
         "damp_outside_range": {
             "message": "Valeur du facteur d'amortissement présente qui n'est pas comprise entre 0,0 et 1,0."
+        },
+        "damp_use_all": {
+            "message": "L'amortissement du site n'est pas défini pour {site}, « all » (tout) est le seul paramètre de site disponible pour l'appel de service.."
         },
         "hard_empty": {
             "message": "Valeur limite stricte vide."
         },
-        "hard_too_many": {
-            "message": "Plus de limites strictes sont spécifiées qu'il n'y a de clés API."
-        },
         "hard_not_positive_number": {
             "message": "La valeur limite stricte n’est pas un nombre positif."
+        },
+        "hard_too_many": {
+            "message": "Plus de limites strictes sont spécifiées qu'il n'y a de clés API."
         },
         "init_cannot_get_sites": {
             "message": "Les données des sites n'ont pas pu être récupérées."
@@ -206,17 +207,23 @@
         "integration_not_loaded": {
             "message": "L'intégration n'est pas chargée, n'effectue aucune action."
         },
+        "integration_prior_crash": {
+            "message": "L'intégration n'a pas pu être chargée précédemment, réessaye après un délai."
+        },
         "remove_cache_failed": {
             "message": "Échec de l'effacement de toutes les données Solcast."
         }
     },
     "issues": {
+        "api_unavailable": {
+            "description": "L'API Solcast a signalé à plusieurs reprises le statut `429 / Réessayez plus tard` lors d'une mise à jour.\n\n* N'essayez pas de résoudre cette situation.\n* Ne changez pas votre clé API.\n* Évitez de redémarrer l'intégration\n* Ce n'est pas un problème d'intégration et cela se résoudra de lui-même. Ne changez rien.\n\n(Pour supprimer ce problème, créez une option de configuration avancée api_raise_issue et définissez-la sur false.)",
+            "title": "API Solcast temporairement indisponible"
+        },
         "records_missing": {
-            "title": "Prévisions manquantes",
-            "description": "Les données de prévisions futures sont manquantes, ce qui est inattendu car la mise à jour automatique est activée."
+            "description": "Les données de prévision future sont manquantes, ce qui est inattendu car la mise à jour automatique est activée. Examinez la cause en vérifiant le journal de Home Assistant. Lisez la FAQ de dépannage avant de signaler un problème d'intégration.",
+            "title": "Prévisions manquantes"
         },
         "records_missing_fixable": {
-            "title": "Prévisions manquantes",
             "fix_flow": {
                 "abort": {
                     "reconfigured": "Nouvelle configuration appliquée"
@@ -230,19 +237,25 @@
                         "title": "Prévisions manquantes"
                     }
                 }
-            }
+            },
+            "title": "Prévisions manquantes"
+        },
+        "records_missing_unfixable": {
+            "description": "Les données de prévisions futures sont manquantes, ce qui est inattendu. Vérifiez les journaux.",
+            "title": "Prévisions manquantes"
         },
         "unusual_azimuth_northern": {
-            "title": "Azimut inhabituel",
-            "description": "L'azimut du site {site} est inhabituel pour la latitude de ce toit de l'hémisphère nord. Devrait-on plutôt choisir {proposal} que {extant}? (Ignorez le problème si le site est orienté vers le nord.)"
+            "description": "L'azimut du site {site} est inhabituel pour la latitude de ce toit de l'hémisphère nord. Devrait-on plutôt choisir {proposal} que {extant}? (Ignorez le problème si le site est orienté vers le nord.)",
+            "title": "Azimut inhabituel"
         },
         "unusual_azimuth_southern": {
-            "title": "Azimut inhabituel",
-            "description": "L'azimut du site {site} est inhabituel pour la latitude de ce toit de l'hémisphère sud. Devrait-on plutôt choisir {proposal} que {extant}? (Ignorez le problème si le site est orienté vers le sud.)"
+            "description": "L'azimut du site {site} est inhabituel pour la latitude de ce toit de l'hémisphère sud. Devrait-on plutôt choisir {proposal} que {extant}? (Ignorez le problème si le site est orienté vers le sud.)",
+            "title": "Azimut inhabituel"
         }
     },
     "options": {
         "abort": {
+            "internal_error": "Une erreur interne est survenue",
             "reconfigured": "Nouvelle configuration appliquée"
         },
         "error": {
@@ -255,40 +268,13 @@
             "dampen_without_generation": "Au moins un capteur de génération PV Wh/kWh/MWh doit être spécifié pour utiliser l'amortissement automatique",
             "export_multiple_entities": "Le site d'exportation doit être une seule entité, pas plusieurs entités",
             "export_no_entity": "Le site d'exportation doit être spécifié si la limite d'exportation du site est définie",
-            "limit_one_or_greater": "La limite de l'API doit être égale ou supérieure à un",
-            "limit_too_many": "Il y a plus de limites d'API saisies que de clés",
-            "limit_not_number": "La limite de l'API n'est pas un nombre",
             "hard_not_number": "La limite dure n'est pas un nombre positif",
-            "hard_too_many": "Il y a plus de limites strictes saisies que de clés"
+            "hard_too_many": "Il y a plus de limites strictes saisies que de clés",
+            "limit_not_number": "La limite de l'API n'est pas un nombre",
+            "limit_one_or_greater": "La limite de l'API doit être égale ou supérieure à un",
+            "limit_too_many": "Il y a plus de limites d'API saisies que de clés"
         },
         "step": {
-            "init": {
-                "data": {
-                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)",
-                    "api_quota": "Quota d'API (plusieurs valeurs séparées par des virgules)",
-                    "attr_brk_estimate10": "Activer l'estimation de 10 attributs de capteur",
-                    "attr_brk_estimate": "Activer l'estimation de 50 attributs de capteur",
-                    "attr_brk_estimate90": "Activer l'estimation de 90 attributs de capteur",
-                    "attr_brk_site": "Activer les attributs du capteur de panne de site",
-                    "attr_brk_halfhourly": "Activer les attributs de détail des prévisions demi-horaires",
-                    "attr_brk_hourly": "Activer les attributs de détail horaire des prévisions",
-                    "attr_brk_detailed": "Activer la répartition du site pour les attributs de détail demi-horaires/horaires (ceux-ci ne seront pas enregistrés dans les attributs d'état de la base de données)",
-                    "auto_dampen": "Auto-dampen (requiert des valeurs réelles estimées et une entité de génération PV, voir la documentation d'intégration)",
-                    "auto_update": "Mise à jour automatique (s'il n'y a pas de mise à jour automatique, une automatisation doit être utilisée à la place)",
-                    "config_damp": "Modifier les facteurs d'amortissement horaires (après avoir cliqué sur soumettre)",
-                    "customhoursensor": "Capteur personnalisé des X prochaines heures (min=1, max=144)",
-                    "exclude_sites": "Site(s) à exclure du tableau de bord Énergie et des totaux des capteurs",
-                    "generation_entities": "Entité(s) de production PV pour amortissement automatisé (Wh/kWh/MWh, augmentation totale)",
-                    "get_actuals": "Valeurs réelles estimées mises à jour à minuit (voir la documentation d'intégration, utilise un appel API par site et par jour, donc un quota API réduit est nécessaire avec cette option activée)",
-                    "hard_limit_api": "Limite stricte de l'onduleur en kW (voir la documentation d'intégration)",
-                    "key_estimate": "Probabilité de prévision préférée à utiliser pour les capteurs",
-                    "site_damp": "L'amortissement granulaire est défini : Effacer pour revenir à l'amortissement horaire global",
-                    "site_export_entity": "Entité d'exportation de site optionnelle pour amortissement automatisé (Wh/kWh/MWh, augmentation totale)",
-                    "site_export_limit": "Limite d'exportation de site si l'exportation de site est spécifiée (kW)",
-                    "use_actuals": "Historique des prévisions à afficher sur le tableau de bord Énergie"
-                },
-                "description": "Options de configuration Solcast"
-            },
             "dampen": {
                 "data": {
                     "damp00": "00:00",
@@ -317,6 +303,33 @@
                     "damp23": "23:00"
                 },
                 "description": "Modifier le coefficient d'amortissement horaire"
+            },
+            "init": {
+                "data": {
+                    "api_key": "Clé API (plusieurs valeurs séparées par des virgules)",
+                    "api_quota": "Quota d'API (plusieurs valeurs séparées par des virgules)",
+                    "attr_brk_detailed": "Activer la répartition du site pour les attributs de détail demi-horaires/horaires (ceux-ci ne seront pas enregistrés dans les attributs d'état de la base de données)",
+                    "attr_brk_estimate": "Activer l'estimation de 50 attributs de capteur",
+                    "attr_brk_estimate10": "Activer l'estimation de 10 attributs de capteur",
+                    "attr_brk_estimate90": "Activer l'estimation de 90 attributs de capteur",
+                    "attr_brk_halfhourly": "Activer les attributs de détail des prévisions demi-horaires",
+                    "attr_brk_hourly": "Activer les attributs de détail horaire des prévisions",
+                    "attr_brk_site": "Activer les attributs du capteur de panne de site",
+                    "auto_dampen": "Auto-dampen (requiert des valeurs réelles estimées et une entité de génération PV, voir la documentation d'intégration)",
+                    "auto_update": "Mise à jour automatique (s'il n'y a pas de mise à jour automatique, une automatisation doit être utilisée à la place)",
+                    "config_damp": "Modifier les facteurs d'amortissement horaires (après avoir cliqué sur soumettre)",
+                    "customhoursensor": "Capteur personnalisé des X prochaines heures (min=1, max=144)",
+                    "exclude_sites": "Site(s) à exclure du tableau de bord Énergie et des totaux des capteurs",
+                    "generation_entities": "Entité(s) de production PV pour amortissement automatisé (Wh/kWh/MWh, augmentation totale)",
+                    "get_actuals": "Valeurs réelles estimées mises à jour à minuit (voir la documentation d'intégration, utilise un appel API par site et par jour, donc un quota API réduit est nécessaire avec cette option activée)",
+                    "hard_limit_api": "Limite stricte de l'onduleur en kW (voir la documentation d'intégration)",
+                    "key_estimate": "Probabilité de prévision préférée à utiliser pour les capteurs",
+                    "site_damp": "L'amortissement granulaire est défini : Effacer pour revenir à l'amortissement horaire global",
+                    "site_export_entity": "Entité d'exportation de site optionnelle pour amortissement automatisé (Wh/kWh/MWh, augmentation totale)",
+                    "site_export_limit": "Limite d'exportation de site si l'exportation de site est spécifiée (kW)",
+                    "use_actuals": "Historique des prévisions à afficher sur le tableau de bord Énergie"
+                },
+                "description": "Options de configuration Solcast"
             }
         }
     },
@@ -344,21 +357,27 @@
         }
     },
     "services": {
-        "update_forecasts": {
-            "name": "Mise à jour",
-            "description": "Récupère les dernières données de prévisions de Solcast."
+        "clear_all_solcast_data": {
+            "description": "Supprime le fichier solcast.json pour supprimer toutes les données actuelles du site solcast.",
+            "name": "Effacer toutes les données Solcast enregistrées"
         },
         "force_update_estimates": {
             "description": "Force récupère les dernières données réelles estimées de Solcast.",
             "name": "Forcer la mise à jour des valeurs réelles estimées"
         },
         "force_update_forecasts": {
-            "name": "Forcer la mise à jour",
-            "description": "Force récupère les dernières données de prévisions de Solcast."
+            "description": "Force récupère les dernières données de prévisions de Solcast.",
+            "name": "Forcer la mise à jour"
         },
-        "clear_all_solcast_data": {
-            "name": "Effacer toutes les données Solcast enregistrées",
-            "description": "Supprime le fichier solcast.json pour supprimer toutes les données actuelles du site solcast."
+        "get_dampening": {
+            "description": "Obtenez les facteurs d’amortissement prévus.",
+            "fields": {
+                "site": {
+                    "description": "Site facultatif pour obtenir un amortissement. (Remarque : ne fonctionnera pas si l'amortissement granulaire n'est pas activé.)",
+                    "name": "Identifiant du site"
+                }
+            },
+            "name": "Obtenez des prévisions amorties"
         },
         "query_estimate_data": {
             "description": "Renvoie un ensemble de données ou une valeur pour une requête donnée.",
@@ -375,64 +394,58 @@
             "name": "Interroger les données réelles estimées"
         },
         "query_forecast_data": {
-            "name": "Interroger les données de prévision",
             "description": "Renvoie un ensemble de données ou une valeur pour une requête donnée.",
             "fields": {
-                "start_date_time": {
-                    "name": "Date et heure de début",
-                    "description": "Date et heure de début des données de prévision."
-                },
                 "end_date_time": {
-                    "name": "Date et heure de fin",
-                    "description": "Date et heure de fin des données de prévision."
+                    "description": "Date et heure de fin des données de prévision.",
+                    "name": "Date et heure de fin"
+                },
+                "site": {
+                    "description": "Site facultatif pour récupérer les prévisions d'un site",
+                    "name": "Identifiant du site"
+                },
+                "start_date_time": {
+                    "description": "Date et heure de début des données de prévision.",
+                    "name": "Date et heure de début"
                 },
                 "undampened": {
-                    "name": "Non amorti",
-                    "description": "Booléen facultatif pour récupérer les prévisions non amorties"
-                },
-                "site": {
-                    "name": "Identifiant du site",
-                    "description": "Site facultatif pour récupérer les prévisions d'un site"
+                    "description": "Booléen facultatif pour récupérer les prévisions non amorties",
+                    "name": "Non amorti"
                 }
-            }
+            },
+            "name": "Interroger les données de prévision"
         },
-        "get_dampening": {
-            "name": "Obtenez des prévisions amorties",
-            "description": "Obtenez les facteurs d’amortissement prévus.",
-            "fields": {
-                "site": {
-                    "name": "Identifiant du site",
-                    "description": "Site facultatif pour obtenir un amortissement. (Remarque : ne fonctionnera pas si l'amortissement granulaire n'est pas activé.)"
-                }
-            }
+        "remove_hard_limit": {
+            "description": "Supprimer la limite définie.",
+            "name": "Supprimer la limite stricte de prévision de l'onduleur"
         },
         "set_dampening": {
-            "name": "Définir le coefficient des prévisions",
             "description": "Définissez les facteurs d’amortissement des prévisions.",
             "fields": {
                 "damp_factor": {
-                    "name": "Chaîne de coefficient d'amortissement",
-                    "description": "Chaîne de valeurs de facteur d'amortissement séparées par des virgules (24 ou 48 valeurs)."
+                    "description": "Chaîne de valeurs de facteur d'amortissement séparées par des virgules (24 ou 48 valeurs).",
+                    "name": "Chaîne de coefficient d'amortissement"
                 },
                 "site": {
-                    "name": "Identifiant du site",
-                    "description": "Site facultatif pour définir l’amortissement par site. (Remarque : l'omission du site supprime l'amortissement par site, sauf si les valeurs sont 48.)"
+                    "description": "Site facultatif pour définir l’amortissement par site. (Remarque : l'omission du site supprime l'amortissement par site, sauf si les valeurs sont 48.)",
+                    "name": "Identifiant du site"
                 }
-            }
+            },
+            "name": "Définir le coefficient des prévisions"
         },
         "set_hard_limit": {
-            "name": "Définir la limite stricte de prévision de l'onduleur",
             "description": "Évitez que les valeurs prévues soient supérieures à ce que l'onduleur peut produire.",
             "fields": {
                 "hard_limit": {
-                    "name": "Valeur limite en Watts",
-                    "description": "Définissez la valeur maximale en watts que l'onduleur peut produire."
+                    "description": "Définissez la valeur maximale en watts que l'onduleur peut produire.",
+                    "name": "Valeur limite en Watts"
                 }
-            }
+            },
+            "name": "Définir la limite stricte de prévision de l'onduleur"
         },
-        "remove_hard_limit": {
-            "name": "Supprimer la limite stricte de prévision de l'onduleur",
-            "description": "Supprimer la limite définie."
+        "update_forecasts": {
+            "description": "Récupère les dernières données de prévisions de Solcast.",
+            "name": "Mise à jour"
         }
     },
     "system_health": {

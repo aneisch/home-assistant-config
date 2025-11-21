@@ -97,6 +97,7 @@ smart_home:
       - switch.tv
       - switch.ir_candles
       - input_boolean.kitchen_motion
+      - script.surround_mute
       #############
       # Christmas #
       #############
@@ -111,7 +112,6 @@ smart_home:
       - switch.ferris_wheel
       - switch.nativity
       - switch.santa_tree
-      - script.surround_mute
 
   entity_config:
     climate.thermostat:

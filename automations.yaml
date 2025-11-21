@@ -1452,3 +1452,19 @@
       message: The Tesla BLE Pi is offline
   mode: single
   initial_state: true
+- id: '1763501808428'
+  alias: Dehumidifier Tank Notifications
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.151732606535142_tank_full
+    to:
+    - 'on'
+  conditions: []
+  actions:
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      message: Dehumidifier Tank Full!
+  mode: single

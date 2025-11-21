@@ -102,6 +102,7 @@ off_at_bedtime:
     # Start Christmas
     - switch.dining_room_christmas_tree
     - switch.office_christmas_tree
+    - switch.kitchen_christmas_tree
     # End Christmas
     #- switch.ir_candles
     - media_player.kitchen_photo_frame

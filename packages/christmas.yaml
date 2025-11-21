@@ -28,13 +28,53 @@ automation:
         {% endif %}
       entity_id: group.christmas_trees
 
+  - alias: "Close Blinds with Christmas Trees"
+    id: christmas_tree_blinds_close
+    trigger:
+      - platform: time
+        at: "23:00:00" # coincides with Appdaemon Front House Christmas Trees Timer
+    action: 
+      - action: cover.close_cover
+        continue_on_error: true
+        target:
+          entity_id:
+            - cover.office_blind_left
+            - cover.dining_room_blind_center
+      - delay: "00:01:30"
+      - action: cover.close_cover
+        continue_on_error: true
+        target:
+          entity_id:
+            - cover.office_blind_left
+            - cover.dining_room_blind_center
+
+  - alias: "Open Blinds with Christmas Trees"
+    id: christmas_tree_blinds_open
+    trigger:
+      - platform: time
+        at: "08:30:00" # coincides with lower_raise_blinds automation time
+    action: 
+      - action: cover.open_cover
+        continue_on_error: true
+        target:
+          entity_id:
+            - cover.office_blind_left
+            - cover.dining_room_blind_center
+      - delay: "00:01:30"
+      - action: cover.open_cover
+        continue_on_error: true
+        target:
+          entity_id:
+            - cover.office_blind_left
+            - cover.dining_room_blind_center
+
 group:
   christmas:
     name: Christmas
     entities:
       # Christmas lights (outdoor) are handled by Appdaemon alone
-      - group.christmas_trees
-      - switch.ferris_wheel
+      # Christmas trees are separate
+      # - switch.ferris_wheel # Currently has an annoying click
       - switch.santa_tree
       - switch.nativity
       - switch.christmas_picture
@@ -42,9 +82,9 @@ group:
 
   christmas_trees:
     entities:
-      # - switch.dining_room_christmas_tree # Leave Commented -- On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime OR timer
-      # - switch.office_christmas_tree # Leave Commented -- On follows other trees via appdaemon, on timer via appdaemon, off via group.off_at_bedtime OR timer
-      # - switch.master_bedroom_christmas_tree # Leave Commented -- On follows other trees via appdaemon
+      - switch.dining_room_christmas_tree 
+      - switch.office_christmas_tree
+      - switch.master_bedroom_christmas_tree
       - switch.kitchen_christmas_tree
       - switch.living_room_christmas_tree
 

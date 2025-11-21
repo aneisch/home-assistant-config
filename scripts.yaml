@@ -13,9 +13,11 @@ home_empty:
         entity_id:
           - group.master_bedroom
           - group.master_bathroom_lights
-          - group.common_areas
+          - group.common_areas # FYI Includes group.christmas
           # Start Christmas
-          - switch.master_bedroom_christmas_tree #manually turn off because of goodnight script
+          - switch.master_bedroom_christmas_tree
+          - switch.kitchen_christmas_tree
+          - switch.living_room_christmas_tree
           # End Christmas
           - media_player.kitchen_photo_frame
           - media_player.office_photo_frame
@@ -56,8 +58,8 @@ home_occupied:
             entity_id:
               - group.under_cabinet_lights
               # Start Christmas
-              - group.christmas # Christmas -- FYI: dining, office, master tree follow 'on' via appdaemon
-              - switch.master_bedroom_christmas_tree # Christmas -- we manually turn on because of goodnight script
+              - group.christmas # Christmas misc stuff
+              - switch.living_room_christmas_tree # Others follow
               # End Christmas
     - action: media_player.turn_on
       entity_id: 
@@ -126,6 +128,10 @@ master_bedroom_wakeup:
             - action: script.turn_on
               entity_id:
                 - script.christmas_wakeup
+    - action: homeassistant.turn_on
+      entity_id: 
+        # Start Christmas
+        - switch.living_room_christmas_tree
     # End Christmas
     - action: cover.open_cover
       entity_id: cover.master_bedroom_blinds
@@ -144,9 +150,6 @@ master_bedroom_wakeup:
       entity_id: input_boolean.goodnight
     - action: homeassistant.turn_on
       entity_id: 
-        # Start Christmas
-        - group.christmas
-        # End Christmas
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
 
@@ -155,13 +158,24 @@ master_bedroom_bedtime:
     - action: cover.close_cover
       entity_id: cover.master_bedroom_blinds
     # Start Christmas
+    - action: homeassistant.turn_off
+      data:
+        entity_id:
+          # All but master bedroom tree
+          - switch.dining_room_christmas_tree 
+          - switch.office_christmas_tree
+          - switch.kitchen_christmas_tree
+          - switch.living_room_christmas_tree
     - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
       then:
         - action: script.turn_on # Calling this way allows the sequence to continue without blocking
           entity_id: script.christmas_goodnight
+      else:
+        - action: switch.turn_off
+          entity_id: switch.master_bedroom_christmas_tree
     # End Christmas
     - action: script.appdaemon_ac_night
-    - action: switch.turn_on #revert this
+    - action: switch.turn_on
       data:
         entity_id: switch.master_bedroom_ceiling_fan
     #- action: switch.turn_on
@@ -200,8 +214,6 @@ master_bedroom_bedtime:
 #########
 # OTHER #
 #########
-
-
 
 # Change notification platform if internet offline,
 notify_wrapper:

@@ -194,7 +194,7 @@ services:
 
     vscode:
         container_name: vscode
-        image: ghcr.io/hassio-addons/vscode/amd64:stable
+        image: ghcr.io/hassio-addons/vscode/amd64:7fd6906
         restart: always
         volumes:
             - '/opt/vscode/data:/data/vscode'
@@ -473,7 +473,7 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:0.16.0
+        image: ghcr.io/blakeblackshear/frigate:0.16.2
         #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:
@@ -749,13 +749,14 @@ services:
             - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
             - traefik.http.routers.teslamate_local.service=teslamate
 
-    staff_learner:
-        container_name: staff_learner # /opt/github/staff_3
-        image: staff_learner
+    piano-note-trainer:
+        container_name: piano-note-trainer
+        image: ghcr.io/aneisch/piano-note-trainer:main
         restart: unless-stopped
         volumes:
             - /etc/localtime:/etc/localtime:ro  # Time sync
         labels:
+            - com.centurylinklabs.watchtower.enable=false
             - traefik.enable=true
             - traefik.http.services.staff_learner.loadbalancer.server.port=8000
             # HTTPS Local Only (with 80-->443 redirect)
