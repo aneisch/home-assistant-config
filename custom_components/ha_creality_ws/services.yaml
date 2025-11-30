@@ -1,0 +1,11 @@
+diagnostic_dump:
+  name: Diagnostic Dump
+  description: Dump all WebSocket telemetry data from connected Creality printers to JSON format for troubleshooting and analysis.
+  fields:
+    include_sensitive_data:
+      name: Include Sensitive Data
+      description: Whether to include potentially sensitive data in the diagnostic output (currently unused, reserved for future use)
+      required: false
+      default: false
+      selector:
+        boolean:

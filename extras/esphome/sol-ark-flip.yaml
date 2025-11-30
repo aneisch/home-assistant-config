@@ -142,6 +142,10 @@ interval:
             ESP_LOGI("Time Sync", "Seconds: %d, Minutes: %d, Hour: %d, Day: %d, Month: %d, Year: %d", seconds, minutes, hour, day, month, year);
           }
 
+.defaultfilters:
+  - &toint
+    lambda: 'return (int)x;'
+
 ############################################### BINARY SENSORS ########################################
 binary_sensor:
   - platform: homeassistant            # Manual Time sync. Create an input_boolean sensor in HA
@@ -199,12 +203,15 @@ sensor:
     id: uptime_sensor
     name: "${friendly_name} Uptime"
     update_interval: 600s
+    filters:
+      - *toint
 
   - platform: internal_temperature
     name: "${friendly_name} Temperature"
     update_interval: 300s
     filters:
       - lambda: return x * (9.0/5.0) + 32.0;
+      - *toint
     unit_of_measurement: "°F"
 
   - platform: modbus_controller            # 182 Battery Temperature - this is wrong -103f
@@ -221,6 +228,7 @@ sensor:
     filters:
       #- offset: -1000
       - multiply: 0.1
+      - *toint
 
   - platform: modbus_controller            # 183 Battery Voltage
     modbus_controller_id: inverter
@@ -258,6 +266,10 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
+    lambda: |- # negative equals charging
+      return x *-1;
+    filters:
+      - *toint
 
   - platform: modbus_controller            # Battery Power Charge only needed if you want to calculate Daily Energy Totals using ESPHome
     modbus_controller_id: inverter
@@ -304,6 +316,7 @@ sensor:
     value_type: S_WORD
     filters:
       - multiply: 0.01
+      - *toint
 
   # - platform: modbus_controller            # 314 Battery Charge Limit Current
   #   modbus_controller_id: inverter
@@ -377,6 +390,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 154 Inverter Voltage
     modbus_controller_id: inverter
@@ -390,6 +405,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD 
 
   - platform: modbus_controller            # 164 Inverter Current
@@ -405,6 +421,7 @@ sensor:
     value_type: S_WORD
     filters:
       - multiply: 0.01
+      - *toint
 
   - platform: modbus_controller            # 193 Inverter Frequency
     modbus_controller_id: inverter
@@ -431,6 +448,7 @@ sensor:
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
+      - *toint
     value_type: U_WORD
     state_class: measurement
 
@@ -447,6 +465,8 @@ sensor:
     value_type: S_WORD
     lambda: |-
       return x *-1;
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 167 Grid L1 Power
     modbus_controller_id: inverter
@@ -461,6 +481,8 @@ sensor:
     value_type: S_WORD
     lambda: |-
       return x *-1;
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 168 Grid L2 Power
     modbus_controller_id: inverter
@@ -475,6 +497,8 @@ sensor:
     value_type: S_WORD
     lambda: |-
       return x *-1;
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 150 Grid L1-N Voltage
     modbus_controller_id: inverter
@@ -488,6 +512,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD 
 
   - platform: modbus_controller            # 151 Grid L2-N Voltage
@@ -502,6 +527,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD 
 
   - platform: modbus_controller            # 152 Grid L1-L2 Voltage
@@ -516,6 +542,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD 
 
   # - platform: modbus_controller            # 160 Grid Current
@@ -545,6 +572,8 @@ sensor:
     value_type: S_WORD
     lambda: |-
       return x *-1;
+    filters:
+      - *toint
 
 ############################################### LOAD ################################################
 
@@ -559,6 +588,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 176 Load L1 Power
     modbus_controller_id: inverter
@@ -571,6 +602,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 177 Load L2 Power
     modbus_controller_id: inverter
@@ -583,6 +616,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 192 Load Frequency
     modbus_controller_id: inverter
@@ -594,8 +629,10 @@ sensor:
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
+      - *toint
     value_type: U_WORD
     state_class: measurement
+
 
 ############################################### SOLAR PV1 #############################################
 
@@ -610,6 +647,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: U_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 109 PV1 Voltage
     modbus_controller_id: inverter
@@ -623,6 +662,7 @@ sensor:
     accuracy_decimals: 1
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD
 
   - platform: modbus_controller            # 110 PV1 Current
@@ -637,6 +677,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD
 
 ############################################### SOLAR PV2 #############################################
@@ -652,6 +693,8 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: U_WORD
+    filters:
+      - *toint
 
   - platform: modbus_controller            # 111 PV2 Voltage
     modbus_controller_id: inverter
@@ -663,6 +706,7 @@ sensor:
     accuracy_decimals: 1
     filters:
       - multiply: 0.1
+      - *toint
     device_class: voltage
     state_class: measurement
     value_type: U_WORD
@@ -679,6 +723,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD
 
 #################################################### SOLAR PV3 #############################################
@@ -737,6 +782,8 @@ sensor:
     lambda: |-
       return (id(inverter_esphome_pv1_power).state + id(inverter_esphome_pv2_power).state);
     update_interval: 5s
+    filters:
+      - *toint
     
   # - platform: template                     # Sum of PV1, PV2 and PV3 to get total PV Power
   #   name: "${friendly_name} Solar Power"
@@ -778,6 +825,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+      - *toint
 
   - platform: modbus_controller            # 071 Day Battery Discharge
     modbus_controller_id: inverter
@@ -792,6 +840,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+      - *toint
 
   # - platform: modbus_controller            # 072 Total Battery Charge
   #   modbus_controller_id: inverter
@@ -834,6 +883,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+      - *toint
 
   - platform: modbus_controller            # 077 Day Grid Export
     modbus_controller_id: inverter
@@ -848,6 +898,8 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
+      - *toint
+
 
   # Calculate how many kWh of import our export has offset (no net-metering)
   - platform: template
@@ -933,6 +985,7 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD
 
   # - platform: modbus_controller            # 085 Total Load Energy
@@ -975,6 +1028,7 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1
+      - *toint
     value_type: U_WORD
 
 ############################################### TEMPERATURE ################################################
@@ -1007,6 +1061,7 @@ sensor:
     filters:
     #   - offset: -1000
       - multiply:  0.1
+      - *toint
     # filters:
     # - calibrate_linear:
     #   - 438 -> -56.2

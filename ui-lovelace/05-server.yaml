@@ -265,3 +265,19 @@ cards:
             {{ url }}
               {%- endif -%}
             {%- endfor %}
+
+  - type: custom:k-printer-card
+    name: "3D Printer"
+    #camera: camera.f005_creality_printer_camera
+    status: sensor.f005_creality_print_status
+    progress: sensor.f005_creality_print_progress
+    time_left: sensor.f005_creality_print_time_left
+    nozzle: sensor.f005_creality_nozzle_temperature
+    bed: sensor.f005_creality_bed_temperature
+    box: sensor.f005_creality_box_temperature
+    layer: sensor.f005_creality_working_layer
+    total_layers: sensor.f005_creality_total_layers
+    #light: switch.f005_creality_light
+    pause_btn: button.f005_creality_pause_print
+    resume_btn: button.f005_creality_resume_print
+    stop_btn: button.f005_creality_stop_print

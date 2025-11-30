@@ -33,7 +33,6 @@ cards:
     battery:
       energy: 28680
       shutdown_soc: 15
-      invert_flow: true
       colour: purple
       charge_colour: green
       animation_speed: 6
@@ -118,7 +117,7 @@ cards:
       #prog1_capacity: number.solark_sol_ark_prog1_capacity
       # prog1_charge: switch.solark_sol_ark_prog1_grid_charge
       environment_temp: sensor.433_weather_temperature
-      essential_load1: sensor.tesla_power_minute_average
+      essential_load1: sensor.emporia_view_tesla_charger_power
       essential_load1_extra: sensor.tesla_energy_today
       essential_load2: sensor.dryer_power
       essential_load2_extra: sensor.dryer_daily_energy

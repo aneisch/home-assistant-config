@@ -3,74 +3,6 @@ title: Car
 badges: []
 icon: mdi:car-connected
 cards:
-  - type: vertical-stack
-    title: Overview
-    cards:
-      - type: glance
-        entities:
-          - entity: sensor.tesla_battery_level
-            name: Battery Level
-          - entity: sensor.tesla_state
-            name: Car State
-          - entity: binary_sensor.tesla_plugged_in
-            name: Plugged In
-      - type: glance
-        entities:
-          - entity: sensor.tesla_shift_state
-            name: Park Brake
-          - entity: binary_sensor.tesla_sentry_mode
-            name: Sentry Mode
-          - entity: sensor.tesla_speed
-            name: Speed
-      - type: glance
-        entities:
-          - entity: binary_sensor.tesla_healthy
-            name: Car Health
-          - entity: binary_sensor.tesla_windows_open
-            name: Window Status
-          - type: button
-            entity: binary_sensor.tesla_locked
-            name: Doors
-            show_state: true
-            state:
-              - value: locked
-                icon: mdi:lock
-                color: green
-              - value: unlocked
-                icon: mdi:lock-open
-                color: red
-
-
-      - type: entities
-        title: Commands
-        show_header_toggle: false
-        entities:
-          #- switch.sonoff_usb_1
-          - binary_sensor.tesla_ble
-          - binary_sensor.tesla_ble_awake
-          - binary_sensor.tesla_ble_presence
-          - button.tesla_ble_force_update_all
-          - button.tesla_ble_wake_up_car
-          - switch.tesla_ble_sentry_mode
-          - button.tesla_ble_flash_lights
-          - button.tesla_ble_honk_horn
-          - entity: lock.tesla
-            name: Tesla Door Locks
-          - button.tesla_ble_lock_car
-          - button.tesla_ble_unlock_car
-          - button.tesla_ble_open_car_frunk
-          - cover.tesla_ble_trunk
-          - button.tesla_ble_toggle_between_play_pause
-          - switch.tesla_ble_climate
-          - number.tesla_ble_climate_temp
-          - button.tesla_ble_set_climate_mode_to_auto
-          - switch.tesla_ble_steering_wheel_heater
-          - select.tesla_ble_heated_seat_front_left
-          - select.tesla_ble_heated_seat_front_right
-          - cover.tesla_ble_charge_port
-          - button.tesla_ble_remote_start_car
-
-
 
   - type: vertical-stack
     title: Charging
@@ -86,7 +18,7 @@ cards:
         #   min: 100
         #   max: 25000
       - type: gauge
-        entity: sensor.total_power
+        entity: sensor.emporia_view_tesla_charger_power
         min: 200
         max: 48000
       - type: entities
@@ -231,6 +163,74 @@ cards:
                     value: "100"
                   target:
                     entity_id: number.tesla_ble_charging_limit
+
+
+  - type: vertical-stack
+    title: Overview
+    cards:
+      - type: glance
+        entities:
+          - entity: sensor.tesla_battery_level
+            name: Battery Level
+          - entity: sensor.tesla_state
+            name: Car State
+          - entity: binary_sensor.tesla_plugged_in
+            name: Plugged In
+      - type: glance
+        entities:
+          - entity: sensor.tesla_shift_state
+            name: Park Brake
+          - entity: binary_sensor.tesla_sentry_mode
+            name: Sentry Mode
+          - entity: sensor.tesla_speed
+            name: Speed
+      - type: glance
+        entities:
+          - entity: binary_sensor.tesla_healthy
+            name: Car Health
+          - entity: binary_sensor.tesla_windows_open
+            name: Window Status
+          - type: button
+            entity: binary_sensor.tesla_locked
+            name: Doors
+            show_state: true
+            state:
+              - value: locked
+                icon: mdi:lock
+                color: green
+              - value: unlocked
+                icon: mdi:lock-open
+                color: red
+
+
+      - type: entities
+        title: Commands
+        show_header_toggle: false
+        entities:
+          #- switch.sonoff_usb_1
+          - binary_sensor.tesla_ble
+          - binary_sensor.tesla_ble_awake
+          - binary_sensor.tesla_ble_presence
+          - button.tesla_ble_force_update_all
+          - button.tesla_ble_wake_up_car
+          - switch.tesla_ble_sentry_mode
+          - button.tesla_ble_flash_lights
+          - button.tesla_ble_honk_horn
+          - entity: lock.tesla
+            name: Tesla Door Locks
+          - button.tesla_ble_lock_car
+          - button.tesla_ble_unlock_car
+          - button.tesla_ble_open_car_frunk
+          - cover.tesla_ble_trunk
+          - button.tesla_ble_toggle_between_play_pause
+          - switch.tesla_ble_climate
+          - number.tesla_ble_climate_temp
+          - button.tesla_ble_set_climate_mode_to_auto
+          - switch.tesla_ble_steering_wheel_heater
+          - select.tesla_ble_heated_seat_front_left
+          - select.tesla_ble_heated_seat_front_right
+          - cover.tesla_ble_charge_port
+          - button.tesla_ble_remote_start_car
 
   - type: entities
     title: Sensors

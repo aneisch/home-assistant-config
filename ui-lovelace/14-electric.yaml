@@ -58,17 +58,27 @@ cards:
     detail: 2
 
   - type: sensor
-    entity: sensor.microwave_power
-    graph: line
-    detail: 2
-
-  - type: sensor
     entity: sensor.office_and_guest_bedroom_power
     graph: line
     detail: 2
 
   - type: sensor
     entity: sensor.oven_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.server_rack_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.washing_machine_power
+    graph: line
+    detail: 2
+
+  - type: sensor
+    entity: sensor.emporia_view_tesla_charger_power
     graph: line
     detail: 2
 
@@ -82,23 +92,8 @@ cards:
     graph: line
     detail: 2
 
-  - type: sensor
-    entity: sensor.server_rack_power
-    graph: line
-    detail: 2
-
   - type: gauge
     entity: sensor.total_power
     graph: line
     min: 300
     max: 22000
-
-  - type: sensor
-    entity: sensor.washing_machine_power
-    graph: line
-    detail: 2
-
-  - type: sensor
-    entity: sensor.tesla_power_minute_average
-    graph: line
-    detail: 2

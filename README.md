@@ -3,7 +3,7 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2025.11.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2025.12.0b2%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
 I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Most of my setup is run as Docker containers (see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list).
@@ -57,8 +57,8 @@ Home Assistant and other containers have ingress handled automatically by [Traef
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 6185
-Lines of Home Assistant YAML | 12340
+Lines of ESPHome YAML | 6116
+Lines of Home Assistant YAML | 12351
 [Integrations](https://www.home-assistant.io/integrations/) in use | 76
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 26
 Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_js/) | 37
@@ -66,8 +66,7 @@ Z-Wave devices in [`zwave_js`](https://www.home-assistant.io/integrations/zwave_
 Description | value
 -- | --
 Entities in the [`ai_task`](https://www.home-assistant.io/components/ai_task) domain | 2
-Entities in the [`assist_satellite`](https://www.home-assistant.io/components/assist_satellite) domain | 1
-Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 168
+Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 142
 Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 179
 Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 64
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
@@ -83,35 +82,35 @@ Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 3
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 22
 Entities in the [`humidifier`](https://www.home-assistant.io/components/humidifier) domain | 1
 Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 7
-Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 37
-Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 33
+Entities in the [`input_boolean`](https://www.home-assistant.io/components/input_boolean) domain | 36
+Entities in the [`input_datetime`](https://www.home-assistant.io/components/input_datetime) domain | 27
 Entities in the [`input_number`](https://www.home-assistant.io/components/input_number) domain | 10
-Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 21
-Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 18
+Entities in the [`input_select`](https://www.home-assistant.io/components/input_select) domain | 20
+Entities in the [`input_text`](https://www.home-assistant.io/components/input_text) domain | 17
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 39
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 5
 Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 15
 Entities in the [`notify`](https://www.home-assistant.io/components/notify) domain | 1
-Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 27
+Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 25
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
 Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain | 1
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 5
-Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 61
-Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 20
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 715
+Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 56
+Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 19
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 673
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 2
 Entities in the [`stt`](https://www.home-assistant.io/components/stt) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 195
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 196
 Entities in the [`text`](https://www.home-assistant.io/components/text) domain | 2
-Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 7
+Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 6
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 2
-Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 89
+Entities in the [`update`](https://www.home-assistant.io/components/update) domain | 90
 Entities in the [`vacuum`](https://www.home-assistant.io/components/vacuum) domain | 1
 Entities in the [`weather`](https://www.home-assistant.io/components/weather) domain | 1
 Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain | 8
-**Total state objects** | **1833**
+**Total state objects** | **1748**
 ## The HACS integrations/plugins that I use:
 
 **Appdaemon**:<br>
@@ -129,6 +128,7 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 [seangreen2/slate_theme](https://github.com/seangreen2/slate_theme)<br>
 
 **Integration**:<br>
+[3dg1luk43/ha_creality_ws](https://github.com/3dg1luk43/ha_creality_ws)<br>
 [AlexxIT/SonoffLAN](https://github.com/AlexxIT/SonoffLAN)<br>
 [AlexxIT/WebRTC](https://github.com/AlexxIT/WebRTC)<br>
 [BJReplay/ha-solcast-solar](https://github.com/BJReplay/ha-solcast-solar)<br>

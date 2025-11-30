@@ -365,6 +365,8 @@ lovelace:
       type: module
     - url: /hacsfiles/flex-horseshoe-card/flex-horseshoe-card.js
       type: module
+    - url: /ha_creality_ws/k_printer_card.js
+      type: module
 
 media_source:
 

@@ -62,9 +62,9 @@ ENTITY_ID_FORMAT = SENSOR_DOMAIN + "." + DOMAIN + "_{}"
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    _config: ConfigType,
+    config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    _discovery_info: DiscoveryInfoType | None = None,
+    discovery_info: DiscoveryInfoType | None = None,
 ):
     """Set up the Yahoo Finance sensor platform."""
 
@@ -160,7 +160,8 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
 
         # Delay initial data population to `available` which is called from `_async_write_ha_state`
         LOGGER.debug(
-            "Created entity for target_currency=%s",
+            "Created entity for %s with target_currency=%s",
+            self._symbol,
             self._target_currency,
         )
 
@@ -279,39 +280,53 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         return None
 
     def _get_target_currency_conversion(self) -> float | None:
+        """Return the conversion factor to target currency."""
         value = None
         self._waiting_on_conversion = False
 
-        if self._target_currency and self._original_currency:
-            if self._target_currency == self._original_currency:
-                LOGGER.info("%s No conversion necessary", self._symbol)
-                return None
+        if not self._original_currency:
+            return None
 
+        # GBp needs to be converted to GBP. There is no symbol in YahooFinance for this
+        # and we will simply use the multiplication factor of 0.01.
+
+        if not self._target_currency:
+            return 0.01 if self._original_currency == "GBp" else None
+
+        if self._target_currency == self._original_currency:
+            LOGGER.info("%s No conversion necessary", self._symbol)
+            return None
+
+        if self._original_currency == "GBp":
+            value = 0.01
+            conversion_symbol = f"GBP{self._target_currency}=X".upper()
+        else:
+            value = 1
             conversion_symbol = (
                 f"{self._original_currency}{self._target_currency}=X".upper()
             )
 
-            # Locate conversion symbol in all coordinators
-            symbol_data = self._find_symbol_data(conversion_symbol)
+        # Locate conversion symbol in all coordinators
+        symbol_data = self._find_symbol_data(conversion_symbol)
 
-            if symbol_data is not None:
-                value = symbol_data[DATA_REGULAR_MARKET_PRICE]
-                LOGGER.debug("%s %s is %s", self._symbol, conversion_symbol, value)
-            else:
-                LOGGER.info(
-                    "%s No data found for %s, symbol added to coordinator",
-                    self._symbol,
-                    conversion_symbol,
-                )
-                self._waiting_on_conversion = True
+        if symbol_data is not None:
+            value = value * symbol_data[DATA_REGULAR_MARKET_PRICE]
+            LOGGER.debug("%s %s is %s", self._symbol, conversion_symbol, value)
+        else:
+            LOGGER.info(
+                "%s No data found for %s, symbol added to coordinator",
+                self._symbol,
+                conversion_symbol,
+            )
+            self._waiting_on_conversion = True
 
-                # The conversion symbol is added to the current coordinator
-                self.coordinator.add_symbol(conversion_symbol)
+            # The conversion symbol is added to the current coordinator
+            self.coordinator.add_symbol(conversion_symbol)
 
         return value
 
-    def _update_original_currency(self, symbol_data) -> bool:
-        """Update the original currency."""
+    def _update_original_currency_once(self, symbol_data) -> bool:
+        """Calculate the original currency once."""
 
         # Symbol currency does not change so calculate it only once
         if self._original_currency is not None:
@@ -344,7 +359,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
             LOGGER.debug("%s Symbol data is None", self._symbol)
             return
 
-        self._update_original_currency(symbol_data)
+        self._update_original_currency_once(symbol_data)
         conversion = self._get_target_currency_conversion()
 
         self._short_name = symbol_data[DATA_SHORT_NAME]

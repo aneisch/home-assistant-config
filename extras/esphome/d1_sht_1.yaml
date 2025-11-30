@@ -23,7 +23,7 @@ sensor:
       // Convert Celsius to Fahrenheit
       float f = id(temp_c).state * (9.0/5.0) + 32.0;
       // Truncate to 2 decimals
-      return int(f * 100.0) / 100.0;
+      return (int)f;
   - platform: sht3xd
     temperature:
       id: temp_c

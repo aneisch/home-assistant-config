@@ -57,7 +57,7 @@ AC Automation Solar:
 Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  home_battery_min_soc: 97
+  home_battery_min_soc: 90
   buffer_watts: 250
 
 Auto Dehumidifer:
@@ -253,12 +253,13 @@ Dehumidifier Follow:
 
 # Also uncomment the right line in Indoor Light Automation Sunset
 
-# Christmas Lights:
-#   module: entity_timer
-#   class: Timer
-#   entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
-#   time_on: sunset - 00:20:00
-#   time_off: "23:00:00"
+Christmas Lights:
+  module: entity_timer
+  constrain_days: fri,sat,sun,mon
+  class: Timer
+  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
+  time_on: sunset - 00:20:00
+  time_off: "23:00:00"
 
 Front Porch Tree Follow:
   module: follow_me
@@ -277,7 +278,7 @@ Christmas Trees Follow:
 Front House Christmas Trees Timer:
   module: entity_timer
   class: Timer
-  entities: switch.dining_room_christmas_tree,switch.office_christmas_tree
+  entities: switch.dining_room_christmas_tree #,switch.office_christmas_tree
   time_on: sunset - 00:20:00
   time_off: '23:00:00'
 

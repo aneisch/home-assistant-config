@@ -6,7 +6,6 @@ https://github.com/iprak/yahoofinance
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass
 from datetime import timedelta
 from http import HTTPStatus
 from http.cookies import SimpleCookie
@@ -39,6 +38,7 @@ from .const import (
     USER_AGENTS_FOR_XHR,
     XHR_REQUEST_HEADERS,
 )
+from .dataclasses import ConsentData
 
 REQUEST_TIMEOUT: Final = 10
 DELAY_ASYNC_REQUEST_REFRESH: Final = 5
@@ -158,7 +158,7 @@ class CrumbCoordinator:
             LOGGER.error("Timed out accessing initial url. %s", ex)
         except aiohttp.ClientError as ex:
             LOGGER.error("Error accessing initial url. %s", ex)
-        except Exception as ex:
+        except Exception as ex:  # noqa: BLE001
             LOGGER.error("Unexpected error accessing initial url. %s", ex)
 
         return ConsentData()
@@ -644,20 +644,6 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             error_encountered = True
 
         return (error_encountered, data)
-
-
-@dataclass
-class ConsentData:
-    """Class for data related to GDPR consent."""
-
-    consent_content: str = ""
-    """Consent verification content"""
-    consent_post_url: str = ""
-    """Url from consent check where data is to be submitted"""
-    successful_consent_url: str = ""
-    """Url to navigate to after successful consent"""
-    need_consent: bool = False
-    """Consent is needed"""
 
 
 def debug_log_response(response: aiohttp.ClientResponse, title: str) -> None:

@@ -1,5 +1,6 @@
 """Data classes for Yahoo finance component."""
 
+from dataclasses import dataclass
 from datetime import timedelta
 
 from homeassistant.const import CONF_SCAN_INTERVAL
@@ -52,3 +53,17 @@ class SymbolDefinition:
         return hash(
             (self.symbol, self.target_currency, self.scan_interval, self.no_unit)
         )
+
+
+@dataclass
+class ConsentData:
+    """Class for data related to GDPR consent."""
+
+    consent_content: str = ""
+    """Consent verification content"""
+    consent_post_url: str = ""
+    """Url from consent check where data is to be submitted"""
+    successful_consent_url: str = ""
+    """Url to navigate to after successful consent"""
+    need_consent: bool = False
+    """Consent is needed"""

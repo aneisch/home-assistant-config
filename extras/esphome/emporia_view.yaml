@@ -11,7 +11,7 @@ substitutions:
   circuit_8: "Master Bedroom"
   circuit_9: "Server Rack"
   circuit_10: "Office and Guest Bedroom"
-  circuit_11: "Microwave"
+  circuit_11: "Tesla Charger"
   circuit_12: "Washing Machine"
   circuit_13: "Kitchen Lights, Garage Light, Backyard Flood"
   circuit_14: "Garage Freezer"
@@ -34,7 +34,7 @@ substitutions:
 # probe 8 = breaker 19 - phase b - master bedroom and bethany office exterior wall outlets
 # probe 9 = breaker 20 - phase b - bethany office room lights and interior wall outlets (server rack)
 # probe 10 = breaker 21 - phase a - office + guest bedroom
-# probe 11 = breaker 26 - phase a - microwave
+# probe 11 = breaker 34 - phase a/b - Garage 240 EV
 # probe 12 = breaker 27 - phase b - washing machine
 # probe 13 = breaker 28 - phase b - kitchen, garage lights, backyard flood
 # probe 14 = breaker 30 - phase a - garage outlet (freezer)
@@ -89,6 +89,8 @@ time:
   - &abs
     # take the absolute value of the value
     lambda: 'return abs(x);'
+  - &toint
+    lambda: 'return (int)x;'
 
 sensor:
   - platform: emporia_vue
@@ -96,18 +98,18 @@ sensor:
     phases:
       - id: phase_a  # Verify that this specific phase/leg is connected to correct input wire color on device listed below
         input: BLACK  # Vue device wire color
-        calibration: 0.022  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+        calibration: 0.02292  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
         # To calculate new calibration value use the formula <in-use calibration value> * <accurate voltage> / <reporting voltage>
         voltage:
-          name: "Phase A Voltage"
-          filters: [*moving_avg, *pos]
+          name: "Phase A Voltage" # AKA L1
+          filters: [*moving_avg, *pos, *toint]
       - id: phase_b  # Verify that this specific phase/leg is connected to correct input wire color on device listed below
         input: RED  # Vue device wire color
-        calibration: 0.022  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
+        calibration: 0.02136  # 0.022 is used as the default as starting point but may need adjusted to ensure accuracy
         # To calculate new calibration value use the formula <in-use calibration value> * <accurate voltage> / <reporting voltage>
         voltage:
-          name: "Phase B Voltage"
-          filters: [*moving_avg, *pos]
+          name: "Phase B Voltage" # AKA L2
+          filters: [*moving_avg, *pos, *toint]
     ct_clamps:
       - phase_id: phase_a
         input: "A"  # Verify the CT going to this device input also matches the phase/leg
@@ -115,31 +117,31 @@ sensor:
           name: "Phase A Power"
           id: phase_a_power
           device_class: power
-          filters: [*moving_avg, *pos]
+          filters: [*moving_avg, *pos, *toint]
       - phase_id: phase_b
         input: "B"  # Verify the CT going to this device input also matches the phase/leg
         power:
           name: "Phase B Power"
           id: phase_b_power
           device_class: power
-          filters: [*moving_avg, *pos]
+          filters: [*moving_avg, *pos, *toint]
       # Pay close attention to set the phase_id for each breaker by matching it to the phase/leg it connects to in the panel
-      - { phase_id: phase_a, input:  "1", power: { name:  "${circuit_1} Power", id:  cir1, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input:  "2", power: { name:  "${circuit_2} Power", id:  cir2, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input:  "3", power: { name:  "${circuit_3} Power", id:  cir3, filters: [ *moving_avg, *pos, multiply: 2 ] } }
-      - { phase_id: phase_a, input:  "4", power: { name:  "${circuit_4} Power", id:  cir4, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input:  "5", power: { name:  "${circuit_5} Power", id:  cir5, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input:  "6", power: { name:  "${circuit_6} Power", id:  cir6, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input:  "7", power: { name:  "${circuit_7} Power", id:  cir7, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input:  "8", power: { name:  "${circuit_8} Power", id:  cir8, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input:  "9", power: { name:  "${circuit_9} Power", id:  cir9, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "10", power: { name: "${circuit_10} Power", id: cir10, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "11", power: { name: "${circuit_11} Power", id: cir11, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input: "12", power: { name: "${circuit_12} Power", id: cir12, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input: "13", power: { name: "${circuit_13} Power", id: cir13, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "14", power: { name: "${circuit_14} Power", id: cir14, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_a, input: "15", power: { name: "${circuit_15} Power", id: cir15, filters: [ *moving_avg, *pos ] } }
-      - { phase_id: phase_b, input: "16", power: { name: "${circuit_16} Power", id: cir16, filters: [ *moving_avg, *pos ] } }
+      - { phase_id: phase_a, input:  "1", power: { name:  "${circuit_1} Power", id:  cir1, filters: [ *moving_avg, *pos, *toint, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "2", power: { name:  "${circuit_2} Power", id:  cir2, filters: [ *moving_avg, *pos, *toint, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "3", power: { name:  "${circuit_3} Power", id:  cir3, filters: [ *moving_avg, *pos, *toint, multiply: 2 ] } }
+      - { phase_id: phase_a, input:  "4", power: { name:  "${circuit_4} Power", id:  cir4, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input:  "5", power: { name:  "${circuit_5} Power", id:  cir5, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input:  "6", power: { name:  "${circuit_6} Power", id:  cir6, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_b, input:  "7", power: { name:  "${circuit_7} Power", id:  cir7, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_b, input:  "8", power: { name:  "${circuit_8} Power", id:  cir8, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_b, input:  "9", power: { name:  "${circuit_9} Power", id:  cir9, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input: "10", power: { name: "${circuit_10} Power", id: cir10, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input: "11", power: { name: "${circuit_11} Power", id: cir11, filters: [ *moving_avg, *pos, *toint, multiply: 2 ] } }
+      - { phase_id: phase_b, input: "12", power: { name: "${circuit_12} Power", id: cir12, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_b, input: "13", power: { name: "${circuit_13} Power", id: cir13, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input: "14", power: { name: "${circuit_14} Power", id: cir14, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_a, input: "15", power: { name: "${circuit_15} Power", id: cir15, filters: [ *moving_avg, *pos, *toint ] } }
+      - { phase_id: phase_b, input: "16", power: { name: "${circuit_16} Power", id: cir16, filters: [ *moving_avg, *pos, *toint ] } }
   - platform: template
     name: "Total Power"
     lambda: return id(phase_a_power).state + id(phase_b_power).state;
@@ -150,19 +152,19 @@ sensor:
     name: "Total Daily Energy"
     power_id: total_power
     accuracy_decimals: 0
-  - { power_id:  cir1, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_1} Daily Energy" }
-  - { power_id:  cir2, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_2} Daily Energy" }
-  - { power_id:  cir3, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_3} Daily Energy" }
-  - { power_id:  cir4, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_4} Daily Energy" }
-  - { power_id:  cir5, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_5} Daily Energy" }
-  - { power_id:  cir6, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_6} Daily Energy" }
-  - { power_id:  cir7, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_7} Daily Energy" }
-  - { power_id:  cir8, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_8} Daily Energy" }
-  - { power_id:  cir9, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_9} Daily Energy" }
-  - { power_id: cir10, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_10} Daily Energy" }
-  - { power_id: cir11, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_11} Daily Energy" }
-  - { power_id: cir12, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_12} Daily Energy" }
-  - { power_id: cir13, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_13} Daily Energy" }
-  - { power_id: cir14, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_14} Daily Energy" }
-  - { power_id: cir15, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_15} Daily Energy" }
-  - { power_id: cir16, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_16} Daily Energy" }
+  - { power_id:  cir1, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_1} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir2, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_2} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir3, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_3} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir4, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_4} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir5, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_5} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir6, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_6} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir7, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_7} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir8, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_8} Daily Energy", filters: [ *toint ] }
+  - { power_id:  cir9, platform: total_daily_energy, accuracy_decimals: 0, name:  "${circuit_9} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir10, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_10} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir11, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_11} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir12, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_12} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir13, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_13} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir14, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_14} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir15, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_15} Daily Energy", filters: [ *toint ] }
+  - { power_id: cir16, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_16} Daily Energy", filters: [ *toint ] }

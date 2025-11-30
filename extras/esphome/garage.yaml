@@ -42,6 +42,8 @@ sensor:
     address: 0x4C01204F1CFB3628
     name: "${friendly_name} Temperature"
     update_interval: 300s
+    filters:
+      - lambda: 'return (int)x;'
 
   # 5v supply connected to lightbulb socket through voltage divider
   - platform: adc

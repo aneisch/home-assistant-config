@@ -8,10 +8,17 @@ substitutions:
 
 esphome:
   name: ${name}
-  platform: ESP32
+
+esp32:
   board: esp-wrover-kit
+  framework:
+    type: arduino
 
 <<: !include common.yaml
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
 
 switch:
   - platform: gpio
@@ -67,6 +74,8 @@ sensor:
     attenuation: 11db
     device_class: illuminance
     unit_of_measurement: lx
+    filters:
+      - lambda: 'return (int)x;'
   - platform: hlw8012
     sel_pin:
       number: GPIO25
@@ -81,18 +90,31 @@ sensor:
       name: "${friendly_name} Amps"
       unit_of_measurement: A
       accuracy_decimals: 2
+      filters:
+        - lambda: 'return (int)x;'
     voltage:
       name: "${friendly_name} Volts"
       unit_of_measurement: V
       accuracy_decimals: 1
+      filters:
+        - lambda: 'return (int)x;'
     power:
       name: "${friendly_name} Watts"
       unit_of_measurement: W
+      id: watts
       accuracy_decimals: 0    
       filters:
         - calibrate_linear:
             - 0.0 -> 0.0
             - 134 -> 58 
+        - lambda: 'return (int)x;'
+
+  - platform: total_daily_energy
+    name: "Total Daily Energy"
+    power_id: watts
+    accuracy_decimals: 0
+    filters:
+      - lambda: 'return (int)x;'
 
 binary_sensor:
   - platform: gpio

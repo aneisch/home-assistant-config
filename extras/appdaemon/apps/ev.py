@@ -72,7 +72,7 @@ class SolarEVCharger(hass.Hass):
         # Separate this check because sometimes TeslaMate data is unavailable, in that case, default to 50%
         try:
             vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
-        except:
+        except Exception as e:
             self.log(f"Invalid Vehicle SOC reading: {e}", level="WARNING")
             vehicle_soc = 50
 

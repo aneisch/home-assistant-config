@@ -2,7 +2,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -32,7 +32,7 @@ services:
             - /run/dbus:/run/dbus:ro
         devices:
             - /dev/zigbee
-            - /dev/usb_modem_sim7080g:/dev/cellular_modem
+            #- /dev/usb_modem_sim7080g:/dev/cellular_modem
         environment:
             - TZ=America/Chicago
         network_mode: host
