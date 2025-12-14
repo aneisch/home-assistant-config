@@ -11,7 +11,7 @@ const THEME_STORAGE_KEY = "k-printer-card-themes";
 // Color conversion utilities
 function rgbaToHex(rgba) {
   if (!rgba || rgba.startsWith('#')) return rgba;
-  
+
   // Handle rgba() format
   const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
   if (match) {
@@ -20,22 +20,22 @@ function rgbaToHex(rgba) {
     const b = parseInt(match[3]);
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }
-  
+
   // Handle CSS variables
   if (rgba.startsWith('var(')) {
     return '#000000'; // fallback
   }
-  
+
   return '#000000';
 }
 
 function hexToRgba(hex, alpha = 1) {
   if (!hex || !hex.startsWith('#')) return hex;
-  
+
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  
+
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
@@ -83,25 +83,25 @@ function generateCardId(config) {
 function fmtTimeLeft(seconds) {
   const s = Number(seconds) || 0;
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-  if (h > 0) return `${h}:${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
-  if (m > 0) return `${m}:${String(sec).padStart(2,"0")}`;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+  if (m > 0) return `${m}:${String(sec).padStart(2, "0")}`;
   return `${sec}s`;
 }
 function computeIcon(status) {
   const st = normStr(status);
-  if (["off","unknown","stopped"].includes(st)) return mdi("printer-3d-off");
-  if (["printing","resuming","pausing","paused"].includes(st)) return mdi("printer-3d-nozzle");
+  if (["off", "unknown", "stopped"].includes(st)) return mdi("printer-3d-off");
+  if (["printing", "resuming", "pausing", "paused"].includes(st)) return mdi("printer-3d-nozzle");
   if (st === "error") return mdi("close-octagon");
   if (st === "self-testing") return mdi("cogs");
   return mdi("printer-3d");
 }
 function computeColor(status) {
   const st = normStr(status);
-  if (["off","unknown","stopped"].includes(st)) return "var(--secondary-text-color)";
-  if (["paused","pausing"].includes(st)) return "#fc6d09";
+  if (["off", "unknown", "stopped"].includes(st)) return "var(--secondary-text-color)";
+  if (["paused", "pausing"].includes(st)) return "#fc6d09";
   if (st === "error") return "var(--error-color)";
-  if (["printing","resuming","processing"].includes(st)) return "var(--primary-color)";
-  if (["idle","completed"].includes(st)) return "var(--success-color, #4caf50)";
+  if (["printing", "resuming", "processing"].includes(st)) return "var(--primary-color)";
+  if (["idle", "completed"].includes(st)) return "var(--success-color, #4caf50)";
   if (st === "self-testing") return "var(--info-color, #2196f3)";
   return "var(--secondary-text-color)";
 }
@@ -137,11 +137,29 @@ class KPrinterCard extends HTMLElement {
         status_bg: "auto", // auto (transparent), or specific color
         // Telemetry colors
         telemetry_icon: "auto", // auto (inherit theme), or specific color
-        telemetry_text: "auto" // auto (inherit theme), or specific color
-      }
+        telemetry_text: "auto", // auto (inherit theme), or specific color
+        // Custom button colors
+        custom_bg: "rgba(33, 150, 243, .90)",
+        custom_icon: "#fff",
+      },
+      // Config for custom button
+      custom_btn: "",
+      custom_btn_icon: "", // Moved to theme editor but stored here
+      custom_btn_hidden: false,
+      // Order of buttons
+      button_order: ['pause', 'resume', 'stop', 'light', 'power', 'custom'],
+      // Icon overrides
+      pause_btn_icon: "",
+      resume_btn_icon: "",
+      stop_btn_icon: "",
+      light_btn_icon: "",
+      power_btn_icon: "",
+
+      // Feature toggles
+      hide_box_temp: false
     };
   }
-  static getConfigElement() { 
+  static getConfigElement() {
     const editor = document.createElement(EDITOR_TAG);
     return editor;
   }
@@ -151,10 +169,10 @@ class KPrinterCard extends HTMLElement {
     this._cfg = { ...defaultConfig, ...(config || {}) };
     // Init optimistic state overrides map
     if (!this._optimisticStates) this._optimisticStates = {};
-    
+
     // Generate card ID for theme persistence
     this._cardId = generateCardId(this._cfg);
-    
+
     // Load saved theme if no theme is provided in config
     if (!config?.theme) {
       const savedTheme = loadThemeFromStorage(this._cardId);
@@ -167,14 +185,14 @@ class KPrinterCard extends HTMLElement {
       // Save theme to storage
       saveThemeToStorage(this._cardId, this._cfg.theme);
     }
-    
+
     if (!this._root) {
       this._root = this.attachShadow({ mode: "open" });
     }
-    
+
     // Always re-render when config changes to apply new theme
-      this._render();
-    
+    this._render();
+
     // Apply theme after render to ensure DOM is ready
     this._applyTheme();
   }
@@ -182,7 +200,7 @@ class KPrinterCard extends HTMLElement {
     if (!this._root || !this._cfg.theme) {
       return;
     }
-    
+
     // Re-render with updated CSS to apply theme changes
     this._render();
   }
@@ -196,7 +214,7 @@ class KPrinterCard extends HTMLElement {
       // Schedule a follow-up update shortly after initial attach to absorb entity states once Home Assistant populates them
       clearTimeout(this._initialUpdateTimer);
       this._initialUpdateTimer = setTimeout(() => {
-        try { this._update(); } catch (_) {}
+        try { this._update(); } catch (_) { }
       }, 150);
     }
   }
@@ -208,10 +226,10 @@ class KPrinterCard extends HTMLElement {
     // Ensure theme is always properly initialized
     const defaultConfig = KPrinterCard.getStubConfig();
     this._cfg.theme = { ...defaultConfig.theme, ...(this._cfg.theme || {}) };
-    
+
     // Apply theme variables to CSS custom properties
     const theme = this._cfg.theme;
-    
+
     // Theme CSS custom properties - embedded directly in CSS
     const themeCSS = `
       :host {
@@ -228,9 +246,14 @@ class KPrinterCard extends HTMLElement {
         --status-bg: ${theme.status_bg === 'auto' ? 'radial-gradient(var(--card-background-color) 62%, transparent 0)' : (theme.status_bg || 'radial-gradient(var(--card-background-color) 62%, transparent 0)')};
         --telemetry-icon: ${theme.telemetry_icon === 'auto' ? 'var(--secondary-text-color)' : (theme.telemetry_icon || 'var(--secondary-text-color)')};
         --telemetry-text: ${theme.telemetry_text === 'auto' ? 'var(--primary-text-color)' : (theme.telemetry_text || 'var(--primary-text-color)')};
+        --custom-bg: ${theme.custom_bg || 'rgba(33, 150, 243, .90)'};
+        --custom-on-bg: ${theme.custom_on_bg || theme.custom_bg || 'rgba(33, 150, 243, .90)'};
+        --custom-off-bg: ${theme.custom_off_bg || 'rgba(150,150,150,.35)'};
+        --custom-icon: ${theme.custom_icon || '#fff'};
+        --custom-icon-off: ${theme.custom_icon_off || '#000'};
       }
     `;
-    
+
 
     const style = `
       /* Theme CSS custom properties */
@@ -302,8 +325,11 @@ class KPrinterCard extends HTMLElement {
       .chip.power-on  { --chip-bg: var(--power-on-bg, rgba(76, 175, 80, .90));  --chip-fg: var(--power-icon-on, #fff); }
       .chip.power-off { --chip-bg: var(--power-off-bg, rgba(150,150,150,.35)); --chip-fg: var(--power-icon-off, #000); }
   .chip.unknown   { --chip-bg: rgba(128,128,128,.14); --chip-fg: var(--primary-text-color); }
-      /* Keep power at the far right among chips */
-      .chips #power { order: 999; }
+      .chip.custom    { --chip-bg: var(--custom-bg, rgba(33, 150, 243, .90)); --chip-fg: var(--custom-icon, #fff); }
+      .chip.custom-on { --chip-bg: var(--custom-on-bg, var(--custom-bg, rgba(33, 150, 243, .90))); --chip-fg: var(--custom-icon, #fff); }
+      .chip.custom-off{ --chip-bg: var(--custom-off-bg, rgba(150,150,150,.35)); --chip-fg: var(--custom-icon-off, #000); }
+      /* Order is handled by flex order style or DOM order */
+
 
       /* telemetry row – single line, same right padding, tighter pills */
       .telemetry {
@@ -343,19 +369,15 @@ class KPrinterCard extends HTMLElement {
               <div class="secondary" id="secondary"></div>
             </div>
           </div>
-          <div class="chips">
-            <button class="chip warn"   id="pause"  title="Pause"><ha-icon icon="mdi:pause"></ha-icon></button>
-            <button class="chip ok"     id="resume" title="Resume"><ha-icon icon="mdi:play"></ha-icon></button>
-            <button class="chip danger" id="stop"   title="Stop"><ha-icon icon="mdi:stop"></ha-icon></button>
-            <button class="chip"        id="light"  title="Light"><ha-icon icon="mdi:lightbulb"></ha-icon></button>
-            <button class="chip"        id="power"  title="Power"><ha-icon icon="mdi:power"></ha-icon></button>
+          <div class="chips" id="chips-container">
+            <!-- Buttons will be injected here based on order -->
           </div>
         </div>
 
         <div class="telemetry">
           <div class="pill"><ha-icon icon="mdi:printer-3d-nozzle-heat"></ha-icon><span id="nozzle"></span></div>
           <div class="pill"><ha-icon icon="mdi:heating-coil"></ha-icon><span id="bed"></span></div>
-          <div class="pill"><ha-icon icon="mdi:thermometer"></ha-icon><span id="box"></span></div>
+          <div class="pill" id="box-pill"><ha-icon icon="mdi:thermometer"></ha-icon><span id="box"></span></div>
           <div class="pill"><ha-icon icon="mdi:progress-clock"></ha-icon><span id="time"></span></div>
           <div class="pill"><ha-icon icon="mdi:layers-triple"></ha-icon><span id="layers"></span></div>
         </div>
@@ -384,24 +406,58 @@ class KPrinterCard extends HTMLElement {
       }
     });
 
-    this._root.getElementById("power")?.addEventListener("click", () => {
-      const eid = this._resolveEntityId(this._cfg.power, ["switch"]);
-      this._toggleEntity(eid);
-    });
-      this._root.getElementById("pause")?.addEventListener("click", () => this._pressButtonEntity(this._cfg.pause_btn) );
-      this._root.getElementById("resume")?.addEventListener("click", () => this._pressButtonEntity(this._cfg.resume_btn) );
-      this._root.getElementById("stop")?.addEventListener("click", () => this._pressButtonEntity(this._cfg.stop_btn) );
-      this._root.getElementById("light")?.addEventListener("click", () => {
-      const eid = this._resolveEntityId(this._cfg.light, ["light", "switch"]);
-      this._toggleEntity(eid);
+
+
+    // --- Chip/Button Event Delegation ---
+    const chipsContainer = this._root.getElementById("chips-container");
+    chipsContainer.addEventListener("click", (e) => {
+      const btn = e.target.closest("button.chip");
+      if (!btn) return;
+      const id = btn.id;
+
+      if (id === "power") {
+        const eid = this._resolveEntityId(this._cfg.power, ["switch"]);
+        this._toggleEntity(eid);
+      } else if (id === "light") {
+        const eid = this._resolveEntityId(this._cfg.light, ["light", "switch"]);
+        this._toggleEntity(eid);
+      } else if (id === "pause") {
+        this._pressButtonEntity(this._cfg.pause_btn);
+      } else if (id === "resume") {
+        this._pressButtonEntity(this._cfg.resume_btn);
+      } else if (id === "stop") {
+        this._pressButtonEntity(this._cfg.stop_btn);
+      } else if (id === "custom") {
+        // Custom button can be a button (press), script (turn_on/run), switch (toggle), automation (trigger), etc.
+        // For simplicity, treat as toggle if switch/light/input_boolean, else press/turn_on
+        const eid = this._cfg.custom_btn;
+        const domain = eid ? (eid.split(".")[0] || "").toLowerCase() : "";
+        if (["switch", "light", "input_boolean"].includes(domain)) {
+          this._toggleEntity(eid);
+        } else {
+          this._pressButtonEntity(eid);  // Fallback to press (works for button domain, or generic turn_on if mapped)
+        }
+      }
     });
 
     this._update();
   }
 
+  // Re-implement _pressButtonEntity to be smarter about non-button domains if needed, 
+  // but existing implementation calls button.press. 
+  // For custom buttons (e.g. scripts), we might want to default to homeassistant.turn_on if button.press fails is overkill, 
+  // but let's keep it simple: if it's a script/automation, button.press might not work.
+  // Let's refine _pressButtonEntity to handle more types or create a generic helper.
+
   async _pressButtonEntity(eid) {
     if (!this._hass || !eid) return;
-    await this._hass.callService("button", "press", { entity_id: eid });
+    const domain = eid.split(".")[0];
+    if (domain === "button" || domain === "input_button") {
+      await this._hass.callService(domain, "press", { entity_id: eid });
+    } else {
+      // Fallback for scripts, automations, scenes which act like "press" via turn_on
+      await this._hass.callService("homeassistant", "turn_on", { entity_id: eid });
+    }
   }
   async _toggleEntity(eid) {
     if (!this._hass || !eid) return;
@@ -460,9 +516,9 @@ class KPrinterCard extends HTMLElement {
       }
       return this._hass?.states?.[eid]?.state;
     };
-      const gObj = (eid) => this._hass?.states?.[eid];
-      const gNum = (eid) => Number(g(eid));
-      const fmtState = (st) => {
+    const gObj = (eid) => this._hass?.states?.[eid];
+    const gNum = (eid) => Number(g(eid));
+    const fmtState = (st) => {
       if (!st) return "—";
       const v = st.state;
       if (v === undefined || v === null) return "—";
@@ -470,16 +526,16 @@ class KPrinterCard extends HTMLElement {
       if (s === "unknown" || s === "unavailable") return "—";
       // Prefer HA's built-in formatter to honor per-entity precision and units
       if (this._hass && typeof this._hass.formatEntityState === 'function') {
-        try { return this._hass.formatEntityState(st); } catch (_) {}
+        try { return this._hass.formatEntityState(st); } catch (_) { }
       }
       // Fallback: number-aware formatting with (suggested_)display_precision when present
       const unit = st.attributes?.unit_of_measurement;
       const n = Number(s);
       if (!Number.isNaN(n) && Number.isFinite(n)) {
         const dp = (typeof st.attributes?.display_precision === 'number') ? st.attributes.display_precision
-                 : (typeof st.attributes?.suggested_display_precision === 'number') ? st.attributes.suggested_display_precision
-                 : (unit && /°|c|f/i.test(unit)) ? 1
-                 : 2;
+          : (typeof st.attributes?.suggested_display_precision === 'number') ? st.attributes.suggested_display_precision
+            : (unit && /°|c|f/i.test(unit)) ? 1
+              : 2;
         const out = n.toFixed(Math.max(0, Math.min(6, dp)));
         return unit ? `${out} ${unit}` : out;
       }
@@ -496,13 +552,13 @@ class KPrinterCard extends HTMLElement {
     const boxStr = fmtWithUnit(this._cfg.box);
     const layer = (g(this._cfg.layer) ?? "") + "";
     const totalLayers = (g(this._cfg.total_layers) ?? "") + "";
-    const resolvedLight = this._resolveEntityId(this._cfg.light, ["light","switch"]);
+    const resolvedLight = this._resolveEntityId(this._cfg.light, ["light", "switch"]);
     const lightState = this._hass?.states?.[resolvedLight]?.state;
     const resolvedPower = this._resolveEntityId(this._cfg.power, ["switch"]);
     const powerState = g(resolvedPower);
 
     const st = normStr(status);
-    const isPrinting = ["printing","resuming","pausing"].includes(st);
+    const isPrinting = ["printing", "resuming", "pausing"].includes(st);
     const isPaused = st === "paused";
     const showStop = isPrinting || isPaused || st === "self-testing";
     // Show Light chip only when the light entity exists in HA state and power (if configured) is not OFF
@@ -527,38 +583,114 @@ class KPrinterCard extends HTMLElement {
     const ringColor = theme.progress_ring === "auto" ? computeColor(status) : theme.progress_ring;
     ring.style.setProperty("--ring-color", ringColor);
 
-    // Chips
-    this._root.getElementById("pause").hidden = !isPrinting;
-    this._root.getElementById("resume").hidden = !isPaused;
-    this._root.getElementById("stop").hidden = !showStop;
+    const chipsContainer = this._root.getElementById("chips-container");
 
-    const powerBtn = this._root.getElementById("power");
-    if (powerBtn) {
-      powerBtn.hidden = !showPower;
-      // Track last known switch state so UI doesn't flip to neutral when HA hasn't provided a state yet
+    // Define button definitions
+    const buttons = {
+      pause: {
+        hidden: !isPrinting,
+        class: "warn",
+        icon: this._cfg.pause_btn_icon || "mdi:pause",
+        title: "Pause"
+      },
+      resume: {
+        hidden: !isPaused,
+        class: "ok",
+        icon: this._cfg.resume_btn_icon || "mdi:play",
+        title: "Resume"
+      },
+      stop: {
+        hidden: !showStop,
+        class: "danger",
+        icon: this._cfg.stop_btn_icon || "mdi:stop",
+        title: "Stop"
+      },
+      light: {
+        hidden: !showLight,
+        class: lightState === "on" ? "light-on" : "light-off",
+        icon: this._cfg.light_btn_icon || "mdi:lightbulb",
+        title: "Light"
+      },
+      power: {
+        hidden: !showPower,
+        class: "unknown", // Calculated below
+        icon: this._cfg.power_btn_icon || "mdi:power",
+        title: "Power"
+      },
+      custom: {
+        hidden: Boolean(this._cfg.custom_btn_hidden) || !this._cfg.custom_btn,
+        class: "custom",
+        icon: this._cfg.custom_btn_icon || "mdi:gesture-tap",
+        title: "Custom Action"
+      }
+    };
+
+    // Calculate Custom Button Class based on state
+    if (!buttons.custom.hidden) {
+      const customEid = this._cfg.custom_btn;
+      const dom = customEid ? customEid.split(".")[0] : "";
+      const state = g(customEid);
+      // Only use on/off styling for stateful domains
+      if (["switch", "light", "input_boolean", "fan", "cover", "binary_sensor"].includes(dom)) {
+        const isOn = state === "on" || state === "open"; // cover uses open/closed
+        buttons.custom.class = isOn ? "custom-on" : "custom-off";
+      }
+    }
+
+    // Calculate Power Class Logic
+    if (!buttons.power.hidden) {
       this._lastPowerState = this._lastPowerState || null;
       if (powerState === "on" || powerState === "off") {
         this._lastPowerState = powerState;
       }
       const isOn = powerState === "on" || (!powerState && this._lastPowerState === "on");
       const isOff = powerState === "off" || (!powerState && this._lastPowerState === "off");
-      const isUnknown = !isOn && !isOff;
-      powerBtn.classList.toggle("power-on", isOn);
-      powerBtn.classList.toggle("power-off", isOff);
-      powerBtn.classList.toggle("unknown", isUnknown);
+      buttons.power.class = isOn ? "power-on" : (isOff ? "power-off" : "unknown");
     }
-      const lightBtn = this._root.getElementById("light");
-      lightBtn.hidden = !showLight;
-      const lightOn = lightState === "on";
-      lightBtn.classList.toggle("light-on", lightOn);
-      lightBtn.classList.toggle("light-off", !lightOn);
 
-      // Telemetry
+    // Reconstruct DOM only if order or visibility needs update (or simple clear/redraw for robustness)
+    // To avoid losing focus or animation, we could diff, but for this card, clear/redraw is fast enough 
+    // IF we don't do it every frame. However, we're in _update().
+    // Let's build the HTML string for buttons based on order.
+
+    const order = Array.isArray(this._cfg.button_order) ? this._cfg.button_order : ['pause', 'resume', 'stop', 'light', 'power', 'custom'];
+
+    // Filter duplicates and ensure valid keys
+    const uniqueOrder = [...new Set(order)].filter(k => buttons[k]);
+
+    // Add any missing standard buttons to the end if not present (backward compat)
+    ['pause', 'resume', 'stop', 'light', 'power'].forEach(k => {
+      if (!uniqueOrder.includes(k) && buttons[k]) uniqueOrder.push(k);
+    });
+
+    let chipsHtml = "";
+    uniqueOrder.forEach(key => {
+      const btn = buttons[key];
+      if (btn && !btn.hidden) {
+        chipsHtml += `<button class="chip ${btn.class}" id="${key}" title="${btn.title}"><ha-icon icon="${btn.icon}"></ha-icon></button>`;
+      }
+    });
+
+    if (chipsContainer.innerHTML !== chipsHtml) {
+      chipsContainer.innerHTML = chipsHtml;
+    }
+
+    // Telemetry
     this._root.getElementById("nozzle").textContent = nozzleStr;
-    this._root.getElementById("bed").textContent    = bedStr;
-    this._root.getElementById("box").textContent    = boxStr;
-    this._root.getElementById("time").textContent   = fmtTimeLeft(timeLeft);
+    this._root.getElementById("bed").textContent = bedStr;
+    this._root.getElementById("box").textContent = boxStr;
+    this._root.getElementById("time").textContent = fmtTimeLeft(timeLeft);
     this._root.getElementById("layers").textContent = `${layer || "?"}/${totalLayers || "?"}`;
+
+    // Toggle Chamber Temp visibility
+    const boxPill = this._root.getElementById("box-pill");
+    if (boxPill) {
+      if (this._cfg.hide_box_temp) {
+        boxPill.style.display = "none";
+      } else {
+        boxPill.style.display = "";
+      }
+    }
   }
 }
 customElements.define(CARD_TAG, KPrinterCard);
@@ -566,25 +698,25 @@ customElements.define(CARD_TAG, KPrinterCard);
 /* Interactive theme editor */
 class KPrinterCardEditor extends HTMLElement {
   set hass(hass) { this._hass = hass; if (this._entitiesForm) this._entitiesForm.hass = hass; }
-  setConfig(config) { 
+  setConfig(config) {
     const defaultConfig = KPrinterCard.getStubConfig();
     this._cfg = { ...defaultConfig, ...(config || {}) };
-    
+
     // Always ensure theme is properly initialized
     this._cfg.theme = { ...defaultConfig.theme, ...(this._cfg.theme || {}) };
-    
+
     if (this._root) {
-      this._render(); 
+      this._render();
     }
   }
   connectedCallback() { if (!this._root) { this._root = this.attachShadow({ mode: "open" }); this._render(); } }
-  
+
   _render() {
     if (!this._root || !this._cfg) return;
-    
+
     try {
-    
-    const style = `
+
+      const style = `
       :host { display: block; }
       .editor-container { padding: 16px; max-width: 1200px; margin: 0 auto; }
       .tabs { display: flex; border-bottom: 1px solid var(--divider-color); margin-bottom: 16px; }
@@ -679,9 +811,15 @@ class KPrinterCardEditor extends HTMLElement {
       .reset-btn:hover {
         opacity: 0.8;
       }
+      
+      .input-row { margin-bottom: 12px; }
+      .input-label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--primary-text-color); }
+      .text-input { width: 100%; padding: 8px; border: 1px solid var(--divider-color); border-radius: 4px; background: var(--card-background-color); color: var(--primary-text-color); box-sizing: border-box;}
+      .input-helper { font-size: 11px; color: var(--secondary-text-color); margin-top: 2px; }
+      .checkbox-row { display: flex; align-items: center; justify-content: space-between; }
     `;
-    
-    this._root.innerHTML = `
+
+      this._root.innerHTML = `
       <style>${style}</style>
       <div class="editor-container">
         <h2 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color);">Creality Printer Card Configuration</h2>
@@ -698,7 +836,12 @@ class KPrinterCardEditor extends HTMLElement {
           <div class="theme-editor">
             <div class="theme-controls">
               <div class="control-group">
-                <div class="group-title">Action Buttons</div>
+                <div class="group-title">Layout & Icons</div>
+                <ha-form id="theme-settings-form"></ha-form>
+              </div>
+
+              <div class="control-group">
+                <div class="group-title">Action Colors</div>
                 <div class="clickable-element" data-theme="pause_bg" data-label="Pause Button Background">
                   <div class="element-preview" style="background: ${this._cfg.theme.pause_bg}"></div>
                   <div class="element-label">Pause Button Background</div>
@@ -809,6 +952,28 @@ class KPrinterCardEditor extends HTMLElement {
                     <button class="save-color-btn" data-theme="light_icon_off" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
                   </div>
                 </div>
+                <div class="clickable-element" data-theme="custom_bg" data-label="Custom Button Background">
+                  <div class="element-preview" style="background: ${this._cfg.theme.custom_bg}"></div>
+                  <div class="element-label">Custom Button Background</div>
+                </div>
+                <div class="color-picker-inline" id="color-picker-custom_bg">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                    <button class="save-color-btn" data-theme="custom_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                  </div>
+                </div>
+                <div class="clickable-element" data-theme="custom_icon" data-label="Custom Button Icon">
+                  <div class="element-preview" style="background: ${this._cfg.theme.custom_icon}; color: ${this._cfg.theme.custom_icon}">★</div>
+                  <div class="element-label">Custom Button Icon</div>
+                </div>
+                <div class="color-picker-inline" id="color-picker-custom_icon">
+                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
+                    <button class="save-color-btn" data-theme="custom_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                  </div>
+                </div>
               </div>
               
               <div class="control-group">
@@ -880,11 +1045,11 @@ class KPrinterCardEditor extends HTMLElement {
         </div>
       </div>
     `;
-    
-    this._setupTabs();
-    this._setupEntitiesForm();
-    this._setupThemeEditor();
-    
+
+      this._setupTabs();
+      this._setupEntitiesForm();
+      this._setupThemeEditor();
+
     } catch (error) {
       console.error('Error rendering K-Printer Card Editor:', error);
       this._root.innerHTML = `
@@ -896,27 +1061,27 @@ class KPrinterCardEditor extends HTMLElement {
       `;
     }
   }
-  
+
   _setupTabs() {
     const tabs = this._root.querySelectorAll('.tab');
     const contents = this._root.querySelectorAll('.tab-content');
-    
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('active'));
         contents.forEach(c => c.classList.remove('active'));
-        
+
         tab.classList.add('active');
         const tabId = tab.dataset.tab + '-tab';
         this._root.getElementById(tabId).classList.add('active');
       });
     });
   }
-  
+
   _setupEntitiesForm() {
     this._entitiesForm = this._root.getElementById('entities-form');
     this._entitiesForm.hass = this._hass;
-    
+
     // Helper text mapping for form fields
     const helperText = {
       "name": "Display name for the printer card",
@@ -934,28 +1099,33 @@ class KPrinterCardEditor extends HTMLElement {
       "light": "Switch entity for printer light control",
       "pause_btn": "Button entity to pause printing",
       "resume_btn": "Button entity to resume printing",
-      "stop_btn": "Button entity to stop printing"
+      "stop_btn": "Button entity to stop printing",
+      "custom_btn": "Any entity to trigger (Button, Script, Switch, etc.)",
+      "custom_btn_icon": "Icon for the custom button",
+      "custom_btn_hidden": "Hide the custom button",
+      "button_order": "List of buttons to show in order (pause, resume, stop, light, power, custom)"
     };
-    
+
     this._entitiesForm.schema = [
-      { name: "name",         selector: { text: {} } },
-      { name: "camera",       selector: { entity: { domain: "camera" } } },
-      { name: "status",       selector: { entity: { domain: "sensor" } } },
-      { name: "progress",     selector: { entity: { domain: "sensor" } } },
-      { name: "time_left",    selector: { entity: { domain: "sensor" } } },
-      { name: "nozzle",       selector: { entity: { domain: "sensor" } } },
-      { name: "bed",          selector: { entity: { domain: "sensor" } } },
-      { name: "box",          selector: { entity: { domain: "sensor" } } },
-      { name: "power",        selector: { entity: { domain: "switch" } } },
+      { name: "name", selector: { text: {} } },
+      { name: "camera", selector: { entity: { domain: "camera" } } },
+      { name: "status", selector: { entity: { domain: "sensor" } } },
+      { name: "progress", selector: { entity: { domain: "sensor" } } },
+      { name: "time_left", selector: { entity: { domain: "sensor" } } },
+      { name: "nozzle", selector: { entity: { domain: "sensor" } } },
+      { name: "bed", selector: { entity: { domain: "sensor" } } },
+      { name: "box", selector: { entity: { domain: "sensor" } } },
+      { name: "power", selector: { entity: { domain: ["switch", "input_boolean"] } } },
       { name: "show_power_button", selector: { boolean: {} } },
-      { name: "layer",        selector: { entity: { domain: "sensor" } } },
+      { name: "layer", selector: { entity: { domain: "sensor" } } },
       { name: "total_layers", selector: { entity: { domain: "sensor" } } },
-      { name: "light",        selector: { entity: { domain: "switch" } } },
-      { name: "pause_btn",    selector: { entity: { domain: "button" } } },
-      { name: "resume_btn",   selector: { entity: { domain: "button" } } },
-      { name: "stop_btn",     selector: { entity: { domain: "button" } } },
+      { name: "light", selector: { entity: { domain: ["switch", "light"] } } },
+      { name: "pause_btn", selector: { entity: { domain: "button" } } },
+      { name: "resume_btn", selector: { entity: { domain: "button" } } },
+      { name: "stop_btn", selector: { entity: { domain: "button" } } },
+      { name: "custom_btn", selector: { entity: {} } },
     ];
-    
+
     // Label text mapping for form fields
     const labelText = {
       "name": "Printer Name",
@@ -973,9 +1143,13 @@ class KPrinterCardEditor extends HTMLElement {
       "light": "Light Switch",
       "pause_btn": "Pause Button",
       "resume_btn": "Resume Button",
-      "stop_btn": "Stop Button"
+      "stop_btn": "Stop Button",
+      "custom_btn": "Custom Action Entity",
+      "custom_btn_icon": "Custom Button Icon",
+      "custom_btn_hidden": "Hide Custom Button",
+      "button_order": "Button Order (list)"
     };
-    
+
     // Add label computation using computeLabel if supported
     if (this._entitiesForm.computeLabel) {
       const originalComputeLabel = this._entitiesForm.computeLabel.bind(this._entitiesForm);
@@ -983,7 +1157,7 @@ class KPrinterCardEditor extends HTMLElement {
         return labelText[schema.name] || originalComputeLabel(schema);
       };
     }
-    
+
     // Add helper text using computeHelper if supported
     if (this._entitiesForm.computeHelper) {
       const originalComputeHelper = this._entitiesForm.computeHelper.bind(this._entitiesForm);
@@ -991,17 +1165,61 @@ class KPrinterCardEditor extends HTMLElement {
         return helperText[schema.name] || originalComputeHelper(schema);
       };
     }
-    
+
     this._entitiesForm.data = this._cfg;
-    
+
     this._entitiesForm.addEventListener("value-changed", (ev) => {
       const val = ev.detail?.value || {};
       this._cfg = { ...this._cfg, ...val };
       this._dispatchConfigChange();
     });
   }
-  
+
   _setupThemeEditor() {
+
+    // Setup generic config form (Layout & Icons)
+    this._themeSettingsForm = this._root.getElementById('theme-settings-form');
+    this._themeSettingsForm.hass = this._hass;
+
+    const themeSettingsSchema = [
+      { name: "button_order", selector: { text: {} }, label: "Button Order (pause, resume, stop, light, power, custom)" },
+      { name: "custom_btn_hidden", selector: { boolean: {} }, label: "Hide Custom Button" },
+      { name: "hide_box_temp", selector: { boolean: {} }, label: "Hide Chamber Temperature" },
+      { name: "pause_btn_icon", selector: { icon: {} }, label: "Pause Icon Override" },
+      { name: "resume_btn_icon", selector: { icon: {} }, label: "Resume Icon Override" },
+      { name: "stop_btn_icon", selector: { icon: {} }, label: "Stop Icon Override" },
+      { name: "light_btn_icon", selector: { icon: {} }, label: "Light Icon Override" },
+      { name: "power_btn_icon", selector: { icon: {} }, label: "Power Icon Override" },
+      { name: "custom_btn_icon", selector: { icon: {} }, label: "Custom Button Icon" },
+    ];
+
+    // Polyfill label if needed or rely on 'label' property in schema if HA supports it (HA Form supports 'label' in schema usually? No, it uses computeLabel)
+    // Let's use computeLabel for this form too.
+    this._themeSettingsForm.schema = themeSettingsSchema;
+
+    // Prepare data for the form. button_order needs to be stringified if it's an array, or handled as list.
+    // Text input expects string.
+    const prepareFormData = (cfg) => {
+      return {
+        ...cfg,
+        button_order: Array.isArray(cfg.button_order) ? cfg.button_order.join(', ') : cfg.button_order
+      };
+    };
+
+    this._themeSettingsForm.data = prepareFormData(this._cfg);
+
+    this._themeSettingsForm.addEventListener("value-changed", (ev) => {
+      const val = ev.detail?.value || {};
+
+      // Post-process button_order back to array
+      if (val.button_order && typeof val.button_order === 'string') {
+        val.button_order = val.button_order.split(',').map(s => s.trim()).filter(s => s);
+      }
+
+      this._cfg = { ...this._cfg, ...val };
+      this._dispatchConfigChange();
+    });
+
     // Setup clickable elements to toggle inline color pickers
     const clickableElements = this._root.querySelectorAll('.clickable-element');
     clickableElements.forEach(element => {
@@ -1010,15 +1228,21 @@ class KPrinterCardEditor extends HTMLElement {
         this._toggleColorPicker(themeKey);
       });
     });
-    
+
     // Setup color picker interactions
     this._setupColorPickerInteractions();
-    
+
     // Setup reset button
     this._root.getElementById('reset-theme').addEventListener('click', () => {
       const defaultConfig = KPrinterCard.getStubConfig();
+      // Reset Theme
       this._cfg.theme = { ...defaultConfig.theme };
-      
+
+      // Reset Layout & Icons
+      ['button_order', 'custom_btn_hidden', 'pause_btn_icon', 'resume_btn_icon', 'stop_btn_icon', 'light_btn_icon', 'power_btn_icon', 'custom_btn_icon'].forEach(k => {
+        this._cfg[k] = defaultConfig[k];
+      });
+
       // Clear saved theme from storage
       const cardId = generateCardId(this._cfg);
       try {
@@ -1028,32 +1252,38 @@ class KPrinterCardEditor extends HTMLElement {
       } catch (e) {
         console.warn("Failed to clear theme from localStorage:", e);
       }
-      
+
       this._updateThemeControls();
+
+      // Update config inputs as well
+      if (this._themeSettingsForm) {
+        this._themeSettingsForm.data = prepareFormData(this._cfg);
+      }
+
       this._dispatchConfigChange();
     });
   }
-  
+
   _toggleColorPicker(themeKey) {
     const picker = this._root.getElementById(`color-picker-${themeKey}`);
     if (!picker) return;
-    
+
     // If this picker is already active, close it
     if (picker.classList.contains('active')) {
       picker.classList.remove('active');
       return;
     }
-    
+
     // Hide all other color pickers
     const allPickers = this._root.querySelectorAll('.color-picker-inline');
     allPickers.forEach(p => {
       p.classList.remove('active');
     });
-    
+
     // Show the clicked color picker
     picker.classList.add('active');
   }
-  
+
   _setupColorPickerInteractions() {
     // Setup color preview clicks to open native color picker
     const colorPreviews = this._root.querySelectorAll('.color-preview');
@@ -1067,7 +1297,7 @@ class KPrinterCardEditor extends HTMLElement {
             const input = document.createElement('input');
             input.type = 'color';
             input.value = textInput.value === 'auto' ? '#000000' : textInput.value;
-            
+
             // Style the input to be visible and positioned within the picker
             input.style.position = 'absolute';
             input.style.left = '0';
@@ -1077,27 +1307,27 @@ class KPrinterCardEditor extends HTMLElement {
             input.style.opacity = '0';
             input.style.cursor = 'pointer';
             input.style.zIndex = '10';
-            
+
             // Add the input to the picker container
             picker.style.position = 'relative';
             picker.appendChild(input);
-            
+
             // Focus and click the input
             input.focus();
             input.click();
-            
+
             // Handle color change
             input.addEventListener('change', () => {
               const newColor = input.value;
               textInput.value = newColor;
               preview.style.background = newColor;
-              
+
               // Remove the input after color selection
               if (picker.contains(input)) {
                 picker.removeChild(input);
               }
             });
-            
+
             // Handle escape key
             const handleKeyDown = (e) => {
               if (e.key === 'Escape') {
@@ -1108,7 +1338,7 @@ class KPrinterCardEditor extends HTMLElement {
               }
             };
             document.addEventListener('keydown', handleKeyDown);
-            
+
             // Handle clicks outside the picker
             const handleClickOutside = (e) => {
               if (!picker.contains(e.target)) {
@@ -1118,7 +1348,7 @@ class KPrinterCardEditor extends HTMLElement {
                 document.removeEventListener('click', handleClickOutside);
               }
             };
-            
+
             // Add click outside handler after a delay
             setTimeout(() => {
               document.addEventListener('click', handleClickOutside);
@@ -1127,7 +1357,7 @@ class KPrinterCardEditor extends HTMLElement {
         }
       });
     });
-    
+
     // Setup text input changes
     const colorTexts = this._root.querySelectorAll('.color-text');
     colorTexts.forEach(textInput => {
@@ -1144,14 +1374,14 @@ class KPrinterCardEditor extends HTMLElement {
         }
       });
     });
-    
+
     // Setup save buttons
     const saveButtons = this._root.querySelectorAll('.save-color-btn');
     saveButtons.forEach(button => {
       button.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        
+
         const themeKey = button.dataset.theme;
         const picker = button.closest('.color-picker-inline');
         if (picker) {
@@ -1159,11 +1389,11 @@ class KPrinterCardEditor extends HTMLElement {
           if (textInput) {
             let newValue;
             const inputValue = textInput.value;
-            
+
             // Handle special cases for auto-supported fields
-            if ((themeKey === 'status_icon' || themeKey === 'progress_ring' || 
-                 themeKey === 'status_bg' || themeKey === 'telemetry_icon' || 
-                 themeKey === 'telemetry_text') && inputValue === 'auto') {
+            if ((themeKey === 'status_icon' || themeKey === 'progress_ring' ||
+              themeKey === 'status_bg' || themeKey === 'telemetry_icon' ||
+              themeKey === 'telemetry_text') && inputValue === 'auto') {
               newValue = 'auto';
             } else if (/^#[0-9A-Fa-f]{6}$/.test(inputValue)) {
               newValue = hexToRgba(inputValue, 0.9);
@@ -1171,19 +1401,19 @@ class KPrinterCardEditor extends HTMLElement {
               // Keep existing value if input is invalid
               newValue = this._cfg.theme[themeKey];
             }
-            
-            
+
+
             this._cfg.theme = { ...this._cfg.theme, [themeKey]: newValue };
-            
+
             // Save to storage
             const cardId = generateCardId(this._cfg);
             saveThemeToStorage(cardId, this._cfg.theme);
-            
+
             this._updateThemeControls();
-            
+
             // Hide the color picker first
             picker.classList.remove('active');
-            
+
             // Dispatch config change after a small delay to prevent tab switching
             setTimeout(() => {
               this._dispatchConfigChange();
@@ -1193,9 +1423,9 @@ class KPrinterCardEditor extends HTMLElement {
       });
     });
   }
-  
-  
-  
+
+
+
   _updateThemeControls() {
     // Update all preview elements with new colors
     const clickableElements = this._root.querySelectorAll('.clickable-element');
@@ -1203,18 +1433,18 @@ class KPrinterCardEditor extends HTMLElement {
       const themeKey = element.dataset.theme;
       const preview = element.querySelector('.element-preview');
       const currentValue = this._cfg.theme[themeKey] || '';
-      
+
       if (themeKey === 'status_icon' || themeKey === 'progress_ring') {
         preview.style.background = currentValue === 'auto' ? 'var(--primary-color)' : currentValue;
       } else {
         preview.style.background = currentValue;
       }
-      
-      if (['pause_icon', 'resume_icon', 'stop_icon', 'light_icon_on', 'light_icon_off'].includes(themeKey)) {
+
+      if (['pause_icon', 'resume_icon', 'stop_icon', 'light_icon_on', 'light_icon_off', 'custom_icon'].includes(themeKey)) {
         preview.style.color = currentValue;
       }
     });
-    
+
     // Update color picker previews and text inputs
     const colorPickers = this._root.querySelectorAll('.color-picker-inline');
     colorPickers.forEach(picker => {
@@ -1222,11 +1452,11 @@ class KPrinterCardEditor extends HTMLElement {
       const themeValue = this._cfg.theme[themeKey];
       const preview = picker.querySelector('.color-preview');
       const textInput = picker.querySelector('.color-text');
-      
+
       if (preview && textInput) {
-        if (themeKey === 'status_icon' || themeKey === 'progress_ring' || 
-            themeKey === 'status_bg' || themeKey === 'telemetry_icon' || 
-            themeKey === 'telemetry_text') {
+        if (themeKey === 'status_icon' || themeKey === 'progress_ring' ||
+          themeKey === 'status_bg' || themeKey === 'telemetry_icon' ||
+          themeKey === 'telemetry_text') {
           if (themeValue === 'auto') {
             // Show appropriate theme color for auto values
             if (themeKey === 'status_bg') {
@@ -1250,35 +1480,35 @@ class KPrinterCardEditor extends HTMLElement {
       }
     });
   }
-  
+
   _dispatchConfigChange() {
     clearTimeout(this._t);
     this._t = setTimeout(() => {
       // Preserve current tab state
       const activeTab = this._root.querySelector('.tab.active');
       const activeTabId = activeTab ? activeTab.dataset.tab : 'entities';
-      
+
       this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._cfg } }));
-      
+
       // Restore tab state after a brief delay
       setTimeout(() => {
         this._restoreTabState(activeTabId);
       }, 50);
     }, 120);
   }
-  
+
   _restoreTabState(activeTabId) {
     // Switch to the preserved tab
     const tabs = this._root.querySelectorAll('.tab');
     const tabContents = this._root.querySelectorAll('.tab-content');
-    
+
     tabs.forEach(tab => {
       tab.classList.remove('active');
       if (tab.dataset.tab === activeTabId) {
         tab.classList.add('active');
       }
     });
-    
+
     tabContents.forEach(content => {
       content.classList.remove('active');
       if (content.id === `${activeTabId}-tab`) {
@@ -1297,4 +1527,4 @@ try {
     description: "Standalone card for Creality K-Series printers",
     preview: true,
   });
-} catch (_) {}
+} catch (_) { }

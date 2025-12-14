@@ -10,9 +10,10 @@
   "issue_tracker": "https://github.com/3dg1luk43/ha_creality_ws/issues",
   "loggers": ["custom_components.ha_creality_ws"],
   "requirements": [
-    "websockets>=10.4"
+    "websockets>=10.4",
+    "go2rtc-client>=0.1.0"
   ],
-  "version": "0.6.5",
+  "version": "0.7.0",
   "zeroconf": [
     { "type": "_http._tcp.local.", "name": "*creality*" },
     { "type": "_workstation._tcp.local.", "name": "*creality*" },

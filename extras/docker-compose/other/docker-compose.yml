@@ -238,9 +238,9 @@ services:
         restart: 'no'
         environment:
             - WATCHTOWER_CLEANUP=true
-            - WATCHTOWER_NO_STARTUP_MESSAGE=true
+            - WATCHTOWER_NO_STARTUP_MESSAGE=false
             - WATCHTOWER_INCLUDE_STOPPED=true
-            - WATCHTOWER_NOTIFICATION_URL=generic://10.0.1.22:8123/api/webhook/watchtower_notifications?disabletls=yes
+            - WATCHTOWER_NOTIFICATION_URL=generic://assist.domain.com/api/webhook/watchtower_notifications
             - 'WATCHTOWER_NOTIFICATION_TEMPLATE={"message":"NUC {{range .}}{{.Message}}\n{{end}}"}'
             # - WATCHTOWER_NOTIFICATIONS=email
             # - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT

@@ -240,58 +240,6 @@
       data:
         type: tts
       message: Help is on the way
-- alias: Cellular Message Health
-  id: cellular_message_health
-  trigger:
-  - platform: time
-    id: reset
-    at: 00:00:00
-  - platform: time
-    id: send_test_message
-    at: 09:00:00
-  - platform: webhook
-    id: mark_healthy
-    webhook_id: SECRET
-    local_only: false
-  - platform: time
-    id: evaluate_status
-    at: 09:05:00
-  action:
-  - if: '{{ trigger.id == ''reset'' }}'
-    then:
-    - action: input_boolean.turn_on
-      entity_id: input_boolean.cellular_message_test_pending
-  - if: '{{ trigger.id == ''send_test_message'' }}'
-    then:
-    - action: notify.cellular_message
-      data:
-        message: t
-  - if: '{{ trigger.id == ''mark_healthy'' }}'
-    then:
-    - action: input_boolean.turn_off
-      entity_id: input_boolean.cellular_message_test_pending
-  - if: '{{ trigger.id == ''evaluate_status'' }}'
-    then:
-    - if: '{{ is_state(''input_boolean.cellular_message_test_pending'', ''on'') }}'
-      then:
-      - action: notify.signal_homeassistant
-        data:
-          message: Modem Healtcheck Failed, Power Cycling
-      - action: esphome.cellular_modem_power_toggle
-- alias: Cellular Modem Power Toggle
-  id: cellular_modem_power_toggle
-  mode: single
-  initial_state: true
-  trigger:
-  - platform: webhook
-    webhook_id: SECRET
-    local_only: false
-  - platform: state
-    entity_id: sensor.cellular_modem_power
-    from: 'on'
-    to: 'off'
-  action:
-  - action: esphome.cellular_modem_power_toggle
 - alias: Power off NAS after backup
   id: nas_poweroff_post_backup
   initial_state: true
@@ -798,17 +746,6 @@
   - delay: 00:00:30
   - action: switch.turn_on
     entity_id: switch.docker_appdaemon
-- alias: Restart cellular_message_relay_sim7080g
-  id: restart_cellular_message_relay_sim7080g
-  trigger:
-    platform: time
-    at: 01:35:00
-  action:
-  - action: switch.turn_off
-    entity_id: switch.docker_cellular_message_relay_sim7080g
-  - delay: 00:00:45
-  - action: switch.turn_on
-    entity_id: switch.docker_cellular_message_relay_sim7080g
 - id: deep_freeze_temperature
   alias: Deep Freeze Temperature
   triggers:
@@ -1329,7 +1266,8 @@
   mode: parallel
   max: 10
 - id: '1757355386706'
-  alias: Dryer Completed Notification
+  alias: Laundry Completed Notification
+  description: ''
   triggers:
   - entity_id:
     - sensor.dryer_power
@@ -1339,6 +1277,16 @@
       minutes: 1
       seconds: 0
       milliseconds: 0
+    id: dryer
+    trigger: numeric_state
+  - entity_id:
+    - sensor.washing_machine_power
+    below: 10
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+    id: washer
     trigger: numeric_state
   conditions:
   - condition: template
@@ -1346,29 +1294,23 @@
     alias: Not previously unavailable
   actions:
   - data:
-      message: The dryer has finished!
+      message: The {% if trigger.id == "dryer" %}dryer{% else %}washer{% endif %}
+        has finished!
     action: notify.signal_homeassistant
   - if:
     - condition: state
       entity_id: input_boolean.goodnight
       state: 'off'
     then:
-    - data:
-        target:
-        - media_player.kitchen
-        - media_player.living_room
-        - media_player.master
-        message: The dryer has finished!
-        data:
-          type: announce
-      action: notify.alexa_media
     - action: siren.turn_on
       target:
         entity_id: siren.siren_chime_play_tone
       data:
-        tone: '{{ state_attr(''siren.siren_chime_play_tone'', ''available_tones'')
-          |dictsort |selectattr(''1'', ''search'', ''dryer_finished.mp3'') |map(attribute=''0'')
-          |first }}'
+        tone: '{% if trigger.id == "dryer" %} {{ state_attr(''siren.siren_chime_play_tone'',
+          ''available_tones'') |dictsort |selectattr(''1'', ''search'', ''dryer_finished.mp3'')
+          |map(attribute=''0'') |first }} {% elif trigger.id == "washer" %} {{ state_attr(''siren.siren_chime_play_tone'',
+          ''available_tones'') |dictsort |selectattr(''1'', ''search'', ''washer_finished.mp3'')
+          |map(attribute=''0'') |first }} {% endif %}'
         volume_level: 0.5
   mode: single
 - id: '1760050617150'
@@ -1398,40 +1340,6 @@
     target:
       entity_id:
       - input_boolean.guest_mode
-  mode: single
-- id: '1761590240993'
-  alias: Washer Completed Notification
-  description: ''
-  triggers:
-  - entity_id:
-    - sensor.washing_machine_power
-    below: 10
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
-    trigger: numeric_state
-  conditions:
-  - condition: template
-    value_template: '{{ trigger.from_state.state != ''unavailable'' }}'
-    alias: Not previously unavailable
-  actions:
-  - data:
-      message: The washer has finished!
-    action: notify.signal_homeassistant
-  - if:
-    - condition: state
-      entity_id: input_boolean.goodnight
-      state: 'off'
-    then:
-    - action: siren.turn_on
-      target:
-        entity_id: siren.siren_chime_play_tone
-      data:
-        tone: '{{ state_attr(''siren.siren_chime_play_tone'', ''available_tones'')
-          |dictsort |selectattr(''1'', ''search'', ''washer_finished.mp3'') |map(attribute=''0'')
-          |first }}'
-        volume_level: 0.5
   mode: single
 - id: '1761687935807'
   alias: Tesla BLE Pi Offline Notify
@@ -1467,4 +1375,22 @@
     metadata: {}
     data:
       message: Dehumidifier Tank Full!
+  mode: single
+- id: '1764568466565'
+  alias: 3D Printer Status
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.ender3v3ke_4bc5_print_status
+    from:
+    - printing
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.to_state.state != "unknown" }}'
+  actions:
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      message: 'Printer status: {{ trigger.to_state.state }}'
   mode: single

@@ -26,10 +26,13 @@ ADVANCED_AUTOMATED_DAMPENING_INSIGNIFICANT_FACTOR: Final[str] = "automated_dampe
 ADVANCED_AUTOMATED_DAMPENING_INSIGNIFICANT_FACTOR_ADJUSTED: Final[str] = "automated_dampening_insignificant_factor_adjusted"
 ADVANCED_AUTOMATED_DAMPENING_MINIMUM_MATCHING_GENERATION: Final[str] = "automated_dampening_minimum_matching_generation"
 ADVANCED_AUTOMATED_DAMPENING_MINIMUM_MATCHING_INTERVALS: Final[str] = "automated_dampening_minimum_matching_intervals"
+ADVANCED_AUTOMATED_DAMPENING_MODEL: Final[str] = "automated_dampening_model"
 ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS: Final[str] = "automated_dampening_model_days"
 ADVANCED_AUTOMATED_DAMPENING_NO_DELTA_CORRECTIONS: Final[str] = "automated_dampening_no_delta_corrections"
 ADVANCED_AUTOMATED_DAMPENING_NO_LIMITING_CONSISTENCY: Final[str] = "automated_dampening_no_limiting_consistency"
+ADVANCED_AUTOMATED_DAMPENING_PRESERVE_UNMATCHED_FACTORS: Final[str] = "automated_dampening_preserve_unmatched_factors"
 ADVANCED_AUTOMATED_DAMPENING_SIMILAR_PEAK: Final[str] = "automated_dampening_similar_peak"
+ADVANCED_AUTOMATED_DAMPENING_SUPPRESSION_ENTITY: Final[str] = "automated_dampening_suppression_entity"
 ADVANCED_ENTITY_LOGGING: Final[str] = "entity_logging"
 ADVANCED_ESTIMATED_ACTUALS_FETCH_DELAY: Final[str] = "estimated_actuals_fetch_delay"
 ADVANCED_ESTIMATED_ACTUALS_LOG_APE_PERCENTILES: Final[str] = "estimated_actuals_log_ape_percentiles"
@@ -87,14 +90,17 @@ DATE_MONTH_DAY: Final[str] = "%m-%d"
 DATE_ONLY_FORMAT: Final[str] = "%Y-%m-%d"
 DAY_NAME: Final[str] = "dayname"
 DEFAULT: Final[str] = "default"
+DEFAULT_DAMPENING_DELTA_ADJUSTMENT_MODEL: Final[int] = 0  # Logarithmic adjustment is default model
 DEFAULT_DAMPENING_INSIGNIFICANT: Final[float] = 0.95  # Dampening factors considered insignificant for automated dampening
 DEFAULT_DAMPENING_INSIGNIFICANT_ADJ: Final[float] = 0.95  # Adjusted dampening factors considered insignificant for automated dampening
 DEFAULT_DAMPENING_LOG_DELTA_CORRECTIONS: Final[bool] = True  # Whether to logarithmically adjust applied automated dampening factors
 DEFAULT_DAMPENING_MINIMUM_GENERATION: Final[int] = 2  # Minimum number of matching intervals with generation data to consider
 DEFAULT_DAMPENING_MINIMUM_INTERVALS: Final[int] = 2  # Minimum number of matching intervals to consider for automated dampening
+DEFAULT_DAMPENING_MODEL: Final[int] = 0  # Damping calculation model (0 = Default, 1 = Max matched, 2 = Mean matched, 3 = Min matched)
 DEFAULT_DAMPENING_MODEL_DAYS: Final[int] = 14  # Number of days over which to model automated dampening
 DEFAULT_DAMPENING_NO_LIMITING_CONSISTENCY: Final[bool] = False  # Whether to ignore intervals that have been limited at least once
 DEFAULT_DAMPENING_SIMILAR_PEAK: Final[float] = 0.90  # Factor to consider similar estimated actual peak generation for automated dampening
+DEFAULT_DAMPENING_SUPPRESSION_ENTITY: Final[str] = "solcast_suppress_auto_dampening"  # Entity ID to invalidate generation when active
 DEFAULT_ESTIMATED_ACTUALS_FETCH_DELAY: Final[int] = 0  # Minutes to wait after midnight before get estimated actuals (plus random offset)
 DEFAULT_FORECAST_DAYS: Final[int] = 14  # Minimum 8, maximum 14
 DEFAULT_FORECAST_DAY_SENSORS: Final[int] = 8  # Minimum 8, maximum 14
@@ -102,6 +108,7 @@ DEFAULT_GENERATION_FETCH_DELAY: Final[int] = 0  # Minutes to wait after midnight
 DEFAULT_GENERATION_HISTORY_LOAD_DAYS: Final[int] = 7  # Number of days of generation history to load when no data present
 DEFAULT_HISTORY_MAX: Final[int] = 730  # Maximum number of history days to keep
 DEFAULT_SOLCAST_HTTPS_URL: Final[str] = "https://api.solcast.com.au"
+DELAYED_RESTART_ON_CRASH: Final[int] = 15  # Minutes to delay restart after crash
 DESCRIPTION: Final[str] = "description"
 DETAILED_FORECAST: Final[str] = "detailedForecast"
 DETAILED_HOURLY: Final[str] = "detailedHourly"
@@ -199,7 +206,10 @@ PLATFORM_BINARY_SENSOR: Final[str] = "binary_sensor"
 PLATFORM_SENSOR: Final[str] = "sensor"
 PLATFORM_SWITCH: Final[str] = "switch"
 PRESUMED_DEAD: Final[str] = "presumed_dead"
-PRIOR_CRASH_ALLOW_SITES: Final[str] = "prior_crash_allow_sites"
+PRIOR_CRASH_EXCEPTION: Final[str] = "prior_crash_exception"
+PRIOR_CRASH_PLACEHOLDERS: Final[str] = "prior_crash_placeholders"
+PRIOR_CRASH_TIME: Final[str] = "prior_crash_time"
+PRIOR_CRASH_TRANSLATION_KEY: Final[str] = "prior_crash_translation_key"
 PROPOSAL: Final[str] = "proposal"
 RESET: Final[str] = "reset"
 RESET_OLD_KEY: Final[str] = "reset_old_key"
@@ -250,6 +260,8 @@ TRANSLATE_API_DUPLICATE: Final[str] = "api_duplicate"
 TRANSLATE_API_LOOKS_LIKE_SITE: Final[str] = "api_looks_like_site"
 TRANSLATE_AUTO_USE_FORCE: Final[str] = "auto_use_force"
 TRANSLATE_AUTO_USE_NORMAL: Final[str] = "auto_use_normal"
+TRANSLATE_BUILD_FAILED_ACTUALS: Final[str] = "build_failed_actuals"
+TRANSLATE_BUILD_FAILED_FORECASTS: Final[str] = "build_failed_forecasts"
 TRANSLATE_CUSTOM_INVALID: Final[str] = "custom_invalid"
 TRANSLATE_DAMP_AUTO_ENABLED: Final[str] = "damp_auto_enabled"
 TRANSLATE_DAMP_COUNT_NOT_CORRECT: Final[str] = "damp_count_not_correct"
@@ -270,6 +282,7 @@ TRANSLATE_INTEGRATION_NOT_LOADED: Final[str] = "integration_not_loaded"
 TRANSLATE_INTEGRATION_PRIOR_CRASH: Final[str] = "integration_prior_crash"
 TRANSLATE_INIT_CANNOT_GET_SITES: Final[str] = "init_cannot_get_sites"
 TRANSLATE_INIT_CANNOT_GET_SITES_CACHE_INVALID: Final[str] = "init_cannot_get_sites_cache_invalid"
+TRANSLATE_INIT_CORRUPT: Final[str] = "init_corrupt"
 TRANSLATE_INIT_INCOMPATIBLE: Final[str] = "init_incompatible"
 TRANSLATE_INIT_KEY_INVALID: Final[str] = "init_key_invalid"
 TRANSLATE_INIT_NO_SITES: Final[str] = "init_no_sites"
@@ -296,13 +309,18 @@ WINTER_TIME: Final[list[str]] = ["Europe/Dublin"]  # Zones that use "Winter time
 
 ADVANCED_OPTIONS: Final[dict[str, dict[str, Any]]] = {
     ADVANCED_API_RAISE_ISSUES: {ADVANCED_TYPE: ADVANCED_OPTION.BOOL, DEFAULT: True},
-    ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL: {ADVANCED_TYPE: ADVANCED_OPTION.INT, MINIMUM: 0, MAXIMUM: 0, DEFAULT: 0},
     ADVANCED_AUTOMATED_DAMPENING_GENERATION_FETCH_DELAY: {
         ADVANCED_TYPE: ADVANCED_OPTION.INT,
         MINIMUM: 0,
         MAXIMUM: 120,
         DEFAULT: DEFAULT_GENERATION_FETCH_DELAY,
         OPTION_LESS_THAN_OR_EQUAL: [ADVANCED_ESTIMATED_ACTUALS_FETCH_DELAY],
+    },
+    ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL: {
+        ADVANCED_TYPE: ADVANCED_OPTION.INT,
+        MINIMUM: 0,
+        MAXIMUM: 1,
+        DEFAULT: DEFAULT_DAMPENING_DELTA_ADJUSTMENT_MODEL,
     },
     ADVANCED_AUTOMATED_DAMPENING_GENERATION_HISTORY_LOAD_DAYS: {
         ADVANCED_TYPE: ADVANCED_OPTION.INT,
@@ -338,6 +356,12 @@ ADVANCED_OPTIONS: Final[dict[str, dict[str, Any]]] = {
         OPTION_GREATER_THAN_OR_EQUAL: [ADVANCED_AUTOMATED_DAMPENING_MINIMUM_MATCHING_GENERATION],
         OPTION_LESS_THAN_OR_EQUAL: [ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS],
     },
+    ADVANCED_AUTOMATED_DAMPENING_MODEL: {
+        ADVANCED_TYPE: ADVANCED_OPTION.INT,
+        MINIMUM: 0,
+        MAXIMUM: 3,
+        DEFAULT: DEFAULT_DAMPENING_MODEL,
+    },
     ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS: {
         ADVANCED_TYPE: ADVANCED_OPTION.INT,
         MINIMUM: 2,
@@ -352,12 +376,17 @@ ADVANCED_OPTIONS: Final[dict[str, dict[str, Any]]] = {
         ADVANCED_TYPE: ADVANCED_OPTION.BOOL,
         DEFAULT: DEFAULT_DAMPENING_NO_LIMITING_CONSISTENCY,
     },
+    ADVANCED_AUTOMATED_DAMPENING_PRESERVE_UNMATCHED_FACTORS: {
+        ADVANCED_TYPE: ADVANCED_OPTION.BOOL,
+        DEFAULT: False,
+    },
     ADVANCED_AUTOMATED_DAMPENING_SIMILAR_PEAK: {
         ADVANCED_TYPE: ADVANCED_OPTION.FLOAT,
         MINIMUM: 0.0,
         MAXIMUM: 1.0,
         DEFAULT: DEFAULT_DAMPENING_SIMILAR_PEAK,
     },
+    ADVANCED_AUTOMATED_DAMPENING_SUPPRESSION_ENTITY: {ADVANCED_TYPE: ADVANCED_OPTION.STR, DEFAULT: DEFAULT_DAMPENING_SUPPRESSION_ENTITY},
     ADVANCED_ENTITY_LOGGING: {ADVANCED_TYPE: ADVANCED_OPTION.BOOL, DEFAULT: SENSOR_UPDATE_LOGGING},
     ADVANCED_ESTIMATED_ACTUALS_FETCH_DELAY: {
         ADVANCED_TYPE: ADVANCED_OPTION.INT,

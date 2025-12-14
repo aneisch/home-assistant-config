@@ -1,0 +1,144 @@
+substitutions:
+  name: filament_dryer
+  friendly_name: "Filament Dryer"
+
+esphome:
+  name: ${name}
+  # Run set_all script at boot
+  on_boot:
+    priority: -100
+    then:
+      - delay: 6s
+      - script.execute: set_all
+
+esp8266:
+  board: d1_mini
+
+<<: !include common.yaml
+
+web_server:
+
+globals:
+  - id: pin_delay_us
+    type: int
+    restore_value: no
+    initial_value: '100' # microseconds
+
+output:
+  - platform: gpio
+    id: pin_a_out
+    pin: GPIO5 # D1
+
+  - platform: gpio
+    id: pin_b_out
+    pin: GPIO14 # D5
+
+  - platform: gpio
+    id: pin_sw_output
+    pin:
+      id: pin_sw_out
+      number: GPIO12
+      allow_other_uses: true
+
+binary_sensor:
+  # Not exposed but necessary to allow enter as input so it functions physically
+  - platform: gpio
+    id: pin_sw_input
+    pin:
+      id: pin_sw_in
+      number: GPIO12
+      allow_other_uses: true
+
+button:
+  - platform: template
+    name: "Dryer Rotate Left"
+    icon: "mdi:rotate-right"
+    id: left
+    on_press:
+      - output.turn_off: pin_a_out
+      - output.turn_off: pin_b_out
+      - delay: !lambda "return id(pin_delay_us);"
+      - output.turn_on: pin_a_out
+      - output.turn_off: pin_b_out
+      - delay: !lambda "return id(pin_delay_us);"
+      - output.turn_on: pin_a_out
+      - output.turn_on: pin_b_out
+
+  - platform: template
+    name: "Dryer Rotate Right"
+    icon: "mdi:rotate-left"
+    id: right
+    on_press:
+      - output.turn_off: pin_a_out
+      - output.turn_off: pin_b_out
+      - delay: !lambda "return id(pin_delay_us);"
+      - output.turn_off: pin_a_out
+      - output.turn_on: pin_b_out
+      - delay: !lambda "return id(pin_delay_us);"
+      - output.turn_on: pin_a_out
+      - output.turn_on: pin_b_out
+
+  # Press button then reset it to an input so can be controlled physically
+  - platform: template
+    name: "Dryer Enter"
+    id: enter
+    on_press:
+      - logger.log: Button Pressed
+      - lambda: |-
+          id(pin_sw_out)->pin_mode(gpio::FLAG_OUTPUT);
+          id(pin_sw_output)->setup();
+      - output.turn_on: pin_sw_output
+      - delay: 10ms
+      - lambda: |-
+          id(pin_sw_in)->pin_mode(gpio::FLAG_INPUT);
+          id(pin_sw_input)->setup();
+
+script:
+  # Set temperature to 50C and time to 6H.
+  - id: set_all
+    then:
+      # Navigate to and select temperature setting
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: enter
+      - delay: 300ms
+      # Set 50C temperature
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: enter
+      # Navigate to and select time setting
+      - delay: 1s
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: enter
+      - delay: 300ms
+      # Set 6H time
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: right
+      - delay: 300ms
+      - button.press: enter

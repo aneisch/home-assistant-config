@@ -214,7 +214,7 @@ sensor:
       - *toint
     unit_of_measurement: "°F"
 
-  - platform: modbus_controller            # 182 Battery Temperature - this is wrong -103f
+  - platform: modbus_controller            # 182 Battery Temperature - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Battery Temperature"
     id: inverter_esphome_battery_temperature
@@ -226,11 +226,11 @@ sensor:
     state_class: measurement
     value_type: U_WORD 
     filters:
-      #- offset: -1000
+      - offset: -1000
       - multiply: 0.1
       - *toint
 
-  - platform: modbus_controller            # 183 Battery Voltage
+  - platform: modbus_controller            # 183 Battery Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Battery Voltage"
     id: inverter_esphome_battery_voltage
@@ -255,7 +255,7 @@ sensor:
     device_class: battery
     value_type: U_WORD
 
-  - platform: modbus_controller            # 190 Battery Power
+  - platform: modbus_controller            # 190 Battery Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Battery Power"
     id: inverter_esphome_battery_power
@@ -266,40 +266,40 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
-    lambda: |- # negative equals charging
-      return x *-1;
+    # lambda: |- # negative equals charging
+    #   return x *-1;
     filters:
       - *toint
 
-  - platform: modbus_controller            # Battery Power Charge only needed if you want to calculate Daily Energy Totals using ESPHome
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Power Charge"
-    id: inverter_esphome_battery_power_charge
-    register_type: holding
-    address: 190
-    unit_of_measurement: "W"
-    accuracy_decimals: 0
-    device_class: power
-    state_class: measurement
-    value_type: S_WORD
-    internal: true
-    # lambda: |-
-    #   if (x > 0) return 0; else return x *-1;
+  # - platform: modbus_controller            # Battery Power Charge only needed if you want to calculate Daily Energy Totals using ESPHome
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Power Charge"
+  #   id: inverter_esphome_battery_power_charge
+  #   register_type: holding
+  #   address: 190
+  #   unit_of_measurement: "W"
+  #   accuracy_decimals: 0
+  #   device_class: power
+  #   state_class: measurement
+  #   value_type: S_WORD
+  #   internal: true
+  #   # lambda: |-
+  #   #   if (x > 0) return 0; else return x *-1;
 
-  - platform: modbus_controller            # Battery Power DisCharge only needed if you want to calculate Daily Energy Totals using ESPHome
-    modbus_controller_id: inverter
-    name: "${friendly_name} Battery Power Discharge"
-    id: inverter_esphome_battery_power_discharge
-    register_type: holding
-    address: 190
-    unit_of_measurement: "W"
-    accuracy_decimals: 0
-    device_class: power
-    state_class: measurement
-    value_type: S_WORD
-    internal: true
-    # lambda: |-
-    #   if (x < 0) return 0; else return x;
+  # - platform: modbus_controller            # Battery Power DisCharge only needed if you want to calculate Daily Energy Totals using ESPHome
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Battery Power Discharge"
+  #   id: inverter_esphome_battery_power_discharge
+  #   register_type: holding
+  #   address: 190
+  #   unit_of_measurement: "W"
+  #   accuracy_decimals: 0
+  #   device_class: power
+  #   state_class: measurement
+  #   value_type: S_WORD
+  #   internal: true
+  #   # lambda: |-
+  #   #   if (x < 0) return 0; else return x;
 
 ######################################################################################################
 
@@ -315,7 +315,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     filters:
-      - multiply: 0.01
+      - multiply: 0.1
       - *toint
 
   # - platform: modbus_controller            # 314 Battery Charge Limit Current
@@ -379,7 +379,7 @@ sensor:
 
 ############################################### INVERTER ##############################################
 
-  - platform: modbus_controller            # 175 Inverter Power
+  - platform: modbus_controller            # 175 Inverter Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Inverter Power"
     id: inverter_esphome_inverter_power
@@ -393,7 +393,7 @@ sensor:
     filters:
       - *toint
 
-  - platform: modbus_controller            # 154 Inverter Voltage
+  - platform: modbus_controller            # 154 Inverter Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Inverter Voltage"
     id: inverter_esphome_inverter_voltage
@@ -408,22 +408,22 @@ sensor:
       - *toint
     value_type: U_WORD 
 
-  - platform: modbus_controller            # 164 Inverter Current
-    modbus_controller_id: inverter
-    name: "${friendly_name} Inverter Output Current"
-    id: inverter_esphome_inverter_current
-    register_type: holding
-    address: 164
-    unit_of_measurement: "A"
-    accuracy_decimals: 1
-    device_class: current
-    state_class: measurement
-    value_type: S_WORD
-    filters:
-      - multiply: 0.01
-      - *toint
+  # - platform: modbus_controller            # 164 Inverter Current L1 - unverified - is this needed?
+  #   modbus_controller_id: inverter
+  #   name: "${friendly_name} Inverter Output Current"
+  #   id: inverter_esphome_inverter_current
+  #   register_type: holding
+  #   address: 164
+  #   unit_of_measurement: "A"
+  #   accuracy_decimals: 1
+  #   device_class: current
+  #   state_class: measurement
+  #   value_type: S_WORD
+  #   filters:
+  #     - multiply: 0.01
+  #     # - *toint
 
-  - platform: modbus_controller            # 193 Inverter Frequency
+  - platform: modbus_controller            # 193 Inverter Frequency - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Inverter Frequency"
     id: inverter_esphome_inverter_frequency
@@ -438,7 +438,7 @@ sensor:
 
 ############################################### GRID ##################################################
 
-  - platform: modbus_controller            # 079 Grid Frequency
+  - platform: modbus_controller            # 079 Grid Frequency - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid Frequency"
     id: inverter_esphome_grid_frequency
@@ -448,11 +448,11 @@ sensor:
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
-      - *toint
+      #- *toint
     value_type: U_WORD
     state_class: measurement
 
-  - platform: modbus_controller            # 169 Grid Power
+  - platform: modbus_controller            # 169 Grid Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid Power"
     id: inverter_esphome_grid_power_169
@@ -463,12 +463,13 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
-    lambda: |-
-      return x *-1;
+    # lambda: |- # not needed with firmware update
+    #   return x *-1;
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 167 Grid L1 Power
+  - platform: modbus_controller            # 167 Grid L1 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L1 Power"
     id: inverter_esphome_grid_power_l1_167
@@ -479,12 +480,13 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
-    lambda: |-
-      return x *-1;
+    # lambda: |- # Not needed with firmware update
+    #   return x *-1;
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 168 Grid L2 Power
+  - platform: modbus_controller            # 168 Grid L2 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L2 Power"
     id: inverter_esphome_grid_power_l2_168
@@ -495,12 +497,13 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
-    lambda: |-
-      return x *-1;
+    # lambda: |- # Not needed with firmware update
+    #   return x *-1;
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 150 Grid L1-N Voltage
+  - platform: modbus_controller            # 150 Grid L1-N Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L1 Voltage"
     id: inverter_esphome_grid_l1_voltage
@@ -512,10 +515,10 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      - *toint
+      #- *toint
     value_type: U_WORD 
 
-  - platform: modbus_controller            # 151 Grid L2-N Voltage
+  - platform: modbus_controller            # 151 Grid L2-N Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid L2 Voltage"
     id: inverter_esphome_grid_l2_voltage
@@ -527,10 +530,10 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      - *toint
+      #- *toint
     value_type: U_WORD 
 
-  - platform: modbus_controller            # 152 Grid L1-L2 Voltage
+  - platform: modbus_controller            # 152 Grid L1-L2 Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid Voltage"
     id: inverter_esphome_grid_voltage
@@ -559,7 +562,7 @@ sensor:
   #   filters:
   #     - multiply: 0.01
 
-  - platform: modbus_controller            # 172 Grid CT Power
+  - platform: modbus_controller            # 172 Grid CT Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Grid CT Power"
     id: inverter_esphome_grid_ct_power
@@ -570,14 +573,15 @@ sensor:
     device_class: power
     state_class: measurement
     value_type: S_WORD
-    lambda: |-
-      return x *-1;
+    # lambda: |- # Not needed with firmware update
+    #   return x *-1;
     filters:
+      - multiply: 10
       - *toint
 
 ############################################### LOAD ################################################
 
-  - platform: modbus_controller            # 178 Load Power
+  - platform: modbus_controller            # 178 Load Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Load Power"
     id: inverter_esphome_load_power
@@ -589,9 +593,11 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 176 Load L1 Power
+
+  - platform: modbus_controller            # 176 Load L1 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Load L1 Power"
     id: inverter_esphome_load_l1_power
@@ -603,9 +609,10 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 177 Load L2 Power
+  - platform: modbus_controller            # 177 Load L2 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Load L2 Power"
     id: inverter_esphome_load_l2_power
@@ -617,9 +624,10 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     filters:
+      - multiply: 10
       - *toint
 
-  - platform: modbus_controller            # 192 Load Frequency
+  - platform: modbus_controller            # 192 Load Frequency - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Load Frequency"
     id: inverter_esphome_load_frequency
@@ -636,7 +644,7 @@ sensor:
 
 ############################################### SOLAR PV1 #############################################
 
-  - platform: modbus_controller            # 186 PV1 Power
+  - platform: modbus_controller            # 186 PV1 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV1 Power"
     id: inverter_esphome_pv1_power
@@ -650,7 +658,7 @@ sensor:
     filters:
       - *toint
 
-  - platform: modbus_controller            # 109 PV1 Voltage
+  - platform: modbus_controller            # 109 PV1 Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV1 Voltage"
     id: inverter_esphome_pv1_voltage
@@ -665,7 +673,7 @@ sensor:
       - *toint
     value_type: U_WORD
 
-  - platform: modbus_controller            # 110 PV1 Current
+  - platform: modbus_controller            # 110 PV1 Current - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV1 Current"
     id: inverter_esphome_pv1_current
@@ -682,7 +690,7 @@ sensor:
 
 ############################################### SOLAR PV2 #############################################
 
-  - platform: modbus_controller            # 187 PV2 Power
+  - platform: modbus_controller            # 187 PV2 Power - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV2 Power"
     id: inverter_esphome_pv2_power
@@ -696,7 +704,7 @@ sensor:
     filters:
       - *toint
 
-  - platform: modbus_controller            # 111 PV2 Voltage
+  - platform: modbus_controller            # 111 PV2 Voltage - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV2 Voltage"
     id: inverter_esphome_pv2_voltage
@@ -711,7 +719,7 @@ sensor:
     state_class: measurement
     value_type: U_WORD
 
-  - platform: modbus_controller            # 112 PV2 Current
+  - platform: modbus_controller            # 112 PV2 Current - verified
     modbus_controller_id: inverter
     name: "${friendly_name} PV2 Current"
     id: inverter_esphome_pv2_current
@@ -812,25 +820,10 @@ sensor:
 
 ############################################### ENERGY ################################################
 
-  - platform: modbus_controller            # 070 Day Battery Charge
+  - platform: modbus_controller            # 070 Day Battery Charge - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Day Battery Charge"
     id: inverter_esphome_day_battery_charge
-    register_type: holding
-    address: 71
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 1
-    device_class: energy
-    state_class: total_increasing
-    value_type: U_WORD
-    filters:
-      - multiply: 0.1
-      - *toint
-
-  - platform: modbus_controller            # 071 Day Battery Discharge
-    modbus_controller_id: inverter
-    name: "${friendly_name} Day Battery Discharge"
-    id: inverter_esphome_day_battery_discharge
     register_type: holding
     address: 70
     unit_of_measurement: "kWh"
@@ -840,7 +833,22 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
-      - *toint
+      # - *toint
+
+  - platform: modbus_controller            # 071 Day Battery Discharge - verified
+    modbus_controller_id: inverter
+    name: "${friendly_name} Day Battery Discharge"
+    id: inverter_esphome_day_battery_discharge
+    register_type: holding
+    address: 71
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_WORD
+    filters:
+      - multiply: 0.1
+      # - *toint
 
   # - platform: modbus_controller            # 072 Total Battery Charge
   #   modbus_controller_id: inverter
@@ -870,7 +878,7 @@ sensor:
   #   filters:
   #    - multiply: 0.001
 
-  - platform: modbus_controller            # 076 Day Grid Import
+  - platform: modbus_controller            # 076 Day Grid Import - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Day Grid Import"
     id: inverter_esphome_day_grid_import
@@ -882,10 +890,10 @@ sensor:
     state_class: total_increasing
     value_type: U_WORD
     filters:
-      - multiply: 0.1
-      - *toint
+      - multiply: 0.1 # verified firmware update match
+      # - *toint
 
-  - platform: modbus_controller            # 077 Day Grid Export
+  - platform: modbus_controller            # 077 Day Grid Export - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Day Grid Export"
     id: inverter_esphome_day_grid_export
@@ -897,8 +905,8 @@ sensor:
     state_class: total_increasing
     value_type: U_WORD
     filters:
-      - multiply: 0.1
-      - *toint
+      - multiply: 0.1 # verified firmware update match
+      # - *toint
 
 
   # Calculate how many kWh of import our export has offset (no net-metering)
@@ -973,7 +981,7 @@ sensor:
   #   filters:
   #     - multiply: 0.1
 
-  - platform: modbus_controller            # 084 Day Load Energy
+  - platform: modbus_controller            # 084 Day Load Energy - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Day Load Energy"
     id: inverter_esphome_day_load_energy
@@ -984,8 +992,8 @@ sensor:
     device_class: energy
     state_class: total_increasing
     filters:
-      - multiply: 0.1
-      - *toint
+      - multiply: 0.1 # verified firmware update match
+      # - *toint
     value_type: U_WORD
 
   # - platform: modbus_controller            # 085 Total Load Energy
@@ -1016,7 +1024,7 @@ sensor:
   #     - multiply: 0.001
   #   value_type: U_DWORD_R  
 
-  - platform: modbus_controller            # 108 Day PV Energy
+  - platform: modbus_controller            # 108 Day PV Energy - verified
     modbus_controller_id: inverter
     name: "${friendly_name} Day PV Energy"
     id: inverter_esphome_day_pv_energy
@@ -1027,8 +1035,8 @@ sensor:
     device_class: energy
     state_class: total_increasing
     filters:
-      - multiply: 0.1
-      - *toint
+      - multiply: 0.1 # verified firmware update match
+      # - *toint
     value_type: U_WORD
 
 ############################################### TEMPERATURE ################################################
@@ -1048,7 +1056,7 @@ sensor:
   #     # - offset: -1000
   #     - multiply:  0.1
 
-  - platform: modbus_controller            # 091 Radiator Temperature
+  - platform: modbus_controller            # 091 Radiator Temperature - verified
     name: "${friendly_name} Radiator Temperature"
     id: inverter_esphome_radiator_temperature
     register_type: holding
@@ -1059,7 +1067,7 @@ sensor:
     state_class: measurement
     value_type: S_WORD
     filters:
-    #   - offset: -1000
+      - offset: -1000
       - multiply:  0.1
       - *toint
     # filters:

@@ -100,10 +100,34 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_zeroconf(self, discovery_info: Any) -> FlowResult:
-        host = _extract_host_from_zeroconf(discovery_info)
+        from .utils import extract_info_from_zeroconf
+        host, mac = extract_info_from_zeroconf(discovery_info)
+        
         if not host:
             return self.async_abort(reason="cannot_connect")
+            
+        # Robust Update Check:
+        # Check if an existing entry has this MAC address but a different IP.
+        # If so, update it automatically and abort this new flow.
+        if mac:
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                cached_mac = entry.data.get("_cached_mac")
+                if cached_mac and cached_mac.upper() == mac.upper():
+                    if entry.data.get(CONF_HOST) != host:
+                        _LOGGER.warning(
+                            "Discovered printer with known MAC %s at new IP %s. Updating existing entry.", 
+                            mac, host
+                        )
+                        self.hass.config_entries.async_update_entry(
+                            entry, 
+                            data={**entry.data, CONF_HOST: host, "_last_ip": host}
+                        )
+                        self.hass.async_create_task(
+                            self.hass.config_entries.async_reload(entry.entry_id)
+                        )
+                    return self.async_abort(reason="already_configured")
 
+        # Standard check: if we already have this IP configured, abort
         if not await _probe_tcp(host, WS_PORT):
             return self.async_abort(reason="not_K")
 
@@ -111,7 +135,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured()
 
         title = f"{DEFAULT_NAME} ({host})"
-        return self.async_create_entry(title=title, data={CONF_HOST: host})
+        return self.async_create_entry(title=title, data={CONF_HOST: host, "_cached_mac": mac})
 
 
 # --------- Options Flow ---------
@@ -161,6 +185,19 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         if user_input is not None:
+            # Handle IP/Host update
+            new_host = user_input.pop(CONF_HOST, None)
+            if new_host and new_host != self._entry.data.get(CONF_HOST):
+                 # Update the MAIN config entry, not the options
+                 self.hass.config_entries.async_update_entry(
+                     self._entry,
+                     data={**self._entry.data, CONF_HOST: new_host}
+                 )
+                 # Reload entry to apply new IP potentially
+                 self.hass.async_create_task(
+                     self.hass.config_entries.async_reload(self._entry.entry_id)
+                 )
+
             # Clean up power switch - remove if empty (text input now)
             if CONF_POWER_SWITCH in user_input:
                 power_switch = user_input.get(CONF_POWER_SWITCH)
@@ -215,6 +252,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # Build schema - power switch as text input (entity_id)
         # Using text input instead of EntitySelector to allow truly optional/empty values
         schema_dict: dict[str, Any] = {
+            vol.Optional(
+                CONF_HOST,
+                default=self._entry.data.get(CONF_HOST, ""),
+            ): selector.TextSelector(
+                selector.TextSelectorConfig(
+                    type=selector.TextSelectorType.TEXT,
+                    autocomplete="off",
+                )
+            ),
             vol.Optional(
                 CONF_POWER_SWITCH,
                 default=current_power_switch or "",

@@ -15,7 +15,7 @@ from homeassistant.helpers.event import ( #type: ignore[import]
     async_track_state_change_event,
 )
 import voluptuous as vol #type: ignore[import]
-
+from homeassistant.components.persistent_notification import async_create as pn_async_create #type: ignore[import]
 from .const import (
     DOMAIN, 
     STALE_AFTER_SECS, 
@@ -114,9 +114,24 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # This is stored in entry.data which persists across restarts
     should_re_cache = (
         not entry.data.get("_device_info_cached") or
-        cached_version != current_version
+        cached_version != current_version or
+        entry.data.get("_last_ip") != host
     )
     
+    # Store current IP to detect network changes later
+    if entry.data.get("_last_ip") != host:
+        new_data = dict(entry.data)
+        new_data["_last_ip"] = host
+        hass.config_entries.async_update_entry(entry, data=new_data)
+        
+    # Attempt to cache MAC address if not present
+    if not entry.data.get("_cached_mac") and not coord.power_is_off():
+         # In a real scenario, we might query M115 or check network info from the printer
+         # For now, we will rely on upcoming zeroconf updates to populate this if the printer exposes it.
+         # OR: If the coordinator captured it from initial handshake/data?
+         # Creality printers are notoriously shy about their MAC in the JSON payload.
+         pass
+         
     # Also re-cache if max temperature values are missing (migration from older versions)
     should_re_cache = should_re_cache or (
         entry.data.get("_cached_max_bed_temp") is None or
@@ -477,6 +492,48 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
     )
     
     _LOGGER.info("Diagnostic service registered: ha_creality_ws.diagnostic_dump")
+
+async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Update options."""
+    await hass.config_entries.async_reload(entry.entry_id)
+
+async def async_monitor_zeroconf_update(hass: HomeAssistant, entry: ConfigEntry, info: Any) -> None:
+    """Handle triggered Zeroconf update."""
+    from .utils import extract_info_from_zeroconf
+    host, mac = extract_info_from_zeroconf(info)
+    
+    if not host:
+        return
+
+    # If we have a MAC address, we can do a robust match
+    if mac:
+        # Check if the current entry matches this MAC
+        cached_mac = entry.data.get("_cached_mac")
+        
+        # Scenario 1: We already know our MAC and it matches the discovery
+        if cached_mac and cached_mac.upper() == mac.upper():
+            current_host = entry.data.get("host")
+            if host != current_host:
+                _LOGGER.warning(
+                    "Robust IP Update: MAC match (%s) but IP changed from %s to %s. Updating...",
+                    mac, current_host, host
+                )
+                hass.config_entries.async_update_entry(entry, data={**entry.data, "host": host, "_last_ip": host})
+                await hass.config_entries.async_reload(entry.entry_id)
+            return
+
+        # Scenario 2: We don't know our MAC yet, but this update is targeting *us* by IP (initial discovery phase?)
+        # Or more likely, HA matched the zeroconf flow to this entry for some reason.
+        # If we don't have a cached MAC, and the IP matches, let's CACHE this MAC!
+        current_host = entry.data.get("host")
+        if host == current_host and not cached_mac:
+            _LOGGER.info("Caching MAC address found via Zeroconf: %s", mac)
+            hass.config_entries.async_update_entry(entry, data={**entry.data, "_cached_mac": mac})
+            return
+
+    # Fallback to simple name/IP matching logic or legacy checks
+    # If users rely on hostname, IP-based recovery without MAC is dangerous (DHCP shuffle).
+    pass
 
 
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:

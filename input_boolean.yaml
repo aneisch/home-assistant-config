@@ -7,7 +7,7 @@ door_notify:
   name: Door Notifications
   icon: mdi:alert-circle
 
-cellular_message_test_pending:
+# cellular_message_test_pending:
 
 # Used by Alexa routine to publish motion detection status
 kitchen_motion:

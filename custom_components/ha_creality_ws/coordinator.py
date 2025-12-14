@@ -13,6 +13,7 @@ class KCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass, host: str, power_switch: str | None = None):
         super().__init__(hass, _LOGGER, name=f"{DOMAIN}@{host}", update_interval=None)
         self.client = KClient(host, self._handle_message)
+        self.client._check_power_status = self.power_is_off
         self.data: dict[str, Any] = {}
         self._paused_flag = False
         self._last_avail = False
@@ -33,8 +34,12 @@ class KCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             return False
         st = self.hass.states.get(eid)
         if not st:
+            _LOGGER.debug("Power switch entity %s not found (assume OFF)", eid)
             return True # FAIL-SAFE: Assume OFF if switch entity isn't ready
-        return str(st.state).lower() in ("off", "unavailable", "unknown")
+        is_off = str(st.state).lower() in ("off", "unavailable", "unknown")
+        if is_off:
+             _LOGGER.debug("Power switch %s is %s -> skipping connection", eid, st.state)
+        return is_off
 
     async def async_start(self) -> None:
         if self.power_is_off():

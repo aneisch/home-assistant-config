@@ -59,6 +59,8 @@ cards:
         - entity_id: "*refrigerator*"
         - entity_id: "switch.wyze_plug_3_relay2" # office flume
         - entity_id: "switch.orvibo_1" # garage plant light
+        - entity_id: "*ender*"
+        - entity_id: "*tuya_2*"
 
     card:
       type: entities

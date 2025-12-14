@@ -31,6 +31,7 @@ from .const import (
     ATTRIBUTION,
     CONF_DECIMAL_PLACES,
     CONF_SHOW_CURRENCY_SYMBOL_AS_UNIT,
+    CONF_SHOW_OFF_MARKET_VALUES,
     CONF_SHOW_TRENDING_ICON,
     CONF_SYMBOLS,
     CURRENCY_CODES,
@@ -52,7 +53,7 @@ from .const import (
     LOGGER,
     NUMERIC_DATA_GROUPS,
     PERCENTAGE_DATA_KEYS_NEEDING_MULTIPLICATION,
-    TIME_DATA_KEYS,
+    TIME_PRICE_DATA_DICT,
 )
 from .coordinator import YahooSymbolUpdateCoordinator
 from .dataclasses import SymbolDefinition
@@ -83,7 +84,7 @@ async def async_setup_platform(
         for symbol in symbol_definitions
     ]
 
-    # We have already invoked async_refresh on coordinator, so don'tupdate_before_add
+    # We have already invoked async_refresh on coordinator, so don't update_before_add
     async_add_entities(sensors, update_before_add=False)
     LOGGER.info("Entities added for %s", [item.symbol for item in symbol_definitions])
 
@@ -129,6 +130,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         self._previous_close = None
         self._target_currency = symbol_definition.target_currency
         self._no_unit = symbol_definition.no_unit
+        self._show_off_market_values = domain_config[CONF_SHOW_OFF_MARKET_VALUES]
 
         self._unique_id = symbol
         self.entity_id = async_generate_entity_id(ENTITY_ID_FORMAT, symbol, hass=hass)
@@ -279,6 +281,19 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
 
         return None
 
+    def _get_market_price(self, symbol_data: dict) -> float | None:
+        if not symbol_data:
+            return None
+        if not self._show_off_market_values:
+          return symbol_data[DATA_REGULAR_MARKET_PRICE]
+        price_time = 0
+        price = None
+        for t, p in TIME_PRICE_DATA_DICT.items():
+            if price_time < symbol_data[t]:
+                price_time = symbol_data[t]
+                price = symbol_data[p]
+        return price
+
     def _get_target_currency_conversion(self) -> float | None:
         """Return the conversion factor to target currency."""
         value = None
@@ -310,7 +325,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         symbol_data = self._find_symbol_data(conversion_symbol)
 
         if symbol_data is not None:
-            value = value * symbol_data[DATA_REGULAR_MARKET_PRICE]
+            value = value * self._get_market_price(symbol_data)
             LOGGER.debug("%s %s is %s", self._symbol, conversion_symbol, value)
         else:
             LOGGER.info(
@@ -365,7 +380,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         self._short_name = symbol_data[DATA_SHORT_NAME]
         self._long_name = symbol_data[DATA_LONG_NAME]
 
-        market_price = symbol_data[DATA_REGULAR_MARKET_PRICE]
+        market_price = self._get_market_price(symbol_data)
         self._market_price = self.safe_convert(market_price, conversion)
         # _market_price gets rounded in the `state` getter.
 
@@ -414,7 +429,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
                     )
                 )
 
-        for key in TIME_DATA_KEYS:
+        for key in TIME_PRICE_DATA_DICT:
             if key in self._attr_extra_state_attributes:
                 self._attr_extra_state_attributes[key] = (
                     self.convert_timestamp_to_datetime(

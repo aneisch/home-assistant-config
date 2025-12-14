@@ -81,38 +81,88 @@ def safe_float(v: Any) -> float | None:
 
 
 def extract_host_from_zeroconf(info: Any) -> Optional[str]:
-    """Extract a host/IP from zeroconf discovery info supporting dict or object styles."""
+    """Compatibility wrapper for extract_info_from_zeroconf returning only host."""
+    host, _ = extract_info_from_zeroconf(info)
+    return host
+
+def extract_info_from_zeroconf(info: Any) -> tuple[Optional[str], Optional[str]]:
+    """Extract host/IP and optional MAC from zeroconf discovery info.
+    
+    Returns:
+        (host, mac) tuple. MAC is normalized to uppercase AA:BB:CC... or None.
+    """
+    host: str | None = None
+    mac: str | None = None
+    
     if isinstance(info, dict):
-        host = info.get("host")
-        if host:
-            return str(host)
-        addrs_raw = info.get("addresses") or info.get("ip_addresses") or info.get("ip_address")
-        if isinstance(addrs_raw, (list, tuple)) and addrs_raw:
-            # Prefer IPv4 addresses when present (no ':' in string)
-            v4 = next((a for a in addrs_raw if ":" not in str(a)), None)
-            return str(v4 or addrs_raw[0])
-        if isinstance(addrs_raw, str):
-            return addrs_raw
-        hn = info.get("hostname")
-        if isinstance(hn, str):
-            return hn.strip(".")
-        return None
+        # Extract Host
+        h_raw = info.get("host")
+        if h_raw:
+            host = str(h_raw)
+        else:
+            addrs_raw = info.get("addresses") or info.get("ip_addresses") or info.get("ip_address")
+            if isinstance(addrs_raw, (list, tuple)) and addrs_raw:
+                # Prefer IPv4 addresses when present (no ':' in string)
+                v4 = next((a for a in addrs_raw if ":" not in str(a)), None)
+                host = str(v4 or addrs_raw[0])
+            elif isinstance(addrs_raw, str):
+                host = addrs_raw
+            if not host:
+                hn = info.get("hostname")
+                if isinstance(hn, str):
+                    host = hn.strip(".")
+
+        # Extract MAC from properties
+        props = info.get("properties", {})
+        if props:
+            # Look for common MAC keys
+            for k in ("mac", "device_mac", "serial"):
+                val = props.get(k)
+                if val:
+                    # Basic MAC validation/normalization could go here
+                    if ":" in str(val) or len(str(val)) >= 12:
+                        mac = str(val).upper()
+                        break
+        
+        # Fallback: Extract MAC from hostname if structured like "K1-AABBCC" ?
+        # Not reliable enough without more knowledge.
+        return (host, mac)
+
+    # Object style (HA ZeroconfServiceInfo)
     try:
         addrs: list[str] = []
         if hasattr(info, "ip_addresses") and info.ip_addresses:
             addrs = [str(a) for a in info.ip_addresses]
         elif hasattr(info, "addresses") and info.addresses:
             addrs = [str(a) for a in info.addresses]
+        
         if addrs:
             v4 = next((a for a in addrs if ":" not in a), None)
-            return v4 or addrs[0]
-        if getattr(info, "host", None):
-            return str(info.host)
-        if getattr(info, "hostname", None):
-            return str(info.hostname).rstrip(".")
+            host = v4 or addrs[0]
+        elif getattr(info, "host", None):
+            host = str(info.host)
+        elif getattr(info, "hostname", None):
+            host = str(info.hostname).rstrip(".")
+            
+        # Extract MAC from properties
+        if hasattr(info, "properties") and info.properties:
+            # Check for MAC in properties
+            # Note: HA zeroconf properties are usually bytes, needing decode
+            props = info.properties
+            for k in (b"mac", b"device_mac", b"serial"):
+                val = props.get(k)
+                if val:
+                    try:
+                        mac_str = val.decode("utf-8")
+                        mac = mac_str.upper()
+                        break
+                    except Exception:
+                        pass
+        
     except Exception:
         pass
-    return None
+        
+    return (host, mac)
 
 class ModelDetection:
     """Detect printer model and capabilities from telemetry data.

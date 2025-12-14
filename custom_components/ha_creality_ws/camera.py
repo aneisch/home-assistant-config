@@ -19,6 +19,23 @@ from aiohttp import ClientError, web  # type: ignore[assignment]
 from homeassistant.core import HomeAssistant, callback  # type: ignore[assignment]
 from homeassistant.helpers.aiohttp_client import async_get_clientsession  # type: ignore[assignment]
 
+# Import go2rtc client library
+try:
+    from go2rtc_client import Go2RtcRestClient, WebRTCSdpOffer, WebRTCSdpAnswer
+    from go2rtc_client.exceptions import Go2RtcClientError
+    GO2RTC_CLIENT_AVAILABLE = True
+except ImportError:
+    GO2RTC_CLIENT_AVAILABLE = False
+    _LOGGER.warning("go2rtc-client library not available, WebRTC cameras will not work")
+
+# Import HA's go2rtc component
+try:
+    from homeassistant.components.go2rtc import DOMAIN as GO2RTC_DOMAIN
+    GO2RTC_COMPONENT_AVAILABLE = True
+except ImportError:
+    GO2RTC_DOMAIN = "go2rtc"
+    GO2RTC_COMPONENT_AVAILABLE = False
+
 # Import camera components with compatibility for older Home Assistant versions
 try:
     from homeassistant.components.camera import (
@@ -324,8 +341,6 @@ class CrealityWebRTCCamera(_BaseCamera):
         coordinator, 
         signaling_url: str, 
         use_proxy: bool = False,
-        go2rtc_url: str | None = None,
-        go2rtc_port: int | None = None,
     ) -> None:
         """Initialize the WebRTC camera.
         
@@ -333,38 +348,32 @@ class CrealityWebRTCCamera(_BaseCamera):
             coordinator: The printer coordinator
             signaling_url: WebRTC signaling URL from the printer
             use_proxy: Whether to use proxy (deprecated, kept for compatibility)
-            go2rtc_url: go2rtc server URL (default: localhost)
-            go2rtc_port: go2rtc server port (default: 11984)
         """
         super().__init__(coordinator, "Printer Camera", "camera")
         self._upstream_signaling_url = signaling_url
         self._use_proxy = use_proxy  # Deprecated, kept for compatibility
-        self._go2rtc_url: str | None = (go2rtc_url or DEFAULT_GO2RTC_URL)
-        # Sanitize port from options (can arrive as float/str); default on failure
-        port_val = go2rtc_port if go2rtc_port is not None else DEFAULT_GO2RTC_PORT
-        try:
-            port_int = int(port_val)
-        except (ValueError, TypeError):
-            _LOGGER.warning("ha_creality_ws: go2rtc_port %r could not be converted to int, using default %s", port_val, DEFAULT_GO2RTC_PORT)
-            port_int = int(DEFAULT_GO2RTC_PORT)
-        if not (1 <= port_int <= 65535):
-            _LOGGER.warning("ha_creality_ws: go2rtc_port %r out of range, using default %s", port_val, DEFAULT_GO2RTC_PORT)
-            port_int = int(DEFAULT_GO2RTC_PORT)
-        self._go2rtc_port = port_int
         self._stream_name: str | None = None
         self._last_error: str | None = None
-        # Snapshot throttling to avoid hammering go2rtc /api/frame.jpeg
+        
+        # Snapshot throttling to avoid hammering go2rtc
         self._last_snapshot_ts: float = 0.0
         self._snapshot_min_interval: float = 2.0  # seconds
         self._snapshot_lock = asyncio.Lock()
         
-        _LOGGER.debug(
-            "ha_creality_ws: WebRTC camera initialized with signaling URL: %s, go2rtc: %s:%s",
-            signaling_url, self._go2rtc_url, self._go2rtc_port
+        # Initialize go2rtc client (will be set up in async_added_to_hass)
+        self._go2rtc_client: Go2RtcRestClient | None = None
+        self._go2rtc_server_url: str | None = None
+        self._go2rtc_version: str | None = None
+        
+        _LOGGER.info(
+            "ha_creality_ws: WebRTC camera initialized for printer: %s",
+            signaling_url
         )
         
         # Set up supported features for native WebRTC streaming
         self._setup_supported_features()
+        
+
 
     def _setup_supported_features(self) -> None:
         """Set up camera features for native WebRTC streaming.
@@ -396,80 +405,137 @@ class CrealityWebRTCCamera(_BaseCamera):
 
         self._attr_supported_features = _FeatureMask(mask)
         _LOGGER.info(
-            "ha_creality_ws: WebRTC camera features: STREAM=%s, ON_DEMAND=%s, mask=%d, go2rtc=%s:%s",
+            "ha_creality_ws: WebRTC camera features: STREAM=%s, ON_DEMAND=%s, mask=%d",
             bool(mask & 2),  # STREAM is bit 1 (2)
             bool(mask & 1),  # ON_DEMAND is bit 0 (1)
             mask,
-            self._go2rtc_url,
-            self._go2rtc_port,
         )
 
     @property
     def stream_source(self) -> Optional[str]:
-        """Return the go2rtc WebRTC stream source URL.
+        """Return the stream name for go2rtc.
         
-        This property provides the WebRTC stream source URL that Home Assistant
-        can use to establish WebRTC connections. The URL points to go2rtc's
-        WebRTC API endpoint for the configured stream.
+        Returns the stream name that go2rtc uses to identify this camera's stream.
+        HA's go2rtc component will handle the actual WebRTC connection.
         
         Returns:
-            str: WebRTC stream source URL, or None if not configured
+            str: Stream name, or None if not configured
         """
-        if self._go2rtc_url and self._stream_name:
-            go2rtc_url_with_port = f"http://{self._go2rtc_url}:{self._go2rtc_port}"
-            return f"{go2rtc_url_with_port}/api/webrtc?src={self._stream_name}"
-        return None
+        return self._stream_name
 
     async def async_get_stream_source(self) -> Optional[str]:
-        """Return the go2rtc WebRTC stream source URL.
+        """Return the stream name for go2rtc.
         
         Async version of stream_source property for compatibility with
         Home Assistant's camera entity interface.
         
         Returns:
-            str: WebRTC stream source URL, or None if not configured
+            str: Stream name, or None if not configured
         """
-        return self.stream_source
+        await self._ensure_stream_configured()
+        return self._stream_name
 
     async def async_added_to_hass(self) -> None:
         """Configure go2rtc stream when camera is added to Home Assistant.
         
         This method is called when the camera entity is added to Home Assistant.
-        We defer configuring go2rtc until first actual use (on-demand) to avoid
-        background connection attempts that may probe the printer periodically.
+        We initialize the go2rtc client here to ensure it's ready for use.
         """
         await super().async_added_to_hass()
-        # No eager configuration here; will configure on first access
+        
+        # Initialize go2rtc client from HA's component
+        if not await self._initialize_go2rtc_client():
+            _LOGGER.warning(
+                "ha_creality_ws: WebRTC camera will not work - "
+                "go2rtc client initialization failed. "
+                "Ensure default_config is enabled or go2rtc is configured."
+            )
+    
+    async def _initialize_go2rtc_client(self) -> bool:
+        """Initialize go2rtc client from HA's go2rtc component.
+        
+        Returns:
+            bool: True if initialization successful, False otherwise
+        """
+        if self._go2rtc_client:
+            return True  # Already initialized
+        
+        if not GO2RTC_CLIENT_AVAILABLE:
+            _LOGGER.error(
+                "ha_creality_ws: go2rtc-client library not available. "
+                "This should not happen as it's in requirements."
+            )
+            return False
+        
+        # Get HA's go2rtc configuration
+        go2rtc_data = self.hass.data.get(GO2RTC_DOMAIN)
+        if not go2rtc_data:
+            _LOGGER.error(
+                "ha_creality_ws: go2rtc component not loaded. "
+                "Ensure default_config is enabled in configuration.yaml or "
+                "configure go2rtc manually."
+            )
+            return False
+        
+        try:
+            # Create client using HA's pre-configured session and URL
+            # The session already has UnixConnector configured if HA is managing go2rtc
+            self._go2rtc_client = Go2RtcRestClient(
+                go2rtc_data.session,
+                go2rtc_data.url
+            )
+            self._go2rtc_server_url = go2rtc_data.url
+            
+            # Validate server version
+            version = await self._go2rtc_client.validate_server_version()
+            self._go2rtc_version = str(version)
+            
+            _LOGGER.info(
+                "ha_creality_ws: Connected to go2rtc %s at %s",
+                self._go2rtc_version, self._go2rtc_server_url
+            )
+            return True
+            
+        except Go2RtcClientError as exc:
+            _LOGGER.error(
+                "ha_creality_ws: Failed to initialize go2rtc client: %s",
+                exc, exc_info=True
+            )
+            return False
+        except Exception as exc:
+            _LOGGER.error(
+                "ha_creality_ws: Unexpected error initializing go2rtc client: %s",
+                exc, exc_info=True
+            )
+            return False
 
     async def async_camera_image(
         self,
         width: Optional[int] = None,
         height: Optional[int] = None,
     ) -> bytes | None:
-        """Return a single camera image from go2rtc.
-        
-        This method provides static image capture for the WebRTC camera by
-        requesting a single frame from go2rtc's snapshot API. It handles
-        various error conditions gracefully and falls back to cached or
-        default images when the stream is unavailable.
+        """Return a camera image using go2rtc snapshot API.
         
         Args:
-            width: Requested image width (not used for WebRTC)
-            height: Requested image height (not used for WebRTC)
+            width: Desired image width (optional)
+            height: Desired image height (optional)
             
         Returns:
-            bytes | None: JPEG image data
+            bytes: JPEG image data, or None if unavailable
         """
-        # Validate width/height parameters (WebRTC doesn't support scaling)
+        # Sanitize dimensions
         if not width or width <= 0:
             width = None
         if not height or height <= 0:
             height = None
             
-        # Do NOT auto-configure go2rtc for snapshots to avoid background POSTs.
-        # Only use snapshot if stream was already configured by an active view.
-        if not self._go2rtc_url or not self._stream_name or not self._go2rtc_port:
-            _LOGGER.debug("ha_creality_ws: go2rtc not configured (by design) for snapshots; returning fallback image")
+        # Ensure stream is configured and client is initialized
+        await self._ensure_stream_configured()
+        
+        if not self._go2rtc_client or not self._stream_name:
+            _LOGGER.debug(
+                "ha_creality_ws: go2rtc client or stream not configured for snapshots; returning fallback image"
+            )
             return await self._fallback_image()
 
         # Snapshot throttling: return cached frame if recent
@@ -484,191 +550,93 @@ class CrealityWebRTCCamera(_BaseCamera):
                 if self._last_frame and (now - self._last_snapshot_ts) < self._snapshot_min_interval:
                     return self._last_frame
 
-                session = async_get_clientsession(self.hass)
-                # Request a single frame from go2rtc using the snapshot API
-                go2rtc_base_url = f"http://{self._go2rtc_url}:{self._go2rtc_port}"
-                image_url = f"{go2rtc_base_url}/api/frame.jpeg?src={self._stream_name}"
-                _LOGGER.debug("ha_creality_ws: requesting snapshot from go2rtc: %s", image_url)
+                # Use go2rtc client to get snapshot
+                _LOGGER.debug("ha_creality_ws: requesting snapshot from go2rtc for stream: %s", self._stream_name)
+                
+                image_data = await self._go2rtc_client.get_jpeg_snapshot(
+                    name=self._stream_name,
+                    width=width,
+                    height=height
+                )
+                
+                if image_data and self._is_valid_jpeg(image_data):
+                    self._last_frame = image_data
+                    self._last_snapshot_ts = now
+                    _LOGGER.debug("ha_creality_ws: successfully captured WebRTC snapshot")
+                    return image_data
+                else:
+                    _LOGGER.warning("ha_creality_ws: invalid or empty JPEG from go2rtc snapshot")
 
-                async with session.get(image_url, timeout=5) as response:
-                    if response.status == 200:
-                        image_data = await response.read()
-                        if self._is_valid_jpeg(image_data):
-                            self._last_frame = image_data
-                            self._last_snapshot_ts = now
-                            _LOGGER.debug("ha_creality_ws: successfully captured WebRTC snapshot")
-                            return image_data
-                        else:
-                            _LOGGER.warning("ha_creality_ws: invalid JPEG from go2rtc snapshot")
-                    elif response.status == 404:
-                        # Stream not found/not active - this is normal for on-demand streams
-                        _LOGGER.debug("ha_creality_ws: go2rtc stream not active yet (404) - returning fallback")
-                    else:
-                        _LOGGER.warning("ha_creality_ws: go2rtc frame returned status %d", response.status)
-
-        except ClientError as err:
-            _LOGGER.warning("ha_creality_ws: failed to get image from go2rtc: %s", err)
-        except asyncio.TimeoutError:
-            _LOGGER.warning("ha_creality_ws: timeout getting image from go2rtc")
+        except Go2RtcClientError as err:
+            _LOGGER.warning("ha_creality_ws: go2rtc client error getting snapshot: %s", err)
         except Exception as exc:
-            _LOGGER.warning("ha_creality_ws: unexpected error getting image from go2rtc: %s", exc)
+            _LOGGER.warning("ha_creality_ws: unexpected error getting snapshot: %s", exc)
         
         return await self._fallback_image()
 
-    async def handle_async_mjpeg_stream(self, request):
-        """Handle MJPEG streaming requests via go2rtc.
-        
-        This method provides MJPEG streaming by proxying go2rtc's MJPEG
-        stream endpoint. This is primarily used for compatibility with
-        older Home Assistant versions or when WebRTC is not available.
-        
-        Args:
-            request: aiohttp request object
-            
-        Returns:
-            web.Response: HTTP response with MJPEG stream or error
-        """
-        # Ensure the stream is configured on first actual streaming request
-        if self._go2rtc_url and self._go2rtc_port and not self._stream_name:
-            await self._ensure_stream_configured()
-        if not self._go2rtc_url or not self._stream_name or not self._go2rtc_port:
-            _LOGGER.warning("ha_creality_ws: go2rtc not available for streaming")
-            return web.Response(status=503, text="go2rtc not available")
 
-        try:
-            session = async_get_clientsession(self.hass)
-            # Get MJPEG stream from go2rtc using the stream API
-            # According to go2rtc API docs: GET /api/stream.mjpeg?src=stream_name
-            go2rtc_base_url = f"http://{self._go2rtc_url}:{self._go2rtc_port}"
-            mjpeg_stream_url = f"{go2rtc_base_url}/api/stream.mjpeg?src={self._stream_name}"
-            
-            _LOGGER.debug("ha_creality_ws: proxying MJPEG stream from go2rtc: %s", mjpeg_stream_url)
-            
-            async with session.get(mjpeg_stream_url, timeout=None) as response:
-                if response.status == 200:
-                    # Stream the content directly to the client
-                    return web.Response(
-                        status=200,
-                        headers={"Content-Type": "multipart/x-mixed-replace;boundary=--frame"},
-                        body=response.content,
-                    )
-                elif response.status == 404:
-                    # Stream not found/not active - this is normal for on-demand streams
-                    _LOGGER.info("ha_creality_ws: go2rtc stream not active yet (404) - stream will activate on first connection")
-                    return web.Response(status=503, text="Stream not active - will activate on connection")
-                else:
-                    _LOGGER.warning("ha_creality_ws: go2rtc MJPEG stream returned status %d", response.status)
-                    return web.Response(status=502, text="Upstream go2rtc stream error")
 
-        except ClientError as err:
-            _LOGGER.error("ha_creality_ws: failed to proxy go2rtc MJPEG stream: %s", err)
-            return web.Response(status=502, text="Upstream go2rtc stream error")
-        except asyncio.TimeoutError:
-            _LOGGER.error("ha_creality_ws: timeout while proxying go2rtc MJPEG stream")
-            return web.Response(status=504, text="Upstream go2rtc stream timeout")
-        except Exception as exc:
-            _LOGGER.error("ha_creality_ws: unexpected error proxying go2rtc MJPEG stream: %s", exc)
-            return web.Response(status=502, text="Upstream go2rtc stream error")
 
-    def _get_go2rtc_base_url(self) -> str:
-        """Get the go2rtc base URL from configuration.
-        
-        Returns the configured go2rtc URL with port.
-        
-        Returns:
-            str: go2rtc base URL (e.g., "http://localhost:11984")
-        """
-        return f"http://{self._go2rtc_url}:{self._go2rtc_port}"
 
     async def _ensure_stream_configured(self) -> None:
-        """Ensure the go2rtc stream is configured (with simple backoff).
-        
-        Avoids configuring more than once per minute when errors occur.
-        """
-        # Backoff using an attribute timestamp
-        now = asyncio.get_running_loop().time()
-        last_attempt = getattr(self, "_last_stream_cfg_attempt", 0.0)
+        """Ensure the go2rtc stream is configured using HA's go2rtc client."""
         if self._stream_name:
-            return
-        if now - last_attempt < 60.0:
-            return
-        self._last_stream_cfg_attempt = now
-        try:
-            await self._configure_go2rtc_stream()
-        except Exception as exc:
-            _LOGGER.debug("ha_creality_ws: go2rtc stream configure deferred due to error: %s", exc)
-
-    async def _configure_go2rtc_stream(self) -> None:
-        """Configure go2rtc to pull the WebRTC stream from the printer.
-
-        This method configures go2rtc to connect to the Creality K2 printer's
-        WebRTC signaling endpoint using go2rtc's native Creality support.
-        It creates a unique stream name and configures the stream source.
-        """
-        if not self._go2rtc_url or not self._go2rtc_port:
-            _LOGGER.error("ha_creality_ws: cannot configure go2rtc stream - missing URL or port")
-            return
-
-        # Create a unique stream name for this printer based on its IP address
+            return  # Already configured
+        
+        # Initialize client if needed
+        if not self._go2rtc_client:
+            if not await self._initialize_go2rtc_client():
+                _LOGGER.error("ha_creality_ws: Cannot configure stream - go2rtc client not initialized")
+                return
+        
+        # Generate stream name from printer IP
         try:
             printer_host = self._upstream_signaling_url.split("://")[1].split(":")[0]
             self._stream_name = f"creality_k2_{printer_host.replace('.', '_')}"
         except (IndexError, AttributeError) as exc:
             _LOGGER.error(
-                "ha_creality_ws: failed to parse printer host from URL %s: %s",
+                "ha_creality_ws: Failed to parse printer host from URL %s: %s",
                 self._upstream_signaling_url, exc
             )
-            self._last_error = f"Invalid signaling URL: {exc}"
             return
-
-        # Use the native Creality WebRTC format that go2rtc 1.9.9+ supports
-        # Based on the client_creality.go implementation, go2rtc has built-in support
-        webrtc_printer_url = self._upstream_signaling_url
-        go2rtc_src = f"webrtc:{webrtc_printer_url}#format=creality"
-
-        _LOGGER.info(
-            "ha_creality_ws: configuring go2rtc stream '%s' with native Creality support: '%s' (go2rtc=%s:%s)",
-            self._stream_name,
-            go2rtc_src,
-            self._go2rtc_url,
-            self._go2rtc_port,
-        )
-
+        
+        # Configure stream source with Creality format
+        go2rtc_src = f"webrtc:{self._upstream_signaling_url}#format=creality"
+        
         try:
-            # Use the go2rtc streams API to create/update the stream
-            # According to go2rtc OpenAPI docs: PUT /api/streams - Create new stream
-            session = async_get_clientsession(self.hass)
-            go2rtc_base_url = self._get_go2rtc_base_url()
-            api_url = f"{go2rtc_base_url}/api/streams"
-
-            # Create stream using PUT with query parameters
-            params = {
-                "src": go2rtc_src,
-                "name": self._stream_name
-            }
-
-            _LOGGER.debug("ha_creality_ws: sending go2rtc stream configuration request to: %s", api_url)
-
-            async with session.put(api_url, params=params, timeout=10) as response:
-                response_text = await response.text()
-                if response.status in [200, 201, 204]:
-                    _LOGGER.info(
-                        "ha_creality_ws: successfully configured go2rtc stream '%s' with native Creality support, response: %s",
-                        self._stream_name,
-                        response_text
-                    )
-                    self._last_error = None  # Clear any previous errors
-                else:
-                    _LOGGER.warning(
-                        "ha_creality_ws: go2rtc stream creation failed, status: %d, response: %s",
-                        response.status,
-                        response_text
-                    )
-                    self._last_error = f"go2rtc stream creation failed: HTTP {response.status}"
-
+            # Check if stream already exists
+            streams = await self._go2rtc_client.streams.list()
+            
+            if self._stream_name not in streams:
+                # Add new stream
+                await self._go2rtc_client.streams.add(
+                    name=self._stream_name,
+                    sources=go2rtc_src
+                )
+                _LOGGER.info(
+                    "ha_creality_ws: Added stream '%s' with source '%s'",
+                    self._stream_name, go2rtc_src
+                )
+            else:
+                _LOGGER.debug(
+                    "ha_creality_ws: Stream '%s' already exists in go2rtc",
+                    self._stream_name
+                )
+                
+        except Go2RtcClientError as exc:
+            _LOGGER.error(
+                "ha_creality_ws: Failed to configure stream: %s",
+                exc, exc_info=True
+            )
+            self._stream_name = None  # Reset so we retry later
         except Exception as exc:
-            _LOGGER.error("ha_creality_ws: failed to configure go2rtc stream: %s", exc)
-            self._last_error = f"go2rtc configuration error: {exc}"
+            _LOGGER.error(
+                "ha_creality_ws: Unexpected error configuring stream: %s",
+                exc, exc_info=True
+            )
+            self._stream_name = None  # Reset so we retry later
+
+
 
     def _wrap_send_message(self, payload: dict):
         """Wrap a dictionary payload for send_message callback.
@@ -698,26 +666,28 @@ class CrealityWebRTCCamera(_BaseCamera):
     async def async_handle_async_webrtc_offer(
         self, offer_sdp: str, session_id: str, send_message
     ) -> None:
-        """Handle WebRTC offer by forwarding it to go2rtc.
+        """Handle WebRTC offer using go2rtc client.
 
         This method is called by Home Assistant when a WebRTC offer is received
-        from the frontend. It forwards the offer to go2rtc, which handles the
-        WebRTC negotiation with the printer, and then forwards the answer back
-        to the frontend.
+        from the frontend. It uses the go2rtc client to forward the offer and
+        receive the answer.
 
         Args:
             offer_sdp: SDP offer from the frontend
             session_id: Unique session identifier
             send_message: Callback function to send messages to the frontend
         """
-        # Ensure go2rtc stream is configured on first actual WebRTC offer
-        if self._go2rtc_url and self._go2rtc_port and not self._stream_name:
-            await self._ensure_stream_configured()
-        if not self._go2rtc_url or not self._stream_name:
-            _LOGGER.error("ha_creality_ws: go2rtc not configured for WebRTC offer")
+        # Ensure stream is configured and client is initialized
+        await self._ensure_stream_configured()
+        
+        if not self._go2rtc_client or not self._stream_name:
+            _LOGGER.error(
+                "ha_creality_ws: Cannot handle WebRTC offer - client: %s, stream: %s",
+                self._go2rtc_client is not None, self._stream_name
+            )
             send_message(
                 self._wrap_send_message(
-                    {"type": "error", "message": "WebRTC not configured"}
+                    {"type": "error", "message": "go2rtc not configured"}
                 )
             )
             return
@@ -733,111 +703,53 @@ class CrealityWebRTCCamera(_BaseCamera):
         )
 
         try:
-            session = async_get_clientsession(self.hass)
-            go2rtc_base_url = self._get_go2rtc_base_url()
-            webrtc_url = f"{go2rtc_base_url}/api/webrtc?src={self._stream_name}"
+            # Create offer object for go2rtc client
+            offer = WebRTCSdpOffer(sdp=offer_sdp)
+            
+            # Forward offer to go2rtc and get answer
+            _LOGGER.debug("ha_creality_ws: forwarding offer to go2rtc for stream: %s", self._stream_name)
+            answer = await self._go2rtc_client.webrtc.forward_whep_sdp_offer(
+                source_name=self._stream_name,
+                offer=offer
+            )
+            
+            # Extract SDP from answer
+            answer_sdp = answer.sdp
             _LOGGER.debug(
-                "ha_creality_ws: forwarding offer to go2rtc URL: %s", webrtc_url
+                "ha_creality_ws: received answer SDP preview: %s",
+                answer_sdp[:200] + "..." if len(answer_sdp) > 200 else answer_sdp,
             )
 
-            # Forward the offer to go2rtc in JSON format
-            # go2rtc expects: {"type": "offer", "sdp": "..."}
-            offer_json = json.dumps({"type": "offer", "sdp": offer_sdp})
-            _LOGGER.debug(
-                "ha_creality_ws: offer JSON: %s",
-                offer_json[:200] + "..." if len(offer_json) > 200 else offer_json,
-            )
-
-            async with session.post(
-                webrtc_url,
-                data=offer_json,
-                headers={"Content-Type": "application/json"},
-                timeout=10
-            ) as response:
-                if response.status == 200:
-                    # go2rtc returns JSON directly when using Content-Type: application/json
-                    response_text = await response.text()
-                    _LOGGER.debug(
-                        "ha_creality_ws: raw response from go2rtc: %s",
-                        response_text[:200] + "..." if len(response_text) > 200 else response_text,
-                    )
-
-                    try:
-                        # Parse JSON response from go2rtc
-                        answer_data = json.loads(response_text)
-                        _LOGGER.debug("ha_creality_ws: received answer from go2rtc: %s", answer_data)
-                    except Exception as decode_exc:
-                        _LOGGER.error("ha_creality_ws: failed to parse go2rtc answer: %s", decode_exc)
-                        send_message(
-                            self._wrap_send_message(
-                                {"type": "error", "message": "Failed to parse go2rtc answer"}
-                            )
-                        )
-                        return
-
-                    # Extract SDP from the answer
-                    answer_sdp = answer_data.get("sdp", "")
-                    _LOGGER.debug(
-                        "ha_creality_ws: answer SDP preview: %s",
-                        answer_sdp[:200] + "..." if len(answer_sdp) > 200 else answer_sdp,
-                    )
-
-                    # Validate SDP format
-                    if not answer_sdp.startswith("v=0"):
-                        _LOGGER.error(
-                            "ha_creality_ws: invalid SDP answer from go2rtc, doesn't start with 'v=0': %s",
-                            answer_sdp[:100],
-                        )
-                        send_message(
-                            self._wrap_send_message(
-                                {"type": "error", "message": "Invalid SDP answer from go2rtc"}
-                            )
-                        )
-                        return
-
-                    # Forward the answer back to the frontend
-                    _LOGGER.debug(
-                        "ha_creality_ws: sending SDP to frontend: %s",
-                        answer_sdp[:200] + "..." if len(answer_sdp) > 200 else answer_sdp,
-                    )
-
-                    # Create a message object that follows HA WebRTC format
-                    # Based on HA source: WebRTCAnswer expects 'answer' field, not 'value'
-                    class WebRTCAnswer:
-                        """WebRTC answer message for Home Assistant frontend."""
-
-                        def __init__(self, sdp):
-                            self.type = "answer"
-                            self.answer = sdp
-
-                        def as_dict(self):
-                            """Return the message as a dictionary."""
-                            return {"type": self.type, "answer": self.answer}
-
-                    answer_msg = WebRTCAnswer(answer_sdp)
-                    send_message(answer_msg)
-                    _LOGGER.info("ha_creality_ws: WebRTC offer handled successfully")
-                else:
-                    response_text = await response.text()
-                    _LOGGER.error(
-                        "ha_creality_ws: go2rtc WebRTC offer failed with status %d, response: %s",
-                        response.status,
-                        response_text,
-                    )
-                    send_message(
-                        self._wrap_send_message(
-                            {
-                                "type": "error",
-                                "message": f"WebRTC offer failed: HTTP {response.status}",
-                            }
-                        )
-                    )
-
-        except Exception as exc:
-            _LOGGER.error("ha_creality_ws: failed to handle WebRTC offer: %s", exc)
+            # Send answer back to frontend
             send_message(
-                self._wrap_send_message({"type": "error", "message": f"WebRTC offer error: {exc}"})
+                self._wrap_send_message(
+                    {"type": "answer", "answer": answer_sdp}
+                )
             )
+            _LOGGER.info("ha_creality_ws: WebRTC offer handled successfully")
+
+        except Go2RtcClientError as exc:
+            _LOGGER.error(
+                "ha_creality_ws: go2rtc client error handling WebRTC offer: %s",
+                exc, exc_info=True
+            )
+            send_message(
+                self._wrap_send_message(
+                    {"type": "error", "message": f"go2rtc error: {exc}"}
+                )
+            )
+        except Exception as exc:
+            _LOGGER.error(
+                "ha_creality_ws: unexpected error handling WebRTC offer: %s",
+                exc, exc_info=True
+            )
+            send_message(
+                self._wrap_send_message(
+                    {"type": "error", "message": f"WebRTC error: {exc}"}
+                )
+            )
+
+
 
     async def async_on_webrtc_candidate(self, session_id: str, candidate) -> None:
         """Handle WebRTC ICE candidate.
@@ -877,11 +789,9 @@ class CrealityWebRTCCamera(_BaseCamera):
             dict: Dictionary of extra state attributes
         """
         attrs = {
-            "go2rtc_url": self._go2rtc_url,
-            "go2rtc_port": self._go2rtc_port,
             "go2rtc_stream_name": self._stream_name,
+            "go2rtc_version": self._go2rtc_version,
             "upstream_signaling_url": self._upstream_signaling_url,
-            "webrtc_using_proxy": self._use_proxy,
             "stream_source": self.stream_source,
         }
         if self._last_error:
@@ -957,11 +867,7 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
     host = entry.data["host"]
     use_proxy = False  # No longer needed with go2rtc approach
 
-    # Get go2rtc configuration from options
-    go2rtc_url = entry.options.get(CONF_GO2RTC_URL, DEFAULT_GO2RTC_URL)
-    go2rtc_port = entry.options.get(CONF_GO2RTC_PORT, DEFAULT_GO2RTC_PORT)
-
-    _LOGGER.debug("ha_creality_ws: setting up camera for printer at %s, go2rtc=%s:%s", host, go2rtc_url, go2rtc_port)
+    _LOGGER.debug("ha_creality_ws: setting up camera for printer at %s", host)
 
     # Respect user-forced camera mode first
     cam_mode = entry.options.get("camera_mode")
@@ -972,8 +878,6 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
                 coord, 
                 WEBRTC_URL_TEMPLATE.format(host=host), 
                 use_proxy=use_proxy,
-                go2rtc_url=go2rtc_url,
-                go2rtc_port=go2rtc_port,
             )
         ])
         return
@@ -994,8 +898,6 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
                 coord, 
                 webrtc_url, 
                 use_proxy=use_proxy,
-                go2rtc_url=go2rtc_url,
-                go2rtc_port=go2rtc_port,
             )
         ])
         return

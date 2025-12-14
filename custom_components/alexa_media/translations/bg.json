@@ -6,7 +6,7 @@
       "reauth_successful": "Alexa Media Player successfully reauthenticated. Please ignore the \"Aborted\" message from HA."
     },
     "error": {
-      "2fa_key_invalid": "{otp_secret} is invalid.\n{message}",
+      "2fa_key_invalid": "{otp_secret} is invalid",
       "connection_error": "Error connecting; check network and retry",
       "identifier_exists": "Email for Alexa URL already registered",
       "invalid_auth": "Login was not successful. Please double-check your email, password, and Authenticator key.",
@@ -36,7 +36,7 @@
           "debug": "Advanced debugging",
           "email": "Email Address",
           "exclude_devices": "or Exclude these devices from all (comma separated)",
-          "extended_entity_discovery": "Include devices connected via Echo",
+          "extended_entity_discovery": "Include additional sensors, switches and lights",
           "hass_url": "Local network URL to access Home Assistant",
           "include_devices": "Only include these devices (comma separated)",
           "otp_secret": "Amazon 2SV Authenticator App Key",
@@ -65,7 +65,7 @@
         "data": {
           "debug": "Advanced debugging",
           "exclude_devices": "or Exclude these devices from all (comma separated)",
-          "extended_entity_discovery": "Include devices connected via Echo",
+          "extended_entity_discovery": "Include additional sensors, switches and lights",
           "include_devices": "Only include these devices (comma separated)",
           "public_url": "Public URL shared with external hosted services",
           "queue_delay": "Delay to queue multiple commands together (seconds)",

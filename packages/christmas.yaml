@@ -32,7 +32,7 @@ automation:
     id: christmas_tree_blinds_close
     trigger:
       - platform: time
-        at: "23:00:00" # coincides with Appdaemon Front House Christmas Trees Timer
+        at: "22:00:00" # coincides with Appdaemon Front House Christmas Trees Timer
     action: 
       - action: cover.close_cover
         continue_on_error: true

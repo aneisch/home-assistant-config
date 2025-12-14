@@ -1,0 +1,85 @@
+title: 3D Printer Status
+icon: mdi:printer
+cards:
+  - type: custom:k-printer-card
+    name: "3D Printer"
+    camera: camera.ptz
+    status: sensor.ender3v3ke_4bc5_print_status
+    progress: sensor.ender3v3ke_4bc5_print_progress
+    time_left: sensor.ender3v3ke_4bc5_print_time_left
+    nozzle: sensor.ender3v3ke_4bc5_nozzle_temperature
+    bed: sensor.ender3v3ke_4bc5_bed_temperature
+    layer: sensor.ender3v3ke_4bc5_working_layer
+    total_layers: sensor.ender3v3ke_4bc5_total_layers
+    #light: switch.ender3v3ke_4bc5_light
+    pause_btn: button.ender3v3ke_4bc5_pause_print
+    resume_btn: button.ender3v3ke_4bc5_resume_print
+    stop_btn: button.ender3v3ke_4bc5_stop_print
+  # --- STATUS CARD ---
+
+  - type: markdown
+    title: Layer Time
+    content: |
+      {# force refresh every minute #}
+      {% set _ = now() %}
+      {{ now() - states.sensor.ender3v3ke_4bc5_working_layer.last_changed }}
+  - type: entities
+    title: Ender 3 V3 KE — Status
+    entities:
+      - entity: sensor.ender3v3ke_4bc5_print_status
+        name: Status
+      - entity: sensor.ender3v3ke_4bc5_print_progress
+        name: Progress
+      - entity: sensor.ender3v3ke_4bc5_working_layer
+        name: Current Layer
+      - entity: sensor.ender3v3ke_4bc5_total_layers
+        name: Total Layers
+      - entity: sensor.ender3v3ke_4bc5_used_material_length
+        name: Material Used (mm)
+      - entity: sensor.ender3v3ke_4bc5_print_control
+        name: Mode / Control State
+
+  # --- TEMPERATURE CARD ---
+  - type: entities
+    title: Temperatures
+    entities:
+      - entity: sensor.ender3v3ke_4bc5_nozzle_temperature
+        name: Nozzle Temp
+      - entity: number.ender3v3ke_4bc5_nozzle_target
+        name: Nozzle Target Temp
+      - entity: sensor.ender3v3ke_4bc5_bed_temperature
+        name: Bed Temp
+      - entity: number.ender3v3ke_4bc5_bed_target
+        name: Bed Target Temp
+
+  # --- TEMP GRAPHS ---
+  # - type: history-graph
+  #   title: Temperature History
+  #   hours_to_show: 3
+  #   refresh_interval: 30
+  #   entities:
+  #     - sensor.ender3v3ke_4bc5_nozzle_temperature
+  #     - sensor.ender3v3ke_4bc5_bed_temperature
+
+  # --- CONTROL BUTTONS ---
+  - type: entities
+    title: Controls
+    entities:
+      - entity: button.ender3v3ke_4bc5_home_xy_then_z
+        name: Home XY + Z
+      - entity: button.ender3v3ke_4bc5_pause_print
+        name: Pause Print
+      - entity: button.ender3v3ke_4bc5_resume_print
+        name: Resume Print
+      - entity: button.ender3v3ke_4bc5_stop_print
+        name: Stop Print
+
+  # --- FAN & TUNING ---
+  - type: entities
+    title: Fans & Print Tuning
+    entities:
+      - entity: fan.ender3v3ke_4bc5_model_fan
+        name: Model Fan
+      - entity: number.ender3v3ke_4bc5_print_tuning
+        name: Flow / Speed Tuning
+
