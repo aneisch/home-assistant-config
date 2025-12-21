@@ -257,7 +257,7 @@ Christmas Lights:
   module: entity_timer
   class: Timer
   entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
-  time_on: sunset - 00:20:00
+  time_on: sunset - 00:30:00
   time_off: "22:00:00"
 
 Front Porch Tree Follow:
@@ -278,7 +278,7 @@ Front House Christmas Trees Timer:
   module: entity_timer
   class: Timer
   entities: switch.dining_room_christmas_tree #,switch.office_christmas_tree
-  time_on: sunset - 00:20:00
+  time_on: sunset - 00:30:00
   time_off: '22:00:00'
 
 ############

@@ -1,5 +1,6 @@
 from __future__ import annotations
 import logging
+import asyncio
 import json
 import os
 from datetime import datetime, timedelta
@@ -7,7 +8,7 @@ import re
 from urllib.parse import urljoin, urlparse
 from typing import Callable, List, Optional, Any
 
-from homeassistant.config_entries import ConfigEntry #type: ignore[import]
+from homeassistant.config_entries import ConfigEntry, OperationNotAllowed #type: ignore[import]
 from homeassistant.core import HomeAssistant, ServiceCall #type: ignore[import]
 from homeassistant.exceptions import ConfigEntryNotReady #type: ignore[import]
 from homeassistant.helpers.event import ( #type: ignore[import]
@@ -20,6 +21,7 @@ from .const import (
     DOMAIN, 
     STALE_AFTER_SECS, 
     CONF_POWER_SWITCH,
+    CONF_POWER_SWITCH_ENABLED,
     CONF_GO2RTC_URL,
     CONF_GO2RTC_PORT,
     DEFAULT_GO2RTC_URL,
@@ -50,9 +52,28 @@ async def _get_integration_version(hass: HomeAssistant) -> str:
         return "0.0.0"
 
 def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Migrate go2rtc settings to entry options if not already set."""
+    """Migrate go2rtc settings and power switch to entry options if not already set."""
     current_options = dict(entry.options)
     needs_update = False
+    
+    # Migrate power switch to new format with enabled flag (one-time migration)
+    if CONF_POWER_SWITCH_ENABLED not in current_options:
+        # Migration needed - check if user had a power switch configured
+        power_switch = current_options.get(CONF_POWER_SWITCH)
+        
+        # Check if it's a valid entity (non-empty string with domain separator)
+        if power_switch and isinstance(power_switch, str) and power_switch.strip() and "." in power_switch:
+            # User had a power switch configured - enable it
+            current_options[CONF_POWER_SWITCH_ENABLED] = True
+            current_options[CONF_POWER_SWITCH] = power_switch.strip()
+            needs_update = True
+            _LOGGER.info("Migrated power switch: enabled for existing entity %s", power_switch.strip())
+        else:
+            # User didn't have a power switch configured (or it was invalid) - disable it
+            current_options[CONF_POWER_SWITCH_ENABLED] = False
+            current_options[CONF_POWER_SWITCH] = None
+            needs_update = True
+            _LOGGER.info("Migrated power switch: disabled (no entity was configured)")
     
     # Migrate go2rtc_url if missing or in data
     if not current_options.get(CONF_GO2RTC_URL):
@@ -87,13 +108,24 @@ def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
     
     if needs_update:
         hass.config_entries.async_update_entry(entry, options=current_options)
-        _LOGGER.info("Migrated go2rtc settings to entry options")
+        _LOGGER.info("Migration complete for entry options")
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the Creality integration from a config entry."""
+    # Run migrations first
+    _migrate_go2rtc_settings(hass, entry)
+    
     host: str = entry.data["host"]
+    
+    # Handle power switch - only use if both enabled and entity is set
+    power_switch_enabled = entry.options.get(CONF_POWER_SWITCH_ENABLED, False)
     power_switch = entry.options.get(CONF_POWER_SWITCH)
-    coord = KCoordinator(hass, host=host, power_switch=power_switch)
+    effective_power_switch = power_switch if (power_switch_enabled and power_switch) else None
+    
+    _LOGGER.info("Power switch config: enabled=%s, entity=%s, effective=%s", 
+                 power_switch_enabled, power_switch, effective_power_switch)
+    
+    coord = KCoordinator(hass, host=host, power_switch=effective_power_switch)
 
     try:
         await coord.async_start()
@@ -537,8 +569,31 @@ async def async_monitor_zeroconf_update(hass: HomeAssistant, entry: ConfigEntry,
 
 
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
+    """Handle options update - force full reload to apply power switch changes."""
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            _LOGGER.info("Reloading entry due to options update (attempt %d/%d)", attempt + 1, max_retries)
+            await hass.config_entries.async_reload(entry.entry_id)
+            _LOGGER.info("Entry reloaded successfully")
+            return
+        except OperationNotAllowed as exc:
+            if attempt < max_retries - 1:
+                _LOGGER.debug("Reload blocked (UNLOAD_IN_PROGRESS), retrying in 0.5s...")
+                await asyncio.sleep(0.5)
+            else:
+                _LOGGER.warning("Reload failed after %d attempts: %s", max_retries, exc)
+        except Exception as exc:
+            _LOGGER.error("Unexpected error during reload: %s", exc)
+            return
+
+
+async def _retry_reload_later(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    try:
+        await asyncio.sleep(1.0)
+        await hass.config_entries.async_reload(entry.entry_id)
+    except Exception:
+        pass
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

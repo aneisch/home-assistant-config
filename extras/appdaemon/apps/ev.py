@@ -1,4 +1,5 @@
 import appdaemon.plugins.hass.hassapi as hass
+import datetime
 
 class SolarEVCharger(hass.Hass):
     def initialize(self):
@@ -6,19 +7,22 @@ class SolarEVCharger(hass.Hass):
         self.min_amps = int(self.args.get("min_amps", 6))
         self.max_amps = int(self.args.get("max_amps", 40))
         self.volts = int(self.args.get("volts", 240))
-        self.min_home_soc = int(self.args.get("home_battery_min_soc", 90))
-        self.buffer_watts = int(self.args.get("buffer_watts", 500))
-        self.cooldown = int(self.args.get("cooldown", 15))  # seconds
+        self.min_home_soc = int(self.args.get("home_battery_min_soc", 98))
+        self.buffer_watts = int(self.args.get("buffer_watts", 250))
+        self.cooldown = int(self.args.get("cooldown", 15)) 
+        self.disable_timeout = int(self.args.get("disable_timeout", 600)) 
 
         # State
         self.eval_locked = False
+        self.insufficient_solar_since = None
+        self.insufficient_solar_disabled = False
         self.notify_handler = None
-        self.emporia_status = None
+        self.emporia_prior_status = None
 
         # Entities
         self.entities = {
             "home_soc": "sensor.solark_sol_ark_battery_soc",
-            "ev_charge_prioritization": "input_boolean.ev_charge_prioritize_vehicle_over_home_battery",
+            "ev_prioritization": "input_boolean.ev_charge_prioritize_vehicle_over_home_battery",
             "solar": "sensor.solark_sol_ark_solar_power",
             "load": "sensor.solark_sol_ark_load_power",
             "charge_rate": "input_number.tesla_charge_rate_master",
@@ -29,134 +33,132 @@ class SolarEVCharger(hass.Hass):
             "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status"
         }
 
-        # Listen to changes
         for sensor in ["solar", "home_soc", "load", "target_soc", "grid_status"]:
             self.listen_state(self.evaluate_charging, self.entities[sensor])
 
-        # Safe startup
-        #self.set_charge_rate(self.min_amps, disable=True) # not sure why this was in place. Removed
-        self.log("SolarEVCharger initialized")
+        self.log(f"SolarEVCharger initialized. Min Home SOC: {self.min_home_soc}%, Buffer: {self.buffer_watts}W")
 
     def evaluate_charging(self, entity, attribute, old, new, kwargs):
-        # Disable all charging if grid outage, regardless if EV charge intelligence on
-        if entity == "binary_sensor.solark_sol_ark_grid_connected_status":
-            if old == "on" and new == "off":
+        # 1. IMMEDIATE GRID KILL
+        if entity == self.entities["grid_status"]:
+            if new == "off":
                 self.emporia_prior_status = self.get_state("switch.emporia_charger")
                 self.turn_off("switch.emporia_charger")
-                self.log("Turned off switch.emporia_charger due to grid outage")
-
+                self.log("CRITICAL: Grid outage! EV charger killed immediately.")
+                return
             if old == "off" and new == "on":
                 if self.emporia_prior_status == "on":
                     self.turn_on("switch.emporia_charger")
-                    self.log("Turned on switch.emporia_charger due to grid restoration")
-                else:
-                    self.log(f"switch.emporia_charger not turned back on with grid restoration due to previous state [{self.emporia_prior_status}]")
+                    self.log("INFO: Grid restored. Resuming previous charger state.")
+                return
 
-        # Allow manual override
-        if self.get_state(self.entities["override_boolean"]) == "on":
-            self.eval_locked = False
-            self.log("Overridden")
-            return
-
-        # Only process if grid online (and override off ^)
         if self.get_state(self.entities["grid_status"]) == "off":
-            self.log("Not calculating due to grid outage")
             return
 
-        # Reset eval_locked state when nothing connected
-        if self.get_state("switch.emporia_charger", attribute='icon_name') == "CarNotConnected":
+        # 2. OVERRIDE & CONNECTION CHECKS
+        if self.get_state(self.entities["override_boolean"]) == "on":
+            self.log("DEBUG: Evaluation skipped (Manual Override ON)", level="DEBUG")
+            self.insufficient_solar_since = None
+            self.insufficient_solar_disabled = False
+            return
+
+        icon = self.get_state("switch.emporia_charger", attribute='icon_name')
+        if icon == "CarNotConnected":
+            self.log("DEBUG: No vehicle connected.", level="DEBUG")
             self.eval_locked = False
-            self.log("No Vehicle Connected")
+            self.insufficient_solar_since = None
+            self.insufficient_solar_disabled = False
             return
 
-        # Separate this check because sometimes TeslaMate data is unavailable, in that case, default to 50%
-        try:
-            vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
-        except Exception as e:
-            self.log(f"Invalid Vehicle SOC reading: {e}", level="WARNING")
-            vehicle_soc = 50
+        if self.eval_locked:
+            return
 
+        # 3. DATA GATHERING
         try:
             home_soc = int(float(self.get_state(self.entities["home_soc"])))
-            ev_prioritization = self.get_state(self.entities["ev_charge_prioritization"])
             solar_watts = int(float(self.get_state(self.entities["solar"])))
             load_watts = int(float(self.get_state(self.entities["load"])))
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
+            ev_prioritization = self.get_state(self.entities["ev_prioritization"])
+            vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
             target_soc = int(float(self.get_state(self.entities["target_soc"])))
-        except (TypeError, ValueError) as e:
-            self.log(f"Invalid other reading: {e}", level="ERROR")
+        except Exception as e:
+            self.log(f"WARNING: Skipping eval due to data error: {e}")
             return
 
-        # Block charging if home battery too low
-        # Allow charging with home battery below min_home_soc if EV is prioritized and home_soc is > 50
-        if (ev_prioritization == "off" and home_soc < self.min_home_soc) or (ev_prioritization == "on" and home_soc < 50):
-            self.log("Blocked")
-            self.eval_locked = False
-            self.set_charge_rate(self.min_amps, disable=True)
-            return
-
-        # Don't bother evaluating if we are charged already
-        # if vehicle_soc >= target_soc:
-        #     self.eval_locked = False
-        #     self.log("Already fully charged")
-        #     return
-
-        if self.eval_locked:
-            self.log("Eval Locked")
-            return
-
-        # Compute available amps from solar
+        # 4. CALCULATIONS
         ev_power = present_rate * self.volts
-        excess_watts = max(0, solar_watts - (load_watts - ev_power) - self.buffer_watts)
-        target_amps = max(self.min_amps, min(self.max_amps, excess_watts // self.volts))
+        # Non-EV load is current load minus what the car is drawing
+        house_load_only = load_watts - ev_power
+        excess_watts = max(0, solar_watts - house_load_only - self.buffer_watts)
+        target_amps = excess_watts // self.volts
 
-        self.log(f"Home: {home_soc}% -- Solar: {solar_watts}W -- Load: {load_watts}W -- Vehicle: {vehicle_soc} --> {target_soc} -- Rate: {present_rate} --> {target_amps}")
+        # 5. DEFICIT LOGIC
+        # Priority logic: EV > Home if prioritization is ON and home > 50%
+        battery_blocked = (ev_prioritization == "off" and home_soc < self.min_home_soc) or \
+                          (ev_prioritization == "on" and home_soc < 50)
 
-        if target_amps > self.min_amps:
-            self.set_charge_rate(target_amps)
+        if battery_blocked or target_amps < self.min_amps:
+            if self.insufficient_solar_since is None:
+                self.insufficient_solar_since = datetime.datetime.now()
+                self.log(f"NOTICE: Solar/Battery deficit. Starting {self.disable_timeout}s countdown.")
+            
+            elapsed = (datetime.datetime.now() - self.insufficient_solar_since).total_seconds()
+            
+            if elapsed >= self.disable_timeout:
+                if self.insufficient_solar_disabled == False:
+                    self.log(f"STOP: Deficit lasted {int(elapsed)}s. Setting limit to 50%.")
+                    self.safe_set_rate(self.min_amps, disable=True)
+                    self.insufficient_solar_disabled = True
+                else:
+                    return
+            else:
+                self.log(f"THROTTLE: Deficit detected. {home_soc}% SOC, {solar_watts}W Solar. Dropping to {self.min_amps}A. (Shutdown in {int(self.disable_timeout - elapsed)}s)")
+                self.safe_set_rate(self.min_amps, disable=False)
         else:
-            self.set_charge_rate(self.min_amps, disable=True)
+            # 6. SURPLUS LOGIC
+            self.insufficient_solar_since = None
+            self.insufficient_solar_disabled = False
+            final_amps = min(self.max_amps, int(target_amps))
+            
+            self.log(f"Home: {home_soc}% | Solar: {solar_watts}W | House: {house_load_only}W | EV: {vehicle_soc}% -> {target_soc}% | Set: {final_amps}A")
+            self.safe_set_rate(final_amps, disable=False)
 
-    def _enable_notice(self, kwargs):
-        self.turn_on("automation.tesla_charge_limit_change_notice")
-
-    def _unlock_eval(self, kwargs):
-        self.eval_locked = False
-
-    def set_charge_rate(self, amps, disable=False):
-        # Cancel any pending notifications
+    def safe_set_rate(self, amps, disable=False):
         if self.notify_handler and self.info_timer(self.notify_handler):
             self.cancel_timer(self.notify_handler)
-        self.notify_handler = None
-
+        
         try:
             present_limit = int(float(self.get_state(self.entities["charge_limit"])))
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
-        except (TypeError, ValueError):
-            present_limit = 0
-            present_rate = 0
-
-        target_soc = int(float(self.get_state(self.entities["target_soc"])))
+            target_soc = int(float(self.get_state(self.entities["target_soc"])))
+        except: return
 
         if disable:
-            if present_limit != 50 or present_rate != self.min_amps:
-                self.log(f"Disabling charging")
+            if present_limit != 50:
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=50)
-                self.set_value(self.entities["charge_rate"], self.min_amps)
                 self.notify_handler = self.run_in(self._enable_notice, 30)
+            if present_rate != self.min_amps:
+                self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
         else:
             if self.get_state("switch.emporia_charger") == "off":
                 self.turn_on("switch.emporia_charger")
-                self.log("Turned on switch.emporia_charger")
-            if present_rate != amps:
-                self.set_value(self.entities["charge_rate"], amps)
-                self.log(f"Set charge rate to {amps}A (SOC limit {target_soc}%)")
+                self.log("Emporia Charger turned ON")
+            
             if present_limit != target_soc:
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=target_soc)
                 self.notify_handler = self.run_in(self._enable_notice, 30)
+            
+            if present_rate != amps:
+                self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=amps)
 
-        # Lock eval during cooldown
         self.eval_locked = True
         self.run_in(self._unlock_eval, self.cooldown)
+
+    def _unlock_eval(self, kwargs):
+        self.eval_locked = False
+
+    def _enable_notice(self, kwargs):
+        self.turn_on("automation.tesla_charge_limit_change_notice")

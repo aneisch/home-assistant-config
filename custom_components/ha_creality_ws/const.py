@@ -4,6 +4,7 @@ CONF_HOST = "host"
 CONF_NAME = "name"
 CONF_DISCOVERY_SCAN_CIDR = "scan_cidr"
 CONF_POWER_SWITCH = "power_switch"
+CONF_POWER_SWITCH_ENABLED = "power_switch_enabled"
 CONF_CAMERA_MODE = "camera_mode"
 CONF_GO2RTC_URL = "go2rtc_url"
 CONF_GO2RTC_PORT = "go2rtc_port"
@@ -33,7 +34,8 @@ MODEL = "K"
 # ---- Health / reconnect / keepalive ----
 STALE_AFTER_SECS = 5
 RETRY_MIN_BACKOFF = 2.0
-RETRY_MAX_BACKOFF = 60.0
+RETRY_MAX_BACKOFF = 300.0
+RETRY_BACKOFF_MULTIPLIER = 1.8
 HEARTBEAT_SECS = 10.0
 PROBE_ON_SILENCE_SECS = 10.0
 

@@ -94,7 +94,7 @@ class AutoAdjust(hass.Hass):
 
         # Check EV Charging
         try:
-            ev_is_charging = self.get_state("switch.emporia_charger", attribute='status') == "Charging"
+            ev_is_charging = float(self.get_state("sensor.emporia_view_tesla_charger_power")) > 10
         except:
             ev_is_charging = False
 

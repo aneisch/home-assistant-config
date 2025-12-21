@@ -11,6 +11,7 @@ cards:
     bed: sensor.ender3v3ke_4bc5_bed_temperature
     layer: sensor.ender3v3ke_4bc5_working_layer
     total_layers: sensor.ender3v3ke_4bc5_total_layers
+    power: switch.tuya_2  # Optional
     #light: switch.ender3v3ke_4bc5_light
     pause_btn: button.ender3v3ke_4bc5_pause_print
     resume_btn: button.ender3v3ke_4bc5_resume_print

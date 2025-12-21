@@ -265,6 +265,19 @@ notify_wrapper:
               data:
                 message: "{{ message }}"
 
+preheat_3d_printer:
+  sequence:
+    - action: number.set_value
+      data:
+        value: "200"
+      target:
+        entity_id: number.ender3v3ke_4bc5_nozzle_target
+    - action: number.set_value
+      data:
+        value: "60"
+      target:
+        entity_id: number.ender3v3ke_4bc5_bed_target
+
 copy:
   sequence:
     - action: shell_command.copy

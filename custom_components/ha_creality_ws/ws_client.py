@@ -14,6 +14,7 @@ from websockets.exceptions import ConnectionClosedOK, ConnectionClosed
 from .const import (
     RETRY_MIN_BACKOFF,
     RETRY_MAX_BACKOFF,
+    RETRY_BACKOFF_MULTIPLIER,
     HEARTBEAT_SECS,
     PROBE_ON_SILENCE_SECS,
     WS_URL_TEMPLATE,
@@ -58,7 +59,7 @@ class KClient:
 
     # ---------- lifecycle ----------
     async def start(self) -> None:
-        if self._task:
+        if self._task and not self._task.done():
             return
         self._stop.clear()
         self._task = asyncio.create_task(self._loop(), name="K-ws-loop")
@@ -134,6 +135,10 @@ class KClient:
 
     async def _loop(self) -> None:
         backoff = RETRY_MIN_BACKOFF
+        connect_failures = 0
+        # Use faster backoff if power detection is disabled (allows quick retries when printer turns on)
+        max_backoff = RETRY_MAX_BACKOFF if self._check_power_status else 30.0  # 30s max when no power detection
+        
         while not self._stop.is_set():
             # --- Power Saving Check (Start of Loop) ---
             # If printer is known to be powered off, sleep and skip connection attempt
@@ -141,6 +146,7 @@ class KClient:
                  _LOGGER.debug("Printer power is OFF; sleeping 60s before next check host=%s", self._host)
                  # Reset backoff so we start fresh when power returns
                  backoff = RETRY_MIN_BACKOFF
+                 connect_failures = 0
                  try:
                      await asyncio.wait_for(self._stop.wait(), timeout=60.0)
                  except asyncio.TimeoutError:
@@ -160,6 +166,10 @@ class KClient:
                     # Store connect time to calculate duration later
                     connect_ts = time.monotonic()
                     self._last_rx = time.monotonic()
+                    
+                    # Reset failure counters on successful connection
+                    connect_failures = 0
+                    backoff = RETRY_MIN_BACKOFF
 
                     # background tasks
                     self._hb_task = asyncio.create_task(self._heartbeat(), name="K-ws-heartbeat")
@@ -206,10 +216,27 @@ class KClient:
             except asyncio.CancelledError:
                 break
             except Exception as exc:
-                if self._is_benign_close(exc):
+                connect_failures += 1
+                
+                # Check power status before logging loud errors.
+                # If power is OFF, we treat it as expected (debug only).
+                # But wait... we check power at TOP of loop.
+                # This catch block is for when connect() fails or connection drops.
+                # If it drops, it might be because user turned it off 1 second ago.
+                is_off = self._check_power_status and self._check_power_status()
+                
+                if is_off:
+                     _LOGGER.debug("K WS closed/failed (power OFF) host=%s reason=%s", self._host, exc)
+                elif self._is_benign_close(exc):
                     _LOGGER.debug("K WS closed host=%s reason=%s", self._host, exc)
                 else:
-                    _LOGGER.error("K WS connection error host=%s err=%s", self._host, exc)
+                    # Downgrade to WARNING for first few failures
+                    if connect_failures <= 3:
+                        _LOGGER.warning("K WS connection error host=%s err=%s (Failures=%d)", self._host, exc, connect_failures)
+                    else:
+                        # After 3 failures, only log every 5th time (or just DEBUG)
+                        # We'll stick to debug to eliminate noise for long downtimes
+                        _LOGGER.debug("K WS connection error host=%s err=%s (Failures=%d - suppressed)", self._host, exc, connect_failures)
             finally:
                 # cleanup on disconnect
                 for t in (self._hb_task, self._tick_task):
@@ -220,19 +247,13 @@ class KClient:
                 self._ws = None
                 self._ws_ready.clear()
                 
-                # If we were connected for more than 5 seconds, reset backoff for next time
-                # 'connect_ts' is defined inside the try block. If connect failed, it might be unbound?
-                # Actually, if connect fails, we jump to except/finally. connect_ts might be UnboundLocalError.
-                # Initialize it before.
-                try:
-                    if (time.monotonic() - connect_ts) > 5.0:
-                        backoff = RETRY_MIN_BACKOFF
-                except UnboundLocalError:
-                    pass
+                # We reset backoff inside the success block now, so no need for the
+                # "reset if > 5s" logic here, which was flaky.
+                pass
 
-            # exponential backoff with jitter
+            # exponential backoff with jitter (use max_backoff based on power detection enabled)
             jitter = random.uniform(0.0, 0.4)
-            sleep_for = min(backoff * (1.8 + jitter), RETRY_MAX_BACKOFF)
+            sleep_for = min(backoff * (RETRY_BACKOFF_MULTIPLIER + jitter), max_backoff)
             
             # --- mDNS Recovery Logic ---
             # If we've hit max backoff, the IP might have changed. Try rediscovery.
@@ -257,9 +278,9 @@ class KClient:
             except asyncio.TimeoutError:
                 pass
             
-            backoff = min(sleep_for, RETRY_MAX_BACKOFF)
+            backoff = min(sleep_for, max_backoff)
 
-            _LOGGER.debug("K WS loop exited host=%s", self._host)
+        _LOGGER.debug("K WS loop exited host=%s", self._host)
 
     async def _reset_backoff_after_delay(self):
         """Wait 5 seconds after connection; if still connected, reset backoff."""

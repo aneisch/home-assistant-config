@@ -13,19 +13,41 @@ class KCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass, host: str, power_switch: str | None = None):
         super().__init__(hass, _LOGGER, name=f"{DOMAIN}@{host}", update_interval=None)
         self.client = KClient(host, self._handle_message)
-        self.client._check_power_status = self.power_is_off
         self.data: dict[str, Any] = {}
         self._paused_flag = False
         self._last_avail = False
         self._power_switch_entity: str | None = (power_switch or "").strip() or None
         self._pending_pause = False
         self._pending_resume = False
-        self._last_power_off: bool = self.power_is_off()
+        self._last_power_off: bool = False
         self._config_entry_id: str | None = None  # Will be set after entry is created
+        
+        # Only enable power detection if a switch is configured
+        if self._power_switch_entity:
+            self.client._check_power_status = self.power_is_off
+            self._last_power_off = self.power_is_off()
+            _LOGGER.debug("Power switch configured: %s (initial state: %s)", 
+                         self._power_switch_entity, "OFF" if self._last_power_off else "ON")
+        else:
+            _LOGGER.debug("No power switch configured; connection will retry continuously")
 
     def set_power_switch(self, entity_id: str | None) -> None:
         """Accept updates from options; make it thread-safe to notify."""
+        old_entity = self._power_switch_entity
         self._power_switch_entity = (entity_id or "").strip() or None
+        
+        # Enable or disable power detection based on new config
+        if self._power_switch_entity and not old_entity:
+            # Power switch was just configured
+            self.client._check_power_status = self.power_is_off
+            self._last_power_off = self.power_is_off()
+            _LOGGER.info("Power switch enabled: %s", self._power_switch_entity)
+        elif not self._power_switch_entity and old_entity:
+            # Power switch was just removed
+            self.client._check_power_status = None
+            self._last_power_off = False
+            _LOGGER.info("Power switch disabled; connection will retry continuously")
+        
         self._notify_listeners_threadsafe()
         
     def power_is_off(self) -> bool:
@@ -93,14 +115,29 @@ class KCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         
     async def async_handle_power_change(self) -> None:
         """Start/stop WS client when the power switch toggles."""
+        # Only handle power changes if a switch is configured
+        if not self._power_switch_entity:
+            _LOGGER.debug("Power change handler called but no switch configured; ignoring")
+            return
+        
         now_off = self.power_is_off()
-        if now_off and not getattr(self, "_last_power_off", False):
+        was_off = getattr(self, "_last_power_off", False)
+        
+        if now_off and not was_off:
             _LOGGER.info("Power OFF detected; stopping WebSocket client")
             await self.client.stop()
-        elif (not now_off) and getattr(self, "_last_power_off", True):
+            self._last_power_off = True
+        elif not now_off and was_off:
             _LOGGER.info("Power ON detected; starting WebSocket client")
+            # Ensure any stale task is stopped first
+            if self.client._task and not self.client._task.done():
+                _LOGGER.debug("Stopping existing task before restart")
+                await self.client.stop()
+                # Give it a moment to fully stop
+                await asyncio.sleep(0.1)
             await self.client.start()
-        self._last_power_off = now_off
+            self._last_power_off = False
+        
         self.async_update_listeners()
         
     def _notify_listeners_threadsafe(self) -> None:

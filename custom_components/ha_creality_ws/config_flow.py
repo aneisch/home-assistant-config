@@ -16,6 +16,7 @@ from .const import (
     WS_PORT,
     WEBRTC_URL_TEMPLATE,
     CONF_POWER_SWITCH,
+    CONF_POWER_SWITCH_ENABLED,
     CONF_CAMERA_MODE,
     CAM_MODE_AUTO,
     CAM_MODE_MJPEG,
@@ -198,15 +199,22 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                      self.hass.config_entries.async_reload(self._entry.entry_id)
                  )
 
-            # Clean up power switch - remove if empty (text input now)
-            if CONF_POWER_SWITCH in user_input:
-                power_switch = user_input.get(CONF_POWER_SWITCH)
-                if not power_switch or not str(power_switch).strip():
-                    # Empty string - remove the key
-                    user_input.pop(CONF_POWER_SWITCH, None)
-                else:
-                    # Valid value - keep it trimmed
+            # Handle power switch - only use entity if enabled
+            power_enabled = user_input.get(CONF_POWER_SWITCH_ENABLED, False)
+            power_switch = user_input.get(CONF_POWER_SWITCH)
+            
+            if power_enabled:
+                if power_switch and str(power_switch).strip():
                     user_input[CONF_POWER_SWITCH] = str(power_switch).strip()
+                    user_input[CONF_POWER_SWITCH_ENABLED] = True
+                else:
+                    # Enabled but no entity provided; keep enabled and clear entity
+                    user_input[CONF_POWER_SWITCH] = None
+                    user_input[CONF_POWER_SWITCH_ENABLED] = True
+            else:
+                # Not enabled - ensure entity cleared
+                user_input[CONF_POWER_SWITCH] = None
+                user_input[CONF_POWER_SWITCH_ENABLED] = False
             
             # If camera mode is auto, detect the actual camera type and replace it
             camera_mode = user_input.get(CONF_CAMERA_MODE)
@@ -232,6 +240,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         # Get current values with defaults  
         current_power_switch_raw = self._entry.options.get(CONF_POWER_SWITCH)
+        current_power_enabled = self._entry.options.get(CONF_POWER_SWITCH_ENABLED, False)
+        
+        # Handle migration: if power_switch exists but enabled flag doesn't, enable it
+        if current_power_switch_raw and not isinstance(current_power_switch_raw, type(None)):
+            if CONF_POWER_SWITCH_ENABLED not in self._entry.options:
+                current_power_enabled = True
+        
         # Clean up any empty lists or invalid values - normalize to None or string
         current_power_switch = None
         if current_power_switch_raw:
@@ -249,8 +264,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         # Build schema - show go2rtc options if WebRTC mode is selected or if in auto mode
         show_go2rtc = current_camera_mode in (CAM_MODE_WEBRTC, CAM_MODE_AUTO)
         
-        # Build schema - power switch as text input (entity_id)
-        # Using text input instead of EntitySelector to allow truly optional/empty values
+        # Build schema (entity selector always present; default only when enabled to avoid None validation)
         schema_dict: dict[str, Any] = {
             vol.Optional(
                 CONF_HOST,
@@ -262,17 +276,20 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 )
             ),
             vol.Optional(
+                CONF_POWER_SWITCH_ENABLED,
+                default=current_power_enabled,
+            ): selector.BooleanSelector(),
+            vol.Optional(
                 CONF_POWER_SWITCH,
-                default=current_power_switch or "",
-            ): selector.TextSelector(
-                selector.TextSelectorConfig(
-                    type=selector.TextSelectorType.TEXT,
-                    multiline=False,
-                    autocomplete="off",
+                # Always show; default only when a value exists to avoid None validation
+                default=(current_power_switch if current_power_switch else vol.UNDEFINED),
+            ): selector.EntitySelector(
+                selector.EntitySelectorConfig(
+                    domain=["switch", "input_boolean", "light"],
                 )
             ),
         }
-        
+
         schema_dict.update({
             vol.Optional(
                 CONF_CAMERA_MODE,
