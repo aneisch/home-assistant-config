@@ -224,9 +224,21 @@
         }
     },
     "issues": {
+        "advanced_deprecated": {
+            "description": "Erweiterte Konfigurationsoption(en) `{option}` wurden in `{new_option}` geändert. Bitte aktualisieren Sie Ihre erweiterten Konfigurationsoptionen, um den neuen Optionsnamen zu verwenden.{stops_working}",
+            "title": "Erweiterte Option veraltet"
+        },
+        "advanced_problem": {
+            "description": "Die erweiterte Konfigurationsdatei enthält Fehler.\n{problems}\n\nBitte beheben Sie diese, indem Sie sich auf die Integrationsdokumentation unter dem Link 'Mehr erfahren' beziehen.",
+            "title": "Problem mit erweiterter Option"
+        },
         "api_unavailable": {
             "description": "Die Solcast-API hat während eines Updates wiederholt den Status `429 / Versuchen Sie es später noch einmal` gemeldet.\n\n* Versuchen Sie nicht, diese Situation zu beheben.\n* Ändern Sie Ihren API-Schlüssel nicht.\n* Vermeiden Sie einen Neustart der Integration\n* Dies ist kein Integrationsproblem und wird sich von selbst lösen. Ändere nichts.\n\n(Um dieses Problem zu unterdrücken, erstellen Sie eine erweiterte Konfigurationsoption api_raise_issue und setzen Sie sie auf false.)",
             "title": "Solcast-API vorübergehend nicht verfügbar"
+        },
+        "corrupt_file": {
+            "description": "Die zwischengespeicherte Datendatei(en) `{files}` ist beschädigt. Die Integration wird versuchen, sich zu erholen, indem sie die Datei(en) löscht und die Daten von Solcast erneut abruft. Erwarten Sie eine erhöhte API-Nutzung und mögliche API-Ausfälle sowie den Verlust des Prognoseverlaufs aufgrund dieser Situation. Möglicherweise können Sie die Dateien aus dem Backup wiederherstellen, aber erwarten Sie dennoch API-Aufrufausfälle.",
+            "title": "Beschädigte zwischengespeicherte Daten"
         },
         "records_missing": {
             "description": "Zukünftige Vorhersagedaten fehlen, was unerwartet ist, da die automatische Aktualisierung aktiviert ist. Untersuche die Ursache, indem du das Log von Home Assistant überprüfst. Lies die FAQ zur Fehlerbehebung, bevor du ein Integrationsproblem meldest.",
@@ -248,6 +260,10 @@
                 }
             },
             "title": "Zukunftsprognosen fehlen"
+        },
+        "records_missing_initial": {
+            "description": "Prognose- und/oder geschätzte Ist-Daten fehlen, wahrscheinlich weil das anfängliche Prognose-Update nicht stattgefunden hat. Dies liegt wahrscheinlich daran, dass das API-Aufruflimit erreicht wurde. Sie _werden_ Probleme mit Sensorentitäten haben, und das Energie-Dashboard wird wahrscheinlich fehlende Daten aufweisen. Dies wird sich von selbst lösen.",
+            "title": "Prognosen fehlen"
         },
         "records_missing_unfixable": {
             "description": "Zukünftige Prognosedaten fehlen, was unerwartet ist. Überprüfen Sie die Protokolle.",

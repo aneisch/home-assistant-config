@@ -178,6 +178,9 @@ class ModelDetection:
         self.model_version = d.get("modelVersion") or ""
         self.model_ver_u = str(self.model_version).upper()
         
+        # Check for explicit WebRTC support flag (present in 2025 models)
+        self.supports_webrtc = bool(d.get("webrtcSupport") == 1)
+        
         # Individual printer model detection
         # Detect specific K1 variants first so the base detector can exclude them
         # K1 SE - "K1 SE"
@@ -260,8 +263,8 @@ class ModelDetection:
         )
         
         # Feature detection
-        # Chamber temperature control is only available on K2 Pro and K2 Plus
-        self.has_chamber_control = self.is_k2_pro or self.is_k2_plus
+        # Chamber temperature control is only available on K2 family (Base/Pro/Plus)
+        self.has_chamber_control = self.is_k2_family
         # Back-compat alias
         self.has_box_control = self.has_chamber_control
 

@@ -191,12 +191,12 @@ Occupancy Simulator:
 
   # Turn on some devices in the evening
   step_evening_on_1: light.master_bedroom_lamps
-  step_evening_on_2: light.kitchen_table_light
+  #step_evening_on_2: light.kitchen_table_light
   step_evening_on_3: light.andrew_desk_lamp
   #step_evening_on_4: light.office_ceiling_fan
-  step_evening_on_7: light.guest_bedroom_nightstand_lamp
-  step_evening_on_8: light.back_bedroom_nightstand_lamp
-  step_evening_on_9: switch.master_bathroom_light_secondary
+  #step_evening_on_7: light.guest_bedroom_nightstand_lamp
+  #step_evening_on_8: light.back_bedroom_nightstand_lamp
+  #step_evening_on_9: switch.master_bathroom_light_secondary
 
   # Ensure all off late
   step_dark_name: Dark
@@ -253,33 +253,33 @@ Dehumidifier Follow:
 
 # Also uncomment the right line in Indoor Light Automation Sunset
 
-Christmas Lights:
-  module: entity_timer
-  class: Timer
-  entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
-  time_on: sunset - 00:30:00
-  time_off: "22:00:00"
+# Christmas Lights:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.christmas_lights # This is roofline, ground auto follows via link in esphome for device
+#   time_on: sunset - 00:30:00
+#   time_off: "22:00:00"
 
-Front Porch Tree Follow:
-  module: follow_me
-  class: Follow
-  leader: switch.christmas_lights
-  follower: switch.front_porch_christmas_tree
+# Front Porch Tree Follow:
+#   module: follow_me
+#   class: Follow
+#   leader: switch.christmas_lights
+#   follower: switch.front_porch_christmas_tree
 
-Christmas Trees Follow:
-  module: follow_me
-  class: Follow
-  # This links the power-efficient trees together
-  leader: switch.living_room_christmas_tree
-  follower: switch.dining_room_christmas_tree,switch.master_bedroom_christmas_tree
-  follow_off: False # Only follow state to on
+# Christmas Trees Follow:
+#   module: follow_me
+#   class: Follow
+#   # This links the power-efficient trees together
+#   leader: switch.living_room_christmas_tree
+#   follower: switch.dining_room_christmas_tree,switch.master_bedroom_christmas_tree
+#   follow_off: False # Only follow state to on
 
-Front House Christmas Trees Timer:
-  module: entity_timer
-  class: Timer
-  entities: switch.dining_room_christmas_tree #,switch.office_christmas_tree
-  time_on: sunset - 00:30:00
-  time_off: '22:00:00'
+# Front House Christmas Trees Timer:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.dining_room_christmas_tree #,switch.office_christmas_tree
+#   time_on: sunset - 00:30:00
+#   time_off: '22:00:00'
 
 ############
 # Aquarium #
@@ -442,9 +442,9 @@ Indoor Light Automation Sunset:
   time_on: sunset
   # entities: light.andrew_desk_lamp,light.bethany_desk_lamp,light.living_room_lamps,light.master_bedroom_lamps,group.under_cabinet_lights,light.living_room_sconces,light.curio_cabinet,group.christmas #,switch.ir_candles # Commented for electricity savings
   # Start Christmas
-  entities: switch.living_room_christmas_tree # this tree causes a few others to also turn on #,group.christmas # disabled temporarily, no need to turn all of these on?
+  # entities: switch.living_room_christmas_tree # this tree causes a few others to also turn on #,group.christmas # disabled temporarily, no need to turn all of these on?
   # End Christmas
-  # entities: light.living_room_lamps, group.under_cabinet_lights
+  entities: light.living_room_lamps, group.under_cabinet_lights
   brightness: 255
 
 Guest Light Automation Sunset:
@@ -492,9 +492,9 @@ Front Sconces Sunset:
   entities: light.front_sconces # See also NodeRed # disable at Christmas and Halloween
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
-  #brightness: 254
+  brightness: 254
   # Start Christmas
-  brightness: 25 # Christmas
+  #brightness: 25 # Christmas
   # End Christmas
 
 Front Porch Lights Sunset:
@@ -504,9 +504,9 @@ Front Porch Lights Sunset:
   #entities: light.front_porch_halloween # Halloween only LimitlessLED See also NodeRed
   time_on: sunset - 00:20:00
   time_off: sunrise - 00:30:00
-  #brightness: 63
+  brightness: 63
   # Start Christmas
-  brightness: 25 # Christmas
+  #brightness: 25 # Christmas
   # End Christmas
 
 ###### Plant is outside RN

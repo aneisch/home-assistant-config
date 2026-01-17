@@ -224,9 +224,21 @@
         }
     },
     "issues": {
+        "advanced_deprecated": {
+            "description": "Advanced configuration option(s) `{option}` changed to `{new_option}`. Please update your advanced configuration options to use the new option name.{stops_working}",
+            "title": "Advanced option deprecated"
+        },
+        "advanced_problem": {
+            "description": "The advanced configuration file contains errors.\n{problems}\n\nPlease fix these, referring to the integration documentation at the 'Learn more' link.",
+            "title": "Advanced option problem"
+        },
         "api_unavailable": {
             "description": "The Solcast API has reported `429 / Try again later` status repeatedly during an update.\n\n* Do not attempt to fix this situation.\n* Do not change your API key.\n* Avoid restarting the integration\n* This is not an integration issue and will resolve itself. Change nothing.\n\n(To suppress this issue, create an advanced configuration option api_raise_issue and set it to false.)",
             "title": "Solcast API temporarily unavailable"
+        },
+        "corrupt_file": {
+            "description": "The cached data file(s) `{files}` is corrupted. The integration will attempt to recover by deleting the file(s) and re-fetching data from Solcast. Expect increased API usage and potential API failures, and loss of forecast history due to this situation. Possibly recover the files from backup, but still expect API call failures.",
+            "title": "Corrupted cached data"
         },
         "records_missing": {
             "description": "Future forecast data is missing, which is unexpected because auto-update is enabled. Investigate the cause by examining the Home Assistant log. Read the troubleshooting FAQ before raising an integration issue.",
@@ -248,6 +260,10 @@
                 }
             },
             "title": "Future forecasts missing"
+        },
+        "records_missing_initial": {
+            "description": "Forecast and/or estimated actual data is missing, likely because the initial forecast update did not occur. This is likely because the API call limit has been reached. You _will_ have sensor entity issues, and the Energy dashboard will likely have missing data. This will resolve itself.",
+            "title": "Forecasts missing"
         },
         "records_missing_unfixable": {
             "description": "Future forecast data is missing, which is unexpected. Check the logs.",

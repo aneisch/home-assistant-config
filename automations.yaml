@@ -367,22 +367,19 @@
     target:
       entity_id: input_boolean.goodnight
   initial_state: true
-- alias: Desk Lamp and Monitor off
-  id: desk_lamp_and_monitor_off
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id: binary_sensor.weasel_active
+- id: desk_lamp_and_monitor_off
+  alias: Desk Lamp and Monitor off
+  triggers:
+  - entity_id: binary_sensor.weasel_active
     to: 'off'
     for: 00:30:00
-  - platform: state
-    entity_id: binary_sensor.andrew_phone_car_connected
-    to: 'on'
-  action:
+    trigger: state
+  actions:
   - action: homeassistant.turn_off
     entity_id: light.andrew_desk_lamp
   - action: homeassistant.turn_off
     entity_id: switch.andrew_monitor
+  initial_state: true
 - alias: Tablet off After Monitor
   id: tablet_off_after_monitor
   initial_state: true
@@ -628,7 +625,7 @@
   alias: Update Utility Costs
   triggers:
   - trigger: time_pattern
-    minutes: '10'
+    minutes: /30
   - at: '23:59:30'
     trigger: time
   actions:
@@ -1387,10 +1384,102 @@
     - printing
   conditions:
   - condition: template
-    value_template: '{{ trigger.to_state.state != "unknown" }}'
+    value_template: '{{ trigger.to_state.state not in  ["unknown", "self-testing"]
+      }}'
   actions:
   - action: notify.signal_homeassistant
     metadata: {}
     data:
       message: 'Printer status: {{ trigger.to_state.state }}'
+      data:
+        urls:
+        - https://go2rtc.home.SECRET/api/frame.jpeg?src=3d_printer_record
+  - if:
+    - condition: template
+      value_template: '{{ trigger.to_state.state == ''completed'' }}'
+    then:
+    - delay:
+        hours: 0
+        minutes: 1
+        seconds: 0
+        milliseconds: 0
+    - action: switch.turn_off
+      metadata: {}
+      target:
+        entity_id: switch.sonoff_s31_1_s31_1_relay
+      data: {}
+  mode: single
+- id: '1767032205368'
+  alias: Tesla Service Notification
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.tesla_doors_open
+    to:
+    - 'on'
+  - trigger: state
+    entity_id:
+    - sensor.tesla_state
+    to:
+    - driving
+  conditions: []
+  actions:
+  - action: notify.signal_self
+    metadata: {}
+    data:
+      message: Tesla Active in Service
+  - delay:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  mode: single
+- id: '1767388257109'
+  alias: Utilities Cycle Change Notification
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.utilities_cycle_end
+  conditions: []
+  actions:
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      message: 'Utilities Cycle End Date Updated: {{ states(''sensor.utilities_cycle_end'')
+        }}'
+  mode: single
+- id: '1767572748072'
+  alias: 3d Printer Frigate Camera
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - switch.sonoff_s31_1_s31_1_relay
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id: switch.sonoff_s31_1_s31_1_relay
+        state:
+        - 'on'
+      sequence:
+      - action: camera.turn_on
+        metadata: {}
+        target:
+          entity_id: camera.3d_printer
+        data: {}
+    - conditions:
+      - condition: state
+        entity_id: switch.sonoff_s31_1_s31_1_relay
+        state:
+        - 'off'
+      sequence:
+      - action: camera.turn_off
+        metadata: {}
+        target:
+          entity_id: camera.3d_printer
+        data: {}
   mode: single

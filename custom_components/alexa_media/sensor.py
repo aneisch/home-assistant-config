@@ -9,7 +9,7 @@ https://community.home-assistant.io/t/echo-devices-alexa-as-media-player-testers
 
 import datetime
 import logging
-from typing import Callable, Optional
+from typing import Callable, ClassVar, Optional
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -17,7 +17,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import UnitOfTemperature, __version__ as HA_VERSION
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import callback
 from homeassistant.exceptions import ConfigEntryNotReady, NoEntitySpecifiedError
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.event import async_track_point_in_utc_time
@@ -48,7 +48,7 @@ from .const import (
     RECURRING_PATTERN,
     RECURRING_PATTERN_ISO_SET,
 )
-from .helpers import add_devices, alarm_just_dismissed
+from .helpers import add_devices, alarm_just_dismissed, is_http2_enabled, safe_get
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ async def async_setup_platform(hass, config, add_devices_callback, discovery_inf
     if config:
         account = config.get(CONF_EMAIL)
     if account is None and discovery_info:
-        account = discovery_info.get("config", {}).get(CONF_EMAIL)
+        account = safe_get(discovery_info, ["config", CONF_EMAIL])
     if account is None:
         raise ConfigEntryNotReady
     include_filter = config.get(CONF_INCLUDE_DEVICES, [])
@@ -127,7 +127,7 @@ async def async_setup_platform(hass, config, add_devices_callback, discovery_inf
                 )
 
     temperature_sensors = []
-    temperature_entities = account_dict.get("devices", {}).get("temperature", [])
+    temperature_entities = safe_get(account_dict, ["devices", "temperature"], [])
     if temperature_entities and account_dict["options"].get(
         CONF_EXTENDED_ENTITY_DISCOVERY
     ):
@@ -137,7 +137,7 @@ async def async_setup_platform(hass, config, add_devices_callback, discovery_inf
 
     # AIAQM Sensors
     air_quality_sensors = []
-    air_quality_entities = account_dict.get("devices", {}).get("air_quality", [])
+    air_quality_entities = safe_get(account_dict, ["devices", "air_quality"], [])
     if air_quality_entities and account_dict["options"].get(
         CONF_EXTENDED_ENTITY_DISCOVERY
     ):
@@ -232,7 +232,8 @@ async def create_air_quality_sensors(account_dict, air_quality_entities):
 def lookup_device_info(account_dict, device_serial):
     """Get the device to use for a given Echo based on a given device serial id.
 
-    This may return nothing as there is no guarantee that a given temperature sensor is actually attached to an Echo.
+    This may return nothing as there is no guarantee that a given temperature sensor
+    is actually attached to an Echo.
     """
     for key, mediaplayer in account_dict["entities"]["media_player"].items():
         if (
@@ -370,7 +371,12 @@ class AirQualitySensor(SensorEntity, CoordinatorEntity):
 class AlexaMediaNotificationSensor(SensorEntity):
     """Representation of Alexa Media sensors."""
 
-    _unrecorded_attributes = frozenset({"alarms_brief"})
+    _unrecorded_attributes = frozenset({"brief", "sorted_active", "sorted_all"})
+    _LABEL_KEY_MAP: ClassVar[dict[str, str]] = {
+        "Alarm": "alarmLabel",
+        "Timer": "timerLabel",
+        "Reminder": "reminderLabel",
+    }
 
     def __init__(
         self,
@@ -699,7 +705,7 @@ class AlexaMediaNotificationSensor(SensorEntity):
     @property
     def should_poll(self):
         """Return the polling state."""
-        return not (self.hass.data[DATA_ALEXAMEDIA]["accounts"][self._account]["http2"])
+        return not is_http2_enabled(self.hass, self._account)
 
     def _process_state(self, value) -> Optional[datetime.datetime]:
         return dt.as_local(value[self._sensor_property]) if value else None
@@ -774,20 +780,50 @@ class AlexaMediaNotificationSensor(SensorEntity):
                 when_val = dt.as_local(when).isoformat()
             else:
                 when_val = when
-            return {
+
+            # Labels are type-specific in Alexa's payload; resolve to a single generic key.
+            label_key = self._LABEL_KEY_MAP.get(self._type)
+            label = entry.get(label_key) if label_key else None
+
+            data = {
                 "id": entry.get("id"),
+                "label": label,
                 "status": entry.get("status"),
                 "type": entry.get("type"),
+                "version": entry.get("version"),
                 self._sensor_property: when_val,
                 "lastUpdatedDate": entry.get("lastUpdatedDate"),
             }
+            return data
 
         if self._all:
             # Limit to a few entries so attributes stay small
-            attr["alarms_brief"] = {
+            attr["brief"] = {
                 "active": [_serialize_entry(v) for _, v in self._active[:12]],
                 "all": [_serialize_entry(v) for _, v in self._all[:12]],
             }
+            # Legacy alias attributes (for backwards compatibility with
+            # cards/automations that relied on the previous sorted_* attributes).
+            #
+            # Historical behavior exposed the full notification dicts
+            legacy_all = [v for _, v in self._all]
+            legacy_active = [v for _, v in self._active]
+
+            # Generic legacy names
+            attr["sorted_all"] = legacy_all
+            attr["sorted_active"] = legacy_active
+
+            # Some consumers expect a single string label for the "next" item.
+            # These keys are used by card-alexa-alarms-timers.
+            if legacy_active:
+                first = legacy_active[0]
+                label_key = self._LABEL_KEY_MAP.get(self._type)
+                if label_key:
+                    attr[self._type.lower()] = first.get(label_key)
+
+                    if self._type == "Reminder":
+                        # Secondary reminder label (when present)
+                        attr["reminder_sub_label"] = first.get("reminderSubLabel")
         return attr
 
 

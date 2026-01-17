@@ -130,7 +130,7 @@ mqtt:
       state_topic: "teslamate/cars/1/speed"
       unit_of_measurement: "mi/h"
       icon: mdi:speedometer
-      value_template: "{{ ((value | float) / 1.609344) | round(2) }}"
+      value_template: "{{ ((value | float) / 1.609344) | round(0) }}"
 
 #   - sensor:
 #       name: Tesla Heading
@@ -151,7 +151,7 @@ mqtt:
       state_topic: "teslamate/cars/1/elevation"
       unit_of_measurement: ft
       icon: mdi:image-filter-hdr
-      value_template: "{{ ((value | float) * 3.2808 ) | round(2) }}"
+      value_template: "{{ ((value | float) * 3.2808 ) | round(0) }}"
 
   - sensor:
       name: Tesla Inside Temp
@@ -184,7 +184,7 @@ mqtt:
       state_topic: "teslamate/cars/1/odometer"
       unit_of_measurement: mi
       icon: mdi:counter
-      value_template: "{{ ((value | float) / 1.609344) | round(2) }}"
+      value_template: "{{ ((value | float) / 1.609344) | round(0) }}"
 
   - sensor:
       name: Tesla Est Battery Range
@@ -195,7 +195,7 @@ mqtt:
       state_topic: "teslamate/cars/1/est_battery_range_km"
       unit_of_measurement: mi
       icon: mdi:gauge
-      value_template: "{{ ((value | float) / 1.609344) | round(2) }}"
+      value_template: "{{ ((value | float) / 1.609344) | round(0) }}"
 
   - sensor:
       name: Tesla Rated Battery Range
@@ -206,7 +206,7 @@ mqtt:
       state_topic: "teslamate/cars/1/rated_battery_range_km"
       unit_of_measurement: mi
       icon: mdi:gauge
-      value_template: "{{ ((value | float) / 1.609344) | round(2) }}"
+      value_template: "{{ ((value | float) / 1.609344) | round(0) }}"
 
   - sensor:
       name: Tesla Ideal Battery Range
@@ -217,7 +217,7 @@ mqtt:
       state_topic: "teslamate/cars/1/ideal_battery_range_km"
       unit_of_measurement: mi
       icon: mdi:gauge
-      value_template: "{{ ((value | float) / 1.609344) | round(2) }}"
+      value_template: "{{ ((value | float) / 1.609344) | round(0) }}"
 
   - sensor:
       name: Tesla Battery Level
@@ -332,7 +332,7 @@ mqtt:
       state_topic: "teslamate/cars/1/tpms_pressure_fl"
       unit_of_measurement: psi
       icon: mdi:car-tire-alert
-      value_template: "{{ ((value | float) * 14.50377) | round(2)  }}"
+      value_template: "{{ ((value | float) * 14.50377) | round(0)  }}"
 
   - sensor:
       name: Tesla TPMS Pressure Front Right
@@ -343,7 +343,7 @@ mqtt:
       state_topic: "teslamate/cars/1/tpms_pressure_fr"
       unit_of_measurement: psi
       icon: mdi:car-tire-alert
-      value_template: "{{ ((value | float) * 14.50377) | round(2)  }}"
+      value_template: "{{ ((value | float) * 14.50377) | round(0)  }}"
 
   - sensor:
       name: Tesla TPMS Pressure Rear Left
@@ -354,7 +354,7 @@ mqtt:
       state_topic: "teslamate/cars/1/tpms_pressure_rl"
       unit_of_measurement: psi
       icon: mdi:car-tire-alert
-      value_template: "{{ ((value | float) * 14.50377) | round(2)  }}"
+      value_template: "{{ ((value | float) * 14.50377) | round(0)  }}"
 
   - sensor:
       name: Tesla TPMS Pressure Rear Right
@@ -365,7 +365,7 @@ mqtt:
       state_topic: "teslamate/cars/1/tpms_pressure_rr"
       unit_of_measurement: psi
       icon: mdi:car-tire-alert
-      value_template: "{{ ((value | float) * 14.50377) | round(2)  }}"
+      value_template: "{{ ((value | float) * 14.50377) | round(0)  }}"
 
   - sensor:
       name: Tesla Active route destination

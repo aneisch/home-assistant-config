@@ -199,6 +199,13 @@ class KSimpleFieldSensor(KEntity, SensorEntity):
         self._attr_state_class = spec.get("state_class")
         self._get_attrs: Callable[[dict[str, Any]], dict[str, Any]] = spec.get("attrs") or (lambda d: {})
 
+    @property
+    def available(self) -> bool:
+        # System entity (model) is always available if we have cached info
+        if self._field == "model":
+            return True
+        return super().available
+
     def _zero_value(self):
         """Return appropriate zero value for offline/off state."""
         if self._field in ("TotalLayer", "layer"):
@@ -350,6 +357,7 @@ class PrintJobTimeSensor(KEntity, SensorEntity):
     _attr_name = "Print Job Time"
     _attr_icon = "mdi:timer-play"
     _attr_native_unit_of_measurement = U_S
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
@@ -369,6 +377,7 @@ class PrintLeftTimeSensor(KEntity, SensorEntity):
     _attr_name = "Print Time Left"
     _attr_icon = "mdi:timer-sand"
     _attr_native_unit_of_measurement = U_S
+    _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
@@ -607,6 +616,11 @@ class KMaxTempSensor(KEntity, SensorEntity):
         except Exception:
             from homeassistant.const import TEMP_CELSIUS  # type: ignore[import]
             self._attr_native_unit_of_measurement = TEMP_CELSIUS
+
+    @property
+    def available(self) -> bool:
+        # Max temp sensors are configuration constants, always available
+        return True
 
     def _read_cached_or_live(self) -> float | None:
         # From entry cache

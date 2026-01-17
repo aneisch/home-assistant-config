@@ -13,7 +13,7 @@
     "websockets>=10.4",
     "go2rtc-client>=0.1.0"
   ],
-  "version": "0.7.1",
+  "version": "0.8.0",
   "zeroconf": [
     { "type": "_http._tcp.local.", "name": "*creality*" },
     { "type": "_workstation._tcp.local.", "name": "*creality*" },

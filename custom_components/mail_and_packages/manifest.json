@@ -16,5 +16,5 @@
     "Pillow>=9.0",
     "dateparser"
   ],
-  "version": "0.4.2"
+  "version": "0.4.7"
 }

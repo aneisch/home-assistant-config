@@ -51,6 +51,7 @@ from homeassistant.helpers.discovery import async_load_platform
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.loader import async_get_integration
 from homeassistant.util import dt, slugify
 import voluptuous as vol
 
@@ -79,7 +80,7 @@ from .const import (
     MIN_TIME_BETWEEN_FORCED_SCANS,
     MIN_TIME_BETWEEN_SCANS,
     SCAN_INTERVAL,
-    STARTUP,
+    STARTUP_MESSAGE,
 )
 from .exceptions import TimeoutException
 from .helpers import (
@@ -87,6 +88,7 @@ from .helpers import (
     _existing_serials,
     alarm_just_dismissed,
     calculate_uuid,
+    safe_get,
 )
 from .notify import async_unload_entry as notify_async_unload_entry
 from .services import AlexaMediaServices
@@ -132,100 +134,37 @@ CONFIG_SCHEMA = vol.Schema(
 )
 
 
-async def async_setup(hass, config, discovery_info=None):
-    # pylint: disable=unused-argument
+async def async_setup(hass, config):
     """Set up the Alexa domain."""
-    if DOMAIN not in config:
-        _LOGGER.debug(
-            "Nothing to import from configuration.yaml, loading from Integrations",
+    integration = await async_get_integration(hass, DOMAIN)
+    integration_name = integration.name or "<not available>"
+    _LOGGER.info(
+        STARTUP_MESSAGE.format(
+            name=integration_name,
+            ISSUE_URL=ISSUE_URL,
+            DOMAIN=DOMAIN,
+            version=integration.version,
+            alexapy_version=alexapy_version,
         )
-        return True
-
-    async_create_issue(
-        hass,
-        DOMAIN,
-        "deprecated_yaml_configuration",
-        is_fixable=False,
-        issue_domain=DOMAIN,
-        severity=IssueSeverity.WARNING,
-        translation_key="deprecated_yaml_configuration",
-        learn_more_url="https://github.com/alandtse/alexa_media_player/wiki/Configuration#configurationyaml",
     )
-    _LOGGER.warning(
-        "YAML configuration of Alexa Media Player is deprecated "
-        "and will be removed in version 4.14.0."
-        "There will be no automatic import of this. "
-        "Please remove it from your configuration, "
-        "restart Home Assistant and use the UI to configure it instead. "
-        "Settings > Devices and services > Integrations > ADD INTEGRATION"
-    )
-
-    domainconfig = config.get(DOMAIN)
-    for account in domainconfig[CONF_ACCOUNTS]:
-        entry_found = False
-        _LOGGER.debug(
-            "Importing config information for %s - %s from configuration.yaml",
-            hide_email(account[CONF_EMAIL]),
-            account[CONF_URL],
+    if DOMAIN in config:
+        async_create_issue(
+            hass,
+            DOMAIN,
+            "deprecated_yaml_configuration",
+            is_fixable=False,
+            issue_domain=DOMAIN,
+            severity=IssueSeverity.ERROR,
+            translation_key="deprecated_yaml_configuration",
+            learn_more_url="https://github.com/alandtse/alexa_media_player/wiki/Configuration#configurationyaml",
         )
-        if hass.config_entries.async_entries(DOMAIN):
-            _LOGGER.debug("Found existing config entries")
-            for entry in hass.config_entries.async_entries(DOMAIN):
-                if (
-                    entry.data.get(CONF_EMAIL) == account[CONF_EMAIL]
-                    and entry.data.get(CONF_URL) == account[CONF_URL]
-                ):
-                    _LOGGER.debug("Updating existing entry")
-                    hass.config_entries.async_update_entry(
-                        entry,
-                        data={
-                            CONF_EMAIL: account[CONF_EMAIL],
-                            CONF_PASSWORD: account[CONF_PASSWORD],
-                            CONF_URL: account[CONF_URL],
-                            CONF_INCLUDE_DEVICES: account[CONF_INCLUDE_DEVICES],
-                            CONF_EXCLUDE_DEVICES: account[CONF_EXCLUDE_DEVICES],
-                            CONF_SCAN_INTERVAL: account[
-                                CONF_SCAN_INTERVAL
-                            ].total_seconds(),
-                            CONF_QUEUE_DELAY: account[CONF_QUEUE_DELAY],
-                            CONF_OAUTH: account.get(
-                                CONF_OAUTH, entry.data.get(CONF_OAUTH, {})
-                            ),
-                            CONF_OTPSECRET: account.get(
-                                CONF_OTPSECRET, entry.data.get(CONF_OTPSECRET, "")
-                            ),
-                            CONF_EXTENDED_ENTITY_DISCOVERY: account[
-                                CONF_EXTENDED_ENTITY_DISCOVERY
-                            ],
-                            CONF_DEBUG: account[CONF_DEBUG],
-                        },
-                    )
-                    entry_found = True
-                    break
-        if not entry_found:
-            _LOGGER.debug("Creating new config entry")
-            hass.async_create_task(
-                hass.config_entries.flow.async_init(
-                    DOMAIN,
-                    context={"source": SOURCE_IMPORT},
-                    data={
-                        CONF_URL: account[CONF_URL],
-                        CONF_EMAIL: account[CONF_EMAIL],
-                        CONF_PASSWORD: account[CONF_PASSWORD],
-                        CONF_PUBLIC_URL: account[CONF_PUBLIC_URL],
-                        CONF_INCLUDE_DEVICES: account[CONF_INCLUDE_DEVICES],
-                        CONF_EXCLUDE_DEVICES: account[CONF_EXCLUDE_DEVICES],
-                        CONF_SCAN_INTERVAL: account[CONF_SCAN_INTERVAL].total_seconds(),
-                        CONF_QUEUE_DELAY: account[CONF_QUEUE_DELAY],
-                        CONF_OAUTH: account.get(CONF_OAUTH, {}),
-                        CONF_OTPSECRET: account.get(CONF_OTPSECRET, ""),
-                        CONF_EXTENDED_ENTITY_DISCOVERY: account[
-                            CONF_EXTENDED_ENTITY_DISCOVERY
-                        ],
-                        CONF_DEBUG: account[CONF_DEBUG],
-                    },
-                )
-            )
+        _LOGGER.error(
+            "YAML configuration of Alexa Media Player is no longer supported. "
+            "Please remove `alexa_media` from your configuration, "
+            "restart Home Assistant and use the UI to configure it instead. "
+            "Settings > Devices & services > Integrations > ADD INTEGRATION"
+        )
+        return False
     return True
 
 
@@ -237,8 +176,8 @@ async def async_setup_entry(hass, config_entry):
     async def close_alexa_media(event=None) -> None:
         """Clean up Alexa connections."""
         _LOGGER.debug("Received shutdown request: %s", event)
-        if hass.data.get(DATA_ALEXAMEDIA, {}).get("accounts"):
-            for email, _ in hass.data[DATA_ALEXAMEDIA]["accounts"].items():
+        if accounts := safe_get(hass.data, [DATA_ALEXAMEDIA, "accounts"], {}):
+            for email, _ in accounts.items():
                 await close_connections(hass, email)
 
     async def complete_startup(event=None) -> None:
@@ -288,9 +227,6 @@ async def async_setup_entry(hass, config_entry):
             )
             await setup_alexa(hass, config_entry, login_obj)
 
-    if not hass.data.get(DATA_ALEXAMEDIA):
-        _LOGGER.debug(STARTUP)
-        _LOGGER.debug("Loaded alexapy==%s", alexapy_version)
     hass.data.setdefault(
         DATA_ALEXAMEDIA, {"accounts": {}, "config_flows": {}, "notify_service": None}
     )
@@ -695,9 +631,13 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
                 .get(serial)
                 .enabled
             ):
-                await hass.data[DATA_ALEXAMEDIA]["accounts"][email]["entities"][
-                    "media_player"
-                ].get(serial).refresh(device, skip_api=True)
+                await (
+                    hass.data[DATA_ALEXAMEDIA]["accounts"][email]["entities"][
+                        "media_player"
+                    ]
+                    .get(serial)
+                    .refresh(device, skip_api=True)
+                )
         _LOGGER.debug(
             "%s: Existing: %s New: %s;"
             " Filtered out by not being in include: %s "
@@ -818,9 +758,7 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
                     notification["date_time"] = (
                         f"{n_date} {n_time}" if n_date and n_time else None
                     )
-                    previous_alarm = (
-                        previous.get(n_dev_id, {}).get("Alarm", {}).get(n_id)
-                    )
+                    previous_alarm = safe_get(previous, [n_dev_id, "Alarm", n_id], {})
                     if previous_alarm and alarm_just_dismissed(
                         notification,
                         previous_alarm.get("status"),
@@ -1577,7 +1515,7 @@ async def async_unload_entry(hass, entry) -> bool:
             else:
                 _LOGGER.debug("Forwarding unload entry to %s", component)
                 await hass.config_entries.async_forward_entry_unload(entry, component)
-        except Exception as ex:
+        except Exception:
             _LOGGER.error("Error unloading: %s", component)
     await close_connections(hass, email)
     for listener in hass.data[DATA_ALEXAMEDIA]["accounts"][email][DATA_LISTENER]:

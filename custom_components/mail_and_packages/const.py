@@ -4,16 +4,12 @@ from __future__ import annotations
 
 from typing import Final
 
-from homeassistant.components.binary_sensor import (
-    BinarySensorDeviceClass,
-    BinarySensorEntityDescription,
-)
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.4.2"
+VERSION = "0.4.7"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -22,12 +18,13 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 10
+CONFIG_VER = 14
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
 ATTR_COUNT = "count"
 ATTR_CODE = "code"
+ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
@@ -38,14 +35,29 @@ ATTR_IMAGE_NAME = "image_name"
 ATTR_EMAIL = "email"
 ATTR_SUBJECT = "subject"
 ATTR_BODY = "body"
+ATTR_BODY_COUNT = "body_count"
 ATTR_PATTERN = "pattern"
 ATTR_USPS_MAIL = "usps_mail"
+ATTR_UPS_IMAGE = "ups_image"
+ATTR_WALMART_IMAGE = "walmart_image"
+ATTR_FEDEX_IMAGE = "fedex_image"
+ATTR_GENERIC_IMAGE = "generic_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
 CONF_CAMERA_NAME = "camera_name"
 CONF_CUSTOM_IMG = "custom_img"
 CONF_CUSTOM_IMG_FILE = "custom_img_file"
+CONF_AMAZON_CUSTOM_IMG = "amazon_custom_img"
+CONF_AMAZON_CUSTOM_IMG_FILE = "amazon_custom_img_file"
+CONF_UPS_CUSTOM_IMG = "ups_custom_img"
+CONF_UPS_CUSTOM_IMG_FILE = "ups_custom_img_file"
+CONF_WALMART_CUSTOM_IMG = "walmart_custom_img"
+CONF_WALMART_CUSTOM_IMG_FILE = "walmart_custom_img_file"
+CONF_FEDEX_CUSTOM_IMG = "fedex_custom_img"
+CONF_FEDEX_CUSTOM_IMG_FILE = "fedex_custom_img_file"
+CONF_GENERIC_CUSTOM_IMG = "generic_custom_img"
+CONF_GENERIC_CUSTOM_IMG_FILE = "generic_custom_img_file"
 CONF_STORAGE = "storage"
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
@@ -53,12 +65,15 @@ CONF_DURATION = "gif_duration"
 CONF_SCAN_INTERVAL = "scan_interval"
 CONF_IMAGE_SECURITY = "image_security"
 CONF_IMAP_TIMEOUT = "imap_timeout"
+CONF_GENERATE_GRID = "generate_grid"
 CONF_GENERATE_MP4 = "generate_mp4"
 CONF_AMAZON_FWDS = "amazon_fwds"
 CONF_AMAZON_DAYS = "amazon_days"
 CONF_VERIFY_SSL = "verify_ssl"
 CONF_IMAP_SECURITY = "imap_security"
 CONF_AMAZON_DOMAIN = "amazon_domain"
+CONF_ALLOW_FORWARDED_EMAILS = "allow_forwarded_emails"
+CONF_FORWARDED_EMAILS = "forwarded_emails"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
@@ -75,9 +90,32 @@ DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
 DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
+DEFAULT_AMAZON_CUSTOM_IMG = False
+DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
+)
+DEFAULT_UPS_CUSTOM_IMG = False
+DEFAULT_UPS_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_ups.jpg"
+)
+DEFAULT_WALMART_CUSTOM_IMG = False
+DEFAULT_WALMART_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_walmart.jpg"
+)
+DEFAULT_FEDEX_CUSTOM_IMG = False
+DEFAULT_FEDEX_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_fedex.jpg"
+)
+DEFAULT_GENERIC_CUSTOM_IMG = False
+DEFAULT_GENERIC_CUSTOM_IMG_FILE = (
+    "custom_components/mail_and_packages/no_deliveries_generic.jpg"
+)
 DEFAULT_AMAZON_DAYS = 3
 DEFAULT_AMAZON_DOMAIN = "amazon.com"
 DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
+
+DEFAULT_ALLOW_FORWARDED_EMAILS = False
+DEFAULT_FORWARDED_EMAILS = "(none)"
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -95,7 +133,8 @@ AMAZON_DOMAINS = [
     "amazon.nl",
 ]
 AMAZON_DELIVERED_SUBJECT = [
-    "Delivered: Your",
+    "Delivered: ",
+    "Your Amazon order has arrived!",
     "Consegna effettuata:",
     "Dostarczono:",
     "Geliefert:",
@@ -103,9 +142,10 @@ AMAZON_DELIVERED_SUBJECT = [
     "Entregado:",
     "Bezorgd:",
     "Livraison : Votre",
-    "Zugestellt: deine",
+    "Zugestellt:",
 ]
 AMAZON_SHIPMENT_TRACKING = [
+    "auto-confirm",
     "shipment-tracking",
     "order-update",
     "conferma-spedizione",
@@ -115,10 +155,19 @@ AMAZON_SHIPMENT_TRACKING = [
     "verzending-volgen",
     "update-bestelling",
 ]
+AMAZON_SHIPMENT_SUBJECT = [
+    "Shipped:",
+    "Enviado:",
+]
+AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
 AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
+AMAZON_IMG_LIST = [
+    "us-prod-temp.s3.amazonaws.com",
+    "gb-prod-temp.s3.eu-west-1.amazonaws.com",
+]
 AMAZON_IMG_PATTERN = (
     "(https://)([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-;]*[\\w@?^=%&/~+#-;])?"
 )
@@ -140,11 +189,12 @@ AMAZON_TIME_PATTERN = [
     "Arriving:",
     "Arriverà:",
     "arriving:",
+    "Arriving ",
     "Dostawa:",
-    "Zustellung:",
     "Entrega:",
     "A chegar:",
     "Arrivée :",
+    "Chega ",
     "Verwachte bezorgdatum:",
     "Votre date de livraison prévue est :",
 ]
@@ -162,6 +212,22 @@ AMAZON_TIME_PATTERN_END = [
     "Suivre",
     "Volg je pakket",
     "Je pakket volgen",
+]
+AMAZON_TIME_PATTERN_REGEX = [
+    "Arriving (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arriving (\\w+ \\d+)",
+    "Arriving (\\w+ ?\\d*)",
+    "Arriving (\\w+)",
+    "Zustellung (\\w+ \\d+) - (\\w+ \\d+)",
+    "Zustellung (\\w+ \\d+)",
+    "Zustellung (\\w+ \\d*)",
+    "Arriverà (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arriverà (\\w+ \\d+)",
+    "Arriverà (\\w+ \\d*)",
+    "Arrivée (\\w+ \\d+) - (\\w+ \\d+)",
+    "Arrivée (\\w+ \\d+)",
+    "Arrivée (\\w+ \\d*)",
+    "Chega ((\\w+(-\\w+)?))",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -185,6 +251,11 @@ AMAZON_LANGS = [
     "fr_CA.UTF-8",
     "",
 ]
+AMAZON_OTP = "amazon_otp"
+AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
+AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
+
+AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 
 # Sensor Data
 SENSOR_DATA = {
@@ -224,17 +295,18 @@ SENSOR_DATA = {
     },
     # UPS
     "ups_delivered": {
-        "email": ["mcinfo@ups.com"],
+        "email": ["mcinfo@ups.com", "pkginfo@ups.com"],
         "subject": [
             "Your UPS Package was delivered",
             "Your UPS Packages were delivered",
             "Your UPS Parcel was delivered",
             "Your UPS Parcels were delivered",
             "Votre colis UPS a été livré",
+            "Paket wurde zugestellt",
         ],
     },
     "ups_delivering": {
-        "email": ["mcinfo@ups.com"],
+        "email": ["mcinfo@ups.com", "pkginfo@ups.com"],
         "subject": [
             "UPS Update: Package Scheduled for Delivery Today",
             "UPS Update: Follow Your Delivery on a Live Map",
@@ -252,7 +324,11 @@ SENSOR_DATA = {
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     # FedEx
     "fedex_delivered": {
-        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
         "subject": [
             "Your package has been delivered",
             "Your packages have been delivered",
@@ -260,13 +336,18 @@ SENSOR_DATA = {
         ],
     },
     "fedex_delivering": {
-        "email": ["TrackingUpdates@fedex.com", "fedexcanada@fedex.com"],
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
         "subject": [
             "Delivery scheduled for today",
             "Your package is scheduled for delivery today",
             "Your package is now out for delivery",
             "Your shipment is out for delivery today",
             "out for delivery today",
+            "Ihre Sendung wird voraussichtlich heute zugestellt",
         ],
     },
     "fedex_packages": {},
@@ -281,9 +362,22 @@ SENSOR_DATA = {
             "Delivery Notification",
         ],
     },
-    "capost_delivering": {},
+    "capost_delivering": {
+        "email": [
+            "donotreply-nepasrepondre@notifications.canadapost-postescanada.ca",
+        ],
+        "subject": [
+            "Your parcel is out for delivery",
+        ],
+    },
     "capost_packages": {},
-    "capost_tracking": {},
+    "capost_tracking": {"pattern": ["\\d{16}"]},
+    "capost_mail": {
+        "email": ["donotreply-nepasrepondre@communications.canadapost-postescanada.ca"],
+        "subject": ["You have mail on the way"],
+        "body": ["\\sYou have (\\d) piece|pieces of mail\\s"],
+        "body_count": True,
+    },
     # DHL
     "dhl_delivered": {
         "email": [
@@ -296,8 +390,9 @@ SENSOR_DATA = {
         "subject": [
             "DHL On Demand Delivery",
             "Powiadomienie o przesyłce",
-            "Paket wurde zugestellt",
+            "wurde zugestellt",
             "DHL Shipment Notification",
+            "liegt am gewünschten Ablageort",
         ],
         "body": [
             "has been delivered",
@@ -319,9 +414,11 @@ SENSOR_DATA = {
             "DHL On Demand Delivery",
             "Paket kommt heute",
             "kommt heute",
-            "Paket wird gleich zugestellt",
+            "wird gleich zugestellt",
             "Powiadomienie o przesyłce",
             "DHL Shipment Notification",
+            "ist unterwegs",
+            "Jetzt Live verfolgen",
         ],
         "body": [
             "scheduled for delivery TODAY",
@@ -334,7 +431,11 @@ SENSOR_DATA = {
         ],
     },
     "dhl_packages": {},
-    "dhl_tracking": {"pattern": ["\\d{10,11}"]},
+    "dhl_tracking": {
+        "pattern": [
+            "(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
+        ]
+    },
     # Hermes.co.uk
     "hermes_delivered": {
         "email": ["donotreply@myhermes.co.uk"],
@@ -459,6 +560,7 @@ SENSOR_DATA = {
         ],
         "subject": [
             "Ihr Paket ist da!",
+            "Die Abstellung Ihres DPD Pakets ist erfolgt",
         ],
     },
     "dpd_delivering": {
@@ -485,33 +587,35 @@ SENSOR_DATA = {
         "email": [
             "noreply@gls-group.eu",
             "powiadomienia@allegromail.pl",
+            "no-reply@gls-pakete.de",
         ],
         "subject": [
             "informacja o dostawie",
-            "wurde durch GLS zugestellt",
+            "wurde durch GLS",
         ],
         "body": [
             "została dzisiaj dostarczona",
             "Adresse erfolgreich zugestellt",
+            "Am Wunschort abgestellt",
         ],
     },
     "gls_delivering": {
         "email": [
             "noreply@gls-group.eu",
             "powiadomienia@allegromail.pl",
+            "no-reply@gls-pakete.de",
         ],
         "subject": [
             "paczka w drodze",
             "ist unterwegs",
+            "kommt heute",
         ],
-        "body": [
-            "Zespół GLS",
-            "GLS-Team",
-        ],
+        "body": ["Zespół GLS", "GLS-Team", "fast da"],
     },
     "gls_packages": {},
     "gls_tracking": {
         # https://gls-group.eu/GROUP/en/parcel-tracking?match=51687952111
+        # https://gls-rtt.com/#/DE/de/95368751054
         "pattern": ["\\d{11,12}"]
     },
     # Australia Post
@@ -581,6 +685,7 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your order has been delivered!",
@@ -588,6 +693,7 @@ SENSOR_DATA = {
             "Hooray! Your package is here",
             "Votre commande a été livrée!",
             "Votre colis a été livré!",
+            "We hebben je pakket bezorgd!",
         ],
     },
     "intelcom_delivering": {
@@ -595,11 +701,14 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your package is on the way!",
             "Your package is on its way",
             "Votre colis est en chemin!",
+            "package is on its way",
+            "Vandaag bezorgen we je pakket",
         ],
     },
     "intelcom_packages": {
@@ -607,17 +716,20 @@ SENSOR_DATA = {
             "notifications@intelcom.ca",
             "notifications@dragonflyshipping.ca",
             "notifications@dragonflyshipping.com",
+            "notifications@nl.dragonflyinternational.com",
         ],
         "subject": [
             "Your package has been received!",
             "We've received your package",
+            "We've received your",
+            "Je pakket is bij ons aangekomen",
         ],
     },
-    "intelcom_tracking": {"pattern": ["INTLCMD[0-9]{9}"]},
+    "intelcom_tracking": {"pattern": ["(NSPRSO[0-9]{10}|AMZNL[0-9]{12})"]},
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
-        "subject": ["Out for delivery"],
+        "subject": ["Out for delivery", "Your package should arrive by"],
     },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
@@ -632,7 +744,7 @@ SENSOR_DATA = {
         "email": ["help@walmart.com"],
         "subject": ["delivery is delayed"],
     },
-    "walmart_tracking": {"pattern": ["#[0-9]{7}-[0-9]{7,8}"]},
+    "walmart_tracking": {"pattern": [r"\b#?[0-9]{7}-[0-9]{7,8}\b"]},
     # BuildingLink
     "buildinglink_delivered": {
         "email": ["notify@buildinglink.com"],
@@ -686,6 +798,18 @@ SENSOR_DATA = {
     },
     "post_at_packages": {},
     "post_at_tracking": {"pattern": ["[0-9]{22}"]},
+    # Rewe Lieferservice
+    "rewe_lieferservice_delivering": {
+        "email": ["reweshop@mailing.rewe.de"],
+        "subject": ["Lieferschein zu deiner Bestellung beim REWE Lieferservice"],
+        "body": ["Deine Lieferinformationen"],
+    },
+    "rewe_lieferservice_exception": {},
+    "rewe_lieferservice_delivered": {
+        "email": ["reweshop@mailing.rewe.de"],
+        "subject": ["Deine Rechnung zu"],
+        "body": ["Im Anhang dieser E-Mail kommt"],
+    },
 }
 
 # Sensor definitions
@@ -797,6 +921,11 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package",
         key="amazon_hub",
     ),
+    "amazon_otp": SensorEntityDescription(
+        name="Mail Amazon OTP Code",
+        icon="mdi:counter",
+        key="amazon_otp",
+    ),
     # Canada Post
     "capost_delivered": SensorEntityDescription(
         name="Mail Canada Post Delivered",
@@ -809,6 +938,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:truck-delivery",
         key="capost_delivering",
+    ),
+    "capost_mail": SensorEntityDescription(
+        name="Mail Canada Post Mail",
+        native_unit_of_measurement="piece(s)",
+        icon="mdi:mailbox-up",
+        key="capost_mail",
     ),
     "capost_packages": SensorEntityDescription(
         name="Mail Canada Post Packages",
@@ -1171,6 +1306,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="post_at_packages",
     ),
+    # Rewe Lieferservice
+    "rewe_lieferservice_delivering": SensorEntityDescription(
+        name="Rewe Lieferservice Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="rewe_lieferservice_delivering",
+    ),
+    "rewe_lieferservice_delivered": SensorEntityDescription(
+        name="Rewe Lieferservice Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="rewe_lieferservice_delivered",
+    ),
+    "rewe_lieferservice_packages": SensorEntityDescription(
+        name="Rewe Lieferservice Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="rewe_lieferservice_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -1201,22 +1355,11 @@ IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
         key="usps_mail_image_url",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
-}
-
-BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
-    "usps_update": BinarySensorEntityDescription(
-        name="USPS Image Updated",
-        key="usps_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-    ),
-    "amazon_update": BinarySensorEntityDescription(
-        name="Amazon Image Updated",
-        key="amazon_update",
-        device_class=BinarySensorDeviceClass.UPDATE,
-    ),
-    "usps_mail_delivered": BinarySensorEntityDescription(
-        name="USPS Mail Delivered",
-        key="usps_mail_delivered",
+    "usps_mail_grid_image_path": SensorEntityDescription(
+        name="Mail Grid Image Path",
+        icon="mdi:folder-multiple-image",
+        key="usps_mail_grid_image_path",
+        entity_category=EntityCategory.DIAGNOSTIC,
         entity_registry_enabled_default=False,
     ),
 }
@@ -1224,7 +1367,28 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
 # Name
 CAMERA_DATA = {
     "usps_camera": ["Mail USPS Camera"],
+    "ups_camera": ["Mail UPS Camera"],
     "amazon_camera": ["Mail Amazon Delivery Camera"],
+    "walmart_camera": ["Mail Walmart Delivery Camera"],
+    "fedex_camera": ["Mail FedEx Delivery Camera"],
+    "generic_camera": ["Mail Generic Delivery Camera"],
+}
+
+# Configuration for shipper-specific image extraction parameters
+# Only contains values that cannot be derived from shipper_name
+CAMERA_EXTRACTION_CONFIG = {
+    "ups": {
+        "image_type": "jpeg",
+        "cid_name": "deliveryPhoto",
+    },
+    "walmart": {
+        "image_type": "png",
+        "cid_name": "deliveryProofLabel",
+    },
+    "fedex": {
+        "image_type": "jpeg",
+        "attachment_filename_pattern": "delivery",
+    },
 }
 
 # Sensor Index
@@ -1234,11 +1398,13 @@ SENSOR_ICON = 2
 
 # For sensors with delivering and delivered statuses
 SHIPPERS = [
+    "amazon",
     "capost",
     "dhl",
     "fedex",
     "ups",
     "usps",
+    "walmart",
     "hermes",
     "royal",
     "auspost",
@@ -1252,4 +1418,5 @@ SHIPPERS = [
     "intelcom",
     "post_nl",
     "post_at",
+    "rewe_lieferservice",
 ]

@@ -1,0 +1,6 @@
+substitutions:
+  name: sonoff_s31_2
+  friendly_name: "S31 2"
+
+packages:
+  shared: !include sonoff_s31_main.yaml

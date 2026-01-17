@@ -513,6 +513,29 @@ recorder:
       - media_player.kitchen_photo_frame
       - media_player.office_photo_frame
 
+rest:
+  - resource: !secret utilities_rest_url
+    method: POST
+    payload: !secret utilities_rest_payload
+    verify_ssl: false
+    # 6 Hours
+    scan_interval: 21600
+    headers:
+      Content-Type: application/x-www-form-urlencoded
+    sensor:
+      - name: "Utilities Cycle Start"
+        value_template: "{{ value_json.ReadStartDate }}"
+        icon: 'mdi:calendar'
+        json_attributes:
+          - StartDateLabel
+          - EndDateLabel
+      - name: "Utilities Cycle End"
+        value_template: "{{ value_json.ReadEndDate }}"
+        icon: 'mdi:calendar'
+        json_attributes:
+          - StartDateLabel
+          - EndDateLabel
+
 rest_command: !include rest_command.yaml
 
 # samsungtv:

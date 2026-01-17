@@ -224,9 +224,21 @@
         }
     },
     "issues": {
+        "advanced_deprecated": {
+            "description": "Zaawansowana opcja konfiguracyjna `{option}` została zmieniona na `{new_option}`. Zaktualizuj swoje zaawansowane opcje konfiguracyjne, aby używać nowej nazwy opcji.{stops_working}",
+            "title": "Zaawansowana opcja przestarzała"
+        },
+        "advanced_problem": {
+            "description": "Plik zaawansowanej konfiguracji zawiera błędy.\n{problems}\n\nPopraw je, odwołując się do dokumentacji integracji pod linkiem 'Dowiedz się więcej'.",
+            "title": "Problem z zaawansowaną opcją"
+        },
         "api_unavailable": {
             "description": "Podczas aktualizacji Solcast API wielokrotnie zgłaszało status `429 / Spróbuj ponownie później`.\n\n* Nie próbuj rozwiązać tej sytuacji.\n* Nie zmieniaj klucza API.\n* Unikaj ponownego uruchamiania integracji\n* To nie jest problem z integracją i rozwiąże się samoczynnie. Nic nie zmieniaj.\n\n(Aby wyciszyć ten problem, utwórz zaawansowana opcja konfiguracji api_raise_issue i ustaw ją na false.)",
             "title": "Solcast API tymczasowo niedostępne"
+        },
+        "corrupt_file": {
+            "description": "Plik(i) danych w pamięci podręcznej `{files}` jest(są) uszkodzony(e). Integracja spróbuje się odzyskać, usuwając plik(i) i ponownie pobierając dane z Solcast. Spodziewaj się zwiększonego wykorzystania API i potencjalnych awarii API oraz utraty historii prognoz z powodu tej sytuacji. Możliwe jest odzyskanie plików z kopii zapasowej, ale nadal spodziewaj się awarii wywołań API.",
+            "title": "Uszkodzone dane w pamięci podręcznej"
         },
         "records_missing": {
             "description": "Brakuje danych prognozy na przyszłość, co jest nieoczekiwane, ponieważ automatyczna aktualizacja jest włączona. Zbadaj przyczynę, sprawdzając dziennik Home Assistanta. Przeczytaj FAQ dotyczące rozwiązywania problemów przed zgłoszeniem problemu z integracją.",
@@ -248,6 +260,10 @@
                 }
             },
             "title": "Brak prognoz na przyszłość"
+        },
+        "records_missing_initial": {
+            "description": "Brakuje danych prognozy i/lub szacowanych wartości rzeczywistych, prawdopodobnie dlatego, że nie nastąpiła początkowa aktualizacja prognozy. Prawdopodobnie jest to spowodowane osiągnięciem limitu wywołań API. Będziesz mieć problemy z jednostkami czujników, a pulpit nawigacyjny Energii prawdopodobnie będzie miał brakujące dane. Sytuacja ta rozwiąże się sama.",
+            "title": "Brak prognoz"
         },
         "records_missing_unfixable": {
             "description": "Brak danych prognozy na przyszłość, co jest nieoczekiwane. Sprawdź dzienniki.",

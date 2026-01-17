@@ -138,7 +138,10 @@ cards:
 
           Monthly Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Monthly Water + Sewer + Electric (+fee): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 }}
+          Monthly Water + Sewer + Electric (+fee, trash, etc): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 + 7.65 + 22.25 + 10 }}
+      
+          Cycle Ends: {{ state_attr('sensor.utilities_cycle_end', 'EndDateLabel') }}
+      
       # - type: sensor
       #   entity: sensor.s3_water_usage
       #   graph: line

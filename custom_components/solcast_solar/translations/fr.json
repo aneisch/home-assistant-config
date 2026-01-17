@@ -224,6 +224,14 @@
         }
     },
     "issues": {
+        "advanced_deprecated": {
+            "description": "L'option de configuration avancée `{option}` a été modifiée en `{new_option}`. Veuillez mettre à jour vos options de configuration avancées pour utiliser le nouveau nom d'option.{stops_working}",
+            "title": "Option avancée obsolète"
+        },
+        "advanced_problem": {
+            "description": "Le fichier de configuration avancée contient des erreurs.\n{problems}\n\nVeuillez les corriger en vous référant à la documentation de l'intégration via le lien 'En savoir plus'.",
+            "title": "Problème d'option avancée"
+        },
         "api_unavailable": {
             "description": "L'API Solcast a signalé à plusieurs reprises le statut `429 / Réessayez plus tard` lors d'une mise à jour.\n\n* N'essayez pas de résoudre cette situation.\n* Ne changez pas votre clé API.\n* Évitez de redémarrer l'intégration\n* Ce n'est pas un problème d'intégration et cela se résoudra de lui-même. Ne changez rien.\n\n(Pour supprimer ce problème, créez une option de configuration avancée api_raise_issue et définissez-la sur false.)",
             "title": "API Solcast temporairement indisponible"
@@ -247,6 +255,10 @@
                     }
                 }
             },
+            "title": "Prévisions manquantes"
+        },
+        "records_missing_initial": {
+            "description": "Les données de prévisions et/ou les données réelles estimées sont manquantes, probablement parce que la mise à jour initiale des prévisions n'a pas eu lieu. Cela est probablement dû au fait que la limite d'appels API a été atteinte. Vous _aurez_ des problèmes d'entités de capteurs, et le tableau de bord Énergie aura probablement des données manquantes. Cela se résoudra de lui-même.",
             "title": "Prévisions manquantes"
         },
         "records_missing_unfixable": {

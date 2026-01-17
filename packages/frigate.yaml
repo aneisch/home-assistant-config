@@ -282,6 +282,13 @@ automation:
       #     entity_id: camera.front_door_fullres
       #   continue_on_error: true
       #- delay: 00:00:03
+      # Analog chime is disabled due to power issues: http://10.0.0.34/cgi-bin/configManager.cgi?action=getConfig&name=ExternalDoorBell
+      - action: siren.turn_on
+        target:
+          entity_id: siren.siren_chime_play_tone
+        data:
+          tone: "{{ state_attr('siren.siren_chime_play_tone','available_tones') |dictsort |selectattr('1', 'search', 'doorbell_home') |map(attribute='0') |first }}"
+          volume_level: 1
       - action: siren.turn_on
         entity_id: siren.garage_chime_siren
         continue_on_error: true

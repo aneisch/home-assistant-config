@@ -32,8 +32,8 @@ MFR = "Creality"
 MODEL = "K"
 
 # ---- Health / reconnect / keepalive ----
-STALE_AFTER_SECS = 5
-RETRY_MIN_BACKOFF = 2.0
+STALE_AFTER_SECS = 15
+RETRY_MIN_BACKOFF = 1.0
 RETRY_MAX_BACKOFF = 300.0
 RETRY_BACKOFF_MULTIPLIER = 1.8
 HEARTBEAT_SECS = 10.0
@@ -42,3 +42,13 @@ PROBE_ON_SILENCE_SECS = 10.0
 # go2rtc defaults
 DEFAULT_GO2RTC_URL = "localhost"
 DEFAULT_GO2RTC_PORT = 11984
+
+# Notifications
+CONF_NOTIFY_DEVICE = "notify_device"
+CONF_NOTIFY_COMPLETED = "notify_completed"
+CONF_NOTIFY_ERROR = "notify_error"
+CONF_NOTIFY_MINUTES_TO_END = "notify_minutes_to_end"
+CONF_MINUTES_TO_END_VALUE = "minutes_to_end_value"
+
+CONF_POLLING_RATE = "polling_rate"
+DEFAULT_POLLING_RATE = 0  # Real-time

@@ -20,9 +20,8 @@ cards:
                       text-align: center;
                     }
               content: |
-                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
-                {% set parsed = raw | from_json %}
-                {% set ms = parsed[0][1]['originalDurationInMillis'] %}
+                {% set parsed = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set ms = parsed[0]['originalDurationInMillis'] %}
                 {% set total_seconds = ms // 1000 %}
                 {% set hours = total_seconds // 3600 %}
                 {% set minutes = (total_seconds % 3600) // 60 %}
@@ -67,9 +66,8 @@ cards:
                       text-align: center;
                     }
               content: |
-                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
-                {% set parsed = raw | from_json %}
-                {% set ms = parsed[1][1]['originalDurationInMillis'] %}
+                {% set parsed = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set ms = parsed[1]['originalDurationInMillis'] %}
                 {% set total_seconds = ms // 1000 %}
                 {% set hours = total_seconds // 3600 %}
                 {% set minutes = (total_seconds % 3600) // 60 %}
@@ -114,9 +112,8 @@ cards:
                       text-align: center;
                     }
               content: |
-                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
-                {% set parsed = raw | from_json %}
-                {% set ms = parsed[2][1]['originalDurationInMillis'] %}
+                {% set parsed = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set ms = parsed[2]['originalDurationInMillis'] %}
                 {% set total_seconds = ms // 1000 %}
                 {% set hours = total_seconds // 3600 %}
                 {% set minutes = (total_seconds % 3600) // 60 %}
@@ -161,9 +158,8 @@ cards:
                       text-align: center;
                     }
               content: |
-                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
-                {% set parsed = raw | from_json %}
-                {% set ms = parsed[3][1]['originalDurationInMillis'] %}
+                {% set parsed = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set ms = parsed[3]['originalDurationInMillis'] %}
                 {% set total_seconds = ms // 1000 %}
                 {% set hours = total_seconds // 3600 %}
                 {% set minutes = (total_seconds % 3600) // 60 %}
@@ -208,9 +204,8 @@ cards:
                       text-align: center;
                     }
               content: |
-                {% set raw = state_attr('sensor.kitchen_next_timer','sorted_active') %}
-                {% set parsed = raw | from_json %}
-                {% set ms = parsed[4][1]['originalDurationInMillis'] %}
+                {% set parsed = state_attr('sensor.kitchen_next_timer','sorted_active') %}
+                {% set ms = parsed[4]['originalDurationInMillis'] %}
                 {% set total_seconds = ms // 1000 %}
                 {% set hours = total_seconds // 3600 %}
                 {% set minutes = (total_seconds % 3600) // 60 %}

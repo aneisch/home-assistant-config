@@ -1,0 +1,74 @@
+# Basic Config
+substitutions:
+  name: sonoff_s31_main
+  friendly_name: "S31 Main"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: esp12e
+  early_pin_init: false
+  restore_from_flash: false # Set to true to use one of the switch's RESTORE_X restore_mode options
+
+<<: !include common.yaml
+
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+  parity: EVEN
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "${friendly_name} Button"
+    on_press:
+      - switch.toggle: relay
+
+sensor:
+  - platform: cse7766
+    current:
+      name: "${friendly_name} Current"
+      accuracy_decimals: 0
+      filters:
+        - throttle_average: 5s
+    # voltage:
+    #   name: "${friendly_name} Voltage"
+    #   accuracy_decimals: 0
+    #   filters:
+    #     - throttle_average: 5s
+    power:
+      name: "${friendly_name} Power"
+      accuracy_decimals: 0
+      id: my_power
+      filters:
+        - throttle_average: 5s
+    # energy:
+    #   name: "${friendly_name} Energy"
+    #   accuracy_decimals: 0
+    #   filters:
+    #     - throttle: 5s
+
+  - platform: total_daily_energy #(Optional, not specific to cse7766)
+    name: "${friendly_name} Daily Energy"
+    power_id: my_power
+    accuracy_decimals: 2
+
+switch:
+  - platform: gpio
+    name: "${friendly_name} Relay"
+    pin: GPIO12
+    id: relay
+    restore_mode: ALWAYS_OFF # Powering the relay may cause damage or instability when the programmer is supplying Vcc.
+
+time:
+  - platform: homeassistant #(required for total_daily_energy)
+    id: my_time
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: True

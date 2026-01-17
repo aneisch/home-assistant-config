@@ -50,26 +50,27 @@ from .const import (
     ADVANCED_AUTOMATED_DAMPENING_MINIMUM_MATCHING_INTERVALS,
     ADVANCED_AUTOMATED_DAMPENING_MODEL,
     ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS,
-    ADVANCED_AUTOMATED_DAMPENING_NO_DELTA_CORRECTIONS,
+    ADVANCED_AUTOMATED_DAMPENING_NO_DELTA_ADJUSTMENT,
     ADVANCED_AUTOMATED_DAMPENING_NO_LIMITING_CONSISTENCY,
     ADVANCED_AUTOMATED_DAMPENING_PRESERVE_UNMATCHED_FACTORS,
     ADVANCED_AUTOMATED_DAMPENING_SIMILAR_PEAK,
     ADVANCED_AUTOMATED_DAMPENING_SUPPRESSION_ENTITY,
     ADVANCED_FORECAST_FUTURE_DAYS,
-    ADVANCED_FORECAST_HISTORY_MAX_DAYS,
+    ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT,
+    ADVANCED_HISTORY_MAX_DAYS,
+    ADVANCED_INVALID_JSON_TASK,
     ADVANCED_OPTION,
     ADVANCED_OPTIONS,
     ADVANCED_SOLCAST_URL,
     ADVANCED_TRIGGER_ON_API_AVAILABLE,
     ADVANCED_TRIGGER_ON_API_UNAVAILABLE,
     ADVANCED_TYPE,
+    ALIASES,
     ALL,
     API_KEY,
-    API_UNAVAILABLE,
     AUTO_DAMPEN,
     AUTO_UPDATE,
     AUTO_UPDATED,
-    AZIMUTH,
     BRK_ESTIMATE,
     BRK_ESTIMATE10,
     BRK_ESTIMATE90,
@@ -77,11 +78,9 @@ from .const import (
     BRK_HOURLY,
     BRK_SITE,
     BRK_SITE_DETAILED,
-    CAPACITY,
-    CAPACITY_DC,
     CONFIG_DISCRETE_NAME,
     CONFIG_FOLDER_DISCRETE,
-    CORRECT,
+    CURRENT_NAME,
     CUSTOM_HOUR_SENSOR,
     DAILY_LIMIT,
     DAILY_LIMIT_CONSUMED,
@@ -91,26 +90,32 @@ from .const import (
     DATA_SET_ACTUALS_UNDAMPENED,
     DATA_SET_FORECAST,
     DATA_SET_FORECAST_UNDAMPENED,
-    DATE_FORMAT,
-    DATE_MONTH_DAY,
     DAY_NAME,
     DEFAULT,
+    DEPRECATED,
     DETAILED_FORECAST,
     DETAILED_HOURLY,
     DISMISSAL,
     DOMAIN,
-    EARLIEST_PERIOD,
+    DT_DATE_FORMAT,
+    DT_DATE_MONTH_DAY,
+    DT_DATE_ONLY_FORMAT,
+    ENTRY_ID,
     ENTRY_OPTIONS,
     ERROR_CODE,
     ESTIMATE,
     ESTIMATE10,
     ESTIMATE90,
     ESTIMATED_ACTUALS,
+    EXCEPTION_BUILD_FAILED_ACTUALS,
+    EXCEPTION_BUILD_FAILED_FORECASTS,
+    EXCEPTION_INIT_CORRUPT,
+    EXCEPTION_INIT_INCOMPATIBLE,
     EXCLUDE_SITES,
-    EXPECTED_INTERVALS,
     EXPORT_LIMITING,
     EXTANT,
     FAILURE,
+    FILES,
     FORECASTS,
     FORMAT,
     GENERATION,
@@ -119,8 +124,14 @@ from .const import (
     GET_ACTUALS,
     HARD_LIMIT_API,
     HOURS,
-    INSTALL_DATE,
-    INTERVALS,
+    ISSUE_API_UNAVAILABLE,
+    ISSUE_CORRUPT_FILE,
+    ISSUE_RECORDS_MISSING,
+    ISSUE_RECORDS_MISSING_FIXABLE,
+    ISSUE_RECORDS_MISSING_INITIAL,
+    ISSUE_RECORDS_MISSING_UNFIXABLE,
+    ISSUE_UNUSUAL_AZIMUTH_NORTHERN,
+    ISSUE_UNUSUAL_AZIMUTH_SOUTHERN,
     JSON,
     JSON_VERSION,
     KEY_ESTIMATE,
@@ -128,14 +139,11 @@ from .const import (
     LAST_14D,
     LAST_24H,
     LAST_ATTEMPT,
-    LAST_PERIOD,
     LAST_UPDATED,
-    LATITUDE,
     LEARN_MORE,
+    LEARN_MORE_CORRUPT_FILE,
     LEARN_MORE_MISSING_FORECAST_DATA,
     LEARN_MORE_UNUSUAL_AZIMUTH,
-    LONGITUDE,
-    LOSS_FACTOR,
     MAXIMUM,
     MESSAGE,
     MINIMUM,
@@ -143,6 +151,7 @@ from .const import (
     OLD_API_KEY,
     OPTION_GREATER_THAN_OR_EQUAL,
     OPTION_LESS_THAN_OR_EQUAL,
+    OPTION_NOT_SET_IF,
     PERIOD_END,
     PERIOD_START,
     PLATFORM_BINARY_SENSOR,
@@ -153,24 +162,25 @@ from .const import (
     RESOURCE_ID,
     RESPONSE_STATUS,
     SITE,
+    SITE_ATTRIBUTE_AZIMUTH,
+    SITE_ATTRIBUTE_CAPACITY,
+    SITE_ATTRIBUTE_CAPACITY_DC,
+    SITE_ATTRIBUTE_INSTALL_DATE,
+    SITE_ATTRIBUTE_LATITUDE,
+    SITE_ATTRIBUTE_LONGITUDE,
+    SITE_ATTRIBUTE_LOSS_FACTOR,
+    SITE_ATTRIBUTE_TAGS,
+    SITE_ATTRIBUTE_TILT,
     SITE_DAMP,
     SITE_EXPORT_ENTITY,
     SITE_EXPORT_LIMIT,
     SITE_INFO,
     SITES,
-    TAGS,
-    TALLY,
+    STOPS_WORKING,
     TASK_ACTUALS_FETCH,
     TASK_FORECASTS_FETCH,
-    TILT,
     TOTAL_RECORDS,
-    TRANSLATE_BUILD_FAILED_ACTUALS,
-    TRANSLATE_BUILD_FAILED_FORECASTS,
-    TRANSLATE_INIT_CORRUPT,
-    TRANSLATE_INIT_INCOMPATIBLE,
     UNKNOWN,
-    UNUSUAL_AZIMUTH_NORTHERN,
-    UNUSUAL_AZIMUTH_SOUTHERN,
     USE_ACTUALS,
     VERSION,
     WINTER_TIME,
@@ -192,6 +202,8 @@ from .util import (
     interquartile_bounds,
     percentile,
     raise_and_record,
+    raise_or_clear_advanced_deprecated,
+    raise_or_clear_advanced_problems,
     redact_api_key,
     redact_lat_lon,
     redact_lat_lon_simple,
@@ -357,6 +369,30 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 target_path = Path(self._config_dir) / file.name
                 _LOGGER.info("Migrating config directory file %s to %s", file.resolve(), target_path)
                 file.replace(target_path)
+
+        unlinked: list[str] = []
+        for file in Path(self._config_dir).glob("solcast*.json"):
+            if file.stat().st_size == 0:
+                _LOGGER.critical("Removing zero-length file %s", file.resolve())
+                file.unlink()
+                unlinked.append(str(file.name))
+            else:
+                _LOGGER.debug("File %s has length %d", file.resolve(), file.stat().st_size)
+        if unlinked:
+            _LOGGER.debug("Raise issue `%s` for files %s", ISSUE_CORRUPT_FILE, str(unlinked))
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                ISSUE_CORRUPT_FILE,
+                is_fixable=False,
+                is_persistent=False,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key=ISSUE_CORRUPT_FILE,
+                translation_placeholders={
+                    FILES: str(unlinked),
+                },
+                learn_more_url=LEARN_MORE_CORRUPT_FILE,
+            )
         with contextlib.suppress(OSError):
             ((Path(self._config_dir) / "solcast_solar").rmdir()) if not CONFIG_FOLDER_DISCRETE else None
 
@@ -406,6 +442,51 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self._use_forecast_confidence = f"pv_{self.options.key_estimate}"
         self.estimate_set = self.__get_estimate_set(self.options)
 
+    def _advanced_options_with_aliases(self) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+        """Return advanced options including aliases."""
+
+        deprecated: dict[str, str] = {}
+        advanced_options_with_aliases = copy.deepcopy(ADVANCED_OPTIONS)
+        for option, characteristics in advanced_options_with_aliases.copy().items():
+            advanced_options_with_aliases[option][CURRENT_NAME] = option
+            for alias in characteristics.get(ALIASES, []):
+                if not (
+                    not alias[DEPRECATED]
+                    and (
+                        dt.strptime(
+                            alias.get(STOPS_WORKING, dt.strftime(dt.now(self.options.tz) - timedelta(days=1), DT_DATE_ONLY_FORMAT)),
+                            DT_DATE_ONLY_FORMAT,
+                        ).date()
+                        > dt.now(self.options.tz).date()
+                    )
+                ):
+                    advanced_options_with_aliases[alias[NAME]] = characteristics
+                    del advanced_options_with_aliases[alias[NAME]][ALIASES]
+                    advanced_options_with_aliases[alias[NAME]][CURRENT_NAME] = option
+                    if alias[DEPRECATED]:
+                        deprecated[alias[NAME]] = alias.get(STOPS_WORKING)
+        return advanced_options_with_aliases, deprecated
+
+    def _advanced_with_aliases(self, names: dict[str, Any]) -> list[str]:
+        """Return advanced options including aliases."""
+
+        advanced_options_with_aliases, _ = self._advanced_options_with_aliases()
+        present_names: list[str] = []
+        name: str
+        for name in names:
+            if advanced_options_with_aliases.get(name) is not None:
+                present_names.append(advanced_options_with_aliases[name][CURRENT_NAME])
+            else:
+                present_names.extend(
+                    [
+                        characteristics[CURRENT_NAME]
+                        for _, characteristics in advanced_options_with_aliases.items()
+                        for alias in characteristics.get(ALIASES, [])
+                        if name == alias[NAME]
+                    ]
+                )
+        return present_names
+
     async def read_advanced_options(self) -> bool:  # noqa: C901
         """Read advanced JSON file options, validate and set them."""
 
@@ -413,109 +494,182 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         change = False
         if Path(self._filename_advanced).exists():
             _LOGGER.debug("Advanced options file %s exists", self._filename_advanced)
-            async with aiofiles.open(self._filename_advanced) as file:
+            deprecated_in_use: dict[str, str] = {}
+            problems: list[str] = []
+
+            def add_problem(issue_problem: str, *args) -> None:
+                """Add an advanced option problem to the issues registry."""
+                nonlocal problems
+                problem = issue_problem % args if args else issue_problem
+                _LOGGER.error(problem)
+                problems.append(problem)
+
+            async def add_problem_later(issue_problem: str, *args) -> None:
+                """Add an advanced option problem to the issues registry."""
                 try:
+                    if self.hass is not None:
+                        problem = issue_problem % args if args else issue_problem
+                        _LOGGER.warning("Raise issue in 60 seconds if unresolved: %s", problem)
+                        for _ in range(600):
+                            await asyncio.sleep(0.1)
+                        _LOGGER.error(problem)
+                        await raise_or_clear_advanced_problems([problem], self.hass)
+                except asyncio.CancelledError:
+                    self.tasks.pop(ADVANCED_INVALID_JSON_TASK, None)
+
+            try:
+                async with aiofiles.open(self._filename_advanced) as file:
                     _VALIDATION = {
                         ADVANCED_OPTION.INT: r"^\d+$",
                         ADVANCED_OPTION.TIME: r"^([01]?[0-9]|2[0-3]):[03]{1}0$",
                     }
+                    advanced_options_with_aliases = self._advanced_options_with_aliases()
 
                     content = await file.read()
                     if content.replace("\n", "").replace("\r", "").strip() != "":  # i.e. not empty
-                        response_json: dict[str, Any] = json.loads(content)
+                        response_json = ""
                         value: int | float | str | list[str] | None
                         new_value: int | float | str | list[str]
+                        if self.tasks.get(ADVANCED_INVALID_JSON_TASK) is not None:
+                            self.tasks[ADVANCED_INVALID_JSON_TASK].cancel()
+                            self.tasks.pop(ADVANCED_INVALID_JSON_TASK)
+                        with contextlib.suppress(json.JSONDecodeError):
+                            response_json = json.loads(content)
                         if not isinstance(response_json, dict):
-                            _LOGGER.error("Advanced options file invalid format, expected JSON `dict`: %s", self._filename_advanced)
+                            self.tasks[ADVANCED_INVALID_JSON_TASK] = asyncio.create_task(
+                                add_problem_later("Advanced options file invalid format, expected JSON `dict`: %s", self._filename_advanced)
+                            )
                             return change
-                        options_present = response_json.keys()
+                        options_present = self._advanced_with_aliases(response_json)
                         for option, new_value in response_json.items():
-                            value = self.advanced_options.get(option)
-                            if value is None:
-                                _LOGGER.error("Unknown advanced option ignored: %s", option)
+                            if advanced_options_with_aliases[0].get(option) is None:
+                                add_problem("Unknown option: %s, ignored", option)
                                 continue
+                            if option in advanced_options_with_aliases[1]:
+                                deprecated_in_use[option] = advanced_options_with_aliases[0][option][CURRENT_NAME]
+                                _LOGGER.warning(
+                                    "Advanced option %s is deprecated, please use %s",
+                                    option,
+                                    advanced_options_with_aliases[0][option][CURRENT_NAME],
+                                )
+                            value = self.advanced_options.get(option)
                             if new_value != value:
                                 valid = True
                                 if isinstance(new_value, type(value)):
-                                    match ADVANCED_OPTIONS[option][ADVANCED_TYPE]:
+                                    match advanced_options_with_aliases[0][option][ADVANCED_TYPE]:
                                         case ADVANCED_OPTION.INT | ADVANCED_OPTION.FLOAT:
                                             if (
-                                                new_value < ADVANCED_OPTIONS[option][MINIMUM]
-                                                or new_value > ADVANCED_OPTIONS[option][MAXIMUM]
+                                                new_value < advanced_options_with_aliases[0][option][MINIMUM]
+                                                or new_value > advanced_options_with_aliases[0][option][MAXIMUM]
                                             ):
-                                                _LOGGER.error(
+                                                add_problem(
                                                     "Invalid value for advanced option %s: %s (must be %s-%s)",
                                                     option,
                                                     new_value,
-                                                    ADVANCED_OPTIONS[option][MINIMUM],
-                                                    ADVANCED_OPTIONS[option][MAXIMUM],
+                                                    advanced_options_with_aliases[0][option][MINIMUM],
+                                                    advanced_options_with_aliases[0][option][MAXIMUM],
                                                 )
                                                 valid = False
                                         # case ADVANCED_OPTION.TIME:
                                         #    if re.match(_VALIDATION[ADVANCED_OPTION.TIME], new_value) is None:  # pyright: ignore[reportArgumentType, reportCallIssue]
-                                        #        _LOGGER.error("Invalid time in advanced option %s: %s", option, new_value)
+                                        #        add_problem("Invalid time in advanced option %s: %s", option, new_value)
                                         #        valid = False
                                         case ADVANCED_OPTION.LIST_INT | ADVANCED_OPTION.LIST_TIME:
-                                            member_type = ADVANCED_OPTIONS[option][ADVANCED_TYPE].split("_")[1]
+                                            member_type = advanced_options_with_aliases[0][option][ADVANCED_TYPE].split("_")[1]
                                             seen_members: list[Any] = []
                                             member: Any
-                                            for member in new_value:  # pyright: ignore[reportGeneralTypeIssues]
+                                            for member in new_value:  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
                                                 if re.match(_VALIDATION[member_type], str(member)) is None:
-                                                    _LOGGER.error("Invalid %s in advanced option %s: %s", member_type, option, member)
+                                                    add_problem("Invalid %s in advanced option %s: %s", member_type, option, member)
                                                     valid = False
                                                     continue
                                                 if member in seen_members:
-                                                    _LOGGER.error("Duplicate %s in advanced option %s: %s", member_type, option, member)
+                                                    add_problem("Duplicate %s in advanced option %s: %s", member_type, option, member)
                                                     valid = False
                                                     continue
                                                 seen_members.append(member)
                                         case _:
                                             pass
+                                    if (
+                                        option == ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT
+                                        and new_value
+                                        and not self.options.get_actuals
+                                    ):
+                                        add_problem("Granular dampening delta adjustment requires estimated actuals to be fetched")
+                                        valid = False
                                 else:
-                                    _LOGGER.error("Type mismatch for advanced option %s: should be %s", option, type(value).__name__)
+                                    add_problem("Type mismatch for advanced option %s: should be %s", option, type(value).__name__)
                                     valid = False
                                 if valid:
-                                    advanced_options_proposal[option] = new_value
-                                    if ADVANCED_OPTIONS[option][ADVANCED_TYPE] in (ADVANCED_OPTION.FLOAT, ADVANCED_OPTION.INT):
-                                        _LOGGER.debug("Advanced option proposed %s: %s", option, new_value)
+                                    advanced_options_proposal[advanced_options_with_aliases[0][option][CURRENT_NAME]] = new_value
+                                    if advanced_options_with_aliases[0][option][ADVANCED_TYPE] in (
+                                        ADVANCED_OPTION.FLOAT,
+                                        ADVANCED_OPTION.INT,
+                                    ):
+                                        _LOGGER.debug(
+                                            "Advanced option proposed %s: %s",
+                                            advanced_options_with_aliases[0][option][CURRENT_NAME],
+                                            new_value,
+                                        )
 
                     invalid: list[str] = []
                     for option, value in advanced_options_proposal.items():
-                        if ADVANCED_OPTIONS[option].get(OPTION_GREATER_THAN_OR_EQUAL) is not None:
+                        if advanced_options_with_aliases[0][option].get(OPTION_GREATER_THAN_OR_EQUAL) is not None:
                             if any(
-                                value < advanced_options_proposal[opt] for opt in ADVANCED_OPTIONS[option][OPTION_GREATER_THAN_OR_EQUAL]
+                                value < advanced_options_proposal[opt]
+                                for opt in advanced_options_with_aliases[0][option][OPTION_GREATER_THAN_OR_EQUAL]
                             ):
-                                _LOGGER.error(
+                                add_problem(
                                     "Advanced option %s: %s must be greater than or equal to the value of %s",
                                     option,
                                     value,
                                     ", ".join(
                                         [
                                             f"{opt} ({advanced_options_proposal[opt]})"
-                                            for opt in ADVANCED_OPTIONS[option][OPTION_GREATER_THAN_OR_EQUAL]
+                                            for opt in advanced_options_with_aliases[0][option][OPTION_GREATER_THAN_OR_EQUAL]
                                         ]
                                     ),
                                 )
                                 invalid.append(option)
-                        if ADVANCED_OPTIONS[option].get(OPTION_LESS_THAN_OR_EQUAL) is not None:
-                            if any(value > advanced_options_proposal[opt] for opt in ADVANCED_OPTIONS[option][OPTION_LESS_THAN_OR_EQUAL]):
-                                _LOGGER.error(
+                        if advanced_options_with_aliases[0][option].get(OPTION_LESS_THAN_OR_EQUAL) is not None:
+                            if any(
+                                value > advanced_options_proposal[opt]
+                                for opt in advanced_options_with_aliases[0][option][OPTION_LESS_THAN_OR_EQUAL]
+                            ):
+                                add_problem(
                                     "Advanced option %s: %s must be less than or equal to the value of %s",
                                     option,
                                     value,
                                     ", ".join(
                                         [
                                             f"{opt} ({advanced_options_proposal[opt]})"
-                                            for opt in ADVANCED_OPTIONS[option][OPTION_LESS_THAN_OR_EQUAL]
+                                            for opt in advanced_options_with_aliases[0][option][OPTION_LESS_THAN_OR_EQUAL]
+                                        ]
+                                    ),
+                                )
+                                invalid.append(option)
+                        if advanced_options_with_aliases[0][option].get(OPTION_NOT_SET_IF) is not None:
+                            if any(advanced_options_proposal[opt] for opt in advanced_options_with_aliases[0][option][OPTION_NOT_SET_IF]):
+                                add_problem(
+                                    "Advanced option %s: %s can not be set with %s",
+                                    option,
+                                    value,
+                                    ", ".join(
+                                        [
+                                            f"{opt}: {advanced_options_proposal[opt]}"
+                                            for opt in advanced_options_with_aliases[0][option][OPTION_NOT_SET_IF]
                                         ]
                                     ),
                                 )
                                 invalid.append(option)
 
                     for option, value in advanced_options_proposal.items():
-                        default = ADVANCED_OPTIONS[option][DEFAULT]
+                        default = advanced_options_with_aliases[0][option][DEFAULT]
+                        option = advanced_options_with_aliases[0][option][CURRENT_NAME]
                         if option in invalid:
-                            advanced_options_proposal[option] = self.advanced_options.get(option, default)
+                            advanced_options_proposal[advanced_options_with_aliases[0][option][CURRENT_NAME]] = self.advanced_options.get(
+                                advanced_options_with_aliases[0][option][CURRENT_NAME], default
+                            )
                             continue
                         if option not in options_present:
                             if value != default:
@@ -530,8 +684,18 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             _LOGGER.debug("Advanced option default set %s: %s", option, default)
                             change = True
                     self.advanced_options.update(advanced_options_proposal)
-                except json.decoder.JSONDecodeError:
-                    _LOGGER.error("JSONDecodeError, advanced options ignored: %s", self._filename_advanced)
+            finally:
+                await raise_or_clear_advanced_problems(problems, self.hass)
+                await raise_or_clear_advanced_deprecated(
+                    deprecated_in_use,
+                    self.hass,
+                    stops_working={
+                        o: dt.strptime(stops, DT_DATE_ONLY_FORMAT)
+                        for o, stops in advanced_options_with_aliases[1].items()
+                        if stops is not None
+                    },
+                )
+
         return change
 
     def get_filename_advanced(self) -> str:
@@ -541,15 +705,17 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
     def log_advanced_options(self) -> None:
         """Log the advanced options that are set differently to their defaults."""
 
-        for key, value in ADVANCED_OPTIONS.items():
+        advanced_options_with_aliases, _ = self._advanced_options_with_aliases()
+        for key, value in advanced_options_with_aliases.items():
             if key not in self.advanced_options or self.advanced_options.get(key) != value[DEFAULT]:
                 _LOGGER.debug("Advanced option set %s: %s", key, self.advanced_options.get(key))
 
     def set_default_advanced_options(self) -> None:
         """Set the default advanced options."""
 
+        advanced_options_with_aliases, _ = self._advanced_options_with_aliases()
         initial = not self.advanced_options
-        for key, value in ADVANCED_OPTIONS.items():
+        for key, value in advanced_options_with_aliases.items():
             if key not in self.advanced_options or self.advanced_options.get(key) != value[DEFAULT]:
                 self.advanced_options[key] = value[DEFAULT]
                 if not initial:
@@ -724,9 +890,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             )
             for site in sites_data[SITES]:
                 site[API_KEY] = api_key
-                site.pop(LONGITUDE, None)
-                self._site_latitude[site[RESOURCE_ID]][LATITUDE] = site.pop(LATITUDE, None)
-                self._site_latitude[site[RESOURCE_ID]][AZIMUTH] = site[AZIMUTH]
+                site.pop(SITE_ATTRIBUTE_LONGITUDE, None)
+                self._site_latitude[site[RESOURCE_ID]][SITE_ATTRIBUTE_LATITUDE] = site.pop(SITE_ATTRIBUTE_LATITUDE, None)
+                self._site_latitude[site[RESOURCE_ID]][SITE_ATTRIBUTE_AZIMUTH] = site[SITE_ATTRIBUTE_AZIMUTH]
             self.sites = self.sites + sites_data[SITES]
             self._api_used_reset[api_key] = None
             _LOGGER.debug(
@@ -945,7 +1111,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     _LOGGER.debug(
                         "Usage cache for %s last reset %s",
                         redact_api_key(api_key),
-                        used_reset.astimezone(self._tz).strftime(DATE_FORMAT),
+                        used_reset.astimezone(self._tz).strftime(DT_DATE_FORMAT),
                     )
                 if usage[DAILY_LIMIT] != quota[api_key]:  # Limit has been adjusted, so rewrite the cache.
                     self._api_limit[api_key] = quota[api_key]
@@ -1034,7 +1200,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
     async def cleanup_issues(self, any_unusual: bool = True) -> None:
         """Check and clean up any existing issues if the conditions are now resolved."""
         issue_registry = ir.async_get(self.hass)
-        for issue in [UNUSUAL_AZIMUTH_NORTHERN, UNUSUAL_AZIMUTH_SOUTHERN]:
+        for issue in [ISSUE_UNUSUAL_AZIMUTH_NORTHERN, ISSUE_UNUSUAL_AZIMUTH_SOUTHERN]:
             if (i := issue_registry.async_get_issue(DOMAIN, issue)) is not None:
                 if (
                     i.dismissed_version is not None
@@ -1082,15 +1248,15 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             for site, v in self._site_latitude.items():
                 unusual = False
                 proposal = 0
-                if v[LATITUDE] is None:
+                if v[SITE_ATTRIBUTE_LATITUDE] is None:
                     # Using cached data, so latitude is not known
                     continue
-                if LATITUDE in v and AZIMUTH in v:
-                    azimuth = v[AZIMUTH]
+                if SITE_ATTRIBUTE_LATITUDE in v and SITE_ATTRIBUTE_AZIMUTH in v:
+                    azimuth = v[SITE_ATTRIBUTE_AZIMUTH]
                     if azimuth is not None:
-                        if v[LATITUDE] > 0:  # pyright: ignore[reportOptionalOperand] - weird pyright warning
+                        if v[SITE_ATTRIBUTE_LATITUDE] > 0:  # pyright: ignore[reportOptionalOperand] - weird pyright warning
                             # Northern hemisphere, so azimuth should be 90 to 180, or -90 to -180
-                            raise_issue = UNUSUAL_AZIMUTH_NORTHERN
+                            raise_issue = ISSUE_UNUSUAL_AZIMUTH_NORTHERN
                             if azimuth > 0 and not (90 <= azimuth <= 180):
                                 unusual = True
                                 proposal = 180 - int(azimuth)
@@ -1099,7 +1265,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                 proposal = -180 - int(azimuth)
                         else:
                             # Southern hemisphere, so azimuth should be 0 to 90, or -90 to 0
-                            raise_issue = UNUSUAL_AZIMUTH_SOUTHERN
+                            raise_issue = ISSUE_UNUSUAL_AZIMUTH_SOUTHERN
                             if azimuth > 0 and not (0 <= azimuth <= 90):
                                 unusual = True
                                 proposal = 180 - int(azimuth)
@@ -1109,12 +1275,12 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     if unusual:
                         log = (
                             _LOGGER.warning
-                            if issue_registry.async_get_issue(DOMAIN, UNUSUAL_AZIMUTH_NORTHERN) is None
-                            and issue_registry.async_get_issue(DOMAIN, UNUSUAL_AZIMUTH_SOUTHERN) is None
+                            if issue_registry.async_get_issue(DOMAIN, ISSUE_UNUSUAL_AZIMUTH_NORTHERN) is None
+                            and issue_registry.async_get_issue(DOMAIN, ISSUE_UNUSUAL_AZIMUTH_SOUTHERN) is None
                             and not self._dismissal.get(site, False)
                             else _LOGGER.debug
                         )
-                        log(redact_lat_lon_simple(f"Unusual azimuth {azimuth} for site {site}, latitude {v[LATITUDE]}"))
+                        log(redact_lat_lon_simple(f"Unusual azimuth {azimuth} for site {site}, latitude {v[SITE_ATTRIBUTE_LATITUDE]}"))
 
                     if unusual and not any_raised and raise_issue != "":
                         if not self._dismissal.get(site, False):
@@ -1131,9 +1297,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                 translation_key=raise_issue,
                                 translation_placeholders={
                                     SITE: site,
-                                    LATITUDE: str(v[LATITUDE]),
+                                    SITE_ATTRIBUTE_LATITUDE: str(v[SITE_ATTRIBUTE_LATITUDE]),
                                     PROPOSAL: str(proposal),
-                                    EXTANT: str(v[AZIMUTH]),
+                                    EXTANT: str(v[SITE_ATTRIBUTE_AZIMUTH]),
                                     LEARN_MORE: "",
                                 },
                                 learn_more_url=LEARN_MORE_UNUSUAL_AZIMUTH,
@@ -1287,7 +1453,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.granular_dampening_mtime = Path(filename).stat().st_mtime
         _LOGGER.debug(
             "Granular dampening file mtime %s",
-            dt.fromtimestamp(self.granular_dampening_mtime, self._tz).strftime(DATE_FORMAT),
+            dt.fromtimestamp(self.granular_dampening_mtime, self._tz).strftime(DT_DATE_FORMAT),
         )
 
     async def granular_dampening_data(self) -> bool:
@@ -1373,7 +1539,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 _LOGGER.info("Granular dampening loaded")
                 _LOGGER.debug(
                     "Granular dampening file mtime %s",
-                    dt.fromtimestamp(mtime, self._tz).strftime(DATE_FORMAT),
+                    dt.fromtimestamp(mtime, self._tz).strftime(DT_DATE_FORMAT),
                 )
 
     def allow_granular_dampening_reset(self) -> bool:
@@ -1483,7 +1649,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             json_data: dict[str, Any] = json.loads(await data_file.read(), cls=JSONDecoder)
                             if not isinstance(json_data, dict):
                                 _LOGGER.error("The %s cache appears corrupt", filename)
-                                self.raise_and_record(ConfigEntryNotReady, TRANSLATE_INIT_CORRUPT, {"file": file})
+                                raise_and_record(self.hass, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file})
                             json_version = json_data.get(VERSION, 1)
                             _LOGGER.debug(
                                 "Data cache %s exists, file type is %s",
@@ -1522,7 +1688,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                         self.status = SolcastApiStatus.DATA_INCOMPATIBLE
                                 if self.status == SolcastApiStatus.DATA_INCOMPATIBLE:
                                     _LOGGER.critical("The %s appears incompatible, so cannot upgrade it", filename)
-                                    raise_and_record(self.hass, ConfigEntryError, TRANSLATE_INIT_INCOMPATIBLE, {"file": file})
+                                    raise_and_record(self.hass, ConfigEntryError, EXCEPTION_INIT_INCOMPATIBLE, {"file": file})
 
                                 # What happened before v4 stays before v4. BJReplay has no visibility of ancient.
                                 # V3 and prior versions of the solcast.json file did not have a version key.
@@ -1718,7 +1884,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         except json.decoder.JSONDecodeError:
             _LOGGER.error("The cached data in %s is corrupt in load_saved_data()", file)
             self.status = SolcastApiStatus.DATA_CORRUPT
-            raise_and_record(self.hass, ConfigEntryNotReady, TRANSLATE_INIT_CORRUPT, {"file": file})
+            raise_and_record(self.hass, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file})
         return True
 
     async def build_forecast_and_actuals(self, raise_exc=False) -> bool:
@@ -1739,13 +1905,13 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 success = False
                 _LOGGER.error("Failed to build forecast data")
                 if raise_exc:
-                    raise_and_record(self.hass, ConfigEntryNotReady, TRANSLATE_BUILD_FAILED_FORECASTS)
+                    raise_and_record(self.hass, ConfigEntryNotReady, EXCEPTION_BUILD_FAILED_FORECASTS)
             if self.status == SolcastApiStatus.OK and self.options.get_actuals and not await self.build_actual_data():
                 self.status = SolcastApiStatus.BUILD_FAILED_ACTUALS
                 success = False
                 _LOGGER.error("Failed to build estimated actuals data")
                 if raise_exc:
-                    raise_and_record(self.hass, ConfigEntryNotReady, TRANSLATE_BUILD_FAILED_ACTUALS)
+                    raise_and_record(self.hass, ConfigEntryNotReady, EXCEPTION_BUILD_FAILED_ACTUALS)
         return success
 
     async def reset_failure_stats(self) -> None:
@@ -1958,15 +2124,15 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         result = {
             NAME: _site.get(NAME),
             RESOURCE_ID: _site.get(RESOURCE_ID),
-            CAPACITY: _site.get(CAPACITY),
-            CAPACITY_DC: _site.get(CAPACITY_DC),
-            LONGITUDE: _site.get(LONGITUDE),
-            LATITUDE: _site.get(LATITUDE),
-            AZIMUTH: _site.get(AZIMUTH),
-            TILT: _site.get(TILT),
-            INSTALL_DATE: _site.get(INSTALL_DATE),
-            LOSS_FACTOR: _site.get(LOSS_FACTOR),
-            TAGS: _site.get(TAGS),
+            SITE_ATTRIBUTE_CAPACITY: _site.get(SITE_ATTRIBUTE_CAPACITY),
+            SITE_ATTRIBUTE_CAPACITY_DC: _site.get(SITE_ATTRIBUTE_CAPACITY_DC),
+            SITE_ATTRIBUTE_LONGITUDE: _site.get(SITE_ATTRIBUTE_LONGITUDE),
+            SITE_ATTRIBUTE_LATITUDE: _site.get(SITE_ATTRIBUTE_LATITUDE),
+            SITE_ATTRIBUTE_AZIMUTH: _site.get(SITE_ATTRIBUTE_AZIMUTH),
+            SITE_ATTRIBUTE_TILT: _site.get(SITE_ATTRIBUTE_TILT),
+            SITE_ATTRIBUTE_INSTALL_DATE: _site.get(SITE_ATTRIBUTE_INSTALL_DATE),
+            SITE_ATTRIBUTE_LOSS_FACTOR: _site.get(SITE_ATTRIBUTE_LOSS_FACTOR),
+            SITE_ATTRIBUTE_TAGS: _site.get(SITE_ATTRIBUTE_TAGS),
         }
         return {k: v for k, v in result.items() if v is not None}
 
@@ -2354,11 +2520,13 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         """
         for forecast_confidence in confidences:
             try:
-                y = [data[start + index][forecast_confidence] for index in range(len(self._spline_period))]
+                spline_period_length = len(xx) // 6
+                y = [data[start + index][forecast_confidence] for index in range(spline_period_length)]
                 if reducing:
                     # Build a decreasing set of forecasted values instead.
-                    y = [0.5 * sum(y[index:]) for index in range(len(self._spline_period))]
-                spline[forecast_confidence] = cubic_interp(xx, self._spline_period, y)
+                    y = [0.5 * sum(y[index:]) for index in range(spline_period_length)]
+                spline[forecast_confidence] = cubic_interp(xx, self._spline_period[-spline_period_length:], y)
+                spline[forecast_confidence] = [0] * (len(self._spline_period) - len(xx)) + spline[forecast_confidence]
                 self.__sanitise_spline(spline, forecast_confidence, xx, y, reducing=reducing)
                 continue
             except IndexError:
@@ -2433,7 +2601,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 else:
                     # Data is missing at the start of the set, so adjust the start time to the first available forecast.
                     start, end = self.__get_list_slice(forecasts, forecasts[0][PERIOD_START], self.get_day_start_utc(future=1))
-                    xx = list(range((48 - start) * 300, 1800 * len(self._spline_period), 300))
+                    xx = list(range(1800 * (48 - (end - start)), 1800 * len(self._spline_period), 300))
             except IndexError:
                 start = 0
                 end = 0
@@ -3013,12 +3181,57 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Look for consistently low PV generation in consistently high estimated actual intervals.
         Dampening factors are always referenced using standard time (not daylight savings time).
         """
+        start_time = time.time()
+
+        deal_breaker = ""
+        deal_breaker_site = ""
+        actuals: OrderedDict[dt, float] = OrderedDict()
+        if (self.options.auto_dampen or self.advanced_options[ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT]) and self.options.get_actuals:
+            _LOGGER.debug("Determining peak estimated actual intervals")
+            for site in self.sites:
+                if self._data_actuals[SITE_INFO].get(site[RESOURCE_ID]) is None:
+                    deal_breaker = "No estimated actuals yet"
+                    deal_breaker_site = site[RESOURCE_ID]
+                    break
+                if site[RESOURCE_ID] in self.options.exclude_sites:
+                    _LOGGER.debug("Auto-dampening suppressed: Excluded site for %s", site[RESOURCE_ID])
+                    continue
+                start, end = self.__get_list_slice(
+                    self._data_actuals[SITE_INFO][site[RESOURCE_ID]][FORECASTS],
+                    self.get_day_start_utc() - timedelta(days=self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS]),
+                    self.get_day_start_utc(),
+                    search_past=True,
+                )
+                site_actuals = {
+                    actual[PERIOD_START]: actual for actual in self._data_actuals[SITE_INFO][site[RESOURCE_ID]][FORECASTS][start:end]
+                }
+                for period_start, actual in site_actuals.items():
+                    extant: float | None = actuals.get(period_start)
+                    if extant is not None:
+                        actuals[period_start] += actual[ESTIMATE] * 0.5
+                    else:
+                        actuals[period_start] = actual[ESTIMATE] * 0.5
+
+            if deal_breaker == "":
+                # Collect top intervals from the past MODEL_DAYS days.
+                self._peak_intervals = dict.fromkeys(range(48), 0.0)
+                for period_start, actual in actuals.items():
+                    interval = self.adjusted_interval_dt(period_start)
+                    if self._peak_intervals[interval] < actual:
+                        self._peak_intervals[interval] = round(actual, 3)
+
         if not self.options.auto_dampen and not force:
             _LOGGER.debug("Automated dampening is not enabled, skipping model_automated_dampening()")
             return
         _LOGGER.debug("Modelling automated dampening factors")
 
-        start_time = time.time()
+        if deal_breaker == "":
+            if len(self._data_generation[GENERATION]) == 0:
+                deal_breaker = "No generation yet"
+
+        if deal_breaker != "":
+            _LOGGER.info("Auto-dampening suppressed: %s%s", deal_breaker, f" for {deal_breaker_site}" if deal_breaker_site != "" else "")
+            return
 
         ignored_intervals: list[int] = []  # Intervals to ignore in local time zone
         for time_string in self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_IGNORE_INTERVALS]:
@@ -3039,44 +3252,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     generation[gen[PERIOD_START]] = gen[GENERATION]
             elif not gen[EXPORT_LIMITING]:
                 generation[gen[PERIOD_START]] = gen[GENERATION]
-
-        actuals: OrderedDict[dt, float] = OrderedDict()
-        for site in self.sites:
-            deal_breaker = ""
-            if site[RESOURCE_ID] in self.options.exclude_sites:
-                deal_breaker = "Excluded site"
-            if self._data_actuals[SITE_INFO].get(site[RESOURCE_ID]) is None:
-                deal_breaker = "No estimated actuals yet"
-            if len(self._data_generation[GENERATION]) == 0:
-                deal_breaker = "No generation yet"
-            if deal_breaker != "":
-                if deal_breaker == "Excluded site":
-                    _LOGGER.debug("Auto-dampening suppressed: %s for %s", deal_breaker, site[RESOURCE_ID])
-                    continue
-                _LOGGER.info("Auto-dampening suppressed: %s for %s", deal_breaker, site[RESOURCE_ID])
-                return
-            start, end = self.__get_list_slice(
-                self._data_actuals[SITE_INFO][site[RESOURCE_ID]][FORECASTS],
-                self.get_day_start_utc() - timedelta(days=self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS]),
-                self.get_day_start_utc(),
-                search_past=True,
-            )
-            site_actuals = {
-                actual[PERIOD_START]: actual for actual in self._data_actuals[SITE_INFO][site[RESOURCE_ID]][FORECASTS][start:end]
-            }
-            for period_start, actual in site_actuals.items():
-                extant: float | None = actuals.get(period_start)
-                if extant is not None:
-                    actuals[period_start] += actual[ESTIMATE] * 0.5
-                else:
-                    actuals[period_start] = actual[ESTIMATE] * 0.5
-
-        # Collect top intervals from the past MODEL_DAYS days.
-        self._peak_intervals = dict.fromkeys(range(48), 0.0)
-        for period_start, actual in actuals.items():
-            interval = self.adjusted_interval_dt(period_start)
-            if self._peak_intervals[interval] < actual:
-                self._peak_intervals[interval] = round(actual, 3)
 
         # Collect intervals that are close to the peak.
         matching_intervals: dict[int, list[dt]] = {i: [] for i in range(48)}
@@ -3102,7 +3277,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 _LOGGER.debug("Interval %s is intentionally ignored, skipping", interval_time)
                 continue
             generation_samples: list[float] = [
-                generation.get(timestamp, 0.0) for timestamp in matching if generation.get(timestamp, 0.0) != 0.0
+                round(generation.get(timestamp, 0.0), 3) for timestamp in matching if generation.get(timestamp, 0.0) != 0.0
             ]
             preserve_this_interval = False
             if len(matching) > 0:
@@ -3113,7 +3288,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     interval_time,
                     self._peak_intervals[interval],
                     len(matching),
-                    ", ".join([date.astimezone(self._tz).strftime(DATE_MONTH_DAY) for date in matching]),
+                    ", ".join([date.astimezone(self._tz).strftime(DT_DATE_MONTH_DAY) for date in matching]),
                 )
                 match self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_MODEL]:
                     case 1 | 2 | 3:
@@ -3272,9 +3447,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     round(actual[ESTIMATE], 4),
                 )
 
-            await self.sort_and_prune(
-                site[RESOURCE_ID], self._data_actuals, self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS], actuals
-            )
+            await self.sort_and_prune(site[RESOURCE_ID], self._data_actuals, self.advanced_options[ADVANCED_HISTORY_MAX_DAYS], actuals)
             _LOGGER.debug("Estimated actuals dictionary for site %s length %s", site[RESOURCE_ID], len(actuals))
 
         if status == DataCallStatus.SUCCESS and dampen_yesterday:
@@ -3323,7 +3496,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     await self.sort_and_prune(
                         site[RESOURCE_ID],
                         self._data_actuals_dampened,
-                        self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS],
+                        self.advanced_options[ADVANCED_HISTORY_MAX_DAYS],
                         extant_actuals,
                     )
 
@@ -3487,16 +3660,20 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             if len(self.granular_dampening[site]) == 24
             else ((period_start.hour * 2) + (1 if period_start.minute > 0 else 0))
         ]
-        if site == ALL and self.options.auto_dampen and self.granular_dampening.get(ALL):
+        if (
+            site == ALL
+            and (self.options.auto_dampen or self.advanced_options[ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT])
+            and self.granular_dampening.get(ALL)
+        ):
             interval = self.adjusted_interval_dt(period_start)
             factor = min(1.0, self.granular_dampening[ALL][interval])
             if (
-                not self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_NO_DELTA_CORRECTIONS]
+                not self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_NO_DELTA_ADJUSTMENT]
                 and self._peak_intervals[interval] > 0
                 and interval_pv50 > 0
                 and factor < 1.0
             ):
-                interval_time = period_start.astimezone(self._tz).strftime(DATE_FORMAT)
+                interval_time = period_start.astimezone(self._tz).strftime(DT_DATE_FORMAT)
                 factor_pre_adjustment = factor
 
                 match self.advanced_options[ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL]:
@@ -3509,7 +3686,11 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             factor,
                             min(1.0, factor + ((1.0 - factor) * (math.log(self._peak_intervals[interval]) - math.log(interval_pv50)))),
                         )
-                if record_adjustment and period_start.astimezone(self._tz).date() == dt.now(self._tz).date():
+                if (
+                    record_adjustment
+                    and period_start.astimezone(self._tz).date() == dt.now(self._tz).date()
+                    and round(factor, 3) != round(factor_pre_adjustment, 3)
+                ):
                     _LOGGER.debug(
                         "%sdjusted granular dampening factor for %s, %.3f (was %.3f, peak %.3f, interval pv50 %.3f)",
                         "Ignoring insignificant a"
@@ -3616,9 +3797,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             round(forecast[ESTIMATE90], 4),
                         )
 
-                await self.sort_and_prune(
-                    site[RESOURCE_ID], self._data, self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS], forecasts
-                )
+                await self.sort_and_prune(site[RESOURCE_ID], self._data, self.advanced_options[ADVANCED_HISTORY_MAX_DAYS], forecasts)
 
     async def sort_and_prune(self, site: str | None, data: dict[str, Any], past_days: int, forecasts: dict[Any, Any]) -> None:
         """Sort and prune a forecast list."""
@@ -3651,26 +3830,91 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             tuple[DataCallStatus, str]: A flag indicating success, failure or abort, and a reason for failure.
         """
-        last_day = self.get_day_start_utc(future=self.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
-        hours = math.ceil((last_day - self.get_now_utc()).total_seconds() / 3600)
-        _LOGGER.debug(
-            "Polling API for site %s, last day %s, %d hours",
-            site,
-            last_day.strftime("%Y-%m-%d"),
-            hours,
-        )
+        failure = False
 
-        new_data: list[dict[str, Any]] = []
+        try:
+            last_day = self.get_day_start_utc(future=self.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
+            hours = math.ceil((last_day - self.get_now_utc()).total_seconds() / 3600)
+            _LOGGER.debug(
+                "Polling API for site %s, last day %s, %d hours",
+                site,
+                last_day.strftime("%Y-%m-%d"),
+                hours,
+            )
 
-        # Fetch past data. (Run once, for a new install or if the solcast.json file is deleted. This will use up api call quota.)
+            new_data: list[dict[str, Any]] = []
 
-        if do_past_hours > 0:
-            act_response: dict[str, Any] | None
+            # Fetch past data. (Run once, for a new install or if the solcast.json file is deleted. This will use up api call quota.)
+
+            if do_past_hours > 0:
+                act_response: dict[str, Any] | None
+                try:
+                    self.tasks[TASK_FORECASTS_FETCH] = asyncio.create_task(
+                        self.fetch_data(
+                            hours=do_past_hours,
+                            path=ESTIMATED_ACTUALS,
+                            site=site,
+                            api_key=api_key,
+                            force=force,
+                        )
+                    )
+                    await self.tasks[TASK_FORECASTS_FETCH]
+                finally:
+                    act_response = (
+                        self.tasks.pop(TASK_FORECASTS_FETCH).result() if self.tasks.get(TASK_FORECASTS_FETCH) is not None else None
+                    )
+                if not isinstance(act_response, dict):
+                    failure = True
+                    _LOGGER.error(
+                        "No valid data was returned for estimated_actuals so this will cause issues (API limit may be exhausted, or Solcast might have a problem)"
+                    )
+                    _LOGGER.error("API did not return a json object, returned `%s`", act_response)
+                    return DataCallStatus.FAIL, "No valid json returned"
+
+                estimate_actuals: list[dict[str, Any]] = act_response.get(ESTIMATED_ACTUALS, [])
+
+                oldest = (dt.now(self._tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=6)).astimezone(datetime.UTC)
+
+                actuals: dict[dt, Any] = {}
+                for estimate_actual in estimate_actuals:
+                    period_start = dt.fromisoformat(estimate_actual[PERIOD_END]).astimezone(datetime.UTC).replace(
+                        second=0, microsecond=0
+                    ) - timedelta(minutes=30)
+                    if period_start > oldest:
+                        new_data.append(
+                            {
+                                PERIOD_START: period_start,
+                                ESTIMATE: estimate_actual[ESTIMATE],
+                                ESTIMATE10: 0,
+                                ESTIMATE90: 0,
+                            }
+                        )
+                for actual in new_data:
+                    period_start = actual[PERIOD_START]
+
+                    # Add or update the new entries.
+                    forecast_entry_update(
+                        actuals,
+                        period_start,
+                        round(actual[ESTIMATE], 4),
+                    )
+
+                await self.sort_and_prune(site, self._data_actuals, self.advanced_options[ADVANCED_HISTORY_MAX_DAYS], actuals)
+
+                self._data_actuals[LAST_UPDATED] = dt.now(datetime.UTC).replace(microsecond=0)
+                self._data_actuals[LAST_ATTEMPT] = dt.now(datetime.UTC).replace(microsecond=0)
+
+            # Fetch latest data.
+
+            response: dict[str, Any] | None = None
+            if self.tasks.get(TASK_FORECASTS_FETCH) is not None:
+                _LOGGER.warning("A fetch task is already running, so aborting forecast update")
+                return DataCallStatus.ABORT, "Fetch already running"
             try:
                 self.tasks[TASK_FORECASTS_FETCH] = asyncio.create_task(
                     self.fetch_data(
-                        hours=do_past_hours,
-                        path=ESTIMATED_ACTUALS,
+                        hours=hours,
+                        path=FORECASTS,
                         site=site,
                         api_key=api_key,
                         force=force,
@@ -3678,111 +3922,74 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 )
                 await self.tasks[TASK_FORECASTS_FETCH]
             finally:
-                act_response = self.tasks.pop(TASK_FORECASTS_FETCH).result() if self.tasks.get(TASK_FORECASTS_FETCH) is not None else None
-            if not isinstance(act_response, dict):
-                _LOGGER.error(
-                    "No valid data was returned for estimated_actuals so this will cause issues (API limit may be exhausted, or Solcast might have a problem)"
-                )
-                _LOGGER.error("API did not return a json object, returned `%s`", act_response)
+                response = self.tasks.pop(TASK_FORECASTS_FETCH).result() if self.tasks.get(TASK_FORECASTS_FETCH) is not None else None
+            if response is None:
+                _LOGGER.error("No data was returned for forecasts")
+
+            if not isinstance(response, dict):
+                failure = True
+                _LOGGER.error("API did not return a json object. Returned %s", response)
                 return DataCallStatus.FAIL, "No valid json returned"
 
-            estimate_actuals: list[dict[str, Any]] = act_response.get(ESTIMATED_ACTUALS, [])
+            latest_forecasts = response.get(FORECASTS, [])
 
-            oldest = (dt.now(self._tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=6)).astimezone(datetime.UTC)
+            _LOGGER.debug("%d records returned", len(latest_forecasts))
 
-            actuals: dict[dt, Any] = {}
-            for estimate_actual in estimate_actuals:
-                period_start = dt.fromisoformat(estimate_actual[PERIOD_END]).astimezone(datetime.UTC).replace(
-                    second=0, microsecond=0
-                ) - timedelta(minutes=30)
-                if period_start > oldest:
+            for forecast in latest_forecasts:
+                period_start = dt.fromisoformat(forecast[PERIOD_END]).astimezone(datetime.UTC).replace(second=0, microsecond=0) - timedelta(
+                    minutes=30
+                )
+                if period_start < last_day:
                     new_data.append(
                         {
                             PERIOD_START: period_start,
-                            ESTIMATE: estimate_actual[ESTIMATE],
-                            ESTIMATE10: 0,
-                            ESTIMATE90: 0,
+                            ESTIMATE: forecast[ESTIMATE],
+                            ESTIMATE10: forecast[ESTIMATE10],
+                            ESTIMATE90: forecast[ESTIMATE90],
                         }
                     )
-            for actual in new_data:
-                period_start = actual[PERIOD_START]
 
-                # Add or update the new entries.
+            # Add or update forecasts with the latest data.
+
+            # Load the forecast history.
+            try:
+                forecasts_undampened = {forecast[PERIOD_START]: forecast for forecast in self._data_undampened[SITE_INFO][site][FORECASTS]}
+            except:  # noqa: E722
+                forecasts_undampened = {}
+
+            # Add new data to the undampened forecasts.
+            for forecast in new_data:
+                period_start = forecast[PERIOD_START]
                 forecast_entry_update(
-                    actuals,
+                    forecasts_undampened,
                     period_start,
-                    round(actual[ESTIMATE], 4),
+                    round(forecast[ESTIMATE], 4),
+                    round(forecast[ESTIMATE10], 4),
+                    round(forecast[ESTIMATE90], 4),
                 )
 
-            await self.sort_and_prune(site, self._data_actuals, self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS], actuals)
-
-            self._data_actuals[LAST_UPDATED] = dt.now(datetime.UTC).replace(microsecond=0)
-            self._data_actuals[LAST_ATTEMPT] = dt.now(datetime.UTC).replace(microsecond=0)
-
-        # Fetch latest data.
-
-        response: dict[str, Any] | None = None
-        if self.tasks.get(TASK_FORECASTS_FETCH) is not None:
-            _LOGGER.warning("A fetch task is already running, so aborting forecast update")
-            return DataCallStatus.ABORT, "Fetch already running"
-        try:
-            self.tasks[TASK_FORECASTS_FETCH] = asyncio.create_task(
-                self.fetch_data(
-                    hours=hours,
-                    path=FORECASTS,
-                    site=site,
-                    api_key=api_key,
-                    force=force,
-                )
-            )
-            await self.tasks[TASK_FORECASTS_FETCH]
+            await self.sort_and_prune(site, self._data_undampened, 14, forecasts_undampened)
         finally:
-            response = self.tasks.pop(TASK_FORECASTS_FETCH).result() if self.tasks.get(TASK_FORECASTS_FETCH) is not None else None
-        if response is None:
-            _LOGGER.error("No data was returned for forecasts")
-
-        if not isinstance(response, dict):
-            _LOGGER.error("API did not return a json object. Returned %s", response)
-            return DataCallStatus.FAIL, "No valid json returned"
-
-        latest_forecasts = response.get(FORECASTS, [])
-
-        _LOGGER.debug("%d records returned", len(latest_forecasts))
-
-        for forecast in latest_forecasts:
-            period_start = dt.fromisoformat(forecast[PERIOD_END]).astimezone(datetime.UTC).replace(second=0, microsecond=0) - timedelta(
-                minutes=30
-            )
-            if period_start < last_day:
-                new_data.append(
-                    {
-                        PERIOD_START: period_start,
-                        ESTIMATE: forecast[ESTIMATE],
-                        ESTIMATE10: forecast[ESTIMATE10],
-                        ESTIMATE90: forecast[ESTIMATE90],
-                    }
+            issue_registry = ir.async_get(self.hass)
+            if (
+                failure
+                and (
+                    self._data_undampened[SITE_INFO].get(site) is None
+                    or self._data_undampened[SITE_INFO][site][FORECASTS][0][PERIOD_START] > dt.now(datetime.UTC) - timedelta(hours=1)
                 )
-
-        # Add or update forecasts with the latest data.
-
-        # Load the forecast history.
-        try:
-            forecasts_undampened = {forecast[PERIOD_START]: forecast for forecast in self._data_undampened[SITE_INFO][site][FORECASTS]}
-        except:  # noqa: E722
-            forecasts_undampened = {}
-
-        # Add new data to the undampened forecasts.
-        for forecast in new_data:
-            period_start = forecast[PERIOD_START]
-            forecast_entry_update(
-                forecasts_undampened,
-                period_start,
-                round(forecast[ESTIMATE], 4),
-                round(forecast[ESTIMATE10], 4),
-                round(forecast[ESTIMATE90], 4),
-            )
-
-        await self.sort_and_prune(site, self._data_undampened, 14, forecasts_undampened)
+                and issue_registry.async_get_issue(DOMAIN, ISSUE_RECORDS_MISSING_INITIAL) is None
+            ):
+                _LOGGER.warning("Raise issue `%s` for missing forecast data", ISSUE_RECORDS_MISSING_INITIAL)
+                ir.async_create_issue(
+                    self.hass,
+                    DOMAIN,
+                    ISSUE_RECORDS_MISSING_INITIAL,
+                    is_fixable=False,
+                    is_persistent=True,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key=ISSUE_RECORDS_MISSING_INITIAL,
+                    learn_more_url=LEARN_MORE_MISSING_FORECAST_DATA,
+                )
 
         return DataCallStatus.SUCCESS, ""
 
@@ -3939,9 +4146,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                 _LOGGER.debug("API returned data, using force fetch so not incrementing API counter")
                             response_json = response_text
                             response_json = json.loads(response_json)
-                            if issue_registry.async_get_issue(DOMAIN, API_UNAVAILABLE) is not None:
-                                _LOGGER.debug("Remove issue for %s", API_UNAVAILABLE)
-                                ir.async_delete_issue(self.hass, DOMAIN, API_UNAVAILABLE)
+                            if issue_registry.async_get_issue(DOMAIN, ISSUE_API_UNAVAILABLE) is not None:
+                                _LOGGER.debug("Remove issue for %s", ISSUE_API_UNAVAILABLE)
+                                ir.async_delete_issue(self.hass, DOMAIN, ISSUE_API_UNAVAILABLE)
                                 if (trigger := self.advanced_options[ADVANCED_TRIGGER_ON_API_AVAILABLE]) and trigger:
                                     await self.async_trigger_automation_by_name(trigger)
                             _LOGGER.debug(
@@ -3971,15 +4178,15 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             )
                             _LOGGER.debug("HTTP session status %s", http_status_translate(status))
 
-                            if received_429 == tries and issue_registry.async_get_issue(DOMAIN, API_UNAVAILABLE) is None:
-                                _LOGGER.debug("Raise issue for %s", API_UNAVAILABLE)
+                            if received_429 == tries and issue_registry.async_get_issue(DOMAIN, ISSUE_API_UNAVAILABLE) is None:
+                                _LOGGER.debug("Raise issue for %s", ISSUE_API_UNAVAILABLE)
                                 ir.async_create_issue(
                                     self.hass,
                                     DOMAIN,
-                                    API_UNAVAILABLE,
+                                    ISSUE_API_UNAVAILABLE,
                                     is_fixable=False,
                                     severity=ir.IssueSeverity.WARNING,
-                                    translation_key=API_UNAVAILABLE,
+                                    translation_key=ISSUE_API_UNAVAILABLE,
                                     learn_more_url=LEARN_MORE_MISSING_FORECAST_DATA,
                                 )
                                 if (trigger := self.advanced_options[ADVANCED_TRIGGER_ON_API_UNAVAILABLE]) and trigger:
@@ -4043,7 +4250,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         forecasts_start, _ = self.__get_list_slice(self._data_forecasts, self.get_day_start_utc(), search_past=True)
         actuals_start, actuals_end = self.__get_list_slice(
             _data,
-            self.get_day_start_utc() - timedelta(days=self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS]),
+            self.get_day_start_utc() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS]),
             self.get_day_start_utc(),
             search_past=True,
         )
@@ -4130,6 +4337,9 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         The API key hard limit for each site is calculated as proportion of the site contribution for the account.
         """
 
+        EARLIEST_PERIOD = "earliest_period"
+        LAST_PERIOD = "last_period"
+
         start_time = time.time()
         build_logged: list[str] = []
 
@@ -4170,8 +4380,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     )
                     _LOGGER.debug(
                         "Earliest period %s, latest period %s (%s)",
-                        dt.strftime(earliest.astimezone(self._tz), DATE_FORMAT),
-                        dt.strftime(latest.astimezone(self._tz), DATE_FORMAT),
+                        dt.strftime(earliest.astimezone(self._tz), DT_DATE_FORMAT),
+                        dt.strftime(latest.astimezone(self._tz), DT_DATE_FORMAT),
                         data_set,
                     )
                 periods: list[dt] = [earliest + timedelta(minutes=30 * x) for x in range(int((latest - earliest).total_seconds() / 1800))]
@@ -4206,7 +4416,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             bool: A flag indicating success or failure.
         """
-        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS])
+        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
         last_day: datetime.date = dt.now(self._tz).date()
 
         actuals: dict[dt, dict[str, dt | float]] = {}
@@ -4308,8 +4518,10 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             bool: A flag indicating success or failure.
         """
+        TALLY = "tally"
+
         today: datetime.date = dt.now(self._tz).date()
-        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options[ADVANCED_FORECAST_HISTORY_MAX_DAYS])
+        commencing: datetime.date = dt.now(self._tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
         commencing_undampened: datetime.date = dt.now(self._tz).date() - timedelta(days=14)
         last_day: datetime.date = dt.now(self._tz).date() + timedelta(days=self.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
         logged_hard_limit: list[str] = []
@@ -4467,6 +4679,11 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
     async def check_data_records(self) -> None:
         """Log whether all records are present for each day."""
 
+        CONTIGUOUS = "contiguous"
+        CORRECT = "correct"
+        INTERVALS = "intervals"
+        EXPECTED_INTERVALS = "expected_intervals"
+
         contiguous: int = 0
         contiguous_start_date: Any = None
         contiguous_end_date: Any = None
@@ -4550,7 +4767,12 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         def _remove_issues():
             # Remove any relevant issues that may exist.
-            for check_issue in ("records_missing", "records_missing_fixable"):
+            for check_issue in (
+                ISSUE_RECORDS_MISSING,
+                ISSUE_RECORDS_MISSING_FIXABLE,
+                ISSUE_RECORDS_MISSING_INITIAL,  # Raised elsewhere but cleaned up here
+                ISSUE_RECORDS_MISSING_UNFIXABLE,
+            ):
                 if issue_registry.async_get_issue(DOMAIN, check_issue) is not None:
                     _LOGGER.debug("Remove issue for %s", check_issue)
                     ir.async_delete_issue(self.hass, DOMAIN, check_issue)
@@ -4560,7 +4782,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 # If auto-update is enabled then raise an un-fixable issue, otherwise raise a fixable issue unless there have been failues seen.
                 raise_issue: str | None = None
                 if self.entry.options[AUTO_UPDATE] == AutoUpdate.NONE:
-                    raise_issue = "records_missing_unfixable" if any(self._data[FAILURE][LAST_14D]) else "records_missing_fixable"
+                    raise_issue = ISSUE_RECORDS_MISSING_UNFIXABLE if any(self._data[FAILURE][LAST_14D]) else ISSUE_RECORDS_MISSING_FIXABLE
 
                 # If auto-update is enabled yet the prior forecast update was manual then do not raise an issue.
                 raise_issue = None if self._data[AUTO_UPDATED] == 0 and self.entry.options[AUTO_UPDATE] != AutoUpdate.NONE else raise_issue
@@ -4571,9 +4793,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                         DOMAIN,
                         raise_issue,
                         is_fixable=self.entry.options[AUTO_UPDATE] == AutoUpdate.NONE and any(self._data[FAILURE][LAST_14D]) == 0,
-                        data={
-                            "contiguous": contiguous,
-                        },
+                        data={CONTIGUOUS: contiguous, ENTRY_ID: self.entry.entry_id if self.entry is not None else ""},
                         severity=ir.IssueSeverity.WARNING,
                         translation_key=raise_issue,
                         learn_more_url=LEARN_MORE_MISSING_FORECAST_DATA,

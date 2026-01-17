@@ -687,7 +687,7 @@ services:
             - FTP_USERNAME=MyUser
             - FTP_PASSWORD=MyPAss
             - NOTIFICATIONS_WEBHOOK_URL="N/A"
-            - WORKSHEET_NAME=2025
+            - WORKSHEET_NAME=2026
             - TZ=America/Chicago
         volumes:
             # db and previously_processed_files.txt

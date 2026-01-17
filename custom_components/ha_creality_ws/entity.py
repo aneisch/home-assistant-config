@@ -19,8 +19,11 @@ class KEntity(CoordinatorEntity):
 
     @property
     def available(self) -> bool:
-        # Keep entities available so we can surface zeroed values when off/unknown
-        return True
+        # If power switch is configured and OFF, entity is unavailable.
+        if self.coordinator.power_is_off():
+            return False
+            
+        return self.coordinator.available
 
     # Helper used by sensors to decide zeroing
     def _should_zero(self) -> bool:

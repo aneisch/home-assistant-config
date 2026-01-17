@@ -12,24 +12,26 @@ class TimerSync(hass.Hass):
         self.listen_state(self.state_change, self.alexa_timer, attribute="sorted_active")
 
     def state_change(self, entity, attribute, old, new, kwargs):
-        try:
-            new = new.replace("null", '""')  # Safeguard for nulls
-            timers = json.loads(new)
-        except Exception as e:
-            self.error(f"Failed to parse timers from Alexa: {e}")
-            return
+        # try:
+        #     self.log(new)
+        #     #new = new.replace("null", '""')  # Safeguard for nulls
+        #     timers = new
+        # except Exception as e:
+        #     self.error(f"Failed to parse timers from Alexa: {e}")
+        #     return
 
         # Cancel all existing timers
         for i in range(self.timer_count + 1):
             self.call_service("timer/cancel", entity_id=f"timer.{self.timer_prefix}_{i}")
 
         count = 0
-        for timer_entry in timers:
+        for timer_entry in new:
             if count >= self.timer_count:
                 break
-
-            timer = timer_entry[1]
+            self.log(timer_entry)
+            timer = timer_entry
             label = timer.get("timerLabel") or "No Name"
+            self.log(label)
             trigger_time = datetime.fromtimestamp(int(timer["triggerTime"] / 1000))
             created_time = datetime.fromtimestamp(int(timer["createdDate"] / 1000))
             timer_id = timer["id"][-8:]

@@ -7,22 +7,32 @@ from dataclasses import dataclass
 from datetime import datetime as dt
 from enum import Enum
 import json
+import logging
 import math
 import re
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import IntegrationError
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
     DOMAIN,
+    DT_DATE_ONLY_FORMAT,
     ESTIMATE,
     ESTIMATE10,
     ESTIMATE90,
+    ISSUE_ADVANCED_DEPRECATED,
+    ISSUE_ADVANCED_PROBLEM,
+    LEARN_MORE_ADVANCED,
+    NEW_OPTION,
+    OPTION,
     PRIOR_CRASH_EXCEPTION,
     PRIOR_CRASH_PLACEHOLDERS,
     PRIOR_CRASH_TRANSLATION_KEY,
+    PROBLEMS,
+    STOPS_WORKING,
 )
 
 if TYPE_CHECKING:
@@ -51,6 +61,8 @@ STATUS_TRANSLATE: dict[int, str] = {
     997: "Connect call failed",
     999: "Prior crash",
 }
+
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
@@ -240,6 +252,82 @@ def raise_and_record(
     hass.data[DOMAIN][PRIOR_CRASH_TRANSLATION_KEY] = translation_key
     hass.data[DOMAIN][PRIOR_CRASH_PLACEHOLDERS] = translation_placeholders
     raise exception(translation_domain=DOMAIN, translation_key=translation_key, translation_placeholders=translation_placeholders)
+
+
+async def raise_or_clear_advanced_problems(problems: list[str], hass: HomeAssistant):
+    """Raise or clear advanced unknown option issues."""
+    issue_registry = ir.async_get(hass)
+    if problems:
+        problem_list = "".join([("\n* " + problem) for problem in sorted(problems)])
+        issue = issue_registry.async_get_issue(DOMAIN, ISSUE_ADVANCED_PROBLEM)
+        if (
+            issue is not None
+            and issue.translation_placeholders is not None
+            and issue.translation_placeholders.get(PROBLEMS) != problem_list
+        ):
+            ir.async_delete_issue(hass, DOMAIN, ISSUE_ADVANCED_PROBLEM)
+            await hass.async_block_till_done()
+        _LOGGER.debug("Raising advanced option problems issue for: %s", ", ".join(problems))
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            ISSUE_ADVANCED_PROBLEM,
+            is_fixable=False,
+            is_persistent=True,
+            translation_key=ISSUE_ADVANCED_PROBLEM,
+            translation_placeholders={
+                PROBLEMS: problem_list,
+            },
+            severity=ir.IssueSeverity.ERROR,
+            learn_more_url=LEARN_MORE_ADVANCED,
+        )
+        issue = issue_registry.async_get_issue(DOMAIN, ISSUE_ADVANCED_PROBLEM)
+    else:
+        issue_registry = ir.async_get(hass)
+        issue = issue_registry.async_get_issue(DOMAIN, ISSUE_ADVANCED_PROBLEM)
+        if issue is not None:
+            _LOGGER.debug("Removing advanced problems issue")
+            ir.async_delete_issue(hass, DOMAIN, ISSUE_ADVANCED_PROBLEM)
+
+
+async def raise_or_clear_advanced_deprecated(
+    deprecated_in_use: dict[str, str], hass: HomeAssistant, stops_working: dict[str, dt] | None = None
+):
+    """Raise or clear advanced deprecated option issues."""
+    if deprecated_in_use:
+        ir.async_create_issue(
+            hass,
+            DOMAIN,
+            ISSUE_ADVANCED_DEPRECATED,
+            is_fixable=False,
+            is_persistent=True,
+            translation_key=ISSUE_ADVANCED_DEPRECATED,
+            translation_placeholders={
+                OPTION: ", ".join(deprecated_in_use.keys()),
+                NEW_OPTION: ", ".join(deprecated_in_use.values()),
+                STOPS_WORKING: (
+                    " ("
+                    + ", ".join(
+                        [
+                            f"{option} stops working after {date.strftime(DT_DATE_ONLY_FORMAT)}"
+                            for option, date in stops_working.items()
+                            if option in deprecated_in_use
+                        ]
+                    )
+                    + ")"
+                )
+                if stops_working
+                else "",
+            },
+            severity=ir.IssueSeverity.WARNING,
+            learn_more_url=LEARN_MORE_ADVANCED,
+        )
+    else:
+        issue_registry = ir.async_get(hass)
+        issue = issue_registry.async_get_issue(DOMAIN, ISSUE_ADVANCED_DEPRECATED)
+        if issue is not None:
+            _LOGGER.debug("Removing advanced deprecation issue")
+            ir.async_delete_issue(hass, DOMAIN, ISSUE_ADVANCED_DEPRECATED)
 
 
 def percentile(data: list[Any], _percentile: float) -> float | int:

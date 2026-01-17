@@ -3,6 +3,7 @@ import logging
 import asyncio
 import json
 import os
+import time
 from datetime import datetime, timedelta
 import re
 from urllib.parse import urljoin, urlparse
@@ -16,12 +17,20 @@ from homeassistant.helpers.event import ( #type: ignore[import]
     async_track_state_change_event,
 )
 import voluptuous as vol #type: ignore[import]
+from homeassistant.helpers import entity_registry as er
 from homeassistant.components.persistent_notification import async_create as pn_async_create #type: ignore[import]
 from .const import (
     DOMAIN, 
     STALE_AFTER_SECS, 
     CONF_POWER_SWITCH,
     CONF_POWER_SWITCH_ENABLED,
+    CONF_CAMERA_MODE,
+    CONF_POLLING_RATE,
+    CONF_NOTIFY_DEVICE,
+    CONF_NOTIFY_COMPLETED,
+    CONF_NOTIFY_ERROR,
+    CONF_NOTIFY_MINUTES_TO_END,
+    CONF_MINUTES_TO_END_VALUE,
     CONF_GO2RTC_URL,
     CONF_GO2RTC_PORT,
     DEFAULT_GO2RTC_URL,
@@ -125,13 +134,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info("Power switch config: enabled=%s, entity=%s, effective=%s", 
                  power_switch_enabled, power_switch, effective_power_switch)
     
-    coord = KCoordinator(hass, host=host, power_switch=effective_power_switch)
+    coord = KCoordinator(hass, host=host, power_switch=effective_power_switch, config_entry_id=entry.entry_id)
 
     try:
         await coord.async_start()
         # If printer is OFF, we intentionally don't wait for connectivity.
         if not coord.power_is_off():
-            ok = await coord.wait_first_connect(timeout=8.0)
+            # Initial grace period is ~5 retries (~15-20s). Wait enough to cover it.
+            ok = await coord.wait_first_connect(timeout=15.0)
             if not ok:
                 _LOGGER.warning("Initial connect not confirmed; will retry in background")
     except Exception as exc:
@@ -219,8 +229,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 
                 # Re-detect camera type only if missing (not on every update)
                 cached_camera_type = entry.data.get("_cached_camera_type")
+                cached_camera_type = entry.data.get("_cached_camera_type")
                 if not cached_camera_type:
-                    new_data["_cached_camera_type"] = "webrtc" if printermodel.is_k2_family else (
+                    new_data["_cached_camera_type"] = "webrtc" if (printermodel.is_k2_family or printermodel.supports_webrtc) else (
                         "mjpeg_optional" if (printermodel.is_k1_se or printermodel.is_ender_v3_family) else "mjpeg"
                     )
                     _LOGGER.info("Camera type detected: %s", new_data["_cached_camera_type"])
@@ -279,7 +290,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Periodic state checker
     def _interval_check(_now) -> None:
         coord.check_stale()
-        hass.loop.call_soon_threadsafe(coord.async_update_listeners)
+        # Do not force listener updates here; rely on coordinator's internal logic (throttled)
+        # hass.loop.call_soon_threadsafe(coord.async_update_listeners)
     
     cancel_interval = async_track_time_interval(
         hass, _interval_check, timedelta(seconds=max(5, STALE_AFTER_SECS // 3))
@@ -358,7 +370,7 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                         {"model": "K1 Max", "chamber_sensor": True, "chamber_control": False, "light": True, "camera": "mjpeg"}
                     ],
                     "k2_family": [
-                        {"model": "K2", "chamber_sensor": True, "chamber_control": False, "light": True, "camera": "webrtc"},
+                        {"model": "K2", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"},
                         {"model": "K2 Pro", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"},
                         {"model": "K2 Plus", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"}
                     ],
@@ -381,9 +393,17 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                     "entry_id": entry_id,
                     "title": getattr(cfg_entry, "title", None),
                     "options": {
-                        "power_switch": cfg_entry.options.get(CONF_POWER_SWITCH) if cfg_entry else None,
-                        "go2rtc_url": cfg_entry.options.get(CONF_GO2RTC_URL) if cfg_entry else None,
-                        "go2rtc_port": cfg_entry.options.get(CONF_GO2RTC_PORT) if cfg_entry else None,
+                        "power_switch": cfg_entry.options.get(CONF_POWER_SWITCH),
+                        "power_switch_enabled": cfg_entry.options.get(CONF_POWER_SWITCH_ENABLED),
+                        "camera_mode": cfg_entry.options.get(CONF_CAMERA_MODE),
+                        "polling_rate": cfg_entry.options.get(CONF_POLLING_RATE),
+                        "notify_device": cfg_entry.options.get(CONF_NOTIFY_DEVICE),
+                        "notify_completed": cfg_entry.options.get(CONF_NOTIFY_COMPLETED),
+                        "notify_error": cfg_entry.options.get(CONF_NOTIFY_ERROR),
+                        "notify_minutes_to_end": cfg_entry.options.get(CONF_NOTIFY_MINUTES_TO_END),
+                        "minutes_to_end_value": cfg_entry.options.get(CONF_MINUTES_TO_END_VALUE),
+                        "go2rtc_url": cfg_entry.options.get(CONF_GO2RTC_URL),
+                        "go2rtc_port": cfg_entry.options.get(CONF_GO2RTC_PORT),
                     } if cfg_entry else {},
                     "cached": {
                         "model": cfg_entry.data.get("_cached_model") if cfg_entry else None,
@@ -408,6 +428,10 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                     "connected_once": getattr(client._connected_once, "is_set", lambda: False)(),
                     "task_running": bool(client._task and not client._task.done()),
                     "last_rx_monotonic": client.last_rx_monotonic(),
+                    "reconnect_count": client.reconnect_count,
+                    "msg_count": client.msg_count,
+                    "last_error": client.last_error,
+                    "uptime_seconds": (time.monotonic() - client.uptime_start) if client.uptime_start > 0 and client._ws else 0,
                 }
 
                 # Attempt a minimal crawl of the printer web UI to collect resource URLs
@@ -473,7 +497,8 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                     "is_k2_pro": printermodel.is_k2_pro,
                     "is_k2_plus": printermodel.is_k2_plus,
                     "is_ender_v3_family": printermodel.is_ender_v3_family,
-                    "is_creality_hi": printermodel.is_creality_hi
+                    "is_creality_hi": printermodel.is_creality_hi,
+                    "supports_webrtc": printermodel.supports_webrtc
                 }
                 
                 # Add feature detection (matching sensor.py logic)
@@ -481,10 +506,25 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                     "has_light": printermodel.has_light,
                     "has_chamber_sensor": printermodel.has_chamber_sensor,
                     "has_chamber_control": printermodel.has_chamber_control,
-                    "camera_type": "webrtc" if printermodel.is_k2_family else 
+                    "camera_type": "webrtc" if (printermodel.is_k2_family or printermodel.supports_webrtc) else 
                                   "mjpeg_optional" if (printermodel.is_k1_se or printermodel.is_ender_v3_family) else 
                                   "mjpeg"
                 }
+
+                # Dump actual HA entities
+                ent_reg = er.async_get(hass)
+                # er.async_entries_for_config_entry returns list of RegistryEntry
+                entity_entries = er.async_entries_for_config_entry(ent_reg, entry_id)
+                entities_dump = []
+                for e in entity_entries:
+                    st = hass.states.get(e.entity_id)
+                    entities_dump.append({
+                        "entity_id": e.entity_id,
+                        "name": e.name or e.original_name,
+                        "state": st.state if st else None,
+                        "attributes": dict(st.attributes) if st else None
+                    })
+                printer_data["entities"] = entities_dump
                 
                 diagnostic_data["printers"][entry_id] = printer_data
             

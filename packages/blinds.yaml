@@ -14,7 +14,7 @@ group:
       - cover.dining_room_blind_left
       # Start Christmas
       # Comment center for Christmas
-      # - cover.dining_room_blind_center
+      - cover.dining_room_blind_center
       # End Christmas
       - cover.dining_room_blind_right
   guest_bedroom_blinds:
@@ -27,7 +27,7 @@ group:
     entities:
       # Start Christmas
       # Comment left for Christmas
-      # - cover.office_blind_left
+      - cover.office_blind_left
       # End Christmas
       - cover.office_blind_right
   master_bedroom_blinds:

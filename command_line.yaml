@@ -7,31 +7,35 @@
 #     json_attributes:
 #       - ReadDate
 
-- sensor:
-    name: Electric Utilities Summary
-    scan_interval: 3600
-    command: !secret utilities_curl_summary
-    value_template: "{{ value_json.TotalUsage | float }}"
-    unit_of_measurement: "kWh"
-    json_attributes:
-      - TotalCost
-      - MinUsage
-      - MaxUsage
-      - AvgUsage
-      - StartDate
-      - EndDate
+# - sensor:
+#     name: Electric Utilities Summary
+#     scan_interval: 3600
+#     command: !secret utilities_curl_summary
+#     value_template: "{{ value_json.TotalUsage | float }}"
+#     unit_of_measurement: "kWh"
+#     json_attributes:
+#       - TotalCost
+#       - MinUsage
+#       - MaxUsage
+#       - AvgUsage
+#       - StartDate
+#       - EndDate
 
-- sensor:
-    name: Utilities Cycle Start
-    scan_interval: 60
-    command: !secret utilities_curl_start
-    value_template: "{{ value }}"
-
-- sensor:
-    name: Utilities Cycle End
-    scan_interval: 60
-    command: !secret utilities_curl_end
-    value_template: "{{ value }}"
+# Moved to REST
+# - sensor:
+#     name: Utilities Cycle Start
+#     scan_interval: 60
+#     command: !secret utilities_account_curl
+#     value_template: "{{ value_json.ReadStartDate }}"
+#     json_attributes:
+#             - StartDateLabel
+# - sensor:
+#     name: Utilities Cycle End
+#     scan_interval: 60
+#     command: !secret utilities_account_curl
+#     value_template: "{{ value_json.ReadEndDate }}"
+#     json_attributes:
+#             - EndDateLabel
 
 - sensor:
     name: CPU Temperature

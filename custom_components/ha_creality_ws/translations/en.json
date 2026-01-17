@@ -1,0 +1,46 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Creality Printer",
+        "description": "Enter the IP address of your Creality K-series printer. The printer must be unlocked (root access not required) and on the same network.",
+        "data": {
+          "host": "IP Address",
+          "name": "Friendly Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to printer. Ensure IP is correct and printer is ON.",
+      "not_K": "Connection refused or not a supported Creality K-series printer.",
+      "already_configured": "This printer is already configured."
+    },
+    "abort": {
+      "already_configured": "Device is already configured",
+      "cannot_connect": "Failed to connect",
+      "not_K": "Not a K-series printer"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Printer Configuration",
+        "description": "Configure advanced settings for your printer.",
+        "data": {
+          "host": "Printer IP Address",
+          "power_switch_enabled": "Enable Power Switch Detection",
+          "power_switch": "Power Switch Entity",
+          "camera_mode": "Camera Streaming Mode",
+          "go2rtc_url": "External go2rtc Host/URL (if needed)",
+          "go2rtc_port": "External go2rtc Port",
+          "polling_rate": "Polling Rate (seconds, 0 = real-time)",
+          "notify_device": "Notification Device",
+          "notify_completed": "Notify when Completed",
+          "notify_error": "Notify on Error",
+          "notify_minutes_to_end": "Notify before Completion",
+          "minutes_to_end_value": "Minutes before Completion"
+        }
+      }
+    }
+  }
+}

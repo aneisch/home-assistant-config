@@ -3,7 +3,7 @@ icon: mdi:printer
 cards:
   - type: custom:k-printer-card
     name: "3D Printer"
-    camera: camera.ptz
+    camera: camera.ender3v3ke_4bc5_printer_camera
     status: sensor.ender3v3ke_4bc5_print_status
     progress: sensor.ender3v3ke_4bc5_print_progress
     time_left: sensor.ender3v3ke_4bc5_print_time_left
@@ -11,7 +11,7 @@ cards:
     bed: sensor.ender3v3ke_4bc5_bed_temperature
     layer: sensor.ender3v3ke_4bc5_working_layer
     total_layers: sensor.ender3v3ke_4bc5_total_layers
-    power: switch.tuya_2  # Optional
+    power: switch.sonoff_s31_1_s31_1_relay  # Optional
     #light: switch.ender3v3ke_4bc5_light
     pause_btn: button.ender3v3ke_4bc5_pause_print
     resume_btn: button.ender3v3ke_4bc5_resume_print
@@ -74,6 +74,8 @@ cards:
         name: Resume Print
       - entity: button.ender3v3ke_4bc5_stop_print
         name: Stop Print
+      - entity: script.preheat_3d_printer
+        name: Preheat Nottle and Bed
 
   # --- FAN & TUNING ---
   - type: entities
