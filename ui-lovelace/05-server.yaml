@@ -124,6 +124,7 @@ cards:
         icon: mdi:flash
       - type: markdown
         content: >
+          {%- set electric_net = ((states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) -%}
           Tesla Energy This Month: {{ states('sensor.tesla_energy_this_month') | int }} kWh
 
           Monthly Tesla Home Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
@@ -132,7 +133,7 @@ cards:
 
           Monthly Electric Credit Grid: ${{ states('input_text.electricity_sell_monthly') }}
 
-          Monthly Electric Net Cost Grid: ${{ ((states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) }}
+          Monthly Electric Net Cost Grid: <font color='{% if electric_net < 0 %}green{% endif %}'>${{ electric_net }}</font>
 
           Monthly Water Cost: ${{ states('input_text.water_cost_monthly') }}
 
@@ -257,14 +258,14 @@ cards:
             {% for url in state_attr('sensor.traefik_urls', "urls") -%}
               {%- if is_state('binary_sensor.internet_reachability', 'on') -%}
 
-                {%- if "home.my.domain" not in url and "frigatelocal" not in url %}
+                {%- if "home.secret" not in url and "frigatelocal" not in url %}
             {{ url }}
                 {%- endif -%}
               {%- endif -%}
             {%- endfor %}
 
             {% for url in state_attr('sensor.traefik_urls', "urls") -%}
-              {%- if "home.my.domain" in url or "frigatelocal" in url %}
+              {%- if "home.secret" in url or "frigatelocal" in url %}
             {{ url }}
               {%- endif -%}
             {%- endfor %}

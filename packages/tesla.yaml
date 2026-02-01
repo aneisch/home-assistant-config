@@ -990,6 +990,7 @@ automation:
     trigger:
       platform: numeric_state
       entity_id: sensor.tesla_active_route_minutes_to_arrival
+      above: 29
       below: 31
     condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
     action:

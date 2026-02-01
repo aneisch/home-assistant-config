@@ -104,10 +104,11 @@ class SolarEVCharger(hass.Hass):
                 self.log(f"NOTICE: Solar/Battery deficit. Starting {self.disable_timeout}s countdown.")
             
             elapsed = (datetime.datetime.now() - self.insufficient_solar_since).total_seconds()
-            
-            if elapsed >= self.disable_timeout:
+
+            # If disable_timeout exceeded OR zero solar
+            if elapsed >= self.disable_timeout or (solar_watts == 0):
                 if self.insufficient_solar_disabled == False:
-                    self.log(f"STOP: Deficit lasted {int(elapsed)}s. Setting limit to 50%.")
+                    self.log(f"STOP: Deficit timeout expired, lasted {int(elapsed)}s. Setting limit to 50%.")
                     self.safe_set_rate(self.min_amps, disable=True)
                     self.insufficient_solar_disabled = True
                 else:

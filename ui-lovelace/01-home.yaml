@@ -218,8 +218,10 @@ cards:
       - input_boolean.panic_mode
       - automation.lower_and_raise_blinds
       - input_boolean.backyard_floodlight_automation
+      - entity: automation.turn_off_garage_lights
+        name: Garage Light Off Automation
       # Start Christmas
-      - input_boolean.christmas_jingle
+      #- input_boolean.christmas_jingle
       # End Christmas
 
   - type: entities
@@ -229,93 +231,93 @@ cards:
       - person.andrew
       - person.bethany
 
-  - type: custom:vertical-stack-in-card
-    title: Mail & Package Tracking
-    cards:
-      - type: picture-glance
-        camera_image: camera.mail_usps
-        entities: []
-      - type: markdown
-        content: |
-          {{ states.sensor.mail_deliveries_message.state }}
-          {% set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.usps_last'))) | int %}
-          {% set minutes = (seconds // 60) | int %}
-          {% set hours = (minutes // 60) | int %}
-          {% set days = (hours // 24) | int %}
+  # - type: custom:vertical-stack-in-card
+  #   title: Mail & Package Tracking
+  #   cards:
+  #     - type: picture-glance
+  #       camera_image: camera.mail_usps
+  #       entities: []
+  #     - type: markdown
+  #       content: |
+  #         {{ states.sensor.mail_deliveries_message.state }}
+  #         {% set seconds = (as_timestamp(now()) - as_timestamp(states('input_datetime.usps_last'))) | int %}
+  #         {% set minutes = (seconds // 60) | int %}
+  #         {% set hours = (minutes // 60) | int %}
+  #         {% set days = (hours // 24) | int %}
 
-          Last USPS: {% if seconds > 172800 %}<font color='red'>{% elif seconds > 64800 %}<font color='orange'>{% elif seconds < 86400 %}<font color='green'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font> @ {{ states('input_datetime.usps_last')}}
-      - type: entity-filter
-        state_filter:
-          - operator: ">"
-            value: "0"
-        entities:
-          - entity: sensor.mail_usps_mail
-            name: "Today's Mail"
-          - entity: sensor.mail_packages_in_transit
-            name: "Today's Package Delivery"
-          - entity: sensor.mail_usps_delivering
-            icon: "mdi:package-variant-closed"
-            name: USPS
-          - entity: sensor.mail_fedex_delivering
-            icon: "mdi:package-variant-closed"
-            name: FedEx
-          - entity: sensor.mail_ups_delivering
-            icon: "mdi:package-variant-closed"
-            name: UPS
-          - entity: sensor.mail_updated
-            state_filter:
-              - operator: "regex"
-                value: 20
-      # - type: markdown
-      #   content: |
-      #     {%- set seconds = (as_timestamp(now()) - as_timestamp(states('sensor.433_mailbox_last_opened'))) | int -%}
-      #     {%- set minutes = (seconds // 60) | int -%}
-      #     {%- set hours = (minutes // 60) | int -%}
-      #     {%- set days = (hours // 24) | int -%}
-      #     Mailbox Last Opened: **{{days}}d {{hours%24}}h {{minutes%60}}m**
+  #         Last USPS: {% if seconds > 172800 %}<font color='red'>{% elif seconds > 64800 %}<font color='orange'>{% elif seconds < 86400 %}<font color='green'>{% endif %}**{{days}}d {{hours%24}}h {{minutes%60}}m**</font> @ {{ states('input_datetime.usps_last')}}
+  #     - type: entity-filter
+  #       state_filter:
+  #         - operator: ">"
+  #           value: "0"
+  #       entities:
+  #         - entity: sensor.mail_usps_mail
+  #           name: "Today's Mail"
+  #         - entity: sensor.mail_packages_in_transit
+  #           name: "Today's Package Delivery"
+  #         - entity: sensor.mail_usps_delivering
+  #           icon: "mdi:package-variant-closed"
+  #           name: USPS
+  #         - entity: sensor.mail_fedex_delivering
+  #           icon: "mdi:package-variant-closed"
+  #           name: FedEx
+  #         - entity: sensor.mail_ups_delivering
+  #           icon: "mdi:package-variant-closed"
+  #           name: UPS
+  #         - entity: sensor.mail_updated
+  #           state_filter:
+  #             - operator: "regex"
+  #               value: 20
+  #     # - type: markdown
+  #     #   content: |
+  #     #     {%- set seconds = (as_timestamp(now()) - as_timestamp(states('sensor.433_mailbox_last_opened'))) | int -%}
+  #     #     {%- set minutes = (seconds // 60) | int -%}
+  #     #     {%- set hours = (minutes // 60) | int -%}
+  #     #     {%- set days = (hours // 24) | int -%}
+  #     #     Mailbox Last Opened: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml
 
-  - type: entities
-    entities:
-      - action_name: All Off
-        icon: 'mdi:voice'
-        name: ' '
-        type: call-service
-        service: media_player.turn_off
-        service_data:
-          entity_id: 
-            - media_player.misc_photo_frame
-            - media_player.office_photo_frame
-            - media_player.kitchen_photo_frame
-      - action_name: Launch Fotoo
-        icon: 'mdi:voice'
-        name: ' '
-        type: call-service
-        service: script.photo_frame_launch_fotoo
-        service_data:
-          entity_id: 
-            - media_player.kitchen_photo_frame
-            - media_player.office_photo_frame
-      - action_name: Launch Timers
-        icon: 'mdi:voice'
-        name: ' '
-        type: call-service
-        service: script.photo_frame_launch_timers
-        service_data:
-          entity_id: 
-            - media_player.kitchen_photo_frame
-            - media_player.office_photo_frame
-      - action_name: Launch Solar
-        icon: 'mdi:voice'
-        name: ' '
-        type: call-service
-        service: script.photo_frame_launch_solar
-        service_data:
-          entity_id: 
-            - media_player.kitchen_photo_frame
-            - media_player.office_photo_frame
+  # - type: entities
+  #   entities:
+  #     - action_name: All Off
+  #       icon: 'mdi:voice'
+  #       name: ' '
+  #       type: call-service
+  #       service: media_player.turn_off
+  #       service_data:
+  #         entity_id: 
+  #           - media_player.misc_photo_frame
+  #           - media_player.office_photo_frame
+  #           - media_player.kitchen_photo_frame
+  #     - action_name: Launch Fotoo
+  #       icon: 'mdi:voice'
+  #       name: ' '
+  #       type: call-service
+  #       service: script.photo_frame_launch_fotoo
+  #       service_data:
+  #         entity_id: 
+  #           - media_player.kitchen_photo_frame
+  #           - media_player.office_photo_frame
+  #     - action_name: Launch Timers
+  #       icon: 'mdi:voice'
+  #       name: ' '
+  #       type: call-service
+  #       service: script.photo_frame_launch_timers
+  #       service_data:
+  #         entity_id: 
+  #           - media_player.kitchen_photo_frame
+  #           - media_player.office_photo_frame
+  #     - action_name: Launch Solar
+  #       icon: 'mdi:voice'
+  #       name: ' '
+  #       type: call-service
+  #       service: script.photo_frame_launch_solar
+  #       service_data:
+  #         entity_id: 
+  #           - media_player.kitchen_photo_frame
+  #           - media_player.office_photo_frame
 
   - type: custom:vertical-stack-in-card
     cards:

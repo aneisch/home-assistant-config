@@ -162,20 +162,20 @@ cards:
   #             service: esphome.twinkle_lights_string_8_steady_on
 
 # Start Christmas
-  - type: 'custom:auto-entities'
-    filter:
-      include:
-        - entity_id: "light.*christmas*"
-        - entity_id: "switch.*christmas*"
-        - entity_id: switch.santa_tree
-        - entity_id: switch.ferris_wheel
-        - entity_id: switch.nativity
-    card:
-      type: entities
-      title: Christmas
-      # show_header_toggle: false
-    sort:
-      method: name
+  # - type: 'custom:auto-entities'
+  #   filter:
+  #     include:
+  #       - entity_id: "light.*christmas*"
+  #       - entity_id: "switch.*christmas*"
+  #       - entity_id: switch.santa_tree
+  #       - entity_id: switch.ferris_wheel
+  #       - entity_id: switch.nativity
+  #   card:
+  #     type: entities
+  #     title: Christmas
+  #     # show_header_toggle: false
+  #   sort:
+  #     method: name
 # End Christmas
 
   - type: entities

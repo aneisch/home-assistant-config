@@ -24,7 +24,22 @@ cards:
       - type: entities
         entities:
           - switch.emporia_charger
-          - switch.tesla_ble_charger
+          - type: call-service
+            name: Tesla Charging
+            icon: mdi:battery-plus
+            action_name: BLE START
+            service: mqtt.publish
+            data:
+              topic: tesla_ble/SECRETVIN/charging
+              payload: "start"
+          - type: call-service
+            name: Tesla Charging
+            icon: mdi:battery-remove
+            action_name: BLE STOP
+            service: mqtt.publish
+            data:
+              topic: tesla_ble/SECRETVIN/charging
+              payload: "stop"
           - input_boolean.ev_charge_override
           - input_boolean.ev_charge_prioritize_vehicle_over_home_battery
           - input_number.tesla_solar_target_soc_limit
@@ -33,9 +48,6 @@ cards:
             name: Charging Current
           - entity: sensor.tesla_charge_limit_soc
             name: Charge Limit
-          # - entity: sensor.tesla_time_to_full_charge
-          #   name: Time To Full Charge
-          # - timer.tesla_charge_backoff
           - entity: number.tesla_ble_charging_current
             name: BLE Current Limit
           - entity: number.tesla_ble_charging_limit

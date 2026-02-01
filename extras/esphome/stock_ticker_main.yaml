@@ -155,7 +155,7 @@ text_sensor:
     lambda: |-   
       #ifdef USE_ESP32
       static std::string last_mode;
-      wifi_mode_t mode;
+      wifi_mode_t mode; 
       esp_wifi_get_mode(&mode);
       std::string new_mode = (mode == WIFI_MODE_AP || mode == WIFI_MODE_APSTA) ? "AP" : "STA";
       if (new_mode != last_mode) {

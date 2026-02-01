@@ -426,7 +426,9 @@ class KPrinterCard extends HTMLElement {
       } else if (id === "resume") {
         this._pressButtonEntity(this._cfg.resume_btn);
       } else if (id === "stop") {
-        this._pressButtonEntity(this._cfg.stop_btn);
+        if (confirm("Are you sure you want to stop the print?")) {
+          this._pressButtonEntity(this._cfg.stop_btn);
+        }
       } else if (id === "custom") {
         // Custom button can be a button (press), script (turn_on/run), switch (toggle), automation (trigger), etc.
         // For simplicity, treat as toggle if switch/light/input_boolean, else press/turn_on

@@ -144,21 +144,21 @@ font:
     size: 12
   - file: "fonts/Montserrat-Black.ttf"
     id: data_font
-    size: 30
+    size: 50
   - file: "fonts/Montserrat-Black.ttf"
     id: title_font
-    size: 40
+    size: 45
   - file: "fonts/Montserrat-Black.ttf"
     id: sensor_font
     size: 22
-  - file: "gfonts://Inter@700" #
+  - file: "gfonts://Inter@700"
     id: font1
     size: 24
 
-  - file: 'fonts/materialdesignicons-webfont.ttf' # Directory to save ttf file
+  - file: 'fonts/materialdesignicons-webfont.ttf'
     id: font_mdi_large
     size: 200
-    glyphs: &mdi-weather-glyphs # https://pictogrammers.com/library/mdi/
+    glyphs: &mdi-weather-glyphs
       - "\U000F050F" # Thermometer
       - "\U000F058E" # Humidity
       - "\U000F059D" # Wind speed
@@ -170,12 +170,12 @@ font:
       - "\U000F0D9B" # Solar
       - "\U000F008B" # Battery
   - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: font_weather # Copy the above icon and change the size to 40
+    id: font_weather
     size: 200
     glyphs: *mdi-weather-glyphs
   - file: 'fonts/materialdesignicons-webfont.ttf'
-    id: img_font_sensor # Copy the above icon and change the size to 40
-    size: 70
+    id: img_font_sensor
+    size: 60
     glyphs: *mdi-weather-glyphs
 
 display:
@@ -188,125 +188,68 @@ display:
     model: 7.50inv2
     update_interval: never
     lambda: |-
-      // 1. GLOBAL INVERSION - Start by filling the entire screen BLACK
+      // 1. GLOBAL INVERSION
       it.fill(COLOR_ON);
 
-      ESP_LOGD("Display", "Updating Display @ Component...");
-      
-      if(id(wifi_status) == 0){
-        // it.print(230, 300, id(data_font), COLOR_OFF, "WI-FI CONNECTING");
-      }
-      else {
+      if(id(wifi_status) != 0) {
         auto time_now = id(homeassistant_time).now();
-        int w = 180, h = 120, r = 10, thickness = 4;
+        int w = 210, h = 110, r = 12, thickness = 4; // Slightly wider and shorter boxes for better proportions
 
-        if(id(toggle).state == "weather" || id(toggle).state == "solar") {
-          // --- SHARED HEADER SECTION (Weather Icon & Date) ---
-          std::string weather_string = id(myWeather).state.c_str();
-          const char* weather_icon = "\U000F0590"; // default cloudy
-          if(weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring") weather_icon = "\U000F0596";
-          else if(weather_string == "snowy") weather_icon = "\U000F0598";
-          else if(weather_string == "sunny" || weather_string == "windy") weather_icon = "\U000F0599";
+        // --- HEADER SECTION ---
+        std::string weather_string = id(myWeather).state.c_str();
+        const char* weather_icon = "\U000F0590"; 
+        if(weather_string == "rainy" || weather_string == "lightning" || weather_string == "pouring") weather_icon = "\U000F0596";
+        else if(weather_string == "snowy") weather_icon = "\U000F0598";
+        else if(weather_string == "sunny" || weather_string == "windy") weather_icon = "\U000F0599";
+        
+        it.printf(110, 85, id(font_weather), COLOR_OFF, TextAlign::CENTER, weather_icon);
+
+        const char* months[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+        const char* days[] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+        
+        it.printf(230, 80, id(title_font), COLOR_OFF, "%s %d", months[time_now.month - 1], time_now.day_of_month);
+        it.printf(230, 30, id(title_font), COLOR_OFF, "%s", days[time_now.day_of_week]);
+
+        // --- UNIFIED BOX LAMBDA ---
+        auto draw_stat_box = [&](int x, int y, const char* title, const char* icon, float val) {
+          // Frame
+          it.filled_rectangle(x + r, y, w - 2 * r, thickness, COLOR_OFF); 
+          it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness, COLOR_OFF);
+          it.filled_rectangle(x, y + r, thickness, h - 2 * r, COLOR_OFF);
+          it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r, COLOR_OFF);
+          it.filled_circle(x + r, y + r, r, COLOR_OFF);
+          it.filled_circle(x + w - r, y + r, r, COLOR_OFF);
+          it.filled_circle(x + r, y + h - r, r, COLOR_OFF);
+          it.filled_circle(x + w - r, y + h - r, r, COLOR_OFF);
+          it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_ON);
+
+          // Title at top left
+          it.printf(x + 12, y + 12, id(sensor_font), COLOR_OFF, title);
           
-          it.printf(120, 85, id(font_weather), COLOR_OFF, TextAlign::CENTER, weather_icon);
-
-          const char* months[] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-          const char* days[] = {"Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"};
+          // Icon - Centered vertically in the lower half
+          it.printf(x + 45, y + 75, id(img_font_sensor), COLOR_OFF, TextAlign::CENTER, icon);
           
-          it.printf(250, 110, id(title_font), COLOR_OFF, "%s %d", months[time_now.month - 1], time_now.day_of_month);
-          it.printf(250, 70, id(title_font), COLOR_OFF, "%s", days[time_now.day_of_week]);
+          // Value
+          it.printf(x + w - 30, y + 90, id(data_font), COLOR_OFF, TextAlign::BASELINE_RIGHT, "%.0f", val);
+          // X larger = right
+          // Y larger = down
+        };
 
-          // --- COMMON SENSOR BOXES (Temp, Humi, Press, Wind) ---
-          // This lambda draws the box inverted (White border, Black inside)
-          auto draw_sensor_box = [&](int x, int y, const char* title, const char* icon, std::string value, const char* unit) {
-            it.filled_rectangle(x + r, y, w - 2 * r, thickness, COLOR_OFF); 
-            it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness, COLOR_OFF);
-            it.filled_rectangle(x, y + r, thickness, h - 2 * r, COLOR_OFF);
-            it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r, COLOR_OFF);
-            it.filled_circle(x + r, y + r, r, COLOR_OFF);
-            it.filled_circle(x + w - r, y + r, r, COLOR_OFF);
-            it.filled_circle(x + r, y + h - r, r, COLOR_OFF);
-            it.filled_circle(x + w - r, y + h - r, r, COLOR_OFF);
-            it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_ON);
+        // --- GRID POSITIONS (Optimized for 800px width) ---
+        // Column 1 (Weather)
+        draw_stat_box(50, 190, "Temperature", "\U000F050F", atof(id(temp).state.c_str()));
+        draw_stat_box(50, 330, "Pressure",    "\U000F0D60", atof(id(press).state.c_str()));
+        
+        // Column 2 (Weather)
+        draw_stat_box(300, 190, "Humidity",    "\U000F058E", atof(id(humi).state.c_str()));
+        draw_stat_box(300, 330, "Wind Speed",  "\U000F059D", atof(id(wind).state.c_str()));
 
-            it.printf(x+10, y+10, id(sensor_font), COLOR_OFF, title);
-            it.printf(x+45, y+75, id(img_font_sensor), COLOR_OFF, TextAlign::CENTER, icon);
-            
-            if (unit == "inHg" || unit == "mph") {
-                it.printf(x+85, y+50, id(data_font), COLOR_OFF, "%s", value.c_str());
-                it.printf(x+85, y+78, id(sensor_font), COLOR_OFF, unit);
-            } else {
-                it.printf(x+75, y+65, id(data_font), COLOR_OFF, "%s%s", value.c_str(), unit);
-            }
-          };
-
-          // Temp
-          std::string t_val = id(temp).state.c_str();
-          if (t_val.find(".") != std::string::npos) t_val = t_val.substr(0, t_val.find("."));
-          draw_sensor_box(20, 180, "Temperature", "\U000F050F", t_val, "°F");
-
-          // Humidity
-          std::string h_val = id(humi).state.c_str();
-          if (h_val.find(".") != std::string::npos) h_val = h_val.substr(0, h_val.find("."));
-          draw_sensor_box(220, 180, "Humidity", "\U000F058E", h_val, "%");
-
-          // Pressure
-          draw_sensor_box(20, 320, "Air Pressure", "\U000F0D60", id(press).state.c_str(), "inHg");
-
-          // Wind
-          draw_sensor_box(220, 320, "Wind Speed", "\U000F059D", id(wind).state.c_str(), "mph");
-        }
-
-        if(id(toggle).state == "weather"){
-          // --- WEATHER FORECAST TEXT WRAP ---
-          std::string input = id(forecast).state.c_str();
-          std::string output;
-          size_t max_len = 25; size_t line_len = 0; size_t i = 0;
-          while(i < input.length()) {
-            size_t next_space = input.find(' ', i);
-            if(next_space == std::string::npos) next_space = input.length();
-            size_t word_len = next_space - i;
-            if(line_len + word_len > max_len) { output += '\n'; line_len = 0; }
-            output += input.substr(i, word_len);
-            line_len += word_len;
-            if(next_space < input.length()) { output += ' '; line_len += 1; }
-            i = next_space + 1;
-          }
-
-          size_t y_start = 170; size_t x_start = 430; int line_height = 22;
-          size_t pos = 0; size_t next_pos; int line_num = 0;
-          while((next_pos = output.find('\n', pos)) != std::string::npos) {
-            it.print(x_start, y_start + line_num * line_height, id(sensor_font), COLOR_OFF, output.substr(pos, next_pos - pos).c_str());
-            pos = next_pos + 1; line_num++;
-          }
-          if(pos < output.length()) it.print(x_start, y_start + line_num * line_height, id(sensor_font), COLOR_OFF, output.substr(pos).c_str());
-        }
-
-        if(id(toggle).state == "solar"){
-          // --- SOLAR SENSOR BOXES ---
-          auto draw_solar_box = [&](int x, int y, const char* title, const char* icon, float val, const char* unit) {
-            it.filled_rectangle(x + r, y, w - 2 * r, thickness, COLOR_OFF); 
-            it.filled_rectangle(x + r, y + h - thickness, w - 2 * r, thickness, COLOR_OFF);
-            it.filled_rectangle(x, y + r, thickness, h - 2 * r, COLOR_OFF);
-            it.filled_rectangle(x + w - thickness, y + r, thickness, h - 2 * r, COLOR_OFF);
-            it.filled_circle(x + r, y + r, r, COLOR_OFF);
-            it.filled_circle(x + w - r, y + r, r, COLOR_OFF);
-            it.filled_circle(x + r, y + h - r, r, COLOR_OFF);
-            it.filled_circle(x + w - r, y + h - r, r, COLOR_OFF);
-            it.filled_rectangle(x + thickness, y + thickness, w - 2 * thickness, h - 2 * thickness, COLOR_ON);
-            
-            it.printf(x+10, y+10, id(sensor_font), COLOR_OFF, title);
-            it.printf(x+45, y+75, id(img_font_sensor), COLOR_OFF, TextAlign::CENTER, icon);
-            it.printf(x+85, y+50, id(data_font), COLOR_OFF, (unit == "%%" ? "%.0f" : "%.1f"), val);
-            it.printf(x+85, y+78, id(sensor_font), COLOR_OFF, unit);
-          };
-
-          draw_solar_box(520, 35,  "Production", "\U000F0D9B", atof(id(production).state.c_str()), "kWh");
-          draw_solar_box(520, 180, "Export",     "\U000F0D9B", atof(id(grid_export).state.c_str()), "kWh");
-          draw_solar_box(520, 320, "Battery",    "\U000F008B", atof(id(battery).state.c_str()), "%%");
-        }
-
-        // Draw update time at the bottom
+        // Column 3 (Solar)
+        draw_stat_box(560, 50,  "Production",  "\U000F0D9B", atof(id(production).state.c_str()));
+        draw_stat_box(560, 190, "Export",      "\U000F0D9B", atof(id(grid_export).state.c_str()));
+        draw_stat_box(560, 330, "Battery",     "\U000F008B", atof(id(battery).state.c_str()));
+        
+        // Last update time
         it.strftime(5, 462, id(update_font), COLOR_OFF, "Updated %b %d, %Y %I:%M %p", time_now);
       }
 

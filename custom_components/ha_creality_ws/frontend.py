@@ -1,13 +1,17 @@
 import logging
+import time
 from pathlib import Path
 from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
 
 LOCAL_SUBDIR = "ha_creality_ws"
-CARD_NAME = "k_printer_card.js"
-INTEGRATION_URL = f"/{LOCAL_SUBDIR}/{CARD_NAME}"
-_VERSION = "1"
+PRINTER_CARD_NAME = "k_printer_card.js"
+CFS_CARD_NAME = "k_cfs_card.js"
+CARDS = [PRINTER_CARD_NAME, CFS_CARD_NAME]
+INTEGRATION_URL_BASE = f"/{LOCAL_SUBDIR}/"
+# Use timestamp to bust cache on every load
+_VERSION = str(int(time.time()))
 
 
 def _register_static_path(hass: HomeAssistant, url_path: str, path: str) -> None:
@@ -167,9 +171,9 @@ class CrealityCardRegistration:
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
 
-    def _src_path(self) -> Path:
+    def _src_path(self, card_name: str) -> Path:
         # card bundled inside the integration
-        return Path(__file__).parent / "frontend" / CARD_NAME
+        return Path(__file__).parent / "frontend" / card_name
 
     async def async_register(self) -> None:
         """Register a static path that serves the card from the integration package.
@@ -177,59 +181,61 @@ class CrealityCardRegistration:
         We do NOT auto-create or modify Lovelace resources to avoid clobbering user
         dashboards. Instead we log the integration-hosted URL for manual registration.
         """
-        src = self._src_path()
-        # integration-local serving uses the 'www' folder name like other integrations
-        # (file lives in integration/frontend or integration/www depending on packaging)
-        www_path = Path(__file__).parent / "www" / CARD_NAME
-        if www_path.exists():
-            serve_path = str(www_path)
-        else:
-            # fall back to original frontend location when 'www' is not present
-            serve_path = str(src)
+        for card_name in CARDS:
+            integration_url = f"{INTEGRATION_URL_BASE}{card_name}"
+            src = self._src_path(card_name)
+            # integration-local serving uses the 'www' folder name like other integrations
+            # (file lives in integration/frontend or integration/www depending on packaging)
+            www_path = Path(__file__).parent / "www" / card_name
+            if www_path.exists():
+                serve_path = str(www_path)
+            else:
+                # fall back to original frontend location when 'www' is not present
+                serve_path = str(src)
 
-        _register_static_path(self.hass, INTEGRATION_URL, serve_path)
+            _register_static_path(self.hass, integration_url, serve_path)
 
-        # Remove old copy from /config/www if present (cleanup of previous installs)
-        try:
-            dst = Path(self.hass.config.path("www")) / LOCAL_SUBDIR / CARD_NAME
-            if dst.exists():
-                try:
-                    dst.unlink()
-                    _LOGGER.info("Removed old /config/www copy: %s", dst)
-                except Exception as exc:  # pragma: no cover - best-effort cleanup
-                    _LOGGER.debug("Failed to remove old /config/www copy %s: %s", dst, exc)
-        except Exception:
-            _LOGGER.debug("Could not determine config www path to cleanup old card")
+            # Remove old copy from /config/www if present (cleanup of previous installs)
+            try:
+                dst = Path(self.hass.config.path("www")) / LOCAL_SUBDIR / card_name
+                if dst.exists():
+                    try:
+                        dst.unlink()
+                        _LOGGER.info("Removed old /config/www copy: %s", dst)
+                    except Exception as exc:  # pragma: no cover - best-effort cleanup
+                        _LOGGER.debug("Failed to remove old /config/www copy %s: %s", dst, exc)
+            except Exception:
+                _LOGGER.debug("Could not determine config www path to cleanup old card")
 
-        # Try a delicate auto-registration of the lovelace resource; this will only
-        # update/create the single resource URL and includes a version query param.
-        try:
-            await _init_resource(self.hass, INTEGRATION_URL, _VERSION)
-            _LOGGER.debug("Auto-registered lovelace resource for %s", INTEGRATION_URL)
-        except Exception:
-            _LOGGER.debug("Auto-registration of lovelace resource failed for %s", INTEGRATION_URL)
+            # Try a delicate auto-registration of the lovelace resource; this will only
+            # update/create the single resource URL and includes a version query param.
+            try:
+                await _init_resource(self.hass, integration_url, _VERSION)
+                _LOGGER.debug("Auto-registered lovelace resource for %s", integration_url)
+            except Exception:
+                _LOGGER.debug("Auto-registration of lovelace resource failed for %s", integration_url)
 
-        # If there are existing lovelace resources that still point to /local/...,
-        # migrate them to the integration-hosted URL to avoid leaving stale references.
-        try:
-            migrated = await _migrate_local_resources(
-                self.hass, f"/local/{LOCAL_SUBDIR}/", INTEGRATION_URL, _VERSION
-            )
-            if migrated:
-                _LOGGER.info("Migrated %d Lovelace /local/ resources to integration-hosted URL", migrated)
-        except Exception:
-            _LOGGER.debug("Local-to-integration resource migration failed for %s", INTEGRATION_URL)
+            # If there are existing lovelace resources that still point to /local/...,
+            # migrate them to the integration-hosted URL to avoid leaving stale references.
+            try:
+                migrated = await _migrate_local_resources(
+                    self.hass, f"/local/{LOCAL_SUBDIR}/{card_name}", integration_url, _VERSION
+                )
+                if migrated:
+                    _LOGGER.info("Migrated %d Lovelace /local/ resources to integration-hosted URL", migrated)
+            except Exception:
+                _LOGGER.debug("Local-to-integration resource migration failed for %s", integration_url)
 
         # Fix any base-only resource entries (e.g. "/ha_creality_ws/?v=1") by expanding
         # them into the concrete card file URL(s).
         try:
-            await _expand_base_resource(self.hass, f"/{LOCAL_SUBDIR}/", [CARD_NAME])
+            await _expand_base_resource(self.hass, INTEGRATION_URL_BASE, CARDS)
         except Exception:
             _LOGGER.debug("Failed to expand base resource entries for %s", LOCAL_SUBDIR)
 
         _LOGGER.info(
-            "K card served from integration at %s (type: module). Add this URL as a Lovelace resource if you use the bundled card.",
-            INTEGRATION_URL,
+            "K cards served from integration at %s (type: module).",
+            INTEGRATION_URL_BASE,
         )
 
     async def async_unregister(self) -> None:

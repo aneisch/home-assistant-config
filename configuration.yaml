@@ -15,7 +15,7 @@ homeassistant:
     #aarlo: !include packages/aarlo.yaml
     aquarium: !include packages/aquarium.yaml
     # Start Christmas
-    christmas: !include packages/christmas.yaml
+    #christmas: !include packages/christmas.yaml
     # End Christmas
     # covid: !include packages/covid.yaml
     #evcc: !include packages/evcc.yaml

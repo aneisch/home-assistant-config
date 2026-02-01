@@ -9,3 +9,16 @@ diagnostic_dump:
       default: false
       selector:
         boolean:
+
+request_cfs_info:
+  name: Request CFS Info
+  description: Manually request the printer to send the latest CFS (multifiament) information including temperatures, humidity, and filament details.
+  fields:
+    device_id:
+      name: Device
+      description: The printer(s) to request info from. If omitted, all connected printers will be queried.
+      selector:
+        device:
+          integration: ha_creality_ws
+          multiple: true
+

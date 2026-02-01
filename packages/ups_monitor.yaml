@@ -29,7 +29,7 @@ automation:
           - "on"
           - "off"
       - platform: state
-        id: chime
+        id: zwave_chime_ac
         entity_id:
           - binary_sensor.siren_chime_ac_mains
         to:
@@ -41,8 +41,8 @@ automation:
         id: grid_voltage
     condition: "{{ trigger.from_state.state not in ['unavailable', 'unknown']}}"
     action:
-      # Only speak alert if outage detected by UPS or grid truly is out (as opposed to temporary inverter disconnect)
-      - if: "{{ is_state('input_boolean.goodnight', 'off') and trigger.id in ['grid_voltage', 'chime'] }}"
+      # Only speak alert during day and if outage detected by Zwave Chime or grid truly is out (based on voltage)
+      - if: "{{ is_state('input_boolean.goodnight', 'off') and trigger.id in ['grid_voltage', 'zwave_chime_ac'] }}"
         then:
           - action: siren.turn_on
             target:

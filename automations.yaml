@@ -641,6 +641,10 @@
     action: python_script.compute_utility_costs
     data:
       meter_entity: sensor.electricity_sell
+  - alias: Tesla Charging
+    action: python_script.compute_utility_costs
+    data:
+      meter_entity: sensor.tesla_energy_this_month
   mode: single
 - id: reset_utility_meters
   alias: Reset Utility Meters
@@ -1482,4 +1486,18 @@
         target:
           entity_id: camera.3d_printer
         data: {}
+  mode: single
+- id: '1769218477301'
+  alias: Thermostat Mode Change Notice
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.thermostat_operating_mode
+  conditions: []
+  actions:
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      message: Thermostat mode changed to {{ trigger.to_state.state }}
   mode: single

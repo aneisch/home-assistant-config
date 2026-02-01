@@ -9,16 +9,27 @@ import re
 from urllib.parse import urljoin, urlparse
 from typing import Callable, List, Optional, Any
 
-from homeassistant.config_entries import ConfigEntry, OperationNotAllowed #type: ignore[import]
-from homeassistant.core import HomeAssistant, ServiceCall #type: ignore[import]
-from homeassistant.exceptions import ConfigEntryNotReady #type: ignore[import]
-from homeassistant.helpers.event import ( #type: ignore[import]
+
+
+from homeassistant.config_entries import ConfigEntry, OperationNotAllowed # type: ignore[import]
+from homeassistant.core import HomeAssistant, ServiceCall # type: ignore[import]
+from homeassistant.exceptions import ConfigEntryNotReady  # type: ignore[import]
+from homeassistant.helpers.event import (  # type: ignore[import]
     async_track_time_interval,
     async_track_state_change_event,
 )
-import voluptuous as vol #type: ignore[import]
-from homeassistant.helpers import entity_registry as er
-from homeassistant.components.persistent_notification import async_create as pn_async_create #type: ignore[import]
+from homeassistant.helpers.typing import ConfigType  # type: ignore[import]
+from homeassistant.const import (  # type: ignore[import]
+    CONF_HOST,
+    CONF_PORT,
+    EVENT_HOMEASSISTANT_STOP,
+    Platform,
+)
+import voluptuous as vol  # type: ignore[import]
+from homeassistant.helpers import config_validation as cv, entity_registry as er, device_registry as dr # type: ignore[import]
+from homeassistant.helpers.aiohttp_client import async_get_clientsession # type: ignore[import]
+from homeassistant.components.persistent_notification import async_create as pn_async_create # type: ignore[import]
+
 from .const import (
     DOMAIN, 
     STALE_AFTER_SECS, 
@@ -39,8 +50,9 @@ from .const import (
 from .coordinator import KCoordinator
 from .frontend import CrealityCardRegistration
 from .utils import ModelDetection
-from homeassistant.helpers import entity_registry as er  # type: ignore[import]
-from homeassistant.helpers.aiohttp_client import async_get_clientsession  # type: ignore[import]
+
+
+
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[str] = ["sensor", "switch", "camera", "button", "number", "fan", "light", "image"]
@@ -53,8 +65,9 @@ async def _get_integration_version(hass: HomeAssistant) -> str:
         manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
         # Use Home Assistant's async file operations
         content = await hass.async_add_executor_job(
-            lambda: open(manifest_path, "r").read()
+            lambda: open(manifest_path, "r", encoding="utf-8").read()
         )
+
         manifest = json.loads(content)
         return manifest.get("version", "0.0.0")
     except Exception:
@@ -92,12 +105,18 @@ def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
             current_options[CONF_GO2RTC_URL] = old_url
             needs_update = True
             _LOGGER.info("Migrated go2rtc_url from entry.data to options")
-        else:
-            # Set default if missing
-            current_options[CONF_GO2RTC_URL] = DEFAULT_GO2RTC_URL
-            needs_update = True
-            _LOGGER.debug("Setting default go2rtc_url: %s", DEFAULT_GO2RTC_URL)
     
+    # Clean up "bad defaults" introduced in 0.9.0
+    # If users have localhost:11984 set as custom config, remove it to restore 0.8.0 behavior (auto-discovery)
+    elif current_options.get(CONF_GO2RTC_URL) == DEFAULT_GO2RTC_URL:
+        # Check port too
+        current_port = current_options.get(CONF_GO2RTC_PORT)
+        if current_port == DEFAULT_GO2RTC_PORT:
+            _LOGGER.info("Cleaning up default go2rtc settings (restoring auto-discovery)")
+            current_options.pop(CONF_GO2RTC_URL)
+            current_options.pop(CONF_GO2RTC_PORT)
+            needs_update = True
+
     # Migrate go2rtc_port if missing or in data
     if not current_options.get(CONF_GO2RTC_PORT):
         # Check if it was stored in entry.data (old location)
@@ -106,14 +125,10 @@ def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
             try:
                 current_options[CONF_GO2RTC_PORT] = int(old_port)
             except (ValueError, TypeError):
-                current_options[CONF_GO2RTC_PORT] = DEFAULT_GO2RTC_PORT
+                # Don't set default here anymore
+                pass
             needs_update = True
             _LOGGER.info("Migrated go2rtc_port from entry.data to options")
-        else:
-            # Set default if missing
-            current_options[CONF_GO2RTC_PORT] = DEFAULT_GO2RTC_PORT
-            needs_update = True
-            _LOGGER.debug("Setting default go2rtc_port: %s", DEFAULT_GO2RTC_PORT)
     
     if needs_update:
         hass.config_entries.async_update_entry(entry, options=current_options)
@@ -168,11 +183,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         
     # Attempt to cache MAC address if not present
     if not entry.data.get("_cached_mac") and not coord.power_is_off():
-         # In a real scenario, we might query M115 or check network info from the printer
-         # For now, we will rely on upcoming zeroconf updates to populate this if the printer exposes it.
-         # OR: If the coordinator captured it from initial handshake/data?
-         # Creality printers are notoriously shy about their MAC in the JSON payload.
-         pass
+        # In a real scenario, we might query M115 or check network info from the printer
+        # For now, we will rely on upcoming zeroconf updates to populate this if the printer exposes it.
+        # OR: If the coordinator captured it from initial handshake/data?
+        # Creality printers are notoriously shy about their MAC in the JSON payload.
+        pass
          
     # Also re-cache if max temperature values are missing (migration from older versions)
     should_re_cache = should_re_cache or (
@@ -180,6 +195,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get("_cached_max_nozzle_temp") is None
     )
     
+    # Re-cache if CFS info is missing but cfsConnect is 1
+    if not should_re_cache and coord.data.get("cfsConnect") == 1 and not entry.data.get("_cached_cfs_detected"):
+        should_re_cache = True
+
     if should_re_cache:
         _LOGGER.info(
             "Caching device info for %s (cached_version=%s, current_version=%s)",
@@ -190,10 +209,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ok = await coord.wait_first_connect(timeout=10.0)
             # After first connect, wait briefly for model fields to appear to reduce flakiness
             if ok:
-                got_fields = await coord.wait_for_fields(["model", "modelVersion", "hostname"], timeout=6.0)
+                # Wait for basic fields to confirm model and capabilities
+                await coord.wait_for_fields(["model", "modelVersion", "hostname"], timeout=6.0)
+                
+                # CFS / Telemetry Wait Sequence
+                # If CFS detected, we MUST wait for boxsInfo to populate or sensors won't get created.
+                if coord.data.get("cfsConnect") == 1:
+                    _LOGGER.info("CFS connected; requesting box info and waiting...")
+                    # Request updated info to be sure
+                    await coord.client.request_boxs_info()
+                    # Wait for it to arrive
+                    await coord.wait_for_fields(["boxsInfo"], timeout=5.0)
+                
+                # Opportunistic wait for chamber/feature fields if not yet present
+                # This helps the logic below verify capabilities
+                if "maxBoxTemp" not in coord.data:
+                    # Give a tiny storage for these lazier fields to arrive
+                    await coord.wait_for_fields(["maxBoxTemp", "targetBoxTemp"], timeout=2.0)
             else:
                 got_fields = False
-            if (ok and coord.data) or got_fields:
+            
+            # Always update cache if we have data, even if wait timed out partially
+            if (ok and coord.data):
                 # Store device info in entry data
                 d = coord.data or {}
                 printermodel = ModelDetection(d)
@@ -213,12 +250,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_has_chamber_control"] = printermodel.has_chamber_control
                 new_data["_cached_has_box_sensor"] = printermodel.has_box_sensor
                 new_data["_cached_has_box_control"] = printermodel.has_box_control
-                # Heuristic promotions: if telemetry already exposes fields, promote capabilities
-                if any(k in d for k in ("boxTemp", "targetBoxTemp", "maxBoxTemp")):
+                # Feature Promotion: Trust telemetry over model defaults
+                # If printer reports chamber targets/temps, ENABLE capabilities
+                if "targetBoxTemp" in d:
+                    new_data["_cached_has_chamber_control"] = True
+                    new_data["_cached_has_box_control"] = True
+                if "boxTemp" in d or "maxBoxTemp" in d:
                     new_data["_cached_has_chamber_sensor"] = True
-                    new_data["_cached_has_box_sensor"] = True  # legacy mirror
+                    new_data["_cached_has_box_sensor"] = True
                 if "lightSw" in d:
                     new_data["_cached_has_light"] = True
+                
+                # Cache CFS status
+                new_data["_cached_cfs_detected"] = d.get("cfsConnect") == 1
                 
                 # Cache max temperature values for temperature control limits
                 new_data["_cached_max_bed_temp"] = d.get("maxBedTemp", entry.data.get("_cached_max_bed_temp"))
@@ -275,7 +319,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
     
     # Store entry_id in coordinator for easy access
-    coord._config_entry_id = entry.entry_id
+    coord._config_entry_id = entry.entry_id  # pylint: disable=protected-access
+
+
 
     # Register the Lovelace card (non-fatal on failure)
     try:
@@ -314,7 +360,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # --- Remove legacy entities (migration) ---
     try:
         reg = er.async_get(hass)
-        host = coord.client._host
+        host = coord.client.host
+
         # Old unique_ids to remove
         legacy = [
             ("switch", f"{host}-light"),
@@ -335,9 +382,69 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if not hasattr(hass.data[DOMAIN], '_diagnostic_service_registered'):
         await _register_diagnostic_service(hass)
         hass.data[DOMAIN]['_diagnostic_service_registered'] = True
+
+    # Register custom services
+    await _register_custom_services(hass)
     
     _LOGGER.info("ha_creality_ws: setup complete")
     return True
+
+
+async def _register_custom_services(hass: HomeAssistant) -> None:
+    """Register custom services for the integration."""
+
+    async def request_cfs_info(call: ServiceCall) -> None:
+        """Service to manually request CFS info from all or specific printers."""
+        device_ids = call.data.get("device_id")
+        target_entry_ids = set()
+        
+        # If devices selected, resolve them to config entries
+        if device_ids:
+            dev_reg = dr.async_get(hass)
+            # Handle single string or list
+            if isinstance(device_ids, str):
+                device_ids = [device_ids]
+                
+            for dev_id in device_ids:
+                device = dev_reg.async_get(dev_id)
+                if device:
+                    for entry_id in device.config_entries:
+                        target_entry_ids.add(entry_id)
+        
+        # Collect coordinators to target
+        targets = []
+        for entry_id, coord in hass.data[DOMAIN].items():
+            if isinstance(coord, KCoordinator):
+                # If no devices selected, target all. Otherwise, check if entry matches.
+                if not target_entry_ids or entry_id in target_entry_ids:
+                    targets.append(coord)
+        
+        if not targets:
+            _LOGGER.warning("No applicable printers found for CFS info request")
+            return
+
+        success_count = 0
+        fail_count = 0
+        
+        for coord in targets:
+            try:
+                _LOGGER.info("Manually requesting CFS info for %s", coord.client.host)
+                await coord.client.request_boxs_info()
+                success_count += 1
+            except Exception as exc:
+                _LOGGER.error("Failed to request CFS info for %s: %s", coord.client.host, exc)
+                fail_count += 1
+        
+        # Notify user of results
+        pn_async_create(
+            hass,
+            title="CFS Info Request",
+            message=f"Request sent to {success_count} printer(s).\nFailures: {fail_count}",
+            notification_id="cfs_request_result"
+        )
+
+    if not hass.services.has_service(DOMAIN, "request_cfs_info"):
+        hass.services.async_register(DOMAIN, "request_cfs_info", request_cfs_info)
 
 
 async def _register_diagnostic_service(hass: HomeAssistant) -> None:
@@ -361,30 +468,9 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                 "timestamp": datetime.now().isoformat(),
                 "home_assistant_version": getattr(hass.config, 'version', 'unknown'),
                 "integration_version": await _get_integration_version(hass),
-                # Static list of supported models and headline capabilities for quick reference
-                "supported_models": {
-                    "k1_family": [
-                        {"model": "K1", "chamber_sensor": True, "chamber_control": False, "light": True, "camera": "mjpeg"},
-                        {"model": "K1C", "chamber_sensor": True, "chamber_control": False, "light": True, "camera": "mjpeg"},
-                        {"model": "K1 SE", "chamber_sensor": False, "chamber_control": False, "light": False, "camera": "mjpeg_optional"},
-                        {"model": "K1 Max", "chamber_sensor": True, "chamber_control": False, "light": True, "camera": "mjpeg"}
-                    ],
-                    "k2_family": [
-                        {"model": "K2", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"},
-                        {"model": "K2 Pro", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"},
-                        {"model": "K2 Plus", "chamber_sensor": True, "chamber_control": True, "light": True, "camera": "webrtc"}
-                    ],
-                    "ender_3_v3_family": [
-                        {"model": "Ender 3 V3", "chamber_sensor": False, "chamber_control": False, "light": False, "camera": "mjpeg_optional"},
-                        {"model": "Ender 3 V3 KE", "chamber_sensor": False, "chamber_control": False, "light": False, "camera": "mjpeg_optional"},
-                        {"model": "Ender 3 V3 Plus", "chamber_sensor": False, "chamber_control": False, "light": False, "camera": "mjpeg_optional"}
-                    ],
-                    "other": [
-                        {"model": "Creality Hi", "chamber_sensor": False, "chamber_control": False, "light": True, "camera": "mjpeg"}
-                    ]
-                },
                 "printers": {}
             }
+
             
             for entry_id, coord in coordinators:
                 # Collect config entry details for this coordinator (non-sensitive)
@@ -422,21 +508,24 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                 # WebSocket connection diagnostics
                 client = coord.client
                 ws_diag = {
-                    "ws_url": client._url(),
-                    "ws_connected": client._ws is not None,
-                    "ws_ready": getattr(client._ws_ready, "is_set", lambda: False)(),
-                    "connected_once": getattr(client._connected_once, "is_set", lambda: False)(),
-                    "task_running": bool(client._task and not client._task.done()),
+                    "ws_url": client.get_url(),
+                    "ws_connected": client.is_connected,
+                    "ws_ready": client.is_connected,  # approximate mapping
+                    "connected_once": client.has_connected_once(),
+                    "task_running": client.is_task_running(),
                     "last_rx_monotonic": client.last_rx_monotonic(),
                     "reconnect_count": client.reconnect_count,
                     "msg_count": client.msg_count,
                     "last_error": client.last_error,
-                    "uptime_seconds": (time.monotonic() - client.uptime_start) if client.uptime_start > 0 and client._ws else 0,
+                    # Accessing private memeber for debug/diagnostics is acceptable or expose another property?
+                    # uptime_start is public in ws_client (lines 66)
+                    "uptime_seconds": (time.monotonic() - client.uptime_start) if client.uptime_start > 0 and client.is_connected else 0,
                 }
 
                 # Attempt a minimal crawl of the printer web UI to collect resource URLs
                 try:
-                    host = coord.client._host
+                    host = coord.client.host
+
                     urls_cache = getattr(coord, "_http_urls_accessed", None)
                     if urls_cache is None:
                         urls_cache = set()
@@ -466,7 +555,8 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                     _LOGGER.debug("Diagnostic URL crawl skipped due to error", exc_info=True)
 
                 printer_data = {
-                    "host": client._host,
+                    "host": client.host,
+
                     "available": coord.available,
                     "power_is_off": coord.power_is_off(),
                     "power_switch_entity": getattr(coord, "_power_switch_entity", None),
@@ -511,6 +601,16 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                                   "mjpeg"
                 }
 
+                # CFS Diagnostics
+                cfs_data = coord.data.get("boxsInfo", {})
+                cfs_status = {
+                    "connected": coord.data.get("cfsConnect"),
+                    "box_count": len(cfs_data.get("materialBoxs", [])),
+                    "raw_boxsInfo": cfs_data,
+                }
+                printer_data["cfs"] = cfs_status
+
+
                 # Dump actual HA entities
                 ent_reg = er.async_get(hass)
                 # er.async_entries_for_config_entry returns list of RegistryEntry
@@ -536,9 +636,6 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
             _LOGGER.warning("=== CREALITY DIAGNOSTIC DATA START ===\n%s\n=== CREALITY DIAGNOSTIC DATA END ===", json_output)
             
             # Create a persistent notification with summary
-            from homeassistant.components.persistent_notification import async_create as pn_async_create
-            # persistent_notification.async_create is a normal async function in HA, but guard by not awaiting
-            # in case the imported alias returns a non-awaitable (defensive for older versions or stubs).
             pn_async_create(
                 hass,
                 title="Creality Diagnostic Data",
@@ -605,7 +702,7 @@ async def async_monitor_zeroconf_update(hass: HomeAssistant, entry: ConfigEntry,
 
     # Fallback to simple name/IP matching logic or legacy checks
     # If users rely on hostname, IP-based recovery without MAC is dangerous (DHCP shuffle).
-    pass
+
 
 
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:

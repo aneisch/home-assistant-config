@@ -10,11 +10,12 @@ try:
 except Exception:  # older cores
     from homeassistant.const import TEMP_CELSIUS as UNIT_CELSIUS, PERCENTAGE as UNIT_PERCENT
 
+from homeassistant.helpers import entity_registry as er  # type: ignore[import]
 from .const import DOMAIN
 from .entity import KEntity
-from homeassistant.helpers import entity_registry as er  # type: ignore[import]
 
 async def async_setup_entry(hass, entry, async_add_entities):
+    """Set up the number entities."""
     coord = hass.data[DOMAIN][entry.entry_id]
     ents: list[NumberEntity] = []
 
@@ -65,6 +66,7 @@ class PrintTuningPercent(KEntity, NumberEntity):
 
     @property
     def native_value(self) -> float | None:
+        """Return the current value."""
         if self._should_zero():
             return None
         d = self.coordinator.data
@@ -77,6 +79,7 @@ class PrintTuningPercent(KEntity, NumberEntity):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
+        """Update the current value."""
         v = int(max(self._attr_native_min_value, min(self._attr_native_max_value, round(value))))
         # Write BOTH, keep them in lockstep
         await self.coordinator.client.send_set_retry(setFeedratePct=v)
@@ -115,6 +118,10 @@ class NozzleTargetNumber(KEntity, NumberEntity):
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
+        
+        self.coordinator.data["targetNozzleTemp"] = v
+        self.coordinator.async_update_listeners()
+        
         await self.coordinator.client.send_set_retry(nozzleTempControl=v)
 
 
@@ -151,6 +158,10 @@ class BedTargetNumber(KEntity, NumberEntity):
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
+        
+        self.coordinator.data[f"targetBedTemp{self._idx}"] = v
+        self.coordinator.async_update_listeners()
+        
         await self.coordinator.client.send_set_retry(bedTempControl={"num": self._idx, "val": v})
 
 
@@ -189,12 +200,17 @@ class BoxTargetNumber(KEntity, NumberEntity):
             return None
 
     async def async_set_native_value(self, value: float) -> None:
-        # Chamber heater only activates when > 40°C (K2 Plus behavior)
-        v = 0 if value <= 40 else int(round(value))
+        v = int(round(value))
+
         v = max(int(self._attr_native_min_value or 0), v)
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
+        
+        # Optimistic update
+        self.coordinator.data["targetBoxTemp"] = v
+        self.coordinator.async_update_listeners()
+
         await self.coordinator.client.send_set_retry(boxTempControl=v)
 
 

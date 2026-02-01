@@ -596,6 +596,35 @@ sensor:
       - multiply: 10
       - *toint
 
+  - platform: modbus_controller            # 179 L1 Current
+    modbus_controller_id: inverter
+    name: "${friendly_name} Load L1 Current"
+    id: inverter_esphome_l1_current
+    register_type: holding
+    address: 179
+    unit_of_measurement: "A"
+    accuracy_decimals: 0
+    device_class: current
+    state_class: measurement
+    value_type: S_WORD
+    filters:
+      - multiply: 0.1
+      - *toint
+
+  - platform: modbus_controller            # 180 L2 Current
+    modbus_controller_id: inverter
+    name: "${friendly_name} Load L2 Current"
+    id: inverter_esphome_l2_current
+    register_type: holding
+    address: 180
+    unit_of_measurement: "A"
+    accuracy_decimals: 0
+    device_class: current
+    state_class: measurement
+    value_type: S_WORD
+    filters:
+      - multiply: 0.1
+      - *toint
 
   - platform: modbus_controller            # 176 Load L1 Power - verified
     modbus_controller_id: inverter

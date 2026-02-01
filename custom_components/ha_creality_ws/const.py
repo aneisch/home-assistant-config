@@ -52,3 +52,9 @@ CONF_MINUTES_TO_END_VALUE = "minutes_to_end_value"
 
 CONF_POLLING_RATE = "polling_rate"
 DEFAULT_POLLING_RATE = 0  # Real-time
+
+# Moonraker defaults
+MR_PORT = 7125
+MR_POLL_INTERVAL = 30
+MR_POLL_TIMEOUT = 5
+MR_QUERY_PARAMS = "objects=temperature_fan%20chamber_fan"

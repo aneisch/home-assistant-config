@@ -1,3 +1,4 @@
+"""Sensor entities for Creality 3D printers."""
 from __future__ import annotations
 import logging
 import json
@@ -9,8 +10,11 @@ from homeassistant.components.sensor import (  # type: ignore[import]
     SensorDeviceClass,
     SensorStateClass,
 )
+from homeassistant.helpers.entity import EntityCategory  # type: ignore[import]
+from homeassistant.helpers.dispatcher import async_dispatcher_connect # type: ignore[import]
 from .entity import KEntity
 from .const import DOMAIN
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,7 +32,7 @@ try:
     U_MM = ULen.MILLIMETERS
     U_CM = ULen.CENTIMETERS
     U_S = UTime.SECONDS
-except Exception:  # older cores fallback (keep compat with older HA constants)
+except ImportError:  # older cores fallback (keep compat with older HA constants)
     from homeassistant.const import ( #type: ignore[import]
         TEMP_CELSIUS as U_C,
         LENGTH_MILLIMETERS as U_MM,
@@ -36,6 +40,8 @@ except Exception:  # older cores fallback (keep compat with older HA constants)
         PERCENTAGE as U_PERCENT,
         TIME_SECONDS as U_S,
     )
+    U_RPM = "rpm"
+
 
 # (imports duplicated above; keep only one set)
 
@@ -187,6 +193,20 @@ SPECS: list[dict[str, Any]] = [
     },
 ]
 
+# ----------------- dynamic "mapped" sensors -----------------
+MAPPED_SPECS: list[dict[str, Any]] = [
+    {
+        "uid": "filament_status",
+        "name": "Filament Status",
+        "field": "materialStatus",
+        "mapping": {
+            0: "Normal",
+            1: "Filament Runout",
+        },
+        "icon": "mdi:printer-3d-nozzle-alert",
+    },
+]
+
 
 class KSimpleFieldSensor(KEntity, SensorEntity):
     """Generic sensor bound to one telemetry field or a special computed field."""
@@ -256,6 +276,39 @@ class KSimpleFieldSensor(KEntity, SensorEntity):
                 return d
         
         return self._get_attrs(self.coordinator.data)
+
+
+class KMappedSensor(KEntity, SensorEntity):
+    """Sensor that maps integer values to human-readable strings."""
+    
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(self, coordinator, spec: dict[str, Any]):
+        super().__init__(coordinator, spec["name"], spec["uid"])
+        self._field: str = spec["field"]
+        self._mapping: dict[int, str] = spec.get("mapping", {})
+        if spec.get("icon"):
+            self._attr_icon = spec["icon"]
+
+    @property
+    def native_value(self) -> str | None:
+        if self._should_zero():
+            return "Unknown"
+            
+        d = self.coordinator.data
+        if not d:
+            return "Unknown"
+            
+        raw = d.get(self._field)
+        if raw is None:
+            return "Unknown"
+            
+        try:
+            val = int(raw)
+            return self._mapping.get(val, str(raw))
+        except (ValueError, TypeError):
+            return str(raw)
+
 
 class PrintStatusSensor(KEntity, SensorEntity):
     _attr_name = "Print Status"
@@ -522,12 +575,304 @@ class KPrintControlSensor(KEntity, SensorEntity):
 
 # ----------------- setup -----------------
 
+class KCFSBoxSensor(KEntity, SensorEntity):
+    """Sensor for a CFS Box (Temp/Humidity)."""
+
+    def __init__(self, coordinator, box_id: int, sensor_type: str):
+        uid = f"cfs_box_{box_id}_{sensor_type}"
+        name = f"CFS Box {box_id} {sensor_type.capitalize()}"
+        super().__init__(coordinator, name, uid)
+        self._box_id = box_id
+        self._type = sensor_type  # "temp" or "humidity"
+        if sensor_type == "temp":
+            self._attr_device_class = SensorDeviceClass.TEMPERATURE
+            self._attr_native_unit_of_measurement = U_C
+        else:
+            self._attr_device_class = SensorDeviceClass.HUMIDITY
+            self._attr_native_unit_of_measurement = U_PERCENT
+        self._attr_state_class = SensorStateClass.MEASUREMENT
+
+    def _get_box_data(self) -> dict[str, Any] | None:
+        boxes = self.coordinator.data.get("boxsInfo", {}).get("materialBoxs", [])
+        for b in boxes:
+            if b.get("id") == self._box_id:
+                return b
+        return None
+
+    @property
+    def native_value(self) -> float | None:
+        if self._should_zero():
+            return 0.0
+        data = self._get_box_data()
+        if data:
+            return data.get(self._type)
+        return None
+
+
+class KCFSSlotSensor(KEntity, SensorEntity):
+    """Sensor for a CFS Slot (Filament type/color/percent)."""
+
+    def __init__(self, coordinator, box_id: int, slot_id: int, sensor_type: str):
+        uid = f"cfs_box_{box_id}_slot_{slot_id}_{sensor_type}"
+        type_label = sensor_type.replace("_", " ").capitalize()
+        name = f"CFS Box {box_id} Slot {slot_id + 1} {type_label}"
+        super().__init__(coordinator, name, uid)
+        self._box_id = box_id
+        self._slot_id = slot_id
+        self._type = sensor_type  # "filament", "color", "percent"
+        
+        if sensor_type == "percent":
+            self._attr_native_unit_of_measurement = U_PERCENT
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+        elif sensor_type == "color":
+            self._attr_icon = "mdi:palette"
+
+    def _get_slot_data(self) -> dict[str, Any] | None:
+        boxes = self.coordinator.data.get("boxsInfo", {}).get("materialBoxs", [])
+        for b in boxes:
+            if b.get("id") == self._box_id:
+                materials = b.get("materials", [])
+                for m in materials:
+                    if m.get("id") == self._slot_id:
+                        return m
+        return None
+
+    @property
+    def native_value(self) -> Any:
+        if self._should_zero():
+            return 0 if self._type == "percent" else "N/A"
+            
+        data = self._get_slot_data()
+        if not data:
+            return None
+            
+        if self._type == "filament":
+            # Combine vendor and name/type
+            vendor = data.get("vendor", "Generic")
+            name = data.get("name") or data.get("type", "Unknown")
+            return f"{vendor} {name}"
+        if self._type == "color":
+            return data.get("color")
+        if self._type == "percent":
+            return data.get("percent")
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        data = self._get_slot_data()
+        if not data:
+            return {}
+        return {
+            "vendor": data.get("vendor"),
+            "type": data.get("type"),
+            "name": data.get("name"),
+            "color_hex": data.get("color"),
+            "rfid": data.get("rfid"),
+            "state": data.get("state"),
+            "selected": data.get("selected"),
+        }
+
+
+class KCFSExtSlotSensor(KEntity, SensorEntity):
+    """Sensor for the External Filament slot (Filament type/color/percent)."""
+
+    def __init__(self, coordinator, slot_id: int, sensor_type: str):
+        uid = f"cfs_external_{sensor_type}"
+        type_label = sensor_type.replace("_", " ").capitalize()
+        name = f"CFS External {type_label}"
+        super().__init__(coordinator, name, uid)
+        self._slot_id = slot_id
+        self._type = sensor_type
+
+        if sensor_type == "percent":
+            self._attr_native_unit_of_measurement = U_PERCENT
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+        elif sensor_type == "color":
+            self._attr_icon = "mdi:palette"
+
+    def _get_external_box(self) -> dict[str, Any] | None:
+        boxes = self.coordinator.data.get("boxsInfo", {}).get("materialBoxs", [])
+        for b in boxes:
+            if b.get("type") == 1:
+                return b
+        return None
+
+    def _get_slot_data(self) -> dict[str, Any] | None:
+        box = self._get_external_box()
+        if not box:
+            return None
+        materials = box.get("materials", [])
+        for m in materials:
+            if m.get("id") == self._slot_id:
+                return m
+        return materials[0] if materials else None
+
+    @property
+    def native_value(self) -> Any:
+        if self._should_zero():
+            return 0 if self._type == "percent" else "N/A"
+
+        data = self._get_slot_data()
+        if not data:
+            return None
+
+        if self._type == "filament":
+            vendor = data.get("vendor", "Generic")
+            name = data.get("name") or data.get("type", "Unknown")
+            return f"{vendor} {name}"
+        if self._type == "color":
+            return data.get("color")
+        if self._type == "percent":
+            return data.get("percent")
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        data = self._get_slot_data()
+        if not data:
+            return {}
+        return {
+            "vendor": data.get("vendor"),
+            "type": data.get("type"),
+            "name": data.get("name"),
+            "color_hex": data.get("color"),
+            "rfid": data.get("rfid"),
+            "state": data.get("state"),
+            "selected": data.get("selected"),
+        }
+
+
 async def async_setup_entry(hass, entry, async_add_entities):
+    _LOGGER.info("Setting up sensor platform for entry: %s", entry.entry_id)
     coord = hass.data[DOMAIN][entry.entry_id]
     ents: list[SensorEntity] = []
 
+    # Track which CFS entities we've already added to avoid duplicates
+    added_cfs_uids: set[str] = set()
+
+    def add_cfs_entities():
+        """Helper to create CFS entities from current data."""
+        new_ents = []
+        cfs_data = coord.data.get("boxsInfo", {})
+        
+        if not cfs_data:
+            _LOGGER.debug("add_cfs_entities: No boxsInfo in coordinator data")
+            return []
+
+        material_boxes = cfs_data.get("materialBoxs", [])
+        _LOGGER.debug("add_cfs_entities processing %d materialBoxs", len(material_boxes))
+        
+        has_cfs_box = any(box.get("type") == 0 for box in material_boxes)
+        external_box = next((box for box in material_boxes if box.get("type") == 1), None)
+        
+        for box in material_boxes:
+            box_id = box.get("id")
+            if box_id is None:
+                _LOGGER.debug("Skipping box with no ID: %s", box)
+                continue
+            if has_cfs_box and box.get("type") == 1:
+                _LOGGER.debug("Skipping external box (type 1) because CFS (type 0) is present")
+                continue
+
+            
+            # Box sensors
+            for s_type in ("temp", "humidity"):
+                if box.get(s_type) is not None:
+                    uid = f"cfs_box_{box_id}_{s_type}"
+                    if uid not in added_cfs_uids:
+                        new_ents.append(KCFSBoxSensor(coord, box_id, s_type))
+                        added_cfs_uids.add(uid)
+                        _LOGGER.debug("Registered new CFS UID: %s", uid)
+                    else:
+                         _LOGGER.debug("Skipping existing CFS UID: %s", uid)
+                
+            # Slots
+            for idx, slot in enumerate(box.get("materials", [])):
+                slot_id = slot.get("id")
+                try:
+                    slot_id = int(slot_id) if slot_id is not None else None
+                except (TypeError, ValueError):
+                    slot_id = None
+                if slot_id is None or slot_id < 0:
+                    slot_id = idx
+                for s_type in ("filament", "color", "percent"):
+                    uid = f"cfs_box_{box_id}_slot_{slot_id}_{s_type}"
+                    if uid not in added_cfs_uids:
+                        new_ents.append(KCFSSlotSensor(coord, box_id, slot_id, s_type))
+                        added_cfs_uids.add(uid)
+                        _LOGGER.debug("Registered new CFS Slot UID: %s", uid)
+                    else:
+                        _LOGGER.debug("Skipping existing CFS Slot UID: %s", uid)
+
+        if external_box:
+            materials = external_box.get("materials", [])
+            if materials:
+                slot_id = materials[0].get("id", 0)
+                for s_type in ("filament", "color", "percent"):
+                    uid = f"cfs_external_{s_type}"
+                    if uid not in added_cfs_uids:
+                        new_ents.append(KCFSExtSlotSensor(coord, slot_id, s_type))
+                        added_cfs_uids.add(uid)
+                        _LOGGER.debug("Registered new CFS External UID: %s", uid)
+                    else:
+                        _LOGGER.debug("Skipping existing CFS External UID: %s", uid)
+            else:
+                _LOGGER.debug("External box found but has no materials")
+
+        _LOGGER.debug("add_cfs_entities prepared %d new entities. Total tracked UIDs: %d", len(new_ents), len(added_cfs_uids))
+        return new_ents
+
+
+    # Dynamic CFS entity handler
+    def _on_new_entities():
+        """Handle signal for new entities (e.g. late CFS discovery)."""
+        _LOGGER.debug("Dynamic entity signal received, checking for new CFS entities...")
+        new_ents = add_cfs_entities()
+        if new_ents:
+            _LOGGER.info("Adding %d dynamic CFS entities", len(new_ents))
+            # Ensure we run on the main loop if we are in a thread
+            from asyncio import run_coroutine_threadsafe
+            async def _schedule_add():
+                await async_add_entities(new_ents)
+            run_coroutine_threadsafe(_schedule_add(), hass.loop)
+    
+    # Listen for the signal fired by coordinator
+    entry.async_on_unload(
+        async_dispatcher_connect(
+            hass, 
+            f"{DOMAIN}_new_entities_{entry.entry_id}", 
+            _on_new_entities
+        )
+    )
+
+    
     # Core sensors
     ents.append(PrintStatusSensor(coord))
+    ents.append(UsedMaterialLengthSensor(coord))
+    ents.append(PrintJobTimeSensor(coord))
+    ents.append(PrintLeftTimeSensor(coord))
+    ents.append(RealTimeFlowSensor(coord))
+    ents.append(CurrentObjectSensor(coord))
+    ents.append(ObjectCountSensor(coord))
+    ents.append(KPrintControlSensor(coord))
+    
+    # Static model/host sensor
+    ents.append(KSimpleFieldSensor(
+        coord,
+        {
+            "uid": "model_info",
+            "name": "Model",
+            "field": "model",
+            "device_class": None,
+            "unit": None,    
+            "state_class": None, 
+            "attrs": lambda d: _attr_dict(
+                ("hostname", d.get("hostname")),
+                ("modelVersion", d.get("modelVersion")),
+            )
+        }
+    ))
+
 
     # Add chamber temperature if supported by model. Also allow live-telemetry fallback if cache missing.
     has_box_sensor = entry.data.get("_cached_has_chamber_sensor", entry.data.get("_cached_has_box_sensor", False))
@@ -544,23 +889,18 @@ async def async_setup_entry(hass, entry, async_add_entities):
         else:
             ents.append(KSimpleFieldSensor(coord, spec))
 
+    # Mapped sensors
+    for spec in MAPPED_SPECS:
+        ents.append(KMappedSensor(coord, spec))
+
     # Additional metrics
-    ents.extend([
-        UsedMaterialLengthSensor(coord),
-        PrintJobTimeSensor(coord),
-        PrintLeftTimeSensor(coord),
-        RealTimeFlowSensor(coord),
-        CurrentObjectSensor(coord),
-        ObjectCountSensor(coord),
-        KPrintControlSensor(coord),
-    ])
 
     # --- Max temperature sensors (non-editable, from cached/live capability limits) ---
     # Pull cached values first
     cached = None
     try:
         cached = coord.hass.config_entries.async_get_entry(getattr(coord, "_config_entry_id", None)).data  # type: ignore[assignment]
-    except Exception:
+    except Exception:  # pylint: disable=broad-except
         cached = None
 
     def _cached_or_live(key: str):
@@ -593,7 +933,21 @@ async def async_setup_entry(hass, entry, async_add_entities):
     if has_box_sensor and max_box is not None:
         ents.append(KMaxTempSensor(coord, name="Max Chamber Temperature", uid="max_box_temp", key="max_box_temp"))
 
-    async_add_entities(ents)
+    # Register static entities immediately
+    try:
+        async_add_entities(ents)
+    except Exception as err:  # pylint: disable=broad-except
+        _LOGGER.error("Failed to add static sensors: %s", err)
+
+    # --- CFS Entities (Dynamic Initial Load) ---
+    try:
+        cfs_ents = add_cfs_entities()
+        if cfs_ents:
+            async_add_entities(cfs_ents)
+    except Exception as err:  # pylint: disable=broad-except
+        _LOGGER.error("Failed to add initial CFS sensors: %s", err)
+
+
 
 
 class KMaxTempSensor(KEntity, SensorEntity):
@@ -613,8 +967,8 @@ class KMaxTempSensor(KEntity, SensorEntity):
             # Prefer UnitOfTemperature if available
             from homeassistant.const import UnitOfTemperature  # type: ignore[import]
             self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-        except Exception:
-            from homeassistant.const import TEMP_CELSIUS  # type: ignore[import]
+        except Exception:  # pylint: disable=broad-except
+            from homeassistant.const import TEMP_CELSIUS  # type: ignore[import] # pylint: disable=import-outside-toplevel
             self._attr_native_unit_of_measurement = TEMP_CELSIUS
 
     @property
@@ -636,7 +990,7 @@ class KMaxTempSensor(KEntity, SensorEntity):
                     if self._key == "max_box_temp":
                         # Prefer new chamber cache with legacy fallback
                         return entry.data.get("_cached_max_chamber_temp", entry.data.get("_cached_max_box_temp"))
-        except Exception:
+        except (AttributeError, KeyError):
             # Ignore cache read errors and fall back to live telemetry.
             pass
         # Live telemetry fallback
