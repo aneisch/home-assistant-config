@@ -28,7 +28,7 @@ homeassistant:
     blinds: !include packages/blinds.yaml
     hass_update_check: !include packages/hass_update_check.yaml
     smoke_alarms: !include packages/smoke_alarms.yaml
-    magic_cube: !include packages/magic_cube.yaml
+    # magic_cube: !include packages/magic_cube.yaml
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
@@ -239,23 +239,6 @@ light:
       - light.front_sconces
       - light.front_porch_lights
 
-lock:
-  - platform: template
-    name: All Doors
-    value_template: "{{ is_state('lock.front_door','locked') and is_state('lock.back_door','locked') and is_state('lock.garage_exterior_door','locked') }}"
-    lock:
-      - service: lock.lock
-        entity_id: 
-          - lock.front_door
-          - lock.back_door
-          - lock.garage_exterior_door
-    unlock:
-      - service: lock.unlock
-        entity_id: 
-          - lock.front_door
-          - lock.back_door
-          - lock.garage_exterior_door
-
 logbook:
 
 logger:
@@ -463,9 +446,10 @@ readme:
 #     states_meta.entity_id
 # ORDER BY
 #     COUNT(*) DESC;
+# https://www.home-assistant.io/integrations/recorder/#mariadb-and-mysql
 recorder:
   db_url: mysql://homeassistant:homeassistant@127.0.0.1/homeassistant?charset=utf8mb4
-  purge_keep_days: 182
+  purge_keep_days: 90
   commit_interval: 30
   exclude:
     entities:
@@ -513,28 +497,7 @@ recorder:
       - media_player.kitchen_photo_frame
       - media_player.office_photo_frame
 
-rest:
-  - resource: !secret utilities_rest_url
-    method: POST
-    payload: !secret utilities_rest_payload
-    verify_ssl: false
-    # 6 Hours
-    scan_interval: 21600
-    headers:
-      Content-Type: application/x-www-form-urlencoded
-    sensor:
-      - name: "Utilities Cycle Start"
-        value_template: "{{ value_json.ReadStartDate }}"
-        icon: 'mdi:calendar'
-        json_attributes:
-          - StartDateLabel
-          - EndDateLabel
-      - name: "Utilities Cycle End"
-        value_template: "{{ value_json.ReadEndDate }}"
-        icon: 'mdi:calendar'
-        json_attributes:
-          - StartDateLabel
-          - EndDateLabel
+rest: !include rest.yaml
 
 rest_command: !include rest_command.yaml
 

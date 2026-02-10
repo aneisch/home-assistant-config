@@ -38,29 +38,29 @@ light:
       - addressable_lambda:
           name: Custom Scan
           update_interval: 75ms
-          lambda:
-            static int step = 1;
-            if(initial_run){
-              step = 1;
-              it[0] = ESPColor::BLACK;
+          lambda: |-
+            static int step = 0;
+            
+            if (initial_run) {
+              step = 0;
+              it.all() = Color::BLACK;
             }
 
+            // Turn off the previous LED
+            if (step == 0) {
+              it[it.size() - 1] = Color::BLACK;
+            } else {
+              it[step - 1] = Color::BLACK;
+            }
+
+            // Light up the current LED
             it[step] = current_color;
 
-            if(step == 1){
-              it[it.size()-1] = ESPColor::BLACK;
+            // Advance the step
+            step++;
+            if (step >= it.size()) {
+              step = 0;
             }
-
-            else if(step > 1){
-              it[step -1] = ESPColor::BLACK;
-            }
-
-            step = step + 1;
-
-            if(step >= it.size()){
-              step = 1;
-            }
-
 switch:
   - platform: restart
     id: restart_device

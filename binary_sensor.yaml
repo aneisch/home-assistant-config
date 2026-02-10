@@ -19,12 +19,12 @@
 #   count: 3
 #   scan_interval: 10
 
-- platform: template
-  sensors:
-    # On if both backups < 10 minutes ago
-    backups_complete:
-      value_template: "{{ (as_timestamp(now()) - as_timestamp(states('sensor.last_vps_backup_completed'))) < 600 and (as_timestamp(now()) - as_timestamp(states('sensor.last_nuc_backup_completed'))) < 600 }}"
-    # andrew_phone_watch_connected:
-    #   value_template: "{{ 'AC:80:FB:99:B2:AA (Galaxy Watch6 (KQBW))' in state_attr('sensor.andrew_phone_bluetooth_connection','connected_paired_devices') }}"
-    # andrew_phone_car_connected:
-    #   value_template: "{{ '00:0A:30:D7:D5:56 (Mazda)' in state_attr('sensor.andrew_phone_bluetooth_connection','connected_paired_devices') }}"
+# - platform: template
+#   sensors:
+#     # On if both backups < 10 minutes ago
+#     backups_complete:
+#       value_template: "{{ (as_timestamp(now()) - as_timestamp(states('sensor.last_vps_backup_completed'))) < 600 and (as_timestamp(now()) - as_timestamp(states('sensor.last_nuc_backup_completed'))) < 600 }}"
+#     # andrew_phone_watch_connected:
+#     #   value_template: "{{ 'AC:80:FB:99:B2:AA (Galaxy Watch6 (KQBW))' in state_attr('sensor.andrew_phone_bluetooth_connection','connected_paired_devices') }}"
+#     # andrew_phone_car_connected:
+#     #   value_template: "{{ '00:0A:30:D7:D5:56 (Mazda)' in state_attr('sensor.andrew_phone_bluetooth_connection','connected_paired_devices') }}"

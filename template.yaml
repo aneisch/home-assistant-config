@@ -1,4 +1,164 @@
-# Compos
+- sensor:
+  - default_entity_id: sensor.kitchen_timer_countdown
+    icon: mdi:timer
+    state: ''
+    name: kitchen_timer_countdown
+
+  - default_entity_id: sensor.kitchen_all_timers
+    attributes:
+      timers_ending: '{% set ns = namespace(timers=[]) %} {% for i in (state_attr(''sensor.kitchen_next_timer'',''sorted_active'')
+        | from_json) -%} {% set last_update = as_timestamp(state_attr(''sensor.kitchen_next_timer'',''last_updated''))
+        -%} {% set remain = i[1][''remainingTime'']/1000 -%} {% set end_epoch = remain
+        + last_update -%} {% set end_time = end_epoch | timestamp_custom(''%Y-%m-%dT%H:%M:%S'',
+        True) -%} {% set ns.timers = ns.timers + [end_time] %} {% endfor %} {{ ns.timers
+        }}'
+    name: All Kitchen Timers
+    state: '{{ state_attr(''sensor.kitchen_next_timer'',''sorted_active'') | from_json
+      | length }}'
+
+  - unit_of_measurement: h
+    default_entity_id: sensor.ac_runtime_today
+    attributes:
+      value: '{{ (60 * (states(''sensor.ac_runtime_today_cool'') | float + states(''sensor.ac_runtime_today_heat'')
+        | float)) | int }}m'
+    name: AC Runtime Today
+    state: '{{ (states(''sensor.ac_runtime_today_cool'') | float + states(''sensor.ac_runtime_today_heat'')
+      | float) }}'
+
+  - unit_of_measurement: h
+    default_entity_id: sensor.ac_runtime_yesterday
+    attributes:
+      value: '{{ (60 * (states(''sensor.ac_runtime_yesterday_cool'') | float + states(''sensor.ac_runtime_yesterday_heat'')
+        | float)) | int }}m'
+    name: AC Runtime Today
+    state: '{{ (states(''sensor.ac_runtime_yesterday_cool'') | float + states(''sensor.ac_runtime_yesterday_heat'')
+      | float) }}'
+
+  - unit_of_measurement: in
+    default_entity_id: sensor.netatmo_home_rain_sum_rain_today_inches
+    icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches')
+      | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
+      0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
+      endif %}"
+    name: Rainfall Today
+    state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_24'') |
+      float) / 25.4) }}'
+
+  - unit_of_measurement: in
+    default_entity_id: sensor.netatmo_home_rain_sum_rain_last_hour_inches
+    icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches')
+      | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
+      0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
+      endif %}"
+    name: Rainfall Last 1 Hour
+    state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_1'') | float)
+      / 25.4) }}'
+
+  - default_entity_id: sensor.mail_deliveries_message
+    name: Deliveries Summary
+    state: "{# Deliveries Sentence #}\n  {% macro deliveries_sentence() -%}\n        {%-
+      if states(\"sensor.mail_usps_mail\")|int(0) == 0 -%}\n          No\n        {%-
+      else -%}\n          {{states(\"sensor.mail_usps_mail\")|int(0)}}\n        {%-
+      endif -%}\n      {{' '}} \n        {%- if states(\"sensor.mail_usps_mail\")|int(0)
+      <= 1 -%}\n          mail\n        {%- else -%}\n          pieces of mail\n        {%-
+      endif -%}\n      {{' '}}will be delivered.{{' '}} \n        {%- if states(\"sensor.mail_packages_in_transit\")|int(0)
+      == 0 -%}\n          No\n        {%- else -%}\n          {{states(\"sensor.mail_packages_in_transit\")|int(0)}}\n
+      \       {%- endif -%}\n      {{' '}} \n        {%- if states(\"sensor.mail_packages_in_transit\")|int(0)
+      == 1 -%}\n          package is\n        {%- else -%}\n          packages are\n
+      \       {%- endif -%}\n      {{' '}}in transit.{{' '}}\n  {%- endmacro %}\n{{deliveries_sentence()}}"
+
+  - unit_of_measurement: °F
+    default_entity_id: sensor.nws_temperature
+    name: Temperature
+    state: '{{ state_attr(''weather.kcll_daynight'', ''temperature'') }}'
+
+  - unit_of_measurement: '%'
+    default_entity_id: sensor.nws_humidity
+    icon: mdi:water-percent
+    name: Humidity
+    state: '{{ state_attr(''weather.kcll_daynight'', ''humidity'') }}'
+
+  - unit_of_measurement: mbar
+    default_entity_id: sensor.nws_pressure
+    name: Pressure
+    state: '{{ state_attr(''weather.kcll_daynight'', ''pressure'') }}'
+
+  - unit_of_measurement: mph
+    default_entity_id: sensor.nws_wind_speed
+    icon: mdi:weather-windy
+    name: Wind Speed
+    state: '{{ state_attr(''weather.kcll_daynight'', ''wind_speed'') }}'
+
+  - unit_of_measurement: '%'
+    default_entity_id: sensor.nws_precip_probability
+    icon: mdi:water-percent
+    name: Percent Chance of Rain
+    state: "{% if state_attr('weather.kcll_daynight', 'forecast')[0]['daytime'] ==
+      True %}\n  {{ state_attr('weather.kcll_daynight', 'forecast')[0]['precipitation_probability']
+      }}\n{% else %}\n  {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability']
+      }}\n{% endif %}"
+
+- lock:
+  - name: All Doors
+    lock:
+    - entity_id:
+      - lock.front_door
+      - lock.back_door
+      - lock.garage_exterior_door
+      action: lock.lock
+    unlock:
+    - entity_id:
+      - lock.front_door
+      - lock.back_door
+      - lock.garage_exterior_door
+      action: lock.unlock
+    optimistic: false
+    state: '{{ is_state(''lock.front_door'',''locked'') and is_state(''lock.back_door'',''locked'')
+      and is_state(''lock.garage_exterior_door'',''locked'') }}'
+
+- binary_sensor:
+  - default_entity_id: binary_sensor.backups_complete
+    state: '{{ (as_timestamp(now()) - as_timestamp(states(''sensor.last_vps_backup_completed'')))
+      < 600 and (as_timestamp(now()) - as_timestamp(states(''sensor.last_nuc_backup_completed'')))
+      < 600 }}'
+    name: backups_complete
+
+- switch:
+  - turn_on:
+    - entity_id:
+      - switch.water_shutoff
+      action: switch.turn_off
+    turn_off:
+    - entity_id:
+      - switch.water_shutoff
+      action: switch.turn_on
+    default_entity_id: switch.home_water_supply
+    icon: "{% if is_state('switch.home_water_supply', 'off') %}\n  mdi:water-off\n{%
+      else %}\n  mdi:water\n{% endif %}"
+    name: Home Water Supply
+    state: '{{ is_state(''switch.water_shutoff'', ''off'') }}'
+
+  - turn_on:
+    - data:
+        shortcut: focus-in-a-meeting-on
+      action: shell_command.weasel_shortcut
+    - data:
+        shortcut: set-volume-0
+      action: shell_command.weasel_shortcut
+    turn_off:
+    - data:
+        shortcut: focus-in-a-meeting-off
+      action: shell_command.weasel_shortcut
+    - data:
+        shortcut: set-volume-15
+      action: shell_command.weasel_shortcut
+    default_entity_id: switch.weasel_focus
+    icon: "{% if is_state('binary_sensor.weasel_focus', 'off') %}\n  mdi:bell\n{%
+      else %}\n  mdi:bell-cancel\n{% endif %}"
+    name: Mac Focus Mode
+    state: '{{ is_state(''binary_sensor.weasel_focus'', ''on'') }}'
+
+# Compost
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"

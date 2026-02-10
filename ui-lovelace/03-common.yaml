@@ -257,7 +257,8 @@ cards:
           - switch.andrew_monitor
           - entity: switch.andrew_office_speakers
             icon: mdi:speaker
-          - switch.tuya_2
+          - name: Radiator
+            entity: switch.sonoff_s31_3_s31_3_relay
           - switch.office_heater
           - switch.office_heater_oscillate
       - type: horizontal-stack

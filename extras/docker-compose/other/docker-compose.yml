@@ -192,34 +192,72 @@ services:
             - /opt/bw-data:/bitwarden/data/
             - /opt/vaultwarden-backup/:/config/
 
+    # vscode:
+    #     container_name: vscode
+    #     image: ghcr.io/hassio-addons/vscode/amd64:7fd6906
+    #     restart: always
+    #     volumes:
+    #         - '/opt/vscode/data:/data/vscode'
+    #         - '/opt/homeassistant/:/config/homeassistant'
+    #         - '/opt/appdaemon/:/config/appdaemon'
+    #         - '/opt/docker-compose/:/config/docker-compose'
+    #         - '/opt/github:/config/github_projects'
+    #         - '/opt/frigate:/config/frigate'
+    #         - '/home/aneisch/.backup:/config/homeassistant-git'
+    #         - '/opt/terraform:/config/terraform'
+    #         - '/opt/traefik:/config/traefik'
+    #         - '/opt/vscode/run:/etc/s6-overlay/s6-rc.d/init-user/run'
+    #         - '/opt/esphome:/config/esphome'
+    #         - '/opt/teslausb:/config/teslausb'
+    #     environment:
+    #         - TZ=America/Chicago
+    #     labels:
+    #         #- sablier.enable=true
+    #         #- sablier.group=default
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.routers.vscode.entrypoints=websecure
+    #         - traefik.http.routers.vscode.tls=true
+    #         - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
+    #         - traefik.http.services.vscode.loadbalancer.server.port=1337
+    #         # HTTPS Local Only (with 80-->443 redirect)
+    #         - traefik.http.routers.vscode_local.tls=true
+    #         - traefik.http.routers.vscode_local.entrypoints=websecure
+    #         - traefik.http.routers.vscode_local.tls.certResolver=le-home
+    #         - traefik.http.routers.vscode_local.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
+    #         - traefik.http.routers.vscode_local.service=vscode
+
     vscode:
         container_name: vscode
-        image: ghcr.io/hassio-addons/vscode/amd64:7fd6906
+        image: lscr.io/linuxserver/code-server:latest
         restart: always
         volumes:
-            - '/opt/vscode/data:/data/vscode'
-            - '/opt/homeassistant/:/config/homeassistant'
-            - '/opt/appdaemon/:/config/appdaemon'
-            - '/opt/docker-compose/:/config/docker-compose'
-            - '/opt/github:/config/github_projects'
-            - '/opt/frigate:/config/frigate'
-            - '/home/aneisch/.backup:/config/homeassistant-git'
-            - '/opt/terraform:/config/terraform'
-            - '/opt/traefik:/config/traefik'
-            - '/opt/vscode/run:/etc/s6-overlay/s6-rc.d/init-user/run'
-            - '/opt/esphome:/config/esphome'
-            - '/opt/teslausb:/config/teslausb'
+            - '/opt/vscode/data:/config'
+            - '/opt/homeassistant:/config/workspace/homeassistant'
+            - '/home/aneisch/.backup:/config/workspace/homeassistant-git'
+            - '/opt/appdaemon:/config/workspace/appdaemon'
+            - '/opt/docker-compose:/config/workspace/docker-compose'
+            - '/opt/github:/config/workspace/github_projects'
+            - '/opt/frigate:/config/workspace/frigate'
+            - '/opt/terraform:/config/workspace/terraform'
+            - '/opt/traefik:/config/workspace/traefik'
+            - '/opt/esphome:/config/workspace/esphome'
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/usr/local/bin/github_hass_commit.sh:/config/workspace/usr_local_bin/github_hass_commit.sh'
         environment:
             - TZ=America/Chicago
+            - PUID=1000
+            - PGID=1000
+            - DEFAULT_WORKSPACE=/config/workspace/
+            - DOCKER_MODS=linuxserver/mods:universal-docker
         labels:
-            #- sablier.enable=true
-            #- sablier.group=default
             # HTTPS for CF
             - traefik.enable=true
             - traefik.http.routers.vscode.entrypoints=websecure
             - traefik.http.routers.vscode.tls=true
             - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
-            - traefik.http.services.vscode.loadbalancer.server.port=1337
+            - traefik.http.services.vscode.loadbalancer.server.port=8443
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.vscode_local.tls=true
             - traefik.http.routers.vscode_local.entrypoints=websecure
@@ -423,24 +461,24 @@ services:
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always
 
-    sqliteweb:
-        container_name: sqliteweb
-        image: tomdesinto/sqliteweb
-        restart: "no"
-        volumes:
-            - /opt/secret/data/secret.db:/db/secret.db
-        environment:
-            - TZ=America/Chicago
-        command: secret.db
-        labels:
-            - com.centurylinklabs.watchtower.enable=false
-            # HTTPS for CF
-            - traefik.enable=true
-            - traefik.http.routers.sqliteweb.entrypoints=websecure
-            - traefik.http.routers.sqliteweb.tls=true
-            - traefik.http.routers.sqliteweb.rule=Host(`sqliteweb.domain.com`)
-            - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
-            - traefik.http.routers.sqliteweb.service=sqliteweb
+    # sqliteweb:
+    #     container_name: sqliteweb
+    #     image: tomdesinto/sqliteweb
+    #     restart: "no"
+    #     volumes:
+    #         - /opt/secret/data/secret.db:/db/secret.db
+    #     environment:
+    #         - TZ=America/Chicago
+    #     command: secret.db
+    #     labels:
+    #         - com.centurylinklabs.watchtower.enable=false
+    #         # HTTPS for CF
+    #         - traefik.enable=true
+    #         - traefik.http.routers.sqliteweb.entrypoints=websecure
+    #         - traefik.http.routers.sqliteweb.tls=true
+    #         - traefik.http.routers.sqliteweb.rule=Host(`sqliteweb.domain.com`)
+    #         - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
+    #         - traefik.http.routers.sqliteweb.service=sqliteweb
 
     # vrs:
     #     container_name: vrs
@@ -473,7 +511,7 @@ services:
         container_name: frigate
         privileged: true
         restart: always
-        image: ghcr.io/blakeblackshear/frigate:0.16.2
+        image: ghcr.io/blakeblackshear/frigate:0.16.4
         #image: ghcr.io/blakeblackshear/frigate:0.15.0
         shm_size: "256mb"
         devices:
@@ -751,7 +789,7 @@ services:
 
     piano-note-trainer:
         container_name: piano-note-trainer
-        image: ghcr.io/aneisch/piano-note-trainer:main
+        image: piano-note-trainer
         restart: unless-stopped
         volumes:
             - /etc/localtime:/etc/localtime:ro  # Time sync

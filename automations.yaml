@@ -670,18 +670,6 @@
     data:
       meter_entity: sensor.electricity_sell_offset
       cycle_reset_entity_id: sensor.utilities_cycle_end
-- alias: Update USPS Mail Camera Path on Hass Restart
-  id: usps_mail_path_update
-  trigger:
-  - platform: state
-    entity_id: sensor.mail_updated
-  - platform: homeassistant
-    event: start
-  action:
-  - action: local_file.update_file_path
-    data_template:
-      entity_id: camera.mail_usps
-      file_path: '{{ states(''sensor.mail_image_system_path'') }}'
 - id: fingerprint_door_unlock
   alias: Fingerprint Door Unlock
   description: ''
@@ -1500,4 +1488,75 @@
     metadata: {}
     data:
       message: Thermostat mode changed to {{ trigger.to_state.state }}
+  mode: single
+- id: '1770674039807'
+  alias: Log Utility Bill Costs
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.latest_utility_bill_id
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.to_state not in ["unknown", "unavailable"] }}'
+  actions:
+  - action: google_sheets.append_sheet
+    metadata: {}
+    data:
+      config_entry: 01JYQN4AYGRQ9S6WQBJV4T4CBW
+      worksheet: Utility Bill History
+      data:
+        Bill Date: '{{ state_attr(''sensor.latest_utility_bill_id'',''date'') }}'
+        Cycle Start: '{{ state_attr(''sensor.latest_utility_bill_id'',''minDate'')
+          }}'
+        Cycle End: '{{ state_attr(''sensor.latest_utility_bill_id'',''maxDate'') }}'
+        Bill ID: '{{ states(''sensor.latest_utility_bill_id'') }}'
+        Total: '{{ state_attr(''sensor.latest_utility_bill_id'',''amount'') }}'
+        Drainage: '{{ float(states(''sensor.latest_utility_bill_drainage_cost'', rounded=True),
+          default=0) }}'
+        Electric: '{{ float(states(''sensor.latest_utility_bill_electric_cost'', rounded=True),
+          default=0) }}'
+        Roadway Maintenance: '{{ float(states(''sensor.latest_utility_bill_roadway_maintenance_cost'',
+          rounded=True), default=0) }}'
+        Solid Waste: '{{ float(states(''sensor.latest_utility_bill_solid_waste_cost'',
+          rounded=True), default=0) }}'
+        Water: '{{ float(states(''sensor.latest_utility_bill_water_cost'', rounded=True),
+          default=0) }}'
+        Wastewater: '{{ float(states(''sensor.latest_utility_bill_wastewater_cost'',
+          rounded=True), default=0) }}'
+      add_created_column: false
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      data:
+        text_mode: styled
+      message: "Utility Bill Issued:\n**Bill Date**: {{ state_attr('sensor.latest_utility_bill_id','date')
+        }}\n**Cycle Start**: {{ state_attr('sensor.latest_utility_bill_id','minDate')
+        }}\n**Cycle End**: {{ state_attr('sensor.latest_utility_bill_id','maxDate')
+        }}\n**Total**: {{ state_attr('sensor.latest_utility_bill_id','amount') }}\n**Drainage**:
+        {{ float(states('sensor.latest_utility_bill_drainage_cost', rounded=True),\n
+        \ default=0) }}\n**Electric**: {{ float(states('sensor.latest_utility_bill_electric_cost',
+        rounded=True),\n  default=0) }}\n**Roadway Maintenance**: {{ float(states('sensor.latest_utility_bill_roadway_maintenance_cost',\n
+        \ rounded=True), default=0) }}\n**Solid Waste**: {{ float(states('sensor.latest_utility_bill_solid_waste_cost',
+        rounded=True),\n  default=0) }}\n**Water**: {{ float(states('sensor.latest_utility_bill_water_cost',
+        rounded=True),\n  default=0) }}\n**Wastewater**: {{ float(states('sensor.latest_utility_bill_wastewater_cost',
+        rounded=True),\n  default=0) }}"
+  mode: single
+- id: '1770749639367'
+  alias: Tesla Alert
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.tesla_state
+    from:
+    - online
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.to_state.state not in ["charging"] }}'
+  actions:
+  - action: notify.signal_self
+    metadata: {}
+    data:
+      message: Tesla Status Change
   mode: single

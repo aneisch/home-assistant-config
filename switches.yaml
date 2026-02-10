@@ -1,9 +1,9 @@
-- platform: orvibo
-  switches:
-    - host: 10.0.0.21
-      name: "Orvibo 1"
-    - host: 10.0.0.14
-      name: "Garage Fan"
+# - platform: orvibo
+#   switches:
+#     - host: 10.0.0.21
+#       name: "Orvibo 1"
+#     - host: 10.0.0.14
+#       name: "Garage Fan"
 
 - platform: wake_on_lan
   name: "NAS"
@@ -19,54 +19,3 @@
   turn_off:
     service: media_player.turn_off
     entity_id: media_player.living_room_tv
-
-- platform: template
-  switches:
-    home_water_supply:
-      friendly_name: Home Water Supply
-      value_template: "{{ is_state('switch.water_shutoff', 'off') }}"
-      turn_on:
-        service: switch.turn_off
-        entity_id: switch.water_shutoff
-      turn_off:
-        service: switch.turn_on
-        entity_id: switch.water_shutoff
-      icon_template: >
-        {% if is_state('switch.home_water_supply', 'off') %}
-          mdi:water-off
-        {% else %}
-          mdi:water
-        {% endif %}
-
-    # Fireplace pumpkin patch
-    #ir_candles:
-    #  friendly_name: Pumpkin Patch
-    #  turn_on:
-    #    service: esphome.ir_candles_candles_on
-    #  turn_off:
-    #    service: esphome.ir_candles_candles_off
-    #  icon_template: mdi:candle
-
-    weasel_focus:
-      friendly_name: Mac Focus Mode
-      value_template: "{{ is_state('binary_sensor.weasel_focus', 'on') }}"
-      turn_on:
-        - service: shell_command.weasel_shortcut
-          data:
-            shortcut: focus-in-a-meeting-on
-        - service: shell_command.weasel_shortcut
-          data:
-            shortcut: set-volume-0
-      turn_off:
-        - service: shell_command.weasel_shortcut
-          data:
-            shortcut: focus-in-a-meeting-off
-        - service: shell_command.weasel_shortcut
-          data:
-            shortcut: set-volume-15
-      icon_template: >
-        {% if is_state('binary_sensor.weasel_focus', 'off') %}
-          mdi:bell
-        {% else %}
-          mdi:bell-cancel
-        {% endif %}

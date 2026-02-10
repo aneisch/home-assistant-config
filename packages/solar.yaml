@@ -129,42 +129,6 @@ automation:
             method: speak
           message: <audio src="soundbank://soundlibrary/alarms/chimes_and_bells/chimes_bells_04"/>
 
-template:
-  - trigger:
-      - platform: time
-        at: "22:00:00"   # We will certainly have maxed by now
-    sensor:
-      - name: "Solar Production Daily Total" # This grabs the day's total (max)
-        unique_id: solar_production_daily_total
-        unit_of_measurement: "kWh"
-        state: >
-          {{ states('sensor.solark_sol_ark_day_pv_energy') | float(0) }}
-  - trigger:
-      - platform: state
-        entity_id: sensor.solark_sol_ark_solar_power
-      - platform: time
-        at: "00:00:00"
-    sensor:
-      - name: "Solar Power Max Today (live)"
-        unique_id: solar_power_max_today_live
-        unit_of_measurement: "W"
-        device_class: power
-        state_class: measurement
-        state: >
-          {% if trigger.platform == 'time' %}
-            0
-          {% else %}
-            {% set current = states('sensor.solark_sol_ark_solar_power') | float(0) %}
-            {% set prev = (this.state | float(0)) if this.state not in ['unknown','unavailable','none'] else 0 %}
-            {{ [prev, current] | max }}
-          {% endif %}
-  - sensor:
-      - name: "SolArk L1_L2_abs_diff"
-        unit_of_measurement: "V"
-        state: >
-          {{ (states('sensor.solark_sol_ark_grid_l1_voltage')|float(0) - states('sensor.solark_sol_ark_grid_l2_voltage')|float(0)) | abs | round(3) }}
-
-
 input_number:
   day_solar_power_peak:
     name: Day Solar Power Peak Output
@@ -198,6 +162,112 @@ script:
           data:
             type: tts
           message: '{{ convo.response.speech.plain.speech }}'
+
+template:
+  - trigger:
+      - platform: time
+        at: "22:00:00"   # We will certainly have maxed by now
+    sensor:
+      - name: "Solar Production Daily Total" # This grabs the day's total (max)
+        unique_id: solar_production_daily_total
+        unit_of_measurement: "kWh"
+        state: >
+          {{ states('sensor.solark_sol_ark_day_pv_energy') | float(0) }}
+  - trigger:
+      - platform: state
+        entity_id: sensor.solark_sol_ark_solar_power
+      - platform: time
+        at: "00:00:00"
+    sensor:
+      - name: "Solar Power Max Today (live)"
+        unique_id: solar_power_max_today_live
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% if trigger.platform == 'time' %}
+            0
+          {% else %}
+            {% set current = states('sensor.solark_sol_ark_solar_power') | float(0) %}
+            {% set prev = (this.state | float(0)) if this.state not in ['unknown','unavailable','none'] else 0 %}
+            {{ [prev, current] | max }}
+          {% endif %}
+
+  - sensor:
+    - name: "SolArk L1_L2_abs_diff"
+      unit_of_measurement: "V"
+      state: >
+        {{ (states('sensor.solark_sol_ark_grid_l1_voltage')|float(0) - states('sensor.solark_sol_ark_grid_l2_voltage')|float(0)) | abs | round(3) }}
+
+    # - default_entity_id: sensor.battery_cap
+    #   name: Home Battery Capacity
+    #   state: "{% set grid_online = states('binary_sensor.solark_sol_ark_grid_connected_status')
+    #     %} {% if grid_online  == 'off'%}\n  {{ states('sensor.solark_sol_ark_battery_capacity_shutdown')
+    #     | int }}\n{% else %}\n  {% set now = strptime(as_timestamp(now()) | timestamp_custom('%H:%M'),
+    #     '%H:%M') %}\n  {% set sellTime1 = strptime(states('sensor.solark_sol_ark_time_slot_1'),
+    #     '%H:%M') %}\n  {% if now >= sellTime1 and now < sellTime2 %}\n    {{ states('number.solark_sol_ark_prog1_capacity')
+    #     | int }}\n  {% else %}\n    {{ states('sensor.solark_sol_ark_battery_capacity_shutdown')
+    #     | int }}\n  {% endif %}\n{% endif %}"
+
+    # - unit_of_measurement: Seconds
+    #   default_entity_id: sensor.soc_battery_time_left
+    #   name: Home Battery Depletion Seconds
+    #   state: '{% set state = states(''sensor.solark_sol_ark_battery_power'') | int %}
+    #     {% set cap = states(''sensor.battery_cap'') | float %} {% if state == 0 -%}
+    #     {{ ((((states(''sensor.solark_sol_ark_battery_soc'') | float - cap) /100) *
+    #     28680) / (1) * 60 * 60 ) | timestamp_custom(''%s'', 0) }} {%- else -%} {{ ((((states(''sensor.solark_sol_ark_battery_soc'')
+    #     | float - cap) /100) * 28680) / (states(''sensor.solark_sol_ark_battery_power'')
+    #     | float) * 60 * 60 ) | timestamp_custom(''%s'', 0) }} {%- endif %}'
+
+    # - default_entity_id: sensor.soc_battery_time_left_friendly
+    #   name: Home Battery Depletion Time
+    #   state: '{% set state = states(''sensor.solark_sol_ark_battery_power'') | int %}
+    #     {% if state > 0 -%} {%- set time = states(''sensor.soc_battery_time_left'')
+    #     | int %} {%- set minutes = ((time % 3600) // 60) %} {%- set minutes = ''{} minutes''.format(minutes)
+    #     if minutes > 0 else '''' %} {%- set hours = ((time % 86400) // 3600) %} {%-
+    #     set hours = ''{} hours, ''.format(hours) if hours > 0 else '''' %} {%- set days
+    #     = (time // 86400) %} {%- set days = ''{} day, ''.format(days) if days > 0 else
+    #     '''' %} {{ ''Less than 1 minute'' if time < 60 else days + hours + minutes }}
+    #     {%- else -%} {{ ''Charging'' }} {%- endif %}'
+
+    # - unit_of_measurement: Seconds
+    #   default_entity_id: sensor.battery_charging_time_left
+    #   name: Home Battery Charging Time Left
+    #   state: "{% set power = states('sensor.solark_sol_ark_battery_power') | float %}
+    #     {% set soc = states('sensor.solark_sol_ark_battery_soc') | float %} {% set cap
+    #     = states('sensor.battery_cap') | float %} {% if power < 0 %}\n  {% if soc <
+    #     cap %}\n    {{ ((((cap - soc) / 100) * 28680) / (-power) * 60 * 60) | int }}\n
+    #     \ {% else %}\n    {{ ((((100 - soc) / 100) * 28680) / (-power) * 60 * 60) |
+    #     int }}\n  {% endif %}\n{% else %}\n  0\n{% endif %}"
+
+    # - default_entity_id: sensor.battery_charging_time_left_friendly
+    #   name: Home Battery Charging Time
+    #   state: "{% set state = states('sensor.solark_sol_ark_battery_power') | int %}
+    #     {% if state < 0 -%}\n  {%- set time = states('sensor.battery_charging_time_left')
+    #     | int %}\n  {%- set minutes = ((time % 3600) // 60) %}\n  {%- set minutes =
+    #     '{} min'.format(minutes) if minutes > 0 else '' %}\n  {%- set hours = ((time
+    #     % 86400) // 3600) %}\n  {%- set hours = '{} hrs, '.format(hours) if hours >
+    #     0 else '' %}\n  {%- set days = (time // 86400) %}\n  {%- set days = '{} day,
+    #     '.format(days) if days > 0 else '' %}\n  {{ 'Floating' if time < 60 else days
+    #     + hours + minutes }}\n{%- else -%}\n  {{ 'Discharging' }}\n{%- endif %}"
+
+    # - default_entity_id: sensor.markdown_battery_charge_time_left
+    #   name: Markdown Home Battery Charging Time
+    #   state: "{% if states('sensor.solark_sol_ark_battery_soc') | float < states('sensor.battery_cap')
+    #     | float %}\n  {{ states('sensor.battery_cap') | float | round(0) }}\n{% else
+    #     %}\n  100\n  {% endif %}"
+
+    # - default_entity_id: sensor.markdown_discharge_time
+    #   name: Markdown Home Battery Discharge Time
+    #   state: "{% set now = as_timestamp(now()) %} {% set add = states('sensor.soc_battery_time_left')
+    #     | int %} {% set future_time = now + add %}\n  {{ future_time | timestamp_custom('%H:%M')
+    #     }}"
+
+    # - default_entity_id: sensor.markdown_charge_time
+    #   name: Markdown Home Battery Charging Time
+    #   state: "{% set now = as_timestamp(now()) %} {% set add = states('sensor.battery_charging_time_left')
+    #     | int %} {% set future_time = now + add %}\n  {{ future_time | timestamp_custom('%H:%M')
+    #     }}"
 
 sensor:
   # - platform: statistics
@@ -234,102 +304,3 @@ sensor:
     state_characteristic: mean
     max_age:
       days: 90
-
-  - platform: template
-    sensors:
-      battery_cap:
-        friendly_name: "Home Battery Capacity"
-        value_template: >
-          {% set grid_online = states('binary_sensor.solark_sol_ark_grid_connected_status') %}
-          {% if grid_online  == 'off'%}
-            {{ states('sensor.solark_sol_ark_battery_capacity_shutdown') | int }}
-          {% else %}
-            {% set now = strptime(as_timestamp(now()) | timestamp_custom('%H:%M'), '%H:%M') %}
-            {% set sellTime1 = strptime(states('sensor.solark_sol_ark_time_slot_1'), '%H:%M') %}
-            {% if now >= sellTime1 and now < sellTime2 %}
-              {{ states('number.solark_sol_ark_prog1_capacity') | int }}
-            {% else %}
-              {{ states('sensor.solark_sol_ark_battery_capacity_shutdown') | int }}
-            {% endif %}
-          {% endif %}
-      soc_battery_time_left:
-        friendly_name: "Home Battery Depletion Seconds"
-        unit_of_measurement: Seconds
-        value_template: >
-          {% set state = states('sensor.solark_sol_ark_battery_power') | int %}
-          {% set cap = states('sensor.battery_cap') | float %}
-          {% if state == 0 -%}
-          {{ ((((states('sensor.solark_sol_ark_battery_soc') | float - cap) /100) * 28680) / (1) * 60 * 60 ) | timestamp_custom('%s', 0) }}
-          {%- else -%}
-          {{ ((((states('sensor.solark_sol_ark_battery_soc') | float - cap) /100) * 28680) / (states('sensor.solark_sol_ark_battery_power') | float) * 60 * 60 ) | timestamp_custom('%s', 0) }}
-          {%- endif %}
-      soc_battery_time_left_friendly:
-        friendly_name: "Home Battery Depletion Time"
-        value_template: >
-          {% set state = states('sensor.solark_sol_ark_battery_power') | int %}
-          {% if state > 0 -%}
-          {%- set time = states('sensor.soc_battery_time_left') | int %}
-          {%- set minutes = ((time % 3600) // 60) %}
-          {%- set minutes = '{} minutes'.format(minutes) if minutes > 0 else '' %}
-          {%- set hours = ((time % 86400) // 3600) %}
-          {%- set hours = '{} hours, '.format(hours) if hours > 0 else '' %}
-          {%- set days = (time // 86400) %}
-          {%- set days = '{} day, '.format(days) if days > 0 else '' %}
-          {{ 'Less than 1 minute' if time < 60 else days + hours + minutes }}
-          {%- else -%}
-          {{ 'Charging' }}
-          {%- endif %}
-      battery_charging_time_left:
-        friendly_name: "Home Battery Charging Time Left"
-        unit_of_measurement: Seconds
-        value_template: >
-          {% set power = states('sensor.solark_sol_ark_battery_power') | float %}
-          {% set soc = states('sensor.solark_sol_ark_battery_soc') | float %}
-          {% set cap = states('sensor.battery_cap') | float %}
-          {% if power < 0 %}
-            {% if soc < cap %}
-              {{ ((((cap - soc) / 100) * 28680) / (-power) * 60 * 60) | int }}
-            {% else %}
-              {{ ((((100 - soc) / 100) * 28680) / (-power) * 60 * 60) | int }}
-            {% endif %}
-          {% else %}
-            0
-          {% endif %}
-      battery_charging_time_left_friendly:
-        friendly_name: "Home Battery Charging Time"
-        value_template: >
-          {% set state = states('sensor.solark_sol_ark_battery_power') | int %}
-          {% if state < 0 -%}
-            {%- set time = states('sensor.battery_charging_time_left') | int %}
-            {%- set minutes = ((time % 3600) // 60) %}
-            {%- set minutes = '{} min'.format(minutes) if minutes > 0 else '' %}
-            {%- set hours = ((time % 86400) // 3600) %}
-            {%- set hours = '{} hrs, '.format(hours) if hours > 0 else '' %}
-            {%- set days = (time // 86400) %}
-            {%- set days = '{} day, '.format(days) if days > 0 else '' %}
-            {{ 'Floating' if time < 60 else days + hours + minutes }}
-          {%- else -%}
-            {{ 'Discharging' }}
-          {%- endif %}
-      markdown_battery_charge_time_left:
-        friendly_name: "Markdown Home Battery Charging Time"
-        value_template: >
-          {% if states('sensor.solark_sol_ark_battery_soc') | float < states('sensor.battery_cap') | float %}
-            {{ states('sensor.battery_cap') | float | round(0) }}
-          {% else %}
-            100
-            {% endif %}
-      markdown_discharge_time:
-        friendly_name: "Markdown Home Battery Discharge Time"
-        value_template: >
-          {% set now = as_timestamp(now()) %}
-          {% set add = states('sensor.soc_battery_time_left') | int %}
-          {% set future_time = now + add %}
-            {{ future_time | timestamp_custom('%H:%M') }}
-      markdown_charge_time:
-        friendly_name: "Markdown Home Battery Charging Time"
-        value_template: >
-          {% set now = as_timestamp(now()) %}
-          {% set add = states('sensor.battery_charging_time_left') | int %}
-          {% set future_time = now + add %}
-            {{ future_time | timestamp_custom('%H:%M') }}

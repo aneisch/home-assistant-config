@@ -4,7 +4,8 @@ substitutions:
 
 esphome:
   name: ${name}
-  platform: ESP32
+
+esp32:
   board: esp32dev
 
 <<: !include common.yaml

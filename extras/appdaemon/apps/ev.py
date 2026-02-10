@@ -7,7 +7,7 @@ class SolarEVCharger(hass.Hass):
         self.min_amps = int(self.args.get("min_amps", 6))
         self.max_amps = int(self.args.get("max_amps", 40))
         self.volts = int(self.args.get("volts", 240))
-        self.min_home_soc = int(self.args.get("home_battery_min_soc", 98))
+        self.min_home_soc = int(self.args.get("home_battery_min_soc", 90))
         self.buffer_watts = int(self.args.get("buffer_watts", 250))
         self.cooldown = int(self.args.get("cooldown", 15)) 
         self.disable_timeout = int(self.args.get("disable_timeout", 600)) 
@@ -30,7 +30,7 @@ class SolarEVCharger(hass.Hass):
             "target_soc": "input_number.tesla_solar_target_soc_limit",
             "vehicle_soc": "sensor.tesla_battery_level",
             "override_boolean": "input_boolean.ev_charge_override",
-            "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status"
+            "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status",
         }
 
         for sensor in ["solar", "home_soc", "load", "target_soc", "grid_status"]:
@@ -89,8 +89,10 @@ class SolarEVCharger(hass.Hass):
         # 4. CALCULATIONS
         ev_power = present_rate * self.volts
         # Non-EV load is current load minus what the car is drawing
-        house_load_only = load_watts - ev_power
-        excess_watts = max(0, solar_watts - house_load_only - self.buffer_watts)
+        house_load_only = load_watts - ev_power 
+        # Allow home battery charing at higher level if not full yet (for prioritizatio)
+        modified_buffer_watts = self.buffer_watts + 2000 if home_soc < 99 else self.buffer_watts
+        excess_watts = max(0, solar_watts - house_load_only - modified_buffer_watts)
         target_amps = excess_watts // self.volts
 
         # 5. DEFICIT LOGIC

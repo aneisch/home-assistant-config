@@ -57,8 +57,8 @@ AC Automation Solar:
 Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  home_battery_min_soc: 98
-  buffer_watts: 250
+  home_battery_min_soc: 90
+  buffer_watts: 250 # There is a hardcoded adjustment of +2000 if home battery is below 99% to allow charging
 
 Auto Dehumidifer:
   module: dehumidifier

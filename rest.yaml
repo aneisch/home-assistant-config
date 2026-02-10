@@ -1,0 +1,110 @@
+- resource: !secret utilities_rest_url
+  method: POST
+  payload: !secret utilities_rest_payload
+  verify_ssl: false
+  # 6 Hours
+  scan_interval: 21600
+  headers:
+    Content-Type: application/x-www-form-urlencoded
+  sensor:
+    - name: "Utilities Cycle Start"
+      value_template: "{{ value_json.ReadStartDate }}"
+      icon: 'mdi:calendar'
+      json_attributes:
+        - StartDateLabel
+        - EndDateLabel
+    - name: "Utilities Cycle End"
+      value_template: "{{ value_json.ReadEndDate }}"
+      icon: 'mdi:calendar'
+      json_attributes:
+        - StartDateLabel
+        - EndDateLabel
+
+- resource: !secret utility_bill_url
+  method: POST
+  payload: !secret utility_bill_url_payload
+  scan_interval: 60
+  headers:
+    Content-Type: application/json
+    OCX-Tenant-Id: !secret ocx_tenant_id
+  sensor:
+    - name: "Latest Utility Bill ID"
+      unique_id: "latest_utility_bill"
+      value_template: >
+        {% set items = value_json.data.history | selectattr('type', 'eq', 'B') | list %}
+        {{ items[0].id if items | count > 0 else "None" }}
+      icon: mdi:script-text-outline
+      json_attributes_path: "$.data.history[?(@.type=='B')]"
+      json_attributes:
+        - amount
+        - date
+        - maxDate
+        - minDate
+        - label
+
+- resource: !secret utility_bill_amount_url
+  method: POST
+  # Secret stripping
+  payload_template: >
+    {
+      "billId": "{{ states('sensor.latest_utility_bill_id') }}"
+    }
+  scan_interval: 60
+  headers:
+    Content-Type: application/json
+    OCX-Tenant-Id: !secret ocx_tenant_id
+  sensor:
+    - name: "Latest Utility Bill Amounts"
+      unique_id: "latest_utility_bill_amounts"
+      value_template: '{{ states("sensor.latest_utility_bill_id")}}'
+      json_attributes_path: "$.data"
+      json_attributes:
+        - service
+
+    - name: "Latest Utility Bill Electric Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_electric"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Electric') | first %}
+        {{ item.amount if item else 0 }}
+
+    - name: "Latest Utility Bill Drainage Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_drainage"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Drainage') | first %}
+        {{ item.amount if item else 0 }}
+
+    - name: "Latest Utility Bill Roadway Maintenance Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_roadway"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Roadway Maintenance') | first %}
+        {{ item.amount if item else 0 }}
+
+    - name: "Latest Utility Bill Solid Waste Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_solid_waste"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Solid Waste') | first %}
+        {{ item.amount if item else 0 }}
+
+    - name: "Latest Utility Bill Water Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_water"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Water') | first %}
+        {{ item.amount if item else 0 }}
+
+    - name: "Latest Utility Bill Wastewater Cost"
+      unit_of_measurement: "$"
+      unique_id: "latest_utility_bill_amounts_wastewater"
+      value_template: >
+        {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
+        {% set item = services | selectattr('label', 'eq', 'Wastewater') | first %}
+        {{ item.amount if item else 0 }}

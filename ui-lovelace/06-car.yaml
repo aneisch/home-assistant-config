@@ -30,7 +30,7 @@ cards:
             action_name: BLE START
             service: mqtt.publish
             data:
-              topic: tesla_ble/SECRETVIN/charging
+              topic: tesla_ble/5YJSA1E5XMF436975/charging
               payload: "start"
           - type: call-service
             name: Tesla Charging
@@ -38,7 +38,7 @@ cards:
             action_name: BLE STOP
             service: mqtt.publish
             data:
-              topic: tesla_ble/SECRETVIN/charging
+              topic: tesla_ble/5YJSA1E5XMF436975/charging
               payload: "stop"
           - input_boolean.ev_charge_override
           - input_boolean.ev_charge_prioritize_vehicle_over_home_battery
@@ -52,6 +52,7 @@ cards:
             name: BLE Current Limit
           - entity: number.tesla_ble_charging_limit
             name: BLE Charge Limit
+          - entity: script.force_tesla_grid_charge_to_safe_soc
 
           # - number.tesla_ble_882c04_charging_amps
           # - switch.tesla_ble_882c04_hvac_switch
@@ -293,20 +294,20 @@ cards:
       #   name: Charge Energy Added
       # - entity: binary_sensor.tesla_charge_port_door_open
       #   name: Charge Port Door Open
-      - entity: sensor.tesla_tpms_pressure_fl
-        name: Front Left Tire Pressure
-      - entity: sensor.tesla_tpms_pressure_fr
-        name: Front Right Tire Pressure
-      - entity: sensor.tesla_tpms_pressure_rl
-        name: Rear Left Tire Pressure
-      - entity: sensor.tesla_tpms_pressure_rr
-        name: Rear Right Tire Pressure
+      # - entity: sensor.tesla_tpms_pressure_fl
+      #   name: Front Left Tire Pressure
+      # - entity: sensor.tesla_tpms_pressure_fr
+      #   name: Front Right Tire Pressure
+      # - entity: sensor.tesla_tpms_pressure_rl
+      #   name: Rear Left Tire Pressure
+      # - entity: sensor.tesla_tpms_pressure_rr
+      #   name: Rear Right Tire Pressure
       - entity: sensor.tesla_active_route_destination
         name: Active Route Destination
       # - entity: sensor.tesla_active_route_energy_at_arrival
-      #   name: Active Route Energy at Arrival
-      - entity: sensor.tesla_active_route_distance_to_arrival_mi
-        name: Active Route Distance to Arrival (mi)
+      # #   name: Active Route Energy at Arrival
+      # - entity: sensor.tesla_active_route_distance_to_arrival_mi
+      #   name: Active Route Distance to Arrival (mi)
       - entity: sensor.tesla_active_route_minutes_to_arrival
         name: Active Route Minutes to Arrival
       # - entity: sensor.tesla_active_route_traffic_minutes_delay

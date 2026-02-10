@@ -208,6 +208,8 @@ automation:
             attachments:
               - /config/media/images/logo.jpg
       - delay: "00:01:00"
+      - action: switch.turn_off
+        entity_id: switch.docker_codeproject
 
   # - alias: Frigate Notification Deliveries
   #   id: "frigate_notification_deliveries"
@@ -538,28 +540,28 @@ automation:
   #           - casmera.driveway
   #           - camera.back_porch
 
-  - alias: Frigate Timelapse Creation
-    id: "frigate_timelapse_creation"
-    mode: single
-    trigger:
-      - platform: time
-        at: "20:00:00"
-    action:
-      - action: shell_command.create_timelapse
-        data:
-          camera: back_porch
-      - action: shell_command.create_timelapse
-        data:
-          camera: front_door
-      - action: shell_command.create_timelapse
-        data:
-          camera: driveway
-      # - action: shell_command.create_timelapse
-      #   data:
-      #     camera: ptz
-      - action: shell_command.create_timelapse
-        data:
-          camera: bullet
+  # - alias: Frigate Timelapse Creation
+  #   id: "frigate_timelapse_creation"
+  #   mode: single
+  #   trigger:
+  #     - platform: time
+  #       at: "20:00:00"
+  #   action:
+  #     - action: shell_command.create_timelapse
+  #       data:
+  #         camera: back_porch
+  #     - action: shell_command.create_timelapse
+  #       data:
+  #         camera: front_door
+  #     - action: shell_command.create_timelapse
+  #       data:
+  #         camera: driveway
+  #     # - action: shell_command.create_timelapse
+  #     #   data:
+  #     #     camera: ptz
+  #     - action: shell_command.create_timelapse
+  #       data:
+  #         camera: bullet
 
   # - alias: Frigate Daily Restart
   #   id: "frigate_restart"
@@ -629,7 +631,7 @@ input_text:
 shell_command:
   frigate_clips_drive: /config/scripts/frigate_clips_drive.sh {{ clip_id }}
   frigate_create_event: /config/scripts/frigate_event_create.sh {{camera}} {{label}}
-  create_timelapse: /config/scripts/frigate_timelapse.sh {{ camera }}
+  #create_timelapse: /config/scripts/frigate_timelapse.sh {{ camera }}
   commit_frigate_changes: ssh nuc '/opt/homeassistant/scripts/commit_frigate_changes.sh'
   # get_timelapse_snapshot: /config/scripts/get_timelapse_snapshot.sh {{ camera }}
 

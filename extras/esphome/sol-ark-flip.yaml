@@ -242,6 +242,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.01
+      - *toint
     value_type: U_WORD
 
   - platform: modbus_controller            # 184 Battery SOC
@@ -448,7 +449,7 @@ sensor:
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
-      #- *toint
+      - *toint
     value_type: U_WORD
     state_class: measurement
 
@@ -515,7 +516,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      #- *toint
+      - *toint
     value_type: U_WORD 
 
   - platform: modbus_controller            # 151 Grid L2-N Voltage - verified
@@ -530,7 +531,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      #- *toint
+      - *toint
     value_type: U_WORD 
 
   - platform: modbus_controller            # 152 Grid L1-L2 Voltage - verified
@@ -862,7 +863,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
-      # - *toint
+      - *toint
 
   - platform: modbus_controller            # 071 Day Battery Discharge - verified
     modbus_controller_id: inverter
@@ -877,7 +878,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1
-      # - *toint
+      - *toint
 
   # - platform: modbus_controller            # 072 Total Battery Charge
   #   modbus_controller_id: inverter
@@ -920,7 +921,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1 # verified firmware update match
-      # - *toint
+      - *toint
 
   - platform: modbus_controller            # 077 Day Grid Export - verified
     modbus_controller_id: inverter
@@ -935,7 +936,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1 # verified firmware update match
-      # - *toint
+      - *toint
 
 
   # Calculate how many kWh of import our export has offset (no net-metering)
@@ -1022,7 +1023,7 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1 # verified firmware update match
-      # - *toint
+      - *toint
     value_type: U_WORD
 
   # - platform: modbus_controller            # 085 Total Load Energy
@@ -1065,7 +1066,8 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1 # verified firmware update match
-      # - *toint
+      - *toint
+
     value_type: U_WORD
 
 ############################################### TEMPERATURE ################################################

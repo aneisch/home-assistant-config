@@ -77,190 +77,174 @@
 # TEMPLATES #
 #############
 
-- platform: template
-  sensors:
-    kitchen_timer_countdown:
-      value_template: ""
-      icon_template: "mdi:timer"
+# Moved to template.yaml
 
-    kitchen_all_timers:
-      friendly_name: "All Kitchen Timers"
-      value_template: "{{ state_attr('sensor.kitchen_next_timer','sorted_active') | from_json | length }}"
-      attribute_templates:
-        timers_ending: >
-          {% set ns = namespace(timers=[]) %}
-          {% for i in (state_attr('sensor.kitchen_next_timer','sorted_active') | from_json) -%}
-          {% set last_update = as_timestamp(state_attr('sensor.kitchen_next_timer','last_updated')) -%}
-          {% set remain = i[1]['remainingTime']/1000 -%}
-          {% set end_epoch = remain + last_update -%}
-          {% set end_time = end_epoch | timestamp_custom('%Y-%m-%dT%H:%M:%S', True) -%}
-          {% set ns.timers = ns.timers + [end_time] %}
-          {% endfor %}
-          {{ ns.timers }}
+# - platform: template
+#   sensors:
 
-    # # 50% is perfectly balanced
-    # phase_a_balance:
-    #   friendly_name: "Phase A Percent Of Total Load"
-    #   unit_of_measurement: "%"
-    #   value_template: >
-    #       {% set a = states('sensor.phase_a_power') | float(0) %}
-    #       {% set b = states('sensor.phase_b_power') | float(0) %}
-    #       {% set total = (a | abs) + (b | abs) %}
-    #       {% if total == 0 %}
-    #         0
-    #       {% else %}
-    #         {{ ((a | abs) / total * 100) | round(0) }}
-    #       {% endif %}
+#     # # 50% is perfectly balanced
+#     # phase_a_balance:
+#     #   friendly_name: "Phase A Percent Of Total Load"
+#     #   unit_of_measurement: "%"
+#     #   value_template: >
+#     #       {% set a = states('sensor.phase_a_power') | float(0) %}
+#     #       {% set b = states('sensor.phase_b_power') | float(0) %}
+#     #       {% set total = (a | abs) + (b | abs) %}
+#     #       {% if total == 0 %}
+#     #         0
+#     #       {% else %}
+#     #         {{ ((a | abs) / total * 100) | round(0) }}
+#     #       {% endif %}
 
-    # # 50% is perfectly balanced
-    # phase_b_balance:
-    #   friendly_name: "Phase B Percent Of Total Load"
-    #   unit_of_measurement: "%"
-    #   value_template: >
-    #       {% set a = states('sensor.phase_a_power') | float(0) %}
-    #       {% set b = states('sensor.phase_b_power') | float(0) %}
-    #       {% set total = (a | abs) + (b | abs) %}
-    #       {% if total == 0 %}
-    #         0
-    #       {% else %}
-    #         {{ ((b | abs) / total * 100) | round(0) }}
-    #       {% endif %}
+#     # # 50% is perfectly balanced
+#     # phase_b_balance:
+#     #   friendly_name: "Phase B Percent Of Total Load"
+#     #   unit_of_measurement: "%"
+#     #   value_template: >
+#     #       {% set a = states('sensor.phase_a_power') | float(0) %}
+#     #       {% set b = states('sensor.phase_b_power') | float(0) %}
+#     #       {% set total = (a | abs) + (b | abs) %}
+#     #       {% if total == 0 %}
+#     #         0
+#     #       {% else %}
+#     #         {{ ((b | abs) / total * 100) | round(0) }}
+#     #       {% endif %}
 
-    # # 0% is perfectly balanced, 100% is one phase carrying all load
-    # phase_difference:
-    #   friendly_name: "Phase Imbalance"
-    #   unit_of_measurement: "%"
-    #   value_template: >
-    #       {% set a = states('sensor.phase_a_power') | float(0) %}
-    #       {% set b = states('sensor.phase_b_power') | float(0) %}
-    #       {% set avg = ((a | abs) + (b | abs)) / 2 %}
-    #       {% if avg == 0 %}
-    #         0
-    #       {% else %}
-    #         {{ (((a | abs) - (b | abs)) | abs / avg * 100) | round(0) }}
-    #       {% endif %}
+#     # # 0% is perfectly balanced, 100% is one phase carrying all load
+#     # phase_difference:
+#     #   friendly_name: "Phase Imbalance"
+#     #   unit_of_measurement: "%"
+#     #   value_template: >
+#     #       {% set a = states('sensor.phase_a_power') | float(0) %}
+#     #       {% set b = states('sensor.phase_b_power') | float(0) %}
+#     #       {% set avg = ((a | abs) + (b | abs)) / 2 %}
+#     #       {% if avg == 0 %}
+#     #         0
+#     #       {% else %}
+#     #         {{ (((a | abs) - (b | abs)) | abs / avg * 100) | round(0) }}
+#     #       {% endif %}
 
-    # phase_difference_5min_avg:
-    #   friendly_name: "Phase Imbalance Average"
-    #   unit_of_measurement: "%"
-    #   value_template: >
-    #       {% set mean = state_attr('sensor.phase_load_imbalance_5m_avg', 'mean') %}
-    #       {{ (mean | float(0)) | round(0) }}
+#     # phase_difference_5min_avg:
+#     #   friendly_name: "Phase Imbalance Average"
+#     #   unit_of_measurement: "%"
+#     #   value_template: >
+#     #       {% set mean = state_attr('sensor.phase_load_imbalance_5m_avg', 'mean') %}
+#     #       {{ (mean | float(0)) | round(0) }}
 
-    # estimated_neutral_current:
-    #   friendly_name: "Estimated Neutral Current"
-    #   unit_of_measurement: "A"
-    #   value_template: >
-    #     {% set a_w = states('sensor.phase_a_power')|float(0) | abs %}
-    #     {% set b_w = states('sensor.phase_b_power')|float(0) | abs %}
-    #     {% set v_ln = 120.0 %}  {# or states('sensor.line_voltage_ln')|float(120) #}
-    #     {% if v_ln == 0 %} 0 {% else %}
-    #       {{ ((a_w / v_ln) - (b_w / v_ln)) | abs | round(2) }}
-    #     {% endif %}
+#     # estimated_neutral_current:
+#     #   friendly_name: "Estimated Neutral Current"
+#     #   unit_of_measurement: "A"
+#     #   value_template: >
+#     #     {% set a_w = states('sensor.phase_a_power')|float(0) | abs %}
+#     #     {% set b_w = states('sensor.phase_b_power')|float(0) | abs %}
+#     #     {% set v_ln = 120.0 %}  {# or states('sensor.line_voltage_ln')|float(120) #}
+#     #     {% if v_ln == 0 %} 0 {% else %}
+#     #       {{ ((a_w / v_ln) - (b_w / v_ln)) | abs | round(2) }}
+#     #     {% endif %}
 
-    ac_runtime_today:
-      friendly_name: "AC Runtime Today"
-      unit_of_measurement: "h"
-      value_template: "{{ (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float) }}"
-      attribute_templates:
-        value: "{{ (60 * (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float)) | int }}m"
+#     ac_runtime_today:
+#       friendly_name: "AC Runtime Today"
+#       unit_of_measurement: "h"
+#       value_template: "{{ (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float) }}"
+#       attribute_templates:
+#         value: "{{ (60 * (states('sensor.ac_runtime_today_cool') | float + states('sensor.ac_runtime_today_heat') | float)) | int }}m"
 
-    ac_runtime_yesterday:
-      friendly_name: "AC Runtime Today"
-      unit_of_measurement: "h"
-      value_template: "{{ (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float) }}"
-      attribute_templates:
-        value: "{{ (60 * (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float)) | int }}m"
+#     ac_runtime_yesterday:
+#       friendly_name: "AC Runtime Today"
+#       unit_of_measurement: "h"
+#       value_template: "{{ (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float) }}"
+#       attribute_templates:
+#         value: "{{ (60 * (states('sensor.ac_runtime_yesterday_cool') | float + states('sensor.ac_runtime_yesterday_heat') | float)) | int }}m"
 
-    netatmo_home_rain_sum_rain_today_inches:
-      friendly_name: Rainfall Today
-      unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_24') | float) / 25.4) }}"
-      icon_template: >
-        {% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches') | float) %}
-        {% if amount >= 0.50 %}
-          mdi:weather-pouring
-        {% elif amount > 0.00 and amount < 0.50 %}
-          mdi:weather-rainy
-        {% else %}
-          mdi:cloud-outline
-        {% endif %}
+#     netatmo_home_rain_sum_rain_today_inches:
+#       friendly_name: Rainfall Today
+#       unit_of_measurement: in
+#       value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_24') | float) / 25.4) }}"
+#       icon_template: >
+#         {% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches') | float) %}
+#         {% if amount >= 0.50 %}
+#           mdi:weather-pouring
+#         {% elif amount > 0.00 and amount < 0.50 %}
+#           mdi:weather-rainy
+#         {% else %}
+#           mdi:cloud-outline
+#         {% endif %}
 
-    netatmo_home_rain_sum_rain_last_hour_inches:
-      friendly_name: Rainfall Last 1 Hour
-      unit_of_measurement: in
-      value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_1') | float) / 25.4) }}"
-      icon_template: >
-        {% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches') | float) %}
-        {% if amount >= 0.50 %}
-          mdi:weather-pouring
-        {% elif amount > 0.00 and amount < 0.50 %}
-          mdi:weather-rainy
-        {% else %}
-          mdi:cloud-outline
-        {% endif %}
+#     netatmo_home_rain_sum_rain_last_hour_inches:
+#       friendly_name: Rainfall Last 1 Hour
+#       unit_of_measurement: in
+#       value_template: "{{ '%.2f'%((states('sensor.netatmo_home_home_rain_sum_rain_1') | float) / 25.4) }}"
+#       icon_template: >
+#         {% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches') | float) %}
+#         {% if amount >= 0.50 %}
+#           mdi:weather-pouring
+#         {% elif amount > 0.00 and amount < 0.50 %}
+#           mdi:weather-rainy
+#         {% else %}
+#           mdi:cloud-outline
+#         {% endif %}
 
-    mail_deliveries_message:
-      friendly_name: "Deliveries Summary"
-      value_template: >
-        {# Deliveries Sentence #}
-          {% macro deliveries_sentence() -%}
-                {%- if states("sensor.mail_usps_mail")|int(0) == 0 -%}
-                  No
-                {%- else -%}
-                  {{states("sensor.mail_usps_mail")|int(0)}}
-                {%- endif -%}
-              {{' '}} 
-                {%- if states("sensor.mail_usps_mail")|int(0) <= 1 -%}
-                  mail
-                {%- else -%}
-                  pieces of mail
-                {%- endif -%}
-              {{' '}}will be delivered.{{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int(0) == 0 -%}
-                  No
-                {%- else -%}
-                  {{states("sensor.mail_packages_in_transit")|int(0)}}
-                {%- endif -%}
-              {{' '}} 
-                {%- if states("sensor.mail_packages_in_transit")|int(0) == 1 -%}
-                  package is
-                {%- else -%}
-                  packages are
-                {%- endif -%}
-              {{' '}}in transit.{{' '}}
-          {%- endmacro %}
-        {{deliveries_sentence()}}
+#     mail_deliveries_message:
+#       friendly_name: "Deliveries Summary"
+#       value_template: >
+#         {# Deliveries Sentence #}
+#           {% macro deliveries_sentence() -%}
+#                 {%- if states("sensor.mail_usps_mail")|int(0) == 0 -%}
+#                   No
+#                 {%- else -%}
+#                   {{states("sensor.mail_usps_mail")|int(0)}}
+#                 {%- endif -%}
+#               {{' '}} 
+#                 {%- if states("sensor.mail_usps_mail")|int(0) <= 1 -%}
+#                   mail
+#                 {%- else -%}
+#                   pieces of mail
+#                 {%- endif -%}
+#               {{' '}}will be delivered.{{' '}} 
+#                 {%- if states("sensor.mail_packages_in_transit")|int(0) == 0 -%}
+#                   No
+#                 {%- else -%}
+#                   {{states("sensor.mail_packages_in_transit")|int(0)}}
+#                 {%- endif -%}
+#               {{' '}} 
+#                 {%- if states("sensor.mail_packages_in_transit")|int(0) == 1 -%}
+#                   package is
+#                 {%- else -%}
+#                   packages are
+#                 {%- endif -%}
+#               {{' '}}in transit.{{' '}}
+#           {%- endmacro %}
+#         {{deliveries_sentence()}}
 
-    nws_temperature:
-      friendly_name: "Temperature"
-      unit_of_measurement: "°F"
-      value_template: "{{ state_attr('weather.kcll_daynight', 'temperature') }}"
+#     nws_temperature:
+#       friendly_name: "Temperature"
+#       unit_of_measurement: "°F"
+#       value_template: "{{ state_attr('weather.kcll_daynight', 'temperature') }}"
 
-    nws_humidity:
-      friendly_name: "Humidity"
-      unit_of_measurement: "%"
-      icon_template: mdi:water-percent
-      value_template: "{{ state_attr('weather.kcll_daynight', 'humidity') }}"
+#     nws_humidity:
+#       friendly_name: "Humidity"
+#       unit_of_measurement: "%"
+#       icon_template: mdi:water-percent
+#       value_template: "{{ state_attr('weather.kcll_daynight', 'humidity') }}"
 
-    nws_pressure:
-      friendly_name: "Pressure"
-      unit_of_measurement: "mbar"
-      value_template: "{{ state_attr('weather.kcll_daynight', 'pressure') }}"
+#     nws_pressure:
+#       friendly_name: "Pressure"
+#       unit_of_measurement: "mbar"
+#       value_template: "{{ state_attr('weather.kcll_daynight', 'pressure') }}"
 
-    nws_wind_speed:
-      friendly_name: "Wind Speed"
-      unit_of_measurement: "mph"
-      icon_template: mdi:weather-windy
-      value_template: "{{ state_attr('weather.kcll_daynight', 'wind_speed') }}"
+#     nws_wind_speed:
+#       friendly_name: "Wind Speed"
+#       unit_of_measurement: "mph"
+#       icon_template: mdi:weather-windy
+#       value_template: "{{ state_attr('weather.kcll_daynight', 'wind_speed') }}"
 
-    nws_precip_probability:
-      friendly_name: "Percent Chance of Rain"
-      unit_of_measurement: "%"
-      icon_template: mdi:water-percent
-      value_template: >
-        {% if state_attr('weather.kcll_daynight', 'forecast')[0]['daytime'] == True %}
-          {{ state_attr('weather.kcll_daynight', 'forecast')[0]['precipitation_probability'] }}
-        {% else %}
-          {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability'] }}
-        {% endif %}
+#     nws_precip_probability:
+#       friendly_name: "Percent Chance of Rain"
+#       unit_of_measurement: "%"
+#       icon_template: mdi:water-percent
+#       value_template: >
+#         {% if state_attr('weather.kcll_daynight', 'forecast')[0]['daytime'] == True %}
+#           {{ state_attr('weather.kcll_daynight', 'forecast')[0]['precipitation_probability'] }}
+#         {% else %}
+#           {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability'] }}
+#         {% endif %}

@@ -98,6 +98,7 @@ smart_home:
       - switch.ir_candles
       - input_boolean.kitchen_motion
       - script.surround_mute
+      - script.too
       #############
       # Christmas #
       #############

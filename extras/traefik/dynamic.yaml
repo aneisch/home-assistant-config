@@ -182,6 +182,6 @@ tls:
   stores:
     default:
       defaultCertificate:
-        # Cloudflare Origin Cert
+        # Cloudflare Origin Cert for Proxy Traffic
         certFile: /opt/certs/cert.crt
         keyFile: /opt/certs/cert.key

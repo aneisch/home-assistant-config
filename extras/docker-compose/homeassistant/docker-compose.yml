@@ -36,13 +36,18 @@ services:
         environment:
             - TZ=America/Chicago
         network_mode: host
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
         restart: always
         logging:
             driver: none
 
     mariadb:
+        # https://www.home-assistant.io/integrations/recorder/#mariadb-and-mysql
         container_name: mariadb
         image: 'mariadb:latest'
+        command: --innodb-buffer-pool-size=4G --innodb-flush-log-at-trx-commit=2 --innodb-io-capacity=2000 --innodb-read-io-threads=16 --innodb-write-io-threads=16 --innodb-purge-threads=4
         user: '99'
         ports:
             - '127.0.0.1:3306:3306' # Expose localhost only for Home Assistant
@@ -221,50 +226,50 @@ services:
             - traefik.http.routers.zwavejs_local.rule=Host(`zwavejs.home.domain.com`)
             - traefik.http.routers.zwavejs_local.service=zwavejs
 
-    cellular_message_relay_sim7080g:
-        container_name: cellular_message_relay_sim7080g
-        restart: always
-        image: ghcr.io/aneisch/cellular_message_relay:sim7080g
-        #image: cellular_message_relay:sim7080g
-        ports:
-            - '127.0.0.1:9998:9999' # Expose localhost only for Home Assistant
-        environment:
-            - SIM_KEY=SIM_KEY
-            - HOST=HOSTIP
-            - PORT=11111
-            - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
-            - TZ=America/Chicago
-            - LOG_LEVEL=DEBUG
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-        devices:
-            - /dev/usb_modem_sim7080g:/dev/cellular_modem
+    # cellular_message_relay_sim7080g:
+    #     container_name: cellular_message_relay_sim7080g
+    #     restart: always
+    #     image: ghcr.io/aneisch/cellular_message_relay:sim7080g
+    #     #image: cellular_message_relay:sim7080g
+    #     ports:
+    #         - '127.0.0.1:9998:9999' # Expose localhost only for Home Assistant
+    #     environment:
+    #         - SIM_KEY=SIM_KEY
+    #         - HOST=HOSTIP
+    #         - PORT=11111
+    #         - POWER_TOGGLE_WEBHOOK=http://10.0.1.22:8123/api/webhook/xxx
+    #         - TZ=America/Chicago
+    #         - LOG_LEVEL=DEBUG
+    #     volumes:
+    #         - /etc/localtime:/etc/localtime:ro
+    #     devices:
+    #         - /dev/usb_modem_sim7080g:/dev/cellular_modem
 
-    faster-whisper:
-        image: lscr.io/linuxserver/faster-whisper:latest
-        container_name: faster-whisper
-        environment:
-            - PUID=1000
-            - PGID=1000
-            - TZ=America/Chicago
-            - WHISPER_MODEL=tiny.en
-            - WHISPER_BEAM=1 #optional
-            - WHISPER_LANG=en #optional
-        ports:
-            - 127.0.0.1:10300:10300
-        restart: always
+    # faster-whisper:
+    #     image: lscr.io/linuxserver/faster-whisper:latest
+    #     container_name: faster-whisper
+    #     environment:
+    #         - PUID=1000
+    #         - PGID=1000
+    #         - TZ=America/Chicago
+    #         - WHISPER_MODEL=tiny.en
+    #         - WHISPER_BEAM=1 #optional
+    #         - WHISPER_LANG=en #optional
+    #     ports:
+    #         - 127.0.0.1:10300:10300
+    #     restart: always
 
-    piper:
-        image: lscr.io/linuxserver/piper:latest
-        container_name: piper
-        environment:
-            - PUID=1000
-            - PGID=1000
-            - TZ=America/Chicago
-            - PIPER_VOICE=en_US-hfc_female-medium
-        ports:
-            - 127.0.0.1:10200:10200
-        restart: always
+    # piper:
+    #     image: lscr.io/linuxserver/piper:latest
+    #     container_name: piper
+    #     environment:
+    #         - PUID=1000
+    #         - PGID=1000
+    #         - TZ=America/Chicago
+    #         - PIPER_VOICE=en_US-hfc_female-medium
+    #     ports:
+    #         - 127.0.0.1:10200:10200
+    #     restart: always
 
     # openwakeword:
     #     image: rhasspy/wyoming-openwakeword

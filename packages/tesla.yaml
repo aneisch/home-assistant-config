@@ -1,3 +1,20 @@
+template:
+  - lock:
+    - unique_id: tesla_lock_entity
+      name: Tesla
+      lock:
+      - action: button.press
+        target:
+          entity_id:
+          - button.tesla_ble_lock_car
+      unlock:
+      - action: button.press
+        target:
+          entity_id:
+          - button.tesla_ble_unlock_car
+      optimistic: false
+      state: '{{ is_state(''binary_sensor.tesla_locked'', ''off'') }}'
+
 input_number:
   # Emporia View, Appdaemon app, and Tesla BLE follow this
   tesla_charge_rate_master:
@@ -571,21 +588,66 @@ mqtt:
       payload_off: "false"
       icon: mdi:ev-plug-tesla
 
-lock:
-  - platform: template
-    unique_id: tesla_lock_entity
-    name: Tesla
-    value_template: "{{ is_state('binary_sensor.tesla_locked', 'off') }}"
-    lock:
-      action: button.press
-      target:
-        entity_id: button.tesla_ble_lock_car
-    unlock:
-      action: button.press
-      target:
-        entity_id: button.tesla_ble_unlock_car
-
 script:
+  force_tesla_grid_charge_to_safe_soc:
+    alias: "Force Tesla Grid Charge to Safe SOC"
+    icon: mdi:battery-sync
+    mode: single
+    sequence:
+      # Disable TOU on Sol-Ark
+      - service: switch.turn_off
+        target:
+          entity_id: switch.solark_sol_ark_system_tou
+
+      # Enable Emporia charger
+      - service: switch.turn_on
+        target:
+          entity_id: switch.emporia_charger
+
+      # Enable EV charge override
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.ev_charge_override
+
+      # Set Tesla charge rate to 40A
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.tesla_charge_rate_master
+        data:
+          value: 40
+
+      # Wait until Tesla battery reaches 25% SOC
+      - wait_for_trigger:
+          - platform: numeric_state
+            entity_id: sensor.tesla_battery_level
+            above: 24.9
+        timeout: "02:00:00"
+        continue_on_timeout: true
+
+      # Only stop charging and turn off EVSE if above proper level
+      - choose:
+        - conditions:
+            - condition: numeric_state
+              entity_id: sensor.tesla_battery_level
+              above: 24.9
+          sequence:
+            - service: mqtt.publish
+              data:
+                topic: tesla_ble/VIN/charging
+                payload: "stop"
+            # Wait 30 seconds
+            - delay: "00:00:30"
+
+            # Turn off Emporia charger
+            - service: switch.turn_off
+              target:
+                entity_id: switch.emporia_charger
+
+      # Re-enable TOU on Sol-Ark
+      - service: switch.turn_on
+        target:
+          entity_id: switch.solark_sol_ark_system_tou
+
   tesla_hvac:
     sequence:
       - action: switch.turn_on

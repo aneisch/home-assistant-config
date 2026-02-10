@@ -36,172 +36,134 @@ group:
       - cover.master_bedroom_blind_left
       - cover.master_bedroom_blind_right
 
-cover:
-  - platform: template
-    covers:
-      guest_bedroom_blinds:
-        friendly_name: "Guest Bedroom Blinds"
-        open_cover:
-          action: script.blinds_group
-          data:
-            modus: "open"
-            group: guest_bedroom
-        close_cover:
-          action: script.blinds_group
-          data:
-            modus: "close"
-            group: guest_bedroom
-        stop_cover:
-          action: script.blinds_group
-          data:
-            modus: "stop"
-            group: guest_bedroom
-        value_template: "{{is_state('sensor.guest_bedroom_blinds', 'open')}}"
-        icon_template: >-
-          {% if is_state('sensor.guest_bedroom_blinds', 'open') %}
-            mdi:window-open
-          {% else %}
-            mdi:window-closed
-          {% endif %}
+template:
+  - cover:
+    - open_cover:
+      - action: script.blinds_group
+        data:
+          modus: open
+          group: guest_bedroom
+      close_cover:
+      - action: script.blinds_group
+        data:
+          modus: close
+          group: guest_bedroom
+      stop_cover:
+      - action: script.blinds_group
+        data:
+          modus: stop
+          group: guest_bedroom
+      default_entity_id: cover.guest_bedroom_blinds
+      icon: "{% if is_state('sensor.guest_bedroom_blinds', 'open') %}\n  mdi:window-open\n{%
+        else %}\n  mdi:window-closed\n{% endif %}"
+      name: Guest Bedroom Blinds
+      state: '{{is_state(''sensor.guest_bedroom_blinds'', ''open'')}}'
 
-  - platform: template
-    covers:
-      master_bedroom_blinds:
-        friendly_name: "Master Bedroom Blinds"
-        open_cover:
-          # Calling with script.turn_on results in non-blocking vs. calling script directly
-          action: script.turn_on
-          target:
-            entity_id: script.blinds_group
-          data:
-            variables:
-              modus: "open"
-              group: master_bedroom
-        close_cover:
-          action: script.turn_on
-          target:
-            entity_id: script.blinds_group
-          data:
-            variables:
-              modus: "close"
-              group: master_bedroom
-        stop_cover:
-          action: script.turn_on
-          target:
-            entity_id: script.blinds_group
-          data:
-            variables:
-              modus: "stop"
-              group: master_bedroom
-        value_template: "{{is_state('sensor.master_bedroom_blinds', 'open')}}"
-        icon_template: >-
-          {% if is_state('sensor.master_bedroom_blinds', 'open') %}
-            mdi:window-open
-          {% else %}
-            mdi:window-closed
-          {% endif %}
+    - open_cover:
+      - action: script.turn_on
+        target:
+          entity_id:
+          - script.blinds_group
+        data:
+          variables:
+            modus: open
+            group: master_bedroom
+      close_cover:
+      - action: script.turn_on
+        target:
+          entity_id:
+          - script.blinds_group
+        data:
+          variables:
+            modus: close
+            group: master_bedroom
+      stop_cover:
+      - action: script.turn_on
+        target:
+          entity_id:
+          - script.blinds_group
+        data:
+          variables:
+            modus: stop
+            group: master_bedroom
+      default_entity_id: cover.master_bedroom_blinds
+      icon: "{% if is_state('sensor.master_bedroom_blinds', 'open') %}\n  mdi:window-open\n{%
+        else %}\n  mdi:window-closed\n{% endif %}"
+      name: Master Bedroom Blinds
+      state: '{{is_state(''sensor.master_bedroom_blinds'', ''open'')}}'
 
-  - platform: template
-    covers:
-      office_blinds:
-        friendly_name: "Office Blinds"
-        open_cover:
-          action: script.blinds_group
-          data:
-            modus: "open"
-            group: office
-        close_cover:
-          action: script.blinds_group
-          data:
-            modus: "close"
-            group: office
-        stop_cover:
-          action: script.blinds_group
-          data:
-            modus: "stop"
-            group: office
-        value_template: "{{is_state('sensor.office_blinds', 'open')}}"
-        icon_template: >-
-          {% if is_state('sensor.office_blinds', 'open') %}
-            mdi:window-open
-          {% else %}
-            mdi:window-closed
-          {% endif %}
+    - open_cover:
+      - action: script.blinds_group
+        data:
+          modus: open
+          group: office
+      close_cover:
+      - action: script.blinds_group
+        data:
+          modus: close
+          group: office
+      stop_cover:
+      - action: script.blinds_group
+        data:
+          modus: stop
+          group: office
+      default_entity_id: cover.office_blinds
+      icon: "{% if is_state('sensor.office_blinds', 'open') %}\n  mdi:window-open\n{%
+        else %}\n  mdi:window-closed\n{% endif %}"
+      name: Office Blinds
+      state: '{{is_state(''sensor.office_blinds'', ''open'')}}'
 
-      dining_room_blinds:
-        friendly_name: "Dining Room Blinds"
-        open_cover:
-          action: script.blinds_group
-          data:
-            modus: "open"
-            group: dining_room
-        close_cover:
-          action: script.blinds_group
-          data:
-            modus: "close"
-            group: dining_room
-        stop_cover:
-          action: script.blinds_group
-          data:
-            modus: "stop"
-            group: dining_room
-        value_template: "{{is_state('sensor.dining_room_blinds', 'open')}}"
-        icon_template: >-
-          {% if is_state('sensor.dining_room_blinds', 'open') %}
-            mdi:window-open
-          {% else %}
-            mdi:window-closed
-          {% endif %}
+    - open_cover:
+      - action: script.blinds_group
+        data:
+          modus: open
+          group: dining_room
+      close_cover:
+      - action: script.blinds_group
+        data:
+          modus: close
+          group: dining_room
+      stop_cover:
+      - action: script.blinds_group
+        data:
+          modus: stop
+          group: dining_room
+      default_entity_id: cover.dining_room_blinds
+      icon: "{% if is_state('sensor.dining_room_blinds', 'open') %}\n  mdi:window-open\n{%
+        else %}\n  mdi:window-closed\n{% endif %}"
+      name: Dining Room Blinds
+      state: '{{is_state(''sensor.dining_room_blinds'', ''open'')}}'
+
+  - sensor:
+    - default_entity_id: sensor.guest_bedroom_blinds
+      state: "{% if is_state('cover.guest_bedroom_blind_left', 'open') %}\n  open\n{%
+        elif is_state('cover.guest_bedroom_blind_right', 'open') %}\n  open\n{% else
+        %}\n  closed\n{% endif %}"
+      name: guest_bedroom_blinds
+
+    - default_entity_id: sensor.master_bedroom_blinds
+      state: "{% if is_state('cover.master_bedroom_blind_left', 'open') %}\n  open\n{%
+        elif is_state('cover.master_bedroom_blind_right', 'open') %}\n  open\n{% else
+        %}\n  closed\n{% endif %}"
+      name: master_bedroom_blinds
+
+    - default_entity_id: sensor.office_blinds
+      state: "{% if is_state('cover.office_blind_left', 'open') %}\n  open\n{% elif
+        is_state('cover.office_blind_right', 'open') %}\n  open\n{% else %}\n  closed\n{%
+        endif %}"
+      name: office_blinds
+
+    - default_entity_id: sensor.dining_room_blinds
+      state: "{% if is_state('cover.dining_room_blind_left', 'open') %}\n  open\n{%
+        elif is_state('cover.dining_room_blind_center', 'open') %}\n  open\n{% elif
+        is_state('cover.dining_room_blind_right', 'open') %}\n  open\n{% else %}\n  closed\n{%
+        endif %}"
+      name: dining_room_blinds
 
 input_boolean:
   # This is for the Zwave remotes only
   guest_bedroom_blinds_mode:
   master_bedroom_blinds_mode:
-
-sensor:
-  - platform: template
-    sensors:
-      guest_bedroom_blinds:
-        value_template: >-
-          {% if is_state('cover.guest_bedroom_blind_left', 'open') %}
-            open
-          {% elif is_state('cover.guest_bedroom_blind_right', 'open') %}
-            open
-          {% else %}
-            closed
-          {% endif %}
-
-      master_bedroom_blinds:
-        value_template: >-
-          {% if is_state('cover.master_bedroom_blind_left', 'open') %}
-            open
-          {% elif is_state('cover.master_bedroom_blind_right', 'open') %}
-            open
-          {% else %}
-            closed
-          {% endif %}
-
-      office_blinds:
-        value_template: >-
-          {% if is_state('cover.office_blind_left', 'open') %}
-            open
-          {% elif is_state('cover.office_blind_right', 'open') %}
-            open
-          {% else %}
-            closed
-          {% endif %}
-
-      dining_room_blinds:
-        value_template: >-
-          {% if is_state('cover.dining_room_blind_left', 'open') %}
-            open
-          {% elif is_state('cover.dining_room_blind_center', 'open') %}
-            open
-          {% elif is_state('cover.dining_room_blind_right', 'open') %}
-            open
-          {% else %}
-            closed
-          {% endif %}
 
 script:
   blinds_group:
@@ -302,15 +264,15 @@ automation:
           - conditions: "{{ trigger.id == 'morning_later' }}"
             alias: Open Blinds Morning Later
             sequence:
-              # Only open blinds if guest mode is OFF
+              # Only open blinds if guest mode is off
               - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
                 then:
                   - action: cover.open_cover
                     continue_on_error: true
                     target:
                       entity_id:
-                        # - cover.guest_bedroom_blinds  # too hot outside. Leave these down.
-                        - cover.office_blinds # duplicate placeholder
+                        - cover.guest_bedroom_blinds
+                        # - cover.office_blinds # duplicate placeholder
 
   - alias: "Manually Update Blind State"
     id: manually_update_blind_state

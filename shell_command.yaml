@@ -1,28 +1,19 @@
-# SSH to host to run shell commands
-# SSH key shared via Docker volume
-# covid_booking: /config/scripts/covid_booking.sh
-
-nas_poweroff: ssh nuc '/usr/local/bin/nas-poweroff.sh'
+# SSH to host/weasel as andrew to run shell commands
+# SSH key and config shared via Docker volume
 
 nuc_poweroff: ssh nuc 'sudo shutdown -h 2'
 
-mount_plex: ssh nuc 'sudo mount -o timeo=15,soft,retry=2,nofail 10.0.1.20:/Backup/Plex /plex/; sleep 5; docker restart plex'
+nas_poweroff: ssh nuc '/opt/homeassistant/scripts/nas-poweroff.sh'
 
-umount_plex: ssh nuc 'sudo umount -f /plex; docker stop plex'
+mount_plex: ssh nuc 'mount /plex; sleep 5; docker restart plex'
+
+umount_plex: ssh nuc 'umount -f /plex; docker stop plex'
+
+copy: ssh -n -f nuc "nohup /opt/homeassistant/scripts/nas-copy.sh > /dev/null 2>&1 &"
 
 commit_pfsense_changes: ssh nuc '/opt/homeassistant/scripts/commit_pfsense_changes.sh'
 
-copy: ssh -n -f nuc "nohup /usr/local/bin/nas-copy.sh > /dev/null 2>&1 &"
-
-pull_recipes: ssh nuc 'cd /opt/recipes; git pull'
-
-generate_heatmap: ssh nuc '/opt/github/heatmap/generate_heatmap.py'
-
 update_cloudflare_firewall: /config/scripts/update_cloudflare_firewall.sh {{ old }} {{ new }}
-
-turn_on_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Services/Mirror\ On.workflow'
-
-turn_off_mirroring: ssh weasel '/usr/bin/automator /Users/aneisch/Library/Services/Mirror\ Off.workflow'
 
 # If signal device changes the identity goes to untrusted and messages don't go through to that recipient
 trust_signal_identities: ssh nuc '/opt/homeassistant/scripts/trust_signal_identities.sh' 

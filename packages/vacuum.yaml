@@ -14,18 +14,19 @@ automation:
         update_once_after_docking: true
         #browser_mod_path: /lovelace/vacuum
 
-  - alias: "Vacuum Map at Restart"
-    id: "vacuum_map_startup"
-    initial_state: on
-    trigger:
-      - platform: homeassistant
-        event: start
-    action:
-      - action: camera.turn_on
-        entity_id: camera.roxie_live_map
-      - delay: "00:00:30"
-      - action: camera.turn_off
-        entity_id: camera.roxie_live_map
+  # - alias: "Vacuum Map at Restart"
+  #   id: "vacuum_map_startup"
+  #   initial_state: on
+  #   trigger:
+  #     - platform: homeassistant
+  #       event: start
+  #   action:
+  #     - delay: 00:01:00
+  #     - action: camera.turn_on
+  #       entity_id: camera.roxie_live_map
+  #     - delay: "00:00:30"
+  #     - action: camera.turn_off
+  #       entity_id: camera.roxie_live_map
 
   - alias: "Roborock Go to Trashcan After Cleaning"
     id: "roborock_to_trashcan"
@@ -91,14 +92,14 @@ automation:
       - action: vacuum.start
         entity_id: vacuum.roborock_s4
 
-sensor:
-  - platform: template
-    sensors:
-      roborock_s4_battery:
-        friendly_name: "Roborock S4 Battery"
-        value_template: "{{state_attr('vacuum.roborock_s4', 'battery_level')}}"
-        unit_of_measurement: "%"
-        device_class: battery
+# sensor:
+#   - platform: template
+#     sensors:
+#       roborock_s4_battery:
+#         friendly_name: "Roborock S4 Battery"
+#         value_template: "{{state_attr('vacuum.roborock_s4', 'battery_level')}}"
+#         unit_of_measurement: "%"
+#         device_class: battery
 
       # roborock_s4_lifetime_cleaned_area:
       #   friendly_name: 'Lifetime Cleaned Area'
@@ -111,9 +112,9 @@ sensor:
 
       # NOTE: This date is converted to be timezone aware so that it plays nice
       # with some other templating functions and filters.
-      roborock_s4_last_cleaned:
-        friendly_name: Relative time since last cleaning ended
-        value_template: "{{time_since(strptime(as_timestamp(states('sensor.roborock_s4_last_clean_end'))|timestamp_custom('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))}}"
+      # roborock_s4_last_cleaned:
+      #   friendly_name: Relative time since last cleaning ended
+      #   value_template: "{{time_since(strptime(as_timestamp(states('sensor.roborock_s4_last_clean_end'))|timestamp_custom('%Y-%m-%d %H:%M:%S'), '%Y-%m-%d %H:%M:%S'))}}"
 
       # roborock_s4_lifetime_cleaning_count:
       #   friendly_name: 'Lifetime Cleaning Count'
@@ -167,18 +168,18 @@ sensor:
       #   unit_of_measurement: 'hrs'
       #   value_template: "{{state_attr('vacuum.roborock_s4', 'sensor_dirty_left')}}"
 
-      roborock_current_room:
-        friendly_name: "Roborock Current Room"
-        value_template: >
-          {% set room = state_attr('camera.roxie_live_map', 'vacuum_room') %}
-          {% set lookup = {22: 'Dining Room', 24:'Kitchen', 23:'Living Room', 21: 'Office', 26: 'Guest Bedroom', 19: 'Guest Bathroom', 16: 'Hallway', 20: "Bethany's Office", 18: 'Master Bedroom', 27: 'Master Bathroom', 17: 'Back Bathroom', 25: 'Back Bedroom'} %}
-          {% if room != None and room in lookup %}
-          {{ lookup[room] }}
-          {% else %}
-          Dock
-          {% endif %}
-        attribute_templates:
-          segment: "{{ state_attr('camera.roxie_live_map', 'vacuum_room') }}"
+      # roborock_current_room:
+      #   friendly_name: "Roborock Current Room"
+      #   value_template: >
+      #     {% set room = state_attr('camera.roxie_live_map', 'vacuum_room') %}
+      #     {% set lookup = {22: 'Dining Room', 24:'Kitchen', 23:'Living Room', 21: 'Office', 26: 'Guest Bedroom', 19: 'Guest Bathroom', 16: 'Hallway', 20: "Bethany's Office", 18: 'Master Bedroom', 27: 'Master Bathroom', 17: 'Back Bathroom', 25: 'Back Bedroom'} %}
+      #     {% if room != None and room in lookup %}
+      #     {{ lookup[room] }}
+      #     {% else %}
+      #     Dock
+      #     {% endif %}
+      #   attribute_templates:
+      #     segment: "{{ state_attr('camera.roxie_live_map', 'vacuum_room') }}"
 
 input_boolean:
   # Nodered
@@ -496,25 +497,44 @@ script:
           entity_id: vacuum.roborock_s4
           segments: 26
 
-switch:
-  platform: template
-  switches:
-    # Expose vacuum switch to allow manual turn off via Alexa
-    vacuum:
-      friendly_name: "Roxie"
-      value_template: '{{ is_state("vacuum.roborock_s4", "on") }}'
-      turn_on:
-        # Dummy, do nothing
-        - delay:
-            seconds: 1
+template:
+  - switch:
+    - turn_on:
+      - delay: 0:00:01
       turn_off:
-        - action: vacuum.stop
-          data:
-            entity_id: vacuum.roborock_s4
-        - delay: "00:00:01"
-        - action: vacuum.return_to_base
-          data:
-            entity_id: vacuum.roborock_s4
+      - action: vacuum.stop
+        data:
+          entity_id: vacuum.roborock_s4
+      - delay: 0:00:01
+      - action: vacuum.return_to_base
+        data:
+          entity_id: vacuum.roborock_s4
+      default_entity_id: switch.vacuum
+      name: Roxie
+      state: '{{ is_state("vacuum.roborock_s4", "on") }}'
+
+  - sensor:
+    - unit_of_measurement: '%'
+      device_class: battery
+      default_entity_id: sensor.roborock_s4_battery
+      name: Roborock S4 Battery
+      state: '{{state_attr(''vacuum.roborock_s4'', ''battery_level'')}}'
+
+    - default_entity_id: sensor.roborock_s4_last_cleaned
+      name: Relative time since last cleaning ended
+      state: '{{time_since(strptime(as_timestamp(states(''sensor.roborock_s4_last_clean_end''))|timestamp_custom(''%Y-%m-%d
+        %H:%M:%S''), ''%Y-%m-%d %H:%M:%S''))}}'
+
+    - default_entity_id: sensor.roborock_current_room
+      attributes:
+        segment: '{{ state_attr(''camera.roxie_live_map'', ''vacuum_room'') }}'
+      name: Roborock Current Room
+      state: '{% set room = state_attr(''camera.roxie_live_map'', ''vacuum_room'') %}
+        {% set lookup = {22: ''Dining Room'', 24:''Kitchen'', 23:''Living Room'', 21:
+        ''Office'', 26: ''Guest Bedroom'', 19: ''Guest Bathroom'', 16: ''Hallway'',
+        20: "Bethany''s Office", 18: ''Master Bedroom'', 27: ''Master Bathroom'', 17:
+        ''Back Bathroom'', 25: ''Back Bedroom''} %} {% if room != None and room in lookup
+        %} {{ lookup[room] }} {% else %} Dock {% endif %}'
 
 # camera:
 #   - platform: xiaomi_cloud_map_extractor
