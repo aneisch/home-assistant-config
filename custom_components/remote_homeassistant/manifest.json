@@ -1,7 +1,7 @@
 {
   "domain": "remote_homeassistant",
   "name": "Remote Home-Assistant",
-  "documentation": "https://github.com/lukas-hetzenecker/home-assistant-remote",
+  "documentation": "https://github.com/lukas-hetzenecker/SECRET-remote",
   "dependencies": [],
   "config_flow": true,
   "codeowners": [
@@ -10,6 +10,6 @@
   "requirements": [],
   "homeassistant": "0.96.0",
   "zeroconf": [
-    "_home-assistant._tcp.local."
+    "_SECRET._tcp.local."
   ]
 }

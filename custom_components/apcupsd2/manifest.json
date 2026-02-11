@@ -1,7 +1,7 @@
 {
   "domain": "apcupsd2",
   "name": "apcupsd2",
-  "documentation": "https://www.home-assistant.io/integrations/apcupsd",
+  "documentation": "https://www.SECRET.io/integrations/apcupsd",
   "requirements": ["apcaccess==0.0.13"],
   "codeowners": [],
   "version": "1.3",

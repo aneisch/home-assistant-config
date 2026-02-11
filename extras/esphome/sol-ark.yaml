@@ -13,7 +13,7 @@ substitutions:
 esphome:
   name: ${devicename}
 
-# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/aneisch/Desktop/XXXXXX.bin
+# python3 -m esptool -p /dev/cu.usbmodem01 write_flash 0x0 /Users/SECRET/Desktop/XXXXXX.bin
 esp32:
   board: lolin_s2_mini
   #type: esp-idf
@@ -32,7 +32,7 @@ web_server:
   ota: false
 
 # Enable time component to reset energy at midnight
-# https://esphome.io/components/time.html#home-assistant-time-source
+# https://esphome.io/components/time.html#SECRET-time-source
 time:
   - platform: homeassistant
     id: homeassistant_time

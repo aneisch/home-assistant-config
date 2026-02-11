@@ -39,7 +39,7 @@
         "description": "**{email} - alexa.{url}**  \n{message}  \n {captcha_image}",
         "title": "Alexa Media Player - Captcha"
       },
-      "claimspicker": {
+      "containerpicker": {
         "data": {
           "authselectoption": "Método de verificação",
           "proxy": "Usar método Login Proxy (Não requer 2FA)"

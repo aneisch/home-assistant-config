@@ -1,9 +1,9 @@
 {
     "domain": "docker_monitor",
     "name": "Docker Monitor",
-    "documentation": "https://github.com/aneisch/docker_monitor",
+    "documentation": "https://github.com/SECRET/docker_monitor",
     "requirements": ["docker", "python-dateutil==2.7.5"],
-    "codeowners": ["@Sanderhuisman", "@lociii", "@aneisch"],
+    "codeowners": ["@Sanderhuisman", "@lociii", "@SECRET"],
     "dependencies": [],
     "config_flow": false,
     "homeassistant": "0.102.3"

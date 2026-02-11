@@ -24,19 +24,19 @@ esphome:
   #   version: "2024.8.1"
   libraries:
     - https://github.com/yoziru/tesla-ble.git
-    #- https://github.com/aneisch/tesla-ble.git
+    #- https://github.com/SECRET/tesla-ble.git
 
 external_components:
   #- source: github://yoziru/esphome-tesla-ble/tree/main/components
-  - source: github://aneisch/esphome-tesla-ble
+  - source: github://SECRET/esphome-tesla-ble
     components: [tesla_ble_vehicle]
     refresh: 0s
 
 packages:
   #common: github://yoziru/esphome-tesla-ble/packages/common.yml@main
   #client: github://yoziru/esphome-tesla-ble/packages/client.yml@main
-  common: github://aneisch/esphome-tesla-ble/packages/common.yml
-  client: github://aneisch/esphome-tesla-ble/packages/client.yml
+  common: github://SECRET/esphome-tesla-ble/packages/common.yml
+  client: github://SECRET/esphome-tesla-ble/packages/client.yml
 
 esp32_ble_tracker:
   scan_parameters:
