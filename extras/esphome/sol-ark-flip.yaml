@@ -41,7 +41,7 @@ logger:
   level: DEBUG
 
 api:
-  reboot_timeout: 600s
+  reboot_timeout: 10m # Reboot if Home Assistant connection lost for 10min
   encryption:
     key: !secret encryption_key
 

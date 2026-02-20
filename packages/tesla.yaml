@@ -34,6 +34,20 @@ input_number:
     unit_of_measurement: "%"  
 
 mqtt:
+  - button:
+      name: "Tesla BLE Start Charging"
+      unique_id: tesla_ble_start_6975
+      command_topic: "tesla_ble/VIN/charging"
+      payload_press: "start"
+      icon: "mdi:battery-plus"
+
+  - button:
+      name: "Tesla BLE Stop Charging"
+      unique_id: tesla_ble_stop_6975
+      command_topic: "tesla_ble/VIN/charging"
+      payload_press: "stop"
+      icon: "mdi:battery-remove"
+
   - sensor:
       name: Tesla Display Name
       default_entity_id: tesla_display_name # entity_id
@@ -246,7 +260,7 @@ mqtt:
       device_class: battery
       unit_of_measurement: "%"
       icon: mdi:battery-80
-      
+
   - sensor:
       name: Tesla Usable Battery Level
       default_entity_id: tesla_usable_battery_level
@@ -759,6 +773,25 @@ automation:
           entity_id: input_number.tesla_charge_rate_master
         data:
           value: "{{ state_attr('switch.emporia_charger', 'charging_rate') | int }}"
+
+  # This fixes the issue of charging not starting due to "stuck" charge rate
+  - alias: "Tesla: Reduce Charge Rate from 40 to 39"
+    id: tesla_reduce_rate_40_39
+    description: "Drops charge rate to 39A after being at 40A for 5 minutes"
+    trigger:
+      - platform: state
+        entity_id: input_number.tesla_charge_rate_master
+        # This state is a float so we need the decimal
+        to: "40.0"
+        for:
+          minutes: 5
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.tesla_charge_rate_master
+        data:
+          value: 39
+    mode: restart
 
   - alias: Tesla BLE - Hourly Refresh
     description: Press force update and turn on polling every hour

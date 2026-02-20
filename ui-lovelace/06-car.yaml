@@ -24,30 +24,16 @@ cards:
       - type: entities
         entities:
           - switch.emporia_charger
-          - type: call-service
-            name: Tesla Charging
-            icon: mdi:battery-plus
-            action_name: BLE START
-            service: mqtt.publish
-            data:
-              topic: tesla_ble/5YJSA1E5XMF436975/charging
-              payload: "start"
-          - type: call-service
-            name: Tesla Charging
-            icon: mdi:battery-remove
-            action_name: BLE STOP
-            service: mqtt.publish
-            data:
-              topic: tesla_ble/5YJSA1E5XMF436975/charging
-              payload: "stop"
+          - button.tesla_ble_start_charging
+          - button.tesla_ble_stop_charging
           - input_boolean.ev_charge_override
           - input_boolean.ev_charge_prioritize_vehicle_over_home_battery
           - input_number.tesla_solar_target_soc_limit
           - input_number.tesla_charge_rate_master
           - entity: sensor.tesla_charger_actual_current
-            name: Charging Current
+            name: Teslamate Charging Current
           - entity: sensor.tesla_charge_limit_soc
-            name: Charge Limit
+            name: Teslamate Charge Limit
           - entity: number.tesla_ble_charging_current
             name: BLE Current Limit
           - entity: number.tesla_ble_charging_limit

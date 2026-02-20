@@ -145,7 +145,9 @@ master_bedroom_wakeup:
       target:
         entity_id: light.master_bedroom_lamps
       data:
-        transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
+        # "Under no circumstance should these lights just flick on"
+        transition: 60
+        #transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
         brightness: 255
     - action: homeassistant.turn_off
       entity_id: input_boolean.goodnight

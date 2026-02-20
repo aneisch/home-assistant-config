@@ -64,7 +64,7 @@ automation:
             target:
               entity_id: camera.front_door_fullres
               # http://localhost:1984/api/frame.jpeg?src=front_door_fullres changed generic camera url from this
-          - delay: 00:00:03
+          - delay: 00:00:01
           - action: google_generative_ai_conversation.generate_content
             continue_on_error: true
             data:
@@ -124,7 +124,7 @@ automation:
                   filename: /config/media/images/front_door.jpg
                 target:
                   entity_id: camera.front_door_fullres
-              - delay: 00:00:03
+              - delay: 00:00:01
               - action: google_generative_ai_conversation.generate_content
                 continue_on_error: true
                 data:
@@ -192,15 +192,13 @@ automation:
         target:
           entity_id:
             - '{{ my_camera_id }}'
-      - if: "{{ states('sensor.mail_usps_delivering') | int > 0 or states('sensor.mail_usps_mail') | int > 0}}"
-        then:
-          - action: notify.alexa_media
-            continue_on_error: true
-            data:
-              message: "<audio src='https://vps.secret/mail.mp3'/>"
-              data:
-                type: tts
-              target: media_player.kitchen
+      - action: notify.alexa_media
+        continue_on_error: true
+        data:
+          message: "<audio src='https://vps.secret/mail.mp3'/>"
+          data:
+            type: tts
+          target: media_player.kitchen
       - action: notify.signal_homeassistant
         data:
           message: "USPS detected"

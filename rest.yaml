@@ -23,7 +23,7 @@
 - resource: !secret utility_bill_url
   method: POST
   payload: !secret utility_bill_url_payload
-  scan_interval: 60
+  scan_interval: 600
   headers:
     Content-Type: application/json
     OCX-Tenant-Id: !secret ocx_tenant_id
@@ -49,7 +49,7 @@
     {
       "billId": "{{ states('sensor.latest_utility_bill_id') }}"
     }
-  scan_interval: 60
+  scan_interval: 600
   headers:
     Content-Type: application/json
     OCX-Tenant-Id: !secret ocx_tenant_id

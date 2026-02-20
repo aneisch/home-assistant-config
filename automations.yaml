@@ -1498,7 +1498,8 @@
     - sensor.latest_utility_bill_id
   conditions:
   - condition: template
-    value_template: '{{ trigger.to_state not in ["unknown", "unavailable"] }}'
+    value_template: '{{ trigger.to_state.state not in ["unknown", "unavailable"] and
+      trigger.from_state.state not in ["unknown", "unavailable"] }}'
   actions:
   - action: google_sheets.append_sheet
     metadata: {}

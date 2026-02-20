@@ -255,7 +255,7 @@ logger:
     # asyncio: debug
     homeassistant.components.tts: debug
     homeassistant.components.pico_tts: debug
-    homeassistant.components.google_generative_ai_conversation: debug
+    #homeassistant.components.google_generative_ai_conversation: debug
     #zigpy: debug
     # bellows: debug
     # zigpy_xbee: debug
