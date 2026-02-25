@@ -33,6 +33,7 @@ homeassistant:
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
     solar: !include packages/solar.yaml
+    terraform: !include packages/terraform.yaml
     photo_frames: !include packages/photo_frames.yaml
     tesla: !include packages/tesla.yaml
     timers: !include packages/timers.yaml

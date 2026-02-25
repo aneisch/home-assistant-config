@@ -785,6 +785,9 @@ automation:
         to: "40.0"
         for:
           minutes: 5
+      - platform: state
+        entity_id: sensor.tesla_state
+        to: "charging"
     action:
       - service: input_number.set_value
         target:

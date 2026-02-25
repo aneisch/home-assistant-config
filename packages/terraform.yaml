@@ -1,0 +1,21 @@
+automation:
+- alias: "Docker Container Added"
+  trigger:
+    - platform: event
+      event_type: state_changed
+  condition:
+    - condition: template
+      value_template: >
+        {% set is_docker = trigger.event.data.entity_id.startswith('sensor.docker_') %}
+        {% set is_new = trigger.event.data.old_state is none %}
+        {{ is_docker and is_new }}
+  action:
+    - service: notify.signal_self
+      data:
+        message: "New container detected: {{ trigger.event.data.new_state.attributes.friendly_name | replace(' State','') }}. Running Terraform Apply"
+    - action: shell_command.trigger_terraform_apply
+      data:
+        github_token: !secret github_token
+
+shell_command:
+  trigger_terraform_apply: 'curl -v -X POST -u ''aneisch:{{ github_token }}'' -H ''Accept: application/vnd.github.everest-preview+json'' -H ''Content-Type: application/json'' --data ''{"event_type": "trigger-from-ha"}'' https://api.github.com/repos/aneisch/terraform/dispatches'

@@ -139,7 +139,7 @@ cards:
 
           Cycle Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Cycle Water + Sewer + Electric (+fee, trash, etc): ${{ ((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 + 7.65 + 22.25 + 10 }}
+          Cycle Water + Sewer + Electric (+fee, trash, etc): ${{ (((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 + 7.65 + 22.25 + 10) | round(2) }}
       
           Cycle Ends: {{ state_attr('sensor.utilities_cycle_end', 'EndDateLabel') }}
       

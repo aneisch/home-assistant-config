@@ -15,7 +15,7 @@ class SolarEVCharger(hass.Hass):
         # State
         self.eval_locked = False
         self.insufficient_solar_since = None
-        self.insufficient_solar_disabled = False
+        self.insufficient_disabled = False
         self.notify_handler = None
         self.emporia_prior_status = None
 
@@ -59,7 +59,7 @@ class SolarEVCharger(hass.Hass):
         if self.get_state(self.entities["override_boolean"]) == "on":
             self.log("DEBUG: Evaluation skipped (Manual Override ON)", level="DEBUG")
             self.insufficient_solar_since = None
-            self.insufficient_solar_disabled = False
+            self.insufficient_disabled = False
             return
 
         icon = self.get_state("switch.emporia_charger", attribute='icon_name')
@@ -67,7 +67,7 @@ class SolarEVCharger(hass.Hass):
             self.log("DEBUG: No vehicle connected.", level="DEBUG")
             self.eval_locked = False
             self.insufficient_solar_since = None
-            self.insufficient_solar_disabled = False
+            self.insufficient_disabled = False
             return
 
         if self.eval_locked:
@@ -100,19 +100,23 @@ class SolarEVCharger(hass.Hass):
         battery_blocked = (ev_prioritization == "off" and home_soc < self.min_home_soc) or \
                           (ev_prioritization == "on" and home_soc < 50)
 
-        if battery_blocked or target_amps < self.min_amps:
+        if target_amps < self.min_amps or battery_blocked:
             if self.insufficient_solar_since is None:
                 self.insufficient_solar_since = datetime.datetime.now()
-                self.log(f"NOTICE: Solar/Battery deficit. Starting {self.disable_timeout}s countdown.")
             
             elapsed = (datetime.datetime.now() - self.insufficient_solar_since).total_seconds()
 
             # If disable_timeout exceeded OR zero solar
-            if elapsed >= self.disable_timeout or (solar_watts == 0):
-                if self.insufficient_solar_disabled == False:
-                    self.log(f"STOP: Deficit timeout expired, lasted {int(elapsed)}s. Setting limit to 50%.")
+            if elapsed >= self.disable_timeout or (solar_watts == 0) or battery_blocked:
+                if self.insufficient_disabled == False:
+                    if solar_watts == 0:
+                        self.log(f"STOP: No solar. Setting limit to 50%.")
+                    elif battery_blocked:
+                        self.log(f"STOP: Home SOC too low. Setting limit to 50%.")
+                    elif elapsed >= self.disable_timeout:
+                        self.log(f"STOP: Deficit timeout expired, lasted {int(elapsed)}s. Setting limit to 50%.")
                     self.safe_set_rate(self.min_amps, disable=True)
-                    self.insufficient_solar_disabled = True
+                    self.insufficient_disabled = True
                 else:
                     return
             else:
@@ -121,7 +125,7 @@ class SolarEVCharger(hass.Hass):
         else:
             # 6. SURPLUS LOGIC
             self.insufficient_solar_since = None
-            self.insufficient_solar_disabled = False
+            self.insufficient_disabled = False
             final_amps = min(self.max_amps, int(target_amps))
             
             self.log(f"Home: {home_soc}% | Solar: {solar_watts}W | House: {house_load_only}W | EV: {vehicle_soc}% -> {target_soc}% | Set: {final_amps}A")

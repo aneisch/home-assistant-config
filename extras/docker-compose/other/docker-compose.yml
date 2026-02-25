@@ -359,7 +359,7 @@ services:
 
     traefik:
         container_name: traefik
-        image: traefik:3.3.0-rc1
+        image: traefik:v3.6.9
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
@@ -796,14 +796,40 @@ services:
         labels:
             - com.centurylinklabs.watchtower.enable=false
             - traefik.enable=true
-            - traefik.http.services.staff_learner.loadbalancer.server.port=8000
+            - traefik.http.services.note-trainer.loadbalancer.server.port=8000
             # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.staff_learner.tls=true
-            - traefik.http.routers.staff_learner.entrypoints=websecure
-            - traefik.http.routers.staff_learner.tls.certResolver=le-home
-            - traefik.http.routers.staff_learner.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.staff_learner.rule=Host(`staff_learner.home.domain.com`)
-            - traefik.http.routers.staff_learner.service=staff_learner
+            - traefik.http.routers.note-trainer.tls=true
+            - traefik.http.routers.note-trainer.entrypoints=websecure
+            - traefik.http.routers.note-trainer.tls.certResolver=le-home
+            - traefik.http.routers.note-trainer.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.note-trainer.rule=Host(`note-trainer.home.domain.com`)
+            - traefik.http.routers.note-trainer.service=note-trainer
+
+    music-assistant:
+        image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
+        container_name: music-assistant
+        restart: always
+        network_mode: host
+        volumes:
+            - /opt/music-assistant:/data/
+        # privileged caps (and security-opt) needed to mount smb folders within the container
+        cap_add:
+            - SYS_ADMIN
+            - DAC_READ_SEARCH
+        security_opt:
+            - apparmor:unconfined
+        environment:
+            - LOG_LEVEL=info
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.music-assistant.tls=true
+            - traefik.http.routers.music-assistant.entrypoints=websecure
+            - traefik.http.routers.music-assistant.tls.certResolver=le-home
+            - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
+            - traefik.http.routers.music-assistant.service=music-assistant
 
     # piano-recorder:
     #     container_name: piano-recorder
@@ -822,6 +848,21 @@ services:
     #         - traefik.http.routers.piano_recorder.tls.domains[0].main=*.home.domain.com
     #         - traefik.http.routers.piano_recorder.rule=Host(`piano_recorder.home.domain.com`)
     #         - traefik.http.routers.piano_recorder.service=piano_recorder
+
+    tfc-agent:
+        image: hashicorp/tfc-agent:latest
+        container_name: tfc-agent
+        restart: unless-stopped
+        environment:
+        # Use a .env file or replace these directly
+        - TFC_AGENT_TOKEN=SECRET
+        - TFC_AGENT_NAME=nuc-docker
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /tmp/docker_hostnames.json:/etc/terraform/docker_hostnames.json
+        # We run as root initially to ensure we can access the socket, 
+        # or you can map the GID (see the permission fix below)
+        user: root
 
 # networks:
 #     macos_network:
