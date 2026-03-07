@@ -111,7 +111,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         XRegistry.config = conf = config[DOMAIN]
         if CONF_APPID in conf and CONF_APPSECRET in conf:
             APP[0] = conf[CONF_APPID]
-            APP.append(conf[CONF_APPSECRET])
+            APP[1] = conf[CONF_APPSECRET]
         if CONF_DEFAULT_CLASS in conf:
             core_devices.set_default_class(conf.get(CONF_DEFAULT_CLASS))
         if CONF_SENSORS in conf:
@@ -185,6 +185,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     # if has cloud password and not auth
     if not registry.cloud.auth and data.get(CONF_PASSWORD):
         try:
+            _LOGGER.debug(f"Login to cloud with APPID {APP[0][:4]}...")
             await registry.cloud.login(**data)
             # store country_code for future requests optimisation
             if not data.get(CONF_COUNTRY_CODE):
@@ -275,6 +276,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     registry: XRegistry = hass.data[DOMAIN][entry.entry_id]
     await registry.stop()
 
+    internal_free_devices(entry.entry_id)
+
     return ok
 
 
@@ -287,6 +290,11 @@ def internal_unique_devices(uid: str, devices: list) -> list:
         for device in devices
         if UNIQUE_DEVICES.setdefault(device["deviceid"], uid) == uid
     ]
+
+
+def internal_free_devices(uid: str):
+    for k in [k for k, v in UNIQUE_DEVICES.items() if v == uid]:
+        UNIQUE_DEVICES.pop(k)
 
 
 async def async_remove_config_entry_device(

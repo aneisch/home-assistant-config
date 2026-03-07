@@ -50,10 +50,11 @@ from ..light import (
     XZigbeeLight,
 )
 from ..media_player import XPanelBuzzer
-from ..number import XPulseWidth, XSensitivity
+from ..number import XPulseWidth, XSensitivity, XTempCorrectionNumber
 from ..remote import XRemote
-from ..select import XSelectStartup
+from ..select import XSelectStartup, XStartup
 from ..sensor import (
+    XCPUTemperature,
     XEnergySensor,
     XEnergySensorDualR3,
     XEnergySensorPOWR3,
@@ -73,7 +74,7 @@ from ..sensor import (
 )
 from ..switch import (
     XBoolSwitch,
-    XDetach,
+    XIntSwitch,
     XPanelScreen,
     XSwitch,
     XSwitchPOWR3,
@@ -133,7 +134,6 @@ XSensor100 = spec(XSensor, multiply=0.01, round=2)
 Battery = spec(XSensor, param="battery")
 LED = spec(XToggle, param="sledOnline", uid="led", enabled=False)
 RSSI = spec(XSensor, param="rssi", enabled=False)
-STARTUP = spec(XToggle, param="startup", enabled=False)
 PULSE = spec(XToggle, param="pulse", enabled=False)
 ZRSSI = spec(XSensor, param="subDevRssi", uid="rssi", enabled=False)
 
@@ -142,6 +142,15 @@ SPEC_1CH = [Switch1, LED, RSSI]
 SPEC_2CH = [Switch1, Switch2, LED, RSSI]
 SPEC_3CH = [Switch1, Switch2, Switch3, LED, RSSI]
 SPEC_4CH = [Switch1, Switch2, Switch3, Switch4, LED, RSSI]
+
+SPEC_NSP = [
+    XTemperatureTH,
+    XPanelAlarm,
+    XPanelBuzzer,
+    XPanelScreen,
+    XCPUTemperature,
+    spec(XButton, param="reboot", value=True),
+]
 
 Current1 = spec(XSensor100, param="current_00", uid="current_1")
 Current2 = spec(XSensor100, param="current_01", uid="current_2")
@@ -155,6 +164,17 @@ Power1 = spec(XSensor100, param="actPow_00", uid="power_1")
 Power2 = spec(XSensor100, param="actPow_01", uid="power_2")
 Power3 = spec(XSensor100, param="actPow_02", uid="power_3")
 Power4 = spec(XSensor100, param="actPow_03", uid="power_4")
+
+EnergyDay = spec(XEnergyTotal, param="dayKwh", uid="energy_day", multiply=0.01, round=2)
+EnergyWeek = spec(
+    XEnergyTotal, param="weekKwh", uid="energy_week", multiply=0.01, round=2
+)
+EnergyMonth = spec(
+    XEnergyTotal, param="monthKwh", uid="energy_month", multiply=0.01, round=2
+)
+EnergyYear = spec(
+    XEnergyTotal, param="yearKwh", uid="energy_year", multiply=0.01, round=2
+)
 
 EnergyPOW = spec(
     XEnergySensor,
@@ -232,6 +252,7 @@ DEVICES = {
         spec(XSensor, param="power"),
         spec(XSensor, param="voltage"),
         EnergyPOW,
+        XStartup,
     ],
     # https://github.com/AlexxIT/SonoffLAN/issues/985
     33: [XLightL1, RSSI],
@@ -376,7 +397,7 @@ DEVICES = {
         Startup1,
         LED,
         RSSI,
-        XDetach,
+        spec(XIntSwitch, param="relaySeparation", uid="detach", enabled=False),
         spec(XRemoteButton, param="action"),
     ],
     # DW2-Wi-Fi-L, https://github.com/AlexxIT/SonoffLAN/issues/808
@@ -408,6 +429,7 @@ DEVICES = {
         XSwitchTH,
         XTemperatureTH,
         XHumidityTH,
+        spec(XIntSwitch, param="autoControlEnabled", uid="auto_mode", enabled=False),
         LED,
         RSSI,
     ],
@@ -425,14 +447,28 @@ DEVICES = {
     # S60TPF, https://github.com/AlexxIT/SonoffLAN/issues/1514
     190: [
         XSwitchPOWR3,
+        Startup1,
         LED,
         RSSI,
         spec(XSensor100, param="current"),
         spec(XSensor100, param="power"),
         spec(XSensor100, param="voltage"),
-        spec(XEnergyTotal, param="dayKwh", uid="energy_day", multiply=0.01, round=2),
+        spec(XSensor100, param="supplyPower", uid="power_supply"),
+        EnergyDay,
+        EnergyMonth,
         spec(
-            XEnergyTotal, param="monthKwh", uid="energy_month", multiply=0.01, round=2
+            XEnergyTotal,
+            param="dayPowerSupply",
+            uid="energy_day_supply",
+            multiply=0.01,
+            round=2,
+        ),
+        spec(
+            XEnergyTotal,
+            param="monthPowerSupply",
+            uid="energy_month_supply",
+            multiply=0.01,
+            round=2,
         ),
         spec(
             XEnergySensorPOWR3,
@@ -442,7 +478,7 @@ DEVICES = {
         ),
     ],
     # NSPanel Pro, https://github.com/AlexxIT/SonoffLAN/issues/984
-    195: [XTemperatureTH, XPanelAlarm, XPanelBuzzer, XPanelScreen],
+    195: SPEC_NSP,
     # Sonoff TX ULTIMATE T5-1C-86, https://github.com/AlexxIT/SonoffLAN/issues/1183
     209: [Switch1, Startup1, XT5Light, XT5Action, XT5Alarm, XT5Bell],
     # Sonoff TX ULTIMATE T5-2C-86
@@ -494,7 +530,7 @@ DEVICES = {
         spec(XBoolSwitch, param="childLock", uid="child_lock", enabled=False),
         LED,
         RSSI,
-        STARTUP,
+        XStartup,
     ],
     # CK-BL602-W102SW18-01(226)
     226: [
@@ -505,6 +541,15 @@ DEVICES = {
         spec(XSensor, param="phase_0_p", uid="power"),
         spec(XSensor, param="phase_0_v", uid="voltage"),
         spec(XEnergyTotal, param="totalPower", uid="energy"),
+    ],
+    # NSPanel Pro 120, https://github.com/AlexxIT/SonoffLAN/issues/1622
+    228: SPEC_NSP,
+    # CK-BK7238-W105SE10-01-HB(242) https://github.com/AlexxIT/SonoffLAN/issues/1673
+    242: [
+        spec(XTempCorrection, multiply=0.01),
+        spec(XHumCorrection, multiply=0.01),
+        Battery,
+        ZRSSI,
     ],
     # https://github.com/AlexxIT/SonoffLAN/issues/1634
     258: [XCover, LED, RSSI],
@@ -519,6 +564,30 @@ DEVICES = {
         spec(XSensor100, param="power"),
         spec(XSensor100, param="current"),
         spec(XSensor100, param="voltage"),
+    ],
+    # BASIC-1GS, https://github.com/AlexxIT/SonoffLAN/issues/1672
+    268: [Switch1, LED, RSSI],
+    # MINI-2GS https://github.com/AlexxIT/SonoffLAN/issues/1694
+    275: [
+        Switch1,
+        Switch2,
+        Startup1,
+        Startup2,
+        LED,
+        RSSI,
+    ],
+    # Sonoff S61STPF:
+    276: [
+        Switch1,
+        spec(XSensor100, param="power"),
+        spec(XSensor100, param="current"),
+        spec(XSensor100, param="voltage"),
+        EnergyDay,
+        EnergyWeek,
+        EnergyMonth,
+        EnergyYear,
+        LED,
+        RSSI,
     ],
     # zigbee_ON_OFF_SWITCH_1000
     1000: [XRemoteButton, Battery],
@@ -609,12 +678,9 @@ DEVICES = {
             multiply=0.1,
             uid="eco_target_temperature",
         ),
-        spec(
-            XSensor,
-            param="tempCorrection",
-            multiply=0.1,
-            uid="temperature_correction",
-        ),
+        # FW 1.4.0+: valve opening percentage
+        spec(XSensor, param="openPercent", uid="valve_opening"),
+        XTempCorrectionNumber,
         spec(XBoolSwitch, param="childLock", uid="child_lock"),
         spec(XBoolSwitch, param="windowSwitch", uid="window_switch"),
         spec(XHexVoltageTRVZB, param="runVoltage", uid="run_voltage"),
@@ -637,9 +703,23 @@ DEVICES = {
         spec(XSensor100, param="power"),
         spec(XSensor100, param="current"),
         spec(XSensor100, param="voltage"),
+        EnergyDay,
+        EnergyMonth,
     ],
     # SNZB-02WD, https://github.com/AlexxIT/SonoffLAN/issues/1612
     7033: [XTempCorrection, XHumCorrection, Battery, ZRSSI],
+    # MINI-ZBRBS, https://github.com/AlexxIT/SonoffLAN/issues/1666
+    7034: [XCover, LED, RSSI],
+    # SNZB-02DR2
+    7038: [
+        spec(XTempCorrection, multiply=0.01),
+        spec(XHumCorrection, multiply=0.01),
+        Battery,
+        ZRSSI,
+        spec(
+            XSensor, param="remoteTemperature", uid="remote_temperature", multiply=0.01
+        ),
+    ],
 }
 
 

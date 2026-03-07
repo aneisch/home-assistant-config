@@ -173,6 +173,7 @@ automation:
     id: "frigate_notification_usps"
     mode: single
     trigger:
+      # this comes from nodered
       - platform: webhook
         webhook_id: "usps_mail_detected"
         allowed_methods:
@@ -181,6 +182,7 @@ automation:
     action:
       - variables:
           my_camera_id: camera.usps_vehicle
+          generated_content: " "
       - action: input_datetime.set_datetime
         data:
           entity_id: "input_datetime.usps_last"
@@ -199,12 +201,20 @@ automation:
           data:
             type: tts
           target: media_player.kitchen
+      - action: google_generative_ai_conversation.generate_content
+        continue_on_error: true
+        data:
+          prompt: >-
+            "Summarize the mail I am receiving today. Don't speculate too much, and no need to tell me recipient info if it's addressed to an Andrew or Bethany. This is meant to go in a notification"
+          filenames: "{{ states('sensor.mail_grid_image_path') }}"
+        response_variable: generated_content
       - action: notify.signal_homeassistant
         data:
-          message: "USPS detected"
+          message: "USPS detected. {{ generated_content.text }}"
           data:
             attachments:
               - /config/media/images/logo.jpg
+              - "{{ states('sensor.mail_grid_image_path') }}"
       - delay: "00:01:00"
       - action: switch.turn_off
         entity_id: switch.docker_codeproject

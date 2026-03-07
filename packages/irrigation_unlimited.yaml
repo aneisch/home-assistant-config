@@ -1,0 +1,57 @@
+irrigation_unlimited:
+  granularity: 10
+  controllers:
+    - name: "Home Unlimited Irrigation Controller"
+      entity_id: "switch.irrigation_master_valve" 
+      enabled: true
+      zones:
+        - name: "Front Beds"
+          entity_id: "switch.irrigation_front_beds"
+          duration: "00:10"
+          allow_manual: true
+
+        - name: "Front Lawn"
+          entity_id: "switch.irrigation_front_lawn"
+          duration: "00:20"
+          allow_manual: true
+
+        - name: "Left and Main Rear Lawn"
+          entity_id: "switch.irrigation_left_and_main_rear_lawn"
+          duration: "00:30"
+          allow_manual: true
+        
+        - name: "Front and Right Rear Lawn"
+          entity_id: "switch.irrigation_front_and_right_rear_lawn"
+          duration: "00:30"
+          allow_manual: true
+
+        - name: "Side Lawn"
+          entity_id: "switch.irrigation_side_lawn"
+          duration: "00:15"
+          allow_manual: true
+
+      sequences:
+        - name: "Lawn Only"
+          delay: "00:01"
+          schedules:
+            - name: "Before dawn"
+              time:
+                sun: "sunrise"
+                before: "00:10"
+              anchor: finish
+          zones:
+            - zone_id: 2
+            - zone_id: 3
+            - zone_id: 4
+            - zone_id: 5
+
+        - name: "Beds Only"
+          delay: "00:01"
+          schedules:
+            - name: "Before dawn"
+              time:
+                sun: "sunrise"
+                before: "00:10"
+              anchor: finish
+          zones:
+            - zone_id: 1

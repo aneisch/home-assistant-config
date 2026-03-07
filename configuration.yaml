@@ -29,6 +29,7 @@ homeassistant:
     hass_update_check: !include packages/hass_update_check.yaml
     smoke_alarms: !include packages/smoke_alarms.yaml
     # magic_cube: !include packages/magic_cube.yaml
+    irrigation_unlimited: !include packages/irrigation_unlimited.yaml
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
     reminders: !include packages/reminders.yaml
@@ -350,6 +351,8 @@ lovelace:
     - url: /hacsfiles/flex-horseshoe-card/flex-horseshoe-card.js
       type: module
     - url: /ha_creality_ws/k_printer_card.js
+      type: module
+    - url: /hacsfiles/irrigation-unlimited-card/irrigation-unlimited-card.js
       type: module
 
 media_source:

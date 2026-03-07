@@ -246,7 +246,10 @@ REGIONS = {
 
 DATA_ERROR = {0: "online", 503: "offline", 504: "timeout", None: "unknown"}
 
-APP = ["R8Oq3y0eSZSYdKccHlrQzT1ACCOUT9Gv"]
+# APP = ["R8Oq3y0eSZSYdKccHlrQzT1ACCOUT9Gv"]
+
+# Default AppID because https://github.com/AlexxIT/SonoffLAN/issues/1707
+APP = ["4s1FXKC9FaGfoqXhmXSJneb3qcm1gOak", "oKvCM06gvwkRbfetd6qWRrbC3rFrbIpV"]
 
 
 class AuthError(Exception):
@@ -615,6 +618,15 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
 
         elif data["action"] == "reportSubDevice":
             # nothing useful: https://github.com/AlexxIT/SonoffLAN/issues/767
+            pass
+
+        elif data["action"] == "notify":
+            # incrementalDataNotify and similar server-side notifications
+            # https://github.com/AlexxIT/SonoffLAN/issues/1700
+            pass
+
+        elif data["action"] == "subDevice":
+            # https://github.com/AlexxIT/SonoffLAN/issues/1681
             pass
 
         else:

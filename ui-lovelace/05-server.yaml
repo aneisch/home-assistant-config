@@ -125,9 +125,10 @@ cards:
       - type: markdown
         content: >
           {%- set electric_net = ((states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) -%}
-          Tesla Energy This Month: {{ states('sensor.tesla_energy_this_month') | int }} kWh
 
-          Monthly Tesla Home Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
+          Cycle Tesla Energy: {{ states('sensor.monthly_tesla_electric_usage') | int }} kWh
+
+          Cycle Tesla Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
 
           Cycle Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 

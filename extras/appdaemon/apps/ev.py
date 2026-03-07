@@ -9,7 +9,7 @@ class SolarEVCharger(hass.Hass):
         self.volts = int(self.args.get("volts", 240))
         self.min_home_soc = int(self.args.get("home_battery_min_soc", 90))
         self.buffer_watts = int(self.args.get("buffer_watts", 250))
-        self.cooldown = int(self.args.get("cooldown", 15)) 
+        self.cooldown = int(self.args.get("cooldown", 10)) 
         self.disable_timeout = int(self.args.get("disable_timeout", 600)) 
 
         # State
@@ -145,7 +145,7 @@ class SolarEVCharger(hass.Hass):
             if present_limit != 50:
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=50)
-                self.notify_handler = self.run_in(self._enable_notice, 30)
+                self.notify_handler = self.run_in(self._enable_notice, 60)
             if present_rate != self.min_amps:
                 self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
         else:
@@ -156,7 +156,7 @@ class SolarEVCharger(hass.Hass):
             if present_limit != target_soc:
                 self.turn_off("automation.tesla_charge_limit_change_notice")
                 self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=target_soc)
-                self.notify_handler = self.run_in(self._enable_notice, 30)
+                self.notify_handler = self.run_in(self._enable_notice, 60)
             
             if present_rate != amps:
                 self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=amps)

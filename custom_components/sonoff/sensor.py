@@ -37,10 +37,13 @@ async def async_setup_entry(hass, config_entry, add_entities):
 DEVICE_CLASSES = {
     "battery": SensorDeviceClass.BATTERY,
     "battery_voltage": SensorDeviceClass.VOLTAGE,
+    "cpu_temperature": SensorDeviceClass.TEMPERATURE,
     "current": SensorDeviceClass.CURRENT,
     "humidity": SensorDeviceClass.HUMIDITY,
     "outdoor_temp": SensorDeviceClass.TEMPERATURE,
     "power": SensorDeviceClass.POWER,
+    "power_supply": SensorDeviceClass.POWER,
+    "remote_temperature": SensorDeviceClass.TEMPERATURE,
     "rssi": SensorDeviceClass.SIGNAL_STRENGTH,
     "temperature": SensorDeviceClass.TEMPERATURE,
     "voltage": SensorDeviceClass.VOLTAGE,
@@ -49,10 +52,13 @@ DEVICE_CLASSES = {
 UNITS = {
     "battery": PERCENTAGE,
     "battery_voltage": UnitOfElectricPotential.VOLT,
+    "cpu_temperature": UnitOfTemperature.CELSIUS,
     "current": UnitOfElectricCurrent.AMPERE,
     "humidity": PERCENTAGE,
     "outdoor_temp": UnitOfTemperature.CELSIUS,
     "power": UnitOfPower.WATT,
+    "power_supply": UnitOfPower.WATT,
+    "remote_temperature": UnitOfTemperature.CELSIUS,
     "rssi": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     "temperature": UnitOfTemperature.CELSIUS,
     "voltage": UnitOfElectricPotential.VOLT,
@@ -115,6 +121,13 @@ class XSensor(XEntity, SensorEntity):
             if self.round is not None:
                 # convert to int when round is zero
                 value = round(value, self.round or None)
+
+        if self.state_class == SensorStateClass.TOTAL_INCREASING:
+            if not isinstance(value, (int, float)) or (
+                isinstance(self.native_value, (int, float))
+                and value <= self.native_value
+            ):
+                return
 
         if self.report_ts is not None:
             ts = time.time()
@@ -280,6 +293,8 @@ class XTempCorrection(XSensor):
             if (cache := self.device["params"]) != params:
                 cache.update(params)
             value = parse_float(cache["temperature"])
+            if self.multiply:
+                value *= self.multiply
             if v := cache.get("tempCorrection"):
                 value += parse_float(v)
             XSensor.set_state(self, value=value)
@@ -296,6 +311,8 @@ class XHumCorrection(XSensor):
             if (cache := self.device["params"]) != params:
                 cache.update(params)
             value = parse_float(cache["humidity"])
+            if self.multiply:
+                value *= self.multiply
             if v := cache.get("humCorrection"):
                 value += parse_float(v)
             XSensor.set_state(self, value=value)
@@ -347,8 +364,21 @@ class XEventSesor(XEntity, SensorEntity):
 
 class XRemoteButton(XEventSesor):
     params = {"key"}
+    last_trig_time = None
+
+    def __init__(self, ewelink: XRegistry, device: dict):
+        # remember initial trigTime so stale replays after reconnect are skipped
+        self.last_trig_time = device["params"].get("trigTime")
+        super().__init__(ewelink, device)
 
     def set_state(self, params: dict):
+        # skip stale events replayed after device reconnect
+        # https://github.com/AlexxIT/SonoffLAN/issues/1669
+        if trig_time := params.get("trigTime"):
+            if trig_time == self.last_trig_time:
+                return
+            self.last_trig_time = trig_time
+
         button = params.get("outlet")
         key = BUTTON_STATES[params["key"]]
         self._attr_native_value = (
@@ -393,12 +423,18 @@ class XHexVoltageTRVZB(XSensor):
 
     def set_state(self, params: dict = None, value: float = None):
         try:
-            value = int(params[self.param], 16) * 0.001
+            raw = params[self.param]
+            if isinstance(raw, str):
+                # Old firmware: hex string representing millivolts
+                value = int(raw, 16) * 0.001
+            elif isinstance(raw, (int, float)):
+                # FW 1.4.0+: numeric value (centivolts)
+                value = raw * 0.01
+        except:
+            pass
 
-            if value != 0:
-                XSensor.set_state(self, value=value)
-        except Exception:
-            XSensor.set_state(self)
+        # default value=None (from func params)
+        XSensor.set_state(self, value=value)
 
 
 class XTodayWaterUsage(XSensor):
@@ -409,4 +445,15 @@ class XTodayWaterUsage(XSensor):
         # https://github.com/AlexxIT/SonoffLAN/issues/1497
         # https://github.com/AlexxIT/SonoffLAN/issues/1608
         value = next(params[k] for k in self.params if k in params)
+        XSensor.set_state(self, value=value)
+
+
+class XCPUTemperature(XSensor):
+    params = {"cpuInfo"}
+    uid = "cpu_temperature"
+
+    _attr_entity_registry_enabled_default = False
+
+    def set_state(self, params: dict = None, value: float = None):
+        value = params.get("cpuInfo", {}).get("temperature")
         XSensor.set_state(self, value=value)

@@ -1,7 +1,7 @@
-# - platform: orvibo
-#   switches:
-#     - host: 10.0.0.21
-#       name: "Orvibo 1"
+- platform: orvibo
+  switches:
+    - host: 10.0.0.21
+      name: "Orvibo 1"
 #     - host: 10.0.0.14
 #       name: "Garage Fan"
 

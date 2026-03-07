@@ -41,7 +41,7 @@ logger:
   level: DEBUG
 
 api:
-  reboot_timeout: 10m # Reboot if Home Assistant connection lost for 10min
+  reboot_timeout: 600s # Reboot if Home Assistant connection lost for 10min
   encryption:
     key: !secret encryption_key
 
@@ -880,33 +880,33 @@ sensor:
       - multiply: 0.1
       - *toint
 
-  # - platform: modbus_controller            # 072 Total Battery Charge
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total Battery Charge"
-  #   id: inverter_esphome_total_battery_charge
-  #   register_type: holding
-  #   address: 72
-  #   unit_of_measurement: "kWh"
-  #   accuracy_decimals: 1
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   value_type: U_DWORD_R
-  #   filters:
-  #    - multiply: 0.001
+  - platform: modbus_controller            # 072 Total Battery Charge
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total Battery Charge"
+    id: inverter_esphome_total_battery_charge
+    register_type: holding
+    address: 72
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_DWORD_R
+    filters:
+     - multiply: 0.1
 
-  # - platform: modbus_controller            # 074 Total Battery Discharge
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total Battery Discharge"
-  #   id: inverter_esphome_total_battery_discharge
-  #   register_type: holding
-  #   address: 74
-  #   unit_of_measurement: "kWh"
-  #   accuracy_decimals: 0
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   value_type: U_DWORD_R
-  #   filters:
-  #    - multiply: 0.001
+  - platform: modbus_controller            # 074 Total Battery Discharge
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total Battery Discharge"
+    id: inverter_esphome_total_battery_discharge
+    register_type: holding
+    address: 74
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 0
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_DWORD_R
+    filters:
+     - multiply: 0.1
 
   - platform: modbus_controller            # 076 Day Grid Import - verified
     modbus_controller_id: inverter
@@ -921,7 +921,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1 # verified firmware update match
-      - *toint
+      #- *toint
 
   - platform: modbus_controller            # 077 Day Grid Export - verified
     modbus_controller_id: inverter
@@ -936,7 +936,7 @@ sensor:
     value_type: U_WORD
     filters:
       - multiply: 0.1 # verified firmware update match
-      - *toint
+      #- *toint
 
 
   # Calculate how many kWh of import our export has offset (no net-metering)
@@ -983,33 +983,46 @@ sensor:
       }
     update_interval: 60s
 
-  # - platform: modbus_controller            # 078 Total Grid Import
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total Grid Import"
-  #   id: inverter_esphome_total_grid_import
-  #   register_type: holding
-  #   address: 78
-  #   unit_of_measurement: "kWh"
-  #   accuracy_decimals: 2
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   value_type: U_WORD
-  #   filters:
-  #     - multiply: 0.1
+  - platform: modbus_controller            # 078 Total Grid Import
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total Grid Import"
+    id: inverter_esphome_total_grid_import
+    register_type: holding
+    address: 78
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_WORD
+    filters:
+      - multiply: 0.1
 
-  # - platform: modbus_controller            # 081 Total Grid Export
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total Grid Export"
-  #   id: inverter_esphome_total_grid_export
-  #   register_type: holding
-  #   address: 81
-  #   unit_of_measurement: "kWh"
-  #   accuracy_decimals: 2
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   value_type: U_WORD
-  #   filters:
-  #     - multiply: 0.1
+  - platform: modbus_controller            # 081 Total Grid Export
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total Grid Export"
+    id: inverter_esphome_total_grid_export
+    register_type: holding
+    address: 81
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_WORD
+    filters:
+      - multiply: 0.1
+
+  - platform: template
+    name: "${friendly_name} Total Grid Export Offset"
+    id: inverter_esphome_total_grid_export_offset
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    lambda: |-
+      if (id(inverter_esphome_total_grid_import).has_state()) {
+        return id(inverter_esphome_total_grid_export).state * (${export_rate}/${import_rate});
+      } else {
+        return NAN;
+      }
+    update_interval: 300s
 
   - platform: modbus_controller            # 084 Day Load Energy - verified
     modbus_controller_id: inverter
@@ -1023,36 +1036,36 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1 # verified firmware update match
-      - *toint
+      #- *toint
     value_type: U_WORD
 
-  # - platform: modbus_controller            # 085 Total Load Energy
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total Load Energy"
-  #   id: inverter_esphome_total_load_energy
-  #   register_type: holding
-  #   address: 85
-  #   unit_of_measurement: "kWh"
-  #   accuracy_decimals: 2
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   value_type: U_DWORD_R
-  #   filters:
-  #     - multiply: 0.001
+  - platform: modbus_controller            # 085 Total Load Energy
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total Load Energy"
+    id: inverter_esphome_total_load_energy
+    register_type: holding
+    address: 85
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    device_class: energy
+    state_class: total_increasing
+    value_type: U_DWORD_R
+    filters:
+      - multiply: 0.1
 
-  # - platform: modbus_controller            # 096 Total PV Energy
-  #   modbus_controller_id: inverter
-  #   name: "${friendly_name} Total PV Energy"
-  #   id: inverter_esphome_total_pv_energy
-  #   register_type: holding
-  #   address: 96
-  #   unit_of_measurement: "Wh"
-  #   accuracy_decimals: 2
-  #   device_class: energy
-  #   state_class: total_increasing
-  #   filters:
-  #     - multiply: 0.001
-  #   value_type: U_DWORD_R  
+  - platform: modbus_controller            # 096 Total PV Energy
+    modbus_controller_id: inverter
+    name: "${friendly_name} Total PV Energy"
+    id: inverter_esphome_total_pv_energy
+    register_type: holding
+    address: 96
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 2
+    device_class: energy
+    state_class: total_increasing
+    filters:
+      - multiply: 0.1
+    value_type: U_DWORD_R  
 
   - platform: modbus_controller            # 108 Day PV Energy - verified
     modbus_controller_id: inverter
@@ -1066,8 +1079,7 @@ sensor:
     state_class: total_increasing
     filters:
       - multiply: 0.1 # verified firmware update match
-      - *toint
-
+      #- *toint
     value_type: U_WORD
 
 ############################################### TEMPERATURE ################################################

@@ -38,8 +38,8 @@ certificatesResolvers:
 experimental:
   plugins:
     sablier:
-      moduleName: "github.com/sablierapp/sablier"
-      version: "v1.8.5"
+      moduleName: "github.com/sablierapp/sablier-traefik-plugin"
+      version: "v1.1.0"
 
 # log:
 #   level: DEBUG

@@ -1,0 +1,522 @@
+# Describes the format for available Irrigation Unlimited services
+
+enable:
+  name: Enable
+  description: Enable the controller or zone.
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to enable (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id(s) of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+disable:
+  name: Disable
+  description: Disable the controller or zone
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to disable (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id(s) of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+toggle:
+  name: Toggle
+  description: Toggle the enable/disable status of controller or zone.
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to toggle (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id(s) of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+suspend:
+  name: Suspend
+  description: Suspend the controller or zone
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to suspend (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id(s) of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+    for:
+      name: For
+      description: The amount of time to suspend
+      example: "01:00"
+      required: false
+      selector:
+        duration:
+
+    until:
+      name: Until
+      description: The date and time to restart
+      example: "2023-01-01 10:00"
+      required: false
+      selector:
+        datetime:
+
+    reset:
+      name: Reset
+      description: Cancel any suspension
+      example: ""
+      required: false
+
+cancel:
+  name: Cancel
+  description: Cancel the current run.
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to cancel (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id(s) of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+adjust_time:
+  name: Adjust time
+  description: Adjust the run times.
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to adjust (entity_id should be the controller).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+    zones:
+      name: Zones
+      description: Id of the zone
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 9999
+          mode: box
+
+    reset:
+      name: Reset
+      description: Revert to original schedule
+      example: ""
+      required: false
+
+    percentage:
+      name: Percentage
+      description: Adjust the run time by a percentage.
+      example: "150"
+      required: false
+      selector:
+        number:
+          min: 0
+          max: 1000
+          unit_of_measurement: "%"
+
+    actual:
+      name: Actual
+      description: Set a new run time.
+      example: "00:15"
+      required: false
+      selector:
+        duration:
+
+    increase:
+      name: Increase
+      description: Increase the run time.
+      example: "00:02"
+      required: false
+      selector:
+        duration:
+
+    decrease:
+      name: Decrease
+      description: Decrease the run time.
+      example: "00:02"
+      required: false
+      selector:
+        duration:
+
+    minimum:
+      name: Minimum
+      description: Minimum run time.
+      example: "00:01"
+      required: false
+      selector:
+        duration:
+
+    maximum:
+      name: Maximum
+      description: Maximum run time.
+      example: "01:00"
+      required: false
+      selector:
+        duration:
+
+manual_run:
+  name: Manual run
+  description: Turn on immediately for a set period.
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited entity.
+      example: "binary_sensor.irrigation_unlimited_c1_z1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    time:
+      name: Time
+      description: The amount of time to run.
+      example: "00:10"
+      required: false
+      selector:
+        duration:
+
+    delay:
+      name: Delay
+      description: Delay between queued runs.
+      example: "00:00:30"
+      required: false
+      selector:
+        duration:
+
+    queue:
+      name: Queue
+      description: Start immediately or queue run.
+      example: false
+      selector:
+        boolean:
+
+    sequence_id:
+      name: Sequence Id
+      description: Id of the sequence to run.
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+pause:
+  name: Pause
+  description: Pause a running sequence
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited controller or sequence entity.
+      example: "binary_sensor.irrigation_unlimited_c1_s1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Used when entity_id is the controller. Id of the sequence to pause (0=all sequences)
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+resume:
+  name: Resume
+  description: Resume a paused sequence
+  fields:
+    entity_id:
+      name: Entity Id
+      description: Name of the Irrigation Unlimited controller or sequence entity.
+      example: "binary_sensor.irrigation_unlimited_c1_s1"
+      required: true
+      selector:
+        entity:
+          integration: irrigation_unlimited
+          domain: binary_sensor
+
+    sequence_id:
+      name: Sequence Id
+      description: Used when entity_id is the controller. Id of the sequence to resume (0=all sequences).
+      example: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 9999
+          mode: box
+
+reload:
+  name: Reload
+  description: Reload the configuration
+
+get_info:
+  name: Get Info
+  description: Get configuration information
+
+get_status:
+  name: Get status
+  description: Get status information
+  fields:
+    extended:
+      name: extended
+      description: Return extended information
+      example: false
+      required: false
+      selector:
+        boolean:
+
+load_schedule:
+  name: Load schedule
+  description: Load a schedule.
+  fields:
+    schedule_id:
+      name: Schedule Id
+      description: Id of the schedule
+      example: schedule_1
+      required: true
+      selector:
+        text:
+    time:
+      name: Time
+      description: Time of day
+      example: '06:30'
+      required: false
+      selector:
+        time:
+    anchor:
+      name: Anchor
+      description: Start or finish at the specified time
+      example: start
+      required: false
+      selector:
+        select:
+          options:
+            - start
+            - finish
+    duration:
+      name: Duration
+      description: The length of time to run
+      example: '00:10:00'
+      required: false
+      selector:
+        duration:
+    name:
+      name: Name
+      description: Friendly name of the schedule
+      example: Sunrise
+      required: false
+      selector:
+        text:
+    weekday:
+      name: Weekday
+      description: Days of week to run
+      example: mon
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - mon
+            - tue
+            - wed
+            - thu
+            - fri
+            - sat
+            - sun
+    month:
+      name: Month
+      description: Months to run
+      example: jan
+      required: false
+      selector:
+        select:
+          multiple: true
+          options:
+            - jan
+            - feb
+            - mar
+            - apr
+            - may
+            - jun
+            - jul
+            - aug
+            - sep
+            - oct
+            - nov
+            - dec
+    day:
+      name: Day
+      description: Day of month to run
+      example: 1
+      required: false
+      selector:
+        object:
+    from:
+      name: From
+      description: Start date in year
+      example: 15 apr
+      required: false
+      selector:
+        text:
+    until:
+      name: Until
+      description: End date in year
+      example: 15 sep
+      required: false
+      selector:
+        text:
+    enabled:
+      name: Enabled
+      description: Enable/disable this schedule
+      example: true
+      required: false
+      selector:
+        boolean:

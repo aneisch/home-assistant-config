@@ -101,12 +101,13 @@ class AutoAdjust(hass.Hass):
         # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
         # If grid outage --> Deactivate boost immediately 
         # If EV charging --> Deactivate immediately
-        if not (start <= now <= end) or not self.grid_online() or ev_is_charging:
+        # 03/03/2026 comment out ev_is_charging rule
+        if not (start <= now <= end) or not self.grid_online(): #or ev_is_charging:
             self.log(f"Rule 0.1 - In Window: {start <= now <= end} - Grid On: {self.grid_online()} - EV Charging: {ev_is_charging}")
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})
-                self.log("Boost deactivated: outside allowed window, grid offline, or EV charging")
+                self.log("Boost deactivated: outside allowed window, grid offline")
             return
 
         # Rule 0.2: Allow disabling the feature by boolean

@@ -48,7 +48,7 @@ AC Automation Solar:
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
   battery_boost_threshold: 99       # battery SOC for boost activation
-  cool_boost_offset: 8              # amount in degrees F to lower if boost mode active (vs cool_morning temp)
+  cool_boost_offset: 10             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
   cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
