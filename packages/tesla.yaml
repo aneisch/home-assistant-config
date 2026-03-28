@@ -638,24 +638,17 @@ script:
         timeout: "02:00:00"
         continue_on_timeout: true
 
-      # Only stop charging and turn off EVSE if above proper level
-      - choose:
-        - conditions:
-            - condition: numeric_state
-              entity_id: sensor.tesla_battery_level
-              above: 24.9
-          sequence:
-            - service: mqtt.publish
-              data:
-                topic: tesla_ble/VIN/charging
-                payload: "stop"
-            # Wait 30 seconds
-            - delay: "00:00:30"
+      - service: mqtt.publish
+        data:
+          topic: tesla_ble/VIN/charging
+          payload: "stop"
+      # Wait 30 seconds
+      - delay: "00:00:30"
 
-            # Turn off Emporia charger
-            - service: switch.turn_off
-              target:
-                entity_id: switch.emporia_charger
+      # Turn off Emporia charger
+      - service: switch.turn_off
+        target:
+          entity_id: switch.emporia_charger
 
       # Re-enable TOU on Sol-Ark
       - service: switch.turn_on

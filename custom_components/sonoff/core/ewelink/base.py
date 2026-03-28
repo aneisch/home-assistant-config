@@ -25,10 +25,16 @@ class XDevice(TypedDict, total=False):
     host: Optional[str]  # required for local
     devicekey: Optional[str]  # required for encrypted local devices (not DIY)
 
-    local_ts: Optional[float]  # time of last local msg from device
     params_bulk: Optional[dict]  # helper for send_bulk commands
     active_outlet: Optional[int]  # required for SPM-4Relay power updates
-    ui_active_task: Optional[asyncio.Task]  # internal periodic uiActive dedupe task
+    active_energy: Optional[list]  # required for multichannel energy
+
+    localfail: Optional[int]
+    localrecv: Optional[float]
+    localping: Optional[float]
+
+    cloud_seq: int | None  # sequence for update from cloud (if exists - cmd from app)
+    local_seq: int | None  # sequence for update from local
 
     parent: Optional[dict]
 

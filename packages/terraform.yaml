@@ -1,5 +1,6 @@
 automation:
 - alias: "Docker Container Added"
+  mode: single
   trigger:
     - platform: event
       event_type: state_changed
@@ -16,6 +17,7 @@ automation:
     - action: shell_command.trigger_terraform_apply
       data:
         github_token: !secret github_token
+    - delay: '00:00:30'
 
 shell_command:
   trigger_terraform_apply: 'curl -v -X POST -u ''aneisch:{{ github_token }}'' -H ''Accept: application/vnd.github.everest-preview+json'' -H ''Content-Type: application/json'' --data ''{"event_type": "trigger-from-ha"}'' https://api.github.com/repos/aneisch/terraform/dispatches'

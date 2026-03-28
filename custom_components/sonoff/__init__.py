@@ -42,7 +42,10 @@ from .core.xutils import create_clientsession
 
 _LOGGER = logging.getLogger(__name__)
 
+# It is important to have the `sensor` first so that the bridges are initialized before
+# the child devices. Fix `device_info["via_device"]` problem.
 PLATFORMS = [
+    "sensor",
     "alarm_control_panel",
     "binary_sensor",
     "button",
@@ -52,7 +55,6 @@ PLATFORMS = [
     "light",
     "media_player",
     "remote",
-    "sensor",
     "switch",
     "number",
     "select"
@@ -111,7 +113,7 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
         XRegistry.config = conf = config[DOMAIN]
         if CONF_APPID in conf and CONF_APPSECRET in conf:
             APP[0] = conf[CONF_APPID]
-            APP[1] = conf[CONF_APPSECRET]
+            APP.append(conf[CONF_APPSECRET])
         if CONF_DEFAULT_CLASS in conf:
             core_devices.set_default_class(conf.get(CONF_DEFAULT_CLASS))
         if CONF_SENSORS in conf:
@@ -154,10 +156,17 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
                 device.update(v)
                 return
 
-            params_lan = params.pop("params_lan", None)
-            command_lan = params.pop("command_lan", None)
+            command = params.pop("command", None)
+            mode = params.pop("mode", None)
 
-            await registry.send(device, params, params_lan, command_lan)
+            if mode == "local":
+                await registry.local.send(device, params, command)
+            elif mode == "cloud":
+                await registry.cloud.send(device, params)
+            elif mode == "api":
+                await registry.cloud.set_device(device, params)
+            else:
+                await registry.send(device, params, cmd_lan=command)
 
         elif len(deviceid) == 6:
             await cameras.send(deviceid, params["cmd"])

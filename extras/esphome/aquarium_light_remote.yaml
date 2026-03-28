@@ -1,0 +1,361 @@
+substitutions:
+  name: aquarium_light_remote
+  friendly_name: "Aquarium Light Remote"
+  blue_down: "0000 006D 0019 0000 0012 002C 0030 000D 0011 002C 0030 000E 0012 002C 0030 000D 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002D 002E 0010 0011 002D 0011 002D 0011 002C 0011 002D 0030 000E 0011 002C 0030 000E 002F 000F 0010 0181"
+  blue_up: "0000 006D 0019 0000 0014 002A 0031 000D 0013 002B 0030 000D 0012 002C 0030 000D 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000D 0011 002C 0030 000D 0011 002C 002F 000F 0011 002D 0012 002C 0012 002C 0011 002D 0030 000E 0011 002C 0030 000E 0011 002D 0011 0181"
+  green_down: "0000 006D 0019 0000 0014 0029 0032 000C 0013 002A 0031 000D 0012 002B 0031 000D 0011 002C 0031 000D 0012 002B 0031 000D 0012 002C 002F 000F 0010 002D 002F 000F 0010 002D 002F 000F 0010 002D 0010 002D 0011 002D 0010 002D 002F 000E 0011 002D 0011 002D 0011 002D 0010 0181"
+  green_up: "0000 006D 0019 0000 001C 0021 0031 000C 001E 0020 0030 000E 0012 002C 0030 000D 0012 002C 0030 000D 0011 002C 0030 000E 0011 002C 0033 000A 0011 002C 0030 000D 0011 002D 002F 000F 0011 002D 0011 002D 0013 002A 0011 002D 0011 002C 002F 000E 0030 000E 002F 000F 0011 0181"
+  white_1_down: "0000 006D 0019 0000 0013 002A 0031 000C 0012 002B 0031 000D 0012 002C 0030 000D 0012 002C 0030 000D 0011 002C 0030 000E 0011 002C 0030 000D 0012 002B 0030 000E 0011 002C 0030 000E 0011 002D 0011 002C 0012 002C 0012 002C 0011 002C 0030 000E 0011 002C 0030 000E 0011 0181"
+  white_1_up: "0000 006D 0019 0000 0012 002B 0030 000E 0011 002D 0030 000E 0011 002D 0030 000E 0011 002D 002F 000E 0011 002D 002F 000E 0011 002D 0030 000E 0011 002D 002F 000E 0011 002D 002F 000F 0010 002D 0010 002D 0010 002D 0011 002D 0011 002C 0030 000E 0011 002D 0011 002D 0011 0181"
+  white_2_down: "0000 006D 0019 0000 0015 0029 0031 000D 0012 002C 0030 000E 0011 002C 0030 000E 0011 002D 002F 000E 0011 002C 0030 000D 0011 002C 0030 000F 0010 002D 002F 000F 0010 002D 002F 000F 0011 002D 0010 002D 0013 002B 0011 002D 002F 000E 0030 000E 002F 000F 0010 002D 0010 0181"
+  white_2_up: "0000 006D 0019 0000 0013 002B 0030 000D 0010 002E 002F 000F 0010 002D 002F 000F 0010 002E 002E 0010 000F 002E 002E 0010 0010 002E 002F 0014 000C 002D 002F 000E 0011 002D 002E 0010 0010 002E 0011 002D 0012 002B 0011 002E 002E 000F 002E 0010 000F 002E 002E 0010 000F 0181"
+  light_off: "0000 006D 0019 0000 0013 002B 0031 000D 0012 002B 0031 000D 0012 002C 0030 000D 0012 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002D 0011 002D 0011 002C 0011 002D 0011 002C 0011 002C 0030 000E 0011 002D 0011 0181"
+  light_on: "0000 006D 0019 0000 0013 002B 0031 000C 0012 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002D 002F 000E 0011 002C 0030 000E 0011 002D 0030 000E 0011 002D 002F 000F 0010 002D 0011 002D 0011 002D 0011 002D 0011 002D 0011 002C 0011 002C 0030 000E 0011 0181"
+  all_20: "0000 006D 0019 0000 0011 002C 0030 000E 0011 002C 0030 000E 0011 002C 0030 000E 0011 002D 0030 000E 0011 002D 002F 000E 0011 002D 002F 000F 0011 002D 002F 000E 0010 002D 002F 000F 0010 002D 0011 002D 0010 002D 0011 002D 0011 002D 002F 000E 002F 000E 0011 002D 0011 0181"
+  all_40: "0000 006D 0019 0000 0012 002C 0030 000D 0012 002C 0030 000E 0011 002C 0030 000F 0010 002C 0030 000E 0011 002C 0030 000E 0011 002D 002F 000F 0011 002D 002F 000F 0010 002D 002F 000F 0011 002D 0011 002D 0011 002D 0011 002D 002F 000E 0010 002F 000F 002D 002F 000E 0011 0181"
+  all_80: "0000 006D 0019 0000 0014 0029 0032 000C 0013 002B 0030 000D 0012 002C 0030 000D 0012 002C 0030 000D 0012 002C 0030 000E 0011 002D 002F 000E 0013 002B 0031 000C 0011 002C 0030 000E 0010 002D 0012 002B 0012 002C 0012 002C 0030 000D 0030 000E 0012 002C 0011 002D 0011 0181"
+  all_100: "0000 006D 0019 0000 0013 002A 0033 000B 0012 002C 002F 000F 0010 002D 002E 000F 000F 002E 002E 000F 0010 002E 002E 000F 0010 002E 0031 000D 0016 0028 002E 000F 0010 002D 002F 0010 0010 002D 0011 002C 0012 002B 0011 002D 0031 000C 002F 000E 002F 000F 0025 001A 000C 0181"
+
+esphome:
+  name: ${name}
+  
+esp8266:
+  board: d1_mini
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key
+
+<<: !include common.yaml
+
+remote_transmitter:
+  pin: D1
+  carrier_duty_percent: 100%
+  
+# remote_receiver:
+#   pin: 
+#     number: D2
+#   dump: all
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+button:
+  - platform: template
+    name: "Off"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${light_off}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "On"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${light_on}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "Blue Down"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${blue_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "Blue Up"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${blue_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "Green Down"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${green_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "Green Up"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${green_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "White 1 Down"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${white_1_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "White 1 Up"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${white_1_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "White 2 Down"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${white_2_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "White 2 Up"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${white_2_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "All 20%"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${all_20}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "All 40%"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${all_40}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "All 80%"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${all_80}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "All 100%"
+    icon: "mdi:chevron-up-circle"
+    on_press:
+      - remote_transmitter.transmit_pronto:
+          data: ${all_100}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+  - platform: template
+    name: "All Down"
+    icon: "mdi:palette"
+    on_press:
+      # Blue Down
+      - remote_transmitter.transmit_pronto:
+          data: ${blue_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # Green Down
+      - remote_transmitter.transmit_pronto:
+          data: ${green_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # White 1 Down
+      - remote_transmitter.transmit_pronto:
+          data: ${white_1_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # White 2 Down
+      - remote_transmitter.transmit_pronto:
+          data: ${white_2_down}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+  - platform: template
+    name: "All Up"
+    icon: "mdi:palette"
+    on_press:
+      # Blue Up
+      - remote_transmitter.transmit_pronto:
+          data: ${blue_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # Green Up
+      - remote_transmitter.transmit_pronto:
+          data: ${green_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # White 1 Up
+      - remote_transmitter.transmit_pronto:
+          data: ${white_1_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # White 2 Up
+      - remote_transmitter.transmit_pronto:
+          data: ${white_2_up}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+  - platform: template
+    name: "All Minimum"
+    icon: "mdi:palette"
+    on_press:
+      # Step 1: Turn on 
+      - remote_transmitter.transmit_pronto:
+          data: ${light_on}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+
+      # Step 3: Loop 20 times
+      - repeat:
+          count: 20
+          then:
+            # Blue Down
+            - remote_transmitter.transmit_pronto:
+                data: ${blue_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+
+            # Green Down
+            - remote_transmitter.transmit_pronto:
+                data: ${green_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+
+            # White 1 Down
+            - remote_transmitter.transmit_pronto:
+                data: ${white_1_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+
+            # White 2 Down
+            - remote_transmitter.transmit_pronto:
+                data: ${white_2_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+
+  - platform: template
+    name: "Blue Only Preset"
+    icon: "mdi:palette"
+    on_press:
+      # Step 1: Turn on and set initial intensity to 20%
+      - remote_transmitter.transmit_pronto:
+          data: ${light_on}
+          repeat:
+            times: 4
+            wait_time: 10ms
+      - delay: 200ms
+      - remote_transmitter.transmit_pronto:
+          data: ${all_20}
+          repeat:
+            times: 4
+            wait_time: 10ms
+
+      # Step 2: Small pause after the initial command
+      - delay: 500ms
+      
+      # Step 3: Loop 10 times
+      - repeat:
+          count: 15
+          then:
+            # White 1 Down
+            - remote_transmitter.transmit_pronto:
+                data: ${white_1_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+            
+            # White 2 Down
+            - remote_transmitter.transmit_pronto:
+                data: ${white_2_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+            
+            # Green Down
+            - remote_transmitter.transmit_pronto:
+                data: ${green_down}
+                repeat:
+                  times: 4
+                  wait_time: 10ms
+            - delay: 200ms
+
+            # Blue Up
+            - remote_transmitter.transmit_pronto:
+                data: ${blue_up}
+                repeat:
+                  times: 5
+                  wait_time: 10ms
+            - delay: 200ms

@@ -48,7 +48,7 @@ AC Automation Solar:
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
   battery_boost_threshold: 99       # battery SOC for boost activation
-  cool_boost_offset: 10             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
+  cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
   cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
@@ -292,38 +292,32 @@ Dehumidifier Follow:
 #   leader: light.aquarium_light
 #   follower: switch.circadian_lighting_aquarium_circadian
 
-# CO2:
-#   module: entity_timer
-#   class: Timer
-#   constrain_input_boolean:
-#    - input_boolean.aquarium_automation
-#   entities: switch.aquarium_co2
-#   time_on: "07:00:00"
-#   time_off: "16:30:00"
+CO2:
+  module: entity_timer
+  class: Timer
+  entities: switch.kmc_multi_plug_1_1
+  time_on: "07:00:00"
+  time_off: "16:30:00"
+
+# Light is home assistant automation
 
 # Aquarium Light On Morning:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean:
-#    - input_boolean.aquarium_automation
-#   entities: light.aquarium_light
+#   entities: switch.kmc_multi_plug_1_3
 #   time_on: "09:00:00"
 
 # Aquarium Light Afternoon:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: 
-#    - input_boolean.aquarium_automation
-#   entities: light.aquarium_light
+#   entities: switch.kmc_multi_plug_1_3
 #   time_off: "13:00:00"
 #   time_on: "14:30:00"
 
 # Aquarium Light Off Evening:
 #   module: entity_timer
 #   class: Timer
-#   constrain_input_boolean: 
-#    - input_boolean.aquarium_automation
-#   entities: light.aquarium_light
+#   entities: switch.kmc_multi_plug_1_3
 #   time_off: "17:30:00"
 
 NAS:

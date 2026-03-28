@@ -28,3 +28,81 @@
 #     sleep_state: "below_horizon"
 #     sleep_brightness: 1
 #     sleep_colortemp: 10000
+
+automation:
+  - alias: "Aquarium: Light Ramp Up"
+    id: 13ab3639-e7c4-4222-aa1f-49dc2a062fa1
+    description: "Starts at minimum and ramps to 100% using a tunable delay"
+    trigger:
+      - platform: time
+        at: "09:00:00"
+      - platform: time
+        at: "14:30:00"
+    action:
+      - variables:
+          ramp_delay: "00:00:10"
+      - action: button.press
+        target:
+          entity_id: button.aquarium_light_remote_on
+      - delay: "{{ ramp_delay }}"
+      # This loop handles the gradual dimming
+      - repeat:
+          count: 20
+          sequence:
+            - action: button.press
+              target:
+                entity_id: button.aquarium_light_remote_all_up
+            - delay: "{{ ramp_delay }}"
+      - delay: "{{ ramp_delay }}"
+      # Ensure we are 100 by the end
+      - action: button.press
+        target:
+          entity_id: button.aquarium_light_remote_all_100
+    mode: restart
+
+  - alias: "Aquarium: Light Moonlight"
+    id: f74de060-e04f-46e5-841d-89d1fa26a7ee
+    description: "Moonlight at night"
+    trigger:
+      - platform: time
+        at: "20:00:00"
+        id: "on"
+      - platform: time
+        at: "23:00:00"
+        id: "off"
+    action:
+      - if: "{{ trigger.id == 'on' }}"
+        then:
+          - action: button.press
+            target:
+              entity_id: button.aquarium_light_remote_blue_only_preset
+      - if: "{{ trigger.id == 'off' }}"
+        then:
+          - action: button.press
+            target:
+              entity_id: button.aquarium_light_remote_off
+    mode: restart  
+
+  - alias: "Aquarium: Light Ramp Down & Off"
+    id: b6a64a7a-9faa-43e7-9d41-c6e83ccd545e
+    description: "Ramps down to Minimum then turns off using a tunable delay"
+    trigger:
+      - platform: time
+        at: "13:00:00"
+      - platform: time
+        at: "17:30:00"
+    action:
+      - variables:
+          ramp_delay: "00:00:10"
+      # This loop handles the gradual dimming
+      - repeat:
+          count: 20
+          sequence:
+            - action: button.press
+              target:
+                entity_id: button.aquarium_light_remote_all_down
+            - delay: "{{ ramp_delay }}"      
+      - action: button.press
+        target:
+          entity_id: button.aquarium_light_remote_off
+    mode: restart

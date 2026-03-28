@@ -3,9 +3,11 @@
 import asyncio
 import logging
 import os
+from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 
+import anyio
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
@@ -38,7 +40,6 @@ from .const import (
     CONF_WALMART_CUSTOM_IMG,
     CONF_WALMART_CUSTOM_IMG_FILE,
     CONFIG_VER,
-    COORDINATOR,
     DEFAULT_AMAZON_CUSTOM_IMG_FILE,
     DEFAULT_AMAZON_DAYS,
     DEFAULT_FEDEX_CUSTOM_IMG_FILE,
@@ -55,12 +56,25 @@ from .helpers import default_image_path, hash_file, process_emails
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup(hass: HomeAssistant, config_entry: ConfigEntry):  # pylint: disable=unused-argument
+@dataclass
+class MailAndPackagesData:
+    """Data for Mail and Packages integration."""
+
+    coordinator: "MailDataUpdateCoordinator"
+    cameras: list
+
+
+type MailAndPackagesConfigEntry = ConfigEntry[MailAndPackagesData]
+
+
+async def async_setup(hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry):  # pylint: disable=unused-argument
     """Disallow configuration via YAML."""
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_setup_entry(
+    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+) -> bool:
     """Load the saved entities."""
     _LOGGER.info(
         "Version %s is starting, if you have any issues please report them here: %s",
@@ -90,9 +104,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         _LOGGER.error("Error updating sensor data: %s", coordinator.last_exception)
         raise ConfigEntryNotReady
 
-    hass.data[DOMAIN][config_entry.entry_id] = {
-        COORDINATOR: coordinator,
-    }
+    config_entry.runtime_data = MailAndPackagesData(coordinator=coordinator, cameras=[])
 
     await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
     return True
@@ -110,7 +122,9 @@ async def async_remove_config_entry_device(  # pylint: disable-next=unused-argum
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+async def async_unload_entry(
+    hass: HomeAssistant, config_entry: MailAndPackagesConfigEntry
+) -> bool:
     """Handle removal of an entry."""
     _LOGGER.debug("Attempting to unload sensors from the %s integration", DOMAIN)
 
@@ -125,7 +139,6 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
 
     if unload_ok:
         _LOGGER.debug("Successfully removed sensors from the %s integration", DOMAIN)
-        hass.data[DOMAIN].pop(config_entry.entry_id)
 
     return unload_ok
 
@@ -193,6 +206,10 @@ async def async_migrate_entry(hass, config_entry):  # noqa: C901
     if version <= 7:
         if CONF_AMAZON_DOMAIN not in updated_config:
             updated_config[CONF_AMAZON_DOMAIN] = "amazon.com"
+
+    if version <= 15:
+        if updated_config.get(CONF_IMAP_SECURITY) == "startTLS":
+            updated_config[CONF_IMAP_SECURITY] = "SSL"
 
     # Require configs on all migration paths
 
@@ -283,9 +300,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Fetch data."""
         async with asyncio.timeout(self.timeout):
             try:
-                data = await self.hass.async_add_executor_job(
-                    process_emails, self.hass, self.config
-                )
+                data = await process_emails(self.hass, self.config)
             except Exception as error:
                 _LOGGER.error("Problem updating sensors: %s", error)
                 raise UpdateFailed(error) from error
@@ -304,7 +319,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"
-            usps_check = Path(usps_image).exists()
+            usps_check = await anyio.Path(usps_image).exists()
             _LOGGER.debug("USPS Check: %s", usps_check)
             if usps_check:
                 # Optimized: Use _get_file_hash_if_changed
@@ -368,7 +383,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                         f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
                     )
 
-                image_check = Path(delivery_image).exists()
+                image_check = await anyio.Path(delivery_image).exists()
                 _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
                 if image_check:
                     # Optimized: Use _get_file_hash_if_changed

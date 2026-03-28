@@ -246,10 +246,7 @@ REGIONS = {
 
 DATA_ERROR = {0: "online", 503: "offline", 504: "timeout", None: "unknown"}
 
-# APP = ["R8Oq3y0eSZSYdKccHlrQzT1ACCOUT9Gv"]
-
-# Default AppID because https://github.com/AlexxIT/SonoffLAN/issues/1707
-APP = ["4s1FXKC9FaGfoqXhmXSJneb3qcm1gOak", "oKvCM06gvwkRbfetd6qWRrbC3rFrbIpV"]
+APP = ["R8Oq3y0eSZSYdKccHlrQzT1ACCOUT9Gv"]
 
 
 class AuthError(Exception):
@@ -420,6 +417,20 @@ class XRegistryCloud(ResponseWaiter, XRegistryBase):
                 if "deviceid" in i["itemData"]  # skip groups
             ]
         return devices
+
+    async def set_device(self, device: XDevice, params: dict, timeout: float = 5):
+        did = device["deviceid"]
+        try:
+            r = await self.session.post(
+                self.host + "/v2/device/thing/status",
+                headers=self.headers,
+                timeout=timeout,
+                json={"type": 1, "id": did, "params": params},
+            )
+            resp = await r.json()
+            _LOGGER.debug(f"{did} => Cloud5 | {params} <= {resp}")
+        except Exception as e:
+            _LOGGER.debug(f"{did} => Cloud5 | {params} <= {repr(e)}")
 
     async def send(
         self,

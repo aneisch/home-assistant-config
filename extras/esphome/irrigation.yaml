@@ -1,6 +1,7 @@
 substitutions:
   name: irrigation
   friendly_name: "Irrigation"
+  max_zone_time: 30min
 
 esphome:
   name: ${name}
@@ -75,7 +76,7 @@ switch:
           id: current_zone
           value: '1'
       - script.execute: turn_off_other_zones
-      - delay: 25min # Set max time in case of automation failure
+      - delay: ${max_zone_time} # Set max time in case of automation failure
       - switch.turn_off: zone1
 
   - platform: gpio
@@ -90,7 +91,7 @@ switch:
           id: current_zone
           value: '2'
       - script.execute: turn_off_other_zones
-      - delay: 25min # Set max time in case of automation failure
+      - delay: ${max_zone_time} # Set max time in case of automation failure
       - switch.turn_off: zone2
 
   - platform: gpio
@@ -105,7 +106,7 @@ switch:
           id: current_zone
           value: '3'
       - script.execute: turn_off_other_zones
-      - delay: 25min # Set max time in case of automation failure
+      - delay: ${max_zone_time} # Set max time in case of automation failure
       - switch.turn_off: zone3
 
   - platform: gpio
@@ -120,7 +121,7 @@ switch:
           id: current_zone
           value: '4'
       - script.execute: turn_off_other_zones
-      - delay: 25min # Set max time in case of automation failure
+      - delay: ${max_zone_time} # Set max time in case of automation failure
       - switch.turn_off: zone4
 
   - platform: gpio
@@ -135,7 +136,7 @@ switch:
           id: current_zone
           value: '5'
       - script.execute: turn_off_other_zones
-      - delay: 25min # Set max time in case of automation failure
+      - delay: ${max_zone_time} # Set max time in case of automation failure
       - switch.turn_off: zone5
 
   - platform: gpio

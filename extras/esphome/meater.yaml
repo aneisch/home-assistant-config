@@ -16,14 +16,14 @@ esp32:
 # Service UUIDs and iBeacon UUIDs and identifiers
 #esp32_ble_tracker:
 
-wifi:
-  ssid: SSID
-  password: WPA_KEY
-  # Optional manual IP
-  manual_ip:
-    static_ip: 10.0.0.20
-    gateway: 10.0.1.1
-    subnet: 255.255.254.0
+# wifi:
+#   ssid: SSID
+#   password: WPA_KEY
+#   # Optional manual IP
+#   manual_ip:
+#     static_ip: 10.0.0.20
+#     gateway: 10.0.1.1
+#     subnet: 255.255.254.0
  
 ble_client:
   - mac_address: B8:1F:5E:90:91:91 # Repeater Block - disabled due to disconnects

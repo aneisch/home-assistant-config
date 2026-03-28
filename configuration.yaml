@@ -135,6 +135,7 @@ http:
   trusted_proxies:
     - 172.18.0.0/24 # Traefik
     - 10.0.1.22/32 # NUC
+    - 172.18.0.18
   server_port: 8123
   # strict_connection: guard_page
 

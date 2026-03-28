@@ -250,10 +250,10 @@ cards:
           - sensor.netatmo_home_indoor_co2
           - fan.office_ceiling_fan
           - light.office_ceiling_fan
-          # - sensor.aquarium_temperature
-          - switch.kmc_multi_plug_1_1 # Bulb
-          #- switch.kmc_multi_plug_1_3
-          - light.plant_light_corner # Led Strip
+          # - switch.kmc_multi_plug_1_1 # Bulb
+          # - switch.kmc_multi_plug_1_2
+          # - switch.kmc_multi_plug_1_3
+          #- light.plant_light_corner # Led Strip 
           - switch.andrew_monitor
           - entity: switch.andrew_office_speakers
             icon: mdi:speaker

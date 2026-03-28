@@ -14,7 +14,8 @@
   "requirements": [
     "beautifulsoup4",
     "Pillow>=9.0",
-    "dateparser"
+    "dateparser",
+    "aioimaplib"
   ],
-  "version": "0.4.7"
+  "version": "0.5.0"
 }

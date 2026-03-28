@@ -194,27 +194,29 @@ automation:
         target:
           entity_id:
             - '{{ my_camera_id }}'
-      - action: notify.alexa_media
-        continue_on_error: true
-        data:
-          message: "<audio src='https://vps.secret/mail.mp3'/>"
-          data:
-            type: tts
-          target: media_player.kitchen
-      - action: google_generative_ai_conversation.generate_content
-        continue_on_error: true
-        data:
-          prompt: >-
-            "Summarize the mail I am receiving today. Don't speculate too much, and no need to tell me recipient info if it's addressed to an Andrew or Bethany. This is meant to go in a notification"
-          filenames: "{{ states('sensor.mail_grid_image_path') }}"
-        response_variable: generated_content
-      - action: notify.signal_homeassistant
-        data:
-          message: "USPS detected. {{ generated_content.text }}"
-          data:
-            attachments:
-              - /config/media/images/logo.jpg
-              - "{{ states('sensor.mail_grid_image_path') }}"
+      - if: '{{ states("sensor.mail_usps_mail") | int > 0 }}'
+        then:
+          - action: google_generative_ai_conversation.generate_content
+            continue_on_error: true
+            data:
+              prompt: >-
+                "Summarize the mail I am receiving today. Don't speculate too much, and no need to tell me recipient info if it's addressed to an Andrew or Bethany. This is meant to go in a notification"
+              filenames: "{{ states('sensor.mail_grid_image_path') }}"
+            response_variable: generated_content
+          - action: notify.alexa_media
+            continue_on_error: true
+            data:
+              message: "<audio src='https://vps.secret/mail.mp3'/>"
+              data:
+                type: tts
+              target: media_player.kitchen
+          - action: notify.signal_homeassistant
+            data:
+              message: "USPS detected. {{ generated_content.text }}"
+              data:
+                attachments:
+                  - /config/media/images/logo.jpg
+                  - "{{ states('sensor.mail_grid_image_path') }}"
       - delay: "00:01:00"
       - action: switch.turn_off
         entity_id: switch.docker_codeproject

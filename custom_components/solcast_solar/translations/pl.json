@@ -1,481 +1,650 @@
 {
-    "config": {
-        "abort": {
-            "internal_error": "Wystąpił błąd wewnętrzny",
-            "reauth_successful": "Nowy klucz API został pomyślnie zastosowany",
-            "reconfigured": "Zastosowano nową konfigurację",
-            "single_instance_allowed": "Dozwolona tylko jedna instancja Solcast"
+  "config": {
+    "abort": {
+      "internal_error": "Wystąpił błąd wewnętrzny",
+      "reauth_successful": "Nowy klucz API został pomyślnie zastosowany",
+      "reconfigured": "Zastosowano nową konfigurację",
+      "single_instance_allowed": "Dozwolona tylko jedna instancja Solcast"
+    },
+    "error": {
+      "api_duplicate": "Określono duplikat klucza API",
+      "api_key_empty": "Klucz API nie może być pusty",
+      "api_looks_like_site": "Klucz API wygląda jak identyfikator witryny",
+      "limit_not_number": "Limit API nie jest liczbą",
+      "limit_one_or_greater": "Limit API musi wynosić jeden lub więcej",
+      "limit_too_many": "Wprowadzono więcej limitów API niż kluczy"
+    },
+    "step": {
+      "reauth_confirm": {
+        "data": {
+          "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)"
         },
-        "error": {
-            "api_duplicate": "Określono duplikat klucza API",
-            "api_looks_like_site": "Klucz API wygląda jak identyfikator witryny",
-            "limit_not_number": "Limit API nie jest liczbą",
-            "limit_one_or_greater": "Limit API musi wynosić jeden lub więcej",
-            "limit_too_many": "Wprowadzono więcej limitów API niż kluczy"
+        "description": "Klucz API konta Solcast"
+      },
+      "reconfigure_confirm": {
+        "data": {
+          "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
+          "api_limit": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
+          "auto_update": "Automatyczna aktualizacja"
+        },
+        "description": "Dane konta Solcast\n\n(Jeśli nie ma automatycznej aktualizacji, wymagana jest automatyzacja - zobacz dokumentację integracji)"
+      },
+      "user": {
+        "data": {
+          "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
+          "api_limit": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
+          "auto_update": "Automatyczna aktualizacja"
+        },
+        "description": "Dane konta Solcast\n\n(Jeśli nie ma automatycznej aktualizacji, wymagana jest automatyzacja - zobacz dokumentację integracji)\n\nAPI Solcast musi być dostępne, aby wstępnie skonfigurować tę integrację. Jeśli otrzymasz komunikat o stanie '429 / Try again later', API jest niedostępne i konfiguracja nie może zostać ukończona. Musisz poczekać. Należy pamiętać, że strona stanu API pod adresem status.solcast.com prawie na pewno nie pokaże żadnych problemów z API. Przyczyną jest najprawdopodobniej pojedynczy nieodpowiedzialny użytkownik API, który wpływa na dostępność dla wszystkich hobbystów."
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "estimate_mode": {
+        "name": "Użyj pola prognozy"
+      }
+    },
+    "sensor": {
+      "accuracy": {
+        "name": "Dokładność"
+      },
+      "api_counter": {
+        "name": "Liczba wykorzystanych zapytań API"
+      },
+      "api_limit": {
+        "name": "Limit zapytań API"
+      },
+      "dampen": {
+        "name": "Tłumienie"
+      },
+      "forecast_custom_hours": {
+        "name": "Prognoza na następne X godzin"
+      },
+      "forecast_next_hour": {
+        "name": "Prognoza na następną godzinę"
+      },
+      "forecast_remaining_today": {
+        "name": "Pozostała prognoza na dziś"
+      },
+      "forecast_this_hour": {
+        "name": "Prognoza na bieżącą godzinę"
+      },
+      "hard_limit": {
+        "name": "Ustawiony twardy limit"
+      },
+      "hard_limit_api": {
+        "name": "Ustawiony twardy limit {api_key}"
+      },
+      "last_updated": {
+        "name": "Ostatnia aktualizacja API"
+      },
+      "peak_w_time_today": {
+        "name": "Czas szczytowej mocy dzisiaj"
+      },
+      "peak_w_time_tomorrow": {
+        "name": "Czas szczytowej mocy jutro"
+      },
+      "peak_w_today": {
+        "name": "Szczytowa moc dzisiaj"
+      },
+      "peak_w_tomorrow": {
+        "name": "Szczytowa moc jutro"
+      },
+      "power_now": {
+        "name": "Aktualna moc"
+      },
+      "power_now_1hr": {
+        "name": "Moc w 1 godzinę"
+      },
+      "power_now_30m": {
+        "name": "Moc w 30 minut"
+      },
+      "total_kwh_forecast_d10": {
+        "name": "Prognoza na dzień 10"
+      },
+      "total_kwh_forecast_d11": {
+        "name": "Prognoza na dzień 11"
+      },
+      "total_kwh_forecast_d12": {
+        "name": "Prognoza na dzień 12"
+      },
+      "total_kwh_forecast_d13": {
+        "name": "Prognoza na dzień 13"
+      },
+      "total_kwh_forecast_d3": {
+        "name": "Prognoza na dzień 3"
+      },
+      "total_kwh_forecast_d4": {
+        "name": "Prognoza na dzień 4"
+      },
+      "total_kwh_forecast_d5": {
+        "name": "Prognoza na dzień 5"
+      },
+      "total_kwh_forecast_d6": {
+        "name": "Prognoza na dzień 6"
+      },
+      "total_kwh_forecast_d7": {
+        "name": "Prognoza na dzień 7"
+      },
+      "total_kwh_forecast_d8": {
+        "name": "Prognoza na dzień 8"
+      },
+      "total_kwh_forecast_d9": {
+        "name": "Prognoza na dzień 9"
+      },
+      "total_kwh_forecast_today": {
+        "name": "Prognoza na dzisiaj"
+      },
+      "total_kwh_forecast_tomorrow": {
+        "name": "Prognoza na jutro"
+      }
+    }
+  },
+  "exceptions": {
+    "actuals_not_enabled": {
+      "message": "Pozyskiwanie szacunkowych wartości rzeczywistych nie jest włączone."
+    },
+    "actuals_without_get": {
+      "message": "Nie można używać szacowanych wartości rzeczywistych bez ich uzyskania."
+    },
+    "api_duplicate": {
+      "message": "Określono duplikat klucza API."
+    },
+    "api_key_empty": {
+      "message": "Klucz API nie może być pusty."
+    },
+    "api_looks_like_site": {
+      "message": "Klucz API wygląda jak identyfikator witryny."
+    },
+    "auto_use_force": {
+      "message": "Automatyczna aktualizacja jest włączona. Zdarzenie serwisowe jest ignorowane przy aktualizacji prognozy. Zamiast tego użyj opcji Wymuś aktualizację."
+    },
+    "auto_use_normal": {
+      "message": "Automatyczna aktualizacja nie jest włączona. Zdarzenie serwisowe jest ignorowane w celu wymuszenia aktualizacji prognozy. Zamiast tego użyj opcji Aktualizuj."
+    },
+    "build_failed_actuals": {
+      "message": "Nie udało się zbudować szacowanych danych rzeczywistych (uszkodzony config/solcast-actuals.json?)."
+    },
+    "build_failed_forecasts": {
+      "message": "Nie udało się zbudować danych prognozy (uszkodzony config/solcast.json?)."
+    },
+    "damp_auto_enabled": {
+      "message": "Włączono automatyczne tłumienie, nie ma konieczności ręcznego ustawiania współczynników tłumienia."
+    },
+    "damp_count_not_correct": {
+      "message": "Między 0,0 a 1,0 nie ma 24 ani 48 liczb oddzielonych przecinkami."
+    },
+    "damp_error_parsing": {
+      "message": "Błąd podczas analizy współczynnika tłumienia liczb oddzielonych przecinkami."
+    },
+    "damp_no_all_24": {
+      "message": "Określenie witryny „wszystko” jest niedozwolone w przypadku 24 czynników. Usuń witrynę z żądania."
+    },
+    "damp_no_factors": {
+      "message": "Brakuje współczynników tłumienia. Musi to być lista liczb oddzielonych przecinkami z zakresu od 0,0 do 1,0."
+    },
+    "damp_not_for_site": {
+      "message": "Tłumienie witryny nie jest ustawione dla {site}."
+    },
+    "damp_not_site": {
+      "message": "Nie skonfigurowana witryna."
+    },
+    "damp_outside_range": {
+      "message": "Występuje wartość współczynnika tłumienia, która nie mieści się w przedziale od 0,0 do 1,0."
+    },
+    "damp_use_all": {
+      "message": "Tłumienie witryny nie jest ustawione dla {site}, „all” jest jedynym dostępnym parametrem witryny dla zgłoszenia serwisowego."
+    },
+    "dampen_without_actuals": {
+      "message": "Aby korzystać z automatycznego tłumienia, należy wybrać szacowane wartości rzeczywiste."
+    },
+    "dampen_without_generation": {
+      "message": "Należy określić co najmniej jeden czujnik generacji fotowoltaicznej, aby korzystać z automatycznego tłumienia."
+    },
+    "export_no_entity": {
+      "message": "Jednostka eksportu witryny musi być określona, jeśli jest ustawiony limit eksportu witryny."
+    },
+    "hard_empty": {
+      "message": "Pusta wartość twardego limitu."
+    },
+    "hard_not_positive_number": {
+      "message": "Wartość twardego limitu nie jest liczbą dodatnią."
+    },
+    "hard_too_many": {
+      "message": "Określono więcej twardych limitów niż jest kluczy API."
+    },
+    "init_cannot_get_sites": {
+      "message": "Nie udało się pobrać danych witryn."
+    },
+    "init_cannot_get_sites_cache_invalid": {
+      "message": "Nie można pobrać danych witryn, a pamięć podręczna jest nieprawidłowa."
+    },
+    "init_corrupt": {
+      "message": "Zbuforowane dane w {file} są uszkodzone, sugeruje się ich usunięcie lub naprawienie."
+    },
+    "init_incompatible": {
+      "message": "Zbuforowane dane w `{file}` są niekompatybilne, sugeruje się ich usunięcie."
+    },
+    "init_key_invalid": {
+      "message": "Klucz API jest nieprawidłowy."
+    },
+    "init_no_sites": {
+      "message": "Nie znaleziono witryn dla klucza API."
+    },
+    "init_unknown": {
+      "message": "Wyjątek podczas ładowania danych witryn."
+    },
+    "init_usage_corrupt": {
+      "message": "Dane użytkowania są uszkodzone. Sprawdź lub usuń plik `config/solcast_solar/solcast-usage.json`."
+    },
+    "integration_not_loaded": {
+      "message": "Integracja nie została załadowana, nie wykonuje akcji."
+    },
+    "integration_prior_crash": {
+      "message": "Integracja nie mogła się wcześniej załadować, ponawianie próby po opóźnieniu."
+    },
+    "invalid_auto_update": {
+      "message": "Wartość automatycznej aktualizacji musi wynosić 0, 1 lub 2."
+    },
+    "invalid_custom_hours_format": {
+      "message": "Wartość godzin musi być liczbą całkowitą."
+    },
+    "invalid_custom_hours_range": {
+      "message": "Wartość godzin musi zawierać się w przedziale od 1 do 144."
+    },
+    "invalid_export_limit": {
+      "message": "Limit eksportu musi być liczbą z zakresu od 0,0 do 100,0."
+    },
+    "invalid_key_estimate": {
+      "message": "Klucz szacowania musi być 'estimate', 'estimate10' lub 'estimate90'."
+    },
+    "invalid_use_actuals": {
+      "message": "Wartość 'użyj wartości rzeczywistych' musi wynosić 0, 1 lub 2."
+    },
+    "limit_not_number": {
+      "message": "Limit API nie jest liczbą."
+    },
+    "limit_one_or_greater": {
+      "message": "Limit API musi wynosić jeden lub więcej."
+    },
+    "limit_too_many": {
+      "message": "Wprowadzono więcej limitów API niż kluczy."
+    },
+    "remove_cache_failed": {
+      "message": "Wyczyść wszystkie dane Solcast nie powiodło się."
+    },
+    "set_options_empty": {
+      "message": "Należy określić co najmniej jedną opcję."
+    }
+  },
+  "issues": {
+    "action_deprecated": {
+      "description": "Akcja `{deprecated_action}` jest przestarzała i zostanie usunięta w przyszłej wersji. Zamiast tego użyj akcji `{new_action}`.",
+      "title": "Przestarzała akcja"
+    },
+    "advanced_deprecated": {
+      "description": "Zaawansowana opcja konfiguracyjna `{option}` została zmieniona na `{new_option}`. Zaktualizuj swoje zaawansowane opcje konfiguracyjne, aby używać nowej nazwy opcji.{stops_working}",
+      "title": "Zaawansowana opcja przestarzała"
+    },
+    "advanced_problem": {
+      "description": "Plik zaawansowanej konfiguracji zawiera błędy.\n{problems}\n\nPopraw je, odwołując się do dokumentacji integracji pod linkiem 'Dowiedz się więcej'.",
+      "title": "Problem z zaawansowaną opcją"
+    },
+    "api_unavailable": {
+      "description": "Podczas aktualizacji Solcast API wielokrotnie zgłaszało status `429 / Try again later`. Oznacza to, że Solcast API jest zajęte i aktywnie blokuje żądania kont hobbystów.\n\n* Witryna solcast.com nie jest dotknięta problemem, ale API jest tymczasowo niedostępne dla ciebie.\n* Strona stanu API pod adresem status.solcast.com prawie na pewno nie wskaże żadnego problemu.\n* Nie próbuj rozwiązać tej sytuacji.\n* Nie zmieniaj klucza API.\n* Nie próbuj aktualizować integracji.\n* Unikaj ponownego uruchamiania integracji.\n* Integracja będzie nadal dostarczać ostatnią prognozę słoneczną pobraną z Solcast.\n* To nie jest problem z integracją i rozwiąże się samoczynnie. Nic nie zmieniaj.\n\n(Aby wyciszyć ten problem, utwórz zaawansowana opcja konfiguracji api_raise_issue i ustaw ją na false.)",
+      "title": "Solcast API tymczasowo niedostępne"
+    },
+    "actuals_api_limit": {
+      "description": "Automatyczna aktualizacja i szacowane wartości rzeczywiste są włączone, podczas gdy limit API jest skonfigurowany na maksymalną wartość dla hobbystów (`{configured_value}`). Szacowane wartości rzeczywiste są zbierane tuż po północy i wykorzystują jedno wywołanie API na każdą instalację dachową dla każdego skonfigurowanego klucza API. Zmniejsz limit API do `{suggested_value}`, aby zarezerwować wywołania dla szacowanych wartości rzeczywistych.",
+      "title": "Dostosuj limit API dla szacowanych wartości rzeczywistych"
+    },
+    "corrupt_file": {
+      "description": "Plik(i) danych w pamięci podręcznej `{files}` jest(są) uszkodzony(e). Integracja spróbuje się odzyskać, usuwając plik(i) i ponownie pobierając dane z Solcast. Spodziewaj się zwiększonego wykorzystania API i potencjalnych awarii API oraz utraty historii prognoz z powodu tej sytuacji. Możliwe jest odzyskanie plików z kopii zapasowej, ale nadal spodziewaj się awarii wywołań API.",
+      "title": "Uszkodzone dane w pamięci podręcznej"
+    },
+    "records_missing": {
+      "description": "Brakuje danych prognozy na przyszłość, co jest nieoczekiwane, ponieważ automatyczna aktualizacja jest włączona. Zbadaj przyczynę, sprawdzając dziennik Home Assistanta. Przeczytaj FAQ dotyczące rozwiązywania problemów przed zgłoszeniem problemu z integracją.",
+      "title": "Brak prognoz na przyszłość"
+    },
+    "records_missing_fixable": {
+      "fix_flow": {
+        "abort": {
+          "reconfigured": "Zastosowano nową konfigurację"
         },
         "step": {
-            "reauth_confirm": {
-                "data": {
-                    "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)"
-                },
-                "description": "Klucz API konta Solcast"
+          "offer_auto": {
+            "data": {
+              "auto_update": "Automatyczna aktualizacja"
             },
-            "reconfigure_confirm": {
-                "data": {
-                    "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
-                    "api_quota": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
-                    "auto_update": "Automatyczna aktualizacja"
-                },
-                "description": "Dane konta Solcast\n\n(Jeśli nie ma automatycznej aktualizacji, wymagana jest automatyzacja - zobacz dokumentację integracji)"
-            },
-            "user": {
-                "data": {
-                    "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
-                    "api_quota": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
-                    "auto_update": "Automatyczna aktualizacja"
-                },
-                "description": "Dane konta Solcast\n\n(Jeśli nie ma automatycznej aktualizacji, wymagana jest automatyzacja - zobacz dokumentację integracji)"
-            }
-        }
-    },
-    "entity": {
-        "select": {
-            "estimate_mode": {
-                "name": "Użyj pola prognozy"
-            }
-        },
-        "sensor": {
-            "api_counter": {
-                "name": "Liczba wykorzystanych zapytań API"
-            },
-            "api_limit": {
-                "name": "Limit zapytań API"
-            },
-            "dampen": {
-                "name": "Tłumienie"
-            },
-            "forecast_custom_hours": {
-                "name": "Prognoza na następne X godzin"
-            },
-            "forecast_next_hour": {
-                "name": "Prognoza na następną godzinę"
-            },
-            "forecast_remaining_today": {
-                "name": "Pozostała prognoza na dziś"
-            },
-            "forecast_this_hour": {
-                "name": "Prognoza na bieżącą godzinę"
-            },
-            "hard_limit": {
-                "name": "Ustawiony twardy limit"
-            },
-            "hard_limit_api": {
-                "name": "Ustawiony twardy limit {api_key}"
-            },
-            "last_updated": {
-                "name": "Ostatnia aktualizacja API"
-            },
-            "peak_w_time_today": {
-                "name": "Czas szczytowej mocy dzisiaj"
-            },
-            "peak_w_time_tomorrow": {
-                "name": "Czas szczytowej mocy jutro"
-            },
-            "peak_w_today": {
-                "name": "Szczytowa moc dzisiaj"
-            },
-            "peak_w_tomorrow": {
-                "name": "Szczytowa moc jutro"
-            },
-            "power_now": {
-                "name": "Aktualna moc"
-            },
-            "power_now_1hr": {
-                "name": "Moc w 1 godzinę"
-            },
-            "power_now_30m": {
-                "name": "Moc w 30 minut"
-            },
-            "total_kwh_forecast_d10": {
-                "name": "Prognoza na dzień 10"
-            },
-            "total_kwh_forecast_d11": {
-                "name": "Prognoza na dzień 11"
-            },
-            "total_kwh_forecast_d12": {
-                "name": "Prognoza na dzień 12"
-            },
-            "total_kwh_forecast_d13": {
-                "name": "Prognoza na dzień 13"
-            },
-            "total_kwh_forecast_d3": {
-                "name": "Prognoza na dzień 3"
-            },
-            "total_kwh_forecast_d4": {
-                "name": "Prognoza na dzień 4"
-            },
-            "total_kwh_forecast_d5": {
-                "name": "Prognoza na dzień 5"
-            },
-            "total_kwh_forecast_d6": {
-                "name": "Prognoza na dzień 6"
-            },
-            "total_kwh_forecast_d7": {
-                "name": "Prognoza na dzień 7"
-            },
-            "total_kwh_forecast_d8": {
-                "name": "Prognoza na dzień 8"
-            },
-            "total_kwh_forecast_d9": {
-                "name": "Prognoza na dzień 9"
-            },
-            "total_kwh_forecast_today": {
-                "name": "Prognoza na dzisiaj"
-            },
-            "total_kwh_forecast_tomorrow": {
-                "name": "Prognoza na jutro"
-            }
-        }
-    },
-    "exceptions": {
-        "actuals_not_enabled": {
-            "message": "Pozyskiwanie szacunkowych wartości rzeczywistych nie jest włączone."
-        },
-        "auto_use_force": {
-            "message": "Automatyczna aktualizacja jest włączona. Zdarzenie serwisowe jest ignorowane przy aktualizacji prognozy. Zamiast tego użyj opcji Wymuś aktualizację."
-        },
-        "auto_use_normal": {
-            "message": "Automatyczna aktualizacja nie jest włączona. Zdarzenie serwisowe jest ignorowane w celu wymuszenia aktualizacji prognozy. Zamiast tego użyj opcji Aktualizuj."
-        },
-        "build_failed_actuals": {
-            "message": "Nie udało się zbudować szacowanych danych rzeczywistych (uszkodzony config/solcast-actuals.json?)."
-        },
-        "build_failed_forecasts": {
-            "message": "Nie udało się zbudować danych prognozy (uszkodzony config/solcast.json?)."
-        },
-        "damp_auto_enabled": {
-            "message": "Włączono automatyczne tłumienie, nie ma konieczności ręcznego ustawiania współczynników tłumienia."
-        },
-        "damp_count_not_correct": {
-            "message": "Między 0,0 a 1,0 nie ma 24 ani 48 liczb oddzielonych przecinkami."
-        },
-        "damp_error_parsing": {
-            "message": "Błąd podczas analizy współczynnika tłumienia liczb oddzielonych przecinkami."
-        },
-        "damp_no_all_24": {
-            "message": "Określenie witryny „wszystko” jest niedozwolone w przypadku 24 czynników. Usuń witrynę z żądania."
-        },
-        "damp_no_factors": {
-            "message": "Brakuje współczynników tłumienia. Musi to być lista liczb oddzielonych przecinkami z zakresu od 0,0 do 1,0."
-        },
-        "damp_not_for_site": {
-            "message": "Tłumienie witryny nie jest ustawione dla {site}."
-        },
-        "damp_not_site": {
-            "message": "Nie skonfigurowana witryna."
-        },
-        "damp_outside_range": {
-            "message": "Występuje wartość współczynnika tłumienia, która nie mieści się w przedziale od 0,0 do 1,0."
-        },
-        "damp_use_all": {
-            "message": "Tłumienie witryny nie jest ustawione dla {site}, „all” jest jedynym dostępnym parametrem witryny dla zgłoszenia serwisowego."
-        },
-        "hard_empty": {
-            "message": "Pusta wartość twardego limitu."
-        },
-        "hard_not_positive_number": {
-            "message": "Wartość twardego limitu nie jest liczbą dodatnią."
-        },
-        "hard_too_many": {
-            "message": "Określono więcej twardych limitów niż jest kluczy API."
-        },
-        "init_cannot_get_sites": {
-            "message": "Nie udało się pobrać danych witryn."
-        },
-        "init_cannot_get_sites_cache_invalid": {
-            "message": "Nie można pobrać danych witryn, a pamięć podręczna jest nieprawidłowa."
-        },
-        "init_corrupt": {
-            "message": "Zbuforowane dane w {file} są uszkodzone, sugeruje się ich usunięcie lub naprawienie."
-        },
-        "init_incompatible": {
-            "message": "Zbuforowane dane w `{file}` są niekompatybilne, sugeruje się ich usunięcie."
-        },
-        "init_key_invalid": {
-            "message": "Klucz API jest nieprawidłowy."
-        },
-        "init_no_sites": {
-            "message": "Nie znaleziono witryn dla klucza API."
-        },
-        "init_unknown": {
-            "message": "Wyjątek podczas ładowania danych witryn."
-        },
-        "init_usage_corrupt": {
-            "message": "Dane użytkowania są uszkodzone. Sprawdź lub usuń plik `config/solcast_solar/solcast-usage.json`."
-        },
-        "integration_not_loaded": {
-            "message": "Integracja nie została załadowana, nie wykonuje akcji."
-        },
-        "integration_prior_crash": {
-            "message": "Integracja nie mogła się wcześniej załadować, ponawianie próby po opóźnieniu."
-        },
-        "remove_cache_failed": {
-            "message": "Wyczyść wszystkie dane Solcast nie powiodło się."
-        }
-    },
-    "issues": {
-        "advanced_deprecated": {
-            "description": "Zaawansowana opcja konfiguracyjna `{option}` została zmieniona na `{new_option}`. Zaktualizuj swoje zaawansowane opcje konfiguracyjne, aby używać nowej nazwy opcji.{stops_working}",
-            "title": "Zaawansowana opcja przestarzała"
-        },
-        "advanced_problem": {
-            "description": "Plik zaawansowanej konfiguracji zawiera błędy.\n{problems}\n\nPopraw je, odwołując się do dokumentacji integracji pod linkiem 'Dowiedz się więcej'.",
-            "title": "Problem z zaawansowaną opcją"
-        },
-        "api_unavailable": {
-            "description": "Podczas aktualizacji Solcast API wielokrotnie zgłaszało status `429 / Spróbuj ponownie później`.\n\n* Nie próbuj rozwiązać tej sytuacji.\n* Nie zmieniaj klucza API.\n* Unikaj ponownego uruchamiania integracji\n* To nie jest problem z integracją i rozwiąże się samoczynnie. Nic nie zmieniaj.\n\n(Aby wyciszyć ten problem, utwórz zaawansowana opcja konfiguracji api_raise_issue i ustaw ją na false.)",
-            "title": "Solcast API tymczasowo niedostępne"
-        },
-        "corrupt_file": {
-            "description": "Plik(i) danych w pamięci podręcznej `{files}` jest(są) uszkodzony(e). Integracja spróbuje się odzyskać, usuwając plik(i) i ponownie pobierając dane z Solcast. Spodziewaj się zwiększonego wykorzystania API i potencjalnych awarii API oraz utraty historii prognoz z powodu tej sytuacji. Możliwe jest odzyskanie plików z kopii zapasowej, ale nadal spodziewaj się awarii wywołań API.",
-            "title": "Uszkodzone dane w pamięci podręcznej"
-        },
-        "records_missing": {
-            "description": "Brakuje danych prognozy na przyszłość, co jest nieoczekiwane, ponieważ automatyczna aktualizacja jest włączona. Zbadaj przyczynę, sprawdzając dziennik Home Assistanta. Przeczytaj FAQ dotyczące rozwiązywania problemów przed zgłoszeniem problemu z integracją.",
+            "description": "Automatyzacja aktualizacji prognozy nie została uruchomiona. Czy chcesz włączyć automatyczną aktualizację? (Dowiedz się więcej: {learn_more})",
             "title": "Brak prognoz na przyszłość"
-        },
-        "records_missing_fixable": {
-            "fix_flow": {
-                "abort": {
-                    "reconfigured": "Zastosowano nową konfigurację"
-                },
-                "step": {
-                    "offer_auto": {
-                        "data": {
-                            "auto_update": "Automatyczna aktualizacja"
-                        },
-                        "description": "Automatyzacja aktualizacji prognozy nie została uruchomiona. Czy chcesz włączyć automatyczną aktualizację? (Dowiedz się więcej: {learn_more})",
-                        "title": "Brak prognoz na przyszłość"
-                    }
-                }
-            },
-            "title": "Brak prognoz na przyszłość"
-        },
-        "records_missing_initial": {
-            "description": "Brakuje danych prognozy i/lub szacowanych wartości rzeczywistych, prawdopodobnie dlatego, że nie nastąpiła początkowa aktualizacja prognozy. Prawdopodobnie jest to spowodowane osiągnięciem limitu wywołań API. Będziesz mieć problemy z jednostkami czujników, a pulpit nawigacyjny Energii prawdopodobnie będzie miał brakujące dane. Sytuacja ta rozwiąże się sama.",
-            "title": "Brak prognoz"
-        },
-        "records_missing_unfixable": {
-            "description": "Brak danych prognozy na przyszłość, co jest nieoczekiwane. Sprawdź dzienniki.",
-            "title": "Brak prognoz na przyszłość"
-        },
-        "unusual_azimuth_northern": {
-            "description": "Azymut dla miejsca {site} jest nietypowy dla szerokości geograficznej tego dachu na półkuli północnej. Czy powinno to być {proposal} zamiast {extant}? (Jeśli strona jest skierowana na północ, możesz zignorować ten problem.)",
-            "title": "Nietypowy azymut"
-        },
-        "unusual_azimuth_southern": {
-            "description": "Azymut dla miejsca {site} jest nietypowy dla szerokości geograficznej tego dachu na półkuli południowej. Czy powinno to być {proposal} zamiast {extant}? (Jeśli strona jest skierowana na południe, możesz zignorować ten problem.)",
-            "title": "Nietypowy azymut"
+          }
         }
+      },
+      "title": "Brak prognoz na przyszłość"
     },
-    "options": {
-        "abort": {
-            "internal_error": "Wystąpił błąd wewnętrzny",
-            "reconfigured": "Zastosowano nową konfigurację"
+    "records_missing_initial": {
+      "description": "Brakuje danych prognozy i/lub szacowanych wartości rzeczywistych, prawdopodobnie dlatego, że nie nastąpiła początkowa aktualizacja prognozy. Prawdopodobnie jest to spowodowane osiągnięciem limitu wywołań API. Będziesz mieć problemy z jednostkami czujników, a pulpit nawigacyjny Energii prawdopodobnie będzie miał brakujące dane. Sytuacja ta rozwiąże się sama.",
+      "title": "Brak prognoz"
+    },
+    "records_missing_unfixable": {
+      "description": "Brak danych prognozy na przyszłość, co jest nieoczekiwane. Sprawdź dzienniki.",
+      "title": "Brak prognoz na przyszłość"
+    },
+    "unusual_azimuth_northern": {
+      "description": "Azymut dla miejsca {site} jest nietypowy dla szerokości geograficznej tego dachu na półkuli północnej. Czy powinno to być {proposal} zamiast {extant}? (Jeśli strona jest skierowana na północ, możesz zignorować ten problem.)",
+      "title": "Nietypowy azymut"
+    },
+    "unusual_azimuth_southern": {
+      "description": "Azymut dla miejsca {site} jest nietypowy dla szerokości geograficznej tego dachu na półkuli południowej. Czy powinno to być {proposal} zamiast {extant}? (Jeśli strona jest skierowana na południe, możesz zignorować ten problem.)",
+      "title": "Nietypowy azymut"
+    }
+  },
+  "options": {
+    "abort": {
+      "internal_error": "Wystąpił błąd wewnętrzny",
+      "reconfigured": "Zastosowano nową konfigurację"
+    },
+    "error": {
+      "actuals_not_enabled": "Pozyskiwanie szacunkowych wartości rzeczywistych nie jest włączone",
+      "actuals_without_get": "Nie można używać szacunkowych wartości rzeczywistych bez ich uzyskania",
+      "api_duplicate": "Określono duplikat klucza API",
+      "api_key_empty": "Klucz API nie może być pusty",
+      "api_looks_like_site": "Klucz API wygląda jak identyfikator witryny",
+      "custom_invalid": "Niestandardowy czujnik nie znajduje się pomiędzy 1 a 144",
+      "dampen_without_actuals": "Aby użyć automatycznego tłumienia, należy wybrać szacowane wartości rzeczywiste",
+      "dampen_without_generation": "Należy określić co najmniej jeden czujnik generacji fotowoltaicznej, który będzie korzystał z automatycznego tłumienia (energii lub mocy)",
+      "export_multiple_entities": "Jednostka eksportu witryny musi być pojedynczą jednostką, a nie wieloma jednostkami",
+      "export_no_entity": "Jednostka eksportu witryny musi być określona, jeśli jest ustawiony limit eksportu witryny",
+      "generation_mixed_types": "Wszystkie jednostki generujące energię fotowoltaiczną muszą być tego samego typu (cała energia lub cała moc, a nie mieszanka)",
+      "hard_not_positive_number": "Twardy limit nie jest liczbą dodatnią",
+      "hard_too_many": "Wprowadzono więcej sztywnych limitów niż kluczy",
+      "limit_not_number": "Limit API nie jest liczbą",
+      "limit_one_or_greater": "Limit API musi wynosić jeden lub więcej",
+      "limit_too_many": "Wprowadzono więcej limitów API niż kluczy"
+    },
+    "step": {
+      "dampen": {
+        "data": {
+          "damp00": "00:00",
+          "damp01": "01:00",
+          "damp02": "02:00",
+          "damp03": "03:00",
+          "damp04": "04:00",
+          "damp05": "05:00",
+          "damp06": "06:00",
+          "damp07": "07:00",
+          "damp08": "08:00",
+          "damp09": "09:00",
+          "damp10": "10:00",
+          "damp11": "11:00",
+          "damp12": "12:00",
+          "damp13": "13:00",
+          "damp14": "14:00",
+          "damp15": "15:00",
+          "damp16": "16:00",
+          "damp17": "17:00",
+          "damp18": "18:00",
+          "damp19": "19:00",
+          "damp20": "20:00",
+          "damp21": "21:00",
+          "damp22": "22:00",
+          "damp23": "23:00"
         },
-        "error": {
-            "actuals_not_enabled": "Pozyskiwanie szacunkowych wartości rzeczywistych nie jest włączone",
-            "actuals_without_get": "Nie można używać szacunkowych wartości rzeczywistych bez ich uzyskania",
-            "api_duplicate": "Określono duplikat klucza API",
-            "api_looks_like_site": "Klucz API wygląda jak identyfikator witryny",
-            "custom_invalid": "Niestandardowy czujnik nie znajduje się pomiędzy 1 a 144",
-            "dampen_without_actuals": "Aby użyć automatycznego tłumienia, należy wybrać szacowane wartości rzeczywiste",
-            "dampen_without_generation": "Aby korzystać z automatycznego tłumienia, należy określić co najmniej jeden czujnik Wh/kWh/MWh generacji fotowoltaicznej",
-            "export_multiple_entities": "Jednostka eksportu witryny musi być pojedynczą jednostką, a nie wieloma jednostkami",
-            "export_no_entity": "Jednostka eksportu witryny musi być określona, jeśli jest ustawiony limit eksportu witryny",
-            "hard_not_number": "Twardy limit nie jest liczbą dodatnią",
-            "hard_too_many": "Wprowadzono więcej sztywnych limitów niż kluczy",
-            "limit_not_number": "Limit API nie jest liczbą",
-            "limit_one_or_greater": "Limit API musi wynosić jeden lub więcej",
-            "limit_too_many": "Wprowadzono więcej limitów API niż kluczy"
+        "description": "Zmodyfikuj godzinowy współczynnik tłumienia"
+      },
+      "init": {
+        "data": {
+          "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
+          "api_limit": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
+          "attr_brk_detailed": "Włącz podział witryny dla atrybutów szczegółów półgodzinnych/godzinnych (nie zostaną one zapisane w atrybutach stanu bazy danych)",
+          "attr_brk_estimate": "Włącz oszacowanie 50 atrybutów czujnika",
+          "attr_brk_estimate10": "Włącz oszacowanie 10 atrybutów czujnika",
+          "attr_brk_estimate90": "Włącz oszacowanie 90 atrybutów czujnika",
+          "attr_brk_halfhourly": "Włącz atrybuty szczegółów prognozy półgodzinnej",
+          "attr_brk_hourly": "Włącz atrybuty szczegółów prognozy godzinowej",
+          "attr_brk_site": "Włącz atrybuty czujnika podziału witryny",
+          "auto_dampen": "Automatyczne tłumienie (wymaga szacowanych wartości rzeczywistych i jednostki generacji fotowoltaicznej, patrz dokumentacja integracji)",
+          "auto_update": "Automatyczna aktualizacja (jeśli nie ma automatycznej aktualizacji, zamiast tego należy zastosować automatyzację)",
+          "config_damp": "Zmodyfikuj godzinowe współczynniki tłumienia (po kliknięciu przycisku „ZATWIERDŹ”)",
+          "custom_hours": "Niestandardowy czujnik następnej godziny X (min.=1, maks.=144)",
+          "exclude_sites": "Miejsca, które należy wykluczyć z pulpitu nawigacyjnego Energy i sum czujników",
+          "generation_entities": "Jednostka/jednostki generacji fotowoltaicznej do automatycznego tłumienia (energia: Wh/kWh/MWh łącznie wzrasta lub moc: W/kW/MW chwilowo)",
+          "get_actuals": "Szacowane wartości rzeczywiste aktualizowane o północy (patrz dokumentacja integracji, używa jednego wywołania API na stronę dziennie, więc zredukowany limit API jest potrzebny z tą opcją włączoną)",
+          "hard_limit_api": "Sztywny limit falownika w kW (patrz dokumentacja integracji, wiele wartości należy oddzielić przecinkiem dla każdego klucza)",
+          "key_estimate": "Preferowane prawdopodobieństwo zastosowania prognozy w przypadku czujników",
+          "site_damp": "Ustawiono tłumienie szczegółowe: Wyczyść, aby powrócić do ogólnego tłumienia godzinowego",
+          "site_export_entity": "Opcjonalna jednostka eksportu witryny do automatycznego tłumienia (Wh/kWh/MWh, całkowity wzrost)",
+          "site_export_limit": "Limit eksportu witryny, jeśli eksport witryny jest określony (kW)",
+          "use_actuals": "Historia prognoz do wyświetlenia na pulpicie nawigacyjnym Energy"
         },
-        "step": {
-            "dampen": {
-                "data": {
-                    "damp00": "00:00",
-                    "damp01": "01:00",
-                    "damp02": "02:00",
-                    "damp03": "03:00",
-                    "damp04": "04:00",
-                    "damp05": "05:00",
-                    "damp06": "06:00",
-                    "damp07": "07:00",
-                    "damp08": "08:00",
-                    "damp09": "09:00",
-                    "damp10": "10:00",
-                    "damp11": "11:00",
-                    "damp12": "12:00",
-                    "damp13": "13:00",
-                    "damp14": "14:00",
-                    "damp15": "15:00",
-                    "damp16": "16:00",
-                    "damp17": "17:00",
-                    "damp18": "18:00",
-                    "damp19": "19:00",
-                    "damp20": "20:00",
-                    "damp21": "21:00",
-                    "damp22": "22:00",
-                    "damp23": "23:00"
-                },
-                "description": "Zmodyfikuj godzinowy współczynnik tłumienia"
-            },
-            "init": {
-                "data": {
-                    "api_key": "Klucz API (wielokrotne wartości oddzielane przecinkiem)",
-                    "api_quota": "Limit API (opcjonalnie wielokrotne wartości oddzielane przecinkiem)",
-                    "attr_brk_detailed": "Włącz podział witryny dla atrybutów szczegółów półgodzinnych/godzinnych (nie zostaną one zapisane w atrybutach stanu bazy danych)",
-                    "attr_brk_estimate": "Włącz oszacowanie 50 atrybutów czujnika",
-                    "attr_brk_estimate10": "Włącz oszacowanie 10 atrybutów czujnika",
-                    "attr_brk_estimate90": "Włącz oszacowanie 90 atrybutów czujnika",
-                    "attr_brk_halfhourly": "Włącz atrybuty szczegółów prognozy półgodzinnej",
-                    "attr_brk_hourly": "Włącz atrybuty szczegółów prognozy godzinowej",
-                    "attr_brk_site": "Włącz atrybuty czujnika podziału witryny",
-                    "auto_dampen": "Automatyczne tłumienie (wymaga szacowanych wartości rzeczywistych i jednostki generacji fotowoltaicznej, patrz dokumentacja integracji)",
-                    "auto_update": "Automatyczna aktualizacja (jeśli nie ma automatycznej aktualizacji, zamiast tego należy zastosować automatyzację)",
-                    "config_damp": "Zmodyfikuj godzinowe współczynniki tłumienia (po kliknięciu przycisku „ZATWIERDŹ”)",
-                    "customhoursensor": "Niestandardowy czujnik następnej godziny X (min.=1, maks.=144)",
-                    "exclude_sites": "Miejsca, które należy wykluczyć z pulpitu nawigacyjnego Energy i sum czujników",
-                    "generation_entities": "Jednostka/jednostki generacji fotowoltaicznej do automatycznego tłumienia (Wh/kWh/MWh, łącznie wzrasta)",
-                    "get_actuals": "Szacowane wartości rzeczywiste aktualizowane o północy (patrz dokumentacja integracji, używa jednego wywołania API na stronę dziennie, więc zredukowany limit API jest potrzebny z tą opcją włączoną)",
-                    "hard_limit": "Twardy limit falownika w kilowaty (patrz dokumentacja integracji)",
-                    "key_estimate": "Preferowane prawdopodobieństwo zastosowania prognozy w przypadku czujników",
-                    "site_damp": "Ustawiono tłumienie szczegółowe: Wyczyść, aby powrócić do ogólnego tłumienia godzinowego",
-                    "site_export_entity": "Opcjonalna jednostka eksportu witryny do automatycznego tłumienia (Wh/kWh/MWh, całkowity wzrost)",
-                    "site_export_limit": "Limit eksportu witryny, jeśli eksport witryny jest określony (kW)",
-                    "use_actuals": "Historia prognoz do wyświetlenia na pulpicie nawigacyjnym Energy"
-                },
-                "description": "Opcje konfiguracji Solcast"
-            }
+        "description": "Opcje konfiguracji Solcast"
+      }
+    }
+  },
+  "selector": {
+    "auto_update": {
+      "options": {
+        "0": "Brak automatycznej aktualizacji prognoz",
+        "1": "Automatyczna aktualizacja prognoz od wschodu do zachodu słońca",
+        "2": "Automatyczna aktualizacja prognoz przez 24 godziny"
+      }
+    },
+    "energy_history": {
+      "options": {
+        "0": "Prognozy",
+        "1": "Oszacowane rzeczywiste wartości",
+        "2": "Wygładzone oszacowane rzeczywiste wartości"
+      }
+    },
+    "key_estimate": {
+      "options": {
+        "estimate": "Mediana oczekiwanej generacji (estimate)",
+        "estimate10": "10. percentyl oczekiwanej generacji (dolny koniec możliwych wyników, estimate10)",
+        "estimate90": "90. percentyl oczekiwanej generacji (górny koniec możliwych wyników, estimate90)"
+      }
+    }
+  },
+  "services": {
+    "clear_all_solcast_data": {
+      "description": "Usuwa plik solcast.json, aby usunąć wszystkie aktualne dane witryny Solcast.",
+      "name": "Wyczyść wszystkie zapisane dane Solcast"
+    },
+    "diagnostic": {
+      "description": "Uruchamia diagnostyczny autotest w celu sprawdzenia łączności z API, integralności plików pamięci podręcznej, dostępności encji generacji oraz ogólnego stanu konfiguracji.",
+      "name": "Autotest diagnostyczny"
+    },
+    "force_update_estimates": {
+      "description": "Force pobiera najnowsze szacunkowe dane rzeczywiste z Solcast.",
+      "name": "Wymuś aktualizację szacunkowych wartości rzeczywistych"
+    },
+    "force_update_forecasts": {
+      "description": "Force pobiera najnowsze dane prognoz Solcast.",
+      "name": "Wymuś aktualizuj"
+    },
+    "get_dampening": {
+      "description": "Uzyskaj prognozowane współczynniki tłumienia.",
+      "fields": {
+        "site": {
+          "description": "Opcjonalne miejsce do tłumienia. (Uwaga: nie będzie działać, jeśli nie jest włączone tłumienie szczegółowe.)",
+          "name": "Identyfikator witryny"
         }
+      },
+      "name": "Uzyskaj prognozy tłumienia"
     },
-    "selector": {
+    "get_options": {
+      "description": "Pobierz aktualne opcje konfiguracji integracji.",
+      "name": "Pobierz opcje"
+    },
+    "query_estimate_data": {
+      "description": "Zwraca zestaw danych lub wartość dla podanego zapytania.",
+      "fields": {
+        "end_date_time": {
+          "description": "Interroga zdarzenia danych rzeczywistych szacowanych do czasu zakończenia.",
+          "name": "Czas zakończenia"
+        },
+        "start_date_time": {
+          "description": "Interroga zdarzenia danych rzeczywistych szacowanych od czasu rozpoczęcia.",
+          "name": "Czas rozpoczęcia"
+        }
+      },
+      "name": "Zapytanie o szacowane rzeczywiste dane"
+    },
+    "query_forecast_data": {
+      "description": "Zwraca zestaw danych lub wartość dla podanego zapytania.",
+      "fields": {
+        "end_date_time": {
+          "description": "Pobierz dane prognoz do określonej daty i godziny.",
+          "name": "Data i godzina zakończenia"
+        },
+        "site": {
+          "description": "Opcjonalna lokalizacja do pobrania prognozy dla jednej lokalizacji",
+          "name": "Identyfikator witryny"
+        },
+        "start_date_time": {
+          "description": "Pobierz dane prognoz od określonej daty i godziny.",
+          "name": "Data i godzina rozpoczęcia"
+        },
+        "undampened": {
+          "description": "Opcjonalna wartość logiczna umożliwiająca pobranie niezakłóconej prognozy",
+          "name": "Nietłumiony"
+        }
+      },
+      "name": "Pobierz dane prognoz"
+    },
+    "remove_hard_limit": {
+      "description": "Usuń ustawiony limit.",
+      "name": "Usuń twardy limit prognoz inwertera"
+    },
+    "set_custom_hours": {
+      "description": "Ustaw niestandardową liczbę godzin czujnika X godzin.",
+      "fields": {
+        "hours": {
+          "description": "Liczba godzin do ustawienia (1-144).",
+          "name": "Godziny"
+        }
+      },
+      "name": "Ustaw niestandardowy czujnik godzin"
+    },
+    "set_dampening": {
+      "description": "Ustaw prognozowane współczynniki tłumienia.",
+      "fields": {
+        "damp_factor": {
+          "description": "Ciąg wartości współczynnika tłumienia oddzielony przecinkami (24 lub 48 wartości).",
+          "name": "Ciąg tłumienia"
+        },
+        "site": {
+          "description": "Opcjonalne miejsce do ustawienia tłumienia dla każdego miejsca. (Uwaga: pominięcie miejsca czyści tłumienie w poszczególnych miejscach, chyba że jest to 48 wartości.)",
+          "name": "Identyfikator witryny"
+        }
+      },
+      "name": "Ustaw tłumienie prognoz"
+    },
+    "set_hard_limit": {
+      "description": "Zabrania wartości prognoz przekraczających maksymalną moc inwertera.",
+      "fields": {
+        "hard_limit": {
+          "description": "Ustaw maksymalną wartość w watach, jaką może wyprodukować inwerter. Użyj 0, aby wyłączyć limit.",
+          "name": "Wartość limitu w watach"
+        }
+      },
+      "name": "Ustaw twardy limit prognoz inwertera"
+    },
+    "set_options": {
+      "description": "Ustawia jedną lub więcej opcji konfiguracji integracji.",
+      "fields": {
+        "api_key": {
+          "description": "Klucz(e) API, oddzielone przecinkami dla wielu wartości.",
+          "name": "Klucz API"
+        },
+        "api_limit": {
+          "description": "Limit(y) API, oddzielone przecinkami dla wielu kluczy.",
+          "name": "Limit API"
+        },
+        "attr_brk_detailed": {
+          "description": "Włącz podział witryny dla atrybutów szczegółów półgodzinnych i godzinowych.",
+          "name": "Szczegółowy podział witryny"
+        },
+        "attr_brk_estimate": {
+          "description": "Włącz atrybuty czujnika szacowania 50.",
+          "name": "Podział szacowania"
+        },
+        "attr_brk_estimate10": {
+          "description": "Włącz atrybuty czujnika szacowania 10.",
+          "name": "Podział szacowania 10"
+        },
+        "attr_brk_estimate90": {
+          "description": "Włącz atrybuty czujnika szacowania 90.",
+          "name": "Podział szacowania 90"
+        },
+        "attr_brk_halfhourly": {
+          "description": "Włącz atrybuty szczegółów prognozy półgodzinnej.",
+          "name": "Podział półgodzinny"
+        },
+        "attr_brk_hourly": {
+          "description": "Włącz atrybuty szczegółów prognozy godzinowej.",
+          "name": "Podział godzinowy"
+        },
+        "attr_brk_site": {
+          "description": "Włącz atrybuty czujnika podziału witryny.",
+          "name": "Podział witryny"
+        },
+        "auto_dampen": {
+          "description": "Włącz automatyczne tłumienie.",
+          "name": "Automatyczne tłumienie"
+        },
         "auto_update": {
-            "options": {
-                "0": "Brak automatycznej aktualizacji prognoz",
-                "1": "Automatyczna aktualizacja prognoz od wschodu do zachodu słońca",
-                "2": "Automatyczna aktualizacja prognoz przez 24 godziny"
-            }
+          "description": "Tryb automatycznej aktualizacji: 0=brak, 1=od wschodu do zachodu słońca, 2=cały dzień.",
+          "name": "Automatyczna aktualizacja"
         },
-        "energy_history": {
-            "options": {
-                "0": "Prognozy",
-                "1": "Oszacowane rzeczywiste wartości",
-                "2": "Wygładzone oszacowane rzeczywiste wartości"
-            }
+        "custom_hours": {
+          "description": "Liczba godzin dla niestandardowego czujnika godzin (1-144).",
+          "name": "Niestandardowe godziny"
+        },
+        "exclude_sites": {
+          "description": "Witryna/witryny do wykluczenia, identyfikatory witryn oddzielone przecinkami.",
+          "name": "Wyklucz witryny"
+        },
+        "generation_entities": {
+          "description": "Jednostka/jednostki generacji fotowoltaicznej, oddzielone przecinkami.",
+          "name": "Jednostki generacji"
+        },
+        "get_actuals": {
+          "description": "Włącz pozyskiwanie szacowanych wartości rzeczywistych.",
+          "name": "Pobierz wartości rzeczywiste"
+        },
+        "hard_limit": {
+          "description": "Twardy limit falownika w Watach, lub 0 lub 100 aby wyłączyć. Oddzielone przecinkami dla wielu kluczy.",
+          "name": "Twardy limit"
         },
         "key_estimate": {
-            "options": {
-                "estimate": "Mediana oczekiwanej generacji (estimate)",
-                "estimate10": "10. percentyl oczekiwanej generacji (dolny koniec możliwych wyników, estimate10)",
-                "estimate90": "90. percentyl oczekiwanej generacji (górny koniec możliwych wyników, estimate90)"
-            }
+          "description": "Preferowane szacowanie prognozy: estimate, estimate10 lub estimate90.",
+          "name": "Preferowane szacowanie"
+        },
+        "site_export_entity": {
+          "description": "Opcjonalna jednostka eksportu witryny do automatycznego tłumienia.",
+          "name": "Jednostka eksportu witryny"
+        },
+        "site_export_limit": {
+          "description": "Limit eksportu witryny w kW (0,0-100,0).",
+          "name": "Limit eksportu witryny"
+        },
+        "use_actuals": {
+          "description": "Historia prognoz dla panelu energetycznego: 0=prognozy, 1=wartości rzeczywiste, 2=wytłumione wartości rzeczywiste.",
+          "name": "Użyj wartości rzeczywistych"
         }
+      },
+      "name": "Ustaw opcje"
     },
-    "services": {
-        "clear_all_solcast_data": {
-            "description": "Usuwa plik solcast.json, aby usunąć wszystkie aktualne dane witryny Solcast.",
-            "name": "Wyczyść wszystkie zapisane dane Solcast"
-        },
-        "force_update_estimates": {
-            "description": "Force pobiera najnowsze szacunkowe dane rzeczywiste z Solcast.",
-            "name": "Wymuś aktualizację szacunkowych wartości rzeczywistych"
-        },
-        "force_update_forecasts": {
-            "description": "Force pobiera najnowsze dane prognoz Solcast.",
-            "name": "Wymuś aktualizuj"
-        },
-        "get_dampening": {
-            "description": "Uzyskaj prognozowane współczynniki tłumienia.",
-            "fields": {
-                "site": {
-                    "description": "Opcjonalne miejsce do tłumienia. (Uwaga: nie będzie działać, jeśli nie jest włączone tłumienie szczegółowe.)",
-                    "name": "Identyfikator witryny"
-                }
-            },
-            "name": "Uzyskaj prognozy tłumienia"
-        },
-        "query_estimate_data": {
-            "description": "Zwraca zestaw danych lub wartość dla podanego zapytania.",
-            "fields": {
-                "end_date_time": {
-                    "description": "Interroga zdarzenia danych rzeczywistych szacowanych do czasu zakończenia.",
-                    "name": "Czas zakończenia"
-                },
-                "start_date_time": {
-                    "description": "Interroga zdarzenia danych rzeczywistych szacowanych od czasu rozpoczęcia.",
-                    "name": "Czas rozpoczęcia"
-                }
-            },
-            "name": "Zapytanie o szacowane rzeczywiste dane"
-        },
-        "query_forecast_data": {
-            "description": "Zwraca zestaw danych lub wartość dla podanego zapytania.",
-            "fields": {
-                "end_date_time": {
-                    "description": "Pobierz dane prognoz do określonej daty i godziny.",
-                    "name": "Data i godzina zakończenia"
-                },
-                "site": {
-                    "description": "Opcjonalna lokalizacja do pobrania prognozy dla jednej lokalizacji",
-                    "name": "Identyfikator witryny"
-                },
-                "start_date_time": {
-                    "description": "Pobierz dane prognoz od określonej daty i godziny.",
-                    "name": "Data i godzina rozpoczęcia"
-                },
-                "undampened": {
-                    "description": "Opcjonalna wartość logiczna umożliwiająca pobranie niezakłóconej prognozy",
-                    "name": "Nietłumiony"
-                }
-            },
-            "name": "Pobierz dane prognoz"
-        },
-        "remove_hard_limit": {
-            "description": "Usuń ustawiony limit.",
-            "name": "Usuń twardy limit prognoz inwertera"
-        },
-        "set_dampening": {
-            "description": "Ustaw prognozowane współczynniki tłumienia.",
-            "fields": {
-                "damp_factor": {
-                    "description": "Ciąg wartości współczynnika tłumienia oddzielony przecinkami (24 lub 48 wartości).",
-                    "name": "Ciąg tłumienia"
-                },
-                "site": {
-                    "description": "Opcjonalne miejsce do ustawienia tłumienia dla każdego miejsca. (Uwaga: pominięcie miejsca czyści tłumienie w poszczególnych miejscach, chyba że jest to 48 wartości.)",
-                    "name": "Identyfikator witryny"
-                }
-            },
-            "name": "Ustaw tłumienie prognoz"
-        },
-        "set_hard_limit": {
-            "description": "Zabrania wartości prognoz przekraczających maksymalną moc inwertera.",
-            "fields": {
-                "hard_limit": {
-                    "description": "Ustaw maksymalną wartość w watach, jaką może wyprodukować inwerter.",
-                    "name": "Wartość limitu w watach"
-                }
-            },
-            "name": "Ustaw twardy limit prognoz inwertera"
-        },
-        "update_forecasts": {
-            "description": "Pobierz najnowsze dane prognoz Solcast.",
-            "name": "Aktualizuj"
-        }
-    },
-    "system_health": {
-        "info": {
-            "can_reach_server": "Połączenie z serwerem Solcast"
-        }
+    "update_forecasts": {
+      "description": "Pobierz najnowsze dane prognoz Solcast.",
+      "name": "Aktualizuj"
     }
+  },
+  "system_health": {
+    "info": {
+      "can_reach_server": "Połączenie z serwerem Solcast"
+    }
+  }
 }

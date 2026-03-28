@@ -674,10 +674,15 @@
       meter_entity: sensor.electricity_sell_offset
       cycle_reset_entity_id: sensor.utilities_cycle_end
     alias: Electric Offset
-  - alias: Tesla
+  - alias: Tesla Electric
     action: python_script.utility_meter_reset
     data:
       meter_entity: sensor.monthly_tesla_electric_usage
+      cycle_reset_entity_id: sensor.utilities_cycle_end
+  - alias: Tesla Miles
+    action: python_script.utility_meter_reset
+    data:
+      meter_entity: sensor.monthly_tesla_miles
       cycle_reset_entity_id: sensor.utilities_cycle_end
 - id: fingerprint_door_unlock
   alias: Fingerprint Door Unlock
@@ -1509,6 +1514,11 @@
   - condition: template
     value_template: '{{ trigger.to_state.state not in ["unknown", "unavailable"] and
       trigger.from_state.state not in ["unknown", "unavailable"] }}'
+    alias: Not inknown
+  - condition: template
+    value_template: '{{ state_attr(''sensor.latest_utility_bill_id'',''date'') ==
+      now().strftime(''%Y-%m-%d'') }}'
+    alias: Bill date is today
   actions:
   - action: google_sheets.append_sheet
     metadata: {}
@@ -1569,4 +1579,34 @@
     metadata: {}
     data:
       message: Tesla Status Change
+  mode: single
+- id: '1773422335481'
+  alias: Manage AC Boost based on NWS Temperature
+  description: Automatically toggles the AC boost evaluation boolean based on an 80-degree
+    threshold.
+  triggers:
+  - entity_id: sensor.nws_temperature
+    below: 80
+    id: turn_off
+    trigger: numeric_state
+  - entity_id: sensor.nws_temperature
+    above: 80
+    id: turn_on
+    trigger: numeric_state
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: turn_off
+      sequence:
+      - target:
+          entity_id: input_boolean.ac_boost_feature_evaluation
+        action: input_boolean.turn_off
+    - conditions:
+      - condition: trigger
+        id: turn_on
+      sequence:
+      - target:
+          entity_id: input_boolean.ac_boost_feature_evaluation
+        action: input_boolean.turn_on
   mode: single

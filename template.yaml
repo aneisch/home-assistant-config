@@ -98,6 +98,44 @@
       }}\n{% else %}\n  {{ state_attr('weather.kcll_daynight', 'forecast')[1]['precipitation_probability']
       }}\n{% endif %}"
 
+  - name: "Current Water Rate Per Gallon"
+    unique_id: water_rate_per_gallon
+    unit_of_measurement: "USD/gal"
+    state: >
+      {% set usage = states('sensor.water_usage') | float(0) %}
+      
+      {# Marginal Tier Rates from your script #}
+      {% if usage > 25000 %}
+        {% set rate_per_k = 6.65 %}
+      {% elif usage > 20000 %}
+        {% set rate_per_k = 5.70 %}
+      {% elif usage > 15000 %}
+        {% set rate_per_k = 4.85 %}
+      {% elif usage > 10000 %}
+        {% set rate_per_k = 3.95 %}
+      {% else %}
+        {% set rate_per_k = 3.00 %}
+      {% endif %}
+
+      {# Divide the 1000-gallon rate by 1000 #}
+      {{ (rate_per_k / 1000) | round(4) }}
+    attributes:
+      current_tier_rate_per_k: >
+        {% if usage > 25000 %} 6.65
+        {% elif usage > 20000 %} 5.70
+        {% elif usage > 15000 %} 4.85
+        {% elif usage > 10000 %} 3.95
+        {% else %} 3.00
+        {% endif %}
+
+
+
+
+
+
+
+
+
 - lock:
   - name: All Doors
     lock:

@@ -82,9 +82,11 @@ class XRegistryLocal(XRegistryBase):
         state_change: ServiceStateChange,
     ):
         """Step 1. Receive change event from zeroconf."""
-        # accept: eWeLink_1000xxxxxx.local.
-        # skip: ihost-1001xxxxxx.local.
-        if state_change == ServiceStateChange.Removed or not name.startswith("eWeLink"):
+        if state_change == ServiceStateChange.Removed:
+            return
+        # accept: eWeLink_1000xxxxxx and eWelink_1000xxxxxx (from uiid 104)
+        # skip: ihost-1001xxxxxx, zbbridgeu-100xxxxxxx, zbbridgeu-100xxxxxxx-wlan0
+        if not name.lower().startswith("ewelink"):
             return
 
         asyncio.create_task(self._handler2(zeroconf, service_type, name))
@@ -138,7 +140,7 @@ class XRegistryLocal(XRegistryBase):
         if data.get("encrypt"):
             msg["data"] = raw
             msg["iv"] = data["iv"]
-        else:
+        elif raw:  # no data field from zbbridgeu
             msg["params"] = json.loads(raw)
 
         self.dispatcher_send(SIGNAL_UPDATE, msg)
@@ -155,10 +157,11 @@ class XRegistryLocal(XRegistryBase):
         # known commands for DIY: switch, startup, pulse, sledonline
         # other commands: switch, switches, transmit, dimmable, light, fan
 
+        # If the command is empty, we try to retrieve it from the parameters
         if command is None:
-            if params is None:
-                return "noquery"
-            command = next(iter(params))
+            # If the parameters are empty, use the dummy command
+            # Even if the device doesn't support it, it will still respond in some way
+            command = next(iter(params)) if params else "getState"
 
         payload = {
             "sequence": sequence or await self.sequence(),
@@ -170,13 +173,13 @@ class XRegistryLocal(XRegistryBase):
         if "devicekey" in device:
             payload = encrypt(payload, device["devicekey"])
 
-        log = f"{device['deviceid']} => Local4 | {device.get('host', '')} | {params}"
+        host = device["host"]
+        if ":" not in host:
+            host += ":8081"  # default port, some devices may have another
+
+        log = f"{device['deviceid']} => Local4 | {host} | {command} {params or {}}"
 
         try:
-            host = device["host"]
-            if ":" not in host:
-                host += ":8081"  # default port, some devices may have another
-
             # noinspection HttpUrlsUsage
             r = await self.session.post(
                 f"http://{host}/zeroconf/{command}",
@@ -188,17 +191,19 @@ class XRegistryLocal(XRegistryBase):
             try:
                 # some devices don't support getState command
                 # https://github.com/AlexxIT/SonoffLAN/issues/1442
-                if command == "getState" and r.headers.get(CONTENT_TYPE) == "text/html":
-                    return "online"
+                if r.headers.get(CONTENT_TYPE) == "text/html":
+                    _LOGGER.debug(f"{log} <= text/html")
+                    if command == "getState":
+                        return "online"
+                    return "error"
 
                 resp: dict = await r.json()
+                _LOGGER.debug(f"{log} <= {resp}")
                 if resp["error"] == 0:
-                    _LOGGER.debug(f"{log} <= {resp}")
-
                     if "iv" in resp:
                         msg = {
                             "deviceid": device["deviceid"],
-                            "localtype": device["localtype"],
+                            "localtype": device.get("localtype"),
                             "seq": resp["seq"],
                             "data": resp["data"],
                             "iv": resp["iv"],
@@ -209,8 +214,10 @@ class XRegistryLocal(XRegistryBase):
 
                     return "online"
 
+                elif command == "getState":
+                    return "online"
+
                 else:
-                    _LOGGER.debug(f"{log} <= {resp}")
                     return "error"
 
             except Exception as e:
@@ -249,10 +256,7 @@ class XRegistryLocal(XRegistryBase):
 
             return "E#CRE"  # ConnectionResetError
 
-        except (
-            aiohttp.ServerDisconnectedError,
-            asyncio.CancelledError,
-        ) as e:
+        except (aiohttp.ServerDisconnectedError, asyncio.CancelledError) as e:
             _LOGGER.debug(log, exc_info=e)
             return "E#COS"
 
@@ -262,10 +266,18 @@ class XRegistryLocal(XRegistryBase):
 
     @staticmethod
     def decrypt_msg(msg: dict, devicekey: str = None) -> dict:
+        # Fix Sonoff SPM-Main empty message {'seq': ***, 'data': '', 'iv': '***'}
+        # Fix Sonoff ZbBridge-U without any message
+        if not msg.get("data"):
+            return {}
+
         data = decrypt(msg, devicekey)
+
         # Fix Sonoff RF Bridge sintax bug
         if data and data.startswith(b'{"rf'):
             data = data.replace(b'"="', b'":"')
-        # fix https://github.com/AlexxIT/SonoffLAN/issues/1160
+
+        # Fix https://github.com/AlexxIT/SonoffLAN/issues/1160
         data = data.rstrip(b"\x02")
+
         return json.loads(data)

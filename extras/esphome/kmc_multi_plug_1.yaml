@@ -16,36 +16,44 @@ time:
     id: homeassistant_time
     timezone: 'America/Chicago'
 
-# sensor:
-#   - platform: hlw8012
-#     sel_pin: GPIO12
-#     cf_pin: GPIO4
-#     cf1_pin: GPIO5
-#     current:
-#       name: "${friendly_name} Current"
-#     voltage:
-#       name: "${friendly_name} Voltage"
-#     power:
-#       name: "${friendly_name} Power"
-#     update_interval: 5s
+sensor:
+  - platform: hlw8012
+    sel_pin: GPIO12
+    cf_pin: GPIO4
+    cf1_pin: GPIO5
+    # current:
+    #   name: "${friendly_name} Current"
+    # voltage:
+    #   name: "${friendly_name} Voltage"
+    power:
+      name: "${friendly_name} Power"
+      id: my_power_sensor
+    update_interval: 30s
+
+# Add this section for Energy Consumption
+  - platform: total_daily_energy
+    name: "${friendly_name} Total Daily Energy"
+    power_id: my_power_sensor
+    unit_of_measurement: kWh
+    accuracy_decimals: 2
+    filters:
+      # Multiplication factor to convert W to kWh
+      - multiply: 0.001
 
 switch:
   - platform: gpio
-    name: "${friendly_name} 1"
+    name: "${friendly_name} 1" # Light
     pin: GPIO15
-    # inverted: yes
     id: relay1
   - platform: gpio
-    name: "${friendly_name} 2"
+    name: "${friendly_name} 2" # Filter
     pin: GPIO13
-    # inverted: yes
     id: relay2
-  - platform: gpio
-    name: "${friendly_name} 3"
-    pin: GPIO14
-    # inverted: yes
-    id: relay3
     restore_mode: ALWAYS_ON
+  - platform: gpio
+    name: "${friendly_name} 3" # CO2
+    pin: GPIO14
+    id: relay3
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"
@@ -54,8 +62,8 @@ binary_sensor:
   - platform: gpio
     pin:
       number: GPIO16
-      mode: INPUT
-      inverted: False
+      mode: INPUT_PULLDOWN
+      inverted: True
     name: "${friendly_name} Button"
     on_press:
       - switch.toggle: relay2

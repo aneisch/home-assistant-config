@@ -14,6 +14,7 @@ from homeassistant.const import CONF_HOST, CONF_RESOURCES
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
+from . import MailAndPackagesConfigEntry
 from .const import (
     AMAZON_DELIVERED,
     AMAZON_EXCEPTION,
@@ -26,7 +27,6 @@ from .const import (
     ATTR_ORDER,
     ATTR_TRACKING_NUM,
     CONF_PATH,
-    COORDINATOR,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
@@ -36,9 +36,11 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass, entry: MailAndPackagesConfigEntry, async_add_entities
+):
     """Set up the sensor entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data.coordinator
     resources = entry.data.get(CONF_RESOURCES, [])
 
     sensors = [
@@ -62,7 +64,7 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         self,
         config: ConfigEntry,
         sensor_description: SensorEntityDescription,
-        coordinator: str,
+        coordinator: Any,
     ):
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -122,6 +124,11 @@ class PackagesSensor(CoordinatorEntity, SensorEntity):
         return False
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
+
+    @property
     def extra_state_attributes(self) -> str | None:
         """Return device specific state attributes."""
         attr = {}
@@ -163,7 +170,7 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
         hass: HomeAssistant,
         config: ConfigEntry,
         sensor_description: SensorEntityDescription,
-        coordinator: str,
+        coordinator: Any,
     ):
         """Initialize the sensor."""
         super().__init__(coordinator)
@@ -239,4 +246,4 @@ class ImagePathSensors(CoordinatorEntity, SensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self.coordinator.last_update_success
+        return self.coordinator.data is not None

@@ -235,7 +235,7 @@ cards:
     title: Mail & Package Tracking
     cards:
       - type: picture-glance
-        camera_image: camera.mail_usps
+        camera_image: camera.mail_usps_camera
         entities: []
       - type: markdown
         content: |
@@ -264,17 +264,6 @@ cards:
           - entity: sensor.mail_ups_delivering
             icon: "mdi:package-variant-closed"
             name: UPS
-          - entity: sensor.mail_updated
-            state_filter:
-              - operator: "regex"
-                value: 20
-      # - type: markdown
-      #   content: |
-      #     {%- set seconds = (as_timestamp(now()) - as_timestamp(states('sensor.433_mailbox_last_opened'))) | int -%}
-      #     {%- set minutes = (seconds // 60) | int -%}
-      #     {%- set hours = (minutes // 60) | int -%}
-      #     {%- set days = (hours // 24) | int -%}
-      #     Mailbox Last Opened: **{{days}}d {{hours%24}}h {{minutes%60}}m**
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml

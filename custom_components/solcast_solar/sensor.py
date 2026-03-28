@@ -17,7 +17,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfPower
+from homeassistant.const import CONF_API_KEY, EntityCategory, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
@@ -25,7 +25,9 @@ from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
-    API_KEY,
+    ADVANCED_OPTIONS,
+    AMENDABLE,
+    ANALYSIS,
     ATTRIBUTION,
     AUTO_UPDATE_DIVISIONS,
     AUTO_UPDATE_NEXT,
@@ -35,6 +37,7 @@ from .const import (
     DETAILED_HOURLY,
     DOMAIN,
     ENABLED_BY_DEFAULT,
+    ENTITY_ACCURACY,
     ENTITY_API_COUNTER,
     ENTITY_API_LIMIT,
     ENTITY_DAMPEN,
@@ -74,6 +77,7 @@ NAMES: Final[dict[str, str]] = {
     ENTITY_API_COUNTER: "API Used",
     ENTITY_API_LIMIT: "API Limit",
     ENTITY_DAMPEN: "Dampening",
+    ENTITY_ACCURACY: "Accuracy",
     ENTITY_FORECAST_CUSTOM_HOURS: "Forecast Custom Hours",
     ENTITY_FORECAST_NEXT_HOUR: "Forecast Next Hour",
     ENTITY_FORECAST_THIS_HOUR: "Forecast This Hour",
@@ -116,6 +120,19 @@ SENSORS: Final[dict[str, dict[str, Any]]] = {
             key=ENTITY_DAMPEN,
             translation_key=ENTITY_DAMPEN,
             name=NAMES[ENTITY_DAMPEN],
+            entity_category=EntityCategory.DIAGNOSTIC,
+        ),
+        ATTRIBUTION: False,
+        ENABLED_BY_DEFAULT: False,
+    },
+    ENTITY_ACCURACY: {
+        DESCRIPTION: SensorEntityDescription(
+            key=ENTITY_ACCURACY,
+            translation_key=ENTITY_ACCURACY,
+            name=NAMES[ENTITY_ACCURACY],
+            native_unit_of_measurement="%",
+            suggested_display_precision=2,
+            state_class=SensorStateClass.MEASUREMENT,
             entity_category=EntityCategory.DIAGNOSTIC,
         ),
         ATTRIBUTION: False,
@@ -364,7 +381,7 @@ async def async_setup_entry(
                     key="hard_limit_" + api_key_last_six(api_key),
                     translation_key=HARD_LIMIT_API,
                     translation_placeholders={
-                        API_KEY: redact_api_key(api_key),
+                        CONF_API_KEY: redact_api_key(api_key),
                     },
                     entity_category=EntityCategory.DIAGNOSTIC,
                 )
@@ -470,7 +487,7 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
             self._state_info[UNRECORDED_ATTRIBUTES] = frozenset([AUTO_UPDATE_NEXT, AUTO_UPDATE_DIVISIONS, AUTO_UPDATE_QUEUE])
 
         elif str(self.entity_description.key).startswith(ENTITY_TOTAL_KWH_FORECAST):
-            exclude = [DETAILED_FORECAST, DETAILED_HOURLY]
+            exclude = [ANALYSIS, DETAILED_FORECAST, DETAILED_HOURLY]
             if self._coordinator.solcast.options.attr_brk_site_detailed:
                 for s in self._coordinator.solcast.sites:
                     exclude.append(f"{DETAILED_FORECAST}_" + s[RESOURCE_ID].replace("-", "_"))
@@ -479,6 +496,9 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
 
         elif self.entity_description.key == "dampen":
             exclude = [FACTORS]
+            for option, settings in ADVANCED_OPTIONS.items():
+                if "dampening" in option and not settings.get(AMENDABLE, False):
+                    exclude.append(option)
             self._state_info[UNRECORDED_ATTRIBUTES] = self._state_info[UNRECORDED_ATTRIBUTES] | frozenset(exclude)
 
     @property

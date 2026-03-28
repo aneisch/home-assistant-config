@@ -11,6 +11,7 @@ _LOGGER = logging.getLogger(__name__)
 ENTITY_CATEGORIES = {
     "battery": EntityCategory.DIAGNOSTIC,
     "battery_voltage": EntityCategory.DIAGNOSTIC,
+    "connection": EntityCategory.DIAGNOSTIC,
     "led": EntityCategory.CONFIG,
     "pulse": EntityCategory.CONFIG,
     "pulseWidth": EntityCategory.CONFIG,
@@ -20,6 +21,7 @@ ENTITY_CATEGORIES = {
 }
 
 ICONS = {
+    "connection": "mdi:network",
     "dusty": "mdi:cloud",
     "led": "mdi:led-off",
     "noise": "mdi:bell-ring",
@@ -83,6 +85,7 @@ class XEntity(Entity):
             model=device.get("productModel"),
             name=device["name"],
             sw_version=params.get("fwVersion"),
+            hw_version=device.get("extra", {}).get("uiid"),
         )
 
         try:
@@ -93,6 +96,7 @@ class XEntity(Entity):
         ewelink.dispatcher_connect(deviceid, self.internal_update)
 
         if parent := device.get("parent"):
+            self._attr_device_info["via_device"] = (DOMAIN, parent["deviceid"])
             ewelink.dispatcher_connect(parent["deviceid"], self.internal_parent_update)
 
     def set_state(self, params: dict):

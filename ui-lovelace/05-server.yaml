@@ -128,7 +128,7 @@ cards:
 
           Cycle Tesla Energy: {{ states('sensor.monthly_tesla_electric_usage') | int }} kWh
 
-          Cycle Tesla Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }}
+          Cycle Tesla Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }} ({{ states('sensor.monthly_tesla_miles') }} miles)
 
           Cycle Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 

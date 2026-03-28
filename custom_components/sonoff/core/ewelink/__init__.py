@@ -36,6 +36,9 @@ class XRegistry(XRegistryBase):
 
         entities = []
 
+        # Devices without parent will be first, so via_device option won't fail
+        devices = sorted(devices, key=lambda d: d.get("params", {}).get("parentid", ""))
+
         for device in devices:
             did = device["deviceid"]
             try:
@@ -89,7 +92,7 @@ class XRegistry(XRegistryBase):
         cmd_lan: str = None,
         query_cloud: bool = True,
         timeout_lan: int = 1,
-    ):
+    ) -> None:
         """Send command to device with LAN and Cloud. Usual params are same.
 
         LAN will send new device state after update command, Cloud - don't.
@@ -126,7 +129,7 @@ class XRegistry(XRegistryBase):
             if ok != "online":
                 ok = await self.cloud.send(device, params, seq)
                 if ok != "online":
-                    asyncio.create_task(self.check_offline(main_device))
+                    main_device["localping"] = 0  # instant local ping request
                 elif query_cloud and params:
                     # force update device actual status
                     await self.cloud.send(device, timeout=0)
@@ -134,7 +137,7 @@ class XRegistry(XRegistryBase):
         elif can_local:
             ok = await self.local.send(main_device, params_lan or params, cmd_lan, seq)
             if ok != "online":
-                asyncio.create_task(self.check_offline(main_device))
+                main_device["localping"] = 0  # instant local ping request
 
         elif can_cloud:
             ok = await self.cloud.send(device, params, seq)
@@ -143,9 +146,6 @@ class XRegistry(XRegistryBase):
 
         else:
             return
-
-        # TODO: response state
-        # self.dispatcher_send(device["deviceid"], state)
 
     async def send_bulk(self, device: XDevice, params: dict):
         assert "switches" in params
@@ -190,43 +190,22 @@ class XRegistry(XRegistryBase):
         if params := device.pop("params_bulk", None):
             return await self.send(device, params)
 
-    async def send_cloud(self, device: XDevice, params: dict = None, query=True):
+    async def send_cloud(
+        self, device: XDevice, params: dict = None, query=True
+    ) -> str | None:
         if not self.can_cloud(device):
-            return
+            return None
         ok = await self.cloud.send(device, params)
         if ok == "online" and query and params:
             await self.cloud.send(device, timeout=0)
-
-    async def check_offline(self, device: XDevice):
-        if not device.get("host"):
-            return
-
-        for i in range(3):
-            if i > 0:
-                await asyncio.sleep(5)
-
-            ok = await self.local.send(device, command="getState")
-            if ok in ("online", "error"):
-                device["local_ts"] = time.time() + LOCAL_TTL
-                device["local"] = True
-                return
-
-            # just one try for the long lost
-            if time.time() > device.get("local_ts", 0) + LOCAL_TTL:
-                break
-
-        device["local"] = False
-
-        did = device["deviceid"]
-        _LOGGER.debug(f"{did} !! Local4 | Device offline")
-        self.dispatcher_send(did)
+        return ok
 
     def cloud_connected(self):
         for deviceid in self.devices.keys():
             self.dispatcher_send(deviceid)
 
-        if not self.task:
-            self.task = asyncio.create_task(self.run_forever())
+        # if not self.task:
+        #     self.task = asyncio.create_task(self.run_forever())
 
     def local_connected(self):
         if not self.task:
@@ -240,16 +219,18 @@ class XRegistry(XRegistryBase):
             return
 
         params = msg["params"]
+        device["cloud_seq"] = seq = msg.get("sequence")
 
-        _LOGGER.debug(f"{did} <= Cloud3 | %s | {msg.get('sequence')}", params)
+        _LOGGER.debug(f"{did} <= Cloud3 | %s | {seq}", params)
 
         # process online change
         if "online" in params:
             device["online"] = params["online"]
             # check if LAN online after cloud status change
-            asyncio.create_task(self.check_offline(device))
+            device["localping"] = 0  # instant local ping request
 
-        elif device["online"] is False:
+        # Fix bug - cloud sends `{"subDevRssi": 127}` even for offline devices
+        elif device["online"] is False and params.keys() != {"subDevRssi"}:
             device["online"] = True
 
         if "sledOnline" in params:
@@ -291,7 +272,7 @@ class XRegistry(XRegistryBase):
                 # decrypt payload for known device with devicekey
                 params = self.local.decrypt_msg(msg, device["devicekey"])
             except Exception as e:
-                _LOGGER.debug("Can't decrypt message", exc_info=e)
+                _LOGGER.debug("Can't decrypt message %s", msg, exc_info=e)
                 return
 
         elif "devicekey" in device:
@@ -302,16 +283,15 @@ class XRegistry(XRegistryBase):
         # realid can be different from mainid for SPM-4RELAY
         realid = msg.get("subdevid", mainid)
         tag = "Local3" if "host" in msg else "Local0"
+        host = msg.get("host", "^^^")
+        device["local_seq"] = seq = msg.get("seq")
 
-        _LOGGER.debug(
-            f"{realid} <= {tag} | {msg.get('host', '')} | %s | {msg.get('seq', '')}",
-            params,
-        )
+        _LOGGER.debug(f"{realid} <= {tag} | {host} | %s | {seq}", params)
 
-        if "params" not in device:
+        if "params" in device:
+            device["params"].update(params)
+        else:
             device["params"] = params
-        elif "sledOnline" in params:
-            device["params"]["sledOnline"] = params["sledOnline"]
 
         # we can get data from device, but without host
         if "host" in msg and device.get("host") != msg["host"]:
@@ -319,8 +299,11 @@ class XRegistry(XRegistryBase):
             device["host"] = params["host"] = msg["host"]
             device["localtype"] = msg["localtype"]
 
-        device["local_ts"] = time.time() + LOCAL_TTL
+        ts = time.time()
         device["local"] = True
+        device["localfail"] = 0
+        device["localping"] = ts + 59  # one second less than a minute
+        device["localrecv"] = ts
 
         self.dispatcher_send(realid, params)
 
@@ -329,59 +312,53 @@ class XRegistry(XRegistryBase):
             self.dispatcher_send(mainid, None)
 
     async def run_forever(self):
-        """This daemon function doing two things:
-
-        1. Force update POW devices. Some models support only cloud update, some support
-           local queries
-        2. Ping LAN devices if they are silent for more than 1 minute
-        """
         while True:
+            ts = time.time()
             for device in self.devices.values():
                 try:
-                    self.update_device(device)
+                    if "local" in device:
+                        self.update_local(device, ts)
+                    elif parent := device.get("parent"):
+                        # Support childrens only for SPM-Main (128)
+                        if parent.get("localtype") == "meter":
+                            self.update_local_child(parent, device)
                 except Exception as e:
                     _LOGGER.warning("run_forever", exc_info=e)
+            await asyncio.sleep(5)
 
-            await asyncio.sleep(30)
+    def update_local(self, device: XDevice, ts: float):
+        # 1. Update sensors data for Power and TH devices if we haven't received them
+        #    for more than 5 seconds.
+        if (
+            ts >= device["localrecv"] + 4  # one second less than 5 second
+            and device["localfail"] < 3  # no more than 3 times
+        ):
+            uiid = device["extra"]["uiid"]
+            # TH10R2 (15) and THR316D/THR320D (181) shouldn't be here, but anyway
+            if uiid in (15, 32, 181, 182, 190, 262):
+                if led := device["params"].get("sledOnline"):
+                    params = {"sledOnline": led}
+                    asyncio.create_task(self.send_local(device, "sledonline", params))
+                    return
+            elif uiid == 126:
+                asyncio.create_task(self.send_local(device, "statistics"))
+                return
 
-    def update_device(self, device: XDevice):
-        if "extra" not in device:
+        # 2. Update local availability for all local devices (online and offline).
+        if ts >= device["localping"]:
+            asyncio.create_task(self.send_local(device))
+
+    def update_local_child(self, parent: XDevice | dict, device: XDevice):
+        # 3. Update sensors data for SPM-Main childrens.
+        if parent["localfail"] >= 3:
             return
-
-        uiid = device["extra"]["uiid"]
-
-        # [5] POW, [32] POWR2, [182] S40, [190] POWR3 - one channel, only cloud update
-        # [181] THR316D/THR320D, [226] CK-BL602-W102SW18-01, [7032] S60ZBTPF
-        # CK-BL602-SWP1-02(262)
-        if uiid in (5, 32, 181, 182, 190, 226, 262, 7032):
-            if self.can_cloud(device):
-                params = {"uiActive": 60}
-                self.schedule_ui_active(device, params)
-
-        # DUALR3 - two channels, local and cloud update
-        elif uiid == 126:
-            if self.can_local(device):
-                # empty params is OK
-                asyncio.create_task(self.local.send(device, command="statistics"))
-            elif self.can_cloud(device):
-                params = {"uiActive": {"all": 1, "time": 60}}
-                self.schedule_ui_active(device, params)
-
-        # SPM-4Relay - four channels, separate update for each channel
-        elif uiid == 130:
-            # https://github.com/AlexxIT/SonoffLAN/issues/1366
-            if self.can_cloud(device):
-                outlet = device.get("active_outlet", 0)
-                device["active_outlet"] = outlet + 1 if outlet < 3 else 0
-                params = {"uiActive": {"outlet": outlet, "time": 60}}
-                self.schedule_ui_active(device, params)
-
-        # checks if device still available via LAN
-        if "local_ts" not in device or device["local_ts"] > time.time():
-            return
-
-        if self.local.online:
-            asyncio.create_task(self.check_offline(device))
+        outlet = device.get("active_outlet", 0)
+        device["active_outlet"] = outlet + 1 if outlet < 3 else 0
+        params = {
+            "subDevId": device["deviceid"],
+            "uiActive": {"outlet": outlet, "time": 60},
+        }
+        asyncio.create_task(self.send_local(parent, "uiActive", params))
 
     def can_cloud(self, device: XDevice) -> bool:
         if not self.cloud.online:
@@ -391,15 +368,38 @@ class XRegistry(XRegistryBase):
     def can_local(self, device: XDevice) -> bool:
         if not self.local.online:
             return False
-        if "parent" in device:
-            return device["parent"].get("local")
+        if parent := device.get("parent"):
+            # Known local parents - SPM-Main, RFBridge and ZBBridge-P
+            # But ZBBridge-P can't control local devices
+            if parent.get("localtype") in ("meter", "rf"):
+                return parent.get("local")
         return device.get("local")
 
-    def schedule_ui_active(self, device: XDevice, params: dict) -> None:
-        """Avoid unbounded backlog of periodic uiActive refresh tasks per device."""
-        task: asyncio.Task | None = device.get("ui_active_task")
-        if task and not task.done():
+    async def send_local(
+        self, device: XDevice, command: str = None, params: dict = None
+    ):
+        ok = await self.local.send(device, params, command)
+        if ok == "online":
+            if not device["local"]:
+                device["local"] = True
+                did = device["deviceid"]
+                _LOGGER.debug(f"{did} !! Local4 | Device online")
+                self.dispatcher_send(did)
+
+            device["localfail"] = 0
+            device["localping"] = time.time() + 59
             return
 
-        coro = self.cloud.send(device, params, timeout=0)
-        device["ui_active_task"] = asyncio.create_task(coro)
+        device["localfail"] += 1
+
+        # requests with command (sledonline or statistics) can't fail device to offline
+        if command or device["localfail"] < 3:
+            return
+
+        if device["local"]:
+            device["local"] = False
+            did = device["deviceid"]
+            _LOGGER.debug(f"{did} !! Local4 | Device offline")
+            self.dispatcher_send(did)
+
+        device["localping"] = time.time() + 59

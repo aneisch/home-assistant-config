@@ -30,7 +30,7 @@ from ..binary_sensor import (
 from ..button import XButton
 from ..climate import XClimateNS, XClimateTH, XThermostat, XThermostatTRVZB
 from ..core.entity import XEntity
-from ..cover import XCover, XCoverDualR3, XCoverOP, XCoverT5, XZigbeeCover
+from ..cover import XCover, XCoverDualR3, XCoverOP, XCoverT5, XZBCover, XZigbeeCover
 from ..fan import XDiffuserFan, XFan, XFanDualR3, XToggleFan
 from ..light import (
     XDiffuserLight,
@@ -54,16 +54,18 @@ from ..number import XPulseWidth, XSensitivity, XTempCorrectionNumber
 from ..remote import XRemote
 from ..select import XSelectStartup, XStartup
 from ..sensor import (
+    XButtonKey,
+    XButtonLocalKey,
     XCPUTemperature,
-    XEnergySensor,
-    XEnergySensorDualR3,
-    XEnergySensorPOWR3,
+    XCloudEnergy,
+    XCloudEnergyDualR3,
+    XCloudEnergyPOWR3,
+    XConnection,
     XEnergyTotal,
     XHexVoltageTRVZB,
     XHumCorrection,
     XHumidityTH,
     XOutdoorTempNS,
-    XRemoteButton,
     XSensor,
     XT5Action,
     XTempCorrection,
@@ -176,13 +178,6 @@ EnergyYear = spec(
     XEnergyTotal, param="yearKwh", uid="energy_year", multiply=0.01, round=2
 )
 
-EnergyPOW = spec(
-    XEnergySensor,
-    param="hundredDaysKwhData",
-    uid="energy",
-    get_params={"hundredDaysKwh": "get"},
-)
-
 # backward compatibility for unique_id
 DoorLock = spec(XBinarySensor, param="lock", uid="", default_class="door")
 
@@ -201,7 +196,12 @@ DEVICES = {
         LED,
         RSSI,
         spec(XSensor, param="power"),
-        EnergyPOW,
+        spec(
+            XCloudEnergy,
+            param="hundredDaysKwhData",
+            uid="energy",
+            get_params={"hundredDaysKwh": "get"},
+        ),
     ],
     6: SPEC_SWITCH,
     # Sonoff T1 2CH
@@ -251,7 +251,12 @@ DEVICES = {
         spec(XSensor, param="current"),
         spec(XSensor, param="power"),
         spec(XSensor, param="voltage"),
-        EnergyPOW,
+        spec(
+            XCloudEnergy,
+            param="hundredDaysKwhData",
+            uid="energy",
+            get_params={"hundredDaysKwh": "get"},
+        ),
         XStartup,
     ],
     # https://github.com/AlexxIT/SonoffLAN/issues/985
@@ -308,13 +313,13 @@ DEVICES = {
         Power1,
         Power2,
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_00",
             uid="energy_1",
             get_params={"getKwh_00": 2},
         ),
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_01",
             uid="energy_2",
             get_params={"getKwh_01": 2},
@@ -347,25 +352,25 @@ DEVICES = {
         Power3,
         Power4,
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_00",
             uid="energy_1",
             get_params={"getKwh_00": 2},
         ),
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_01",
             uid="energy_2",
             get_params={"getKwh_01": 2},
         ),
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_02",
             uid="energy_3",
             get_params={"getKwh_02": 2},
         ),
         spec(
-            XEnergySensorDualR3,
+            XCloudEnergyDualR3,
             param="kwhHistories_03",
             uid="energy_4",
             get_params={"getKwh_03": 2},
@@ -398,16 +403,16 @@ DEVICES = {
         LED,
         RSSI,
         spec(XIntSwitch, param="relaySeparation", uid="detach", enabled=False),
-        spec(XRemoteButton, param="action"),
+        spec(XButtonKey, uid="action"),
     ],
     # DW2-Wi-Fi-L, https://github.com/AlexxIT/SonoffLAN/issues/808
     154: [XWiFiDoor, Battery, RSSI],
     # Sonoff SwitchMan M5-1C, https://github.com/AlexxIT/SonoffLAN/issues/1432
-    160: SPEC_1CH,
+    160: [Switch1, LED, RSSI, spec(XButtonLocalKey, uid="action")],
     # Sonoff SwitchMan M5-2C, https://github.com/AlexxIT/SonoffLAN/issues/1432
-    161: SPEC_2CH,
+    161: [Switch1, Switch2, LED, RSSI, spec(XButtonLocalKey, uid="action")],
     # Sonoff SwitchMan M5-3C, https://github.com/AlexxIT/SonoffLAN/issues/659
-    162: SPEC_3CH,
+    162: [Switch1, Switch2, Switch3, LED, RSSI, spec(XButtonLocalKey, uid="action")],
     # DualR3 Lite, without power consumption
     165: [
         Switch1,
@@ -420,10 +425,10 @@ DEVICES = {
     168: [RSSI],
     # Sonoff L3-5M-P
     173: [XLightL3, RSSI],
-    # Sonoff R5 (6-key remote)
-    174: [XRemoteButton],
-    # Sonoff S-Mate
-    177: [XRemoteButton],
+    # Sonoff R5 (6-key remote) https://github.com/AlexxIT/SonoffLAN/issues/731
+    174: [XButtonKey],
+    # Sonoff S-Mate https://github.com/AlexxIT/SonoffLAN/issues/731
+    177: [XButtonKey],
     # Sonoff THR320D or THR316D
     181: [
         XSwitchTH,
@@ -441,7 +446,12 @@ DEVICES = {
         spec(XSensor, param="current"),
         spec(XSensor, param="power"),
         spec(XSensor, param="voltage"),
-        EnergyPOW,
+        spec(
+            XCloudEnergy,
+            param="hundredDaysKwhData",
+            uid="energy",
+            get_params={"hundredDaysKwh": "get"},
+        ),
     ],
     # Sonoff POWR3
     # S60TPF, https://github.com/AlexxIT/SonoffLAN/issues/1514
@@ -453,9 +463,17 @@ DEVICES = {
         spec(XSensor100, param="current"),
         spec(XSensor100, param="power"),
         spec(XSensor100, param="voltage"),
-        spec(XSensor100, param="supplyPower", uid="power_supply"),
         EnergyDay,
         EnergyMonth,
+        spec(
+            XCloudEnergyPOWR3,
+            param="hoursKwhData",
+            uid="energy",
+            get_params={"getHoursKwh": {"start": 0, "end": 24 * 30 - 1}},
+        ),
+        # only for POWCT
+        spec(XSensor100, param="supplyCurrent", uid="current_supply"),
+        spec(XSensor100, param="supplyPower", uid="power_supply"),
         spec(
             XEnergyTotal,
             param="dayPowerSupply",
@@ -469,12 +487,6 @@ DEVICES = {
             uid="energy_month_supply",
             multiply=0.01,
             round=2,
-        ),
-        spec(
-            XEnergySensorPOWR3,
-            param="hoursKwhData",
-            uid="energy",
-            get_params={"getHoursKwh": {"start": 0, "end": 24 * 30 - 1}},
         ),
     ],
     # NSPanel Pro, https://github.com/AlexxIT/SonoffLAN/issues/984
@@ -551,6 +563,8 @@ DEVICES = {
         Battery,
         ZRSSI,
     ],
+    # ZbBridge-U https://github.com/AlexxIT/SonoffLAN/issues/1494
+    243: [LED],
     # https://github.com/AlexxIT/SonoffLAN/issues/1634
     258: [XCover, LED, RSSI],
     # CK-BL602-SWP1-02(262), https://github.com/AlexxIT/SonoffLAN/issues/1630
@@ -575,6 +589,7 @@ DEVICES = {
         Startup2,
         LED,
         RSSI,
+        spec(XButtonLocalKey, uid="action"),
     ],
     # Sonoff S61STPF:
     276: [
@@ -590,7 +605,7 @@ DEVICES = {
         RSSI,
     ],
     # zigbee_ON_OFF_SWITCH_1000
-    1000: [XRemoteButton, Battery],
+    1000: [XButtonKey, Battery],
     # ZCL_HA_DEVICEID_ON_OFF_LIGHT, https://github.com/AlexxIT/SonoffLAN/issues/1195
     1256: [XSwitch],
     # ZigbeeWhiteLight
@@ -628,7 +643,7 @@ DEVICES = {
         spec(XZigbeeSwitches, channel=2, uid="3"),
         spec(XZigbeeSwitches, channel=3, uid="4"),
     ],
-    7000: [XRemoteButton, Battery],
+    7000: [XButtonKey, Battery],
     # SNZB-03P, https://github.com/AlexxIT/SonoffLAN/issues/1435
     7002: [XZigbeeMotion, XLightSensor, Battery, ZRSSI],
     # SNZB-04P, https://github.com/AlexxIT/SonoffLAN/issues/1439
@@ -697,6 +712,8 @@ DEVICES = {
         XTodayWaterUsage,
         ZRSSI,
     ],
+    # MINI-ZB2GS-L https://github.com/AlexxIT/SonoffLAN/issues/1701
+    7029: [Switch1, Switch2, spec(XButtonLocalKey, uid="action")],
     # S60ZBTPF, https://github.com/AlexxIT/SonoffLAN/issues/1615
     7032: [
         Switch1,
@@ -709,7 +726,7 @@ DEVICES = {
     # SNZB-02WD, https://github.com/AlexxIT/SonoffLAN/issues/1612
     7033: [XTempCorrection, XHumCorrection, Battery, ZRSSI],
     # MINI-ZBRBS, https://github.com/AlexxIT/SonoffLAN/issues/1666
-    7034: [XCover, LED, RSSI],
+    7034: [XZBCover, LED, RSSI],
     # SNZB-02DR2
     7038: [
         spec(XTempCorrection, multiply=0.01),
@@ -741,15 +758,21 @@ def get_spec(device: dict) -> list:
         classes = [XCoverDualR3, XFanDualR3] + classes
 
     # NSPanel Climate disable without switch configuration
-    if uiid in [133] and not device["params"].get("HMI_ATCDevice"):
+    if uiid == 133 and not device["params"].get("HMI_ATCDevice"):
         classes = [cls for cls in classes if XClimateNS not in cls.__bases__]
 
     # SNZB-06P has no battery
-    if uiid in [2026] and not device["params"].get("battery"):
+    if uiid == 2026 and not device["params"].get("battery"):
         classes = [cls for cls in classes if cls != Battery]
+
+    if uiid == 190 and "supplyPower" not in device["params"]:
+        classes = [cls for cls in classes if cls.uid is None or "supply" not in cls.uid]
 
     if "device_class" in device:
         classes = get_custom_spec(classes, device["device_class"])
+
+    if XConnection not in classes:
+        classes.append(XConnection)
 
     return classes
 

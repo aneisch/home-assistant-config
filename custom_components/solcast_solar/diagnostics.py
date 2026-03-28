@@ -35,12 +35,12 @@ async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigE
                 hard_set = True
         return hard_set
 
-    energy_data = coordinator.solcast.get_energy_data()
+    energy_data = coordinator.solcast.query.get_energy_data()
 
     return {
         "tz_conversion": coordinator.solcast.options.tz,
-        "used_api_requests": coordinator.solcast.get_api_used_count(),
-        "api_request_limit": coordinator.solcast.get_api_limit(),
+        "used_api_requests": coordinator.solcast.api_used_count,
+        "api_request_limit": coordinator.solcast.api_limit,
         "rooftop_site_count": len(coordinator.solcast.sites),
         "forecast_hard_limit_set": hard_limit_set(),
         "data": (coordinator.data, TO_REDACT),

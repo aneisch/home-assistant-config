@@ -9,7 +9,7 @@ from homeassistant.helpers.entity import EntityCategory
 
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.4.7"
+VERSION = "0.5.0"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -18,7 +18,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 14
+CONFIG_VER = 15
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -158,9 +158,16 @@ AMAZON_SHIPMENT_TRACKING = [
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped:",
     "Enviado:",
+    "Out for delivery:",
 ]
 AMAZON_ORDERED_SUBJECT = ["Ordered:", "Pedido efetuado:"]
-AMAZON_EMAIL = ["order-update@", "update-bestelling@", "versandbestaetigung@"]
+AMAZON_EMAIL = [
+    "order-update@",
+    "update-bestelling@",
+    "versandbestaetigung@",
+    "verzending-volgen@",
+    "auto-bevestiging@",
+]
 AMAZON_PACKAGES = "amazon_packages"
 AMAZON_ORDER = "amazon_order"
 AMAZON_DELIVERED = "amazon_delivered"
@@ -179,7 +186,7 @@ AMAZON_HUB_EMAIL = [
     "amazonlockers@amazon.com",
     "versandbestaetigung@amazon.de",
 ]
-AMAZON_HUB_SUBJECT = "ready for pickup from Amazon Hub Locker"
+AMAZON_HUB_SUBJECT = ["ready for pickup from Amazon Hub Locker"]
 AMAZON_HUB_SUBJECT_SEARCH = "(a package to pick up)(.*)(\\d{6})"
 AMAZON_HUB_BODY = "(Your pickup code is <b>)(\\d{6})"
 AMAZON_TIME_PATTERN = [
@@ -228,6 +235,10 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d+)",
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
+    "Arriving (tomorrow)",
+    "Wordt bezorgd op (\\w+ \\d+ \\w+)",
+    "Wordt bezorgd op (\\w+ \\d+)",
+    "Wordt (vandaag) bezorgd",
 ]
 AMAZON_EXCEPTION_SUBJECT = "Delivery update:"
 AMAZON_EXCEPTION_BODY = "running late"
@@ -386,6 +397,8 @@ SENSOR_DATA = {
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
             "support@dhl.com",
+            "noreply@dhlecommerce.nl",
+            "noreply@dhl.nl",
         ],
         "subject": [
             "DHL On Demand Delivery",
@@ -393,6 +406,8 @@ SENSOR_DATA = {
             "wurde zugestellt",
             "DHL Shipment Notification",
             "liegt am gewünschten Ablageort",
+            "succesvol bezorgd",
+            "is bezorgd",
         ],
         "body": [
             "has been delivered",
@@ -400,6 +415,9 @@ SENSOR_DATA = {
             "ist angekommen",
             'Notification for shipment event group "Delivered',
             " - Delivered - ",
+            "succesvol bezorgd",
+            "is bezorgd",
+            "pakket is afgeleverd",
         ],
     },
     "dhl_delivering": {
@@ -409,6 +427,8 @@ SENSOR_DATA = {
             "noreply@dhl.de",
             "pl.no.reply@dhl.com",
             "support@dhl.com",
+            "noreply@dhlecommerce.nl",
+            "noreply@dhl.nl",
         ],
         "subject": [
             "DHL On Demand Delivery",
@@ -419,6 +439,13 @@ SENSOR_DATA = {
             "DHL Shipment Notification",
             "ist unterwegs",
             "Jetzt Live verfolgen",
+            "vanavond voor de deur",
+            "vandaag voor de deur",
+            "pakket onderweg",
+            "bezorging vandaag",
+            "staan vandaag voor de deur",
+            "staan vanavond voor de deur",
+            "komen we bij je langs",
         ],
         "body": [
             "scheduled for delivery TODAY",
@@ -428,12 +455,17 @@ SENSOR_DATA = {
             " - Shipment is out with courier for delivery - ",
             "Shipment is scheduled for delivery",
             "voraussichtlich innerhalb",
+            "staan vandaag voor de deur",
+            "staan vanavond voor de deur",
+            "wordt vandaag bezorgd",
+            "bezorger onderweg",
+            "komen we bij je langs",
         ],
     },
     "dhl_packages": {},
     "dhl_tracking": {
         "pattern": [
-            "(?:JJD\\d{18}|JVGL\\d{20}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
+            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
         ]
     },
     # Hermes.co.uk
@@ -588,15 +620,21 @@ SENSOR_DATA = {
             "noreply@gls-group.eu",
             "powiadomienia@allegromail.pl",
             "no-reply@gls-pakete.de",
+            "noreply@gls-group.nl",
+            "noreply@gls.nl",
         ],
         "subject": [
             "informacja o dostawie",
             "wurde durch GLS",
+            "bezorgd",
+            "afgeleverd",
         ],
         "body": [
             "została dzisiaj dostarczona",
             "Adresse erfolgreich zugestellt",
             "Am Wunschort abgestellt",
+            "is bezorgd",
+            "succesvol afgeleverd",
         ],
     },
     "gls_delivering": {
@@ -604,13 +642,23 @@ SENSOR_DATA = {
             "noreply@gls-group.eu",
             "powiadomienia@allegromail.pl",
             "no-reply@gls-pakete.de",
+            "noreply@gls-group.nl",
+            "noreply@gls.nl",
         ],
         "subject": [
             "paczka w drodze",
             "ist unterwegs",
             "kommt heute",
+            "pakket onderweg",
+            "bezorging vandaag",
         ],
-        "body": ["Zespół GLS", "GLS-Team", "fast da"],
+        "body": [
+            "Zespół GLS",
+            "GLS-Team",
+            "fast da",
+            "wordt vandaag bezorgd",
+            "Uw pakket wordt vandaag",
+        ],
     },
     "gls_packages": {},
     "gls_tracking": {
@@ -760,19 +808,53 @@ SENSOR_DATA = {
     "buildinglink_tracking": {},
     # Post NL
     "post_nl_delivering": {
-        "email": ["noreply@notificatie.postnl.nl"],
-        "subject": ["Je pakket is onderweg", "De chauffer is onderweg"],
+        "email": [
+            "noreply@notificatie.postnl.nl",
+            "noreply@postnl.nl",
+            "info@postnl.nl",
+            "noreply@mypostnl.nl",
+            "noreply@post.nl",
+        ],
+        "subject": [
+            "Je pakket is onderweg",
+            "De chauffer is onderweg",
+            "onderweg",
+            "wordt bezorgd",
+            "bezorging vandaag",
+            "verwacht tussen",
+            "bezorger onderweg",
+            "vandaag bezorgd",
+        ],
+        "body": [
+            "onderweg naar",
+            "wordt vandaag bezorgd",
+            "verwacht tussen",
+            "bezorger onderweg",
+        ],
     },
     "post_nl_exception": {
         "email": ["noreply@notificatie.postnl.nl"],
         "subject": ["We hebben je gemist"],
     },
     "post_nl_delivered": {
-        "email": ["noreply@notificatie.postnl.nl"],
-        "subject": ["Je pakket is bezorgd"],
+        "email": [
+            "noreply@notificatie.postnl.nl",
+            "noreply@postnl.nl",
+            "info@postnl.nl",
+            "noreply@mypostnl.nl",
+            "noreply@post.nl",
+        ],
+        "subject": [
+            "Je pakket is bezorgd",
+            "afgeleverd",
+            "is bezorgd",
+            "pakket bezorgd",
+            "delivered",
+            "succesvol bezorgd",
+        ],
     },
     "post_nl_packages": {},
-    "post_nl_tracking": {"pattern": ["3S?[0-9A-Z]{14}"]},
+    "post_nl_tracking": {"pattern": ["3S[A-Z0-9]{10,18}"]},
     # Post DE
     "post_de_delivering": {
         "email": [
@@ -810,6 +892,63 @@ SENSOR_DATA = {
         "subject": ["Deine Rechnung zu"],
         "body": ["Im Anhang dieser E-Mail kommt"],
     },
+    # DPD Netherlands
+    "dpd_nl_delivered": {
+        "email": [
+            "noreply@dpd.nl",
+            "noreply@dpd.com",
+            "noreply@dpdgroup.nl",
+        ],
+        "subject": ["bezorgd", "afgeleverd", "delivered"],
+    },
+    "dpd_nl_delivering": {
+        "email": [
+            "noreply@dpd.nl",
+            "noreply@dpd.com",
+            "noreply@dpdgroup.nl",
+        ],
+        "subject": [
+            "pakket onderweg",
+            "bezorging vandaag",
+            "wordt vandaag bezorgd",
+            "onderweg naar jou",
+        ],
+        "body": [
+            "bezorger onderweg",
+            "wordt vandaag bezorgd",
+            "onze bezorger komt",
+        ],
+    },
+    "dpd_nl_packages": {},
+    "dpd_nl_tracking": {"pattern": ["\\d{14}"]},
+    # bol.com (Netherlands)
+    "bolcom_delivered": {
+        "email": [
+            "noreply@bol.com",
+            "service@bol.com",
+        ],
+        "subject": ["bezorgd", "afgeleverd", "delivered"],
+    },
+    "bolcom_delivering": {
+        "email": [
+            "noreply@bol.com",
+            "service@bol.com",
+        ],
+        "subject": [
+            "verzonden",
+            "onderweg",
+            "wordt bezorgd",
+            "meegegeven met",
+        ],
+        "body": [
+            "nu bij PostNL",
+            "nu bij DHL",
+            "meegegeven met",
+            "bezorger onderweg",
+        ],
+    },
+    "bolcom_packages": {},
+    "bolcom_tracking": {"pattern": ["3S[A-Z0-9]{10,18}", "JJD\\d{14,25}", "\\d{14}"]},
 }
 
 # Sensor definitions
@@ -1325,6 +1464,44 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="rewe_lieferservice_packages",
     ),
+    # DPD Netherlands
+    "dpd_nl_delivering": SensorEntityDescription(
+        name="Mail DPD NL Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_nl_delivering",
+    ),
+    "dpd_nl_delivered": SensorEntityDescription(
+        name="Mail DPD NL Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_nl_delivered",
+    ),
+    "dpd_nl_packages": SensorEntityDescription(
+        name="Mail DPD NL Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_nl_packages",
+    ),
+    # bol.com (Netherlands)
+    "bolcom_delivering": SensorEntityDescription(
+        name="Mail bol.com Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bolcom_delivering",
+    ),
+    "bolcom_delivered": SensorEntityDescription(
+        name="Mail bol.com Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="bolcom_delivered",
+    ),
+    "bolcom_packages": SensorEntityDescription(
+        name="Mail bol.com Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bolcom_packages",
+    ),
     ###
     # !!! Insert new sensors above these two !!!
     ###
@@ -1419,4 +1596,6 @@ SHIPPERS = [
     "post_nl",
     "post_at",
     "rewe_lieferservice",
+    "dpd_nl",
+    "bolcom",
 ]

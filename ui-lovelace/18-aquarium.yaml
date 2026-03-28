@@ -1,0 +1,151 @@
+title: Aquarium
+cards:
+  - type: vertical-stack
+    cards:
+      # --- Header & Automations ---
+      - type: entities
+        title: Aquarium Controls
+        show_header_toggle: false
+        entities:
+          - entity: automation.aquarium_light_ramp_up
+            name: Light Ramp Up Automation
+          - entity: automation.aquarium_light_ramp_down_off
+            name: LightRamp Down Automation
+          - entity: automation.aquarium_light_moonlight
+            name: Moonlight Automation
+          - entity: switch.kmc_multi_plug_1_1
+          - entity: switch.kmc_multi_plug_1_2
+
+      # --- Main Power Row ---
+      - type: grid
+        columns: 2
+        square: false
+        cards:
+          - type: button
+            entity: button.aquarium_light_remote_off
+            name: Power Off
+            icon: mdi:power-off
+            icon_height: 40px
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_on
+            name: Power On
+            icon: mdi:power
+            icon_height: 40px
+            tap_action:
+              action: toggle
+
+      # --- Master Brightness Presets ---
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: button
+            entity: button.aquarium_light_remote_all_20
+            name: 20%
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_all_40
+            name: 40%
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_all_80
+            name: 80%
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_all_100
+            name: 100%
+            tap_action:
+              action: toggle
+
+    # --- Individual Color Channels (Columns) ---
+      - type: grid
+        columns: 4
+        square: false
+        title: Color Tuning
+        cards:
+          # --- ROW 1: ALL UP BUTTONS ---
+          - type: button
+            entity: button.aquarium_light_remote_white_1_up
+            icon: mdi:plus-box-outline
+            name: W1 Up
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_white_2_up
+            icon: mdi:plus-box-outline
+            name: W2 Up
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_blue_up
+            icon: mdi:chevron-up-circle-outline
+            name: Blue Up
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_green_up
+            icon: mdi:chevron-up-circle-outline
+            name: Green Up
+            tap_action:
+              action: toggle
+
+          # --- ROW 2: ALL DOWN BUTTONS ---
+          - type: button
+            entity: button.aquarium_light_remote_white_1_down
+            icon: mdi:minus-box-outline
+            name: W1 Down
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_white_2_down
+            icon: mdi:minus-box-outline
+            name: W2 Down
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_blue_down
+            icon: mdi:chevron-down-circle-outline
+            name: Blue Down
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_green_down
+            icon: mdi:chevron-down-circle-outline
+            name: Green Down
+            tap_action:
+              action: toggle
+            
+      # --- Master Step & Presets Footer ---
+      - type: grid
+        columns: 4
+        square: false
+        cards:
+          - type: button
+            entity: button.aquarium_light_remote_all_down
+            name: All Dimmer
+            icon: mdi:brightness-5
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_all_minimum
+            name: All Minimum
+            icon: mdi:brightness-2
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_blue_only_preset
+            name: Moonlight
+            icon: mdi:moon-waning-crescent
+            tap_action:
+              action: toggle
+          - type: button
+            entity: button.aquarium_light_remote_all_up
+            name: All Brighter
+            icon: mdi:brightness-7
+            tap_action:
+              action: toggle

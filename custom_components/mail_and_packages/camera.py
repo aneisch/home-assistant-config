@@ -6,6 +6,7 @@ import logging
 import os
 from pathlib import Path
 
+import anyio
 import voluptuous as vol
 from homeassistant.components.camera import Camera
 from homeassistant.config_entries import ConfigEntry
@@ -13,15 +14,13 @@ from homeassistant.const import ATTR_ENTITY_ID, CONF_HOST
 from homeassistant.core import ServiceCall
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import const
+from . import MailAndPackagesConfigEntry, const
 from .const import (
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
-    CAMERA,
     CAMERA_DATA,
     CONF_CUSTOM_IMG,
     CONF_CUSTOM_IMG_FILE,
-    COORDINATOR,
     DOMAIN,
     SENSOR_NAME,
     VERSION,
@@ -32,23 +31,22 @@ SERVICE_UPDATE_IMAGE = "update_image"
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(hass, config, async_add_entities):
+async def async_setup_entry(
+    hass, config: MailAndPackagesConfigEntry, async_add_entities
+):
     """Set up the Camera that works with local files."""
-    if CAMERA not in hass.data[DOMAIN][config.entry_id]:
-        hass.data[DOMAIN][config.entry_id][CAMERA] = []
-
-    coordinator = hass.data[DOMAIN][config.entry_id][COORDINATOR]
+    coordinator = config.runtime_data.coordinator
     camera = []
 
     for variable in CAMERA_DATA:
         temp_cam = MailCam(hass, variable, config, coordinator)
         camera.append(temp_cam)
-        hass.data[DOMAIN][config.entry_id][CAMERA].append(temp_cam)
+        config.runtime_data.cameras.append(temp_cam)
 
     async def _update_image(service: ServiceCall) -> None:
         """Refresh camera image."""
         _LOGGER.debug("Updating image: %s", service)
-        cameras = hass.data[DOMAIN][config.entry_id][CAMERA]
+        cameras = config.runtime_data.cameras
         entity_id = None
 
         if ATTR_ENTITY_ID in service.data:
@@ -149,7 +147,7 @@ class MailCam(CoordinatorEntity, Camera):
             file = await self.hass.async_add_executor_job(open, self._file_path, "rb")
             return file.read()
         except FileNotFoundError:
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Could not read camera %s image from file: %s",
                 self._name,
                 self._file_path,
@@ -158,7 +156,7 @@ class MailCam(CoordinatorEntity, Camera):
     def check_file_path_access(self, file_path: str) -> None:
         """Check that filepath given is readable."""
         if not os.access(file_path, os.R_OK):
-            _LOGGER.info(
+            _LOGGER.debug(
                 "Could not read camera %s image from file: %s", self._name, file_path
             )
 
@@ -335,7 +333,7 @@ class MailCam(CoordinatorEntity, Camera):
         path = f"{image_path}{base_name}/"
         coordinator_file_path = f"{self.hass.config.path()}/{path}{image}"
 
-        _LOGGER.info(
+        _LOGGER.debug(
             "=== %s CAMERA UPDATE === coordinator %s = '%s'",
             self._type,
             image_attr,
@@ -348,13 +346,13 @@ class MailCam(CoordinatorEntity, Camera):
             for k in self.coordinator.data
             if "image" in k.lower()
         }
-        _LOGGER.info(
+        _LOGGER.debug(
             "%s camera - All image keys in coordinator: %s",
             self._type,
             all_image_keys,
         )
 
-        if Path(coordinator_file_path).exists() and os.access(
+        if await anyio.Path(coordinator_file_path).exists() and os.access(
             coordinator_file_path, os.R_OK
         ):
             self._file_path = coordinator_file_path
@@ -463,7 +461,7 @@ class MailCam(CoordinatorEntity, Camera):
 
         """
         # Extract base name from camera type (e.g., "amazon_camera" -> "amazon")
-        base_name = camera_type.split("_")[0]
+        base_name = camera_type.split("_", maxsplit=1)[0]
 
         # Special case for USPS (uses usps_mail instead of usps_delivered)
         if base_name == "usps":
@@ -508,6 +506,11 @@ class MailCam(CoordinatorEntity, Camera):
         False if entity pushes its state to HA.
         """
         return True
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return self.coordinator.data is not None
 
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""

@@ -33,7 +33,6 @@ elif MeterEntity == "sensor.electricity_sell":
     hass.services.call("input_text", "set_value", service_data)
 
 elif MeterEntity == "sensor.monthly_tesla_electric_usage":
-    # Add $7 monthly charge to summary total
     computed_electricity_cost = round((float(inputState) * current_cost), 2)
 
     # Set State

@@ -28,7 +28,6 @@ class SolarEVCharger(hass.Hass):
             "charge_rate": "input_number.tesla_charge_rate_master",
             "charge_limit": "number.tesla_ble_charging_limit",
             "target_soc": "input_number.tesla_solar_target_soc_limit",
-            "vehicle_soc": "sensor.tesla_battery_level",
             "override_boolean": "input_boolean.ev_charge_override",
             "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status",
         }
@@ -80,7 +79,6 @@ class SolarEVCharger(hass.Hass):
             load_watts = int(float(self.get_state(self.entities["load"])))
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
             ev_prioritization = self.get_state(self.entities["ev_prioritization"])
-            vehicle_soc = int(float(self.get_state(self.entities["vehicle_soc"])))
             target_soc = int(float(self.get_state(self.entities["target_soc"])))
         except Exception as e:
             self.log(f"WARNING: Skipping eval due to data error: {e}")
@@ -128,7 +126,7 @@ class SolarEVCharger(hass.Hass):
             self.insufficient_disabled = False
             final_amps = min(self.max_amps, int(target_amps))
             
-            self.log(f"Home: {home_soc}% | Solar: {solar_watts}W | House: {house_load_only}W | EV: {vehicle_soc}% -> {target_soc}% | Set: {final_amps}A")
+            self.log(f"Home: {home_soc}% | Solar: {solar_watts}W | House: {house_load_only}W | EV Target:{target_soc}% | Set: {final_amps}A")
             self.safe_set_rate(final_amps, disable=False)
 
     def safe_set_rate(self, amps, disable=False):
@@ -152,6 +150,13 @@ class SolarEVCharger(hass.Hass):
             if self.get_state("switch.emporia_charger") == "off":
                 self.turn_on("switch.emporia_charger")
                 self.log("Emporia Charger turned ON")
+                # Start charging
+                self.call_service(
+                    "mqtt/publish",
+                    topic="tesla_ble/5YJSA1E5XMF436975/charging",
+                    payload="start"
+                )
+                self.log("Tesla commanded to start charging")
             
             if present_limit != target_soc:
                 self.turn_off("automation.tesla_charge_limit_change_notice")

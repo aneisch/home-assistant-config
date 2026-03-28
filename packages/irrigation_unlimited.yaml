@@ -1,8 +1,12 @@
+# DC Timer on Master Valve is MWF 5-7am
+
 irrigation_unlimited:
-  granularity: 10
+  granularity: 5
   controllers:
     - name: "Home Unlimited Irrigation Controller"
       entity_id: "switch.irrigation_master_valve" 
+      preamble: "00:00:05" # Opens master before opening zone
+      postamble: "00:00:30" # How long to keep master on after all zones off
       enabled: true
       zones:
         - name: "Front Beds"
@@ -12,7 +16,7 @@ irrigation_unlimited:
 
         - name: "Front Lawn"
           entity_id: "switch.irrigation_front_lawn"
-          duration: "00:20"
+          duration: "00:30"
           allow_manual: true
 
         - name: "Left and Main Rear Lawn"
@@ -32,26 +36,33 @@ irrigation_unlimited:
 
       sequences:
         - name: "Lawn Only"
-          delay: "00:01"
+          delay: "00:00:05" # Delay between zones
           schedules:
-            - name: "Before dawn"
-              time:
-                sun: "sunrise"
-                before: "00:10"
-              anchor: finish
+            - name: "MWF Morning"
+              time: "05:00"
+              weekday:
+                - mon
+                #- wed
+                - fri
           zones:
-            - zone_id: 2
-            - zone_id: 3
-            - zone_id: 4
-            - zone_id: 5
+            - zone_id: 2 # Front Lawn
+              duration: "00:25:00"
+            - zone_id: 3 # Left and Main Rear
+              duration: "00:30:00"
+            - zone_id: 4 # Front and Right Rear
+              duration: "00:30:00"
+            - zone_id: 5 # Side Lawn
+              duration: "00:15:00"
 
         - name: "Beds Only"
-          delay: "00:01"
+          delay: "00:00:05" # Delay between zones
           schedules:
-            - name: "Before dawn"
-              time:
-                sun: "sunrise"
-                before: "00:10"
-              anchor: finish
+            - name: "MWF Morning"
+              time: "06:50"
+              weekday:
+                - mon
+                - wed
+                - fri
           zones:
-            - zone_id: 1
+            - zone_id: 1 # Front Beds
+              duration: "00:10:00"

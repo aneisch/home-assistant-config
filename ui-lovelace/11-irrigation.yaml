@@ -3,7 +3,7 @@ icon: mdi:sprinkler
 cards:
   - type: custom:irrigation-unlimited-card
     name: Unlimited
-    always_show_sequences: false
+    always_show_sequences: true
     always_show_zones: true
 
   - type: vertical-stack
