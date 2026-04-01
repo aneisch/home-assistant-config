@@ -51,7 +51,7 @@ AC Automation Solar:
   cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
-  cooldown_window_start_offset: "-08:00:00"   # 7 hours before sunset
+  cooldown_window_start_offset: "-03:00:00"   # 4 hours before sunset
   cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
 
 Solar EV Charger:
@@ -292,12 +292,13 @@ Dehumidifier Follow:
 #   leader: light.aquarium_light
 #   follower: switch.circadian_lighting_aquarium_circadian
 
-CO2:
-  module: entity_timer
-  class: Timer
-  entities: switch.kmc_multi_plug_1_1
-  time_on: "07:00:00"
-  time_off: "16:30:00"
+# Actually handled directly in ESPHome config of switch for safety
+# CO2:
+#   module: entity_timer
+#   class: Timer
+#   entities: switch.kmc_multi_plug_1_1
+#   time_on: "07:00:00"
+#   time_off: "16:30:00"
 
 # Light is home assistant automation
 

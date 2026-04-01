@@ -3,7 +3,7 @@ version: '3.2'
 services:
     homeassistant:
         container_name: homeassistant
-        image: ghcr.io/home-assistant/home-assistant:stable
+        image: ghcr.io/home-assistant/home-assistant:beta
         labels:
             - com.centurylinklabs.watchtower.monitor-only=true
             # HTTPS for CF
@@ -1097,31 +1097,31 @@ services:
             - traefik.http.routers.note-trainer.rule=Host(`note-trainer.home.domain.com`)
             - traefik.http.routers.note-trainer.service=note-trainer
 
-    music-assistant:
-        image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
-        container_name: music-assistant
-        restart: always
-        network_mode: host
-        volumes:
-            - /opt/music-assistant:/data/
-        # privileged caps (and security-opt) needed to mount smb folders within the container
-        cap_add:
-            - SYS_ADMIN
-            - DAC_READ_SEARCH
-        security_opt:
-            - apparmor:unconfined
-        environment:
-            - LOG_LEVEL=info
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.music-assistant.loadbalancer.server.port=8095
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.music-assistant.tls=true
-            - traefik.http.routers.music-assistant.entrypoints=websecure
-            - traefik.http.routers.music-assistant.tls.certResolver=le-home
-            - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
-            - traefik.http.routers.music-assistant.service=music-assistant
+    # music-assistant:
+    #     image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
+    #     container_name: music-assistant
+    #     restart: always
+    #     network_mode: host
+    #     volumes:
+    #         - /opt/music-assistant:/data/
+    #     # privileged caps (and security-opt) needed to mount smb folders within the container
+    #     cap_add:
+    #         - SYS_ADMIN
+    #         - DAC_READ_SEARCH
+    #     security_opt:
+    #         - apparmor:unconfined
+    #     environment:
+    #         - LOG_LEVEL=info
+    #     labels:
+    #         - traefik.enable=true
+    #         - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+    #         # HTTPS Local Only (with 80-->443 redirect)
+    #         - traefik.http.routers.music-assistant.tls=true
+    #         - traefik.http.routers.music-assistant.entrypoints=websecure
+    #         - traefik.http.routers.music-assistant.tls.certResolver=le-home
+    #         - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
+    #         - traefik.http.routers.music-assistant.service=music-assistant
 
     # piano-recorder:
     #     container_name: piano-recorder

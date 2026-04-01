@@ -13,7 +13,12 @@ automation:
   action:
     - service: notify.signal_self
       data:
-        message: "New container detected: {{ trigger.event.data.new_state.attributes.friendly_name | replace(' State','') }}. Running Terraform Apply"
+        message: >
+          {% if trigger is defined and trigger.event is defined and 'new_state' in trigger.event.data %}
+            New container detected: {{ trigger.event.data.new_state.attributes.friendly_name | replace(' State','') }}. Running Terraform Apply
+          {% else %}
+            Terraform triggered manually
+          {% endif %}
     - action: shell_command.trigger_terraform_apply
       data:
         github_token: !secret github_token

@@ -15,6 +15,22 @@ time:
   - platform: homeassistant
     id: homeassistant_time
     timezone: 'America/Chicago'
+    on_time:
+      # Aquarium CO2 ON at 07:00:00
+      - seconds: 0
+        minutes: 0
+        hours: 7
+        then:
+          - switch.turn_on: relay1
+          - logger.log: "CO2 Solenoid Engaged"
+
+      # Aquarium CO2 OFF at 16:30:00
+      - seconds: 0
+        minutes: 30
+        hours: 16
+        then:
+          - switch.turn_off: relay1
+          - logger.log: "CO2 Solenoid Disengaged"
 
 sensor:
   - platform: hlw8012
@@ -42,7 +58,7 @@ sensor:
 
 switch:
   - platform: gpio
-    name: "${friendly_name} 1" # Light
+    name: "${friendly_name} 1" # CO2
     pin: GPIO15
     id: relay1
   - platform: gpio
@@ -51,9 +67,11 @@ switch:
     id: relay2
     restore_mode: ALWAYS_ON
   - platform: gpio
-    name: "${friendly_name} 3" # CO2
+    name: "${friendly_name} 3" # Light
     pin: GPIO14
     id: relay3
+    restore_mode: ALWAYS_ON
+
   - platform: restart
     id: restart_device
     name: "${friendly_name} Restart"

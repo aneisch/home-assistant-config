@@ -1,9 +1,11 @@
-- platform: orvibo
-  switches:
-    - host: 10.0.0.21
-      name: "Orvibo 1"
-#     - host: 10.0.0.14
-#       name: "Garage Fan"
+
+# Moved to UI
+# - platform: orvibo
+#   switches:
+#     - host: 10.0.0.21
+#       name: "Orvibo 1"
+# #     - host: 10.0.0.14
+# #       name: "Garage Fan"
 
 - platform: wake_on_lan
   name: "NAS"

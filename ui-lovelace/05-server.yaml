@@ -128,7 +128,7 @@ cards:
 
           Cycle Tesla Energy: {{ states('sensor.monthly_tesla_electric_usage') | int }} kWh
 
-          Cycle Tesla Charging Cost: ${{ states('input_text.electricity_cost_monthly_tesla') }} ({{ states('sensor.monthly_tesla_miles') }} miles)
+          Cycle Tesla Charging Cost (assuming all grid): ${{ states('input_text.electricity_cost_monthly_tesla') }} ({{ states('sensor.monthly_tesla_miles') }} miles, ${% set gallons = states('sensor.monthly_tesla_miles')|float / 25 %}{{ (states('input_text.electricity_cost_monthly_tesla')|float / gallons) | round(2) }}/G @ 25 MPG)
 
           Cycle Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 
@@ -240,6 +240,18 @@ cards:
             entity: script.hass_switch_to_version
           # - entity: sensor.hacs
           #   name: HACS Updates
+          - type: button
+            name: Force Terraform Run
+            icon: mdi:terraform
+            show_name: true
+            show_icon: true
+            tap_action:
+              action: call-service
+              service: automation.trigger
+              target:
+                entity_id: automation.docker_container_added
+              data:
+                skip_condition: true
 
       - type: conditional
         conditions:

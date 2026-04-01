@@ -41,20 +41,21 @@ automation:
     action:
       - variables:
           ramp_delay: "00:00:10"
-      - action: button.press
-        target:
-          entity_id: button.aquarium_light_remote_on
-      - delay: "{{ ramp_delay }}"
-      # This loop handles the gradual dimming
       - repeat:
-          count: 20
+          until: "{{ (states('sensor.kmc_multi_plug_1_kmc_multi_plug_1_power') | int > 20) or repeat.index > 5 }}"
           sequence:
             - action: button.press
               target:
-                entity_id: button.aquarium_light_remote_all_up
+                entity_id: button.aquarium_light_remote_on
             - delay: "{{ ramp_delay }}"
-      - delay: "{{ ramp_delay }}"
-      # Ensure we are 100 by the end
+            # This loop handles the gradual dimming
+            - repeat:
+                count: 20
+                sequence:
+                  - action: button.press
+                    target:
+                      entity_id: button.aquarium_light_remote_all_up
+            - delay: "00:01:00" # Wait for power meter to update
       - action: button.press
         target:
           entity_id: button.aquarium_light_remote_all_100
@@ -96,13 +97,17 @@ automation:
           ramp_delay: "00:00:10"
       # This loop handles the gradual dimming
       - repeat:
-          count: 20
+          until: "{{ (states('sensor.kmc_multi_plug_1_kmc_multi_plug_1_power') | int < 12) or repeat.index > 5 }}"
           sequence:
+            - repeat:
+                count: 20
+                sequence:
+                  - action: button.press
+                    target:
+                      entity_id: button.aquarium_light_remote_all_down
+                  - delay: "{{ ramp_delay }}"      
             - action: button.press
               target:
-                entity_id: button.aquarium_light_remote_all_down
-            - delay: "{{ ramp_delay }}"      
-      - action: button.press
-        target:
-          entity_id: button.aquarium_light_remote_off
+                entity_id: button.aquarium_light_remote_off
+            - delay: "00:01:00" # Wait for power meter to update"
     mode: restart
