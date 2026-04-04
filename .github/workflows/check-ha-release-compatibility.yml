@@ -31,7 +31,7 @@ jobs:
         run: 'echo "DOCKER_TAG=latest" >> $GITHUB_ENV'
         
       - name: Log Docker Tag
-        run: 'echo "Image: ghcr.io/SECRET/SECRET:${{ env.DOCKER_TAG }}"'
+        run: 'echo "Image: ghcr.io/home-assistant/home-assistant:${{ env.DOCKER_TAG }}"'
           
       - uses: actions/checkout@v2
 
@@ -43,7 +43,7 @@ jobs:
 
       - name: Check Home Assistant Config
         run: |
-          docker pull -q "homeassistant/SECRET:${{ env.DOCKER_TAG }}"
+          docker pull -q "homeassistant/home-assistant:${{ env.DOCKER_TAG }}"
           mv github_action_secrets.yaml secrets.yaml
           mkdir -p media/audio media/video media/images
           sed -i -e 's/- camera/#- camera/' -e 's/^camera/#camera/' configuration.yaml
@@ -51,12 +51,12 @@ jobs:
           mkdir audio
 
           docker run --rm --entrypoint "" \
-          homeassistant/SECRET:${{ env.DOCKER_TAG }} \
+          homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
           python -m homeassistant --version
 
           docker run --rm -v "$(pwd):/config" --entrypoint "" \
-          homeassistant/SECRET:${{ env.DOCKER_TAG }} \
-          python -m homeassistant --script check_config --config /config --json
+          homeassistant/home-assistant:${{ env.DOCKER_TAG }} \
+          python -m homeassistant --script check_config --config /config
 
   # Call Home Assistant Webook to notify of completion and allow HASS to decide what to do
   hass-callback:
