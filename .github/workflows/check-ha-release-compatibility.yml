@@ -38,7 +38,7 @@ jobs:
       - name: Set Up Matcher
         shell: bash
         run: |
-          matcher="${{ github.action_path }}/matcher.json"
+          matcher="${{ github.workspace }}/.github/workflows/matcher.json"
           echo "::add-matcher::${matcher}"
 
       - name: Check Home Assistant Config
