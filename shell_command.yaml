@@ -7,7 +7,7 @@ nas_poweroff: ssh nuc '/opt/homeassistant/scripts/nas-poweroff.sh'
 
 mount_plex: ssh nuc 'mount /plex; sleep 5; docker restart plex'
 
-# For Terraform
+# For Terraform File
 get_docker_container_hosts: ssh nuc '/opt/homeassistant/scripts/get_docker_container_hosts.sh'
 
 umount_plex: ssh nuc 'umount -f /plex; docker stop plex'
