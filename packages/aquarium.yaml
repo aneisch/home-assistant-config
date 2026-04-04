@@ -50,7 +50,7 @@ automation:
             - delay: "{{ ramp_delay }}"
             # This loop handles the gradual dimming
             - repeat:
-                count: 20
+                count: 25
                 sequence:
                   - action: button.press
                     target:

@@ -1,0 +1,35 @@
+{
+  "problemMatcher": [
+    {
+      "owner": "homeassistant-warnings",
+      "pattern": [
+        {
+          "regexp": "^(WARNING):(.*)$",
+          "severity": 1,
+          "message": 2
+        }
+      ]
+    },
+    {
+      "owner": "homeassistant-invalid-config",
+      "pattern": [
+        {
+          "regexp": "(Invalid config for .*) \\(See (.*)(?::|, line )(\\d|\\?)\\)",
+          "file": 2,
+          "line": 3,
+          "message": 1
+        }
+      ]
+    },
+    {
+      "owner": "homeassistant-platform-error-integration-not-found",
+      "pattern": [
+        {
+          "regexp": "Platform (error) .* - (Integration '.*' not found).$",
+          "severity": 1,
+          "message": 2
+        }
+      ]
+    }
+  ]
+}
