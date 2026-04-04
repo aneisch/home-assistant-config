@@ -22,5 +22,3 @@ update_cloudflare_firewall: /config/scripts/update_cloudflare_firewall.sh {{ old
 trust_signal_identities: ssh nuc '/opt/homeassistant/scripts/trust_signal_identities.sh' 
 
 weasel_shortcut: ssh weasel 'shortcuts run "{{ shortcut }}"'
-
-#sync_cloudflare_records: ssh nuc '/opt/homeassistant/scripts/nginx_proxy_manager_sync.py'
