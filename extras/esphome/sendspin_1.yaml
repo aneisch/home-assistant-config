@@ -1,0 +1,227 @@
+# =============================================================================
+# HARDWARE INFORMATION
+# =============================================================================
+# ESP32 Chip: ESP32-S3 rev0.2, 2 core(s)
+# ESP32-S3-DevkitC-1 V1.0
+# Onboard LED -> GPIO48
+# =============================================================================
+
+# Define the device name and friendly name
+substitutions:
+  name: "sendspin-1"
+  friendly_name: "SendSpin 1"
+  led_gpio_pin: GPIO48
+  sample_rate: 48000
+
+# =============================================================================
+# Basic ESPHome configurations
+# =============================================================================
+# Core board ESP32-S3-DevkitC-1
+# Lgger, OTA, Fallback hotpot and PSRAM enabled
+# By default of PlatformIO, board: esp32-s3-devkitc-1 means for a non-PSRAM version.
+# "platformio_options" must be defined to overwrite the default options of the board,
+# to give right confirmation for N16R8
+# =============================================================================
+
+esphome:
+  name: $name
+  friendly_name: $friendly_name
+  platformio_options: 
+    board_build.f_flash: 80000000L
+    board_build.f_cpu: 240000000L
+    board_build.flash_mode: qio
+    board_build.psram_type: opi
+    board_build.arduino.memory_type: qio_opi
+    board_upload.maximum_size: 16777216
+    board_upload.speed: 921600
+    build_flags: 
+      - -DBOARD_HAS_PSRAM
+
+# According to latest ESPHome documentation, variant is recommended practice,
+# board option is added for backwards compatibility, it might be removed later
+# Use the ESP32 Platform configuration cpu_frequency, flash_size to define right parameter for N16R8
+# Disable bluetooth as it is not used in the components
+# Add some SRAM and PSRAM improvements
+esp32:
+  variant: esp32s3
+  board: esp32-s3-devkitc-1
+  cpu_frequency: 240MHz
+  flash_size: 16MB
+  framework:
+    type: esp-idf
+    version: recommended
+    sdkconfig_options:
+      CONFIG_BT_ENABLED: "n"
+      CONFIG_ESP_WIFI_TASK_CORE_ID: "0"
+      # Configs to improve data cache, these configs consume about 65KB SRAM
+      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
+      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
+      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
+      # Configs to optimize PSRAM usage
+      CONFIG_SPIRAM_RODATA: "y"
+      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: "y"
+      CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: "y"
+      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: "y"
+      CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
+
+# Enable logging
+logger:
+  level: DEBUG
+  logs:
+    sensor: WARN 
+
+ota:
+  platform: esphome
+  password: esphome_recovery
+
+# Wifi setup
+wifi:
+  ssid: "SSID"
+  password: !secret wifi_password
+  output_power: 8.5dB
+  power_save_mode: NONE
+
+network:
+  enable_high_performance: false
+
+# Enable PSRAM (Typically on ESP32-S3 modules, a 2MB PSRAM will use quad mode,
+# while 8 or 16MB will use octal mode)
+psram:
+  mode: octal
+  speed: 80MHz
+  ignore_not_found: false
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: !secret encryption_key
+
+  reboot_timeout: 0s
+
+# Enable http request
+http_request:
+  buffer_size_rx: 4096
+
+# Sendspin related components are pinned to specific commits for reproducible builds
+external_components:
+  - source:
+      # https://github.com/esphome/esphome/pull/14933
+      type: git
+      url: https://github.com/kahrendt/esphome
+      ref: 7a6cf5c8472b7e2fa18ee0fc314f66a80d249e32
+    components: [const, media_source, sendspin]
+  - source:
+      # https://github.com/esphome/esphome/pull/12429
+      type: git
+      url: https://github.com/esphome/esphome
+      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
+    refresh: 0s
+    components: [http_request]
+
+# =============================================================================
+# Media player / I2S configurations
+# =============================================================================
+# At sample rate 44100Hz, 2 channels, 16bit, every 1ms buffer uses about 176.4 Bytes
+# 100ms - 17.64K, 200ms - 35.2KB, 500ms - 86.13KB
+# If no sound by setting bits_per_sample to 32bit, set to 16bit instead
+# =============================================================================
+i2s_audio:
+  - id: i2s_out
+    i2s_lrclk_pin: GPIO15
+    i2s_bclk_pin: GPIO17
+
+speaker:
+  - platform: i2s_audio
+    id: i2s_audio_speaker
+    i2s_audio_id: i2s_out
+    sample_rate: $sample_rate
+    i2s_dout_pin: GPIO16
+    bits_per_sample: 16bit
+    dac_type: external
+    channel: stereo
+    timeout: never
+    buffer_duration: 100ms
+
+  - platform: mixer
+    id: mixer_speaker_id
+    output_speaker: i2s_audio_speaker
+    source_speakers:
+      - id: media_spk_mixer_input
+        buffer_duration: 100ms
+        timeout: never
+      - id: announcement_spk_mixer_input
+        buffer_duration: 100ms
+        timeout: never
+    num_channels: 2
+    task_stack_in_psram: true
+
+  - platform: resampler
+    id: media_resampling_speaker
+    output_speaker: media_spk_mixer_input
+    sample_rate: $sample_rate
+    bits_per_sample: 16
+    buffer_duration: 100ms
+    task_stack_in_psram: true
+  - platform: resampler
+    id: announcement_resampling_speaker
+    output_speaker: announcement_spk_mixer_input
+    sample_rate: $sample_rate
+    bits_per_sample: 16
+    buffer_duration: 100ms
+    task_stack_in_psram: true
+
+sendspin:
+  id: sendspin_hub
+  task_stack_in_psram: false
+
+media_source:
+  - platform: http_request
+    id: http_announcement_source
+    buffer_size: 250000
+  - platform: http_request
+    id: http_media_source
+    buffer_size: 500000
+  - platform: sendspin
+    id: sendspin_media_source
+
+media_player:
+  - platform: sendspin
+    id: sendspin_group_media_player
+  - platform: speaker_source
+    name: $friendly_name
+    id: external_media_player
+    internal: false
+    media_pipeline:
+        speaker: media_resampling_speaker
+        format: MP3
+        sample_rate: $sample_rate
+        num_channels: 2
+        sources:
+          - http_media_source
+          - sendspin_media_source
+    announcement_pipeline:
+        speaker: announcement_resampling_speaker
+        format: MP3
+        sample_rate: $sample_rate
+        num_channels: 1
+        sources:
+          - http_announcement_source
+    volume_increment: 0.02
+    volume_initial: 0.20
+    volume_min: 0.05
+    volume_max: 0.95
+    on_announcement:
+      - mixer_speaker.apply_ducking:
+          id: media_spk_mixer_input
+          decibel_reduction: 20
+          duration: 0.0s
+    on_state:
+      if:
+        condition:
+          not:
+            media_player.is_announcing: external_media_player
+        then:
+          - mixer_speaker.apply_ducking:
+              id: media_spk_mixer_input
+              decibel_reduction: 0
+              duration: 1.0s

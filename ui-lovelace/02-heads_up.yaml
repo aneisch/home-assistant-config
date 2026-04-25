@@ -15,6 +15,8 @@ cards:
           state: "on"
         - entity_id: "group.under_cabinet_lights"
           state: "on"
+        - entity_id: "humidifier.151732606535142_humidifier"
+          state: "on"
       exclude:
         - entity_id: "*outdoor_ge_2*"
         - entity_id: "*tesla_ble_*"

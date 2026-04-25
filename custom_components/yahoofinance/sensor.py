@@ -224,7 +224,7 @@ class YahooFinanceSensor(CoordinatorEntity, SensorEntity):
         if self._no_unit:
             return None
 
-        currency = self._target_currency if self._target_currency else self._currency
+        currency = self._target_currency or self._currency
 
         if self._show_currency_symbol_as_unit:
             return CURRENCY_CODES.get(currency.lower(), currency)

@@ -50,7 +50,59 @@ automation:
     action:
       - action: script.notify_wrapper
         data:
-          message: "{{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+          message: >-
+            {% if trigger.to_state.state == 'fault' %}
+              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }} ({{ states('sensor.solark_sol_ark_fault_status') }}): {{ now().strftime('%Y-%m-%d %T') }}"
+            {% else %}
+              {{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
+            {% endif %}
+
+
+  - alias: Battery Charge Limit - Away Mode Protection
+    id: b84c9ec2-ae80-4b49-8520-f1583705c23e
+    description: >
+      When away and guest mode is off: throttle max charge current to 0A when
+      battery SOC > 90% to avoid prolonged high SOC. Restore to 200A when SOC
+      drops below 80%, or when anyone returns home.
+    mode: single
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.solark_sol_ark_battery_soc
+        above: 90
+        alias: Battery SOC rises above 90%
+      - platform: numeric_state
+        entity_id: sensor.solark_sol_ark_battery_soc
+        below: 80
+        alias: Battery SOC drops below 80%
+      - platform: state
+        entity_id: group.trackers
+        to: home
+        alias: Someone returns home
+    action:
+      - choose:
+          - alias: Away + guest mode off + battery > 90% → throttle charging
+            conditions:
+              - condition: state
+                entity_id: group.trackers
+                state: not_home
+              - condition: state
+                entity_id: input_boolean.guest_mode
+                state: "off"
+              - condition: numeric_state
+                entity_id: sensor.solark_sol_ark_battery_soc
+                above: 90
+            sequence:
+              - service: number.set_value
+                target:
+                  entity_id: number.solark_sol_ark_battery_max_charge_current
+                data:
+                  value: 0
+        default:
+          - service: number.set_value
+            target:
+              entity_id: number.solark_sol_ark_battery_max_charge_current
+            data:
+              value: 200
 
   - alias: "Lock in daily solar max sensor"
     mode: single

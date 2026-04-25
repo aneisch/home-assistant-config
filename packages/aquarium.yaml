@@ -38,11 +38,14 @@ automation:
         at: "09:00:00"
       - platform: time
         at: "14:30:00"
+      # Adjust for algea control
+      # - platform: time
+      #   at: "16:00:00"
     action:
       - variables:
           ramp_delay: "00:00:10"
       - repeat:
-          until: "{{ (states('sensor.kmc_multi_plug_1_kmc_multi_plug_1_power') | int > 20) or repeat.index > 5 }}"
+          until: "{{ (states('sensor.kmc_multi_plug_1_kmc_multi_plug_1_power') | int > 50) or repeat.index > 5 }}"
           sequence:
             - action: button.press
               target:

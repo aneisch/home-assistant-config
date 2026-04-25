@@ -245,6 +245,8 @@ services:
             - '/opt/esphome:/config/workspace/esphome'
             - '/var/run/docker.sock:/var/run/docker.sock'
             - '/usr/local/bin/github_hass_commit.sh:/config/workspace/usr_local_bin/github_hass_commit.sh'
+            - '/usr/local/bin/github_hass_commit.sh.new:/config/workspace/usr_local_bin/github_hass_commit.sh.new'
+            - '/tmp:/config/workspace/tmp'
         environment:
             - TZ=America/Chicago
             - PUID=1000
@@ -805,31 +807,31 @@ services:
             - traefik.http.routers.note-trainer.rule=Host(`note-trainer.home.domain.com`)
             - traefik.http.routers.note-trainer.service=note-trainer
 
-    # music-assistant:
-    #     image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
-    #     container_name: music-assistant
-    #     restart: always
-    #     network_mode: host
-    #     volumes:
-    #         - /opt/music-assistant:/data/
-    #     # privileged caps (and security-opt) needed to mount smb folders within the container
-    #     cap_add:
-    #         - SYS_ADMIN
-    #         - DAC_READ_SEARCH
-    #     security_opt:
-    #         - apparmor:unconfined
-    #     environment:
-    #         - LOG_LEVEL=info
-    #     labels:
-    #         - traefik.enable=true
-    #         - traefik.http.services.music-assistant.loadbalancer.server.port=8095
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.music-assistant.tls=true
-    #         - traefik.http.routers.music-assistant.entrypoints=websecure
-    #         - traefik.http.routers.music-assistant.tls.certResolver=le-home
-    #         - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
-    #         - traefik.http.routers.music-assistant.service=music-assistant
+    music-assistant:
+        image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
+        container_name: music-assistant
+        restart: always
+        network_mode: host
+        volumes:
+            - /opt/music-assistant:/data/
+        # privileged caps (and security-opt) needed to mount smb folders within the container
+        cap_add:
+            - SYS_ADMIN
+            - DAC_READ_SEARCH
+        security_opt:
+            - apparmor:unconfined
+        environment:
+            - LOG_LEVEL=info
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.music-assistant.tls=true
+            - traefik.http.routers.music-assistant.entrypoints=websecure
+            - traefik.http.routers.music-assistant.tls.certResolver=le-home
+            - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
+            - traefik.http.routers.music-assistant.service=music-assistant
 
     # piano-recorder:
     #     container_name: piano-recorder
@@ -848,7 +850,28 @@ services:
     #         - traefik.http.routers.piano_recorder.tls.domains[0].main=*.home.domain.com
     #         - traefik.http.routers.piano_recorder.rule=Host(`piano_recorder.home.domain.com`)
     #         - traefik.http.routers.piano_recorder.service=piano_recorder
-
+    ha-mcp:
+        image: ghcr.io/homeassistant-ai/ha-mcp:latest
+        container_name: ha-mcp-server
+        environment:
+            - HOMEASSISTANT_URL=http://10.0.1.22:8123
+            # Set your Home Assistant long-lived access token
+            - HOMEASSISTANT_TOKEN=XXX
+            # Optional: Configure backup hint behavior
+            - BACKUP_HINT=normal
+            - MCP_SECRET_PATH=/private_aassdfrewghkfkk
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.ha-mcp.loadbalancer.server.port=8086
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.ha-mcp.tls=true
+            - traefik.http.routers.ha-mcp.entrypoints=websecure
+            - traefik.http.routers.ha-mcp.tls.certResolver=le-home
+            - traefik.http.routers.ha-mcp.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.ha-mcp.rule=Host(`ha-mcp.home.domain.com`)
+            - traefik.http.routers.ha-mcp.service=ha-mcp
+        command: ha-mcp-web
+        restart: unless-stopped
     tfc-agent:
         image: hashicorp/tfc-agent:latest
         container_name: tfc-agent

@@ -11,7 +11,7 @@ irrigation_unlimited:
       zones:
         - name: "Front Beds"
           entity_id: "switch.irrigation_front_beds"
-          duration: "00:10"
+          duration: "00:08"
           allow_manual: true
 
         - name: "Front Lawn"
@@ -38,12 +38,14 @@ irrigation_unlimited:
         - name: "Lawn Only"
           delay: "00:00:05" # Delay between zones
           schedules:
-            - name: "MWF Morning"
+            - name: "Morning"
               time: "05:00"
               weekday:
                 - mon
                 #- wed
-                - fri
+                - thu
+                - sun
+
           zones:
             - zone_id: 2 # Front Lawn
               duration: "00:25:00"
@@ -57,12 +59,15 @@ irrigation_unlimited:
         - name: "Beds Only"
           delay: "00:00:05" # Delay between zones
           schedules:
-            - name: "MWF Morning"
+            - name: "Morning"
               time: "06:50"
               weekday:
                 - mon
-                - wed
-                - fri
+                # - wed
+                - thu
+                - sun
+
+
           zones:
             - zone_id: 1 # Front Beds
-              duration: "00:10:00"
+              duration: "00:08:00"

@@ -966,27 +966,30 @@
         data:
           brightness: 255
       - delay: 00:00:05
-- alias: Rain Notifications
-  id: rain_notifications
-  mode: restart
-  trigger:
-  - platform: state
-    entity_id: sensor.neighbor_5in1_rain_last_1_hour
+- id: rain_notifications
+  alias: Rain Notifications
+  triggers:
+  - entity_id:
+    - sensor.neighbor_5in1_rain_last_1_hour
+    - sensor.amb_rain_hourly
     from:
     - unknown
     - unavailable
     - '0.0'
     - '0.00'
     - '0'
-  action:
+    trigger: state
+  actions:
   - if:
-    - '{{ float(trigger.to_state.state, default=-1) > 0.00 }}'
+    - condition: template
+      value_template: '{{ float(trigger.to_state.state, default=-1) > 0.00 }}'
     then:
     - action: notify.signal_homeassistant
       data:
         message: 'Rain started!
 
           '
+  mode: restart
 - alias: House secure at night reminder
   id: house_secure_night_reminder
   trigger:

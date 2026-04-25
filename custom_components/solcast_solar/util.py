@@ -20,9 +20,12 @@ from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 from .const import (
+    ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM,
     API_LIMIT,
     AUTO_UPDATE,
     AUTO_UPDATED,
+    CONFIG_DISCRETE_NAME,
+    CONFIG_FOLDER_DISCRETE,
     CUSTOM_HOURS,
     DOMAIN,
     DT_DATE_ONLY_FORMAT,
@@ -57,7 +60,6 @@ from .const import (
     SUCCESS_FORCED,
     SUCCESS_TRACKED,
     VERSION,
-    WINTER_TIME,
 )
 
 if TYPE_CHECKING:
@@ -120,6 +122,22 @@ class DataCallStatus(Enum):
     ABORT = 2
 
 
+class UpdateOutcome(Enum):
+    """The result of an update attempt."""
+
+    SUCCESS = 0
+    FAILED = 1
+    ABORTED = 2
+    SKIPPED = 3
+
+
+class UpdateResult(NamedTuple):
+    """Result payload for update attempts."""
+
+    outcome: UpdateOutcome
+    message: str
+
+
 class SitesStatus(Enum):
     """The state of load sites."""
 
@@ -154,6 +172,29 @@ class HistoryType(int, Enum):
     FORECASTS = 0
     ESTIMATED_ACTUALS = 1
     ESTIMATED_ACTUALS_ADJUSTED = 2
+
+
+async def async_is_allow_exceed_api_limit(hass: HomeAssistant) -> bool:
+    """Return whether the advanced API limit override is enabled."""
+
+    config_dir = Path(hass.config.config_dir)
+    advanced_dir = config_dir / CONFIG_DISCRETE_NAME if CONFIG_FOLDER_DISCRETE else config_dir
+    advanced_file = advanced_dir / "solcast-advanced.json"
+    if not advanced_file.exists():
+        return False
+
+    def _read_advanced_setting() -> bool:
+        with open(advanced_file, encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                return False
+            value = data.get(ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM, False)
+            return (isinstance(value, bool) and value is True) or False
+
+    try:
+        return await hass.async_add_executor_job(_read_advanced_setting)
+    except (OSError, json.JSONDecodeError, ValueError):
+        return False
 
 
 def sync_actuals_api_limit_issue(hass: HomeAssistant, options: Mapping[str, Any], sites: list[dict[str, Any]]) -> None:
@@ -277,10 +318,10 @@ class DateTimeHelper:
         return for_when.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(UTC)
 
     def dst(self, dt_obj: dt | None = None) -> bool:
-        """Return whether a given date is daylight savings time, or for zones using Winter time whether standard time."""
+        """Return whether a given date is daylight savings time, or for zones using winter time whether summer time."""
         result = False
         if dt_obj is not None:
-            delta = timedelta(hours=1) if str(self._tz) not in WINTER_TIME else timedelta(hours=0)
+            delta = timedelta(hours=1) if not self.is_dublin else timedelta(hours=0)
             result = dt_obj.astimezone(self._tz).dst() == delta
         return result
 
@@ -288,8 +329,13 @@ class DateTimeHelper:
         """Return the UTC datetime representing the start of the current hour."""
         return dt.now(self._tz).replace(minute=0, second=0, microsecond=0).astimezone(UTC)
 
+    @property
+    def is_dublin(self) -> bool:
+        """Return whether the timezone is Dublin, which has unique DST."""
+        return str(self._tz) in ("Europe/Dublin", "Dublin")
+
     def is_interval_dst(self, interval: dict[str, Any]) -> bool:
-        """Return whether an interval is daylight savings time, or for zones using Winter time whether standard time."""
+        """Return whether an interval is daylight savings time, or for zones using winter time whether summer time."""
         return self.dst(interval[PERIOD_START].astimezone(self._tz))
 
     def now_utc(self) -> dt:

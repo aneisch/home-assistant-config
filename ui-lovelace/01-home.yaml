@@ -326,6 +326,12 @@ cards:
           - sensor.neighbor_5in1_rain_total
           - sensor.neighbor_5in1_rain_last_1_hour
           - sensor.neighbor_5in1_rain_last_24_hours
+          - sensor.amb_wind_speed
+          - sensor.amb_wind_gust
+          - sensor.amb_rain_total
+          - sensor.amb_rain_hourly
+          - sensor.amb_rain_daily
+
           # - sensor.neighbor_rain_total
           # - sensor.neighbor_rain_last_1_hour
           # - sensor.neighbor_rain_last_24_hours

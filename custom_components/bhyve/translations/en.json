@@ -133,6 +133,66 @@
           "description": "The program to start"
         }
       }
+    },
+    "update_program": {
+      "name": "Update program",
+      "description": "Update a program's configuration. Provide at least one of start_times, frequency or budget",
+      "fields": {
+        "entity_id": {
+          "name": "Program switch",
+          "description": "The program switch to update"
+        },
+        "start_times": {
+          "name": "Start times",
+          "description": "List of watering start times in HH:MM format"
+        },
+        "frequency": {
+          "name": "Frequency",
+          "description": "Frequency configuration object. Must include a 'type' key (known values: days, interval)"
+        },
+        "budget": {
+          "name": "Budget",
+          "description": "Watering budget as a percentage (0-200). Scales run times up or down"
+        }
+      }
+    }
+  },
+  "entity": {
+    "select": {
+      "device_mode": {
+        "name": "Device mode",
+        "state": {
+          "auto": "Auto",
+          "off": "Off"
+        }
+      }
+    },
+    "binary_sensor": {
+      "flood": {
+        "name": "Flood sensor",
+        "state": {
+          "on": "Wet",
+          "off": "Dry"
+        }
+      },
+      "temperature_alert": {
+        "name": "Temperature alert",
+        "state": {
+          "on": "Problem detected",
+          "off": "OK"
+        }
+      }
+    },
+    "sensor": {
+      "temperature": {
+        "name": "Temperature"
+      },
+      "battery": {
+        "name": "Battery"
+      },
+      "signal_strength": {
+        "name": "Signal strength"
+      }
     }
   }
 }

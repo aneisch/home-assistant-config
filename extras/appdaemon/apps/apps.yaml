@@ -51,7 +51,7 @@ AC Automation Solar:
   cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
-  cooldown_window_start_offset: "-03:00:00"   # 4 hours before sunset
+  cooldown_window_start_offset: "-04:00:00"   # 4 hours before sunset
   cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
 
 Solar EV Charger:
@@ -241,11 +241,11 @@ Master Closet Follow:
   leader: switch.master_bathroom_light_main
   follower: switch.master_closet_light
 
-Dehumidifier Follow:
-  module: follow_me
-  class: Follow
-  leader: humidifier.151732606535142_humidifier
-  follower: fan.living_room_ceiling_fan
+# Dehumidifier Follow:
+#   module: follow_me
+#   class: Follow
+#   leader: humidifier.151732606535142_humidifier
+#   follower: fan.living_room_ceiling_fan
 
 #############
 # Christmas #

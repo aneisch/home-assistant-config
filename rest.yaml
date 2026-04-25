@@ -108,3 +108,72 @@
         {% set services = state_attr('sensor.latest_utility_bill_amounts', 'service') %}
         {% set item = services | selectattr('label', 'eq', 'Wastewater') | first %}
         {{ item.amount if item else 0 }}
+
+- resource: !secret AMB_URL
+  scan_interval: 60
+  sensor:
+    - name: "AMB Outdoor Temperature"
+      value_template: "{{ value_json.data[0].lastData.tempf }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      state_class: measurement
+
+    - name: "AMB Outdoor Humidity"
+      value_template: "{{ value_json.data[0].lastData.humidity }}"
+      unit_of_measurement: "%"
+      device_class: humidity
+      state_class: measurement
+
+    - name: "AMB Feels Like"
+      value_template: "{{ value_json.data[0].lastData.feelsLike | round(1) }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      state_class: measurement
+
+    - name: "AMB Wind Speed"
+      value_template: "{{ value_json.data[0].lastData.windspeedmph }}"
+      unit_of_measurement: "mph"
+      icon: mdi:weather-windy
+      state_class: measurement
+
+    - name: "AMB Wind Gust"
+      value_template: "{{ value_json.data[0].lastData.windgustmph }}"
+      unit_of_measurement: "mph"
+      icon: mdi:weather-windy-variant
+      state_class: measurement
+
+    - name: "AMB UV Index"
+      value_template: "{{ value_json.data[0].lastData.uv }}"
+      unit_of_measurement: "UV index"
+      device_class: illuminance
+      state_class: measurement
+
+    - name: "AMB Solar Radiation"
+      value_template: "{{ value_json.data[0].lastData.solarradiation }}"
+      unit_of_measurement: "W/m²"
+      device_class: irradiance
+      state_class: measurement
+
+    - name: "AMB Rain Hourly"
+      value_template: "{{ value_json.data[0].lastData.hourlyrainin }}"
+      unit_of_measurement: "in"
+      icon: mdi:weather-rainy
+      state_class: measurement
+
+    - name: "AMB Rain Daily"
+      value_template: "{{ value_json.data[0].lastData.dailyrainin }}"
+      unit_of_measurement: "in"
+      icon: mdi:weather-rainy
+      state_class: measurement
+
+    - name: "AMB Rain Weekly"
+      value_template: "{{ value_json.data[0].lastData.weeklyrainin }}"
+      unit_of_measurement: "in"
+      icon: mdi:weather-rainy
+      state_class: measurement
+
+    - name: "AMB Rain Total"
+      value_template: "{{ value_json.data[0].lastData.totalrainin }}"
+      unit_of_measurement: "in"
+      icon: mdi:weather-rainy
+      state_class: total_increasing

@@ -4,11 +4,17 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant import config_entries, data_entry_flow
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigEntryState,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlowWithReload,
+)
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
@@ -19,15 +25,18 @@ from .pybhyve.errors import AuthenticationError, BHyveError
 
 _LOGGER = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from homeassistant.config_entries import ConfigFlowResult
 
-class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+
+class BHyveConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for BHyve."""
 
     VERSION = 1
 
     def __init__(self) -> None:
         """Initialize the config flow."""
-        self.data: dict = {}
+        self.data: dict[str, Any] = {}
         self.client: BHyveClient | None = None
         self.devices: list[Any] | None = None
         self.programs: list[Any] | None = None
@@ -53,7 +62,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the initial step."""
         errors: dict[str, str] | None = None
 
@@ -80,7 +89,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_device(
         self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> ConfigFlowResult:
         """Handle the optional device selection step."""
         if user_input is not None:
             return self.async_create_entry(
@@ -106,7 +115,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth(
         self, user_input: dict[str, Any] | None = None
-    ) -> data_entry_flow.FlowResult:
+    ) -> ConfigFlowResult:
         """Handle reauth."""
         errors: dict[str, str] | None = None
         if user_input and user_input.get(CONF_USERNAME):
@@ -131,7 +140,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="reauth",
-            description_placeholders={"username": self._reauth_username},
+            description_placeholders={"username": self._reauth_username or ""},
             data_schema=vol.Schema(
                 {
                     vol.Required(CONF_PASSWORD): str,
@@ -140,56 +149,26 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_import(
-        self, config: dict[str, Any] | None
-    ) -> data_entry_flow.FlowResult:
-        """Handle import of BHyve config from YAML."""
-        username = config[CONF_USERNAME]
-        password = config[CONF_PASSWORD]
-
-        credentials = {
-            CONF_USERNAME: username,
-            CONF_PASSWORD: password,
-        }
-
-        if not (_errors := await self.async_auth(credentials)):
-            await self.async_set_unique_id(credentials[CONF_USERNAME].lower())
-            self._abort_if_unique_id_configured()
-
-            self.data = credentials
-            self.devices = await self.client.devices  # type: ignore[union-attr]
-            self.programs = await self.client.timer_programs  # type: ignore[union-attr]
-
-            devices = [str(d["id"]) for d in self.devices if d["type"] != DEVICE_BRIDGE]
-
-            return await self.async_step_device(user_input={CONF_DEVICES: devices})
-
-        return self.async_abort(reason="cannot_connect")
-
     @staticmethod
     @callback
     def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> config_entries.OptionsFlow:
+        config_entry: ConfigEntry,  # noqa: ARG004
+    ) -> BhyveOptionsFlowHandler:
         """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
+        return BhyveOptionsFlowHandler()
 
 
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class BhyveOptionsFlowHandler(OptionsFlowWithReload):
     """Options flow for picking devices."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        self.config_entry = config_entry
-
     async def async_step_init(
-        self, user_input: dict | None = None
-    ) -> data_entry_flow.FlowResult:
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        if self.config_entry.state != config_entries.ConfigEntryState.LOADED:
+        if self.config_entry.state != ConfigEntryState.LOADED:
             return self.async_abort(reason="unknown")
 
         data = self.hass.data[DOMAIN][self.config_entry.entry_id]
@@ -202,7 +181,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             devices = await client.devices
         except AuthenticationError:
             return self.async_abort(reason="invalid_auth")
-        except BHyveError:
+        except (BHyveError, TimeoutError):
             return self.async_abort(reason="cannot_connect")
 
         _LOGGER.debug("Devices: %s", json.dumps(devices))
@@ -213,13 +192,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             if d.get("type") != DEVICE_BRIDGE
         }
 
+        # Filter saved defaults to only include devices that still exist,
+        # in case a device was removed from the B-hyve account.
+        saved_devices = self.config_entry.options.get(CONF_DEVICES, [])
+        valid_defaults = [d for d in saved_devices if d in device_options]
+
         return self.async_show_form(
             step_id="init",
             data_schema=vol.Schema(
                 {
                     vol.Required(
                         CONF_DEVICES,
-                        default=self.config_entry.options.get(CONF_DEVICES),
+                        default=valid_defaults,
                     ): cv.multi_select(device_options),
                 }
             ),

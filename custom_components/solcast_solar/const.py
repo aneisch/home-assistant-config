@@ -21,6 +21,7 @@ ADVANCED_OPTION.LIST_DICT = "list_dict"
 ADVANCED_OPTION.STR = "str"
 ADVANCED_OPTION.TIME = "time"
 ADVANCED_TYPE: Final[str] = "type"
+ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM: Final[str] = "allow_exceed_api_limit_maximum"
 ADVANCED_API_RAISE_ISSUES: Final[str] = "api_raise_issues"
 ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_CONFIGURATION: Final[str] = "automated_dampening_adaptive_model_configuration"
 ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_EXCLUDE: Final[str] = "automated_dampening_adaptive_model_exclude"
@@ -48,6 +49,7 @@ ADVANCED_FORECAST_FUTURE_DAYS: Final[str] = "forecast_future_days"
 ADVANCED_FORECAST_DAY_ENTITIES: Final[str] = "forecast_day_entities"
 ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT: Final[str] = "granular_dampening_delta_adjustment"
 ADVANCED_HISTORY_MAX_DAYS: Final[str] = "history_max_days"
+ADVANCED_LOG_UPDATE_FAILURE_ONLY: Final[str] = "log_update_failure_only"
 ADVANCED_RELOAD_ON_ADVANCED_CHANGE: Final[str] = "reload_on_advanced_change"
 ADVANCED_SOLCAST_URL: Final[str] = "solcast_url"
 ADVANCED_TRIGGER_ON_API_AVAILABLE: Final[str] = "trigger_on_api_available"
@@ -219,6 +221,7 @@ EXCEPTION_INTERNAL_ERROR: Final[str] = "internal_error"
 EXCEPTION_LIMIT_NOT_NUMBER: Final[str] = "limit_not_number"
 EXCEPTION_LIMIT_ONE_OR_GREATER: Final[str] = "limit_one_or_greater"
 EXCEPTION_LIMIT_TOO_MANY: Final[str] = "limit_too_many"
+EXCEPTION_LIMIT_EXCEEDS_MAXIMUM: Final[str] = "limit_exceeds_maximum"
 EXCEPTION_SET_OPTIONS_EMPTY: Final[str] = "set_options_empty"
 EXCEPTION_SINGLE_INSTANCE_ALLOWED: Final[str] = "single_instance_allowed"
 EXCLUDE_SITES: Final[str] = "exclude_sites"
@@ -381,10 +384,13 @@ VALUE: Final[str] = "value"
 VALUE_ADAPTIVE_DAMPENING_CONFIG_UNCHANGED: Final[int] = -99
 VALUE_ADAPTIVE_DAMPENING_NO_DELTA: Final[int] = -1
 VERSION: Final[str] = "version"
-WINTER_TIME: Final[list[str]] = ["Europe/Dublin"]  # Zones that use "Winter time" rather than "Daylight time"
 
 
 ADVANCED_OPTIONS: Final[dict[str, dict[str, Any]]] = {
+    ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM: {
+        ADVANCED_TYPE: ADVANCED_OPTION.BOOL,
+        DEFAULT: False,
+    },
     ADVANCED_API_RAISE_ISSUES: {ADVANCED_TYPE: ADVANCED_OPTION.BOOL, DEFAULT: True},
     ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_CONFIGURATION: {
         ADVANCED_TYPE: ADVANCED_OPTION.BOOL,
@@ -518,6 +524,7 @@ ADVANCED_OPTIONS: Final[dict[str, dict[str, Any]]] = {
             }
         ],
     },
+    ADVANCED_LOG_UPDATE_FAILURE_ONLY: {ADVANCED_TYPE: ADVANCED_OPTION.BOOL, DEFAULT: False},
     ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT: {
         ADVANCED_TYPE: ADVANCED_OPTION.BOOL,
         DEFAULT: DEFAULT_GRANULAR_DAMPENING_DELTA_ADJUSTMENT,

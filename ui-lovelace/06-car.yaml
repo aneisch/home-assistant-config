@@ -267,7 +267,7 @@ cards:
         name: Preconditioning
       - entity: sensor.tesla_odometer
         name: Odometer
-      - sensor.tesla_miles_per_month
+      - sensor.monthly_tesla_miles
       - entity: sensor.tesla_est_battery_range
         name: Estimated Battery Range
       - entity: sensor.tesla_power

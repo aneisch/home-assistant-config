@@ -64,7 +64,7 @@ BASIC_SYMBOL_SCHEMA = vol.All(cv.string, vol.Upper)
 def minimum_scan_interval(value: timedelta) -> timedelta:
     """Validate scan_interval is the minimum value."""
     if value < MINIMUM_SCAN_INTERVAL:
-        raise vol.Invalid("Scan interval should be at least 30 seconds")
+        raise vol.Invalid(f"Scan interval should be at least {MINIMUM_SCAN_INTERVAL.total_seconds()} seconds")
     return value
 
 

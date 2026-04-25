@@ -23,8 +23,10 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 
 from .const import (
+    ADVANCED_API_RAISE_ISSUES,
     ADVANCED_FORECAST_FUTURE_DAYS,
     ADVANCED_HISTORY_MAX_DAYS,
+    ADVANCED_LOG_UPDATE_FAILURE_ONLY,
     ADVANCED_SOLCAST_URL,
     ADVANCED_TRIGGER_ON_API_AVAILABLE,
     ADVANCED_TRIGGER_ON_API_UNAVAILABLE,
@@ -70,6 +72,8 @@ from .util import (
     AutoUpdate,
     DataCallStatus,
     SolcastApiStatus,
+    UpdateOutcome,
+    UpdateResult,
     async_trigger_automation_by_name,
     forecast_entry_update,
     http_status_translate,
@@ -112,13 +116,17 @@ class Fetcher:
             if self.api.status == SolcastApiStatus.OK and not await self.api.build_forecast_data():
                 self.api.status = SolcastApiStatus.BUILD_FAILED_FORECASTS
                 success = False
-                _LOGGER.error("Failed to build forecast data")
+                (_LOGGER.warning if self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY] else _LOGGER.error)(
+                    "Failed to build forecast data"
+                )
                 if raise_exc:
                     raise_and_record(self.api.hass, ConfigEntryNotReady, EXCEPTION_BUILD_FAILED_FORECASTS)
             if self.api.status == SolcastApiStatus.OK and self.api.options.get_actuals and not await self.api.build_actual_data():
                 self.api.status = SolcastApiStatus.BUILD_FAILED_ACTUALS
                 success = False
-                _LOGGER.error("Failed to build estimated actuals data")
+                (_LOGGER.warning if self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY] else _LOGGER.error)(
+                    "Failed to build estimated actuals data"
+                )
                 if raise_exc:
                     raise_and_record(self.api.hass, ConfigEntryNotReady, EXCEPTION_BUILD_FAILED_ACTUALS)
         return success
@@ -139,6 +147,8 @@ class Fetcher:
 
         status: DataCallStatus = DataCallStatus.SUCCESS
         reason: str = ""
+        recovered_periods_by_site: dict[str, set[float]] = {}
+        yesterday_start = self.api.dt_helper.day_start_utc(future=-1)
 
         start_time = time.time()
 
@@ -166,12 +176,17 @@ class Fetcher:
                 )
             if not isinstance(act_response, dict):
                 _LOGGER.error("No valid data was returned for estimated_actuals so this may cause issues")
-                _LOGGER.error("API did not return a json object, returned `%s`", act_response)
+                _LOGGER.debug("API did not return a json object, returned `%s`", act_response)
                 status = DataCallStatus.FAIL
                 reason = "No valid json returned"
                 break
 
             estimate_actuals: list[dict[str, Any]] = act_response.get(ESTIMATED_ACTUALS, [])
+            dampened_periods = (
+                {actual[PERIOD_START].timestamp() for actual in self.api.data_actuals_dampened[SITE_INFO][site[RESOURCE_ID]][FORECASTS]}
+                if self.api.data_actuals_dampened[SITE_INFO].get(site[RESOURCE_ID])
+                else set()
+            )
 
             oldest = (dt.now(self.api.tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)).astimezone(UTC)
 
@@ -199,6 +214,9 @@ class Fetcher:
                     actual[PERIOD_START],
                     round(actual[ESTIMATE], 4),
                 )
+                period_start_key = actual[PERIOD_START].timestamp()
+                if actual[PERIOD_START] < yesterday_start and period_start_key not in dampened_periods:
+                    recovered_periods_by_site.setdefault(site[RESOURCE_ID], set()).add(period_start_key)
 
             await self.sort_and_prune(
                 site[RESOURCE_ID], self.api.data_actuals, self.api.advanced_options[ADVANCED_HISTORY_MAX_DAYS], actuals
@@ -207,11 +225,15 @@ class Fetcher:
             self.increment_success_count(force=True, api_key=api_key)
 
         if status == DataCallStatus.SUCCESS and dampen_yesterday:
-            # Apply dampening to yesterday actuals, but only if the new factors for the day have not been modelled.
+            # Backfill recovered historical actuals with the latest dampening factors if needed, then
+            # apply normal yesterday dampening.
+            await self.api.dampening.apply_recovered_history(recovered_periods_by_site)
             await self.api.dampening.apply_yesterday()
 
         if status != DataCallStatus.SUCCESS:
-            _LOGGER.error("Update estimated actuals failed: %s", reason)
+            (_LOGGER.warning if self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY] else _LOGGER.error)(
+                "Update estimated actuals failed: %s", reason
+            )
         else:
             self.api.data_actuals[LAST_UPDATED] = dt.now(UTC).replace(microsecond=0)
             self.api.data_actuals[LAST_ATTEMPT] = dt.now(UTC).replace(microsecond=0)
@@ -223,7 +245,7 @@ class Fetcher:
 
         _LOGGER.debug("Task update_estimated_actuals took %.3f seconds", time.time() - start_time)
 
-    async def get_forecast_update(self, do_past_hours: int = 0, force: bool = False) -> str:
+    async def get_forecast_update(self, do_past_hours: int = 0, force: bool = False) -> UpdateResult:
         """Request forecast data for all sites.
 
         Arguments:
@@ -231,7 +253,7 @@ class Fetcher:
             force (bool): A forced update, which does not update the internal API use counter.
 
         Returns:
-            str: An error message, or an empty string for no error.
+            UpdateResult: A typed outcome and a message.
         """
         last_attempt = dt.now(UTC)
         status = ""
@@ -247,7 +269,7 @@ class Fetcher:
                 _LOGGER.warning(status)
                 if self._next_update is not None:
                     _LOGGER.info("Forecast update suppressed%s", next_update())
-                return status
+                return UpdateResult(UpdateOutcome.SKIPPED, status)
 
         await self.api.dampening.refresh_granular_data()
 
@@ -270,7 +292,7 @@ class Fetcher:
             )
             if result == DataCallStatus.FAIL:
                 failure = True
-                _LOGGER.warning(
+                (_LOGGER.warning if len(self.api.sites) > 1 and sites_succeeded and not force else _LOGGER.debug)(
                     "Forecast update for site %s failed%s%s",
                     site[RESOURCE_ID],
                     " so not getting remaining sites" if sites_attempted < len(self.api.sites) else "",
@@ -280,7 +302,7 @@ class Fetcher:
                 break
             if result == DataCallStatus.ABORT:
                 _LOGGER.info("Forecast update aborted%s", next_update())
-                return ""
+                return UpdateResult(UpdateOutcome.ABORTED, "Forecast update aborted")
             if result == DataCallStatus.SUCCESS:
                 sites_succeeded += 1
                 self.increment_success_count(force, site[API_KEY])
@@ -312,10 +334,13 @@ class Fetcher:
 
             if b_status and s_status:
                 _LOGGER.info("Forecast update completed successfully%s", next_update())
+
+            status = "Build or serialisation failed" if not b_status or not s_status else ""
         else:
-            _LOGGER.warning("Forecast has not been updated%s", next_update())
-            status = f"At least one site forecast get failed: {reason}"
-        return status
+            _LOGGER.warning("Forecast has not been updated: %s%s", reason, next_update())
+            if not status:
+                status = f"Forecast get failed: {reason}"
+        return UpdateResult(UpdateOutcome.SUCCESS if status == "" else UpdateOutcome.FAILED, status)
 
     def set_next_update(self, next_update: str | None) -> None:
         """Set the next update time.
@@ -394,7 +419,7 @@ class Fetcher:
                     _LOGGER.error(
                         "No valid data was returned for estimated_actuals so this will cause issues (API limit may be exhausted, or Solcast might have a problem)"
                     )
-                    _LOGGER.error("API did not return a json object, returned `%s`", act_response)
+                    _LOGGER.debug("API did not return a json object, returned `%s`", act_response)
                     return DataCallStatus.FAIL, "No valid json returned"
 
                 estimate_actuals: list[dict[str, Any]] = act_response.get(ESTIMATED_ACTUALS, [])
@@ -451,12 +476,12 @@ class Fetcher:
                 response = (
                     self.api.tasks.pop(TASK_FORECASTS_FETCH).result() if self.api.tasks.get(TASK_FORECASTS_FETCH) is not None else None
                 )
-            if response is None:
-                _LOGGER.error("No data was returned for forecasts")
 
             if not isinstance(response, dict):
                 failure = True
-                _LOGGER.error("API did not return a json object. Returned %s", response)
+                _LOGGER.debug("API did not return a json object. Returned %s", response)
+                if isinstance(response, str) and response:
+                    return DataCallStatus.FAIL, response
                 return DataCallStatus.FAIL, "No valid json returned"
 
             latest_forecasts = response.get(FORECASTS, [])
@@ -546,11 +571,11 @@ class Fetcher:
         if force:
             forced = self.api.data[SUCCESS][SUCCESS_FORCED]
             forced[key] = forced.get(key, 0) + 1
-            _LOGGER.debug("Incremented forced success count for API key ending %s, now %d", redact_api_key(api_key), forced[key])
+            _LOGGER.debug("Forced API counter for %s incremented from %d to %d", redact_api_key(api_key), forced[key] - 1, forced[key])
         else:
             tracked = self.api.data[SUCCESS][SUCCESS_TRACKED]
             tracked[key] = tracked.get(key, 0) + 1
-            _LOGGER.debug("Incremented tracked success count for API key ending %s, now %d", redact_api_key(api_key), tracked[key])
+            # Tracked increments are already logged.
 
     async def fetch_data(  # noqa: C901
         self,
@@ -574,6 +599,7 @@ class Fetcher:
         """
         response_text = ""
         received_429: int = 0
+        failure_reason: str | None = None
 
         try:
             if api_key is not None and site is not None:
@@ -651,12 +677,14 @@ class Fetcher:
                                 else:
                                     received_429 += 1
                             if counter >= tries:
-                                _LOGGER.error("API was tried %d times, but all attempts failed", tries)
+                                failure_reason = f"{http_status_translate(status)} after {tries} attempts"
+                                if not self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY]:
+                                    _LOGGER.error("API was tried %d times, but all attempts failed", tries)
                                 break
                             # Integration fetch is in a possibly recoverable state, so delay (15 seconds * counter),
                             # plus a random number of seconds between zero and 15.
                             delay: int = (counter * backoff) + random.randrange(0, 15)
-                            _LOGGER.warning(
+                            (_LOGGER.debug if self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY] else _LOGGER.warning)(
                                 "Call status %s, pausing %d seconds before retry",
                                 http_status_translate(status),
                                 delay,
@@ -666,14 +694,14 @@ class Fetcher:
                         if status == 200:
                             if not force:
                                 _LOGGER.debug(
-                                    "API returned data, API counter incremented from %d to %d",
+                                    "API returned data, tracked API counter incremented from %d to %d",
                                     self.api.api_used[api_key],
                                     self.api.api_used[api_key] + 1,
                                 )
                                 self.api.api_used[api_key] += 1
                                 await self.api.sites_cache.serialise_usage(api_key)
                             else:
-                                _LOGGER.debug("API returned data, using force fetch so not incrementing API counter")
+                                _LOGGER.debug("API returned data")
                             response_json = response_text
                             response_json = json.loads(response_json)
                             if issue_registry.async_get_issue(DOMAIN, ISSUE_API_UNAVAILABLE) is not None:
@@ -700,7 +728,7 @@ class Fetcher:
                         elif status == 1000:  # Unexpected response.
                             _LOGGER.error("Unexpected response received")
                         else:  # Other, or unknown status.
-                            _LOGGER.error(
+                            (_LOGGER.debug if self.api.advanced_options[ADVANCED_LOG_UPDATE_FAILURE_ONLY] else _LOGGER.error)(
                                 "Call status %s, API used is %d/%d",
                                 http_status_translate(status),
                                 self.api.api_used[api_key],
@@ -709,19 +737,21 @@ class Fetcher:
                             _LOGGER.debug("HTTP session status %s", http_status_translate(status))
 
                             if received_429 == tries:
-                                _LOGGER.debug("Raise issue for %s", ISSUE_API_UNAVAILABLE)
-                                ir.async_create_issue(
-                                    self.api.hass,
-                                    DOMAIN,
-                                    ISSUE_API_UNAVAILABLE,
-                                    is_fixable=False,
-                                    is_persistent=True,
-                                    severity=ir.IssueSeverity.WARNING,
-                                    translation_key=ISSUE_API_UNAVAILABLE,
-                                    learn_more_url=LEARN_MORE_MISSING_FORECAST_DATA,
-                                )
-                                if (trigger := self.api.advanced_options[ADVANCED_TRIGGER_ON_API_UNAVAILABLE]) and trigger:
-                                    await async_trigger_automation_by_name(self.api.hass, trigger)
+                                if self.api.advanced_options[ADVANCED_API_RAISE_ISSUES]:
+                                    if issue_registry.async_get_issue(DOMAIN, ISSUE_API_UNAVAILABLE) is None:
+                                        _LOGGER.debug("Raise issue for %s", ISSUE_API_UNAVAILABLE)
+                                        ir.async_create_issue(
+                                            self.api.hass,
+                                            DOMAIN,
+                                            ISSUE_API_UNAVAILABLE,
+                                            is_fixable=False,
+                                            is_persistent=True,
+                                            severity=ir.IssueSeverity.WARNING,
+                                            translation_key=ISSUE_API_UNAVAILABLE,
+                                            learn_more_url=LEARN_MORE_MISSING_FORECAST_DATA,
+                                        )
+                                        if (trigger := self.api.advanced_options[ADVANCED_TRIGGER_ON_API_UNAVAILABLE]) and trigger:
+                                            await async_trigger_automation_by_name(self.api.hass, trigger)
 
                     else:
                         _LOGGER.warning(
@@ -736,5 +766,8 @@ class Fetcher:
             _LOGGER.info("Fetch cancelled")
         except json.decoder.JSONDecodeError:
             return response_text
+
+        if failure_reason is not None:
+            return failure_reason
 
         return None

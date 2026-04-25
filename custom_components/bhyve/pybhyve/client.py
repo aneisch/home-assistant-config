@@ -1,5 +1,6 @@
 """Define an object to interact with the REST API."""
 
+import asyncio
 import logging
 import re
 import time
@@ -46,10 +47,11 @@ class BHyveClient:
         self._last_poll_programs = 0
 
         self._device_histories: dict[str, Any] = {}
-        self._last_poll_device_histories = 0
+        self._last_poll_device_histories: dict[str, float] = {}
 
-        self._landscapes: list[BHyveZoneLandscape] = []
-        self._last_poll_landscapes = 0
+        self._landscapes: dict[str, list[BHyveZoneLandscape]] = {}
+        self._last_poll_landscapes: dict[str, float] = {}
+        self._landscape_locks: dict[str, asyncio.Lock] = {}
 
     async def _request(
         self,
@@ -76,15 +78,27 @@ class BHyveClient:
             "Chrome/72.0.3626.81 Safari/537.36"
         )
 
-        async with self._session.request(
-            method, url, params=params, headers=headers, json=json
-        ) as resp:
-            try:
-                resp.raise_for_status()
-                return await resp.json(content_type=None)
-            except Exception as err:
-                msg = f"Error requesting data from {url}: {err}"
-                raise RequestError(msg) from err
+        try:
+            async with self._session.request(
+                method, url, params=params, headers=headers, json=json
+            ) as resp:
+                try:
+                    resp.raise_for_status()
+                    return await resp.json(content_type=None)
+                except ClientResponseError as err:
+                    if err.status in (401, 403):
+                        _LOGGER.warning(
+                            "Authentication error from %s: %s", url, err.status
+                        )
+                        raise AuthenticationError from err
+                    msg = f"Error requesting data from {url}: {err}"
+                    raise RequestError(msg) from err
+                except Exception as err:
+                    msg = f"Error requesting data from {url}: {err}"
+                    raise RequestError(msg) from err
+        except TimeoutError as err:
+            msg = f"Timeout requesting data from {url}"
+            raise RequestError(msg) from err
 
     async def _refresh_devices(self, *, force_update: bool = False) -> None:
         now = time.time()
@@ -117,7 +131,7 @@ class BHyveClient:
         now = time.time()
         if force_update:
             _LOGGER.info("Forcing refresh of device history %s", device_id)
-        elif now - self._last_poll_device_histories < API_POLL_PERIOD:
+        elif now - self._last_poll_device_histories.get(device_id, 0) < API_POLL_PERIOD:
             return
 
         device_history = await self._request(
@@ -132,24 +146,34 @@ class BHyveClient:
 
         self._device_histories.update({device_id: device_history})
 
-        self._last_poll_device_histories = now
+        self._last_poll_device_histories[device_id] = now
 
     async def _refresh_landscapes(
         self, device_id: str, *, force_update: bool = False
     ) -> None:
-        now = time.time()
-        if force_update:
-            _LOGGER.debug("Forcing landscape refresh %s", device_id)
-        elif now - self._last_poll_landscapes < API_POLL_PERIOD:
-            return
+        # Single-flight: concurrent callers for the same device share one HTTP
+        # request. Without this, a coordinator refresh that fans out per-zone
+        # landscape lookups for N zones fires N duplicate requests.
+        lock = self._landscape_locks.get(device_id)
+        if lock is None:
+            lock = asyncio.Lock()
+            self._landscape_locks[device_id] = lock
 
-        self._landscapes: list[BHyveZoneLandscape] = await self._request(
-            "get",
-            f"{LANDSCAPE_DESCRIPTIONS_PATH}/{device_id}",
-            params={"t": str(time.time())},
-        )
+        async with lock:
+            now = time.time()
+            if force_update:
+                _LOGGER.debug("Forcing landscape refresh %s", device_id)
+            elif now - self._last_poll_landscapes.get(device_id, 0) < API_POLL_PERIOD:
+                return
 
-        self._last_poll_landscapes = now
+            device_landscapes = await self._request(
+                "get",
+                f"{LANDSCAPE_DESCRIPTIONS_PATH}/{device_id}",
+                params={"t": str(time.time())},
+            )
+
+            self._landscapes[device_id] = device_landscapes or []
+            self._last_poll_landscapes[device_id] = now
 
     async def _async_ws_handler(self, async_callback: Callable, data: Any) -> None:
         """Process incoming websocket message."""
@@ -160,20 +184,24 @@ class BHyveClient:
         url: str = f"{API_HOST}{LOGIN_PATH}"
         json = {"session": {"email": self._username, "password": self._password}}
 
-        async with self._session.request("post", url, json=json) as resp:
-            try:
-                resp.raise_for_status()
-                response = await resp.json(content_type=None)
-                _LOGGER.debug("Logged in")
-                self._token = response["orbit_session_token"]
+        try:
+            async with self._session.request("post", url, json=json) as resp:
+                try:
+                    resp.raise_for_status()
+                    response = await resp.json(content_type=None)
+                    _LOGGER.debug("Logged in")
+                    self._token = response["orbit_session_token"]
 
-            except ClientResponseError as response_err:
-                if response_err.status == 400:  # noqa: PLR2004
-                    raise AuthenticationError from response_err
-                raise RequestError from response_err
-            except Exception as err:
-                msg = f"Error requesting data from {url}: {err}"
-                raise RequestError(msg) from err
+                except ClientResponseError as response_err:
+                    if response_err.status in (401, 403):
+                        raise AuthenticationError from response_err
+                    raise RequestError from response_err
+                except Exception as err:
+                    msg = f"Error requesting data from {url}: {err}"
+                    raise RequestError(msg) from err
+        except TimeoutError as err:
+            msg = f"Timeout requesting data from {url}"
+            raise RequestError(msg) from err
 
         return self._token is not None
 
@@ -231,7 +259,7 @@ class BHyveClient:
     ) -> BHyveZoneLandscape | None:
         """Get landscape by zone id."""
         await self._refresh_landscapes(device_id, force_update=force_update)
-        for zone in self._landscapes:
+        for zone in self._landscapes.get(device_id, []):
             if zone.get("station") == zone_id:
                 return zone
         return None
@@ -249,7 +277,34 @@ class BHyveClient:
         json = {"sprinkler_timer_program": program}
         await self._request("put", path, json=json)
 
+    async def update_device(self, device: dict) -> None:
+        """Update device settings."""
+        device_id = device.get("id")
+        path = f"{DEVICES_PATH}/{device_id}"
+        json = {"device": device}
+        await self._request("put", path, json=json)
+
     async def send_message(self, payload: Any) -> None:
         """Send a message via the websocket."""
         if self._websocket is not None:
             await self._websocket.send(payload)
+
+    async def set_rain_delay(self, device_id: str, hours: int) -> None:
+        """Set rain delay hours for a device. Use hours=0 to disable."""
+        payload = {
+            "event": "rain_delay",
+            "device_id": device_id,
+            "delay": hours,
+        }
+        _LOGGER.info("Setting rain delay: %s", payload)
+        await self.send_message(payload)
+
+    async def set_manual_preset_runtime(self, device_id: str, minutes: int) -> None:
+        """Set the default watering runtime for a device."""
+        payload = {
+            "event": "set_manual_preset_runtime",
+            "device_id": device_id,
+            "seconds": minutes * 60,
+        }
+        _LOGGER.info("Setting manual preset runtime: %s", payload)
+        await self.send_message(payload)

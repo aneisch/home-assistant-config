@@ -34,25 +34,25 @@
     state: '{{ (states(''sensor.ac_runtime_yesterday_cool'') | float + states(''sensor.ac_runtime_yesterday_heat'')
       | float) }}'
 
-  - unit_of_measurement: in
-    default_entity_id: sensor.netatmo_home_rain_sum_rain_today_inches
-    icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches')
-      | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
-      0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
-      endif %}"
-    name: Rainfall Today
-    state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_24'') |
-      float) / 25.4) }}'
+  # - unit_of_measurement: in
+  #   default_entity_id: sensor.netatmo_home_rain_sum_rain_today_inches
+  #   icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_today_inches')
+  #     | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
+  #     0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
+  #     endif %}"
+  #   name: Rainfall Today
+  #   state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_24'') |
+  #     float) / 25.4) }}'
 
-  - unit_of_measurement: in
-    default_entity_id: sensor.netatmo_home_rain_sum_rain_last_hour_inches
-    icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches')
-      | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
-      0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
-      endif %}"
-    name: Rainfall Last 1 Hour
-    state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_1'') | float)
-      / 25.4) }}'
+  # - unit_of_measurement: in
+  #   default_entity_id: sensor.netatmo_home_rain_sum_rain_last_hour_inches
+  #   icon: "{% set amount = (states('sensor.netatmo_home_rain_sum_rain_last_hour_inches')
+  #     | float) %} {% if amount >= 0.50 %}\n  mdi:weather-pouring\n{% elif amount >
+  #     0.00 and amount < 0.50 %}\n  mdi:weather-rainy\n{% else %}\n  mdi:cloud-outline\n{%
+  #     endif %}"
+  #   name: Rainfall Last 1 Hour
+  #   state: '{{ ''%.2f''%((states(''sensor.netatmo_home_home_rain_sum_rain_1'') | float)
+  #     / 25.4) }}'
 
   - default_entity_id: sensor.mail_deliveries_message
     name: Deliveries Summary

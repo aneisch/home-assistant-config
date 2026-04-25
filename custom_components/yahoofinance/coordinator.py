@@ -42,7 +42,7 @@ from .dataclasses import ConsentData
 
 REQUEST_TIMEOUT: Final = 10
 DELAY_ASYNC_REQUEST_REFRESH: Final = 5
-FAILURE_ASYNC_REQUEST_REFRESH: Final = 20
+RETRY_INTERVALS = (10, 20, 30, 60)
 
 
 class CrumbCoordinator:
@@ -385,13 +385,11 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.data = None
         self.loop = hass.loop
         self.websession = webSession
-        self._failure_update_interval = timedelta(seconds=FAILURE_ASYNC_REQUEST_REFRESH)
         self._cc = cc
+        self.failed_count = 0
 
         if isinstance(update_interval, str) and update_interval == MANUAL_SCAN_INTERVAL:
             update_interval = None
-
-        self._defined_update_interval = update_interval
 
         super().__init__(
             hass,
@@ -563,37 +561,46 @@ class YahooSymbolUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         which also updates last_update_success. UpdateFailed is raised if JSON is invalid.
         """
 
-        # Set update interval for failure and reset it later if everything was okay
-        self.update_interval = self._failure_update_interval
+        retry_after = RETRY_INTERVALS[min(self.failed_count, len(RETRY_INTERVALS) - 1)]
 
         try:
             json = await self.get_json()
         except (TimeoutError, aiohttp.ClientError) as error:
-            raise UpdateFailed(error) from error
+            self.failed_count += 1
+            raise UpdateFailed(error, retry_after=retry_after) from error
 
         if json is None:
-            raise UpdateFailed("No data received")
+            self.failed_count += 1
+            raise UpdateFailed("No data received", retry_after=retry_after)
 
         if "quoteResponse" not in json:
-            raise UpdateFailed("Data invalid, 'quoteResponse' not found.")
+            self.failed_count += 1
+            raise UpdateFailed(
+                "Data invalid, 'quoteResponse' not found.", retry_after=retry_after
+            )
 
         quoteResponse = json["quoteResponse"]  # pylint: disable=invalid-name
 
         if "error" in quoteResponse:
             if quoteResponse["error"] is not None:
-                raise UpdateFailed(quoteResponse["error"])
+                self.failed_count += 1
+                raise UpdateFailed(quoteResponse["error"], retry_after=retry_after)
 
         if "result" not in quoteResponse:
-            raise UpdateFailed("Data invalid, no 'result' found")
+            self.failed_count += 1
+            raise UpdateFailed(
+                "Data invalid, no 'result' found", retry_after=retry_after
+            )
 
         result = quoteResponse["result"]
         if result is None:
-            raise UpdateFailed("Data invalid, 'result' is None")
+            self.failed_count += 1
+            raise UpdateFailed(
+                "Data invalid, 'result' is None", retry_after=retry_after
+            )
 
         (error_encountered, data) = self.process_json_result(result)
-
-        # Restore the specified interval
-        self.update_interval = self._defined_update_interval
+        self.failed_count = 0
 
         if error_encountered:
             LOGGER.info("Data = %s", result)

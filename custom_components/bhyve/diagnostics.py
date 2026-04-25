@@ -14,9 +14,6 @@ if TYPE_CHECKING:
 
     from .pybhyve.client import BHyveClient
 
-CONF_ALTITUDE = "altitude"
-CONF_UUID = "uuid"
-
 TO_REDACT = {
     "address",
     "full_location",

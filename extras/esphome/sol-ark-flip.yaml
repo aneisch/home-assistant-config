@@ -89,8 +89,8 @@ modbus_controller:
       then:
         - logger.log: "Commands sent!"
     setup_priority: -10
-    update_interval: "5s"
-    command_throttle: "50ms"
+    update_interval: "2s" # Debug -- was 5
+    #command_throttle: "50ms"
 
 light:
   # - platform: status_led
@@ -213,6 +213,28 @@ sensor:
       - lambda: return x * (9.0/5.0) + 32.0;
       - *toint
     unit_of_measurement: "°F"
+
+  # Faults
+  - platform: modbus_controller
+    id: fault_w1
+    address: 103
+    register_type: holding
+    internal: true
+  - platform: modbus_controller
+    id: fault_w2
+    address: 104
+    register_type: holding
+    internal: true
+  - platform: modbus_controller
+    id: fault_w3
+    address: 105
+    register_type: holding
+    internal: true
+  - platform: modbus_controller
+    id: fault_w4
+    address: 106
+    register_type: holding
+    internal: true
 
   - platform: modbus_controller            # 182 Battery Temperature - verified
     modbus_controller_id: inverter
@@ -449,7 +471,7 @@ sensor:
     accuracy_decimals: 2
     filters:
       - multiply: 0.01
-      - *toint
+      #- *toint # Debug
     value_type: U_WORD
     state_class: measurement
 
@@ -516,7 +538,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      - *toint
+      #- *toint # Debug
     value_type: U_WORD 
 
   - platform: modbus_controller            # 151 Grid L2-N Voltage - verified
@@ -531,7 +553,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      - *toint
+      #- *toint # Debug
     value_type: U_WORD 
 
   - platform: modbus_controller            # 152 Grid L1-L2 Voltage - verified
@@ -546,7 +568,7 @@ sensor:
     state_class: measurement
     filters:
       - multiply: 0.1
-      - *toint
+      #- *toint # Debug
     value_type: U_WORD 
 
   # - platform: modbus_controller            # 160 Grid Current
@@ -1603,17 +1625,17 @@ number:
   #   step: 5
   #   value_type: U_WORD  
 
-  # - platform: modbus_controller            # 210 Battery Max Charge current
-  #   use_write_multiple: true
-  #   modbus_controller_id: inverter
-  #   id: inverter_esphome_bat_max_charge_current
-  #   name: "${friendly_name} Battery Max Charge current"
-  #   unit_of_measurement: "A"
-  #   address: 210
-  #   min_value: 0
-  #   max_value: 185
-  #   step: 5
-  #   value_type: U_WORD  
+  - platform: modbus_controller            # 210 Battery Max Charge current
+    use_write_multiple: true
+    modbus_controller_id: inverter
+    id: inverter_esphome_bat_max_charge_current
+    name: "${friendly_name} Battery Max Charge Current"
+    unit_of_measurement: "A"
+    address: 210
+    min_value: 0
+    max_value: 200
+    step: 5
+    value_type: U_WORD  
 
   # - platform: modbus_controller            # 211 Battery Max Discharge current
   #   use_write_multiple: true
@@ -1676,6 +1698,49 @@ text_sensor:
         case 4: return std::string("fault");
         default: return std::string("unknown");
       }
+
+  - platform: template
+    name: "${friendly_name} Fault Status"
+    icon: "mdi:alert-circle-outline"
+    lambda: |-
+      uint16_t w1 = id(fault_w1).state;
+      uint16_t w2 = id(fault_w2).state;
+      uint16_t w3 = id(fault_w3).state;
+      uint16_t w4 = id(fault_w4).state;
+
+      if (w4 & 0x8000) return {"F64: Heatsink High Temp Fault"};
+      if (w4 & 0x4000) return {"F63: Arc Fault"};
+      if (w4 & 0x2000) return {"F62: AC B InductCurr High Fault"};
+      if (w4 & 0x1000) return {"F61: Button Manual OFF"};
+      if (w4 & 0x0200) return {"F58: AC U GridCurr High Fault"};
+      if (w4 & 0x0080) return {"F56: DC Volt Low Fault"};
+      if (w4 & 0x0040) return {"F55: DC Volt High Fault"};
+
+      if (w3 & 0x8000) return {"F48: AC Under Frequency Fault"};
+      if (w3 & 0x4000) return {"F47: AC Over Frequency Fault"};
+      if (w3 & 0x2000) return {"F46: Parallel Aux Fault"};
+      if (w3 & 0x1000) return {"F45: AC Under Voltage Fault"};
+      if (w3 & 0x0400) return {"F43: AC VW OverVolt Fault"};
+      if (w3 & 0x0100) return {"F41: AC WU OverVolt Fault"};
+      if (w3 & 0x0002) return {"F34: AC Overload Fault"};
+      if (w3 & 0x0001) return {"F33: AC OverCurr Fault"};
+
+      if (w2 & 0x1000) return {"F29: Parallel Fault"};
+      if (w2 & 0x0200) return {"F26: Bus Unbalance Fault"};
+      if (w2 & 0x0080) return {"F24: DC Insulation ISO Fault"};
+      if (w2 & 0x0040) return {"F23: Tz GFCI OC Fault"};
+      if (w2 & 0x0020) return {"F22: Tz EmergStop Fault"};
+      if (w2 & 0x0008) return {"F20: Tz Dc OverCurr Fault"};
+      if (w2 & 0x0002) return {"F18: HW AC OverCurr Fault"};
+
+      if (w1 & 0x8000) return {"F16: GFCI Failure"};
+      if (w1 & 0x4000) return {"F15: SW AC OverCurr Fault"};
+      if (w1 & 0x2000) return {"F14: DC OverCurr Fault"};
+      if (w1 & 0x1000) return {"F13: Grid Mode Changed"};
+      if (w1 & 0x0080) return {"F08: GFDI Relay Failure"};
+
+      return {"System Normal"};
+
     # on_value:
     #   then:
     #     - if:

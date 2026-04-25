@@ -11,6 +11,7 @@ import json
 import logging
 import math
 from pathlib import Path
+from statistics import median
 import time
 from typing import TYPE_CHECKING, Any, Final, NamedTuple
 
@@ -169,7 +170,11 @@ class DampeningAdaptive:
         actuals = self._build_actuals_from_sites(earliest_common)
         generation_dampening, _ = await self.dampening.prepare_generation_data(earliest_common)
 
-        common_peak_interval, avg_gen, avg_factor, variance = self._select_comparison_interval(generation_dampening, min_history_days)
+        common_peak_interval, avg_gen, avg_factor, variance = self._select_comparison_interval(
+            generation_dampening,
+            min_history_days,
+            earliest_common,
+        )
         _LOGGER.debug(
             "Selected interval %d (%02d:%02d) for adaptive comparison: %.3f kWh, factor %.3f, variance %.4f",
             common_peak_interval,
@@ -243,11 +248,29 @@ class DampeningAdaptive:
             msg = f"Load dampening history loaded {loaded_count} of a maximum of {expected_records} records"
 
             if loaded_count != expected_records:
-                _LOGGER.warning(
-                    "%s Automated dampening adaptive model configuration may be sub-optimal until maximum history of %d days is built",
-                    msg,
-                    self.dampening.api.advanced_options[ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS],
-                )
+                # Distinguish between gaps in history (benign, caused by missed actuals
+                # fetches) and genuinely insufficient contiguous history (sub-optimal).
+                model_days = self.dampening.api.advanced_options[ADVANCED_AUTOMATED_DAMPENING_MODEL_DAYS]
+                records_per_day = expected_records // model_days
+                first_model = ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_MODEL][MINIMUM]
+                first_delta = ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL][MINIMUM_EXTENDED]
+                dates = sorted(e["period_start"] for e in self.dampening.auto_factors_history[first_model][first_delta])
+                contiguous_days = len(dates)
+                for i in range(len(dates) - 1, 0, -1):
+                    if (dates[i] - dates[i - 1]).days != 1:
+                        contiguous_days = len(dates) - i
+                        break
+                if contiguous_days * records_per_day >= expected_records:
+                    _LOGGER.debug(
+                        "%s: Gaps in older adaptive model history records tolerated as sometimes expected due to missing actuals fetches",
+                        msg,
+                    )
+                else:
+                    _LOGGER.warning(
+                        "%s: Automated dampening adaptive model configuration may be sub-optimal until maximum history of %d days is built",
+                        msg,
+                        model_days,
+                    )
             else:
                 _LOGGER.debug(msg)
 
@@ -317,7 +340,12 @@ class DampeningAdaptive:
                     adjusted_dampening = copy.deepcopy(dampening)
                     for period_start, period_value in undampened_interval_pv50.items():
                         interval = self.dampening.adjusted_interval_dt(period_start)
-                        if self.dampening.api.peak_intervals[interval] > 0 and period_value > 0 and dampening[interval] < 1.0:
+                        if (
+                            self.dampening.api.peak_intervals[interval] > 0
+                            and period_value > 0
+                            and dampening[interval] < 1.0
+                            and period_start in actuals
+                        ):
                             adjusted_dampening[interval] = self.dampening.apply_adjustment(
                                 actuals[period_start], dampening[interval], interval, delta_adjustment
                             )  # Adjust based on actual vs peak rather than forecast vs peak
@@ -646,7 +674,8 @@ class DampeningAdaptive:
         """
         period_lists = []
         for model in range(
-            ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_MODEL][MINIMUM], ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_MODEL][MAXIMUM] + 1
+            ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_MODEL][MINIMUM],
+            ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_MODEL][MAXIMUM] + 1,
         ):
             for delta in range(
                 ADVANCED_OPTIONS[ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL][MINIMUM_EXTENDED],
@@ -669,14 +698,18 @@ class DampeningAdaptive:
         all_equal = all(pl == period_lists[0] for pl in period_lists)
 
         if not all_equal:
-            # Non-uniform: require strict daily continuity from earliest_common forward.
-            earliest_common = common_periods[0]
-            if not all(
-                all(curr == prev + timedelta(days=1) for prev, curr in pairwise(sorted(p for p in periods if p >= earliest_common)))
-                for periods in period_lists
-            ):
-                earliest_common = None
-            return earliest_common
+            # Non-uniform: search for the earliest common date from which all lists are strictly continuous.
+            for candidate in common_periods:
+                if all(
+                    all(curr == prev + timedelta(days=1) for prev, curr in pairwise(sorted(p for p in periods if p >= candidate)))
+                    for periods in period_lists
+                ):
+                    _LOGGER.debug(
+                        "Earliest common dampening history (non-uniform) is %s",
+                        candidate.strftime(DT_DATE_FORMAT_UTC),
+                    )
+                    return candidate
+            return None
 
         earliest_common = common_periods[0]
         _LOGGER.debug(
@@ -753,10 +786,72 @@ class DampeningAdaptive:
                 borda_scores[adjusted_winner],
             )
 
+    def _build_interval_error_weights(
+        self,
+        generation_dampening: defaultdict[dt, dict[str, Any]],
+        min_history_days: int,
+        earliest_common: dt | None = None,
+    ) -> list[float]:
+        """Build interval weights from persistent current dampened forecast error.
+
+        Uses the current active dampening factors applied to historical estimated actuals
+        and compares those dampened estimates against recorder generation. Intervals with
+        repeatedly large errors receive higher weights, but only when enough valid days
+        contribute to make the errors credible.
+        """
+        if not generation_dampening:
+            return [0.0] * 48
+
+        current_all_factors: list[float] = self.dampening.factors.get(ALL, [])
+        if not current_all_factors:
+            return [0.0] * 48
+
+        actuals = self._build_actuals_from_sites(earliest_common or min(generation_dampening))
+        interval_error_samples: list[list[float]] = [[] for _ in range(48)]
+
+        for timestamp, gen_data in generation_dampening.items():
+            if gen_data.get(EXPORT_LIMITING, False):
+                continue
+
+            actual_generation = gen_data[GENERATION]
+            if actual_generation <= 0:
+                continue
+
+            interval = self.dampening.adjusted_interval_dt(timestamp)
+            factor_index = interval if len(current_all_factors) == 48 else interval // 2
+            if factor_index >= len(current_all_factors):
+                continue
+
+            day_start = self.dampening.api.dt_helper.day_start(timestamp)
+            if day_start not in actuals:
+                continue
+
+            dampened_estimate = actuals[day_start][interval] * current_all_factors[factor_index] * 0.5
+            interval_error_samples[interval].append(abs(actual_generation - dampened_estimate) / actual_generation)
+
+        error_weights = [0.0] * 48
+        for interval, samples in enumerate(interval_error_samples):
+            if not samples:
+                continue
+
+            confidence = min(1.0, len(samples) / max(min_history_days, 1))
+            error_weights[interval] = min(median(samples), 2.0) * confidence
+
+        return error_weights
+
+    def _apply_interval_error_bias(self, scores: list[float], error_weights: list[float]) -> list[float]:
+        """Bias interval scores toward persistent error when there is usable residual data."""
+        if not scores or not error_weights or max(scores) == 0.0 or max(error_weights) == 0.0:
+            return scores
+
+        biased_scores = [score * error_weights[index] for index, score in enumerate(scores)]
+        return biased_scores if max(biased_scores) > 0.0 else scores
+
     def _select_comparison_interval(
         self,
         generation_dampening: defaultdict[dt, dict[str, Any]],
         min_history_days: int,
+        earliest_common: dt | None = None,
     ) -> tuple[int, float, float, float]:
         """Select the best interval for single-interval adaptive comparison.
 
@@ -765,10 +860,12 @@ class DampeningAdaptive:
         - Dampening actually being applied (factor < 1.0)
         - Model disagreement (variance in factors)
         - Breadth of dampening across model/delta configurations
+        - Persistent current dampened forecast error
 
         Args:
             generation_dampening: Generation data for calculating interval totals.
             min_history_days: Minimum number of history days required for a model.
+            earliest_common: Optional common history start for building residuals.
 
         Returns:
             Tuple of (interval_index, avg_generation, avg_dampen_factor, variance).
@@ -777,12 +874,16 @@ class DampeningAdaptive:
         interval_counts = [0] * 48
         interval_dampen_sum = [0.0] * 48
         interval_dampen_count = [0] * 48
+        interval_has_zero_generation = [False] * 48
 
         for ts, gen_data in generation_dampening.items():
-            if gen_data[GENERATION] > 0 and not gen_data.get(EXPORT_LIMITING, False):
+            if not gen_data.get(EXPORT_LIMITING, False):
                 interval = self.dampening.adjusted_interval_dt(ts)
-                interval_totals[interval] += gen_data[GENERATION]
-                interval_counts[interval] += 1
+                if gen_data[GENERATION] > 0:
+                    interval_totals[interval] += gen_data[GENERATION]
+                    interval_counts[interval] += 1
+                else:
+                    interval_has_zero_generation[interval] = True
 
         # Analyse dampening factors using only the no-delta (raw) history entries.
         # Delta-adjusted entries (delta 0, 1, 2 …) have been pushed toward 1.0 by the
@@ -805,10 +906,10 @@ class DampeningAdaptive:
                             combo_dampens[i].add(model_key)
                             interval_active_factors[i].append(factor)
 
-        # Calculate averages and normalize generation to peak interval (0-1 range)
+        # Calculate averages and normalise generation to peak interval (0-1 range)
         avg_generation = [interval_totals[i] / interval_counts[i] if interval_counts[i] > 0 else 0.0 for i in range(48)]
         max_generation = max(avg_generation) if any(g > 0 for g in avg_generation) else 1.0
-        normalized_generation = [g / max_generation for g in avg_generation]
+        normalised_generation = [g / max_generation for g in avg_generation]
         avg_dampen_factor = [interval_dampen_sum[i] / interval_dampen_count[i] if interval_dampen_count[i] > 0 else 1.0 for i in range(48)]
 
         # Calculate variance of dampening factors across models for each interval,
@@ -826,25 +927,32 @@ class DampeningAdaptive:
         # Calculate breadth of dampening: fraction of dampening models that apply dampening
         # Intervals where more model strengths agree dampening is needed are better for comparison
         dampening_breadth = [len(combo_dampens[i]) / total_models if total_models > 0 else 0.0 for i in range(48)]
+        interval_error_weights = self._build_interval_error_weights(generation_dampening, min_history_days, earliest_common)
 
         # Score = (1 - avg_factor) × sqrt(variance) × dampening_breadth, for intervals
         # with adequate generation only (≥ 10% of peak to exclude pre-dawn/post-dusk).
-        # The goal here is dampening quality, not energy magnitude.
+        # The goal here is dampening quality, not energy magnitude. Where possible,
+        # bias this toward intervals where the current dampened forecast is also
+        # persistently wrong.
         min_gen_fraction = 0.10
         dampening_impact = [
             (1.0 - avg_dampen_factor[i]) * (dampen_variance[i] ** 0.5) * dampening_breadth[i]
-            if normalized_generation[i] >= min_gen_fraction
+            if normalised_generation[i] >= min_gen_fraction and not interval_has_zero_generation[i]
             else 0.0
             for i in range(48)
         ]
+        dampening_impact = self._apply_interval_error_bias(dampening_impact, interval_error_weights)
 
         # Fall back progressively when history-based scoring cannot discriminate.
         if not dampening_impact or max(dampening_impact) == 0.0:
             # First fallback: drop the variance term — (1 - dampening) × breadth, still generation-gated
             dampening_impact = [
-                (1.0 - avg_dampen_factor[i]) * dampening_breadth[i] if normalized_generation[i] >= min_gen_fraction else 0.0
+                (1.0 - avg_dampen_factor[i]) * dampening_breadth[i]
+                if normalised_generation[i] >= min_gen_fraction and not interval_has_zero_generation[i]
+                else 0.0
                 for i in range(48)
             ]
+            dampening_impact = self._apply_interval_error_bias(dampening_impact, interval_error_weights)
         if max(dampening_impact) == 0.0:
             # Second fallback: use the current model factors as a proxy for where dampening
             # matters. This handles the case where the history contains only 1.0 entries
@@ -853,12 +961,14 @@ class DampeningAdaptive:
             if current_all_factors and any(f < 1.0 for f in current_all_factors):
                 min_gen_fraction = 0.10  # Require at least 10% of peak to exclude pre-dawn/dusk
                 dampening_impact = [
-                    (1.0 - current_all_factors[i]) if normalized_generation[i] >= min_gen_fraction else 0.0 for i in range(48)
+                    (1.0 - current_all_factors[i])
+                    if normalised_generation[i] >= min_gen_fraction and not interval_has_zero_generation[i]
+                    else 0.0
+                    for i in range(48)
                 ]
         if max(dampening_impact) == 0.0:
             # Final fallback: pure generation — ensures a daytime interval is always chosen
-            dampening_impact = list(normalized_generation)
-
+            dampening_impact = list(normalised_generation)
         # Select interval with highest weighted score
         selected_interval = dampening_impact.index(max(dampening_impact)) if dampening_impact else 0
 
