@@ -22,13 +22,18 @@ cards:
           #- sensor.irrigation_water_usage_2
           #- sensor.precip_probability
           - sensor.nws_wind_speed
-          - sensor.neighbor_5in1_wind
-          - sensor.neighbor_5in1_wind_5_minute_average
-          - sensor.netatmo_home_rain_sum_rain_today_inches
-          - sensor.neighbor_5in1_rain_total
-          - sensor.neighbor_5in1_rain_last_1_hour
-          - sensor.neighbor_5in1_rain_last_24_hours
-          - sensor.neighbor_5in1_rain_last_5_days
+          - sensor.amb_wind_speed
+          - sensor.amb_wind_gust
+          - sensor.amb_rain_total
+          - sensor.amb_rain_weekly
+          - sensor.amb_rain_daily
+          # - sensor.neighbor_5in1_wind
+          # - sensor.neighbor_5in1_wind_5_minute_average
+          # - sensor.netatmo_home_rain_sum_rain_today_inches
+          # - sensor.neighbor_5in1_rain_total
+          # - sensor.neighbor_5in1_rain_last_1_hour
+          # - sensor.neighbor_5in1_rain_last_24_hours
+          # - sensor.neighbor_5in1_rain_last_5_days
 
       - type: markdown
         content: |

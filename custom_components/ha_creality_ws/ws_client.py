@@ -198,11 +198,11 @@ class KClient:
                     # Reset backoff so we start fresh when power returns
                     backoff = RETRY_MIN_BACKOFF
                     connect_failures = 0
-                try:
-                    await asyncio.wait_for(self._stop.wait(), timeout=10.0)
-                except asyncio.TimeoutError:
-                    pass
-                continue
+                    try:
+                        await asyncio.wait_for(self._stop.wait(), timeout=10.0)
+                    except asyncio.TimeoutError:
+                        pass
+                    continue
 
             try:
                 url = self._url()
@@ -311,7 +311,13 @@ class KClient:
                 jitter = random.uniform(0.0, 0.4)
                 sleep_for = min(backoff * (RETRY_BACKOFF_MULTIPLIER + jitter), max_backoff)
             
-            if (not use_fixed_retry or connect_failures < 5) and backoff >= (RETRY_MAX_BACKOFF * 0.9):
+            power_is_off = bool(self._check_power_status and self._check_power_status())
+            if power_is_off:
+                _LOGGER.debug(
+                    "K WS reconnect suppressed mDNS fallback (power OFF) host=%s",
+                    self._host,
+                )
+            elif (not use_fixed_retry or connect_failures < 5) and backoff >= (RETRY_MAX_BACKOFF * 0.9):
                 now = time.monotonic()
                 if now - self._last_mdns_attempt > 3.0: # 3 seconds
                     self._last_mdns_attempt = now
@@ -319,12 +325,10 @@ class KClient:
                         "K WS connection failing repeatedly (host=%s). Attempting mDNS fallback...",
                         self._host
                     )
-                    try:
-                        from .config_flow import _probe_tcp  # Delayed import # pylint: disable=import-outside-toplevel
-                        # Logic is handled by __init__.py Zeroconf listener.
-                        pass
-                    except Exception as exc:
-                        _LOGGER.debug("mDNS fallback attempt failed: %s", exc)
+                    _LOGGER.debug(
+                        "K WS mDNS fallback: will retry connection on next loop iteration for host=%s",
+                        self._host,
+                    )
                 else:
                     _LOGGER.debug("K WS connection failing, but mDNS fallback rate-limited host=%s", self._host)
 

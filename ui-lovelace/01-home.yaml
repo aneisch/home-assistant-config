@@ -329,7 +329,7 @@ cards:
           - sensor.amb_wind_speed
           - sensor.amb_wind_gust
           - sensor.amb_rain_total
-          - sensor.amb_rain_hourly
+          - sensor.amb_hourly_rain_rate
           - sensor.amb_rain_daily
 
           # - sensor.neighbor_rain_total

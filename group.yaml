@@ -6,9 +6,18 @@ common_areas:
     - group.office
     - group.garage
     - group.dining_room
+    - group.back_porch
     # Start Christmas
     #- group.christmas
     # End Christmas
+
+back_porch:
+  name: Back Porch
+  entities:
+    - switch.globe_lights
+    - switch.backyard_flood_lights
+    - light.back_porch_fan_light
+    - fan.back_porch_fan
 
 office:
   name: Office

@@ -128,14 +128,6 @@
         {% else %} 3.00
         {% endif %}
 
-
-
-
-
-
-
-
-
 - lock:
   - name: All Doors
     lock:

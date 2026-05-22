@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Sun rays -->
+  <g stroke="#f9a825" stroke-width="5" stroke-linecap="round">
+    <line x1="128" y1="52" x2="128" y2="32" />
+    <line x1="172" y1="62" x2="184" y2="46" />
+    <line x1="204" y1="92" x2="220" y2="80" />
+    <line x1="84" y1="62" x2="72" y2="46" />
+    <line x1="52" y1="92" x2="36" y2="80" />
+  </g>
+
+  <!-- Sun half circle (sunrise) -->
+  <path d="M 68 120 A 60 60 0 0 1 188 120" fill="#f9a825" />
+
+  <!-- Horizon line -->
+  <line x1="30" y1="120" x2="226" y2="120" stroke="#4fc3f7" stroke-width="4" />
+
+  <!-- Battery body -->
+  <rect x="68" y="148" width="110" height="56" rx="8" fill="none" stroke="#4fc3f7" stroke-width="5" />
+
+  <!-- Battery terminal -->
+  <rect x="178" y="164" width="12" height="24" rx="3" fill="#4fc3f7" />
+
+  <!-- Battery charge level (green fill ~60%) -->
+  <rect x="75" y="155" width="64" height="42" rx="4" fill="#66bb6a" />
+
+  <!-- Battery charge arrow (lightning bolt) -->
+  <polygon points="142,154 127,170 136,170 124,192 144,176 135,176 146,154" fill="#f9a825" />
+</svg>

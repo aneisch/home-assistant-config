@@ -184,6 +184,9 @@
       }
     },
     "sensor": {
+      "next_watering": {
+        "name": "Next watering"
+      },
       "temperature": {
         "name": "Temperature"
       },

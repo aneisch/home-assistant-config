@@ -47,7 +47,7 @@ AC Automation Solar:
   # guest_heat_midnight: "62" # optional, defaults to non-guest
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
-  battery_boost_threshold: 99       # battery SOC for boost activation
+  battery_boost_threshold: 95       # battery SOC for boost activation
   cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
   cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
@@ -57,8 +57,15 @@ AC Automation Solar:
 Solar EV Charger:
   module: ev
   class: SolarEVCharger
-  home_battery_min_soc: 90
+  home_battery_min_soc: 89 # When do we start charging
   buffer_watts: 250 # There is a hardcoded adjustment of +2000 if home battery is below 99% to allow charging
+
+Rate Reset Follow:
+  module: follow_me
+  class: Follow
+  leader: input_boolean.ev_charge_override
+  follower: automation.tesla_reduce_charge_rate_from_40_to_39
+  invert: True
 
 Auto Dehumidifer:
   module: dehumidifier
@@ -363,7 +370,7 @@ Backyard Flood Lights with Person Detection:
   constrain_input_boolean:
     - input_boolean.backyard_floodlight_automation
   trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy,binary_sensor.bullet_person_occupancy
-  toggle_entity: switch.backyard_flood_lights,switch.globe_lights
+  toggle_entity: switch.backyard_flood_lights,switch.globe_lights,light.back_porch_fan_light 
   # Seconds to turn entity on when triggered
   time_on: "120"
 
@@ -425,7 +432,7 @@ Sleepy Time Lamp Automation Override:
   module: follow_me
   class: Follow
   leader: switch.master_bedroom_ceiling_fan
-  follower: input_boolean.house_lamps_automation,automation.turn_on_speakers_and_tv_when_xbox_powers_on
+  follower: input_boolean.house_lamps_automation
   invert: True
 
 Indoor Light Automation Sunset:
@@ -518,6 +525,20 @@ Garage Plant Light:
   time_on: sunrise + 00:30:00
   time_off: sunset - 01:00:00
   entities: switch.orvibo_1
+
+Mosquitto CO2:
+  module: entity_timer
+  class: Timer
+  time_on: sunset - 02:00:00
+  time_off: sunset + 04:00:00
+  entities: switch.sonoff_s31_4_s31_4_relay
+
+Mosquitto CO2 Morning:
+  module: entity_timer
+  class: Timer
+  time_on: sunrise - 01:00:00
+  time_off: sunrise + 02:00:00
+  entities: switch.sonoff_s31_4_s31_4_relay
 
 # Plant Light Corner:
 #   module: follow_me

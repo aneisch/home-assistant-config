@@ -1,0 +1,243 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Main Battery",
+        "description": "Configure your main battery system. The power sensor is used to track house load consumption automatically.",
+        "data": {
+          "main_soc_entity": "Battery State of Charge sensor (%)",
+          "main_power_entity": "House load power sensor (W)",
+          "main_capacity": "Battery capacity (kWh)",
+          "main_floor": "Minimum discharge floor (%)",
+          "main_inverter_efficiency": "Inverter efficiency (%)",
+          "grid_power_entity": "Grid import power sensor (W) — optional"
+        }
+      },
+      "backup": {
+        "title": "Backup Battery",
+        "description": "Do you have a backup battery that assists overnight (e.g., Powerwall, secondary inverter)?",
+        "data": {
+          "backup_enabled": "Enable backup battery"
+        }
+      },
+      "backup_details": {
+        "title": "Backup Battery Details",
+        "description": "Configure your backup battery. It discharges at a fixed rate starting at the activation hour to assist the main battery overnight.",
+        "data": {
+          "backup_soc_entity": "Backup battery SoC sensor (%)",
+          "backup_discharge_entity": "Backup discharge power sensor (kW)",
+          "backup_capacity": "Backup capacity (kWh)",
+          "backup_floor": "Minimum discharge floor (%)",
+          "backup_discharge_kw": "Fixed discharge rate for forecast (kW)",
+          "backup_activation_hour": "Hour backup starts discharging (0-6, e.g., 2 = 2am)",
+          "backup_mode": "Deployment mode",
+          "backup_charge_efficiency": "Charge efficiency (%)",
+          "backup_discharge_efficiency": "Discharge efficiency (%)"
+        }
+      },
+      "dump_loads": {
+        "title": "Dump Loads",
+        "description": "Loads that run only when there is excess solar (e.g., water heater, pool pump). Currently configured: {count}. Choose an action to add, edit, or remove a load, or Continue to proceed.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "dump_load_type": {
+        "title": "Dump Load — Entry Type",
+        "description": "How should this dump load's energy be tracked?",
+        "data": {
+          "type": "Entry type"
+        }
+      },
+      "dump_load_manual": {
+        "title": "Dump Load — Manual",
+        "description": "Estimate the load's average power and the daytime window during which it runs when there is excess solar.",
+        "data": {
+          "name": "Load name",
+          "avg_kw": "Average power while running (kW)",
+          "start_hour": "Earliest run hour (0-23)",
+          "end_hour": "Latest run hour (1-24, exclusive)",
+          "advanced": "Configure 24-hour profile (advanced)"
+        }
+      },
+      "dump_load_manual_advanced": {
+        "title": "Dump Load — Hourly Profile (kW)",
+        "description": "Set the expected kW for each hour. Hours not running can be left at 0.",
+        "data": {
+          "hour_0": "00:00", "hour_1": "01:00", "hour_2": "02:00", "hour_3": "03:00",
+          "hour_4": "04:00", "hour_5": "05:00", "hour_6": "06:00", "hour_7": "07:00",
+          "hour_8": "08:00", "hour_9": "09:00", "hour_10": "10:00", "hour_11": "11:00",
+          "hour_12": "12:00", "hour_13": "13:00", "hour_14": "14:00", "hour_15": "15:00",
+          "hour_16": "16:00", "hour_17": "17:00", "hour_18": "18:00", "hour_19": "19:00",
+          "hour_20": "20:00", "hour_21": "21:00", "hour_22": "22:00", "hour_23": "23:00"
+        }
+      },
+      "dump_load_sensor": {
+        "title": "Dump Load — Power Sensor",
+        "description": "Select a power sensor (W) for this load. The integration will track its energy automatically and build a 7-day rolling hourly profile.",
+        "data": {
+          "name": "Load name",
+          "power_entity": "Power sensor (W)"
+        }
+      },
+      "solar_source": {
+        "title": "Solar Forecast",
+        "description": "Select your solar forecast integration. Entities will be discovered automatically. Choose 'Manual' to select entities individually.",
+        "data": {
+          "solar_config_entry": "Solar forecast integration"
+        }
+      },
+      "solcast": {
+        "title": "Solar Forecast Entities (Manual)",
+        "description": "Select your solar PV forecast sensors for each forecast day.",
+        "data": {
+          "solcast_remaining_today": "Remaining today",
+          "solcast_forecast_today": "Forecast today (with hourly detail)",
+          "solcast_tomorrow": "Forecast tomorrow",
+          "solcast_day_3": "Forecast day 3",
+          "solcast_day_4": "Forecast day 4",
+          "solcast_day_5": "Forecast day 5",
+          "solcast_day_6": "Forecast day 6",
+          "solcast_day_7": "Forecast day 7"
+        }
+      },
+      "options": {
+        "title": "Forecast Options",
+        "description": "Set forecast range, target SoC, and fallback consumption values. Fallback values are used until 7 days of real consumption data has been collected.",
+        "data": {
+          "forecast_days": "Number of days to forecast (2-7)",
+          "target_soc": "Target sunrise SoC (%)",
+          "default_daily": "Fallback daily consumption (kWh)",
+          "default_overnight": "Fallback overnight consumption (kWh)",
+          "guard_threshold": "Minimum kWh for averages to be valid"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Sunrise SoC Forecast",
+        "description": "Pick a section to edit. Your other settings are preserved.",
+        "menu_options": {
+          "main_battery": "Main battery",
+          "backup": "Backup battery",
+          "dump_loads": "Dump loads",
+          "solar_source": "Solar forecast",
+          "forecast_options": "Forecast options"
+        }
+      },
+      "main_battery": {
+        "title": "Main Battery",
+        "description": "Reconfigure your main battery system.",
+        "data": {
+          "main_soc_entity": "Battery State of Charge sensor (%)",
+          "main_power_entity": "House load power sensor (W)",
+          "main_capacity": "Battery capacity (kWh)",
+          "main_floor": "Minimum discharge floor (%)",
+          "main_inverter_efficiency": "Inverter efficiency (%)",
+          "grid_power_entity": "Grid import power sensor (W) — optional"
+        }
+      },
+      "backup": {
+        "title": "Backup Battery",
+        "description": "Do you have a backup battery that assists overnight?",
+        "data": {
+          "backup_enabled": "Enable backup battery"
+        }
+      },
+      "backup_details": {
+        "title": "Backup Battery Details",
+        "description": "Configure your backup battery.",
+        "data": {
+          "backup_soc_entity": "Backup battery SoC sensor (%)",
+          "backup_discharge_entity": "Backup discharge power sensor (kW)",
+          "backup_capacity": "Backup capacity (kWh)",
+          "backup_floor": "Minimum discharge floor (%)",
+          "backup_discharge_kw": "Fixed discharge rate for forecast (kW)",
+          "backup_activation_hour": "Hour backup starts discharging (0-6)",
+          "backup_mode": "Deployment mode",
+          "backup_charge_efficiency": "Charge efficiency (%)",
+          "backup_discharge_efficiency": "Discharge efficiency (%)"
+        }
+      },
+      "dump_loads": {
+        "title": "Dump Loads",
+        "description": "Loads that run only when there is excess solar. Currently configured: {count}. Choose an action to add, edit, or remove a load, or Continue to save and exit.",
+        "data": {
+          "action": "Action"
+        }
+      },
+      "dump_load_type": {
+        "title": "Dump Load — Entry Type",
+        "description": "How should this dump load's energy be tracked?",
+        "data": {
+          "type": "Entry type"
+        }
+      },
+      "dump_load_manual": {
+        "title": "Dump Load — Manual",
+        "description": "Estimate the load's average power and the daytime window during which it runs when there is excess solar.",
+        "data": {
+          "name": "Load name",
+          "avg_kw": "Average power while running (kW)",
+          "start_hour": "Earliest run hour (0-23)",
+          "end_hour": "Latest run hour (1-24, exclusive)",
+          "advanced": "Configure 24-hour profile (advanced)"
+        }
+      },
+      "dump_load_manual_advanced": {
+        "title": "Dump Load — Hourly Profile (kW)",
+        "description": "Set the expected kW for each hour. Hours not running can be left at 0.",
+        "data": {
+          "hour_0": "00:00", "hour_1": "01:00", "hour_2": "02:00", "hour_3": "03:00",
+          "hour_4": "04:00", "hour_5": "05:00", "hour_6": "06:00", "hour_7": "07:00",
+          "hour_8": "08:00", "hour_9": "09:00", "hour_10": "10:00", "hour_11": "11:00",
+          "hour_12": "12:00", "hour_13": "13:00", "hour_14": "14:00", "hour_15": "15:00",
+          "hour_16": "16:00", "hour_17": "17:00", "hour_18": "18:00", "hour_19": "19:00",
+          "hour_20": "20:00", "hour_21": "21:00", "hour_22": "22:00", "hour_23": "23:00"
+        }
+      },
+      "dump_load_sensor": {
+        "title": "Dump Load — Power Sensor",
+        "description": "Select a power sensor (W) for this load. The integration will track its energy automatically and build a 7-day rolling hourly profile.",
+        "data": {
+          "name": "Load name",
+          "power_entity": "Power sensor (W)"
+        }
+      },
+      "solar_source": {
+        "title": "Solar Forecast",
+        "description": "Select your solar forecast integration, or choose 'Manual' to select entities individually.",
+        "data": {
+          "solar_config_entry": "Solar forecast integration"
+        }
+      },
+      "solcast": {
+        "title": "Solar Forecast Entities (Manual)",
+        "description": "Select your solar PV forecast sensors.",
+        "data": {
+          "solcast_remaining_today": "Remaining today",
+          "solcast_forecast_today": "Forecast today (with hourly detail)",
+          "solcast_tomorrow": "Forecast tomorrow",
+          "solcast_day_3": "Forecast day 3",
+          "solcast_day_4": "Forecast day 4",
+          "solcast_day_5": "Forecast day 5",
+          "solcast_day_6": "Forecast day 6",
+          "solcast_day_7": "Forecast day 7"
+        }
+      },
+      "forecast_options": {
+        "title": "Forecast Options",
+        "description": "Set forecast range, target SoC, and fallback values.",
+        "data": {
+          "forecast_days": "Number of days to forecast (2-7)",
+          "target_soc": "Target sunrise SoC (%)",
+          "default_daily": "Fallback daily consumption (kWh)",
+          "default_overnight": "Fallback overnight consumption (kWh)",
+          "guard_threshold": "Minimum kWh for averages to be valid"
+        }
+      }
+    }
+  }
+}

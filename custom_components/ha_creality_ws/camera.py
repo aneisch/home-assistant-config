@@ -355,6 +355,7 @@ class CrealityWebRTCCamera(_BaseCamera):
         self._custom_go2rtc_url = go2rtc_url
         self._custom_go2rtc_port = go2rtc_port
         self._stream_name: str | None = None
+        self._force_recreate_stream = False
         self._last_error: str | None = None
         
         # Snapshot throttling to avoid hammering go2rtc
@@ -624,7 +625,7 @@ class CrealityWebRTCCamera(_BaseCamera):
 
     async def _ensure_stream_configured(self) -> None:
         """Ensure the go2rtc stream is configured using HA's go2rtc client."""
-        if self._stream_name:
+        if self._stream_name and not self._force_recreate_stream:
             return  # Already configured
         
         # Initialize client if needed
@@ -636,7 +637,7 @@ class CrealityWebRTCCamera(_BaseCamera):
         # Generate stream name from printer IP
         try:
             printer_host = self._upstream_signaling_url.split("://")[1].split(":")[0]
-            self._stream_name = f"creality_k2_{printer_host.replace('.', '_')}"
+            stream_name = self._stream_name or f"creality_k2_{printer_host.replace('.', '_')}"
         except (IndexError, AttributeError) as exc:
             _LOGGER.error(
                 "ha_creality_ws: Failed to parse printer host from URL %s: %s",
@@ -644,41 +645,83 @@ class CrealityWebRTCCamera(_BaseCamera):
             )
             return
         
-        # Configure stream source with Creality format
+        # Configure stream source.
+        # The K2 family signaling endpoint speaks Creality's JSON-wrapped SDP
+        # protocol, not standard WHEP. The `#format=creality` fragment selects
+        # go2rtc's built-in Creality client; dropping it makes go2rtc send raw
+        # WHEP, which the printer replies to with `{}` and breaks the stream.
         go2rtc_src = f"webrtc:{self._upstream_signaling_url}#format=creality"
         
         try:
             # Check if stream already exists
             streams = await self._go2rtc_client.streams.list()
             
-            if self._stream_name not in streams:
-                # Add new stream
+            recreate_needed = self._force_recreate_stream or stream_name not in streams
+            
+            # If stream exists, verify its configured source matches expected
+            if not recreate_needed and stream_name in streams:
+                existing_stream = streams.get(stream_name, {})
+                existing_sources = existing_stream.get('sources', [])
+                # Normalize comparison: handle both string and list formats
+                expected_source = go2rtc_src
+                has_expected_source = (
+                    expected_source in existing_sources if isinstance(existing_sources, list)
+                    else existing_sources == expected_source
+                )
+                if not has_expected_source:
+                    _LOGGER.warning(
+                        "ha_creality_ws: Stream '%s' exists but source mismatch: "
+                        "expected '%s', found '%s'. Recreating...",
+                        stream_name, expected_source, existing_sources
+                    )
+                    recreate_needed = True
+            
+            if recreate_needed:
+                # Delete old stream if it exists
+                if stream_name in streams:
+                    try:
+                        await self._go2rtc_client.streams.delete(stream_name)
+                    except Exception as del_exc:
+                        _LOGGER.debug(
+                            "ha_creality_ws: Error deleting old stream '%s': %s",
+                            stream_name, del_exc
+                        )
+                
+                # Add the stream with correct source
+                recreate_stream = self._force_recreate_stream
                 await self._go2rtc_client.streams.add(
-                    name=self._stream_name,
+                    name=stream_name,
                     sources=go2rtc_src
                 )
+                # Only update state after successful add
+                self._stream_name = stream_name
+                self._force_recreate_stream = False
                 _LOGGER.info(
-                    "ha_creality_ws: Added stream '%s' with source '%s'",
-                    self._stream_name, go2rtc_src
+                    "ha_creality_ws: %s stream '%s' with source '%s'",
+                    "Recreated" if recreate_stream else "Added",
+                    stream_name,
+                    go2rtc_src,
                 )
             else:
+                # Stream already exists with correct source; ensure state is consistent
+                self._stream_name = stream_name
                 _LOGGER.debug(
-                    "ha_creality_ws: Stream '%s' already exists in go2rtc",
-                    self._stream_name
+                    "ha_creality_ws: Stream '%s' already exists in go2rtc with correct source",
+                    stream_name
                 )
                 
         except Go2RtcClientError as exc:
             _LOGGER.error(
-                "ha_creality_ws: Failed to configure stream: %s",
-                exc, exc_info=True
+                "ha_creality_ws: Failed to configure stream (source=%s): %s",
+                self._upstream_signaling_url, exc, exc_info=True
             )
-            self._stream_name = None  # Reset so we retry later
+            self._force_recreate_stream = True
         except Exception as exc:
             _LOGGER.error(
-                "ha_creality_ws: Unexpected error configuring stream: %s",
-                exc, exc_info=True
+                "ha_creality_ws: Unexpected error configuring stream (source=%s): %s",
+                self._upstream_signaling_url, exc, exc_info=True
             )
-            self._stream_name = None  # Reset so we retry later
+            self._force_recreate_stream = True
 
 
 
@@ -751,7 +794,10 @@ class CrealityWebRTCCamera(_BaseCamera):
             offer = WebRTCSdpOffer(sdp=offer_sdp)
             
             # Forward offer to go2rtc and get answer
-            _LOGGER.debug("ha_creality_ws: forwarding offer to go2rtc for stream: %s", self._stream_name)
+            _LOGGER.debug(
+                "ha_creality_ws: forwarding offer to go2rtc for stream: %s. Offer size: %d", 
+                self._stream_name, len(offer_sdp)
+            )
             answer = await self._go2rtc_client.webrtc.forward_whep_sdp_offer(
                 source_name=self._stream_name,
                 offer=offer
@@ -773,13 +819,29 @@ class CrealityWebRTCCamera(_BaseCamera):
             _LOGGER.info("ha_creality_ws: WebRTC offer handled successfully")
 
         except Go2RtcClientError as exc:
+            go2rtc_err = exc
             _LOGGER.error(
-                "ha_creality_ws: go2rtc client error handling WebRTC offer: %s",
-                exc, exc_info=True
+                "ha_creality_ws: go2rtc client error handling WebRTC offer for stream '%s': %s",
+                self._stream_name, go2rtc_err, exc_info=True
             )
+
+            # Attempt recovery by invalidating the stream to force reconfiguration next time
+            if self._stream_name:
+                _LOGGER.warning("ha_creality_ws: Invalidating stream '%s' due to go2rtc error", self._stream_name)
+                try:
+                    await self._go2rtc_client.streams.delete(self._stream_name)
+                    self._stream_name = None
+                    self._force_recreate_stream = False
+                except Exception as cleanup_exc:
+                    _LOGGER.debug(
+                        "ha_creality_ws: error deleting stream '%s' during cleanup: %s",
+                        self._stream_name, cleanup_exc,
+                    )
+                    self._force_recreate_stream = True
+
             send_message(
                 self._wrap_send_message(
-                    {"type": "error", "message": f"go2rtc error: {exc}"}
+                    {"type": "error", "message": f"go2rtc error: {go2rtc_err}"}
                 )
             )
         except Exception as exc:

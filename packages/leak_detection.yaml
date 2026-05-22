@@ -58,15 +58,14 @@ automation:
               message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
                 priority: 1
-      # high flow when not home and irrigation off AND not during a scheduled timer AND bhyve off
+      # high flow when not home and irrigation off AND washer not running
       - if: "{{ trigger.id == 'minutes' 
             and states('sensor.flume_sensor_home_current') | float > 2.5 
             and is_state('switch.irrigation_master_valve', 'off') 
             and not is_state('switch.bhyve_1','on')
             and not is_state('switch.bhyve_2','on')
             and is_state('group.trackers', 'home' ) 
-            and not (now().hour == 10 and now().minute in [0,1,2,3,4,5,7,8,9,10,11]) 
-            and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
+            and states('sensor.washing_machine_power') | float < 5
             and is_state('input_boolean.guest_mode', 'off') }}"
         then:
           - action: script.notify_wrapper

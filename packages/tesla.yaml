@@ -15,6 +15,18 @@ template:
       optimistic: false
       state: '{{ is_state(''binary_sensor.tesla_locked'', ''off'') }}'
 
+  - sensor:
+      # This is needed to to flipping of milage reported by odometer. Prevents over-counting
+      - name: "Tesla Odometer Stable"
+        unit_of_measurement: "mi"
+        device_class: distance
+        state_class: total_increasing
+        state: >
+          {% set current = states('sensor.tesla_odometer') | float(0) %}
+          {% set last = states('sensor.tesla_odometer_stable') | float(0) %}
+          {# Only update if the new value is greater than the last known value #}
+          {{ [current, last] | max }}
+
 input_number:
   # Emporia View, Appdaemon app, and Tesla BLE follow this
   tesla_charge_rate_master:
@@ -642,13 +654,19 @@ script:
         data:
           topic: tesla_ble/VIN/charging
           payload: "stop"
-      # Wait 30 seconds
-      - delay: "00:00:30"
+
+      # Wait 60 seconds
+      - delay: "00:01:00"
 
       # Turn off Emporia charger
       - service: switch.turn_off
         target:
           entity_id: switch.emporia_charger
+
+      # Disable EV charge override
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.ev_charge_override
 
       # Re-enable TOU on Sol-Ark
       - service: switch.turn_on

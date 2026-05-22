@@ -1,0 +1,279 @@
+# https://github.com/RAR/esphome-eg4-bms
+
+substitutions:
+  friendly_name: "PowerPro"
+
+esphome:
+  name: eg4-powerpro-monitor
+  friendly_name: eg4-powerpro-monitor-package
+  # on_boot:
+  #     priority: -10
+  #     then:
+  #       - script.execute: modbus_scanner
+
+esp32:
+  board: esp32-s3-devkitc-1
+  framework:
+    type: esp-idf
+
+# script:
+#   - id: modbus_scanner
+#     then:
+#       - logger.log: "=== STARTING SLOW MODBUS SCAN (0x01 to 0x10) ==="
+#       - repeat:
+#           count: 16
+#           then:
+#             - lambda: |-
+#                 uint8_t target_address = iteration + 1; 
+#                 ESP_LOGI("modbus_scan", "------------------------------------");
+#                 ESP_LOGI("modbus_scan", "Pinging Address: 0x%02X...", target_address);
+#                 id(modbus0).send(target_address, 0x03, 0x0000, 0x0001);
+#             - delay: 2s  # <-- Increased to 2 seconds to let timeouts finish
+#       - logger.log: "=== SLOW MODBUS SCAN COMPLETE ==="
+
+<<: !include common.yaml
+
+web_server:
+
+external_components:
+  - source: github://rar/esphome-eg4-bms@main
+    refresh: 0s
+
+uart:
+  id: uart_0
+  tx_pin: GPIO17
+  rx_pin: GPIO18
+  baud_rate: 9600
+
+eg4_modbus:
+  id: modbus0
+  uart_id: uart_0
+  flow_control_pin: GPIO21
+
+eg4_bms:
+  # - id: bms0 # Master battery
+  #   address: 0x10
+  #   eg4_modbus_id: modbus0
+  #   update_interval: 10s
+
+  - id: bms1 # Slave battery
+    address: 0x02
+    eg4_modbus_id: modbus0
+    update_interval: 10s
+
+binary_sensor:
+  # - platform: eg4_bms
+  #   eg4_bms_id: bms0
+  #   # online_status:
+  #   #   name: "${friendly_name} Battery 1 Online Status"
+  #   heating:
+  #     id: batt_1_heating
+  #     #name: "${friendly_name} Battery 1 Heating"
+  #   # charging:
+  #   #   name: "${friendly_name} Battery 1 Charging"
+  #   # discharging:
+  #   #   name: "${friendly_name} Battery 1 Discharging"
+
+  - platform: eg4_bms
+    eg4_bms_id: bms1
+    online_status:
+      name: "${friendly_name} Battery 2 Online Status"
+    heating:
+      name: "${friendly_name} Battery 2 Heating"
+    charging:
+      name: "${friendly_name} Battery 2 Charging"
+    discharging:
+      name: "${friendly_name} Battery 2 Discharging"
+
+sensor:
+  # - platform: eg4_bms
+  #   eg4_bms_id: bms0
+  #   # Voltage sensors
+  #   total_voltage:
+  #     name: "${friendly_name} Battery 1 Total Voltage"
+  #   min_cell_voltage:
+  #     name: "${friendly_name} Battery 1 Min Cell Voltage"
+  #   max_cell_voltage:
+  #     name: "${friendly_name} Battery 1 Max Cell Voltage"
+  #   delta_cell_voltage:
+  #     name: "${friendly_name} Battery 1 Delta Cell Voltage"
+  #   cell_average_voltage:
+  #     name: "${friendly_name} Battery 1 Average Cell Voltage"
+  #   cell_voltage_1:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 1"
+  #   cell_voltage_2:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 2"
+  #   cell_voltage_3:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 3"
+  #   cell_voltage_4:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 4"
+  #   cell_voltage_5:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 5"
+  #   cell_voltage_6:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 6"
+  #   cell_voltage_7:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 7"
+  #   cell_voltage_8:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 8"
+  #   cell_voltage_9:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 9"
+  #   cell_voltage_10:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 10"
+  #   cell_voltage_11:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 11"
+  #   cell_voltage_12:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 12"
+  #   cell_voltage_13:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 13"
+  #   cell_voltage_14:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 14"
+  #   cell_voltage_15:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 15"
+  #   cell_voltage_16:
+  #     name: "${friendly_name} Battery 1 Cell Voltage 16"
+  #   # Current and power
+  #   current:
+  #     name: "${friendly_name} Battery 1 Current"
+  #   power:
+  #     name: "${friendly_name} Battery 1 Power"
+  #   charging_power:
+  #     name: "${friendly_name} Battery 1 Charging Power"
+  #   discharging_power:
+  #     name: "${friendly_name} Battery 1 Discharging Power"
+  #   # Temperatures
+  #   pcb_temperature:
+  #     name: "${friendly_name} Battery 1 Pcb Temperature"
+  #   avg_temperature:
+  #     name: "${friendly_name} Battery 1 Avg Temperature"
+  #   max_temperature:
+  #     name: "${friendly_name} Battery 1 Max Temperature"
+  #   # Capacity
+  #   remaining_capacity:
+  #     name: "${friendly_name} Battery 1 Remaining Capacity"
+  #   full_capacity:
+  #     name: "${friendly_name} Battery 1 Full Capacity"
+  #   designed_capacity:
+  #     name: "${friendly_name} Battery 1 Designed Capacity"
+  #   # State
+  #   state_of_charge:
+  #     name: "${friendly_name} Battery 1 State Of Charge"
+  #   state_of_health:
+  #     name: "${friendly_name} Battery 1 State Of Health"
+  #   cycle_count:
+  #     name: "${friendly_name} Battery 1 Cycle Count"
+  #   max_charge_current:
+  #     name: "${friendly_name} Battery 1 Max Charge Current"
+
+  - platform: eg4_bms
+    eg4_bms_id: bms1
+    # Voltage sensors
+    total_voltage:
+      name: "${friendly_name} Battery 2 Total Voltage"
+    min_cell_voltage:
+      name: "${friendly_name} Battery 2 Min Cell Voltage"
+    max_cell_voltage:
+      name: "${friendly_name} Battery 2 Max Cell Voltage"
+    delta_cell_voltage:
+      name: "${friendly_name} Battery 2 Delta Cell Voltage"
+    cell_average_voltage:
+      name: "${friendly_name} Battery 2 Average Cell Voltage"
+    cell_voltage_1:
+      name: "${friendly_name} Battery 2 Cell Voltage 1"
+    cell_voltage_2:
+      name: "${friendly_name} Battery 2 Cell Voltage 2"
+    cell_voltage_3:
+      name: "${friendly_name} Battery 2 Cell Voltage 3"
+    cell_voltage_4:
+      name: "${friendly_name} Battery 2 Cell Voltage 4"
+    cell_voltage_5:
+      name: "${friendly_name} Battery 2 Cell Voltage 5"
+    cell_voltage_6:
+      name: "${friendly_name} Battery 2 Cell Voltage 6"
+    cell_voltage_7:
+      name: "${friendly_name} Battery 2 Cell Voltage 7"
+    cell_voltage_8:
+      name: "${friendly_name} Battery 2 Cell Voltage 8"
+    cell_voltage_9:
+      name: "${friendly_name} Battery 2 Cell Voltage 9"
+    cell_voltage_10:
+      name: "${friendly_name} Battery 2 Cell Voltage 10"
+    cell_voltage_11:
+      name: "${friendly_name} Battery 2 Cell Voltage 11"
+    cell_voltage_12:
+      name: "${friendly_name} Battery 2 Cell Voltage 12"
+    cell_voltage_13:
+      name: "${friendly_name} Battery 2 Cell Voltage 13"
+    cell_voltage_14:
+      name: "${friendly_name} Battery 2 Cell Voltage 14"
+    cell_voltage_15:
+      name: "${friendly_name} Battery 2 Cell Voltage 15"
+    cell_voltage_16:
+      name: "${friendly_name} Battery 2 Cell Voltage 16"
+    # Current and power
+    current:
+      name: "${friendly_name} Battery 2 Current"
+    power:
+      name: "${friendly_name} Battery 2 Power"
+    charging_power:
+      name: "${friendly_name} Battery 2 Charging Power"
+    discharging_power:
+      name: "${friendly_name} Battery 2 Discharging Power"
+    # Temperatures
+    pcb_temperature:
+      name: "${friendly_name} Battery 2 Pcb Temperature"
+    avg_temperature:
+      name: "${friendly_name} Battery 2 Avg Temperature"
+    max_temperature:
+      name: "${friendly_name} Battery 2 Max Temperature"
+    # Capacity
+    remaining_capacity:
+      name: "${friendly_name} Battery 2 Remaining Capacity"
+    full_capacity:
+      name: "${friendly_name} Battery 2 Full Capacity"
+    designed_capacity:
+      name: "${friendly_name} Battery 2 Designed Capacity"
+    # State
+    state_of_charge:
+      name: "${friendly_name} Battery 2 State Of Charge"
+    state_of_health:
+      name: "${friendly_name} Battery 2 State Of Health"
+    cycle_count:
+      name: "${friendly_name} Battery 2 Cycle Count"
+    max_charge_current:
+      name: "${friendly_name} Battery 2 Max Charge Current"
+
+
+text_sensor:
+  # - platform: eg4_bms
+  #   eg4_bms_id: bms0
+  #   status:
+  #     name: "${friendly_name} Battery 1 Status"
+  #   warnings:
+  #     name: "${friendly_name} Battery 1 Warnings"
+  #   protection:
+  #     name: "${friendly_name} Battery 1 Protection"
+  #   error:
+  #     name: "${friendly_name} Battery 1 Error"
+  #   model:
+  #     name: "${friendly_name} Battery 1 Model"
+  #   firmware_version:
+  #     name: "${friendly_name} Battery 1 Firmware Version"
+  #   serial_number:
+  #     name: "${friendly_name} Battery 1 Serial Number"
+
+  - platform: eg4_bms
+    eg4_bms_id: bms1
+    status:
+      name: "${friendly_name} Battery 2 Status"
+    warnings:
+      name: "${friendly_name} Battery 2 Warnings"
+    protection:
+      name: "${friendly_name} Battery 2 Protection"
+    error:
+      name: "${friendly_name} Battery 2 Error"
+    model:
+      name: "${friendly_name} Battery 2 Model"
+    firmware_version:
+      name: "${friendly_name} Battery 2 Firmware Version"
+    serial_number:
+      name: "${friendly_name} Battery 2 Serial Number"

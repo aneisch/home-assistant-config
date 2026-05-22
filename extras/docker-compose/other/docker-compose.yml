@@ -825,6 +825,11 @@ services:
         labels:
             - traefik.enable=true
             - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+            # HTTPS for CF
+            - traefik.http.routers.music-assistant-cf.entrypoints=websecure
+            - traefik.http.routers.music-assistant-cf.tls=true
+            - traefik.http.routers.music-assistant-cf.rule=Host(`music-assistant.domain.com`)
+            - traefik.http.routers.music-assistant-cf.service=music-assistant
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.music-assistant.tls=true
             - traefik.http.routers.music-assistant.entrypoints=websecure
@@ -832,46 +837,6 @@ services:
             - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
             - traefik.http.routers.music-assistant.service=music-assistant
-
-    # piano-recorder:
-    #     container_name: piano-recorder
-    #     image: piano-recorder
-    #     restart: unless-stopped
-    #     volumes:
-    #         - /etc/localtime:/etc/localtime:ro  # Time sync
-    #     labels:
-    #         - com.centurylinklabs.watchtower.enable=false
-    #         - traefik.enable=true
-    #         - traefik.http.services.piano_recorder.loadbalancer.server.port=5000
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.piano_recorder.tls=true
-    #         - traefik.http.routers.piano_recorder.entrypoints=websecure
-    #         - traefik.http.routers.piano_recorder.tls.certResolver=le-home
-    #         - traefik.http.routers.piano_recorder.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.piano_recorder.rule=Host(`piano_recorder.home.domain.com`)
-    #         - traefik.http.routers.piano_recorder.service=piano_recorder
-    ha-mcp:
-        image: ghcr.io/homeassistant-ai/ha-mcp:latest
-        container_name: ha-mcp-server
-        environment:
-            - HOMEASSISTANT_URL=http://10.0.1.22:8123
-            # Set your Home Assistant long-lived access token
-            - HOMEASSISTANT_TOKEN=XXX
-            # Optional: Configure backup hint behavior
-            - BACKUP_HINT=normal
-            - MCP_SECRET_PATH=/private_aassdfrewghkfkk
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.ha-mcp.loadbalancer.server.port=8086
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.ha-mcp.tls=true
-            - traefik.http.routers.ha-mcp.entrypoints=websecure
-            - traefik.http.routers.ha-mcp.tls.certResolver=le-home
-            - traefik.http.routers.ha-mcp.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.ha-mcp.rule=Host(`ha-mcp.home.domain.com`)
-            - traefik.http.routers.ha-mcp.service=ha-mcp
-        command: ha-mcp-web
-        restart: unless-stopped
     tfc-agent:
         image: hashicorp/tfc-agent:latest
         container_name: tfc-agent

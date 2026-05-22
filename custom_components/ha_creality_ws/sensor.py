@@ -742,6 +742,49 @@ class KCFSExtSlotSensor(KEntity, SensorEntity):
         }
 
 
+class KActiveFilamentSensor(KEntity, SensorEntity):
+    """Sensor reporting which CFS slot or external filament is currently selected."""
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, "Active Filament Slot", "active_filament_slot")
+        self._attr_icon = "mdi:printer-3d-nozzle"
+
+    @property
+    def native_value(self) -> str | None:
+        if self._should_zero():
+            return None
+        data = self.coordinator.data or {}
+        boxes = data.get("boxsInfo", {}).get("materialBoxs", [])
+        for box in boxes:
+            box_type = box.get("type", 0)
+            for slot in box.get("materials", []):
+                if slot.get("selected"):
+                    if box_type == 1:
+                        return "External"
+                    slot_id = slot.get("id", 0)
+                    box_id = box.get("id", 0)
+                    return f"Box {box_id} Slot {slot_id + 1}"
+        return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        if self._should_zero():
+            return {}
+        data = self.coordinator.data or {}
+        boxes = data.get("boxsInfo", {}).get("materialBoxs", [])
+        for box in boxes:
+            for slot in box.get("materials", []):
+                if slot.get("selected"):
+                    vendor = slot.get("vendor", "Generic")
+                    name = slot.get("name") or slot.get("type", "Unknown")
+                    return {
+                        "filament": f"{vendor} {name}",
+                        "color": slot.get("color"),
+                        "percent": slot.get("percent"),
+                    }
+        return {}
+
+
 async def async_setup_entry(hass, entry, async_add_entities):
     _LOGGER.info("Setting up sensor platform for entry: %s", entry.entry_id)
     coord = hass.data[DOMAIN][entry.entry_id]
@@ -818,6 +861,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
                         _LOGGER.debug("Skipping existing CFS External UID: %s", uid)
             else:
                 _LOGGER.debug("External box found but has no materials")
+
+        # Active filament slot sensor (one per printer, added once)
+        active_uid = "active_filament_slot"
+        if active_uid not in added_cfs_uids:
+            new_ents.append(KActiveFilamentSensor(coord))
+            added_cfs_uids.add(active_uid)
+            _LOGGER.debug("Registered new CFS UID: %s", active_uid)
 
         _LOGGER.debug("add_cfs_entities prepared %d new entities. Total tracked UIDs: %d", len(new_ents), len(added_cfs_uids))
         return new_ents

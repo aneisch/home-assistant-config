@@ -1117,6 +1117,11 @@ services:
         labels:
             - traefik.enable=true
             - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+            # HTTPS for CF
+            - traefik.http.routers.music-assistant-cf.entrypoints=websecure
+            - traefik.http.routers.music-assistant-cf.tls=true
+            - traefik.http.routers.music-assistant-cf.rule=Host(`music-assistant.domain.com`)
+            - traefik.http.routers.music-assistant-cf.service=music-assistant
             # HTTPS Local Only (with 80-->443 redirect)
             - traefik.http.routers.music-assistant.tls=true
             - traefik.http.routers.music-assistant.entrypoints=websecure

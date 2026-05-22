@@ -79,944 +79,6 @@ const i=(i,e)=>"method"===e.kind&&e.descriptor&&!("value"in e.descriptor)?{...e,
  * SPDX-License-Identifier: BSD-3-Clause
  */var n;null!=(null===(n=window.HTMLSlotElement)||void 0===n?void 0:n.prototype.assignedElements)?(o,n)=>o.assignedElements(n):(o,n)=>o.assignedNodes(n).filter((o=>o.nodeType===Node.ELEMENT_NODE));
 
-// Polymer legacy event helpers used courtesy of the Polymer project.
-//
-// Copyright (c) 2017 The Polymer Authors. All rights reserved.
-//
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//    * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//    * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//    * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-/**
- * Dispatches a custom event with an optional detail value.
- *
- * @param {string} type Name of event type.
- * @param {*=} detail Detail value containing event-specific
- *   payload.
- * @param {{ bubbles: (boolean|undefined),
- *           cancelable: (boolean|undefined),
- *           composed: (boolean|undefined) }=}
- *  options Object specifying options.  These may include:
- *  `bubbles` (boolean, defaults to `true`),
- *  `cancelable` (boolean, defaults to false), and
- *  `node` on which to fire the event (HTMLElement, defaults to `this`).
- * @return {Event} The new event that was fired.
- */
-const fireEvent = (node, type, detail, options) => {
-    options = options || {};
-    // @ts-ignore
-    detail = detail === null || detail === undefined ? {} : detail;
-    const event = new Event(type, {
-        bubbles: options.bubbles === undefined ? true : options.bubbles,
-        cancelable: Boolean(options.cancelable),
-        composed: options.composed === undefined ? true : options.composed,
-    });
-    event.detail = detail;
-    node.dispatchEvent(event);
-    return event;
-};
-
-var common$9 = {
-	version: "Weergawe",
-	invalidConfiguration: "Ongeldige konfigurasie"
-};
-var editor$8 = {
-	title: {
-		name: "Titel (opsioneel)"
-	},
-	showControllers: {
-		name: "Wys beheerders (CSV lys)"
-	},
-	alwaysShowZones: {
-		name: "Wys altyd sones"
-	},
-	alwaysShowSequences: {
-		name: "Wys altyd volgordes"
-	},
-	showTimelineScheduled: {
-		name: "Wys geskeduleerde tydslyn"
-	},
-	showTimelineHistory: {
-		name: "Wys tydslyn geskiedenis"
-	}
-};
-var controller$8 = {
-	zones: {
-		name: "Sones",
-		buttonHint: "Wys/verberg sones"
-	},
-	sequences: {
-		name: "Volgordes",
-		buttonHint: "Wys/versteek volgordes"
-	}
-};
-var menu$8 = {
-	enable: {
-		name: "Aktiveer"
-	},
-	suspend: {
-		name: "Opskort",
-		hint: "Duur\n===============\nh:mm:ss\n<blank> = herstel"
-	},
-	manual: {
-		name: "Handmatig",
-		hint: "Duur"
-	},
-	pause: {
-		name: "Wag"
-	},
-	resume: {
-		name: "Hervat"
-	},
-	cancel: {
-		name: "Kanselleer"
-	},
-	adjust: {
-		name: "Aanpas",
-		hint: "Aanpassingsopsies\n===============\nPersentasie: %n\nWerklike: =0:00:00\nToename: +0:00:00\nAfname: -0:00:00\nHerstel: <blank>"
-	}
-};
-var af = {
-	common: common$9,
-	editor: editor$8,
-	controller: controller$8,
-	menu: menu$8
-};
-
-var af$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$9,
-    controller: controller$8,
-    default: af,
-    editor: editor$8,
-    menu: menu$8
-});
-
-var common$8 = {
-	version: "Version",
-	invalidConfiguration: "Ungültige Konfiguration"
-};
-var editor$7 = {
-	title: {
-		name: "Title (optional)"
-	},
-	showControllers: {
-		name: "Zeige Controller (CSV list)"
-	},
-	alwaysShowZones: {
-		name: "Zeige Zonen immer an"
-	},
-	alwaysShowSequences: {
-		name: "Zeige Sequenzen immer an"
-	},
-	showTimelineScheduled: {
-		name: "Zeige geplante Ablaufpläne"
-	},
-	showTimelineHistory: {
-		name: "Zeige vergangene Ablaufpläne"
-	}
-};
-var controller$7 = {
-	zones: {
-		name: "Zonen",
-		buttonHint: "Ein/Ausblenden der Zonen"
-	},
-	sequences: {
-		name: "Sequenzen",
-		buttonHint: "Ein/Ausblenden der Sequenzen"
-	}
-};
-var menu$7 = {
-	enable: {
-		name: "Aktivieren"
-	},
-	suspend: {
-		name: "Pausieren",
-		hint: "Dauer\n===============\nh:mm:ss\n<blank> = reset"
-	},
-	manual: {
-		name: "Manuell",
-		hint: "Dauer"
-	},
-	pause: {
-		name: "Pause"
-	},
-	resume: {
-		name: "Fortsetzen"
-	},
-	cancel: {
-		name: "Abbrechen"
-	},
-	adjust: {
-		name: "Anpassen",
-		hint: "Anpassungs Optionen\n===============\nProzent: %n\nAktuell: =0:00:00\nErhöhen: +0:00:00\nVerringern -0:00:00\nReset: <blank>"
-	}
-};
-var de = {
-	common: common$8,
-	editor: editor$7,
-	controller: controller$7,
-	menu: menu$7
-};
-
-var de$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$8,
-    controller: controller$7,
-    default: de,
-    editor: editor$7,
-    menu: menu$7
-});
-
-var common$7 = {
-	version: "Version",
-	invalidConfiguration: "Invalid configuration"
-};
-var editor$6 = {
-	title: {
-		name: "Title (optional)"
-	},
-	showControllers: {
-		name: "Show controllers (CSV list)"
-	},
-	alwaysShowZones: {
-		name: "Always show zones"
-	},
-	alwaysShowSequences: {
-		name: "Always show sequences"
-	},
-	showTimelineScheduled: {
-		name: "Show timeline scheduled"
-	},
-	showTimelineHistory: {
-		name: "Show timeline history"
-	}
-};
-var controller$6 = {
-	zones: {
-		name: "Zones",
-		buttonHint: "Show/hide zones"
-	},
-	sequences: {
-		name: "Sequences",
-		buttonHint: "Show/hide sequences"
-	}
-};
-var menu$6 = {
-	enable: {
-		name: "Enable"
-	},
-	suspend: {
-		name: "Suspend",
-		hint: "Duration\n===============\nh:mm:ss\n<blank> = reset"
-	},
-	manual: {
-		name: "Manual",
-		hint: "Duration"
-	},
-	pause: {
-		name: "Pause"
-	},
-	resume: {
-		name: "Resume"
-	},
-	cancel: {
-		name: "Cancel"
-	},
-	adjust: {
-		name: "Adjust",
-		hint: "Adjustment options\n===============\nPercentage: %n\nActual: =0:00:00\nIncrease: +0:00:00\nDecrease: -0:00:00\nReset: <blank>"
-	}
-};
-var en = {
-	common: common$7,
-	editor: editor$6,
-	controller: controller$6,
-	menu: menu$6
-};
-
-var en$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$7,
-    controller: controller$6,
-    default: en,
-    editor: editor$6,
-    menu: menu$6
-});
-
-var common$6 = {
-	version: "Versjon",
-	invalid_configuration: "Ikke gyldig konfiguration"
-};
-var nb = {
-	common: common$6
-};
-
-var nb$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$6,
-    default: nb
-});
-
-var common$5 = {
-	version: "Verzia",
-	invalidConfiguration: "Chybná konfigurácia"
-};
-var editor$5 = {
-	title: {
-		name: "Názov (voliteľné)"
-	},
-	showControllers: {
-		name: "Ukázať ovládače (CSV zoznam)"
-	},
-	alwaysShowZones: {
-		name: "Vždy zobraziť zóny"
-	},
-	alwaysShowSequences: {
-		name: "Vždy zobrazovať sekvencie"
-	},
-	showTimelineScheduled: {
-		name: "Zobraziť naplánovanú časovú os"
-	},
-	showTimelineHistory: {
-		name: "Zobraziť históriu časovej osi"
-	}
-};
-var controller$5 = {
-	zones: {
-		name: "Zóny",
-		buttonHint: "Zobraziť/skryť zóny"
-	},
-	sequences: {
-		name: "Sekvencie",
-		buttonHint: "Zobraziť/skryť sekvencie"
-	}
-};
-var menu$5 = {
-	enable: {
-		name: "Povoliť"
-	},
-	suspend: {
-		name: "Pozastaviť",
-		hint: "Trvanie\n===============\nh:mm:ss\n<blank> = reset"
-	},
-	manual: {
-		name: "Manual",
-		hint: "Trvanie"
-	},
-	pause: {
-		name: "Pauza"
-	},
-	resume: {
-		name: "Obnoviť"
-	},
-	cancel: {
-		name: "Zrušiť"
-	},
-	adjust: {
-		name: "Upraviť",
-		hint: "Možnosti úprav\n===============\nPercento: %n\nAktuálne: =0:00:00\nZvýšiť: +0:00:00\nZnížiť: -0:00:00\nReset: <blank>"
-	}
-};
-var sk = {
-	common: common$5,
-	editor: editor$5,
-	controller: controller$5,
-	menu: menu$5
-};
-
-var sk$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$5,
-    controller: controller$5,
-    default: sk,
-    editor: editor$5,
-    menu: menu$5
-});
-
-var common$4 = {
-	version: "Verzió",
-	invalidConfiguration: "Hibás konfiguráció"
-};
-var editor$4 = {
-	title: {
-		name: "Név (opcionális)"
-	},
-	showControllers: {
-		name: "Vezérlők megjelenítése (CSV lista)"
-	},
-	alwaysShowZones: {
-		name: "Mindig mutassa a zónákat"
-	},
-	alwaysShowSequences: {
-		name: "Mindig mutassa a szekvenciákat"
-	},
-	showTimelineScheduled: {
-		name: "Jövőbeli idővonal megjelenítése"
-	},
-	showTimelineHistory: {
-		name: "Múltbeli idővonal megjelenítése"
-	}
-};
-var controller$4 = {
-	zones: {
-		name: "Zónák",
-		buttonHint: "Zónák mutatása/elrejtése"
-	},
-	sequences: {
-		name: "Szekvenciák",
-		buttonHint: "Szekvenciák mutatása/elrejtése"
-	}
-};
-var menu$4 = {
-	enable: {
-		name: "Engedélyez"
-	},
-	suspend: {
-		name: "Felfüggesztés",
-		hint: "Időtartam\n===============\nh:mm:ss\n<blank> = visszaállít"
-	},
-	manual: {
-		name: "Kézi",
-		hint: "Időtartam"
-	},
-	pause: {
-		name: "Szünet"
-	},
-	resume: {
-		name: "Folytatás"
-	},
-	cancel: {
-		name: "Megszakítás"
-	},
-	adjust: {
-		name: "Módosítás",
-		hint: "Módosítási lehetőségek\n===============\nSzázalékos: %n\nJelenlegi: =0:00:00\nNövelés: +0:00:00\nCsökkentés: -0:00:00\nVisszaállít: <blank>"
-	}
-};
-var hu = {
-	common: common$4,
-	editor: editor$4,
-	controller: controller$4,
-	menu: menu$4
-};
-
-var hu$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$4,
-    controller: controller$4,
-    default: hu,
-    editor: editor$4,
-    menu: menu$4
-});
-
-var common$3 = {
-	version: "Versiune",
-	invalidConfiguration: "Configuraţie invalidă"
-};
-var editor$3 = {
-	title: {
-		name: "Titlu (optional)"
-	},
-	showControllers: {
-		name: "Afișează controlere (Listă CSV)"
-	},
-	alwaysShowZones: {
-		name: "Afișează întotdeauna zonele"
-	},
-	alwaysShowSequences: {
-		name: "Afișează întotdeauna secvenţele"
-	},
-	showTimelineScheduled: {
-		name: "Afișează cronologia programată"
-	},
-	showTimelineHistory: {
-		name: "Afișează istoricul cronologiei"
-	}
-};
-var controller$3 = {
-	zones: {
-		name: "Zone",
-		buttonHint: "Afișează/ascunde zonele"
-	},
-	sequences: {
-		name: "Secvenţe",
-		buttonHint: "Afișează/ascunde secvenţele"
-	}
-};
-var menu$3 = {
-	enable: {
-		name: "Activează"
-	},
-	suspend: {
-		name: "Suspendă",
-		hint: "Durată\n===============\nh:mm:ss\n<blank> = resetează"
-	},
-	manual: {
-		name: "Manual",
-		hint: "Durată"
-	},
-	pause: {
-		name: "Pauză"
-	},
-	resume: {
-		name: "Reia"
-	},
-	cancel: {
-		name: "Renunţă"
-	},
-	adjust: {
-		name: "Ajustează",
-		hint: "Opțiuni de ajustare\n===============\nProcentaj: %n\nActual: =0:00:00\nCrește: +0:00:00\nScade: -0:00:00\nResetează: <blank>"
-	}
-};
-var ro = {
-	common: common$3,
-	editor: editor$3,
-	controller: controller$3,
-	menu: menu$3
-};
-
-var ro$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$3,
-    controller: controller$3,
-    default: ro,
-    editor: editor$3,
-    menu: menu$3
-});
-
-var common$2 = {
-	version: "Versione",
-	invalidConfiguration: "Configurazione non valida"
-};
-var editor$2 = {
-	title: {
-		name: "Titolo (Opzionale)"
-	},
-	showControllers: {
-		name: "Mostra controller (lista CSV)"
-	},
-	alwaysShowZones: {
-		name: "Mostra sempre le zone"
-	},
-	alwaysShowSequences: {
-		name: "Mostra sempre le sequenze"
-	},
-	showTimelineScheduled: {
-		name: "Mostra cronologia programmazione"
-	},
-	showTimelineHistory: {
-		name: "Mostra cronologia"
-	}
-};
-var controller$2 = {
-	zones: {
-		name: "Zone",
-		buttonHint: "Mostra/nascondi zone"
-	},
-	sequences: {
-		name: "Sequenze",
-		buttonHint: "Mostra/nascondi zone"
-	}
-};
-var menu$2 = {
-	enable: {
-		name: "Attiva"
-	},
-	suspend: {
-		name: "Sospendi",
-		hint: "Durata\n===============\nh:mm:ss\n<blank> = reset"
-	},
-	manual: {
-		name: "Manuale",
-		hint: "Durata"
-	},
-	pause: {
-		name: "Pausa"
-	},
-	resume: {
-		name: "Riprendi"
-	},
-	cancel: {
-		name: "Cancella"
-	},
-	adjust: {
-		name: "Regola",
-		hint: "Opzioni di regolamento\n===============\nPercentuale: %n\nAttuale: =0:00:00\nAumenta: +0:00:00\nDiminuisci: -0:00:00\nReset: <blank>"
-	}
-};
-var it = {
-	common: common$2,
-	editor: editor$2,
-	controller: controller$2,
-	menu: menu$2
-};
-
-var it$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$2,
-    controller: controller$2,
-    default: it,
-    editor: editor$2,
-    menu: menu$2
-});
-
-var common$1 = {
-	version: "Versión",
-	invalidConfiguration: "Configuración invalida"
-};
-var editor$1 = {
-	title: {
-		name: "Título (opcional)"
-	},
-	showControllers: {
-		name: "Mostrar controladores (lista CSV)"
-	},
-	alwaysShowZones: {
-		name: "Siempre mostrar zonas"
-	},
-	alwaysShowSequences: {
-		name: "Siempre mostrar secuencias"
-	},
-	showTimelineScheduled: {
-		name: "Mostrar cronología programada"
-	},
-	showTimelineHistory: {
-		name: "Mostrar el historial"
-	}
-};
-var controller$1 = {
-	zones: {
-		name: "Zonas",
-		buttonHint: "Mostrar/ocultar zonas"
-	},
-	sequences: {
-		name: "Secuencias",
-		buttonHint: "Mostrar/ocultar secuencias"
-	}
-};
-var menu$1 = {
-	enable: {
-		name: "Activar"
-	},
-	suspend: {
-		name: "Pausar",
-		hint: "Duración\n===============\nh:mm:ss\n<blank> = reset"
-	},
-	manual: {
-		name: "Manual",
-		hint: "Duración"
-	},
-	pause: {
-		name: "Pausar"
-	},
-	resume: {
-		name: "Reanudar"
-	},
-	cancel: {
-		name: "Cancelar"
-	},
-	adjust: {
-		name: "Ajustar",
-		hint: "Opciones de ajuste\n===============\nPorcentual: %n\nActual: =0:00:00\nAumentar: +0:00:00\nReducir: -0:00:00\nReset: <blank>"
-	}
-};
-var es = {
-	common: common$1,
-	editor: editor$1,
-	controller: controller$1,
-	menu: menu$1
-};
-
-var es$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common$1,
-    controller: controller$1,
-    default: es,
-    editor: editor$1,
-    menu: menu$1
-});
-
-var common = {
-	version: "Wersja",
-	invalidConfiguration: "Nieprawidłowa konfiguracja"
-};
-var editor = {
-	title: {
-		name: "Tytuł (opcjonalnie)"
-	},
-	showControllers: {
-		name: "Pokaż kontrolery (lista CSV)"
-	},
-	alwaysShowZones: {
-		name: "Zawsze pokazuj strefy"
-	},
-	alwaysShowSequences: {
-		name: "Zawsze pokazuj sekwencje"
-	},
-	showTimelineScheduled: {
-		name: "Pokaż oś czasu planowania"
-	},
-	showTimelineHistory: {
-		name: "Pokaż historię"
-	}
-};
-var controller = {
-	zones: {
-		name: "Strefy",
-		buttonHint: "Pokaż/ukryj strefy"
-	},
-	sequences: {
-		name: "Sekwencje",
-		buttonHint: "Pokaż/ukryj sekwencje"
-	}
-};
-var menu = {
-	enable: {
-		name: "Aktywuj"
-	},
-	suspend: {
-		name: "Zawieś",
-		hint: "Czas trwania\n===============\nh:mm:ss\n<puste> = reset"
-	},
-	manual: {
-		name: "Ręcznie",
-		hint: "Czas trwania"
-	},
-	pause: {
-		name: "Pauza"
-	},
-	resume: {
-		name: "Wznów"
-	},
-	cancel: {
-		name: "Anuluj"
-	},
-	adjust: {
-		name: "Dostosuj",
-		hint: "Opcje regulacji\n===============\nProcent: %n\nAktualne: =0:00:00\nZwiększ: +0:00:00\nZmniejsz: -0:00:00\nReset: <puste>"
-	}
-};
-var pl = {
-	common: common,
-	editor: editor,
-	controller: controller,
-	menu: menu
-};
-
-var pl$1 = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    common: common,
-    controller: controller,
-    default: pl,
-    editor: editor,
-    menu: menu
-});
-
-const languages = {
-    af: af$1,
-    de: de$1,
-    en: en$1,
-    es: es$1,
-    hu: hu$1,
-    it: it$1,
-    nb: nb$1,
-    pl: pl$1,
-    ro: ro$1,
-    sk: sk$1,
-};
-class localise {
-    constructor(preferred) {
-        if (!(preferred in languages)) {
-            preferred = preferred.substring(0, 2);
-            if (!(preferred in languages)) {
-                preferred = "en";
-            }
-        }
-        this.lang = preferred;
-    }
-    find(language, keys) {
-        let d = languages[language];
-        for (const k of keys) {
-            d = d[k];
-            if (d === undefined)
-                throw new Error();
-        }
-        return d;
-    }
-    t(key) {
-        const keys = key.split(".");
-        try {
-            return this.find(this.lang, keys);
-        }
-        catch (e) {
-            try {
-                if (this.lang !== "en")
-                    return this.find("en", keys);
-                else
-                    return "";
-            }
-            catch (e) {
-                return "";
-            }
-        }
-    }
-}
-
-const loc$1 = new localise(window.navigator.language);
-let IrrigationUnlimitedCardEditor = class IrrigationUnlimitedCardEditor extends s {
-    setConfig(config) {
-        this._config = config;
-    }
-    get _name() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.name) || "";
-    }
-    get _show_controllers() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.show_controllers) || "";
-    }
-    get _always_show_zones() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.always_show_zones) || false;
-    }
-    get _always_show_sequences() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.always_show_sequences) || false;
-    }
-    get _show_timeline_scheduled() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.show_timeline_scheduled) || false;
-    }
-    get _show_timeline_history() {
-        var _a;
-        return ((_a = this._config) === null || _a === void 0 ? void 0 : _a.show_timeline_history) || true;
-    }
-    render() {
-        if (!this.hass) {
-            return A;
-        }
-        return x `
-      <div class="iu-editor-row">
-        <ha-textfield
-          label=${loc$1.t("editor.title.name")}
-          .value=${this._name}
-          .configValue=${"name"}
-          @input="${this._valueChanged}"
-        ></ha-textfield>
-      </div>
-      <div class="iu-editor-row">
-        <ha-textfield
-          label=${loc$1.t("editor.showControllers.name")}
-          .value=${this._show_controllers}
-          .configValue=${"show_controllers"}
-          @input="${this._valueChanged}"
-        ></ha-textfield>
-      </div>
-      <div class="iu-editor-row">
-        <ha-switch
-          id=${this._always_show_zones}
-          .checked=${this._always_show_zones}
-          .configValue=${"always_show_zones"}
-          @change=${this._valueChanged}
-        ></ha-switch>
-        <label for=${this._always_show_zones}
-          >${loc$1.t("editor.alwaysShowZones.name")}</label
-        >
-      </div>
-      <div class="iu-editor-row">
-        <ha-switch
-          id=${this._always_show_sequences}
-          .checked=${this._always_show_sequences}
-          .configValue=${"always_show_sequences"}
-          @change=${this._valueChanged}
-        ></ha-switch>
-        <label for=${this._always_show_sequences}
-          >${loc$1.t("editor.alwaysShowSequences.name")}</label
-        >
-      </div>
-      <div class="iu-editor-row">
-        <ha-switch
-          id=${this._show_timeline_scheduled}
-          .checked=${this._show_timeline_scheduled}
-          .configValue=${"show_timeline_scheduled"}
-          @change=${this._valueChanged}
-        ></ha-switch>
-        <label for=${this._show_timeline_scheduled}
-          >${loc$1.t("editor.showTimelineScheduled.name")}</label
-        >
-      </div>
-      <div class="iu-editor-row">
-        <ha-switch
-          id=${this._show_timeline_history}
-          .checked=${this._show_timeline_history}
-          .configValue=${"show_timeline_history"}
-          @change=${this._valueChanged}
-        ></ha-switch>
-        <label for=${this._show_timeline_history}
-          >${loc$1.t("editor.showTimelineHistory.name")}</label
-        >
-      </div>
-    `;
-    }
-    _valueChanged(ev) {
-        if (!this._config || !this.hass) {
-            return;
-        }
-        const target = ev.target;
-        if (target.configValue) {
-            if (target.value === "") {
-                const tmpConfig = Object.assign({}, this._config);
-                delete tmpConfig[target.configValue];
-                this._config = tmpConfig;
-            }
-            else {
-                this._config = Object.assign(Object.assign({}, this._config), { [target.configValue]: target.checked !== undefined ? target.checked : target.value });
-            }
-        }
-        fireEvent(this, "config-changed", { config: this._config }, { bubbles: true, composed: true });
-    }
-};
-IrrigationUnlimitedCardEditor.styles = i$2 `
-    ha-switch {
-      padding: 16px 6px;
-    }
-    ha-textfield {
-      width: 100%;
-    }
-  `;
-__decorate([
-    n$1({ attribute: false })
-], IrrigationUnlimitedCardEditor.prototype, "hass", void 0);
-__decorate([
-    t()
-], IrrigationUnlimitedCardEditor.prototype, "_config", void 0);
-IrrigationUnlimitedCardEditor = __decorate([
-    e$1("irrigation-unlimited-card-editor")
-], IrrigationUnlimitedCardEditor);
-
 function hms_to_secs(value) {
     if (!value)
         return undefined;
@@ -1647,7 +709,890 @@ const styles = i$2 `
   }
 `;
 
-const CARD_VERSION = "2026.1.0";
+const CARD_VERSION = "2026.5.0";
+
+var common$a = {
+	version: "Weergawe",
+	invalidConfiguration: "Ongeldige konfigurasie"
+};
+var editor$9 = {
+	title: {
+		name: "Titel (opsioneel)"
+	},
+	showControllers: {
+		name: "Wys beheerders (CSV lys)"
+	},
+	alwaysShowZones: {
+		name: "Wys altyd sones"
+	},
+	alwaysShowSequences: {
+		name: "Wys altyd volgordes"
+	},
+	showTimelineScheduled: {
+		name: "Wys geskeduleerde tydslyn"
+	},
+	showTimelineHistory: {
+		name: "Wys tydslyn geskiedenis"
+	}
+};
+var controller$9 = {
+	zones: {
+		name: "Sones",
+		buttonHint: "Wys/verberg sones"
+	},
+	sequences: {
+		name: "Volgordes",
+		buttonHint: "Wys/versteek volgordes"
+	}
+};
+var menu$9 = {
+	enable: {
+		name: "Aktiveer"
+	},
+	suspend: {
+		name: "Opskort",
+		hint: "Duur\n===============\nh:mm:ss\n<blank> = herstel"
+	},
+	manual: {
+		name: "Handmatig",
+		hint: "Duur"
+	},
+	pause: {
+		name: "Wag"
+	},
+	resume: {
+		name: "Hervat"
+	},
+	cancel: {
+		name: "Kanselleer"
+	},
+	adjust: {
+		name: "Aanpas",
+		hint: "Aanpassingsopsies\n===============\nPersentasie: %n\nWerklike: =0:00:00\nToename: +0:00:00\nAfname: -0:00:00\nHerstel: <blank>"
+	}
+};
+var af = {
+	common: common$a,
+	editor: editor$9,
+	controller: controller$9,
+	menu: menu$9
+};
+
+var af$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$a,
+    controller: controller$9,
+    default: af,
+    editor: editor$9,
+    menu: menu$9
+});
+
+var common$9 = {
+	version: "Version",
+	invalidConfiguration: "Ungültige Konfiguration"
+};
+var editor$8 = {
+	title: {
+		name: "Title (optional)"
+	},
+	showControllers: {
+		name: "Zeige Controller (CSV list)"
+	},
+	alwaysShowZones: {
+		name: "Zeige Zonen immer an"
+	},
+	alwaysShowSequences: {
+		name: "Zeige Sequenzen immer an"
+	},
+	showTimelineScheduled: {
+		name: "Zeige geplante Ablaufpläne"
+	},
+	showTimelineHistory: {
+		name: "Zeige vergangene Ablaufpläne"
+	}
+};
+var controller$8 = {
+	zones: {
+		name: "Zonen",
+		buttonHint: "Ein/Ausblenden der Zonen"
+	},
+	sequences: {
+		name: "Sequenzen",
+		buttonHint: "Ein/Ausblenden der Sequenzen"
+	}
+};
+var menu$8 = {
+	enable: {
+		name: "Aktivieren"
+	},
+	suspend: {
+		name: "Pausieren",
+		hint: "Dauer\n===============\nh:mm:ss\n<blank> = reset"
+	},
+	manual: {
+		name: "Manuell",
+		hint: "Dauer"
+	},
+	pause: {
+		name: "Pause"
+	},
+	resume: {
+		name: "Fortsetzen"
+	},
+	cancel: {
+		name: "Abbrechen"
+	},
+	adjust: {
+		name: "Anpassen",
+		hint: "Anpassungs Optionen\n===============\nProzent: %n\nAktuell: =0:00:00\nErhöhen: +0:00:00\nVerringern -0:00:00\nReset: <blank>"
+	}
+};
+var de = {
+	common: common$9,
+	editor: editor$8,
+	controller: controller$8,
+	menu: menu$8
+};
+
+var de$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$9,
+    controller: controller$8,
+    default: de,
+    editor: editor$8,
+    menu: menu$8
+});
+
+var common$8 = {
+	version: "Version",
+	invalidConfiguration: "Invalid configuration"
+};
+var editor$7 = {
+	title: {
+		name: "Title (optional)"
+	},
+	showControllers: {
+		name: "Show controllers (CSV list)"
+	},
+	alwaysShowZones: {
+		name: "Always show zones"
+	},
+	alwaysShowSequences: {
+		name: "Always show sequences"
+	},
+	showTimelineScheduled: {
+		name: "Show timeline scheduled"
+	},
+	showTimelineHistory: {
+		name: "Show timeline history"
+	}
+};
+var controller$7 = {
+	zones: {
+		name: "Zones",
+		buttonHint: "Show/hide zones"
+	},
+	sequences: {
+		name: "Sequences",
+		buttonHint: "Show/hide sequences"
+	}
+};
+var menu$7 = {
+	enable: {
+		name: "Enable"
+	},
+	suspend: {
+		name: "Suspend",
+		hint: "Duration\n===============\nh:mm:ss\n<blank> = reset"
+	},
+	manual: {
+		name: "Manual",
+		hint: "Duration"
+	},
+	pause: {
+		name: "Pause"
+	},
+	resume: {
+		name: "Resume"
+	},
+	cancel: {
+		name: "Cancel"
+	},
+	adjust: {
+		name: "Adjust",
+		hint: "Adjustment options\n===============\nPercentage: %n\nActual: =0:00:00\nIncrease: +0:00:00\nDecrease: -0:00:00\nReset: <blank>"
+	}
+};
+var en = {
+	common: common$8,
+	editor: editor$7,
+	controller: controller$7,
+	menu: menu$7
+};
+
+var en$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$8,
+    controller: controller$7,
+    default: en,
+    editor: editor$7,
+    menu: menu$7
+});
+
+var common$7 = {
+	version: "Versjon",
+	invalid_configuration: "Ikke gyldig konfiguration"
+};
+var nb = {
+	common: common$7
+};
+
+var nb$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$7,
+    default: nb
+});
+
+var common$6 = {
+	version: "Verzia",
+	invalidConfiguration: "Chybná konfigurácia"
+};
+var editor$6 = {
+	title: {
+		name: "Názov (voliteľné)"
+	},
+	showControllers: {
+		name: "Ukázať ovládače (CSV zoznam)"
+	},
+	alwaysShowZones: {
+		name: "Vždy zobraziť zóny"
+	},
+	alwaysShowSequences: {
+		name: "Vždy zobrazovať sekvencie"
+	},
+	showTimelineScheduled: {
+		name: "Zobraziť naplánovanú časovú os"
+	},
+	showTimelineHistory: {
+		name: "Zobraziť históriu časovej osi"
+	}
+};
+var controller$6 = {
+	zones: {
+		name: "Zóny",
+		buttonHint: "Zobraziť/skryť zóny"
+	},
+	sequences: {
+		name: "Sekvencie",
+		buttonHint: "Zobraziť/skryť sekvencie"
+	}
+};
+var menu$6 = {
+	enable: {
+		name: "Povoliť"
+	},
+	suspend: {
+		name: "Pozastaviť",
+		hint: "Trvanie\n===============\nh:mm:ss\n<blank> = reset"
+	},
+	manual: {
+		name: "Manual",
+		hint: "Trvanie"
+	},
+	pause: {
+		name: "Pauza"
+	},
+	resume: {
+		name: "Obnoviť"
+	},
+	cancel: {
+		name: "Zrušiť"
+	},
+	adjust: {
+		name: "Upraviť",
+		hint: "Možnosti úprav\n===============\nPercento: %n\nAktuálne: =0:00:00\nZvýšiť: +0:00:00\nZnížiť: -0:00:00\nReset: <blank>"
+	}
+};
+var sk = {
+	common: common$6,
+	editor: editor$6,
+	controller: controller$6,
+	menu: menu$6
+};
+
+var sk$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$6,
+    controller: controller$6,
+    default: sk,
+    editor: editor$6,
+    menu: menu$6
+});
+
+var common$5 = {
+	version: "Verzió",
+	invalidConfiguration: "Hibás konfiguráció"
+};
+var editor$5 = {
+	title: {
+		name: "Név (opcionális)"
+	},
+	showControllers: {
+		name: "Vezérlők megjelenítése (CSV lista)"
+	},
+	alwaysShowZones: {
+		name: "Mindig mutassa a zónákat"
+	},
+	alwaysShowSequences: {
+		name: "Mindig mutassa a szekvenciákat"
+	},
+	showTimelineScheduled: {
+		name: "Jövőbeli idővonal megjelenítése"
+	},
+	showTimelineHistory: {
+		name: "Múltbeli idővonal megjelenítése"
+	}
+};
+var controller$5 = {
+	zones: {
+		name: "Zónák",
+		buttonHint: "Zónák mutatása/elrejtése"
+	},
+	sequences: {
+		name: "Szekvenciák",
+		buttonHint: "Szekvenciák mutatása/elrejtése"
+	}
+};
+var menu$5 = {
+	enable: {
+		name: "Engedélyez"
+	},
+	suspend: {
+		name: "Felfüggesztés",
+		hint: "Időtartam\n===============\nh:mm:ss\n<blank> = visszaállít"
+	},
+	manual: {
+		name: "Kézi",
+		hint: "Időtartam"
+	},
+	pause: {
+		name: "Szünet"
+	},
+	resume: {
+		name: "Folytatás"
+	},
+	cancel: {
+		name: "Megszakítás"
+	},
+	adjust: {
+		name: "Módosítás",
+		hint: "Módosítási lehetőségek\n===============\nSzázalékos: %n\nJelenlegi: =0:00:00\nNövelés: +0:00:00\nCsökkentés: -0:00:00\nVisszaállít: <blank>"
+	}
+};
+var hu = {
+	common: common$5,
+	editor: editor$5,
+	controller: controller$5,
+	menu: menu$5
+};
+
+var hu$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$5,
+    controller: controller$5,
+    default: hu,
+    editor: editor$5,
+    menu: menu$5
+});
+
+var common$4 = {
+	version: "Versiune",
+	invalidConfiguration: "Configuraţie invalidă"
+};
+var editor$4 = {
+	title: {
+		name: "Titlu (optional)"
+	},
+	showControllers: {
+		name: "Afișează controlere (Listă CSV)"
+	},
+	alwaysShowZones: {
+		name: "Afișează întotdeauna zonele"
+	},
+	alwaysShowSequences: {
+		name: "Afișează întotdeauna secvenţele"
+	},
+	showTimelineScheduled: {
+		name: "Afișează cronologia programată"
+	},
+	showTimelineHistory: {
+		name: "Afișează istoricul cronologiei"
+	}
+};
+var controller$4 = {
+	zones: {
+		name: "Zone",
+		buttonHint: "Afișează/ascunde zonele"
+	},
+	sequences: {
+		name: "Secvenţe",
+		buttonHint: "Afișează/ascunde secvenţele"
+	}
+};
+var menu$4 = {
+	enable: {
+		name: "Activează"
+	},
+	suspend: {
+		name: "Suspendă",
+		hint: "Durată\n===============\nh:mm:ss\n<blank> = resetează"
+	},
+	manual: {
+		name: "Manual",
+		hint: "Durată"
+	},
+	pause: {
+		name: "Pauză"
+	},
+	resume: {
+		name: "Reia"
+	},
+	cancel: {
+		name: "Renunţă"
+	},
+	adjust: {
+		name: "Ajustează",
+		hint: "Opțiuni de ajustare\n===============\nProcentaj: %n\nActual: =0:00:00\nCrește: +0:00:00\nScade: -0:00:00\nResetează: <blank>"
+	}
+};
+var ro = {
+	common: common$4,
+	editor: editor$4,
+	controller: controller$4,
+	menu: menu$4
+};
+
+var ro$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$4,
+    controller: controller$4,
+    default: ro,
+    editor: editor$4,
+    menu: menu$4
+});
+
+var common$3 = {
+	version: "Versione",
+	invalidConfiguration: "Configurazione non valida"
+};
+var editor$3 = {
+	title: {
+		name: "Titolo (Opzionale)"
+	},
+	showControllers: {
+		name: "Mostra controller (lista CSV)"
+	},
+	alwaysShowZones: {
+		name: "Mostra sempre le zone"
+	},
+	alwaysShowSequences: {
+		name: "Mostra sempre le sequenze"
+	},
+	showTimelineScheduled: {
+		name: "Mostra cronologia programmazione"
+	},
+	showTimelineHistory: {
+		name: "Mostra cronologia"
+	}
+};
+var controller$3 = {
+	zones: {
+		name: "Zone",
+		buttonHint: "Mostra/nascondi zone"
+	},
+	sequences: {
+		name: "Sequenze",
+		buttonHint: "Mostra/nascondi zone"
+	}
+};
+var menu$3 = {
+	enable: {
+		name: "Attiva"
+	},
+	suspend: {
+		name: "Sospendi",
+		hint: "Durata\n===============\nh:mm:ss\n<blank> = reset"
+	},
+	manual: {
+		name: "Manuale",
+		hint: "Durata"
+	},
+	pause: {
+		name: "Pausa"
+	},
+	resume: {
+		name: "Riprendi"
+	},
+	cancel: {
+		name: "Cancella"
+	},
+	adjust: {
+		name: "Regola",
+		hint: "Opzioni di regolamento\n===============\nPercentuale: %n\nAttuale: =0:00:00\nAumenta: +0:00:00\nDiminuisci: -0:00:00\nReset: <blank>"
+	}
+};
+var it = {
+	common: common$3,
+	editor: editor$3,
+	controller: controller$3,
+	menu: menu$3
+};
+
+var it$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$3,
+    controller: controller$3,
+    default: it,
+    editor: editor$3,
+    menu: menu$3
+});
+
+var common$2 = {
+	version: "Versión",
+	invalidConfiguration: "Configuración invalida"
+};
+var editor$2 = {
+	title: {
+		name: "Título (opcional)"
+	},
+	showControllers: {
+		name: "Mostrar controladores (lista CSV)"
+	},
+	alwaysShowZones: {
+		name: "Siempre mostrar zonas"
+	},
+	alwaysShowSequences: {
+		name: "Siempre mostrar secuencias"
+	},
+	showTimelineScheduled: {
+		name: "Mostrar cronología programada"
+	},
+	showTimelineHistory: {
+		name: "Mostrar el historial"
+	}
+};
+var controller$2 = {
+	zones: {
+		name: "Zonas",
+		buttonHint: "Mostrar/ocultar zonas"
+	},
+	sequences: {
+		name: "Secuencias",
+		buttonHint: "Mostrar/ocultar secuencias"
+	}
+};
+var menu$2 = {
+	enable: {
+		name: "Activar"
+	},
+	suspend: {
+		name: "Pausar",
+		hint: "Duración\n===============\nh:mm:ss\n<blank> = reset"
+	},
+	manual: {
+		name: "Manual",
+		hint: "Duración"
+	},
+	pause: {
+		name: "Pausar"
+	},
+	resume: {
+		name: "Reanudar"
+	},
+	cancel: {
+		name: "Cancelar"
+	},
+	adjust: {
+		name: "Ajustar",
+		hint: "Opciones de ajuste\n===============\nPorcentual: %n\nActual: =0:00:00\nAumentar: +0:00:00\nReducir: -0:00:00\nReset: <blank>"
+	}
+};
+var es = {
+	common: common$2,
+	editor: editor$2,
+	controller: controller$2,
+	menu: menu$2
+};
+
+var es$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$2,
+    controller: controller$2,
+    default: es,
+    editor: editor$2,
+    menu: menu$2
+});
+
+var common$1 = {
+	version: "Wersja",
+	invalidConfiguration: "Nieprawidłowa konfiguracja"
+};
+var editor$1 = {
+	title: {
+		name: "Tytuł (opcjonalnie)"
+	},
+	showControllers: {
+		name: "Pokaż kontrolery (lista CSV)"
+	},
+	alwaysShowZones: {
+		name: "Zawsze pokazuj strefy"
+	},
+	alwaysShowSequences: {
+		name: "Zawsze pokazuj sekwencje"
+	},
+	showTimelineScheduled: {
+		name: "Pokaż oś czasu planowania"
+	},
+	showTimelineHistory: {
+		name: "Pokaż historię"
+	}
+};
+var controller$1 = {
+	zones: {
+		name: "Strefy",
+		buttonHint: "Pokaż/ukryj strefy"
+	},
+	sequences: {
+		name: "Sekwencje",
+		buttonHint: "Pokaż/ukryj sekwencje"
+	}
+};
+var menu$1 = {
+	enable: {
+		name: "Aktywuj"
+	},
+	suspend: {
+		name: "Zawieś",
+		hint: "Czas trwania\n===============\nh:mm:ss\n<puste> = reset"
+	},
+	manual: {
+		name: "Ręcznie",
+		hint: "Czas trwania"
+	},
+	pause: {
+		name: "Pauza"
+	},
+	resume: {
+		name: "Wznów"
+	},
+	cancel: {
+		name: "Anuluj"
+	},
+	adjust: {
+		name: "Dostosuj",
+		hint: "Opcje regulacji\n===============\nProcent: %n\nAktualne: =0:00:00\nZwiększ: +0:00:00\nZmniejsz: -0:00:00\nReset: <puste>"
+	}
+};
+var pl = {
+	common: common$1,
+	editor: editor$1,
+	controller: controller$1,
+	menu: menu$1
+};
+
+var pl$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common$1,
+    controller: controller$1,
+    default: pl,
+    editor: editor$1,
+    menu: menu$1
+});
+
+var common = {
+	version: "Versão",
+	invalidConfiguration: "Configuração Inválida"
+};
+var editor = {
+	title: {
+		name: "Título (opcional)"
+	},
+	showControllers: {
+		name: "Mostrar Controladores (Lista em CSV)"
+	},
+	alwaysShowZones: {
+		name: "Mostrar sempre as zonas"
+	},
+	alwaysShowSequences: {
+		name: "Mostrar sempre as sequências"
+	},
+	showTimelineScheduled: {
+		name: "Mostrar cronograma agendado"
+	},
+	showTimelineHistory: {
+		name: "Mostrar histórico do cronograma"
+	}
+};
+var controller = {
+	zones: {
+		name: "Zonas",
+		buttonHint: "Mostrar/Esconder zonas"
+	},
+	sequences: {
+		name: "Sequências",
+		buttonHint: "Mostrar/Esconder sequências"
+	}
+};
+var menu = {
+	enable: {
+		name: "Ativar"
+	},
+	suspend: {
+		name: "Suspender",
+		hint: "Duração\n===============\nh:mm:ss\n<em branco> = repor"
+	},
+	manual: {
+		name: "Manual",
+		hint: "Duração"
+	},
+	pause: {
+		name: "Pausa"
+	},
+	resume: {
+		name: "Continuar"
+	},
+	cancel: {
+		name: "Cancelar"
+	},
+	adjust: {
+		name: "Ajustar",
+		hint: "Opções de Ajuste\n===============\nPercentagem: %n\nAtual: =0:00:00\nAumentar: +0:00:00\nDiminuir: -0:00:00\nReset: <em branco>"
+	}
+};
+var pt = {
+	common: common,
+	editor: editor,
+	controller: controller,
+	menu: menu
+};
+
+var pt$1 = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    common: common,
+    controller: controller,
+    default: pt,
+    editor: editor,
+    menu: menu
+});
+
+const languages = {
+    af: af$1,
+    de: de$1,
+    en: en$1,
+    es: es$1,
+    hu: hu$1,
+    it: it$1,
+    nb: nb$1,
+    pl: pl$1,
+    pt: pt$1,
+    ro: ro$1,
+    sk: sk$1,
+};
+class localise {
+    constructor(preferred) {
+        if (!(preferred in languages)) {
+            preferred = preferred.substring(0, 2);
+            if (!(preferred in languages)) {
+                preferred = "en";
+            }
+        }
+        this.lang = preferred;
+    }
+    find(language, keys) {
+        let d = languages[language];
+        for (const k of keys) {
+            d = d[k];
+            if (d === undefined)
+                throw new Error();
+        }
+        return d;
+    }
+    t(key) {
+        const keys = key.split(".");
+        try {
+            return this.find(this.lang, keys);
+        }
+        catch (e) {
+            try {
+                if (this.lang !== "en")
+                    return this.find("en", keys);
+                else
+                    return "";
+            }
+            catch (e) {
+                return "";
+            }
+        }
+    }
+}
+
+// Polymer legacy event helpers used courtesy of the Polymer project.
+//
+// Copyright (c) 2017 The Polymer Authors. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are
+// met:
+//
+//    * Redistributions of source code must retain the above copyright
+// notice, this list of conditions and the following disclaimer.
+//    * Redistributions in binary form must reproduce the above
+// copyright notice, this list of conditions and the following disclaimer
+// in the documentation and/or other materials provided with the
+// distribution.
+//    * Neither the name of Google Inc. nor the names of its
+// contributors may be used to endorse or promote products derived from
+// this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+/**
+ * Dispatches a custom event with an optional detail value.
+ *
+ * @param {string} type Name of event type.
+ * @param {*=} detail Detail value containing event-specific
+ *   payload.
+ * @param {{ bubbles: (boolean|undefined),
+ *           cancelable: (boolean|undefined),
+ *           composed: (boolean|undefined) }=}
+ *  options Object specifying options.  These may include:
+ *  `bubbles` (boolean, defaults to `true`),
+ *  `cancelable` (boolean, defaults to false), and
+ *  `node` on which to fire the event (HTMLElement, defaults to `this`).
+ * @return {Event} The new event that was fired.
+ */
+const fireEvent = (node, type, detail, options) => {
+    options = options || {};
+    // @ts-ignore
+    detail = detail === null || detail === undefined ? {} : detail;
+    const event = new Event(type, {
+        bubbles: options.bubbles === undefined ? true : options.bubbles,
+        cancelable: Boolean(options.cancelable),
+        composed: options.composed === undefined ? true : options.composed,
+    });
+    event.detail = detail;
+    node.dispatchEvent(event);
+    return event;
+};
 
 const loc = new localise(window.navigator.language);
 /* eslint no-console: 0 */
@@ -1663,8 +1608,35 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         super(...arguments);
         this.iu_coordinator = new IUCoordinator(this);
     }
-    static async getConfigElement() {
-        return document.createElement("irrigation-unlimited-card-editor");
+    static getConfigForm() {
+        return {
+            schema: [
+                { name: "name", selector: { text: {} } },
+                { name: "show_controllers", selector: { text: {} } },
+                { name: "always_show_zones", selector: { boolean: {} } },
+                { name: "always_show_sequences", selector: { boolean: {} } },
+                { name: "show_timeline_scheduled", selector: { boolean: {} } },
+                { name: "show_timeline_history", selector: { boolean: {} } },
+            ],
+            computeLabel: (schema) => {
+                console.log(schema);
+                switch (schema.name) {
+                    case "name":
+                        return loc.t("editor.title.name");
+                    case "show_controllers":
+                        return loc.t("editor.showControllers.name");
+                    case "always_show_zones":
+                        return loc.t("editor.alwaysShowZones.name");
+                    case "always_show_sequences":
+                        return loc.t("editor.alwaysShowSequences.name");
+                    case "show_timeline_scheduled":
+                        return loc.t("editor.showTimelineScheduled.name");
+                    case "show_timeline_history":
+                        return loc.t("editor.showTimelineHistory.name");
+                }
+                return undefined;
+            },
+        };
     }
     setConfig(config) {
         if (!config) {
@@ -1673,7 +1645,14 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         this.config = config;
     }
     static getStubConfig() {
-        return {};
+        return {
+            name: "Irrigation Unlimited",
+            show_controllers: "",
+            always_show_zones: false,
+            always_show_sequences: false,
+            show_timeline_scheduled: true,
+            show_timeline_history: true,
+        };
     }
     getCardSize() {
         return 1;
@@ -1720,7 +1699,6 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
     `;
     }
     _renderController(controller) {
-        var _a;
         const stateObj = this.hass.states[controller.entity_id];
         const status = stateObj.attributes.status;
         const isOn = stateObj.state === "on";
@@ -1729,9 +1707,13 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         const suspended = stateObj.attributes.suspended;
         const isHidden = !(!this.config.show_controllers ||
             (this.config.show_controllers &&
-                ((_a = this.config.show_controllers) === null || _a === void 0 ? void 0 : _a.replace(/\s/g, "").split(",").includes(controller.controller_id))));
-        const zonesHidden = !this.config.always_show_zones;
-        const sequencesHidden = !this.config.always_show_sequences;
+                this.config.show_controllers
+                    ?.replace(/\s/g, "")
+                    .split(",")
+                    .includes(controller.controller_id)));
+        const zonesHidden = !("always_show_zones" in this.config && this.config.always_show_zones);
+        const sequencesHidden = !("always_show_sequences" in this.config &&
+            this.config.always_show_sequences);
         let start;
         let duration;
         let schedule_name;
@@ -1801,7 +1783,7 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
             <label>${loc.t("controller.zones.name")}&nbsp;</label>
             <ha-switch
               .checked="${!zonesHidden}"
-              .disabled="${this.config.always_show_zones}"
+              .disabled="${!zonesHidden}"
               title=${loc.t("controller.zones.buttonHint")}
               @change="${this._toggleZones}"
             >
@@ -1811,7 +1793,7 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
             <label>${loc.t("controller.sequences.name")}&nbsp;</label>
             <ha-switch
               .checked="${!sequencesHidden}"
-              .disabled="${this.config.always_show_sequences}"
+              .disabled="${!sequencesHidden}"
               title=${loc.t("controller.sequences.buttonHint")}
               @change="${this._toggleSequences}"
             >
@@ -2133,7 +2115,6 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
     `;
     }
     _renderSequenceZone(controller, sequence, sequenceZone, isManual) {
-        var _a;
         const status = sequenceZone.status;
         const isOn = status === "on";
         const isEnabled = sequenceZone.enabled;
@@ -2192,7 +2173,7 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
           </div>
           <div class="iu-td6 iu-adjustment">
             <div ?hidden=${isManual}>
-              ${humanise_adjustment((_a = sequenceZone.adjustment) !== null && _a !== void 0 ? _a : "")}
+              ${humanise_adjustment(sequenceZone.adjustment ?? "")}
             </div>
           </div>
           <div class="iu-td7">
@@ -2251,12 +2232,10 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
             </div>
             <div class="iu-mc3">
               <ha-icon-button
-                icon="mdi:timer-outline"
                 title=${loc.t("menu.suspend.buttonHint")}
                 @click="${this._serviceSuspend}"
-              >
-                <ha-icon icon="mdi:timer-outline"></ha-icon>
-              </ha-icon-button>
+                ><ha-icon icon="mdi:timer-outline"></ha-icon
+              ></ha-icon-button>
             </div>
           </div>
           <div
@@ -2278,12 +2257,10 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
             </div>
             <div class="iu-mc3">
               <ha-icon-button
-                icon="mdi:play"
                 title=${loc.t("menu.manual.buttonHint")}
                 @click="${this._serviceManualRun}"
-              >
-                <ha-icon icon="mdi:run"></ha-icon>
-              </ha-icon-button>
+                ><ha-icon icon="mdi:play"></ha-icon
+              ></ha-icon-button>
             </div>
           </div>
           <div
@@ -2298,9 +2275,8 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
                 .disabled=${(~pauseResume & 1) > 0}
                 title=${loc.t("menu.pause.buttonHint")}
                 @click="${this._servicePause}"
-              >
-                <ha-icon icon="mdi:pause"></ha-icon>
-              </ha-icon-button>
+                ><ha-icon icon="mdi:pause"></ha-icon
+              ></ha-icon-button>
             </div>
           </div>
           <div
@@ -2315,9 +2291,8 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
                 .disabled=${(~pauseResume & 2) > 0}
                 title=${loc.t("menu.resume.buttonHint")}
                 @click="${this._serviceResume}"
-              >
-                <ha-icon icon="mdi:play"></ha-icon>
-              </ha-icon-button>
+                ><ha-icon icon="mdi:play"></ha-icon
+              ></ha-icon-button>
             </div>
           </div>
           <div
@@ -2330,9 +2305,8 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
                 .disabled=${!allowCancel}
                 title=${loc.t("menu.cancel.buttonHint")}
                 @click="${this._serviceCancel}"
-              >
-                <ha-icon icon="mdi:cancel"></ha-icon>
-              </ha-icon-button>
+                ><ha-icon icon="mdi:cancel"></ha-icon
+              ></ha-icon-button>
             </div>
           </div>
           <div
@@ -2345,7 +2319,7 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
               <input
                 type="text"
                 class="iu-adjust-input"
-                value=${adjustment !== null && adjustment !== void 0 ? adjustment : ""}
+                value=${adjustment ?? ""}
                 title=${loc.t("menu.adjust.hint")}
                 size="9"
                 maxlength="9"
@@ -2400,39 +2374,42 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
     }
     _toggleCollapse(e) {
         const target = e.target.closest(".iu-collapsible");
-        target === null || target === void 0 ? void 0 : target.classList.toggle("iu-hidden");
+        target?.classList.toggle("iu-hidden");
     }
     _toggleZones(e) {
-        var _a, _b;
-        (_b = (_a = e.target
-            .closest(".iu-controller")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-zones")) === null || _b === void 0 ? void 0 : _b.classList.toggle("iu-hidden");
+        e.target
+            .closest(".iu-controller")
+            ?.querySelector(".iu-zones")
+            ?.classList.toggle("iu-hidden");
     }
     _toggleSequences(e) {
-        var _a, _b;
-        (_b = (_a = e.target
-            .closest(".iu-controller")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-sequences")) === null || _b === void 0 ? void 0 : _b.classList.toggle("iu-hidden");
+        e.target
+            .closest(".iu-controller")
+            ?.querySelector(".iu-sequences")
+            ?.classList.toggle("iu-hidden");
     }
     _closeAllMenus(e) {
-        var _a;
-        const menus = (_a = e.target
-            .closest("#iu-card")) === null || _a === void 0 ? void 0 : _a.querySelectorAll(".iu-menu-content:not(.iu-hidden)");
-        menus === null || menus === void 0 ? void 0 : menus.forEach((p) => p.classList.add("iu-hidden"));
+        const menus = e.target
+            .closest("#iu-card")
+            ?.querySelectorAll(".iu-menu-content:not(.iu-hidden)");
+        menus?.forEach((p) => p.classList.add("iu-hidden"));
     }
     _toggleMenu(e) {
-        var _a;
-        const menu = (_a = e.target
-            .closest(".iu-menu")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-menu-content");
-        if (menu === null || menu === void 0 ? void 0 : menu.classList.contains("iu-hidden"))
+        const menu = e.target
+            .closest(".iu-menu")
+            ?.querySelector(".iu-menu-content");
+        if (menu?.classList.contains("iu-hidden"))
             this._closeAllMenus(e);
-        menu === null || menu === void 0 ? void 0 : menu.classList.toggle("iu-hidden");
+        menu?.classList.toggle("iu-hidden");
     }
     _isNotEnterKey(e) {
         return e instanceof KeyboardEvent && e.key !== "Enter";
     }
     _get_iu_key(e) {
-        var _a, _b;
-        return (_b = (_a = e.target
-            .closest(".iu-object")) === null || _a === void 0 ? void 0 : _a.getAttribute("iu-key")) === null || _b === void 0 ? void 0 : _b.split(".", 4);
+        return e.target
+            .closest(".iu-object")
+            ?.getAttribute("iu-key")
+            ?.split(".", 4);
     }
     _build_entity_id(keys) {
         const controller = this.iu_coordinator.controllers[+keys[0] - 1];
@@ -2476,14 +2453,14 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         return;
     }
     _serviceSuspend(e) {
-        var _a;
         if (this._isNotEnterKey(e))
             return;
         const data = this._build_data(e);
         if (!data)
             return;
-        const timeElement = (_a = e.target
-            .closest(".iu-menu-item")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-time-input");
+        const timeElement = e.target
+            .closest(".iu-menu-item")
+            ?.querySelector(".iu-time-input");
         if (timeElement.value)
             data["for"] = timeElement.value;
         else
@@ -2491,14 +2468,14 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         this.hass.callService("irrigation_unlimited", "suspend", data);
     }
     _serviceManualRun(e) {
-        var _a;
         if (this._isNotEnterKey(e))
             return;
         const data = this._build_data(e);
         if (!data)
             return;
-        const timeElement = (_a = e.target
-            .closest(".iu-menu-item")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-time-input");
+        const timeElement = e.target
+            .closest(".iu-menu-item")
+            ?.querySelector(".iu-time-input");
         if (timeElement.value)
             data["time"] = timeElement.value;
         this.hass.callService("irrigation_unlimited", "manual_run", data);
@@ -2529,14 +2506,14 @@ let IrrigationUnlimitedCard = class IrrigationUnlimitedCard extends s {
         this._toggleMenu(e);
     }
     _serviceAdjust(e) {
-        var _a;
         if (this._isNotEnterKey(e))
             return;
         const data = this._build_data(e);
         if (!data)
             return;
-        const adjustElement = (_a = e.target
-            .closest(".iu-menu-item")) === null || _a === void 0 ? void 0 : _a.querySelector(".iu-adjust-input");
+        const adjustElement = e.target
+            .closest(".iu-menu-item")
+            ?.querySelector(".iu-adjust-input");
         const value = adjustElement.value;
         switch (value.slice(0, 1)) {
             case "%": {

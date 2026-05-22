@@ -40,6 +40,22 @@ automation:
             Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
             Day Peak Output: "{{ float(states('input_number.day_solar_power_peak'), default=0) }}"
 
+  - alias: "Notify on Sol-Ark Daily PV Reset"
+    description: "Sends a notification when the Sol-Ark daily energy sensor resets to zero."
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.solark_sol_ark_day_pv_energy
+        below: 0.1
+    condition:
+      - condition: template
+        value_template: "{{ (trigger.from_state.state | float > 0) and states('sensor.solark_sol_ark_solar_power') | int > 1}}"
+    action:
+      - service: script.notify_wrapper
+        data:
+          message: "Sol-Ark daily PV energy has reset to 0."
+      - delay: "00:10:00" # Also prevent re-trigger
+    mode: single
+
   - alias: "Inverter State Change"
     mode: queued
     id: "inverter_state_alert"
@@ -68,8 +84,8 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
-        above: 90
-        alias: Battery SOC rises above 90%
+        above: 95
+        alias: Battery SOC rises above 95%
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
         below: 80
@@ -80,7 +96,7 @@ automation:
         alias: Someone returns home
     action:
       - choose:
-          - alias: Away + guest mode off + battery > 90% → throttle charging
+          - alias: Away + guest mode off + battery > 95% → throttle charging
             conditions:
               - condition: state
                 entity_id: group.trackers
@@ -90,7 +106,7 @@ automation:
                 state: "off"
               - condition: numeric_state
                 entity_id: sensor.solark_sol_ark_battery_soc
-                above: 90
+                above: 95
             sequence:
               - service: number.set_value
                 target:

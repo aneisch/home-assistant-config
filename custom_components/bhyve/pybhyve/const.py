@@ -1,6 +1,7 @@
 """Define constants for the BHyve component."""
 
 API_HOST = "https://api.orbitbhyve.com"
+WEB_HOST = "https://techsupport.orbitbhyve.com"
 WS_HOST = "wss://api.orbitbhyve.com/v1/events"
 
 LOGIN_PATH = "/v1/session"

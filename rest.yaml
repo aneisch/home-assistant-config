@@ -154,7 +154,7 @@
       device_class: irradiance
       state_class: measurement
 
-    - name: "AMB Rain Hourly"
+    - name: "AMB Hourly Rain Rate"
       value_template: "{{ value_json.data[0].lastData.hourlyrainin }}"
       unit_of_measurement: "in"
       icon: mdi:weather-rainy

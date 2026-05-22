@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.17');
+console.info('NUMBERBOX_CARD 4.18');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -15,6 +15,7 @@ constructor() {
 }
 
 render() {
+	if(!this.config || !this.config.entity){return;}
 	if(!this.stateObj){return html`<ha-card>Missing:'${this.config.entity}'</ha-card>`;}
 	
 	const k={name:'friendly_name',icon:'icon',picture:'entity_picture',unit:'unit_of_measurement'};
@@ -133,6 +134,7 @@ secondaryInfo(){
 }
 
 renderNum(){
+	this.config.refresh = 0;
 	return html`
 	<section class="body">
 	<div class="main">
@@ -140,11 +142,9 @@ renderNum(){
 		<ha-icon class="padl" tabindex="0" role="button"
 			icon="${this.config.icon_plus}" 
 			@click="${() => this.setNumb(1)}" 
-			@mousedown="${() => this.Press(1)}"
 			@keydown="${(k) => this.Press(1,k)}"
-			@touchstart="${() => this.Press(1)}"
-			@mouseup="${() => this.Press(2)}"
-			@touchend="${() => this.Press(2)}"
+			@mousedown="${(e) => this.isPress(e,1)}"
+			@touchstart="${(e) => this.isPress(e,1)}"
 		>
 		</ha-icon>
 		<div class="cur-num-box" @click="${() => this.moreInfo()}" >
@@ -153,11 +153,9 @@ renderNum(){
 		<ha-icon class="padr" tabindex="0" role="button"
 			icon="${this.config.icon_minus}"
 			@click="${() => this.setNumb(0)}"
-			@mousedown="${() => this.Press(0)}"
 			@keydown="${(k) => this.Press(0,k)}"
-			@touchstart="${() => this.Press(0)}"
-			@mouseup="${() => this.Press(2)}"
-			@touchend="${() => this.Press(2)}"
+			@mousedown="${(e) => this.isPress(e,0)}"
+			@touchstart="${(e) => this.isPress(e,0)}"
 		>
 		</ha-icon>
 		</div>
@@ -172,9 +170,57 @@ Press(v,k) {
 		this.setNumb(v); return;
 	}
 	if( this.config.speed>0 ){
-		clearInterval(this.rolling);
-		if(v<2){this.rolling = setInterval(() => this.setNumb(v), this.config.speed, this);}
+		clearTimeout(this.rolling);
+		if(v<2){
+			let speed = Math.max(this.config.speed, 300);
+			const roller = () => {
+				this.setNumb(v);
+				if (speed > this.config.speed) {
+					speed = Math.max(this.config.speed, speed - 75);
+				}
+				this.rolling = setTimeout(roller, speed);
+			};
+			this.rolling = setTimeout(roller, speed);
+		}
 	}
+}
+
+isPress(e, p) {
+	this.Press(p);
+
+	const _on = (el, ev, fn, opt) => ev.split(' ').forEach(e => {
+		try{el && el.addEventListener(e, fn, opt);}catch(f){}
+	});
+
+	const _off = (el, ev, fn) => ev.split(' ').forEach(e => {
+		try{el.removeEventListener(e, fn);}catch(f){}
+	});
+
+
+	const off = () => {
+		this.Press(2);
+		_off(window, 'mousemove touchmove', mmove);
+		_off(window, 'mouseup touchend', nomove);
+	};
+	
+	const B = e.currentTarget.getBoundingClientRect();
+
+	const nomove = () => {off();};
+	
+	const mmove = (m) => {
+		const X = m.touches ? m.touches[0].clientX : m.clientX;
+		const Y = m.touches ? m.touches[0].clientY : m.clientY;
+		if(X < B.left || X > B.right || Y < B.top || Y > B.bottom){
+			clearTimeout(this.bounce);this.pending=false;
+			nomove();
+			this.config.refresh = 1;
+		}
+	};
+
+
+	_on(window, 'mousemove', mmove);
+	_on(window, 'touchmove', mmove, {passive: true});
+	_on(window, 'mouseup touchend', nomove);
 }
 
 timeNum(x,s,m){
@@ -364,7 +410,7 @@ getCardSize() {
 }
 
 setConfig(config) {
-	if (!config.entity) throw new Error('Please define an entity.');
+	if (!config.entity) {console.log('Please define an entity.',config);return;}
 	const c=config.entity.split('.')[0];
 	if (!(config.service || c == 'input_number' || c == 'number')){
 		throw new Error('Please define a number entity.');

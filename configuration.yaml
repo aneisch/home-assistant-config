@@ -142,31 +142,32 @@ http:
 ifttt:
   key: !secret IFTTT
 
-influxdb:
-  host: 127.0.0.1
-  exclude:
-    entities:
-      - binary_sensor.internet_reachability
-      - binary_sensor.iss
-      - sensor.kitchen_timer_countdown
-      - sensor.irrigation_time_remaining
-      - sensor.last_boot
-      - sensor.mail_updated
-      - sensor.moon
-      - sensor.thermostat_last_communication
-    domains:
-      - automation
-      - alarm_panel
-      - camera
-      - group
-      - media_player
-      - notify
-      - scene
-      - script
-      - shell_command
-      - sun
-      - zone
-      - zwave
+# UI
+# influxdb:
+#   host: 127.0.0.1
+#   exclude:
+#     entities:
+#       - binary_sensor.internet_reachability
+#       - binary_sensor.iss
+#       - sensor.kitchen_timer_countdown
+#       - sensor.irrigation_time_remaining
+#       - sensor.last_boot
+#       - sensor.mail_updated
+#       - sensor.moon
+#       - sensor.thermostat_last_communication
+#     domains:
+#       - automation
+#       - alarm_panel
+#       - camera
+#       - group
+#       - media_player
+#       - notify
+#       - scene
+#       - script
+#       - shell_command
+#       - sun
+#       - zone
+#       - zwave
 
 input_boolean: !include input_boolean.yaml
 
@@ -275,7 +276,7 @@ logger:
     # End ZHA Debugging
     # custom_components.xiaomi_cloud_map_extractor: debug
     #custom_components.alexa_media: debug
-    #custom_components.localtuya: debug
+    custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
     #custom_components.mail_and_packages: debug
     # custom_components.aarlo: debug
@@ -300,8 +301,9 @@ logger:
       - "binary_sensor.internet_reachability"
       - ".*mqtt_automation_listener.*"
 
+
 lovelace:
-  mode: yaml
+  resource_mode: yaml
   resources:
     - url: /hacsfiles/weather-card/weather-card.js
       type: module
@@ -355,6 +357,69 @@ lovelace:
       type: module
     - url: /hacsfiles/irrigation-unlimited-card/irrigation-unlimited-card.js
       type: module
+  dashboards:
+    lovelace:
+      mode: yaml
+      filename: ui-lovelace.yaml
+      title: Overview
+      icon: mdi:view-dashboard
+      show_in_sidebar: true
+
+# lovelace:
+#   mode: yaml
+#   resources:
+#     - url: /hacsfiles/weather-card/weather-card.js
+#       type: module
+#     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
+#       type: module
+#     - url: /hacsfiles/mini-media-player/mini-media-player-bundle.js
+#       type: module
+#     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
+#       type: module
+#     #- url: /hacsfiles/custom-header/custom-header.js
+#     #  type: module
+#     # - url: /hacsfiles/favicon-counter/favicon-counter.js
+#     #   type: module
+#     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
+#       type: module
+#     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+#       type: module
+#     - url: /hacsfiles/lovelace-card-templater/lovelace-card-templater.js
+#       type: module
+#     - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
+#       type: module
+#     - url: /hacsfiles/bignumber-card/bignumber-card.js
+#       type: module
+#     # - url: /hacsfiles/ozw-network-visualization-card/ozw-network-visualization-card.js
+#     #   type: module
+#     - url: /hacsfiles/lovelace-text-input-row/lovelace-text-input-row.js
+#       type: module
+#     - url: /hacsfiles/uptime-card/uptime-card.js
+#       type: module
+#     - url: /hacsfiles/lovelace-xiaomi-vacuum-map-card/xiaomi-vacuum-map-card.js
+#       type: module
+#     - url: /hacsfiles/flipdown-timer-card/flipdown-timer-card.js
+#       type: module
+#     - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
+#       type: module
+#     - url: /hacsfiles/numberbox-card/numberbox-card.js
+#       type: module
+#     - url: /hacsfiles/lovelace-card-tools/card-tools.js
+#       type: module
+#     - url: /hacsfiles/lovelace-wallpanel/wallpanel.js
+#       type: module
+#     - url: /hacsfiles/lovelace-mushroom/mushroom.js
+#       type: module
+#     - url: /hacsfiles/frigate-hass-card/advanced-camera-card.js
+#       type: module
+#     - url: /hacsfiles/sunsynk-power-flow-card/sunsynk-power-flow-card.js
+#       type: module
+#     - url: /hacsfiles/flex-horseshoe-card/flex-horseshoe-card.js
+#       type: module
+#     - url: /ha_creality_ws/k_printer_card.js
+#       type: module
+#     - url: /hacsfiles/irrigation-unlimited-card/irrigation-unlimited-card.js
+#       type: module
 
 media_source:
 

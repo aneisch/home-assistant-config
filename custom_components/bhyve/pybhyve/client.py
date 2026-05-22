@@ -18,6 +18,7 @@ from .const import (
     LANDSCAPE_DESCRIPTIONS_PATH,
     LOGIN_PATH,
     TIMER_PROGRAMS_PATH,
+    WEB_HOST,
     WS_HOST,
 )
 from .errors import AuthenticationError, BHyveError, RequestError
@@ -25,6 +26,11 @@ from .typings import BHyveDevice, BHyveTimerProgram, BHyveZoneLandscape
 from .websocket import OrbitWebsocket
 
 _LOGGER = logging.getLogger(__name__)
+
+_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+)
 
 
 class BHyveClient:
@@ -70,13 +76,13 @@ class BHyveClient:
             "Accept": "application/json, text/plain, */*",
             "Host": re.sub("https?://", "", API_HOST),
             "Content-Type": "application/json; charset=utf-8;",
-            "Referer": API_HOST,
+            "Origin": WEB_HOST,
+            "Referer": f"{WEB_HOST}/",
+            "User-Agent": _USER_AGENT,
+            "orbit-app-id": "Bhyve Dashboard",
+            "orbit-api-key": self._token or "null",
             "Orbit-Session-Token": self._token or "",
         }
-        headers["User-Agent"] = (
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/72.0.3626.81 Safari/537.36"
-        )
 
         try:
             async with self._session.request(
@@ -183,14 +189,24 @@ class BHyveClient:
         """Log in with username & password and save the token."""
         url: str = f"{API_HOST}{LOGIN_PATH}"
         json = {"session": {"email": self._username, "password": self._password}}
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json; charset=UTF-8",
+            "Origin": WEB_HOST,
+            "Referer": f"{WEB_HOST}/",
+            "User-Agent": _USER_AGENT,
+            "orbit-app-id": "Bhyve Dashboard",
+            "orbit-api-key": "null",
+        }
 
         try:
-            async with self._session.request("post", url, json=json) as resp:
+            async with self._session.request(
+                "post", url, json=json, headers=headers
+            ) as resp:
                 try:
                     resp.raise_for_status()
                     response = await resp.json(content_type=None)
-                    _LOGGER.debug("Logged in")
-                    self._token = response["orbit_session_token"]
+                    self._token = response["orbit_api_key"]
 
                 except ClientResponseError as response_err:
                     if response_err.status in (401, 403):

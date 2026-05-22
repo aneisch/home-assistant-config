@@ -58,6 +58,10 @@ sensor:
     accuracy_decimals: 2
 
 switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
   - platform: gpio
     name: "${friendly_name} Relay"
     pin: GPIO12

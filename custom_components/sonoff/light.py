@@ -262,29 +262,31 @@ class XLightB1(XLight):
                 self._attr_effect = None
 
         if self.color_mode == ColorMode.COLOR_TEMP:
-            # from 25 to 255
-            cold = int(params["channel0"])
-            warm = int(params["channel1"])
-            if warm == 0:
-                self._attr_color_temp_kelvin = 6500
-            elif cold == warm:
-                self._attr_color_temp_kelvin = 4250
-            elif cold == 0:
-                self._attr_color_temp_kelvin = 2000
-            self._attr_brightness = conv(max(cold, warm), 25, 255, 1, 255)
+            if "channel0" in params and "channel1" in params:
+                # from 25 to 255
+                cold = int(params["channel0"])
+                warm = int(params["channel1"])
+                if warm == 0:
+                    self._attr_color_temp_kelvin = 6500
+                elif cold == warm:
+                    self._attr_color_temp_kelvin = 4250
+                elif cold == 0:
+                    self._attr_color_temp_kelvin = 2000
+                self._attr_brightness = conv(max(cold, warm), 25, 255, 1, 255)
 
         else:
-            self._attr_rgb_color = (
-                int(params["channel2"]),
-                int(params["channel3"]),
-                int(params["channel4"]),
-            )
+            if "channel2" in params and "channel3" in params and "channel4" in params:
+                self._attr_rgb_color = (
+                    int(params["channel2"]),
+                    int(params["channel3"]),
+                    int(params["channel4"]),
+                )
 
     def get_params(self, brightness, color_temp_kelvin, rgb_color, effect) -> dict:
         if brightness or color_temp_kelvin:
-            ch = str(conv(brightness or self.brightness, 1, 255, 25, 255))
+            ch = str(conv(brightness or self.brightness or 255, 1, 255, 25, 255))
             if not color_temp_kelvin:
-                color_temp_kelvin = self.color_temp_kelvin
+                color_temp_kelvin = self.color_temp_kelvin or 4250
             if color_temp_kelvin >= 5000:
                 params = {"channel0": ch, "channel1": "0"}
             elif color_temp_kelvin >= 3500:
@@ -1247,3 +1249,40 @@ class XT5Light(XOnOffLight):
 
     async def async_turn_off(self, **kwargs) -> None:
         await self.ewelink.send(self.device, {"lightSwitch": "off"})
+
+
+class XMiniDim(XEntity, LightEntity):
+    params = {"switch", "brightness"}
+
+    _attr_color_mode = ColorMode.BRIGHTNESS
+    _attr_supported_color_modes = {ColorMode.BRIGHTNESS}
+    _attr_supported_features = LightEntityFeature.TRANSITION
+
+    def set_state(self, params: dict):
+        if "switch" in params:
+            self._attr_is_on = params["switch"] == "on"
+
+        if "brightness" in params:
+            self._attr_brightness = conv(params["brightness"], 1, 100, 1, 255)
+
+    async def async_turn_on(
+        self, brightness: int = None, transition: float = None, **kwargs
+    ) -> None:
+        params = {"switch": "on"}
+
+        if brightness is not None:
+            params["brightness"] = conv(brightness, 1, 255, 1, 100)
+
+        if transition is not None and self.ewelink.can_cloud(self.device):
+            # The MINI-DIM firmware supports transitionTime (in ms) for smooth
+            # hardware fading, but only through the cloud API — the local
+            # /zeroconf endpoint ignores it and times out. So we send the
+            # brightness via local first (fast), then fire the transition
+            # command through cloud in the background.
+            params["transitionTime"] = int(transition * 1000)
+            await self.ewelink.cloud.send(self.device, params)
+        else:
+            await self.ewelink.send(self.device, params)
+
+    async def async_turn_off(self, **kwargs) -> None:
+        await self.ewelink.send(self.device, {"switch": "off"})

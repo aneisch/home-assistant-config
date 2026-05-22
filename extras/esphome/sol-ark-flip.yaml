@@ -8,6 +8,8 @@ substitutions:
   device_description: "SolArk RS485 Logger"
   friendly_name: "Sol-Ark"
   # Be sure to keep these updated to calculate export-offset and daily import/export totals
+  # Also update home assistant energy dashboard
+  # Also update Google sheet
   import_rate: "0.1356" # kWh
   export_rate: "0.0568" # kWh
 

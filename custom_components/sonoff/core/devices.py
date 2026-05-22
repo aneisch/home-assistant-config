@@ -31,7 +31,7 @@ from ..button import XButton
 from ..climate import XClimateNS, XClimateTH, XThermostat, XThermostatTRVZB
 from ..core.entity import XEntity
 from ..cover import XCover, XCoverDualR3, XCoverOP, XCoverT5, XZBCover, XZigbeeCover
-from ..fan import XDiffuserFan, XFan, XFanDualR3, XToggleFan
+from ..fan import XDiffuserFan, XFan, XFan17, XFanDualR3, XToggleFan
 from ..light import (
     XDiffuserLight,
     XDimmer,
@@ -44,6 +44,7 @@ from ..light import (
     XLightGroup,
     XLightL1,
     XLightL3,
+    XMiniDim,
     XOnOffLight,
     XT5Light,
     XZigbeeColorTemp,
@@ -222,6 +223,7 @@ DEVICES = {
         LED,
         RSSI,
     ],
+    17: [XFan17, LED, RSSI],
     18: [
         spec(XSensor, param="temperature"),
         spec(XSensor, param="humidity"),
@@ -601,6 +603,14 @@ DEVICES = {
         EnergyWeek,
         EnergyMonth,
         EnergyYear,
+        LED,
+        RSSI,
+    ],
+    277: [
+        XMiniDim,
+        spec(XSensor100, param="power"),
+        spec(XSensor100, param="current"),
+        spec(XSensor100, param="voltage"),
         LED,
         RSSI,
     ],

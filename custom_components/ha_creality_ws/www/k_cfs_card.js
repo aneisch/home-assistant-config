@@ -97,14 +97,50 @@ class KCFSCard extends HTMLElement {
     const isCompact = this._cfg.compact_view;
 
     const style = `
+      /* inherit HA fonts & typography */
+      :host { 
+        font: inherit; 
+        color: var(--primary-text-color);
+        display: block !important;
+        height: auto !important;
+        contain: none !important;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* unify horizontal padding so right edges line up */
+      :host { --row-xpad: 6px; }
+
       ha-card {
-        padding: 20px;
-        background: rgba(var(--rgb-card-background-color), 0.95);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-radius: 24px;
-        border: 1px solid rgba(var(--rgb-primary-text-color), 0.08);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        overflow: visible !important;
+        display: block !important;
+        height: auto !important;
+        min-height: auto !important;
+        max-height: none !important;
+        contain: none !important;
+        position: relative;
+        z-index: 1;
+      }
+
+      ha-card.compact-mode,
+      ha-card.normal-mode {
+        height: auto !important;
+        overflow: visible !important;
+      }
+
+      #content {
+        padding: 14px;
+      }
+
+      .card {
+        border-radius: var(--ha-card-border-radius, 12px);
+        background: var(--card-background-color);
+        color: var(--primary-text-color);
+        box-shadow: var(--ha-card-box-shadow, 0 2px 4px rgba(0,0,0,.2));
+        padding: 10px var(--row-xpad) 10px var(--row-xpad);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
       }
 
       /* === NORMAL MODE === */
@@ -114,7 +150,7 @@ class KCFSCard extends HTMLElement {
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
-        margin-bottom: 24px;
+        margin-bottom: 12px;
       }
       .title-section {
         display: flex;
@@ -173,7 +209,7 @@ class KCFSCard extends HTMLElement {
 
       .spool-card {
         background: rgba(var(--rgb-primary-text-color), 0.04);
-        border-radius: 18px;
+        border-radius: var(--ha-card-border-radius, 18px);
         padding: 16px;
         display: flex;
         flex-direction: column;
@@ -215,12 +251,14 @@ class KCFSCard extends HTMLElement {
           var(--spool-color) var(--spool-pct),
           rgba(var(--rgb-primary-text-color), 0.08) 0
         );
+        mask: radial-gradient(circle closest-side at 50% 50%, transparent 33px, black 34px);
+        -webkit-mask: radial-gradient(circle closest-side at 50% 50%, transparent 33px, black 34px);
       }
 
       .ring-inner {
         width: 66px;
         height: 66px;
-        background: var(--card-background-color);
+        background: transparent;
         border-radius: 50%;
         position: relative;
         z-index: 2;
@@ -329,13 +367,15 @@ class KCFSCard extends HTMLElement {
           var(--spool-color) var(--spool-pct),
           rgba(var(--rgb-primary-text-color), 0.08) 0
         );
+        mask: radial-gradient(circle closest-side at 50% 50%, transparent 12px, black 13px);
+        -webkit-mask: radial-gradient(circle closest-side at 50% 50%, transparent 12px, black 13px);
       }
 
       .spool-mini::after {
         content: '';
         position: absolute;
         inset: 4px;
-        background: var(--card-background-color);
+        background: transparent;
         border-radius: 50%;
         z-index: 1;
       }
@@ -884,7 +924,52 @@ class KCFSCard extends HTMLElement {
   }
 
   getCardSize() {
-    return 3;
+    // Return a dynamic size based on compact mode and number of boxes
+    if (this._cfg?.compact_view) {
+      // Count configured boxes
+      let boxCount = 0;
+      for (let box = 0; box < 4; box++) {
+        const hasBox = this._cfg[`box${box}_temp`] || this._cfg[`box${box}_humidity`] ||
+          [0,1,2,3].some(s => this._cfg[`box${box}_slot${s}_filament`]);
+        if (hasBox) boxCount++;
+      }
+      // Check for external filament
+      const hasExternal = this._cfg.external_filament || this._cfg.external_color || this._cfg.external_percent;
+      const externalRows = hasExternal ? 1 : 0;
+      
+      // Add extra space when more than 2 rows
+      const extraPadding = (boxCount + externalRows) > 2 ? 1 : 0;
+      
+      return Math.max(1, boxCount + externalRows + extraPadding);
+    }
+    return 5;
+  }
+
+  getLayoutOptions() {
+    // Count configured boxes for dynamic sizing
+    let boxCount = 0;
+    if (this._cfg) {
+      for (let box = 0; box < 4; box++) {
+        const hasBox = this._cfg[`box${box}_temp`] || this._cfg[`box${box}_humidity`] ||
+          [0,1,2,3].some(s => this._cfg[`box${box}_slot${s}_filament`]);
+        if (hasBox) boxCount++;
+      }
+    }
+    
+    // Check for external filament
+    const hasExternal = this._cfg?.external_filament || this._cfg?.external_color || this._cfg?.external_percent;
+    const externalRows = hasExternal ? 1 : 0;
+    
+    // Add extra space when more than 2 rows
+    const totalRows = boxCount + externalRows;
+    const extraPadding = totalRows > 2 ? 1 : 0;
+    
+    const minRows = this._cfg?.compact_view ? Math.max(1, totalRows + extraPadding) : 5;
+    
+    return {
+      grid_rows: minRows,
+      grid_min_rows: minRows,
+    };
   }
 }
 

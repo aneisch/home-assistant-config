@@ -2,7 +2,7 @@
 
 import json
 import logging
-from asyncio import AbstractEventLoop, ensure_future
+from asyncio import AbstractEventLoop, TimerHandle, ensure_future
 from collections.abc import Callable
 from math import ceil
 from typing import Any
@@ -10,13 +10,24 @@ from typing import Any
 import aiohttp
 from aiohttp import ClientWebSocketResponse, WSMsgType
 
+from .const import WEB_HOST
+
 _LOGGER = logging.getLogger(__name__)
+
+_USER_AGENT = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36"
+)
 
 STATE_STARTING = "starting"
 STATE_RUNNING = "running"
 STATE_STOPPED = "stopped"
 
 RECONNECT_DELAY = 5
+MAX_RECONNECT_DELAY = 300
+
+HTTP_SERVER_ERROR_MIN = 500
+HTTP_SERVER_ERROR_MAX = 600
 
 
 # pylint: disable=too-many-instance-attributes
@@ -48,11 +59,19 @@ class OrbitWebsocket:
         self._heartbeat: int = 25
         self._ws: ClientWebSocketResponse | None = None
         self._closing: bool = False
+        self._reconnect_delay: int = RECONNECT_DELAY
+        # Keep the delayed retry handle so an integration unload can cancel it.
+        self._reconnect_cb: TimerHandle | None = None
 
     def _cancel_heartbeat(self) -> None:
         if self._heartbeat_cb is not None:
             self._heartbeat_cb.cancel()
             self._heartbeat_cb = None
+
+    def _cancel_reconnect(self) -> None:
+        if self._reconnect_cb is not None:
+            self._reconnect_cb.cancel()
+            self._reconnect_cb = None
 
     def _reset_heartbeat(self) -> None:
         self._cancel_heartbeat()
@@ -88,6 +107,11 @@ class OrbitWebsocket:
 
     def start(self) -> None:
         """Start the websocket."""
+        self._cancel_reconnect()
+        if self._closing:
+            _LOGGER.info("Websocket closed intentionally, not starting")
+            return
+
         if self.state != STATE_RUNNING:
             self.state = STATE_STARTING
         self._loop.create_task(self.running())
@@ -97,7 +121,11 @@ class OrbitWebsocket:
         background_tasks = set()
         try:
             if self._ws is None or self._ws.closed or self.state != STATE_RUNNING:
-                async with self._session.ws_connect(self._url) as self._ws:
+                async with self._session.ws_connect(
+                    self._url,
+                    origin=WEB_HOST,
+                    headers={"User-Agent": _USER_AGENT},
+                ) as self._ws:
                     _LOGGER.info("Authenticating websocket")
                     await self._ws.send_str(
                         json.dumps(
@@ -111,6 +139,8 @@ class OrbitWebsocket:
                     _LOGGER.info("Websocket connected")
 
                     self._reset_heartbeat()
+                    # The endpoint recovered; future disconnects should retry quickly.
+                    self._reconnect_delay = RECONNECT_DELAY
 
                     self.state = STATE_RUNNING
 
@@ -173,8 +203,19 @@ class OrbitWebsocket:
                         )
                         self.state = STATE_STOPPED
 
+        except aiohttp.ClientResponseError as err:
+            if HTTP_SERVER_ERROR_MIN <= err.status < HTTP_SERVER_ERROR_MAX:
+                _LOGGER.warning(
+                    "Orbit websocket endpoint returned HTTP %s; retrying with backoff",
+                    err.status,
+                )
+            else:
+                _LOGGER.error("Unexpected websocket HTTP error %s", err)  # noqa: TRY400
+            self.state = STATE_STOPPED
+            self.retry()
+
         except aiohttp.ClientConnectorError:
-            _LOGGER.error("Client connection error; state: %s", self.state)  # noqa: TRY400
+            _LOGGER.warning("Client connection error; state: %s", self.state)
             self.state = STATE_STOPPED
             self.retry()
 
@@ -197,17 +238,31 @@ class OrbitWebsocket:
         self._closing = True
         self.state = STATE_STOPPED
         self._cancel_heartbeat()
+        self._cancel_reconnect()
         if self._ws is not None:
             await self._ws.close()
 
     def retry(self) -> None:
         """Retry to connect to Orbit."""
+        if self._closing:
+            _LOGGER.info("Websocket closed intentionally, not scheduling reconnect")
+            return
+
         if self.state != STATE_STARTING:
             _LOGGER.info(
-                "Reconnecting to Orbit in %i; state: %s", RECONNECT_DELAY, self.state
+                "Reconnecting to Orbit in %i; state: %s",
+                self._reconnect_delay,
+                self.state,
             )
             self.state = STATE_STARTING
-            self._loop.call_later(RECONNECT_DELAY, self.start)
+            # Track the delayed start so stop() can prevent stale reconnects.
+            self._reconnect_cb = self._loop.call_later(
+                self._reconnect_delay, self.start
+            )
+            self._reconnect_delay = min(
+                self._reconnect_delay * 2,
+                MAX_RECONNECT_DELAY,
+            )
         else:
             _LOGGER.info("Ignoring websocket retry; state: %s", self.state)
 

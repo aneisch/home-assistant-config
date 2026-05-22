@@ -200,6 +200,9 @@
       "zone_history": {
         "name": "{zone_name} zone history"
       },
+      "next_watering": {
+        "name": "Next watering"
+      },
       "temperature": {
         "name": "Temperature"
       },

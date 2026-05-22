@@ -93,6 +93,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady(err) from err
     devices = filter_configured_devices(entry, all_devices)
 
+    # Remove any leaf devices that are no longer selected in options from the
+    # device registry. OptionsFlowWithReload triggers a reload after options
+    # change, so this runs on every setup and cleans up de-selected devices.
+    configured_ids = set(entry.options.get(CONF_DEVICES, []))
+    leaf_device_ids = {
+        str(d["id"]) for d in all_devices if d.get("type") != DEVICE_BRIDGE
+    }
+    if removed_device_ids := leaf_device_ids - configured_ids:
+        await remove_devices_from_registry(hass, removed_device_ids)
+
     # Build a mapping from device_gateway_topic to bridge device ID
     # so child devices can reference their bridge via via_device.
     # Bridges are always included by filter_configured_devices.
@@ -112,7 +122,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     }
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, client.stop)
 
@@ -134,33 +143,6 @@ async def remove_devices_from_registry(
                 device_registry.async_remove_device(device.id)
             except HomeAssistantError:
                 _LOGGER.exception("Failed to remove device %s from registry", device_id)
-
-
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Reload to update options and remove filtered devices."""
-    # Get the current client and all devices before reload
-    data = hass.data[DOMAIN].get(entry.entry_id)
-    if data:
-        client = data["client"]
-        try:
-            all_devices = await client.devices
-            # Get currently configured device IDs
-            configured_ids = set(entry.options.get(CONF_DEVICES, []))
-
-            # Find leaf devices that were removed from configuration
-            # (bridges are always included and not user-selectable)
-            leaf_device_ids = {
-                str(d["id"]) for d in all_devices if d.get("type") != DEVICE_BRIDGE
-            }
-            removed_device_ids = leaf_device_ids - configured_ids
-
-            if removed_device_ids:
-                # Remove devices from Home Assistant
-                await remove_devices_from_registry(hass, removed_device_ids)
-        except (BHyveError, KeyError, TimeoutError) as err:
-            _LOGGER.warning("Error checking for removed devices: %s", err)
-
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

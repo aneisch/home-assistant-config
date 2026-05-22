@@ -1,10 +1,34 @@
 # DC Timer on Master Valve is MWF 5-7am
 
+# Ensure 24v on before master
+template:
+  - switch:
+      - name: "Sequenced Master Valve"
+        unique_id: irrigation_master_sequenced
+        # The switch state reflects the actual valve state
+        state: "{{ is_state('switch.irrigation_master_valve', 'on') }}"
+        turn_on:
+          - action: switch.turn_on
+            target:
+              entity_id: switch.irrigation_24v_power
+          - delay: "00:00:02"
+          - action: switch.turn_on
+            target:
+              entity_id: switch.irrigation_master_valve
+        turn_off:
+          - action: switch.turn_off
+            target:
+              entity_id: switch.irrigation_master_valve
+          - delay: "00:00:02"
+          - action: switch.turn_off
+            target:
+              entity_id: switch.irrigation_24v_power
+
 irrigation_unlimited:
   granularity: 5
   controllers:
     - name: "Home Unlimited Irrigation Controller"
-      entity_id: "switch.irrigation_master_valve" 
+      entity_id: "switch.sequenced_master_valve" 
       preamble: "00:00:05" # Opens master before opening zone
       postamble: "00:00:30" # How long to keep master on after all zones off
       enabled: true
@@ -44,7 +68,7 @@ irrigation_unlimited:
                 - mon
                 #- wed
                 - thu
-                - sun
+                #- sun
 
           zones:
             - zone_id: 2 # Front Lawn
@@ -65,8 +89,7 @@ irrigation_unlimited:
                 - mon
                 # - wed
                 - thu
-                - sun
-
+                #- sun
 
           zones:
             - zone_id: 1 # Front Beds

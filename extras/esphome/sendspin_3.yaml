@@ -1,0 +1,7 @@
+# Define the device name and friendly name
+substitutions:
+  name: "sendspin-3"
+  friendly_name: "SendSpin 3"
+
+packages:
+  shared: !include sendspin_main.yaml

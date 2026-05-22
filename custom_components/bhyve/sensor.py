@@ -44,6 +44,7 @@ ATTR_IRRIGATION = "irrigation"
 ATTR_PROGRAM = "program"
 ATTR_PROGRAM_NAME = "program_name"
 ATTR_RUN_TIME = "run_time"
+ATTR_NEXT_START_PROGRAMS = "programs"
 ATTR_START_TIME = "start_time"
 ATTR_STATUS = "status"
 
@@ -102,6 +103,22 @@ SENSOR_TYPES_SPRINKLER: tuple[BHyveSensorEntityDescription, ...] = (
         unique_id_suffix="state",
         entity_category=EntityCategory.DIAGNOSTIC,
         value_fn=lambda data: data.get("status", {}).get("run_mode", "unavailable"),
+    ),
+    BHyveSensorEntityDescription(
+        key="next_watering",
+        translation_key="next_watering",
+        name="Next watering",
+        unique_id_suffix="next_watering",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:sprinkler-variant",
+        value_fn=lambda data: orbit_time_to_local_time(
+            data.get("status", {}).get("next_start_time")
+        ),
+        attributes_fn=lambda data: (
+            {ATTR_NEXT_START_PROGRAMS: programs}
+            if (programs := data.get("status", {}).get("next_start_programs"))
+            else {}
+        ),
     ),
 )
 
@@ -188,6 +205,7 @@ async def async_setup_entry(
                     name=base_description.name,
                     icon=base_description.icon,
                     unique_id_suffix=base_description.unique_id_suffix,
+                    device_class=base_description.device_class,
                     entity_category=base_description.entity_category,
                     value_fn=base_description.value_fn,
                     attributes_fn=base_description.attributes_fn,
@@ -305,7 +323,7 @@ class BHyveSensor(BHyveCoordinatorEntity, SensorEntity):
         )
 
     @property
-    def native_value(self) -> int | float | str | None:
+    def native_value(self) -> datetime | int | float | str | None:
         """Return the state of the entity."""
         if self.entity_description.value_fn:
             return self.entity_description.value_fn(self.device_data)

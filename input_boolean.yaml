@@ -74,3 +74,6 @@ ev_charge_override:
 
 ev_charge_prioritize_vehicle_over_home_battery:
   name: Prioritize Vehicle over Home Battery Charging
+
+ev_charge_guest_mode:
+  name: EV Charge Guest Mode

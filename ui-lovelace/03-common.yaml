@@ -208,6 +208,8 @@ cards:
       #- switch.christmas_lights
       - switch.globe_lights
       - switch.backyard_flood_lights
+      - fan.back_porch_fan
+      - light.back_porch_fan_light
       #- light.garage
 
   - type: vertical-stack

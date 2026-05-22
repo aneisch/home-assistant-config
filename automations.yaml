@@ -159,13 +159,6 @@
   action:
     action: "{% if trigger.event.data.action == 'turn_ac_off' %}\n  script.turn_ac_off\n{%
       endif %}\n"
-- alias: Clear Alexa Recording History
-  id: alexa_history
-  trigger:
-    platform: time_pattern
-    hours: /12
-  action:
-  - action: alexa_media.clear_history
 - id: update_last_datetimes
   alias: Update 'Last' Datetimes
   trigger:
@@ -258,83 +251,57 @@
     entity_id:
     - switch.nas
     - binary_sensor.backups_complete
-- alias: React to Spotify Starting to Play
-  id: spotify_reaction
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id: media_player.spotify
+- id: spotify_reaction
+  alias: React to Spotify Starting to Play
+  triggers:
+  - entity_id: media_player.spotify
     attribute: source
     to: Office
-  - platform: state
-    entity_id: media_player.spotify
+    trigger: state
+  - entity_id: media_player.spotify
     attribute: source
     to: Everywhere
-  - platform: state
-    entity_id: media_player.spotify
+    trigger: state
+  - entity_id: media_player.spotify
     to: playing
-  - platform: state
-    entity_id: media_player.spotify
+    trigger: state
+  - entity_id: media_player.spotify
     attribute: source
     to: Kitchen
-  condition: '{{ states(''media_player.spotify'') == ''playing''}}'
-  action:
-  - if: '{{ states(''media_player.spotify'') == ''playing'' and states(''switch.andrew_office_speakers'')
-      == ''off'' and state_attr(''media_player.spotify'', ''source'') in [''Everywhere'',
-      ''Office''] }}'
+    trigger: state
+  - trigger: state
+    entity_id:
+    - media_player.sendspin_2
+    to:
+    - playing
+    id: sendspin_playing
+  - trigger: state
+    entity_id:
+    - media_player.sendspin_2
+    to:
+    - 'off'
+    id: sendspin_off
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ states(''media_player.spotify'') == ''playing'' and states(''switch.andrew_office_speakers'')
+        == ''off'' and state_attr(''media_player.spotify'', ''source'') in [''Everywhere'',
+        ''Office''] }}'
     then:
     - action: homeassistant.turn_on
       entity_id: switch.andrew_office_speakers
-- id: speakers_with_xbox
-  alias: Turn on speakers and tv when XBOX powers on
-  triggers:
-  - entity_id:
-    - binary_sensor.xbox_power
-    to: 'on'
-    trigger: state
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 20
-  conditions:
-  - condition: template
-    value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
-      == ''home'' }}'
-  actions:
-  - action: homeassistant.turn_on
-    entity_id:
-    - switch.living_room_speakers
-    - switch.tv
-  initial_state: true
-- id: tv_off_with_xbox_off
-  alias: Turn off speakers when tv OR xbox powers off
-  triggers:
-  - entity_id:
-    - switch.tv
-    to: 'off'
-    trigger: state
-    for:
-      hours: 0
-      minutes: 0
-      seconds: 5
-    enabled: false
-  - entity_id:
-    - binary_sensor.xbox_power
-    to: 'off'
-    trigger: state
-    for:
-      hours: 0
-      minutes: 1
-      seconds: 0
-  conditions:
-  - condition: template
-    value_template: '{{ states(''input_boolean.goodnight'') == ''off'' and states(''group.trackers'')
-      == ''home'' }}'
-  actions:
-  - action: homeassistant.turn_off
-    entity_id:
-    - switch.living_room_speakers
-    - switch.tv
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''sendspin_playing'' }}'
+    then:
+    - action: homeassistant.turn_on
+      entity_id: switch.andrew_office_speakers
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''sendspin_off'' }}'
+    then:
+    - action: homeassistant.turn_off
+      entity_id: switch.andrew_office_speakers
   initial_state: true
 - id: desk_lamp_macbook_active
   alias: Desk Lamp on when MacBook Active
@@ -404,57 +371,6 @@
   - delay: 00:05:00
   - action: homeassistant.turn_off
     entity_id: switch.master_closet_light
-- id: sensor_battery_alert
-  alias: Sensor Battery Alerts
-  triggers:
-  - id: binary
-    from: 'off'
-    to: 'on'
-    entity_id:
-    - binary_sensor.flume_sensor_home_battery
-    - binary_sensor.compost_battery
-    - binary_sensor.433_weather_battery
-    - binary_sensor.deep_freeze_battery
-    trigger: state
-  - id: value
-    entity_id:
-    - sensor.1_battery_level
-    - sensor.2_battery_level
-    - sensor.3_battery_level
-    - sensor.back_bedroom_remote_battery_level
-    - sensor.guest_bedroom_remote_battery_level
-    - sensor.front_door_battery
-    - sensor.back_door_battery
-    - sensor.garage_exterior_door_battery_level
-    - sensor.back_bathroom_toilet_water_detector_battery_level
-    - sensor.guest_bathroom_toilet_water_detector_battery_level
-    - sensor.master_bathroom_water_detector_battery_level
-    - sensor.kitchen_sink_water_detector_battery_level
-    - sensor.dishwasher_water_detector_battery_level
-    - sensor.motion_1_battery_level
-    - sensor.living_room_motion_battery_level
-    - sensor.hallway_motion_battery
-    - sensor.master_closet_motion_battery_level
-    - sensor.office_blind_left_battery
-    - sensor.office_blind_right_battery
-    - sensor.guest_bedroom_blind_left_battery
-    - sensor.guest_bedroom_blind_right_battery
-    - sensor.master_bedroom_blind_left_battery
-    - sensor.master_bedroom_blind_right_battery
-    - sensor.dining_room_blind_left_battery
-    - sensor.dining_room_blind_center_battery
-    - sensor.dining_room_blind_right_battery
-    - sensor.netatmo_home_attic_battery_percent
-    - sensor.meater_battery_level
-    below: 10
-    trigger: numeric_state
-    enabled: false
-  actions:
-  - action: script.notify_wrapper
-    data:
-      message: "{% if trigger.id == \"value\" %}\n  {{ trigger.to_state.name }} battery
-        level at {{ trigger.to_state.state }}%\n{% elif trigger.id == \"binary\" %}\n
-        \ {{ trigger.to_state.name }} battery level low!\n{% endif %}\n"
 - alias: Update CloudFlare Firewall Rule
   id: update_cloudflare_firewall_rule
   trigger:
@@ -766,20 +682,6 @@
       data:
         priority: 2
   initial_state: true
-- alias: Garage Fan
-  id: garage_fan
-  initial_state: true
-  trigger:
-    platform: state
-    entity_id: cover.garage_door
-    to:
-    - open
-    - closed
-  action:
-  - action: "{% if trigger.from_state.state == \"closed\" and trigger.to_state.state
-      == \"open\" %}\n  switch.turn_on\n{% elif trigger.from_state.state == \"open\"
-      and trigger.to_state.state == \"closed\" %}\n  switch.turn_off\n{% endif %}\n"
-    entity_id: switch.garage_fan
 - alias: Door Chime
   id: door_chime
   initial_state: true
@@ -971,7 +873,7 @@
   triggers:
   - entity_id:
     - sensor.neighbor_5in1_rain_last_1_hour
-    - sensor.amb_rain_hourly
+    - sensor.amb_rain_daily
     from:
     - unknown
     - unavailable
@@ -1518,6 +1420,7 @@
     value_template: '{{ trigger.to_state.state not in ["unknown", "unavailable"] and
       trigger.from_state.state not in ["unknown", "unavailable"] }}'
     alias: Not inknown
+    enabled: false
   - condition: template
     value_template: '{{ state_attr(''sensor.latest_utility_bill_id'',''date'') ==
       now().strftime(''%Y-%m-%d'') }}'
@@ -1612,4 +1515,18 @@
       - target:
           entity_id: input_boolean.ac_boost_feature_evaluation
         action: input_boolean.turn_on
+  mode: single
+- id: '1778284081988'
+  alias: Mosquito CO2 Notifications
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - switch.sonoff_s31_4_s31_4_relay
+  conditions: []
+  actions:
+  - action: notify.signal_homeassistant
+    metadata: {}
+    data:
+      message: Mosquito CO2 now {{ trigger.to_state.state }}
   mode: single

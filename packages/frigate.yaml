@@ -65,19 +65,23 @@ automation:
               entity_id: camera.front_door_fullres
               # http://localhost:1984/api/frame.jpeg?src=front_door_fullres changed generic camera url from this
           - delay: 00:00:01
-          - action: google_generative_ai_conversation.generate_content
+          - action: ai_task.generate_data
             continue_on_error: true
             data:
-              prompt: >-
+              entity_id: ai_task.google_ai_task
+              task_name: front_door_identify
+              instructions: >-
                 Very briefly describe what you see in this image from my doorbell camera.
                 Your message needs to be short to fit in a phone notification. Don't
                 describe stationary objects or buildings.
-              filenames: /config/media/images/front_door.jpg
+              attachments:
+                media_content_id: media-source://media_source/images/front_door.jpg
+                media_content_type: image/jpeg
             response_variable: generated_content
           - action: notify.signal_frigate
             data:
               message: >-
-                A person was detected {{ generated_content.text }}
+                A person was detected {{ generated_content.data }}
 
 
                 Clip: https://secret/api/frigate/notifications/{{trigger.payload_json["after"]["id"]}}/clip.mp4
@@ -125,14 +129,18 @@ automation:
                 target:
                   entity_id: camera.front_door_fullres
               - delay: 00:00:01
-              - action: google_generative_ai_conversation.generate_content
+              - action: ai_task.generate_data
                 continue_on_error: true
                 data:
-                  prompt: >-
+                  entity_id: ai_task.google_ai_task
+                  task_name: front_door_identify
+                  instructions: >-
                     Very briefly describe what you see in this image from my doorbell camera.
                     Your message needs to be short to fit in a phone notification. Don't
                     describe stationary objects or buildings.
-                  filenames: /config/media/images/front_door.jpg
+                  attachments:
+                    media_content_id: media-source://media_source/images/front_door.jpg
+                    media_content_type: image/jpeg
                 response_variable: generated_content
               - action: notify.signal_frigate
                 data:
@@ -196,13 +204,13 @@ automation:
             - '{{ my_camera_id }}'
       - if: '{{ states("sensor.mail_usps_mail") | int > 0 }}'
         then:
-          - action: google_generative_ai_conversation.generate_content
-            continue_on_error: true
-            data:
-              prompt: >-
-                "Summarize the mail I am receiving today. Don't speculate too much, and no need to tell me recipient info if it's addressed to an Andrew or Bethany. This is meant to go in a notification"
-              filenames: "{{ states('sensor.mail_grid_image_path') }}"
-            response_variable: generated_content
+          # - action: google_generative_ai_conversation.generate_content
+          #   continue_on_error: true
+          #   data:
+          #     prompt: >-
+          #       "Summarize the mail I am receiving today. Don't speculate too much, and no need to tell me recipient info if it's addressed to an Andrew or Bethany. This is meant to go in a notification"
+          #     filenames: "{{ states('sensor.mail_grid_image_path') }}"
+          #   response_variable: generated_content
           - action: notify.alexa_media
             continue_on_error: true
             data:
@@ -612,12 +620,13 @@ automation:
 #     file_path: /config/timelapse/ptz.mp4
 #     name: PTZ Timelapse
 
-binary_sensor:
-  - platform: template
-    sensors:
-      # On if any cameras have object detection "off"
-      any_object_detection_disabled:
-        value_template: "{{ is_state('switch.front_door_detect', 'off') or is_state('switch.garage_detect', 'off') or is_state('switch.driveway_detect', 'off') or is_state('switch.back_porch_detect', 'off') }}"
+template:
+  - binary_sensor:
+    - default_entity_id: binary_sensor.any_object_detection_disabled
+      state: '{{ is_state(''switch.front_door_detect'', ''off'') or is_state(''switch.garage_detect'',
+        ''off'') or is_state(''switch.driveway_detect'', ''off'') or is_state(''switch.back_porch_detect'',
+        ''off'') }}'
+      name: any_object_detection_disabled
 
 command_line:
   - switch:
