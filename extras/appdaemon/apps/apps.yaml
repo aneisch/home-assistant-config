@@ -526,19 +526,21 @@ Garage Plant Light:
   time_off: sunset - 01:00:00
   entities: switch.orvibo_1
 
-Mosquitto CO2:
-  module: entity_timer
-  class: Timer
-  time_on: sunset - 02:00:00
-  time_off: sunset + 04:00:00
-  entities: switch.sonoff_s31_4_s31_4_relay
 
-Mosquitto CO2 Morning:
-  module: entity_timer
-  class: Timer
-  time_on: sunrise - 01:00:00
-  time_off: sunrise + 02:00:00
-  entities: switch.sonoff_s31_4_s31_4_relay
+# 24/7 through wedding
+# Mosquitto CO2:
+#   module: entity_timer
+#   class: Timer
+#   time_on: sunset - 02:00:00
+#   time_off: sunset + 04:00:00
+#   entities: switch.sonoff_s31_4_s31_4_relay
+
+# Mosquitto CO2 Morning:
+#   module: entity_timer
+#   class: Timer
+#   time_on: sunrise - 01:00:00
+#   time_off: sunrise + 02:00:00
+#   entities: switch.sonoff_s31_4_s31_4_relay
 
 # Plant Light Corner:
 #   module: follow_me
