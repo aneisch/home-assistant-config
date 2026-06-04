@@ -658,21 +658,23 @@ class CrealityWebRTCCamera(_BaseCamera):
             
             recreate_needed = self._force_recreate_stream or stream_name not in streams
             
-            # If stream exists, verify its configured source matches expected
+            # If stream exists, verify its configured source matches expected.
+            # streams.list() returns dict[str, Stream] where Stream is a
+            # dataclass with `producers: list[Producer]` (each Producer has
+            # `.url`). It is NOT a dict and has no `sources` field — treating
+            # it as one used to raise AttributeError on every call and trigger
+            # an endless delete/recreate loop (issue #88, 0.9.4 comment).
             if not recreate_needed and stream_name in streams:
-                existing_stream = streams.get(stream_name, {})
-                existing_sources = existing_stream.get('sources', [])
-                # Normalize comparison: handle both string and list formats
-                expected_source = go2rtc_src
-                has_expected_source = (
-                    expected_source in existing_sources if isinstance(existing_sources, list)
-                    else existing_sources == expected_source
-                )
-                if not has_expected_source:
+                existing_stream = streams[stream_name]
+                existing_urls = [
+                    getattr(p, "url", None)
+                    for p in getattr(existing_stream, "producers", []) or []
+                ]
+                if go2rtc_src not in existing_urls:
                     _LOGGER.warning(
                         "ha_creality_ws: Stream '%s' exists but source mismatch: "
-                        "expected '%s', found '%s'. Recreating...",
-                        stream_name, expected_source, existing_sources
+                        "expected '%s', found %s. Recreating...",
+                        stream_name, go2rtc_src, existing_urls
                     )
                     recreate_needed = True
             

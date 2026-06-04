@@ -3,18 +3,20 @@
 [![Build Status](https://github.com/aneisch/home-assistant-config/actions/workflows/check-ha-release-compatibility.yml/badge.svg)](https://github.com/aneisch/home-assistant-config/actions)
 [![GitHub last commit](https://img.shields.io/github/last-commit/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/commits/master)
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/y/aneisch/home-assistant-config)](https://github.com/aneisch/home-assistant-config/graphs/commit-activity)
-[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant-2026.5.3%20(Latest)-brightgreen)](https://github.com/home-assistant/home-assistant/releases/latest)
+[![HA Version](https://img.shields.io/badge/Running%20Home%20Assistant%20-2026.5.4%20(Out%20of%20Date)-Red)](https://github.com/home-assistant/home-assistant/releases/latest)
 <br><a href="https://www.buymeacoffee.com/aneisch" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-black.png" width="150px" height="35px" alt="Buy Me A Coffee" style="height: 35px !important;width: 150px !important;" ></a>
 
-I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Most of my setup is run as Docker containers (see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list).
+I do my best to keep [Home Assistant](https://github.com/home-assistant/home-assistant) on the [latest release](https://github.com/home-assistant/home-assistant/releases/latest). I'm heavily utilizing [AppDaemon](http://appdaemon.readthedocs.io/en/latest/) and [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for advanced/templated automations. See [Appdaemon config](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) and my NodeRed screenshots below for details. Most of my setup runs as Docker containers (see [docker-compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose) for container list).
 
-My Home Assistant installation runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) with Centos 7:
+My Home Assistant installation runs on a Gen7 i5 NUC with Centos 7:
 
 - Lots of Docker containers, some described below. See [Docker Compose](https://github.com/aneisch/home-assistant-config/tree/master/extras/docker-compose)
 - [Frigate](https://frigate.video/) for security camera recording and object detection
 - Home Assistant Companion for iOS and Android device tracking
-- A plethora of Lolin D1 Mini and S2 Mini sensors via [ESPHome](https://esphome.io/components/api.html) (using ESPHome API, not MQTT). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs
-- Milights with [Homebrew MiLight controller](http://blog.christophermullins.com/2017/02/11/milight-wifi-gateway-emulator-on-an-esp8266/) using D1 Mini and NRF24L01
+- A plethora of D1 Mini and S2 Mini, and ESP32 sensors via [ESPHome](https://esphome.io/components/api.html). See [/extras/esphome](https://github.com/aneisch/home-assistant-config/tree/master/extras/esphome) for configs
+  - Solar inverter monitoring and control via Modbus
+  - Whole home and circuit-level power monitoring with ESPHome-flashed Emporia View
+- Tesla charging/vehicle commands via BLE
 - Zwave, Zigbee, and Wifi (ESPHome) smart plugs
 - ZHA using [CC2531](https://amzn.to/2L5xKNB) running zigbee2mqtt firmware
 - Z-Wave JS using Aeon Labs USB stick with:
@@ -44,20 +46,18 @@ My Home Assistant installation runs on a [Gen7 i3 NUC](https://amzn.to/2K0vab6) 
 - [AppDaemon](https://appdaemon.readthedocs.io/en/latest/) controlling a large number of automations and intelligent AC control. See [/extras/appdaemon](https://github.com/aneisch/home-assistant-config/tree/master/extras/appdaemon) for configs.
 - [NodeRed](https://flows.nodered.org/node/node-red-contrib-home-assistant-websocket) for irrigation and other automations (see screenshot below)
 - [Amazon Echos](https://amzn.to/2VLPPm0)
-
   - [Amazon Alexa Smart Home API](https://www.home-assistant.io/components/alexa.smart_home/) using AWS Lambda
   - Custom routines configured in the Alexa App
   - [Alexa Media Player Custom Component](https://github.com/keatontaylor/alexa_media_player)
 - UPS monitoring using [apcupsd](https://github.com/gersilex/apcupsd-docker)
-- Whole home power monitoring with ESPHome-flashed Emporia View
-- Github actions to test beta and stable builds against config
+- Github action to automatically test beta and stable builds against config
 
-Home Assistant and other containers have ingress handled automatically by [Traefik](https://doc.traefik.io/traefik/) and are accessible locally or fronted and secured by Cloudflare Zero Trust Network Access.
+Home Assistant and other containers have ingress handled by [Traefik](https://doc.traefik.io/traefik/) and are accessible locally or fronted and secured by Cloudflare Access.
 
 ## Some statistics about my installation:
 Description | value
 -- | --
-Lines of ESPHome YAML | 6852
+Lines of ESPHome YAML | 6829
 Lines of Home Assistant YAML | 13347
 [Integrations](https://www.home-assistant.io/integrations/) in use | 80
 Zigbee devices in [`zha`](https://www.home-assistant.io/integrations/zha/) | 
@@ -68,8 +68,8 @@ Description | value
 Entities in the [`ai_task`](https://www.home-assistant.io/components/ai_task) domain | 1
 Entities in the [`assist_satellite`](https://www.home-assistant.io/components/assist_satellite) domain | 1
 Entities in the [`automation`](https://www.home-assistant.io/components/automation) domain | 148
-Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 202
-Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 100
+Entities in the [`binary_sensor`](https://www.home-assistant.io/components/binary_sensor) domain | 200
+Entities in the [`button`](https://www.home-assistant.io/components/button) domain | 101
 Entities in the [`calendar`](https://www.home-assistant.io/components/calendar) domain | 1
 Entities in the [`camera`](https://www.home-assistant.io/components/camera) domain | 13
 Entities in the [`climate`](https://www.home-assistant.io/components/climate) domain | 1
@@ -79,7 +79,7 @@ Entities in the [`cover`](https://www.home-assistant.io/components/cover) domain
 Entities in the [`datetime`](https://www.home-assistant.io/components/datetime) domain | 6
 Entities in the [`device_tracker`](https://www.home-assistant.io/components/device_tracker) domain | 8
 Entities in the [`event`](https://www.home-assistant.io/components/event) domain | 17
-Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 5
+Entities in the [`fan`](https://www.home-assistant.io/components/fan) domain | 4
 Entities in the [`group`](https://www.home-assistant.io/components/group) domain | 21
 Entities in the [`humidifier`](https://www.home-assistant.io/components/humidifier) domain | 1
 Entities in the [`image`](https://www.home-assistant.io/components/image) domain | 8
@@ -91,7 +91,7 @@ Entities in the [`input_text`](https://www.home-assistant.io/components/input_te
 Entities in the [`irrigation_unlimited`](https://www.home-assistant.io/components/irrigation_unlimited) domain | 1
 Entities in the [`light`](https://www.home-assistant.io/components/light) domain | 40
 Entities in the [`lock`](https://www.home-assistant.io/components/lock) domain | 5
-Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 23
+Entities in the [`media_player`](https://www.home-assistant.io/components/media_player) domain | 24
 Entities in the [`notify`](https://www.home-assistant.io/components/notify) domain | 6
 Entities in the [`number`](https://www.home-assistant.io/components/number) domain | 31
 Entities in the [`person`](https://www.home-assistant.io/components/person) domain | 2
@@ -99,12 +99,12 @@ Entities in the [`plant`](https://www.home-assistant.io/components/plant) domain
 Entities in the [`remote`](https://www.home-assistant.io/components/remote) domain | 5
 Entities in the [`script`](https://www.home-assistant.io/components/script) domain | 58
 Entities in the [`select`](https://www.home-assistant.io/components/select) domain | 23
-Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 836
+Entities in the [`sensor`](https://www.home-assistant.io/components/sensor) domain | 838
 Entities in the [`setter`](https://www.home-assistant.io/components/setter) domain | 1
 Entities in the [`siren`](https://www.home-assistant.io/components/siren) domain | 2
 Entities in the [`stt`](https://www.home-assistant.io/components/stt) domain | 1
 Entities in the [`sun`](https://www.home-assistant.io/components/sun) domain | 1
-Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 223
+Entities in the [`switch`](https://www.home-assistant.io/components/switch) domain | 222
 Entities in the [`text`](https://www.home-assistant.io/components/text) domain | 2
 Entities in the [`timer`](https://www.home-assistant.io/components/timer) domain | 6
 Entities in the [`tts`](https://www.home-assistant.io/components/tts) domain | 2
@@ -187,7 +187,3 @@ Entities in the [`zone`](https://www.home-assistant.io/components/zone) domain |
 ![UI](images/3.png)
 ![UI](images/4.png)
 ![UI](images/5.png)
-![Grafana](images/grafana.png)
-![Node-Red](images/nodered_1.png)
-![Node-Red](images/nodered_2.png)
-Auto generated using: `docker run -it -v /tmp:/usr/src/app/out --rm nevermendel/chrome-headless-screenshots --width=$viewportWidth1 --height=$viewportHeight1 --filename=nodered_1 --delay=3000 http://10.0.1.22:1880/#flow/9584418c.dafc2`

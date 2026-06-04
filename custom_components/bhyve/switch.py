@@ -167,7 +167,10 @@ async def async_setup_entry(
                 )
             )
 
-            # Create smart watering switches for zones that support it
+            # Smart watering is a device-level toggle (`water_sense_mode`), but
+            # it's exposed per-zone as a "smart water program". Keep per-zone
+            # entities for backward compatibility; each one reflects and
+            # controls the device-level master toggle.
             smart_watering_desc = BHyveSwitchEntityDescription(
                 key="smart_watering",
                 translation_key="smart_watering",
@@ -369,7 +372,7 @@ class BHyveProgramSwitch(BHyveCoordinatorEntity, SwitchEntity):
 
 
 class BHyveSmartWateringSwitch(BHyveCoordinatorEntity, SwitchEntity):
-    """Define a BHyve smart watering switch for a zone."""
+    """Per-zone smart watering switch backed by device water_sense_mode."""
 
     entity_description: BHyveSwitchEntityDescription
     _attr_has_entity_name = True
@@ -394,32 +397,25 @@ class BHyveSmartWateringSwitch(BHyveCoordinatorEntity, SwitchEntity):
 
         super().__init__(coordinator, device)
 
+        self._device_type = device.get("type")
         self._attr_unique_id = (
             f"{self._mac_address}:{self._device_id}:{self._zone_id}:smart_watering"
         )
 
-    def _get_zone_data(self) -> dict:
-        """Get current zone data from coordinator."""
-        for zone in self.device_data.get("zones", []):
-            if zone.get("station") == self._zone_id:
-                return zone
-        return {}
-
     @property
     def is_on(self) -> bool:
-        """Return true if smart watering is enabled for this zone."""
-        return self._get_zone_data().get("smart_watering_enabled", False)
+        """Return true if smart watering is enabled at the device level."""
+        return self.device_data.get("water_sense_mode") == "auto"
 
     async def _set_smart_watering(self, *, enabled: bool) -> None:
-        """Update the zone's smart_watering_enabled on the device."""
-        zones = [
-            {**z, "smart_watering_enabled": enabled}
-            if z.get("station") == self._zone_id
-            else z
-            for z in self.device_data.get("zones", [])
-        ]
+        """Flip device water_sense_mode (smart watering is device-wide)."""
         await self.coordinator.client.update_device(
-            {"id": self._device_id, "zones": zones}
+            {
+                "id": self._device_id,
+                "type": self._device_type,
+                "mac_address": self._mac_address,
+                "water_sense_mode": "auto" if enabled else "off",
+            }
         )
 
     async def async_turn_on(self, **_kwargs: Any) -> None:

@@ -202,7 +202,7 @@ automation:
         target:
           entity_id:
             - '{{ my_camera_id }}'
-      - if: '{{ states("sensor.mail_usps_mail") | int > 0 }}'
+      - if: '{{ states("sensor.imap_gmail_com_mail_usps_mail") | int > 0 }}'
         then:
           # - action: google_generative_ai_conversation.generate_content
           #   continue_on_error: true
@@ -224,7 +224,7 @@ automation:
               data:
                 attachments:
                   - /config/media/images/logo.jpg
-                  - "{{ states('sensor.mail_grid_image_path') }}"
+                  - "{{ states('sensor.imap_gmail_com_mail_grid_image_path') }}"
       - delay: "00:01:00"
       - action: switch.turn_off
         entity_id: switch.docker_codeproject

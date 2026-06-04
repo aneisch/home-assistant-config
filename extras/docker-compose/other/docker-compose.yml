@@ -297,17 +297,23 @@ services:
     adguard:
         container_name: adguard
         image: adguard/adguardhome:latest
-        user: '99'
+        #user: '99'
         #logging:
         #    driver: none
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/adguard:/opt/adguardhome/conf
             - /opt/adguard/work:/opt/adguardhome/work
-        ports:
-            - 53:5353/tcp
-            - 53:5353/udp
-            - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
+        # Edit AdGuardHome.yaml to configure port 53 vs 5353
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
+            - NET_BIND_SERVICE
+        # ports:
+        #     - 53:5353/tcp
+        #     - 53:5353/udp
+        #     - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
         restart: 'always'
@@ -514,11 +520,12 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:0.16.4
-        image: ghcr.io/blakeblackshear/frigate:0.17.0-rc3
+        image: ghcr.io/blakeblackshear/frigate:0.17.1
         shm_size: "512mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
-            - /dev/dri/renderD128
+            - /dev/dri:/dev/dri
+
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/:/config
@@ -558,6 +565,7 @@ services:
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
+            - LIBVA_DRIVER_NAME=iHD
 
     codeproject:
         container_name: codeproject

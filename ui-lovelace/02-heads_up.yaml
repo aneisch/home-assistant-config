@@ -32,7 +32,7 @@ cards:
         - entity_id: "*mute*"
         - entity_id: "switch.plant_light"
         - entity_id: "*_program"
-        - entity_id: "switch.adguard_protection"
+        - entity_id: "switch.adguard_home_protection"
         - entity_id: "switch.docker*"
         - entity_id: "switch.under*"
         - entity_id: "*.aquarium_*"
@@ -74,4 +74,4 @@ cards:
     sort:
       method: name
 
-  - !include .cards/spotify.yaml
+  # - !include .cards/spotify.yaml

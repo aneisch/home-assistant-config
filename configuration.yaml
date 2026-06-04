@@ -276,7 +276,7 @@ logger:
     # End ZHA Debugging
     # custom_components.xiaomi_cloud_map_extractor: debug
     #custom_components.alexa_media: debug
-    custom_components.localtuya: debug
+    #custom_components.localtuya: debug
     #homeassistant.components.webhook: debug
     #custom_components.mail_and_packages: debug
     # custom_components.aarlo: debug

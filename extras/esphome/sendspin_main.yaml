@@ -23,43 +23,21 @@ substitutions:
 esphome:
   name: ${name}
   friendly_name: ${friendly_name}
-  platformio_options: 
-    board_build.f_flash: 80000000L
-    board_build.f_cpu: 240000000L
-    board_build.flash_mode: qio
-    board_build.psram_type: opi
-    board_build.arduino.memory_type: qio_opi
-    board_upload.maximum_size: 16777216
-    board_upload.speed: 921600
-    build_flags: 
-      - -DBOARD_HAS_PSRAM
 
-# According to latest ESPHome documentation, variant is recommended practice,
-# board option is added for backwards compatibility, it might be removed later
-# Use the ESP32 Platform configuration cpu_frequency, flash_size to define right parameter for N16R8
-# Disable bluetooth as it is not used in the components
-# Add some SRAM and PSRAM improvements
 esp32:
   variant: esp32s3
   board: esp32-s3-devkitc-1
   cpu_frequency: 240MHz
   flash_size: 16MB
+  toolchain: esp-idf  
   framework:
     type: esp-idf
     version: recommended
     sdkconfig_options:
-      CONFIG_BT_ENABLED: "n"
-      CONFIG_ESP_WIFI_TASK_CORE_ID: "0"
-      # Configs to improve data cache, these configs consume about 65KB SRAM
-      CONFIG_ESP32S3_DATA_CACHE_64KB: "y"
-      CONFIG_ESP32S3_DATA_CACHE_LINE_64B: "y"
-      CONFIG_ESP32S3_INSTRUCTION_CACHE_32KB: "y"
-      # Configs to optimize PSRAM usage
-      CONFIG_SPIRAM_RODATA: "y"
-      CONFIG_SPIRAM_FETCH_INSTRUCTIONS: "y"
-      CONFIG_SPIRAM_TRY_ALLOCATE_WIFI_LWIP: "y"
-      CONFIG_SPIRAM_ALLOW_BSS_SEG_EXTERNAL_MEMORY: "y"
-      CONFIG_MBEDTLS_EXTERNAL_MEM_ALLOC: "y"
+      CONFIG_BT_ENABLED: "n"                     # Keep this to free up RAM/CPU from Bluetooth
+      CONFIG_ESP_WIFI_TASK_CORE_ID: "0"          # Keep if you specifically want Wi-Fi pinned to core 0
+      CONFIG_ESP_WIFI_IRAM_OPT: "y"              # Moves Wi-Fi high-performance code to ultra-fast IRAM
+      CONFIG_ESP_WIFI_RX_BA_WIN: "16"            # Increases Wi-Fi Block Ack RX window size for smoother TCP/UDP streams
 
 # Enable logging
 logger:
@@ -75,14 +53,12 @@ ota:
 wifi:
   ssid: "SSID"
   password: !secret wifi_password
-  #output_power: 8.5dB # disabled for tuning
   power_save_mode: NONE
 
 network:
-  enable_high_performance: true # false # set to true for tuning
+  enable_high_performance: true
 
-# Enable PSRAM (Typically on ESP32-S3 modules, a 2MB PSRAM will use quad mode,
-# while 8 or 16MB will use octal mode)
+# Mandatory for ESP32-S3 modules with 8MB/16MB PSRAM
 psram:
   mode: octal
   speed: 80MHz
@@ -95,32 +71,32 @@ api:
 
   reboot_timeout: 0s
 
-# Enable http request
-http_request:
-  buffer_size_rx: 4096
+# # Enable http request
+# http_request:
+#   buffer_size_rx: 4096
 
 # Sendspin related components are pinned to specific commits for reproducible builds
-external_components:
+#external_components:
   # - source:
   #     # https://github.com/esphome/esphome/pull/14933
   #     type: git
   #     url: https://github.com/kahrendt/esphome
   #     ref: 7a6cf5c8472b7e2fa18ee0fc314f66a80d249e32
   #   components: [const, media_source, sendspin]
-  - source:
-      # https://github.com/esphome/esphome/pull/14933
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: dev
-    refresh: 0s
-    components: [const, media_source, sendspin]
-  - source:
-      # https://github.com/esphome/esphome/pull/12429
-      type: git
-      url: https://github.com/esphome/esphome
-      ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
-    refresh: 0s
-    components: [http_request]
+  # - source:
+  #     # https://github.com/esphome/esphome/pull/14933
+  #     type: git
+  #     url: https://github.com/esphome/esphome
+  #     ref: dev
+  #   refresh: 0s
+  #   components: [const, media_source, sendspin]
+  # - source:
+  #     # https://github.com/esphome/esphome/pull/12429
+  #     type: git
+  #     url: https://github.com/esphome/esphome
+  #     ref: ff8ce89556748509d7ee8724e12d9d43d3c8c1e8
+  #   refresh: 0s
+  #   components: [http_request]
 
 # =============================================================================
 # Media player / I2S configurations
@@ -144,17 +120,17 @@ speaker:
     dac_type: external
     channel: stereo
     timeout: never
-    buffer_duration: 500ms # Increased from 100 5/16 # Increased from 100 5/16
+    buffer_duration: 100ms # Increased from 100 5/16 # Increased from 100 5/16
 
   - platform: mixer
     id: mixer_speaker_id
     output_speaker: i2s_audio_speaker
     source_speakers:
       - id: media_spk_mixer_input
-        buffer_duration: 500ms # Increased from 100 5/16
+        buffer_duration: 100ms # Increased from 100 5/16
         timeout: never
       - id: announcement_spk_mixer_input
-        buffer_duration: 500ms # Increased from 100 5/16
+        buffer_duration: 100ms # Increased from 100 5/16
         timeout: never
     num_channels: 2
     task_stack_in_psram: true
@@ -164,14 +140,14 @@ speaker:
     output_speaker: media_spk_mixer_input
     sample_rate: 48000
     bits_per_sample: 16
-    buffer_duration: 500ms # Increased from 100 5/16
+    buffer_duration: 100ms # Increased from 100 5/16
     task_stack_in_psram: true
   - platform: resampler
     id: announcement_resampling_speaker
     output_speaker: announcement_spk_mixer_input
     sample_rate: 48000
     bits_per_sample: 16
-    buffer_duration: 500ms # Increased from 100 5/16
+    buffer_duration: 100ms # Increased from 100 5/16
     task_stack_in_psram: true
 
 sendspin:
@@ -179,10 +155,10 @@ sendspin:
   task_stack_in_psram: true # troubleshooting set to true
 
 media_source:
-  - platform: http_request
+  - platform: audio_http
     id: http_announcement_source
     buffer_size: 250000
-  - platform: http_request
+  - platform: audio_http
     id: http_media_source
     buffer_size: 500000
   - platform: sendspin

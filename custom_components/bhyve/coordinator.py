@@ -315,16 +315,19 @@ class BHyveDataUpdateCoordinator(DataUpdateCoordinator):
         # Notify all listening entities
         self.async_set_updated_data(self.data)
 
-    def _set_zones_smart_watering(
+    def _set_device_smart_watering(
         self, device_id: str | None, *, enabled: bool
     ) -> None:
-        """Update smart_watering_enabled on all zones of a device."""
+        """Mirror smart watering state onto device water_sense_mode and zones."""
         if not device_id:
             return
         device_data = self.data.get("devices", {}).get(device_id, {})
         device = device_data.get("device", {})
+        if "water_sense_mode" in device:
+            device["water_sense_mode"] = "auto" if enabled else "off"
         for zone in device.get("zones", []):
-            zone["smart_watering_enabled"] = enabled
+            if "smart_watering_enabled" in zone:
+                zone["smart_watering_enabled"] = enabled
 
     @staticmethod
     def _get_program_id(event_data: dict[str, Any]) -> str | None:
@@ -357,7 +360,7 @@ class BHyveDataUpdateCoordinator(DataUpdateCoordinator):
                 if program_data.get("is_smart_program"):
                     # Smart program created means smart watering was enabled
                     device_id = event_data.get("device_id")
-                    self._set_zones_smart_watering(device_id, enabled=True)
+                    self._set_device_smart_watering(device_id, enabled=True)
                 else:
                     self.hass.bus.async_fire(
                         "bhyve_program_created",
@@ -383,9 +386,9 @@ class BHyveDataUpdateCoordinator(DataUpdateCoordinator):
                 return
             if is_smart:
                 # Smart program destroy means smart watering was disabled.
-                # Update zone data so smart watering switches reflect the change.
+                # Update device data so the smart watering switch reflects it.
                 device_id = event_data.get("device_id")
-                self._set_zones_smart_watering(device_id, enabled=False)
+                self._set_device_smart_watering(device_id, enabled=False)
                 # Fall through to update the program data
 
         # For update events, check if program exists

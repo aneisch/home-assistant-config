@@ -4,10 +4,13 @@ import asyncio
 import concurrent
 import logging
 import os
+import ssl
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable
 
 import aiodocker
+from aiohttp import ClientSession, ClientTimeout, TCPConnector
 import homeassistant.util.dt as dt_util
 from dateutil import parser, relativedelta
 from homeassistant.const import (
@@ -31,13 +34,17 @@ from .const import (
     CONF_CERTPATH,
     CONF_MEMORYCHANGE,
     CONF_PRECISION_CPU,
+    CONF_PRECISION_DISK_MB,
     CONF_PRECISION_MEMORY_MB,
     CONF_PRECISION_MEMORY_PERCENTAGE,
     CONF_PRECISION_NETWORK_KB,
     CONF_PRECISION_NETWORK_MB,
+    CONF_RETRY,
+    CONF_VERSION,
     CONTAINER,
     CONTAINER_INFO_HEALTH,
     CONTAINER_INFO_IMAGE,
+    CONTAINER_INFO_IMAGE_HASH,
     CONTAINER_INFO_NETWORK_AVAILABLE,
     CONTAINER_INFO_STATE,
     CONTAINER_INFO_STATUS,
@@ -64,19 +71,21 @@ from .const import (
     PRECISION,
 )
 
-VERSION = "1.19"
+VERSION = "1.20"
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def toKB(value: float, precision: int = PRECISION) -> float:
     """Converts bytes to kBytes."""
-    return round(value / (1024 ** 1), precision)
+    precision = None if precision == 0 else precision
+    return round(value / (1024**1), precision)
 
 
 def toMB(value: float, precision: int = PRECISION) -> float:
     """Converts bytes to MBytes."""
-    return round(value / (1024 ** 2), precision)
+    precision = None if precision == 0 else precision
+    return round(value / (1024**2), precision)
 
 
 #################################################################
@@ -96,14 +105,21 @@ class DockerAPI:
         self._event_destroy: dict[str, int] = {}
         self._dockerStopped = False
         self._subscribers: list[Callable] = []
-        self._version1904 = None
         self._api: aiodocker.Docker = None
 
         _LOGGER.debug("[%s]: Helper version: %s", self._instance, VERSION)
 
         self._interval: int = config[CONF_SCAN_INTERVAL].seconds
+        self._retry_interval: int = config[CONF_RETRY]
+        _LOGGER.debug(
+            "[%s] CONF_SCAN_INTERVAL=%d, RETRY=%", self._interval, self._retry_interval
+        )
 
     async def init(self, startCount=0):
+
+        # Set to None when called twice, etc
+        self._api = None
+
         try:
             # Try to fix unix:// to unix:/// (3 are required by aiodocker)
             url: str = self._config[CONF_URL]
@@ -118,78 +134,116 @@ class DockerAPI:
             if startCount > 0 and url is not None and url.find("unix:") != 0:
                 await asyncio.sleep(5)
 
-            # Do some debugging logging for TCP/TLS
+            # Check if it is a tcp connection or not
+            tcpConnection = False
+
+            # Remove Docker environment variables
+            os.environ.pop("DOCKER_TLS_VERIFY", None)
+            os.environ.pop("DOCKER_CERT_PATH", None)
+
+            # Setup Docker parameters
+            connector = None
+            session = None
+            ssl_context = None
+
             if url is not None:
                 _LOGGER.debug("%s: Docker URL is '%s'", self._instance, url)
+            else:
+                # Try to auto-detect the Docker socket
+                _sock_search_paths = [
+                    Path("/run/docker.sock"),
+                    Path("/var/run/docker.sock"),
+                    Path.home() / ".docker/run/docker.sock",
+                ]
 
-                # Check for TLS if it is not unix
-                if url.find("tcp:") == 0 or url.find("http:") == 0:
-                    tlsverify = os.environ.get("DOCKER_TLS_VERIFY", None)
-                    certpath = os.environ.get("DOCKER_CERT_PATH", None)
-                    if tlsverify is None:
-                        _LOGGER.debug(
-                            "[%s]: Docker environment 'DOCKER_TLS_VERIFY' is NOT set",
-                            self._instance,
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "[%s]: Docker environment set 'DOCKER_TLS_VERIFY=%s'",
-                            self._instance,
-                            tlsverify,
-                        )
+                for sockpath in _sock_search_paths:
+                    if sockpath.is_socket():
+                        url = "unix://" + str(sockpath)
+                        break
 
-                    if certpath is None:
-                        _LOGGER.debug(
-                            "[%s]: Docker environment 'DOCKER_CERT_PATH' is NOT set",
-                            self._instance,
-                        )
-                    else:
-                        _LOGGER.debug(
-                            "[%s]: Docker environment set 'DOCKER_CERT_PATH=%s'",
-                            self._instance,
-                            certpath,
-                        )
+                _LOGGER.debug(
+                    "%s: Docker URL is auto-detect as '%s'", self._instance, url
+                )
 
-                    if self._config[CONF_CERTPATH]:
-                        _LOGGER.debug(
-                            "[%s]: Docker CertPath set '%s', setting environment variables DOCKER_TLS_VERIFY/DOCKER_CERT_PATH",
-                            self._instance,
-                            self._config[CONF_CERTPATH],
-                        )
-                        os.environ["DOCKER_TLS_VERIFY"] = "1"
-                        os.environ["DOCKER_CERT_PATH"] = self._config[CONF_CERTPATH]
+            # If is not empty or an Unix socket, then do check TCP/SSL
+            if url is not None and url.find("unix:") == -1:
 
-            self._api = aiodocker.Docker(url=url)
+                # Check if URL is valid
+                if not (
+                    url.find("tcp:") == 0
+                    or url.find("http:") == 0
+                    or url.find("https:") == 0
+                    or url.find("ssh:") == 0
+                ):
+                    raise ValueError(
+                        f"[{self._instance}] Docker URL '{url}' does not start with tcp:, http: or https:"
+                    )
+
+                if self._config[CONF_CERTPATH] and url.find("http:") == 0:
+                    # fixup URL and warn
+                    _LOGGER.warning(
+                        "[%s] Docker URL '%s' should be https instead of http when using certificate path",
+                        self._instance,
+                        url,
+                    )
+                    url = url.replace("http:", "https:")
+
+                if self._config[CONF_CERTPATH] and url.find("tcp:") == 0:
+                    # fixup URL and warn
+                    _LOGGER.warning(
+                        "[%s] Docker URL '%s' should be https instead of tcp when using certificate path",
+                        self._instance,
+                        url,
+                    )
+                    url = url.replace("tcp:", "https:")
+
+                if self._config[CONF_CERTPATH]:
+                    _LOGGER.debug(
+                        "[%s]: Docker certification path is '%s' SSL/TLS will be used",
+                        self._instance,
+                        self._config[CONF_CERTPATH],
+                    )
+
+                    # Create our SSL context object
+                    ssl_context = await self._hass.async_add_executor_job(
+                        self._docker_ssl_context
+                    )
+
+                # Setup new TCP connection, otherwise timeout takes toooo long
+                connector = TCPConnector(ssl=ssl_context)
+                session = ClientSession(
+                    connector=connector,
+                    timeout=ClientTimeout(
+                        connect=5,
+                        sock_connect=5,
+                        total=10,
+                    ),
+                )
+
+            # Initiate the aiodocker instance now
+            self._api = aiodocker.Docker(
+                url=url,
+                connector=connector,
+                session=session,
+                ssl_context=ssl_context,
+                api_version=self._config[CONF_VERSION],
+            )
+
         except Exception as err:
+            exc_info = True if str(err) == "" else False
             _LOGGER.error(
                 "[%s]: Can not connect to Docker API (%s)",
                 self._instance,
                 str(err),
-                exc_info=True,
+                exc_info=exc_info,
             )
             return
 
         versionInfo = await self._api.version()
         version: str | None = versionInfo.get("Version", None)
 
-        # Compare version with 19.03 when memory calculation has changed
-        if version is not None:
-            try:
-                if tuple(map(int, (version.split(".")[0:2]))) > tuple(
-                    map(int, ("19.03".split(".")))
-                ):
-                    self._version1904 = True
-                else:
-                    self._version1904 = False
-            except ValueError as err:
-                _LOGGER.error(
-                    "[%s]: ValueError in version '%s' ", self._instance, version
-                )
-                self._version1904 = True
-
-        _LOGGER.debug(
-            "[%s]: Docker version: %s (%s)", self._instance, version, self._version1904
-        )
+        # Pre 19.03 support memory calculation is dropped
+        _LOGGER.debug("[%s]: Docker version: %s", self._instance, version)
 
         # Start task to monitor events of create/delete/start/stop
         self._tasks["events"] = asyncio.create_task(self._run_docker_events())
@@ -213,7 +267,6 @@ class DockerAPI:
                 self._config,
                 self._api,
                 cname,
-                version1904=self._version1904,
             )
             await self._containers[cname].init()
 
@@ -229,10 +282,51 @@ class DockerAPI:
             )
 
     #############################################################
+    def _docker_ssl_context(self) -> ssl.SSLContext | None:
+        """
+        Create a SSLContext object
+        """
+
+        context = ssl.create_default_context(purpose=ssl.Purpose.SERVER_AUTH)
+        context.set_ciphers(ssl._RESTRICTED_SERVER_CIPHERS)  # type: ignore
+
+        path2 = Path(self._config[CONF_CERTPATH])
+
+        context.load_verify_locations(cafile=str(path2 / "ca.pem"))
+        context.load_cert_chain(
+            certfile=str(path2 / "cert.pem"), keyfile=str(path2 / "key.pem")
+        )
+
+        context.verify_flags &= ~ssl.VERIFY_X509_STRICT
+        context.check_hostname = False
+
+        return context
+
+    #############################################################
     def _monitor_stop(self, _service_or_event: Event) -> None:
         """Stop the monitor thread."""
 
         _LOGGER.info("[%s]: Stopping Monitor Docker thread", self._instance)
+
+    #############################################################
+    async def _reconnectx(self):
+
+        while True:
+            _LOGGER.debug("[%s] Reconnecting", self._instance)
+
+            try:
+                await self.init()
+                break
+            except Exception as err:
+                _LOGGER.error(
+                    "[%s] Failed Docker connect (%s). Retry in %d seconds",
+                    self._instance,
+                    str(err),
+                    self._retry_interval,
+                )
+                await asyncio.sleep(self._retry_interval)
+
+        _LOGGER.debug("[%s] Reconnect success", self._instance)
 
     #############################################################
     def remove_entities(self) -> None:
@@ -266,6 +360,26 @@ class DockerAPI:
             while True:
                 event: dict = await subscriber.get()
 
+                # Dump all raw events
+                if event is None:
+                    _LOGGER.debug("[%s] run_docker_events RAW: None", self._instance)
+                else:
+                    # If Type=container, give some additional information
+                    addlog = ""
+                    if event["Type"] == "container":
+                        try:
+                            addlog = f", Name={event['Actor']['Attributes']['name']}"
+                        except:
+                            pass
+
+                    _LOGGER.debug(
+                        "[%s] run_docker_events Type=%s%s, Action=%s",
+                        self._instance,
+                        event["Type"],
+                        addlog,
+                        event["Action"],
+                    )
+
                 # When we receive none, the connection normally is broken
                 if event is None:
                     _LOGGER.error("[%s]: run_docker_events loop ended", self._instance)
@@ -281,15 +395,20 @@ class DockerAPI:
                         try:
                             await self._container_remove(cname)
                         except Exception as err:
+                            exc_info = True if str(err) == "" else False
                             _LOGGER.error(
                                 "[%s]: Stopping gave an error %s",
                                 self._instance,
                                 str(err),
-                                exc_info=True,
+                                exc_info=exc_info,
                             )
 
                     # Stop everything and return to the main thread
                     self._monitor_stop(self._config[CONF_NAME])
+
+                    # TODO: improve reconnectx
+                    await self._reconnectx()
+
                     break
 
                 # Only monitor container events
@@ -426,8 +545,12 @@ class DockerAPI:
                             )
 
         except Exception as err:
+            exc_info = True if str(err) == "" else False
             _LOGGER.error(
-                "[%s]: run_docker_events (%s)", self._instance, str(err), exc_info=True
+                "[%s]: run_docker_events (%s)",
+                self._instance,
+                str(err),
+                exc_info=exc_info,
             )
 
     #############################################################
@@ -455,11 +578,12 @@ class DockerAPI:
                 await asyncio.sleep(1)
 
         except Exception as err:
+            exc_info = True if str(err) == "" else False
             _LOGGER.error(
                 "[%s]: container_create_destroy (%s)",
                 self._instance,
                 str(err),
-                exc_info=True,
+                exc_info=exc_info,
             )
 
     #############################################################
@@ -472,7 +596,7 @@ class DockerAPI:
 
         # Create our Docker Container API
         self._containers[cname] = DockerContainerAPI(
-            self._config, self._api, cname, atInit=False, version1904=self._version1904
+            self._config, self._api, cname, atInit=False
         )
 
         # We should wait until container is attached
@@ -511,9 +635,13 @@ class DockerAPI:
         """Function to retrieve information like docker info."""
 
         loopInit = False
+        self._dockerStopped = False
 
-        try:
-            while True:
+        while True:
+
+            error = True
+
+            try:
                 if self._dockerStopped:
                     _LOGGER.debug("[%s]: Stopping docker info thread", self._instance)
                     break
@@ -557,11 +685,12 @@ class DockerAPI:
                                     CONTAINER_STATS_MEMORY
                                 )
                     except Exception as err:
+                        exc_info = True if str(err) == "" else False
                         _LOGGER.error(
                             "[%s]: run_docker_info memory/cpu of X (%s)",
                             self._instance,
                             str(err),
-                            exc_info=True,
+                            exc_info=exc_info,
                         )
 
                 # Calculate memory percentage
@@ -659,15 +788,28 @@ class DockerAPI:
                 )
 
                 loopInit = True
-                await asyncio.sleep(self._interval)
+                error = False
 
-        except Exception as err:
-            _LOGGER.error(
-                "[%s]: run_docker_info (%s)",
-                self._instance,
-                str(err),
-                exc_info=True,
-            )
+            except asyncio.TimeoutError as err:
+                _LOGGER.error(
+                    "[%s]: run_docker_info (%s) TCP Timeout. Retry in %d seconds",
+                    self._instance,
+                    self._retry_interval,
+                )
+            except Exception as err:
+                exc_info = True if str(err) == "" else False
+                _LOGGER.error(
+                    "[%s]: run_docker_info (%s). Retry in %d seconds",
+                    self._instance,
+                    str(err),
+                    self._retry_interval,
+                    exc_info=exc_info,
+                )
+
+            if error:
+                await asyncio.sleep(self._retry_interval)
+            else:
+                await asyncio.sleep(self._interval)
 
     #############################################################
     def list_containers(self):
@@ -698,15 +840,14 @@ class DockerContainerAPI:
         api: aiodocker.Docker,
         cname: str,
         atInit=True,
-        version1904: bool | None = None,
     ):
         self._config = config
         self._api = api
-        self._version1904 = version1904
         self._instance: str = config[CONF_NAME]
         self._memChange: int = config[CONF_MEMORYCHANGE]
         self._name = cname
         self._interval: int = config[CONF_SCAN_INTERVAL].seconds
+        self._retry_interval: int = config[CONF_RETRY]
         self._busy = False
         self._atInit = atInit
         self._task: asyncio.Task | None = None
@@ -732,12 +873,13 @@ class DockerContainerAPI:
             try:
                 self._container = await self._api.containers.get(self._name)
             except Exception as err:
+                exc_info = True if str(err) == "" else False
                 _LOGGER.error(
                     "[%s] %s: Container not available anymore (1) (%s)",
                     self._instance,
                     self._name,
                     str(err),
-                    exc_info=True,
+                    exc_info=exc_info,
                 )
                 return
 
@@ -760,12 +902,13 @@ class DockerContainerAPI:
             )
             return False
         except Exception as err:
+            exc_info = True if str(err) == "" else False
             _LOGGER.error(
                 "[%s] %s: Container not available anymore (2b) (%s)",
                 self._instance,
                 self._name,
                 str(err),
-                exc_info=True,
+                exc_info=exc_info,
             )
             return False
 
@@ -778,6 +921,10 @@ class DockerContainerAPI:
         """Loop to gather container info/stats."""
 
         while True:
+
+            sendNotify = True
+            error = True
+
             try:
                 # Don't check container if we are doing a start/stop
                 if not self._busy:
@@ -786,14 +933,16 @@ class DockerContainerAPI:
                     # Only run stats if container is running
                     if self._info[CONTAINER_INFO_STATE] in ("running", "paused"):
                         await self._run_container_stats()
-
-                    self._notify()
                 else:
                     _LOGGER.debug(
                         "[%s] %s: Waiting on stop/start of container",
                         self._instance,
                         self._name,
                     )
+                    sendNotify = False
+
+                # No error, so normal interval
+                error = False
 
             except concurrent.futures._base.CancelledError:
                 _LOGGER.debug(
@@ -805,22 +954,48 @@ class DockerContainerAPI:
                 break
             except aiodocker.exceptions.DockerError as err:
                 _LOGGER.error(
-                    "[%s] %s: Container not available anymore (3a) (%s)",
+                    "[%s] %s: Container not available anymore (3a) (%s). Retry in %d seconds",
                     self._instance,
                     self._name,
                     str(err),
+                    self._retry_interval,
+                )
+            except asyncio.exceptions.CancelledError as err:
+                _LOGGER.error(
+                    "[%s] %s: Container not available anymore (3c) CancelledError. Retry in %d seconds",
+                    self._instance,
+                    self._name,
+                    self._retry_interval,
+                )
+            except asyncio.TimeoutError as err:
+                _LOGGER.error(
+                    "[%s] %s: Container not available anymore (3d) TimeoutError. Retry in %d seconds",
+                    self._instance,
+                    self._name,
+                    self._retry_interval,
                 )
             except Exception as err:
+                exc_info = True if str(err) == "" else False
                 _LOGGER.error(
-                    "[%s] %s: Container not available anymore (3b) (%s)",
+                    "[%s] %s: Container not available anymore (3b) (%s). Retry in %d seconds",
                     self._instance,
                     self._name,
                     str(err),
-                    exc_info=True,
+                    self._retry_interval,
+                    exc_info=exc_info,
                 )
 
+            # Send values to sensors/switch
+            if sendNotify:
+                self._notify()
+
+            # TODO: on error, increase sleep
+
             # Sleep in normal and exception situation
-            await asyncio.sleep(self._interval)
+            if error:
+                await asyncio.sleep(self._retry_interval)
+            else:
+                await asyncio.sleep(self._interval)
 
     #############################################################
     async def _run_container_info(self) -> None:
@@ -835,6 +1010,7 @@ class DockerContainerAPI:
 
         self._info[CONTAINER_INFO_STATE] = raw["State"]["Status"]
         self._info[CONTAINER_INFO_IMAGE] = raw["Config"]["Image"]
+        self._info[CONTAINER_INFO_IMAGE_HASH] = raw["Image"]
 
         if self._network_error <= 5:
             if CONTAINER_INFO_NETWORK_AVAILABLE not in self._info:
@@ -903,6 +1079,7 @@ class DockerContainerAPI:
         stats["memory"] = {}
         stats["network"] = {}
         stats["read"] = {}
+        stats["disk"] = {}
 
         # Get container stats, only interested in [0]
         rawarr = await self._container.stats(stream=False)
@@ -986,17 +1163,8 @@ class DockerContainerAPI:
 
             cache = 0
             # https://docs.docker.com/engine/reference/commandline/stats/
-            if self._version1904:
-                # Version is 19.04 or higher, don't use "cache"
+            if "stats" in raw["memory_stats"]:
                 if "total_inactive_file" in raw["memory_stats"]["stats"]:
-                    cache = raw["memory_stats"]["stats"]["total_inactive_file"]
-                elif "inactive_file" in raw["memory_stats"]["stats"]:
-                    cache = raw["memory_stats"]["stats"]["inactive_file"]
-            else:
-                # Version is 19.03 and lower, use "cache"
-                if "cache" in raw["memory_stats"]["stats"]:
-                    cache = raw["memory_stats"]["stats"]["cache"]
-                elif "total_inactive_file" in raw["memory_stats"]["stats"]:
                     cache = raw["memory_stats"]["stats"]["total_inactive_file"]
                 elif "inactive_file" in raw["memory_stats"]["stats"]:
                     cache = raw["memory_stats"]["stats"]["inactive_file"]
@@ -1134,6 +1302,25 @@ class DockerContainerAPI:
                         network_new["read"] - self._network_old["read"]
                     ).total_seconds()
 
+                    # Speed cannot be below zero
+                    if tx < 0:
+                        _LOGGER.warning(
+                            "[%s] %s: network tx became negative (%s)",
+                            self._instance,
+                            self._name,
+                            tx,
+                        )
+                        tx = 0
+
+                    if rx < 0:
+                        _LOGGER.warning(
+                            "[%s] %s: network rx became negative (%s)",
+                            self._instance,
+                            self._name,
+                            rx,
+                        )
+                        rx = 0
+
                     # Calculate speed, also convert to kByte/sec
                     network_stats["speed_tx"] = toKB(
                         float(tx) / tim, self._config[CONF_PRECISION_NETWORK_KB]
@@ -1159,6 +1346,7 @@ class DockerContainerAPI:
                     self._name,
                     str(err),
                 )
+
                 if "networks" in raw:
                     _LOGGER.error(
                         "[%s] %s: Raw 'networks' %s",
@@ -1184,10 +1372,38 @@ class DockerContainerAPI:
                     )
                     self._info[CONTAINER_INFO_NETWORK_AVAILABLE] = False
 
+        # Gather disk information
+        disk_stats: dict[str, float | None] = {}
+
+        try:
+            disk_stats["read"] = None
+            disk_stats["write"] = None
+
+            if (
+                "blkio_stats" in raw
+                and "io_service_bytes_recursive" in raw["blkio_stats"]
+            ):
+                for xarr in raw["blkio_stats"]["io_service_bytes_recursive"]:
+                    if "op" in xarr and xarr["op"] == "read":
+                        disk_stats["read"] = toMB(
+                            xarr["value"], self._config[CONF_PRECISION_DISK_MB]
+                        )
+                    if "op" in xarr and xarr["op"] == "write":
+                        disk_stats["write"] = toMB(
+                            xarr["value"], self._config[CONF_PRECISION_DISK_MB]
+                        )
+
+        except Exception as err:
+            #_LOGGER.error( "[%s] %s: Can not determine disk usage for container (%s)", self._instance, self._name, str(err),)
+            # Seems if no disk read/write is done, we get NoneType here
+            disk_stats["read"] = None
+            disk_stats["write"] = None
+
         # All information collected
         stats["cpu"] = cpu_stats
         stats["memory"] = memory_stats
         stats["network"] = network_stats
+        stats["disk"] = disk_stats
 
         stats[CONTAINER_STATS_CPU_PERCENTAGE] = cpu_stats.get("total")
         if "online_cpus" in cpu_stats and cpu_stats.get("total") is not None:

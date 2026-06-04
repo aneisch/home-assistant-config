@@ -589,17 +589,23 @@ services:
     adguard:
         container_name: adguard
         image: adguard/adguardhome:latest
-        user: '99'
+        #user: '99'
         #logging:
         #    driver: none
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/adguard:/opt/adguardhome/conf
             - /opt/adguard/work:/opt/adguardhome/work
-        ports:
-            - 53:5353/tcp
-            - 53:5353/udp
-            - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
+        # Edit AdGuardHome.yaml to configure port 53 vs 5353
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
+            - NET_BIND_SERVICE
+        # ports:
+        #     - 53:5353/tcp
+        #     - 53:5353/udp
+        #     - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
         environment:
             - TZ=America/Chicago
         restart: 'always'
@@ -806,11 +812,12 @@ services:
         privileged: true
         restart: always
         #image: ghcr.io/blakeblackshear/frigate:0.16.4
-        image: ghcr.io/blakeblackshear/frigate:0.17.0-rc3
+        image: ghcr.io/blakeblackshear/frigate:0.17.1
         shm_size: "512mb"
         devices:
             - /dev/bus/usb:/dev/bus/usb
-            - /dev/dri/renderD128
+            - /dev/dri:/dev/dri
+
         volumes:
             - /etc/localtime:/etc/localtime:ro
             - /opt/frigate/:/config
@@ -850,6 +857,7 @@ services:
         environment:
             - PLUS_API_KEY=secret
             - TZ=America/Chicago
+            - LIBVA_DRIVER_NAME=iHD
 
     codeproject:
         container_name: codeproject
@@ -1129,46 +1137,6 @@ services:
             - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
             - traefik.http.routers.music-assistant.service=music-assistant
-
-    # piano-recorder:
-    #     container_name: piano-recorder
-    #     image: piano-recorder
-    #     restart: unless-stopped
-    #     volumes:
-    #         - /etc/localtime:/etc/localtime:ro  # Time sync
-    #     labels:
-    #         - com.centurylinklabs.watchtower.enable=false
-    #         - traefik.enable=true
-    #         - traefik.http.services.piano_recorder.loadbalancer.server.port=5000
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.piano_recorder.tls=true
-    #         - traefik.http.routers.piano_recorder.entrypoints=websecure
-    #         - traefik.http.routers.piano_recorder.tls.certResolver=le-home
-    #         - traefik.http.routers.piano_recorder.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.piano_recorder.rule=Host(`piano_recorder.home.domain.com`)
-    #         - traefik.http.routers.piano_recorder.service=piano_recorder
-    ha-mcp:
-        image: ghcr.io/homeassistant-ai/ha-mcp:latest
-        container_name: ha-mcp-server
-        environment:
-            - HOMEASSISTANT_URL=http://10.0.1.22:8123
-            # Set your Home Assistant long-lived access token
-            - HOMEASSISTANT_TOKEN=XXX
-            # Optional: Configure backup hint behavior
-            - BACKUP_HINT=normal
-            - MCP_SECRET_PATH=/private_aassdfrewghkfkk
-        labels:
-            - traefik.enable=true
-            - traefik.http.services.ha-mcp.loadbalancer.server.port=8086
-            # HTTPS Local Only (with 80-->443 redirect)
-            - traefik.http.routers.ha-mcp.tls=true
-            - traefik.http.routers.ha-mcp.entrypoints=websecure
-            - traefik.http.routers.ha-mcp.tls.certResolver=le-home
-            - traefik.http.routers.ha-mcp.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.ha-mcp.rule=Host(`ha-mcp.home.domain.com`)
-            - traefik.http.routers.ha-mcp.service=ha-mcp
-        command: ha-mcp-web
-        restart: unless-stopped
     tfc-agent:
         image: hashicorp/tfc-agent:latest
         container_name: tfc-agent

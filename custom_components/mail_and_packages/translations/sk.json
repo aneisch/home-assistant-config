@@ -12,21 +12,11 @@
       "file_not_found": "Obrázokový súbor nebol nájdený",
       "invalid_email_format": "Neplatný formát e-mailovej adresy.",
       "missing_forwarded_emails": "Chýbajú preposielané e-mailové adresy. Môžete zadať '(none)' na vymazanie tohto nastavenia.",
-      "path_not_found": "Adresár nebol nájdený"
+      "path_not_found": "Adresár nebol nájdený",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
-      "user": {
-        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-        "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Užívateľské meno",
-          "verify_ssl": "Overiť SSL certifikát",
-          "imap_security": "Bezpečnosť IMAP"
-        },
-        "title": "Pošta a balíky (1. krok z 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Priečinok pošty",
@@ -45,14 +35,19 @@
           "fedex_custom_img": "Použiť vlastný obrázok FedEx 'bez dodávky'?",
           "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
-          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúcich položiek na základe štruktúry e-mailu a inštalácie Home Assistant.\n\nPodrobnosti nájdete na [Pošta a balíky integrácia](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) možnosti si pozrite v časti [konfigurácia, šablóny a automatizácie](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHube.",
         "title": "Pošta a balíky (krok 2 z 2)"
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images/custom_nomail.gif",
         "title": "Pošta a balíky (Krok 3 z 3)"
@@ -63,20 +58,8 @@
           "amazon_fwds": "Amazon preposlal emailové adresy",
           "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
         },
-        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.\n\nPoznámka: ak ste v predchádzajúcom kroku nakonfigurovali hlavičku presmerovania, pole s adresou presmerovania sa nezobrazí — hlavička automaticky spracúva zhodu e-mailov Amazon.",
         "title": "Nastavenia Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Host",
-          "password": "Heslo",
-          "port": "Port",
-          "username": "Užívateľské meno",
-          "imap_security": "Bezpečnosť IMAP",
-          "verify_ssl": "Overiť SSL certifikát"
-        },
-        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
-        "title": "Pošta a balíky (1. krok z 2)"
       },
       "reconfig_2": {
         "data": {
@@ -96,14 +79,19 @@
           "fedex_custom_img": "Použiť vlastný obrázok FedEx 'bez dodávky'?",
           "generic_custom_img": "Použiť vlastný obrázok všeobecný 'bez dodávky'?",
           "generate_grid": "Vytvoriť mriežku obrázkov pre modely videnia LLM",
-          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)"
+          "allow_forwarded_emails": "Povoliť preposielané e-maily okrem predvolenej hodnoty služby (napr. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Dokončite konfiguráciu prispôsobením nasledujúceho na základe štruktúry vášho e-mailu a inštalácie Home Assistant.\n\nPre podrobnosti o možnostiach [integrácie Mail a Packages](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) si prečítajte [sekciu o konfigurácii, šablónach a automatizáciách](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) na GitHub.\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (none) na vymazanie tohto nastavenia.",
         "title": "Pošta a balíky (krok 2 z 2)"
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Cesta k vlastnému obrázku: (napr.: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Zadajte cestu a názov súboru k vášmu vlastnému obrázku bez pošty nižšie.\n\nPríklad: images/custom_nomail.gif",
         "title": "Pošta a balíky (Krok 3 z 3)"
@@ -114,7 +102,7 @@
           "amazon_fwds": "Amazon preposlal emailové adresy",
           "amazon_days": "Dni späť na kontrolu e-mailov od Amazonu"
         },
-        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.",
+        "description": "Prosím, zadajte doménu, z ktorej Amazon posiela e-maily (napríklad: amazon.com alebo amazon.de)\n\nAk používate preposlané e-maily od Amazonu, oddelte každú adresu čiarkou alebo zadajte (žiadne) na vymazanie tohto nastavenia.\n\nPoznámka: ak ste v predchádzajúcom kroku nakonfigurovali hlavičku presmerovania, pole s adresou presmerovania sa nezobrazí — hlavička automaticky spracúva zhodu e-mailov Amazon.",
         "title": "Nastavenia Amazon"
       },
       "config_storage": {
@@ -133,17 +121,82 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Hlavička presmerovania (napr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Preposielané e-mailové adresy"
         },
-        "description": "V predvolenom nastavení integrácia Mail and Packages vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddelte každú adresu, z ktorej budú správy prichádzať, čiarkou alebo zadajte '(none)' na vymazanie tohto nastavenia.",
-        "title": "Preposielané e-mailové adresy"
+        "data_description": {
+          "forwarding_header": "Ak vaša služba presmerovania zahŕňa pôvodného odosielateľa v hlavičke, zadajte tu názov hlavičky. Toto má prednosť pred zoznamom adries nižšie. Zadajte '(none)' alebo nechajte prázdne, aby ste namiesto toho použili zoznam adries.",
+          "forwarded_emails": "Zoznam presmerovacích adries oddelených čiarkami, z ktorých budú prichádzať správy. Ponechajte '(none)', ak používate vyššie uvedenú hlavičku presmerovania."
+        },
+        "description": "Vyberte spôsob porovnávania presmerovaných e-mailov.\n\n**Možnosť 1 — Hlavička presmerovania**: Ak vaša služba (napr. SimpleLogin) zahŕňa pôvodného odosielateľa do vlastnej hlavičky, zadajte názov tej hlavičky. Mail and Packages ho použije na automatické priradenie adries dopravcov.\n\n**Možnosť 2 — Zoznam adries**: Zadajte presmerovavacie adresy, ktoré vaša služba priradila každému dopravcovi, oddelené čiarkami.",
+        "title": "Nastavenia presmerovaných e-mailov"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Hlavička presmerovania (napr. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Preposielané e-mailové adresy"
         },
-        "description": "V predvolenom nastavení integrácia Mail and Packages vyhľadáva iba správy zodpovedajúce adrese služby.\n\nAk chcete používať preposielané e-maily, oddelte každú adresu, z ktorej budú správy prichádzať, čiarkou alebo zadajte '(none)' na vymazanie tohto nastavenia.",
-        "title": "Preposielané e-mailové adresy"
+        "data_description": {
+          "forwarding_header": "Ak vaša služba presmerovania zahŕňa pôvodného odosielateľa v hlavičke, zadajte tu názov hlavičky. Toto má prednosť pred zoznamom adries nižšie. Zadajte '(none)' alebo nechajte prázdne, aby ste namiesto toho použili zoznam adries.",
+          "forwarded_emails": "Zoznam presmerovacích adries oddelených čiarkami, z ktorých budú prichádzať správy. Ponechajte '(none)', ak používate vyššie uvedenú hlavičku presmerovania."
+        },
+        "description": "Vyberte spôsob porovnávania presmerovaných e-mailov.\n\n**Možnosť 1 — Hlavička presmerovania**: Ak vaša služba (napr. SimpleLogin) zahŕňa pôvodného odosielateľa do vlastnej hlavičky, zadajte názov tej hlavičky. Mail and Packages ho použije na automatické priradenie adries dopravcov.\n\n**Možnosť 2 — Zoznam adries**: Zadajte presmerovavacie adresy, ktoré vaša služba priradila každému dopravcovi, oddelené čiarkami.",
+        "title": "Nastavenia presmerovaných e-mailov"
+      },
+      "imap_config": {
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "verify_ssl": "Overiť SSL certifikát",
+          "imap_security": "Bezpečnosť IMAP"
+        },
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Host",
+          "password": "Heslo",
+          "port": "Port",
+          "username": "Užívateľské meno",
+          "imap_security": "Bezpečnosť IMAP",
+          "verify_ssl": "Overiť SSL certifikát"
+        },
+        "description": "Prosím, zadajte informácie o pripojení k vášmu mailovému serveru.",
+        "title": "Pošta a balíky (1. krok z 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

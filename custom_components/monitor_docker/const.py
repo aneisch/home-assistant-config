@@ -17,6 +17,7 @@ CONF_CONTAINERS = "containers"
 CONF_CONTAINERS_EXCLUDE = "containers_exclude"
 CONF_MEMORYCHANGE = "memorychange"
 CONF_PRECISION_CPU = "precision_cpu"
+CONF_PRECISION_DISK_MB = "precision_disk_mb"
 CONF_PRECISION_MEMORY_MB = "precision_memory_mb"
 CONF_PRECISION_MEMORY_PERCENTAGE = "precision_memory_percentage"
 CONF_PRECISION_NETWORK_KB = "precision_network_kb"
@@ -30,6 +31,7 @@ CONF_SWITCHENABLED = "switchenabled"
 CONF_SWITCHNAME = "switchname"
 CONF_BUTTONENABLED = "buttonenabled"
 CONF_BUTTONNAME = "buttonname"
+CONF_VERSION = "version"
 
 DEFAULT_NAME = "Docker"
 DEFAULT_RETRY = 60
@@ -61,6 +63,7 @@ CONTAINER_INFO_STATUS = "status"
 CONTAINER_INFO_NETWORK_AVAILABLE = "network_available"
 CONTAINER_INFO_UPTIME = "uptime"
 CONTAINER_INFO_IMAGE = "image"
+CONTAINER_INFO_IMAGE_HASH = "image_hash"
 CONTAINER_STATS_CPU_PERCENTAGE = "cpu_percentage"
 CONTAINER_STATS_1CPU_PERCENTAGE = "1cpu_percentage"
 CONTAINER_STATS_MEMORY = "memory"
@@ -158,6 +161,11 @@ CONTAINER_MONITOR_LIST = {
         key=CONTAINER_INFO_IMAGE,
         name="Image",
         icon="mdi:information-outline",
+    ),
+    CONTAINER_INFO_IMAGE_HASH: SensorEntityDescription(
+        key=CONTAINER_INFO_IMAGE_HASH,
+        name="Image Hash",
+        icon="mdi:pound-box-outline",
     ),
     CONTAINER_STATS_CPU_PERCENTAGE: SensorEntityDescription(
         key=CONTAINER_STATS_CPU_PERCENTAGE,

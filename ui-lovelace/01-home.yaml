@@ -251,17 +251,17 @@ cards:
           - operator: ">"
             value: "0"
         entities:
-          - entity: sensor.mail_usps_mail
+          - entity: sensor.imap_gmail_com_mail_usps_mail
             name: "Today's Mail"
-          - entity: sensor.mail_packages_in_transit
+          - entity: sensor.imap_gmail_com_mail_packages_in_transit
             name: "Today's Package Delivery"
-          - entity: sensor.mail_usps_delivering
+          - entity: sensor.imap_gmail_com_mail_usps_delivering
             icon: "mdi:package-variant-closed"
             name: USPS
-          - entity: sensor.mail_fedex_delivering
+          - entity: sensor.imap_gmail_com_mail_fedex_delivering
             icon: "mdi:package-variant-closed"
             name: FedEx
-          - entity: sensor.mail_ups_delivering
+          - entity: sensor.imap_gmail_com_mail_ups_delivering
             icon: "mdi:package-variant-closed"
             name: UPS
 

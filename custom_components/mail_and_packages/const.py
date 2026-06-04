@@ -4,12 +4,15 @@ from __future__ import annotations
 
 from typing import Final
 
+from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass, SensorEntityDescription
 from homeassistant.helpers.entity import EntityCategory
 
+from .entity import MailandPackagesBinarySensorEntityDescription
+
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.5.0"
+VERSION = "0.5.2"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
@@ -18,7 +21,7 @@ COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
 SERVICE_UPDATE_FILE_PATH = "update_file_path"
 CAMERA = "cameras"
-CONFIG_VER = 15
+CONFIG_VER = 19
 
 # Attributes
 ATTR_AMAZON_IMAGE = "amazon_image"
@@ -42,6 +45,7 @@ ATTR_UPS_IMAGE = "ups_image"
 ATTR_WALMART_IMAGE = "walmart_image"
 ATTR_FEDEX_IMAGE = "fedex_image"
 ATTR_GENERIC_IMAGE = "generic_image"
+ATTR_USPS_IMAGE = "usps_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -74,22 +78,26 @@ CONF_IMAP_SECURITY = "imap_security"
 CONF_AMAZON_DOMAIN = "amazon_domain"
 CONF_ALLOW_FORWARDED_EMAILS = "allow_forwarded_emails"
 CONF_FORWARDED_EMAILS = "forwarded_emails"
+CONF_FORWARDING_HEADER = "forwarding_header"
+CONF_CUSTOM_DAYS = "custom_days"
 
 # Defaults
 DEFAULT_CAMERA_NAME = "Mail USPS Camera"
 DEFAULT_NAME = "Mail And Packages"
 DEFAULT_PORT = "993"
-DEFAULT_FOLDER = '"INBOX"'
+DEFAULT_FOLDER = "INBOX"
 DEFAULT_PATH = "custom_components/mail_and_packages/images/"
 DEFAULT_IMAGE_SECURITY = True
 DEFAULT_IMAP_TIMEOUT = 60
 DEFAULT_GIF_DURATION = 5
 DEFAULT_SCAN_INTERVAL = 30
+DEFAULT_CUSTOM_DAYS = 3
+MAX_TRACKING_AGE_DAYS = 14
 DEFAULT_GIF_FILE_NAME = "mail_today.gif"
 DEFAULT_AMAZON_FWDS = "(none)"
 DEFAULT_ALLOW_EXTERNAL = False
 DEFAULT_CUSTOM_IMG = False
-DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/images/mail_none.gif"
+DEFAULT_CUSTOM_IMG_FILE = "custom_components/mail_and_packages/mail_none.gif"
 DEFAULT_AMAZON_CUSTOM_IMG = False
 DEFAULT_AMAZON_CUSTOM_IMG_FILE = (
     "custom_components/mail_and_packages/no_deliveries_amazon.jpg"
@@ -116,6 +124,7 @@ DEFAULT_STORAGE = "custom_components/mail_and_packages/images/"
 
 DEFAULT_ALLOW_FORWARDED_EMAILS = False
 DEFAULT_FORWARDED_EMAILS = "(none)"
+DEFAULT_FORWARDING_HEADER = "(none)"
 
 # Amazon
 AMAZON_DOMAINS = [
@@ -236,6 +245,7 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arrivée (\\w+ \\d*)",
     "Chega ((\\w+(-\\w+)?))",
     "Arriving (tomorrow)",
+    "Arriving (today)",
     "Wordt bezorgd op (\\w+ \\d+ \\w+)",
     "Wordt bezorgd op (\\w+ \\d+)",
     "Wordt (vandaag) bezorgd",
@@ -263,6 +273,7 @@ AMAZON_LANGS = [
     "",
 ]
 AMAZON_OTP = "amazon_otp"
+AMAZON_OTP_CODE = "amazon_otp_code"
 AMAZON_OTP_REGEX = "(\n)(\\d{6})(\n)"
 AMAZON_OTP_SUBJECT = "A one-time password is required for your Amazon delivery"
 
@@ -272,19 +283,22 @@ AMAZON_DELIEVERED_BY_OTHERS_SEARCH_TEXT = ["AMAZON"]
 SENSOR_DATA = {
     # USPS
     "usps_delivered": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Item Delivered"],
     },
     "usps_delivering": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Expected Delivery on", "Out for Delivery"],
         "body": ["Your item is out for delivery"],
     },
     "usps_exception": {
-        "email": ["auto-reply@usps.com"],
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
         "subject": ["Delivery Exception"],
     },
-    "usps_packages": {},
+    "usps_packages": {
+        "email": ["auto-reply@usps.com", "auto-reply@tracking.usps.com"],
+        "subject": ["Expected Delivery by"],
+    },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
     "usps_mail": {
         "email": [
@@ -331,7 +345,10 @@ SENSOR_DATA = {
         "email": ["mcinfo@ups.com"],
         "subject": ["UPS Update: New Scheduled Delivery Date"],
     },
-    "ups_packages": {},
+    "ups_packages": {
+        "email": ["mcinfo@ups.com", "pkginfo@ups.com"],
+        "subject": ["UPS Ship Notification"],
+    },
     "ups_tracking": {"pattern": ["1Z?[0-9A-Z]{16}"]},
     # FedEx
     "fedex_delivered": {
@@ -361,7 +378,14 @@ SENSOR_DATA = {
             "Ihre Sendung wird voraussichtlich heute zugestellt",
         ],
     },
-    "fedex_packages": {},
+    "fedex_packages": {
+        "email": [
+            "TrackingUpdates@fedex.com",
+            "fedexcanada@fedex.com",
+            "noreply@fedex.com",
+        ],
+        "subject": ["Your shipment is on the way"],
+    },
     "fedex_tracking": {"pattern": ["\\d{12,20}"]},
     # Canada Post
     "capost_delivered": {
@@ -465,8 +489,8 @@ SENSOR_DATA = {
     "dhl_packages": {},
     "dhl_tracking": {
         "pattern": [
-            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))"
-        ]
+            "(?:JJD\\d{18}|JVGL\\d{20}|MDP[A-Z0-9]{5,15}|00\\d{18}|(?<![0-9])\\d{10,11}(?![0-9]))",
+        ],
     },
     # Hermes.co.uk
     "hermes_delivered": {
@@ -509,7 +533,7 @@ SENSOR_DATA = {
     "poczta_polska_packages": {},
     "poczta_polska_tracking": {
         # http://emonitoring.poczta-polska.pl/?numer=00359007738913296666
-        "pattern": ["\\d{20}"]
+        "pattern": ["\\d{20}"],
     },
     # InPost.pl
     "inpost_pl_delivered": {
@@ -537,7 +561,7 @@ SENSOR_DATA = {
     "inpost_pl_packages": {},
     "inpost_pl_tracking": {
         # https://inpost.pl/sledzenie-przesylek?number=520113017830399002575123
-        "pattern": ["\\d{24}"]
+        "pattern": ["\\d{24}"],
     },
     # DPD Poland
     "dpd_com_pl_delivered": {
@@ -664,7 +688,7 @@ SENSOR_DATA = {
     "gls_tracking": {
         # https://gls-group.eu/GROUP/en/parcel-tracking?match=51687952111
         # https://gls-rtt.com/#/DE/de/95368751054
-        "pattern": ["\\d{11,12}"]
+        "pattern": ["\\d{11,12}"],
     },
     # Australia Post
     "auspost_delivered": {
@@ -777,7 +801,11 @@ SENSOR_DATA = {
     # Walmart
     "walmart_delivering": {
         "email": ["help@walmart.com"],
-        "subject": ["Out for delivery", "Your package should arrive by"],
+        "subject": [
+            "Out for delivery",
+            "Your package should arrive by",
+            "Your delivery should arrive by",
+        ],
     },
     "walmart_delivered": {
         "email": ["help@walmart.com"],
@@ -787,6 +815,10 @@ SENSOR_DATA = {
             "Delivered:",
             "Arrived:",
         ],
+    },
+    "walmart_packages": {
+        "email": ["help@walmart.com"],
+        "subject": ["Thanks for your delivery order"],
     },
     "walmart_exception": {
         "email": ["help@walmart.com"],
@@ -1369,6 +1401,12 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="walmart_delivered",
     ),
+    "walmart_packages": SensorEntityDescription(
+        name="Mail Walmart Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="walmart_packages",
+    ),
     "walmart_exception": SensorEntityDescription(
         name="Mail Walmart Exception",
         native_unit_of_measurement="package(s)",
@@ -1519,6 +1557,30 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     ),
 }
 
+BINARY_SENSORS: Final[dict[str, MailandPackagesBinarySensorEntityDescription]] = {
+    "usps_update": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Image Updated",
+        key="usps_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "amazon_update": MailandPackagesBinarySensorEntityDescription(
+        name="Amazon Image Updated",
+        key="amazon_update",
+        device_class=BinarySensorDeviceClass.UPDATE,
+        selectable=False,
+        entity_registry_enabled_default=False,
+    ),
+    "usps_mail_delivered": MailandPackagesBinarySensorEntityDescription(
+        name="USPS Mail Delivered",
+        key="usps_mail_delivered",
+        entity_registry_enabled_default=False,
+        selectable=True,
+    ),
+}
+
+
 IMAGE_SENSORS: Final[dict[str, SensorEntityDescription]] = {
     "usps_mail_image_system_path": SensorEntityDescription(
         name="Mail Image System Path",
@@ -1598,4 +1660,34 @@ SHIPPERS = [
     "rewe_lieferservice",
     "dpd_nl",
     "bolcom",
+    "poczta_polska",
+    "buildinglink",
+    "post_de",
 ]
+
+# Authentication types
+CONF_AUTH_TYPE = "auth_type"
+AUTH_TYPE_PASSWORD = "password"
+AUTH_TYPE_OAUTH_MICROSOFT = "oauth2_microsoft"
+AUTH_TYPE_OAUTH_GOOGLE = "oauth2_google"
+AUTH_TYPES = [AUTH_TYPE_PASSWORD, AUTH_TYPE_OAUTH_MICROSOFT, AUTH_TYPE_OAUTH_GOOGLE]
+
+# OAuth2 scopes per provider
+OAUTH_SCOPES = {
+    AUTH_TYPE_OAUTH_MICROSOFT: "https://outlook.office.com/IMAP.AccessAsUser.All offline_access",
+    AUTH_TYPE_OAUTH_GOOGLE: "https://mail.google.com/",
+}
+
+# OAuth2 provider IMAP defaults
+OAUTH_IMAP_DEFAULTS = {
+    AUTH_TYPE_OAUTH_MICROSOFT: {
+        "host": "outlook.office365.com",
+        "port": 993,
+        "imap_security": "SSL",
+    },
+    AUTH_TYPE_OAUTH_GOOGLE: {
+        "host": "imap.gmail.com",
+        "port": 993,
+        "imap_security": "SSL",
+    },
+}

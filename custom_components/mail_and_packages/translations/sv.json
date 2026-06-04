@@ -12,21 +12,11 @@
       "file_not_found": "Bildfilen hittades inte",
       "invalid_email_format": "Ogiltigt format för e-postadress.",
       "missing_forwarded_emails": "Saknade vidarebefordrade e-postadresser. Du kan ange '(none)' för att rensa denna inställning.",
-      "path_not_found": "Katalogen hittades inte"
+      "path_not_found": "Katalogen hittades inte",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
-      "user": {
-        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-        "data": {
-          "host": "Värd",
-          "password": "Lösenord",
-          "port": "Hamn",
-          "username": "Användarnamn",
-          "verify_ssl": "Verifiera SSL-certifikat",
-          "imap_security": "IMAP-säkerhet"
-        },
-        "title": "Mail och paket (steg 1 av 2)"
-      },
       "config_2": {
         "data": {
           "folder": "E-postmapp",
@@ -45,14 +35,19 @@
           "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
           "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
-          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Avsluta konfigurationen genom att anpassa följande baserat på din e-poststruktur och installation av hemassistent. \n\n Mer information om alternativen [Mail and Packages] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) läser [konfiguration, mallar , och automatiseringsavsnitt] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.",
         "title": "Mail och paket (steg 2 av 2)"
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)"
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex: bilder/min_anpassade_ingen_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
         "title": "Post och paket (Steg 3 av 3)"
@@ -63,20 +58,8 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.\n\nObs: om du konfigurerade ett vidarebefordringshuvud i föregående steg kommer fältet för vidarebefordringsadress inte att visas — huvudet hanterar Amazon e-postkopplingen automatiskt.",
         "title": "Amazon-inställningar"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Värd",
-          "password": "Lösenord",
-          "port": "Hamn",
-          "username": "Användarnamn",
-          "imap_security": "IMAP-säkerhet",
-          "verify_ssl": "Verifiera SSL-certifikat"
-        },
-        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
-        "title": "Mail och paket (steg 1 av 2)"
       },
       "reconfig_2": {
         "data": {
@@ -96,14 +79,19 @@
           "fedex_custom_img": "Använd anpassad FedEx 'ingen leverans' bild?",
           "generic_custom_img": "Använd anpassad generisk 'ingen leverans' bild?",
           "generate_grid": "Skapa bildrutnät för LLM-visionsmodeller",
-          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)"
+          "allow_forwarded_emails": "Tillåt vidarebefordrade e-postmeddelanden utöver en tjänsts standardvärde (t.ex. no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Slutför konfigurationen genom att anpassa följande baserat på din e-poststruktur och Home Assistant-installation.\n\nFör detaljer om [Mail and Packages integration](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) alternativen granska [konfiguration, mallar och automatiseringssektionen](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) på GitHub.\n\nOm du använder vidarebefordrade e-postmeddelanden från Amazon, separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
         "title": "Mail och paket (steg 2 av 2)"
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)"
+          "custom_img_file": "Sökväg till anpassad bild: (t.ex.: bilder/min_anpassade_ingen_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Ange sökvägen och filnamnet till din anpassade ingen post-bild nedan.\n\nExempel: bilder/anpassad_nomail.gif",
         "title": "Post och paket (Steg 3 av 3)"
@@ -114,7 +102,7 @@
           "amazon_fwds": "Amazon vidarebefordrade e-postadresser",
           "amazon_days": "Dagar tillbaka för att kontrollera Amazon-e-postmeddelanden"
         },
-        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.",
+        "description": "Vänligen ange domänen som Amazon skickar e-postmeddelanden från (t.ex: amazon.com eller amazon.de)\n\nOm du använder Amazon vidarebefordrade e-postmeddelanden, vänligen separera varje adress med ett kommatecken eller ange (ingen) för att rensa denna inställning.\n\nObs: om du konfigurerade ett vidarebefordringshuvud i föregående steg kommer fältet för vidarebefordringsadress inte att visas — huvudet hanterar Amazon e-postkopplingen automatiskt.",
         "title": "Amazon-inställningar"
       },
       "config_storage": {
@@ -133,17 +121,82 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Vidarebefordringshuvud (t.ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
-        "title": "Vidarebefordrade e-postadresser"
+        "data_description": {
+          "forwarding_header": "Om din vidarebefordringstjänst inkluderar den ursprungliga avsändaren i ett huvud, ange huvud-namnet här. Detta har företräde framför adresslistan nedan. Ange '(none)' eller lämna tomt för att använda adresslistan istället.",
+          "forwarded_emails": "Kommaseparerad lista över vidarebefordringsadresser som meddelanden kommer att anlända från. Lämna '(none)' om du använder vidarebefordringshuvudet ovan."
+        },
+        "description": "Välj hur vidarebefordrade e-postmeddelanden ska matchas.\n\n**Alternativ 1 — Vidarebefordringshuvud**: Om din tjänst (t.ex. SimpleLogin) inkluderar den ursprungliga avsändaren i ett anpassat huvud, ange det huvud-namnet. Mail and Packages kommer att använda det för att automatiskt matcha transportörernas adresser.\n\n**Alternativ 2 — Adresslista**: Ange de vidarebefordringsadresser som din tjänst har tilldelat varje transportör, separerade med kommatecken.",
+        "title": "Inställningar för vidarebefordrade e-postmeddelanden"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Vidarebefordringshuvud (t.ex. X-SimpleLogin-Original-From)",
           "forwarded_emails": "Vidarebefordrade e-postadresser"
         },
-        "description": "Som standard söker Mail and Packages-integrationen endast efter meddelanden som matchar en tjänsts adress.\n\nOm du vill använda vidarebefordrade e-postmeddelanden, separera varje adress som meddelanden kommer från med ett kommatecken eller ange '(none)' för att rensa denna inställning.",
-        "title": "Vidarebefordrade e-postadresser"
+        "data_description": {
+          "forwarding_header": "Om din vidarebefordringstjänst inkluderar den ursprungliga avsändaren i ett huvud, ange huvud-namnet här. Detta har företräde framför adresslistan nedan. Ange '(none)' eller lämna tomt för att använda adresslistan istället.",
+          "forwarded_emails": "Kommaseparerad lista över vidarebefordringsadresser som meddelanden kommer att anlända från. Lämna '(none)' om du använder vidarebefordringshuvudet ovan."
+        },
+        "description": "Välj hur vidarebefordrade e-postmeddelanden ska matchas.\n\n**Alternativ 1 — Vidarebefordringshuvud**: Om din tjänst (t.ex. SimpleLogin) inkluderar den ursprungliga avsändaren i ett anpassat huvud, ange det huvud-namnet. Mail and Packages kommer att använda det för att automatiskt matcha transportörernas adresser.\n\n**Alternativ 2 — Adresslista**: Ange de vidarebefordringsadresser som din tjänst har tilldelat varje transportör, separerade med kommatecken.",
+        "title": "Inställningar för vidarebefordrade e-postmeddelanden"
+      },
+      "imap_config": {
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "verify_ssl": "Verifiera SSL-certifikat",
+          "imap_security": "IMAP-säkerhet"
+        },
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "Värd",
+          "password": "Lösenord",
+          "port": "Hamn",
+          "username": "Användarnamn",
+          "imap_security": "IMAP-säkerhet",
+          "verify_ssl": "Verifiera SSL-certifikat"
+        },
+        "description": "Vänligen ange anslutningsinformationen för din e-postserver.",
+        "title": "Mail och paket (steg 1 av 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }

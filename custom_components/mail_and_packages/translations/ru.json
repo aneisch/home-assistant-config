@@ -12,21 +12,11 @@
       "file_not_found": "Файл изображения не найден",
       "invalid_email_format": "Неверный формат адреса электронной почты.",
       "missing_forwarded_emails": "Отсутствуют переадресованные адреса электронной почты. Вы можете ввести '(none)', чтобы очистить этот параметр.",
-      "path_not_found": "Директория не найдена"
+      "path_not_found": "Директория не найдена",
+      "invalid_auth": "Invalid authentication details. Please check your username and password.",
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
     },
     "step": {
-      "user": {
-        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
-        "data": {
-          "host": "хозяин",
-          "password": "пароль",
-          "port": "порт",
-          "username": "имя пользователя",
-          "verify_ssl": "Проверить SSL-сертификат",
-          "imap_security": "Безопасность IMAP"
-        },
-        "title": "Почта и Пакеты (Шаг 1 из 2)"
-      },
       "config_2": {
         "data": {
           "folder": "Папка почты",
@@ -45,14 +35,19 @@
           "fedex_custom_img": "Использовать пользовательское изображение FedEx 'нет доставки'?",
           "generic_custom_img": "Использовать пользовательское изображение общее 'нет доставки'?",
           "generate_grid": "Создать сетку изображений для моделей зрения LLM",
-          "allow_forwarded_emails": "Разрешить переадресованные электронные письма в дополнение к значениям по умолчанию службы (например, no-reply@usps.com)"
+          "allow_forwarded_emails": "Разрешить переадресованные электронные письма в дополнение к значениям по умолчанию службы (например, no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Завершите настройку, настроив следующие параметры в зависимости от структуры электронной почты и установки Home Assistant. \n\n Подробнее о параметрах [Интеграция с почтой и пакетами] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) см. В разделе [конфигурация, шаблоны и раздел автоматизации] (https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.",
         "title": "Почта и пакеты (шаг 2 из 2)"
       },
       "config_3": {
         "data": {
-          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (ie: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (ie: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (ie: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (ie: images/my_custom_no_fedex.jpg)"
         },
         "description": "Введите путь и имя файла к вашему пользовательскому изображению без почты ниже.\n\nПример: images/custom_nomail.gif",
         "title": "Почта и посылки (Шаг 3 из 3)"
@@ -63,20 +58,8 @@
           "amazon_fwds": "Amazon переслал адреса электронной почты",
           "amazon_days": "Дни для проверки электронных писем от Amazon"
         },
-        "description": "Пожалуйста, введите домен, с которого Amazon отправляет электронные письма (например: amazon.com или amazon.de)\n\nЕсли вы используете переадресованные электронные письма от Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.",
+        "description": "Пожалуйста, введите домен, с которого Amazon отправляет электронные письма (например: amazon.com или amazon.de)\n\nЕсли вы используете переадресованные электронные письма от Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.\n\nПримечание: если вы настроили заголовок переадресации на предыдущем шаге, поле адреса переадресации не появится — заголовок автоматически обрабатывает сопоставление писем Amazon.",
         "title": "Настройки Amazon"
-      },
-      "reconfigure": {
-        "data": {
-          "host": "хозяин",
-          "password": "пароль",
-          "port": "порт",
-          "username": "имя пользователя",
-          "imap_security": "Безопасность IMAP",
-          "verify_ssl": "Проверить SSL-сертификат"
-        },
-        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
-        "title": "Почта и Пакеты (Шаг 1 из 2)"
       },
       "reconfig_2": {
         "data": {
@@ -96,14 +79,19 @@
           "fedex_custom_img": "Использовать пользовательское изображение FedEx 'нет доставки'?",
           "generic_custom_img": "Использовать пользовательское изображение общее 'нет доставки'?",
           "generate_grid": "Создать сетку изображений для моделей зрения LLM",
-          "allow_forwarded_emails": "Разрешить переадресованные электронные письма в дополнение к значениям по умолчанию службы (например, no-reply@usps.com)"
+          "allow_forwarded_emails": "Разрешить переадресованные электронные письма в дополнение к значениям по умолчанию службы (например, no-reply@usps.com)",
+          "custom_days": "Days back to check for package emails (minimum 1, default 3)"
         },
         "description": "Завершите настройку, настроив следующее в соответствии со структурой вашей электронной почты и установкой Home Assistant.\n\nДля получения подробной информации о вариантах [интеграции Почта и Пакеты](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) ознакомьтесь с [разделом конфигурации, шаблонов и автоматизации](https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/Configuration-and-Email-Settings#configuration) на GitHub.\n\nЕсли вы используете переадресованные электронные письма Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.",
         "title": "Почта и пакеты (шаг 2 из 2)"
       },
       "reconfig_3": {
         "data": {
-          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)"
+          "custom_img_file": "Путь к пользовательскому изображению: (например: images/my_custom_no_mail.jpg)",
+          "amazon_custom_img_file": "Path to custom Amazon image: (i.e.: images/my_custom_no_amazon.jpg)",
+          "ups_custom_img_file": "Path to custom UPS image: (i.e.: images/my_custom_no_ups.jpg)",
+          "walmart_custom_img_file": "Path to custom Walmart image: (i.e.: images/my_custom_no_walmart.jpg)",
+          "fedex_custom_img_file": "Path to custom FedEx image: (i.e.: images/my_custom_no_fedex.jpg)"
         },
         "description": "Введите путь и имя файла к вашему пользовательскому изображению без почты ниже.\n\nПример: images/custom_nomail.gif",
         "title": "Почта и посылки (Шаг 3 из 3)"
@@ -114,7 +102,7 @@
           "amazon_fwds": "Amazon переслал адреса электронной почты",
           "amazon_days": "Дни для проверки электронных писем от Amazon"
         },
-        "description": "Пожалуйста, введите домен, с которого Amazon отправляет электронные письма (например: amazon.com или amazon.de)\n\nЕсли вы используете переадресованные электронные письма от Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.",
+        "description": "Пожалуйста, введите домен, с которого Amazon отправляет электронные письма (например: amazon.com или amazon.de)\n\nЕсли вы используете переадресованные электронные письма от Amazon, разделите каждый адрес запятой или введите (none), чтобы очистить эту настройку.\n\nПримечание: если вы настроили заголовок переадресации на предыдущем шаге, поле адреса переадресации не появится — заголовок автоматически обрабатывает сопоставление писем Amazon.",
         "title": "Настройки Amazon"
       },
       "config_storage": {
@@ -133,17 +121,82 @@
       },
       "config_forwarded_emails": {
         "data": {
+          "forwarding_header": "Заголовок переадресации (например, X-SimpleLogin-Original-From)",
           "forwarded_emails": "Переадресованные адреса электронной почты"
         },
-        "description": "По умолчанию интеграция Mail and Packages ищет только сообщения, соответствующие адресу службы.\n\nЕсли вы хотите использовать переадресованные электронные письма, разделите каждый адрес, с которого будут приходить сообщения, запятой или введите '(none)', чтобы очистить этот параметр.",
-        "title": "Переадресованные адреса электронной почты"
+        "data_description": {
+          "forwarding_header": "Если ваш сервис переадресации включает оригинального отправителя в заголовок, введите здесь название заголовка. Это имеет приоритет над списком адресов ниже. Введите '(none)' или оставьте пустым, чтобы использовать список адресов.",
+          "forwarded_emails": "Список адресов переадресации, разделённых запятыми, с которых будут приходить сообщения. Оставьте '(none)', если используете заголовок переадресации выше."
+        },
+        "description": "Выберите способ сопоставления переадресованных писем.\n\n**Вариант 1 — Заголовок переадресации**: Если ваш сервис (например, SimpleLogin) включает оригинального отправителя в пользовательский заголовок, введите это название заголовка. Mail and Packages будет использовать его для автоматического сопоставления адресов перевозчиков.\n\n**Вариант 2 — Список адресов**: Введите адреса переадресации, которые ваш сервис назначил каждому перевозчику, через запятую.",
+        "title": "Настройки переадресованных писем"
       },
       "reconfig_forwarded_emails": {
         "data": {
+          "forwarding_header": "Заголовок переадресации (например, X-SimpleLogin-Original-From)",
           "forwarded_emails": "Переадресованные адреса электронной почты"
         },
-        "description": "По умолчанию интеграция Mail and Packages ищет только сообщения, соответствующие адресу службы.\n\nЕсли вы хотите использовать переадресованные электронные письма, разделите каждый адрес, с которого будут приходить сообщения, запятой или введите '(none)', чтобы очистить этот параметр.",
-        "title": "Переадресованные адреса электронной почты"
+        "data_description": {
+          "forwarding_header": "Если ваш сервис переадресации включает оригинального отправителя в заголовок, введите здесь название заголовка. Это имеет приоритет над списком адресов ниже. Введите '(none)' или оставьте пустым, чтобы использовать список адресов.",
+          "forwarded_emails": "Список адресов переадресации, разделённых запятыми, с которых будут приходить сообщения. Оставьте '(none)', если используете заголовок переадресации выше."
+        },
+        "description": "Выберите способ сопоставления переадресованных писем.\n\n**Вариант 1 — Заголовок переадресации**: Если ваш сервис (например, SimpleLogin) включает оригинального отправителя в пользовательский заголовок, введите это название заголовка. Mail and Packages будет использовать его для автоматического сопоставления адресов перевозчиков.\n\n**Вариант 2 — Список адресов**: Введите адреса переадресации, которые ваш сервис назначил каждому перевозчику, через запятую.",
+        "title": "Настройки переадресованных писем"
+      },
+      "imap_config": {
+        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
+        "data": {
+          "host": "хозяин",
+          "password": "пароль",
+          "port": "порт",
+          "username": "имя пользователя",
+          "verify_ssl": "Проверить SSL-сертификат",
+          "imap_security": "Безопасность IMAP"
+        },
+        "title": "Почта и Пакеты (Шаг 1 из 2)"
+      },
+      "user": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reconfig_imap": {
+        "data": {
+          "host": "хозяин",
+          "password": "пароль",
+          "port": "порт",
+          "username": "имя пользователя",
+          "imap_security": "Безопасность IMAP",
+          "verify_ssl": "Проверить SSL-сертификат"
+        },
+        "description": "Пожалуйста, введите информацию о подключении к вашему почтовому серверу.",
+        "title": "Почта и Пакеты (Шаг 1 из 2)"
+      },
+      "reconfigure": {
+        "description": "Select the authentication method for your mail server.",
+        "data": {
+          "auth_type": "Authentication Type"
+        },
+        "title": "Authentication Method"
+      },
+      "reauth_confirm": {
+        "description": "The authentication for your mail server has expired or is invalid. Please re-authenticate to continue.",
+        "data": {
+          "username": "Username",
+          "password": "Password"
+        },
+        "title": "Re-authenticate Mail Server"
+      }
+    }
+  },
+  "selector": {
+    "auth_type": {
+      "options": {
+        "password": "Password",
+        "oauth2_microsoft": "OAuth2 - Microsoft (Outlook/Exchange)",
+        "oauth2_google": "OAuth2 - Google (Gmail)"
       }
     }
   }
