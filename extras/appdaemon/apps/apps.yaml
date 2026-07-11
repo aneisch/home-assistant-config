@@ -32,8 +32,8 @@ AC Automation Solar:
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "04:00:00"
   cool_morning: "82"
-  cool_night: "74"
-  cool_midnight: "76" # change to this temp at midnight_adjust
+  cool_night: "72"
+  cool_midnight: "75" # change to this temp at midnight_adjust
   cool_unoccupied: "82"
   guest_cool_morning: "77" # applied if guest_mode on
   # guest_cool_night: "74" # optional, defaults to non-guest
@@ -47,12 +47,12 @@ AC Automation Solar:
   # guest_heat_midnight: "62" # optional, defaults to non-guest
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
-  battery_boost_threshold: 95       # battery SOC for boost activation
+  battery_boost_threshold: 96       # battery SOC for boost activation
   cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
   cool_boost_offset_guest: 8
-  cool_boost_unoccupied_offset: 2   # Amount to boost if unoccupied
+  cool_boost_unoccupied_entity: input_number.cool_boost_unoccupied_target
   cooldown_window_start_offset: "-04:00:00"   # 4 hours before sunset
-  cooldown_window_end_offset: "-01:30:00"     # 1.5 hour before sunset
+  cooldown_window_end_offset: "-00:30:00"     # 1.5 hour before sunset
 
 Solar EV Charger:
   module: ev
@@ -248,11 +248,12 @@ Master Closet Follow:
   leader: switch.master_bathroom_light_main
   follower: switch.master_closet_light
 
-# Dehumidifier Follow:
-#   module: follow_me
-#   class: Follow
-#   leader: humidifier.151732606535142_humidifier
+Dehumidifier Follow:
+  module: follow_me
+  class: Follow
+  leader: humidifier.151732606535142_humidifier
 #   follower: fan.living_room_ceiling_fan
+  follower: switch.guest_bedroom_ceiling_fan
 
 #############
 # Christmas #

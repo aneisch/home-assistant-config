@@ -37,6 +37,10 @@ services:
         environment:
             - TZ=America/Chicago
         network_mode: host
+        # also added to /etc/hosts
+        extra_hosts:
+            - "go2rtc.home.domain.com:10.0.1.22"    
+            - "traefik.home.domain.com:10.0.1.22"    
         cap_add:
             - NET_ADMIN
             - NET_RAW
@@ -337,22 +341,35 @@ services:
         restart: "no"
         network_mode: host
         labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.portainer.entrypoints=websecure
+            - traefik.http.routers.portainer.tls=true
+            - traefik.http.routers.portainer.rule=Host(`portainer.domain.com`)
+            - traefik.http.services.portainer.loadbalancer.server.port=9000
+            - traefik.http.routers.portainer.service=portainer
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.portainer_local.tls=true
+            - traefik.http.routers.portainer_local.entrypoints=websecure
+            - traefik.http.routers.portainer_local.tls.certResolver=le-home
+            - traefik.http.routers.portainer_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
+            - traefik.http.routers.portainer_local.service=portainer
+
+            # Enable Sablier
             - sablier.enable=true
-            - sablier.group=default
-            # Route via Sablier: See dynamic.yaml in Traefik
-            # # HTTPS for CF
-            # - traefik.enable=true
-            # - traefik.http.routers.portainer.entrypoints=websecure
-            # - traefik.http.routers.portainer.tls=true
-            # - traefik.http.routers.portainer.rule=Host(`portainer.domain.com`)
-            # - traefik.http.services.portainer.loadbalancer.server.port=9000
-            # - traefik.http.routers.portainer.service=portainer
-            # # HTTPS Local Only (with 80-->443 redirect)
-            # - traefik.http.routers.portainer_local.tls=true
-            # - traefik.http.routers.portainer_local.tls.certResolver=le-home
-            # - traefik.http.routers.portainer_local.tls.domains[0].main=*.home.domain.com
-            # - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
-            # - traefik.http.routers.portainer_local.service=portainer
+            - sablier.group=portainer
+            - traefik.http.routers.portainer.middlewares=sablier-portainer
+            - traefik.http.routers.portainer_local.middlewares=sablier-portainer
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.group=portainer
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.displayName=Portainer
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.theme=ghost
 
     grafana:
         container_name: grafana
@@ -738,6 +755,8 @@ services:
     secret:
         container_name: secret
         image: secret_container
+        security_opt:
+            - seccomp:unconfined
         labels:
             - com.centurylinklabs.watchtower.enable=false
             # HTTPS for CF
@@ -761,24 +780,26 @@ services:
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
         restart: always
 
-    # sqliteweb:
-    #     container_name: sqliteweb
-    #     image: tomdesinto/sqliteweb
-    #     restart: "no"
-    #     volumes:
-    #         - /opt/secret/data/secret.db:/db/secret.db
-    #     environment:
-    #         - TZ=America/Chicago
-    #     command: secret.db
-    #     labels:
-    #         - com.centurylinklabs.watchtower.enable=false
-    #         # HTTPS for CF
-    #         - traefik.enable=true
-    #         - traefik.http.routers.sqliteweb.entrypoints=websecure
-    #         - traefik.http.routers.sqliteweb.tls=true
-    #         - traefik.http.routers.sqliteweb.rule=Host(`sqliteweb.domain.com`)
-    #         - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
-    #         - traefik.http.routers.sqliteweb.service=sqliteweb
+    sqliteweb:
+        container_name: sqliteweb
+        image: tomdesinto/sqliteweb
+        restart: "no"
+        volumes:
+            - /opt/secret/data/secret.db:/db/secret.db
+        environment:
+            - TZ=America/Chicago
+        command: secret.db
+        labels:
+            - com.centurylinklabs.watchtower.enable=false
+            # Local Only
+            - traefik.enable=true
+            - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
+            - traefik.http.routers.sqliteweb_local.service=sqliteweb
+            - traefik.http.routers.sqliteweb_local.entrypoints=websecure
+            - traefik.http.routers.sqliteweb_local.tls=true
+            - traefik.http.routers.sqliteweb_local.tls.certResolver=le-home
+            - traefik.http.routers.sqliteweb_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.sqliteweb_local.rule=Host(`sqliteweb.home.domain.com`)
 
     # vrs:
     #     container_name: vrs
@@ -920,22 +941,35 @@ services:
             - BASE_URL=https://mealie.domain.com
         restart: always
         labels:
-            - sablier.enable=true
-            - sablier.group=default
-            # Route via Sablier: See dynamic.yaml in Traefik
             # HTTPS for CF
-            # - traefik.enable=true
-            # - traefik.http.routers.recipes.entrypoints=websecure
-            # - traefik.http.routers.recipes.tls=true
-            # - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
-            # - traefik.http.services.recipes.loadbalancer.server.port=9000
-            # - traefik.http.routers.recipes.service=recipes
-            # # HTTPS Local Only (with 80-->443 redirect)
-            # - traefik.http.routers.recipes_local.tls=true
-            # - traefik.http.routers.recipes_local.tls.certResolver=le-home
-            # - traefik.http.routers.recipes_local.tls.domains[0].main=*.home.domain.com
-            # - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
-            # - traefik.http.routers.recipes_local.service=recipes
+            - traefik.enable=true
+            - traefik.http.routers.recipes.entrypoints=websecure
+            - traefik.http.routers.recipes.tls=true
+            - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
+            - traefik.http.services.recipes.loadbalancer.server.port=9000
+            - traefik.http.routers.recipes.service=recipes
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.recipes_local.tls=true
+            - traefik.http.routers.recipes_local.entrypoints=websecure
+            - traefik.http.routers.recipes_local.tls.certResolver=le-home
+            - traefik.http.routers.recipes_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
+            - traefik.http.routers.recipes_local.service=recipes
+
+            # Enable Sablier
+            - sablier.enable=true
+            - sablier.group=recipes
+            - traefik.http.routers.recipes.middlewares=sablier-recipes
+            - traefik.http.routers.recipes_local.middlewares=sablier-recipes
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.group=recipes
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.displayName=Recipes
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.theme=ghost
 
     librespeed:
         image: linuxserver/librespeed
@@ -944,24 +978,38 @@ services:
             - TZ=America/Chicago
         restart: 'no'
         labels:
+            #Route via Sablier: See dynamic.yaml in Traefik
+            - traefik.enable=true
+            - traefik.http.services.librespeed.loadbalancer.server.port=80
+            - traefik.http.routers.librespeed.entrypoints=websecure
+            - traefik.http.routers.librespeed.tls=true
+            - traefik.http.routers.librespeed.rule=Host(`librespeed.domain.com`)
+            - traefik.http.routers.librespeed.service=librespeed
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.librespeed_local.service=librespeed
+            - traefik.http.routers.librespeed_local.entrypoints=websecure
+            - traefik.http.routers.librespeed_local.tls=true
+            - traefik.http.routers.librespeed_local.tls.certResolver=le-home
+            - traefik.http.routers.librespeed_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
+
+            # Enable Sablier
             - sablier.enable=true
-            - sablier.group=default
-            # Route via Sablier: See dynamic.yaml in Traefik
-            # - traefik.enable=true
-            # - traefik.http.services.librespeed.loadbalancer.server.port=80
-            # - traefik.http.routers.librespeed.entrypoints=websecure
-            # - traefik.http.routers.librespeed.tls=true
-            # - traefik.http.routers.librespeed.rule=Host(`librespeed.domain.com`)
-            # - traefik.http.routers.librespeed.service=librespeed
-            # # HTTPS Local Only (with 80-->443 redirect)
-            # - traefik.http.routers.librespeed_local.service=librespeed
-            # - traefik.http.routers.librespeed_local.tls=true
-            # - traefik.http.routers.librespeed_local.tls.certResolver=le-home
-            # - traefik.http.routers.librespeed_local.tls.domains[0].main=*.home.domain.com
-            # - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
+            - sablier.group=librespeed
+            - traefik.http.routers.librespeed.middlewares=sablier-librespeed
+            - traefik.http.routers.librespeed_local.middlewares=sablier-librespeed
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.group=librespeed
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.displayName=LibreSpeed
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.theme=ghost
 
     sablier:
-        image: sablierapp/sablier:1.10.1
+        image: sablierapp/sablier:latest
         container_name: sablier
         restart: 'always'
         command:
@@ -1048,6 +1096,21 @@ services:
             - /opt/teslamate/teslamate:/opt/app/import
         cap_drop:
             - all
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.teslamate-frontend.loadbalancer.server.port=4000
+            # HTTPS for CF
+            - traefik.http.routers.teslamate-frontend.entrypoints=websecure
+            - traefik.http.routers.teslamate-frontend.tls=true
+            - traefik.http.routers.teslamate-frontend.rule=Host(`teslamate-frontend.domain.com`)
+            - traefik.http.routers.teslamate-frontend.service=teslamate-frontend
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.teslamate-frontend_local.tls=true
+            - traefik.http.routers.teslamate-frontend_local.entrypoints=websecure
+            - traefik.http.routers.teslamate-frontend_local.tls.certResolver=le-home
+            - traefik.http.routers.teslamate-frontend_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.teslamate-frontend_local.rule=Host(`teslamate-frontend.home.domain.com`)
+            - traefik.http.routers.teslamate-frontend_local.service=teslamate-frontend
 
     teslamate-database:
         image: postgres:17

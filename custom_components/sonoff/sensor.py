@@ -8,6 +8,8 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
+    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    CONCENTRATION_PARTS_PER_MILLION,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     UnitOfElectricCurrent,
@@ -37,6 +39,7 @@ async def async_setup_entry(hass, config_entry, add_entities):
 DEVICE_CLASSES = {
     "battery": SensorDeviceClass.BATTERY,
     "battery_voltage": SensorDeviceClass.VOLTAGE,
+    "co2": SensorDeviceClass.CO2,
     "cpu_temperature": SensorDeviceClass.TEMPERATURE,
     "current": SensorDeviceClass.CURRENT,
     "current_supply": SensorDeviceClass.CURRENT,
@@ -44,6 +47,8 @@ DEVICE_CLASSES = {
     "outdoor_temp": SensorDeviceClass.TEMPERATURE,
     "power": SensorDeviceClass.POWER,
     "power_supply": SensorDeviceClass.POWER,
+    "pm25": SensorDeviceClass.PM25,
+    "pm10": SensorDeviceClass.PM10,
     "remote_temperature": SensorDeviceClass.TEMPERATURE,
     "rssi": SensorDeviceClass.SIGNAL_STRENGTH,
     "temperature": SensorDeviceClass.TEMPERATURE,
@@ -53,6 +58,7 @@ DEVICE_CLASSES = {
 UNITS = {
     "battery": PERCENTAGE,
     "battery_voltage": UnitOfElectricPotential.VOLT,
+    "co2": CONCENTRATION_PARTS_PER_MILLION,
     "cpu_temperature": UnitOfTemperature.CELSIUS,
     "current": UnitOfElectricCurrent.AMPERE,
     "current_supply": UnitOfElectricCurrent.AMPERE,
@@ -60,6 +66,8 @@ UNITS = {
     "outdoor_temp": UnitOfTemperature.CELSIUS,
     "power": UnitOfPower.WATT,
     "power_supply": UnitOfPower.WATT,
+    "pm25": CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    "pm10": CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     "remote_temperature": UnitOfTemperature.CELSIUS,
     "rssi": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     "temperature": UnitOfTemperature.CELSIUS,
@@ -87,19 +95,20 @@ class XSensor(XEntity, SensorEntity):
         if self.param and self.uid is None:
             self.uid = self.param
 
-        # remove tailing _1 _2 _3 _4
-        default_class = self.uid.rstrip("_01234")
-
         if device["params"].get(self.param) in ("on", "off"):
             default_class = None
+        elif self.uid in DEVICE_CLASSES:
+            default_class = self.uid  # fix tailing co2, pm2.5, pm25
+        else:
+            default_class = self.uid.rstrip("_01234")  # remove tailing _1 _2 _3 _4
 
         if device_class := DEVICE_CLASSES.get(default_class):
             self._attr_device_class = device_class
 
-        if default_class in UNITS:
+        if units := UNITS.get(default_class):
             # by default all sensors with units is measurement sensors
             self._attr_state_class = SensorStateClass.MEASUREMENT
-            self._attr_native_unit_of_measurement = UNITS[default_class]
+            self._attr_native_unit_of_measurement = units
 
         XEntity.__init__(self, ewelink, device)
 
@@ -371,7 +380,7 @@ class XWiFiDoorBattery(XSensor):
         return self.ewelink.cloud.online
 
 
-BUTTON_STATES = ["single", "double", "hold"]
+BUTTON_STATES = ["single", "double", "hold", "triple"]
 
 
 class XEventSesor(XEntity, SensorEntity):
@@ -437,7 +446,9 @@ class XButtonLocalKey(XButtonBase):
             pass
         # local click: {'triggerType': 11, 'localKeyPass': {'outlet': 0, 'key': 0}}
         # local trash: {'triggerType': 0, 'localKeyPass': {'outlet': 0, 'key': 0}}
-        elif params.get("triggerType"):
+        # local trash: {'triggerType': 2, 'localKeyPass': {'outlet': 0, 'key': 0}}
+        # based on https://github.com/AlexxIT/SonoffLAN/issues/1789
+        elif params.get("triggerType") == 11:
             # Fix duplicates from mDNS https://github.com/AlexxIT/SonoffLAN/issues/1769
             if seq == self.last_seq:
                 return

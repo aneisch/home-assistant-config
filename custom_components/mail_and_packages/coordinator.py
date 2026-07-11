@@ -7,6 +7,7 @@ import os
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
+from time import monotonic
 
 import anyio
 from aioimaplib import IMAP4_SSL
@@ -39,6 +40,7 @@ from .const import (
     CONF_IMAP_SECURITY,
     CONF_IMAP_TIMEOUT,
     DEFAULT_CUSTOM_DAYS,
+    DEFAULT_IMAP_TIMEOUT,
     DOMAIN,
     MAX_TRACKING_AGE_DAYS,
 )
@@ -74,7 +76,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         """Initialize."""
         self.interval = timedelta(minutes=config.get(CONF_SCAN_INTERVAL))
         self.name = f"Mail and Packages ({config.get(CONF_HOST)})"
-        self.timeout = config.get(CONF_IMAP_TIMEOUT)
+        self.timeout = config.get(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT)
         self.config = config
         self.config_entry = config_entry
         self.hass = hass
@@ -108,44 +110,58 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Fetch data."""
-        async with asyncio.timeout(self.timeout):
-            try:
-                config = dict(self.config)
+        start = monotonic()
+        try:
+            async with asyncio.timeout(self.timeout):
+                try:
+                    config = dict(self.config)
 
-                # Refresh OAuth2 token if using OAuth authentication
-                auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
-                if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
-                    try:
-                        self.hass.data.setdefault(DOMAIN, {})
-                        self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+                    # Refresh OAuth2 token if using OAuth authentication
+                    auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
+                    if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
+                        try:
+                            self.hass.data.setdefault(DOMAIN, {})
+                            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
 
-                        implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                            self.hass,
-                            self.config_entry,
-                        )
-                        session = config_entry_oauth2_flow.OAuth2Session(
-                            self.hass,
-                            self.config_entry,
-                            implementation,
-                        )
-                        await session.async_ensure_token_valid()
-                        config["oauth_token"] = session.token["access_token"]
-                    except Exception as err:
-                        _LOGGER.error("Error refreshing OAuth token")
-                        _LOGGER.debug("OAuth token refresh error details: %s", err)
-                        raise UpdateFailed("OAuth token refresh failed") from err
+                            implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                                self.hass,
+                                self.config_entry,
+                            )
+                            session = config_entry_oauth2_flow.OAuth2Session(
+                                self.hass,
+                                self.config_entry,
+                                implementation,
+                            )
+                            await session.async_ensure_token_valid()
+                            config["oauth_token"] = session.token["access_token"]
+                        except Exception as err:
+                            _LOGGER.error("Error refreshing OAuth token")
+                            _LOGGER.debug("OAuth token refresh error details: %s", err)
+                            raise UpdateFailed("OAuth token refresh failed") from err
 
-                data = await self.process_emails(self.hass, config)
-            except UpdateFailed:
-                raise
-            except Exception as error:
-                _LOGGER.error("Problem updating sensors: %s", error)
-                raise UpdateFailed(error) from error
+                    data = await self.process_emails(self.hass, config)
+                except UpdateFailed:
+                    raise
+                except Exception as error:
+                    _LOGGER.error("Problem updating sensors: %s", error)
+                    raise UpdateFailed(error) from error
 
-            if data:
-                self._data = data
-                await self._binary_sensor_update()
-            return self._data
+                if data:
+                    self._data = data
+                    await self._binary_sensor_update()
+                return self._data
+        except TimeoutError:
+            _LOGGER.error(
+                "Mail and Packages scan exceeded its %.0fs time budget (elapsed %.1fs). "
+                "This budget covers the ENTIRE scan (login plus every per-carrier IMAP "
+                "search), not just connecting. Increase the scan time limit in the "
+                "integration options, or reduce the mailbox size searched (use a "
+                "dedicated folder), the days-back window, or the number of enabled "
+                "carriers.",
+                self.timeout,
+                monotonic() - start,
+            )
+            raise
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""
@@ -208,6 +224,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "walmart_image": (False, False, True, False),
             "fedex_image": (False, False, False, True),
             "usps_image": (False, False, False, False),
+            "post_de_image": (False, False, False, False),
         }
 
         for key, params in shipper_images.items():
@@ -228,6 +245,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 config.get(CONF_IMAP_SECURITY),
                 config.get(CONF_VERIFY_SSL),
                 config.get("oauth_token"),
+                timeout=self.timeout,
             )
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
@@ -288,14 +306,28 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             shipper_instance = shipper_group[0][0]
             sensors = [s[1] for s in shipper_group]
 
+            shipper_start = monotonic()
+            success = False
             try:
                 results = await shipper_instance.process_batch(
                     account, today, sensors, cache, since_date=since_date
                 )
                 if isinstance(results, dict):
+                    if "_tracking_details" in results:
+                        data.setdefault("_tracking_details", {}).update(
+                            results.pop("_tracking_details")
+                        )
                     data.update(results)
+                success = True
             except Exception as err:  # noqa: BLE001
                 _LOGGER.error("Error processing shipper %s: %s", shipper_name, err)
+            finally:
+                _LOGGER.debug(
+                    "Shipper %s %s in %.1fs",
+                    shipper_name,
+                    "processed" if success else "failed",
+                    monotonic() - shipper_start,
+                )
 
         return data
 
@@ -306,13 +338,24 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         today_iso: str,
     ) -> None:
         """Update in-transit tracking state and override sensor counts."""
-        prefixes: set[str] = set()
+        prefixes: set[str] = set(self._in_transit_tracking.keys())
         for sensor_key in tracking_details:
             prefix = "_".join(sensor_key.split("_")[:-1])
             if prefix:
                 prefixes.add(prefix)
 
         for prefix in prefixes:
+            if prefix in self._in_transit_tracking and not (
+                f"{prefix}_delivering" in tracking_details
+                or f"{prefix}_exception" in tracking_details
+                or f"{prefix}_delivered" in tracking_details
+            ):
+                _LOGGER.debug(
+                    "Prefix '%s' has no tracking_details entries — "
+                    "may be a removed carrier; tracking will persist until TTL expiry",
+                    prefix,
+                )
+
             delivering = list(tracking_details.get(f"{prefix}_delivering", []))
             delivering += list(tracking_details.get(f"{prefix}_exception", []))
             delivered = list(tracking_details.get(f"{prefix}_delivered", []))
@@ -322,9 +365,34 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
 
             in_transit = self._in_transit_tracking.get(prefix, {})
-            if in_transit:
+            # A carrier that reported DELIVERING/EXCEPTION tracking details
+            # this scan must have its count overridden even when the
+            # in-transit map ends up EMPTY: when every tracked package has a
+            # delivered notification, the raw IMAP count (which cannot dedup
+            # prior-day deliveries) would otherwise leak through as the
+            # sensor value. Batch-level dedup already zeroes the count for
+            # shippers that emit tracking details, so this is defense in
+            # depth at the state-machine layer. Delivered-only details must
+            # NOT trigger the override: a carrier whose delivering emails
+            # yielded no extractable tracking numbers has a legitimate
+            # email-based count that tracking-level dedup cannot verify —
+            # and carriers with no tracking details at all keep their
+            # email-count value untouched.
+            has_details = any(
+                f"{prefix}_{suffix}" in tracking_details
+                for suffix in ("delivering", "exception")
+            )
+            if in_transit or has_details:
+                if not in_transit and data.get(f"{prefix}_delivering"):
+                    _LOGGER.debug(
+                        "Prefix '%s': no tracked packages remain in transit — "
+                        "overriding delivering count %s -> 0",
+                        prefix,
+                        data.get(f"{prefix}_delivering"),
+                    )
                 data[f"{prefix}_tracking"] = list(in_transit.keys())
                 data[f"{prefix}_delivering"] = len(in_transit)
+            if in_transit:
                 delivered_count = data.get(f"{prefix}_delivered", 0)
                 data[f"{prefix}_packages"] = len(in_transit) + (
                     delivered_count if isinstance(delivered_count, int) else 0
@@ -419,7 +487,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         return transit
 
-    async def _binary_sensor_update(self):
+    async def _binary_sensor_update(self):  # noqa: C901
         """Update binary sensor states."""
         # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
@@ -489,6 +557,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
                 if custom_img_key and self.config.get(custom_img_key):
                     none_image = self.config.get(custom_img_file_key)
+                elif base_name == "post_de":
+                    none_image = f"{Path(__file__).parent}/mail_none.gif"
                 else:
                     none_image = (
                         f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"

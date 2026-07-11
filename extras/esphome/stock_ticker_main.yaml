@@ -60,9 +60,7 @@ ota:
 logger:
   level: DEBUG
 
-# Enable web server for config change and log view
-web_server:
-  local: true
+
 
 # Global variables used in scripts and automations
 globals:

@@ -29,7 +29,8 @@ cards:
           - input_boolean.ev_charge_override
           - input_boolean.ev_charge_prioritize_vehicle_over_home_battery
           - input_number.tesla_solar_target_soc_limit
-          - input_number.tesla_charge_rate_master
+          #- input_number.tesla_charge_rate_master
+          - number.tesla_current_limit
           - entity: sensor.tesla_charger_actual_current
             name: Teslamate Charging Current
           - entity: sensor.tesla_charge_limit_soc
@@ -39,10 +40,10 @@ cards:
           - entity: number.tesla_ble_charging_limit
             name: BLE Charge Limit
           - entity: script.force_tesla_grid_charge_to_safe_soc
-
           # - number.tesla_ble_882c04_charging_amps
           # - switch.tesla_ble_882c04_hvac_switch
           # - switch.tesla_ble_882c04_sentry_switch
+          - script.request_tesla_sleep
       - type: markdown
         content: >
           {% set current_time = now() %}
@@ -245,6 +246,8 @@ cards:
       #   name: Available Update Status
       # - entity: sensor.tesla_update_version
       - device_tracker.tesla_location
+      - sensor.tesla_home_proximity_tesla_location_distance
+      - sensor.tesla_home_proximity_tesla_location_direction_of_travel
       # - entity: sensor.tesla_speed
       #   name: Speed
       # - entity: sensor.tesla_elevation

@@ -65,10 +65,9 @@ irrigation_unlimited:
             - name: "Morning"
               time: "05:00"
               weekday:
-                - mon
-                #- wed
-                - thu
-                #- sun
+                # IMPORTANT: Manual Timer for Master Valve must be set to run!
+                - tue
+                - fri
 
           zones:
             - zone_id: 2 # Front Lawn
@@ -86,10 +85,9 @@ irrigation_unlimited:
             - name: "Morning"
               time: "06:50"
               weekday:
-                - mon
-                # - wed
-                - thu
-                #- sun
+                # IMPORTANT: Manual Timer for Master Valve must be set to run!
+                - tue
+                - fri
 
           zones:
             - zone_id: 1 # Front Beds

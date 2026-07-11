@@ -27,7 +27,7 @@ from ..binary_sensor import (
     XWiFiDoor,
     XZigbeeMotion,
 )
-from ..button import XButton
+from ..button import XButton, XT5Effect
 from ..climate import XClimateNS, XClimateTH, XThermostat, XThermostatTRVZB
 from ..core.entity import XEntity
 from ..cover import XCover, XCoverDualR3, XCoverOP, XCoverT5, XZBCover, XZigbeeCover
@@ -46,6 +46,9 @@ from ..light import (
     XLightL3,
     XMiniDim,
     XOnOffLight,
+    XT5EffectLight,
+    XT5EffectSound,
+    XT5EffectStatus,
     XT5Light,
     XZigbeeColorTemp,
     XZigbeeLight,
@@ -182,8 +185,16 @@ EnergyYear = spec(
 # backward compatibility for unique_id
 DoorLock = spec(XBinarySensor, param="lock", uid="", default_class="door")
 
-XT5Alarm = spec(XButton, param="soundAction", value=1, uid="alarm", enabled=False)
-XT5Bell = spec(XButton, param="soundAction", value=2, uid="bell", enabled=False)
+TX_ULTIMATE = [
+    XT5Light,
+    XT5Action,
+    spec(XButton, param="soundAction", value=1, uid="alarm", enabled=False),
+    spec(XButton, param="soundAction", value=2, uid="bell", enabled=False),
+    XT5EffectLight,
+    XT5EffectSound,
+    XT5EffectStatus,
+    XT5Effect,
+]
 
 # https://github.com/CoolKit-Technologies/eWeLink-API/blob/main/en/UIIDProtocol.md
 DEVICES = {
@@ -494,18 +505,9 @@ DEVICES = {
     # NSPanel Pro, https://github.com/AlexxIT/SonoffLAN/issues/984
     195: SPEC_NSP,
     # Sonoff TX ULTIMATE T5-1C-86, https://github.com/AlexxIT/SonoffLAN/issues/1183
-    209: [Switch1, Startup1, XT5Light, XT5Action, XT5Alarm, XT5Bell],
+    209: [Switch1, Startup1] + TX_ULTIMATE,
     # Sonoff TX ULTIMATE T5-2C-86
-    210: [
-        Switch1,
-        Switch2,
-        Startup1,
-        Startup2,
-        XT5Light,
-        XT5Action,
-        XT5Alarm,
-        XT5Bell,
-    ],
+    210: [Switch1, Switch2, Startup1, Startup2] + TX_ULTIMATE,
     # Sonoff TX ULTIMATE T5-3C-86
     211: [
         Switch1,
@@ -514,13 +516,10 @@ DEVICES = {
         Startup1,
         Startup2,
         Startup3,
-        XT5Light,
-        XT5Action,
-        XT5Alarm,
-        XT5Bell,
         XCoverT5,
         XT5WorkMode,
-    ],
+    ]
+    + TX_ULTIMATE,
     # Sonoff TX ULTIMATE T5-4C-86, https://github.com/AlexxIT/SonoffLAN/issues/1251
     212: [
         Switch1,
@@ -531,11 +530,8 @@ DEVICES = {
         Startup2,
         Startup3,
         Startup4,
-        XT5Light,
-        XT5Action,
-        XT5Alarm,
-        XT5Bell,
-    ],
+    ]
+    + TX_ULTIMATE,
     # CK-BL602-PCSW-01(225), https://github.com/AlexxIT/SonoffLAN/issues/1616
     225: [
         spec(XBoolSwitch, param="switch"),
@@ -580,6 +576,16 @@ DEVICES = {
         spec(XSensor100, param="power"),
         spec(XSensor100, param="current"),
         spec(XSensor100, param="voltage"),
+    ],
+    # SAWF-08P, https://github.com/AlexxIT/SonoffLAN/issues/1809
+    # SAWF-07P, https://github.com/AlexxIT/SonoffLAN/issues/1816
+    266: [
+        XTempCorrection,
+        XHumCorrection,
+        RSSI,
+        spec(XSensor, param="co2"),
+        spec(XSensor, param="pm10"),
+        spec(XSensor, param="pm2_5", uid="pm25"),
     ],
     # BASIC-1GS, https://github.com/AlexxIT/SonoffLAN/issues/1672
     268: [Switch1, LED, RSSI],
@@ -747,6 +753,8 @@ DEVICES = {
             XSensor, param="remoteTemperature", uid="remote_temperature", multiply=0.01
         ),
     ],
+    # SNZB-01M, https://github.com/AlexxIT/SonoffLAN/issues/1786
+    7039: [XButtonKey, Battery, ZRSSI],
 }
 
 
@@ -777,6 +785,10 @@ def get_spec(device: dict) -> list:
 
     if uiid == 190 and "supplyPower" not in device["params"]:
         classes = [cls for cls in classes if cls.uid is None or "supply" not in cls.uid]
+
+    if uiid == 266:
+        params = device["params"]
+        classes = [cls for cls in classes if cls.uid in params or cls.param in params]
 
     if "device_class" in device:
         classes = get_custom_spec(classes, device["device_class"])

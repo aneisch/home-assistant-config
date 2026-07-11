@@ -1,6 +1,6 @@
 ((LitElement) => {
 
-console.info('NUMBERBOX_CARD 4.18');
+console.info('NUMBERBOX_CARD 4.19');
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 class NumberBox extends LitElement {
@@ -741,7 +741,7 @@ updVal(v) {
 }
 customElements.define("numberbox-card-editor", NumberBoxEditor);
 
-})(window.LitElement || Object.getPrototypeOf(customElements.get("hui-masonry-view") ));
+})(customElements.get("ha-panel-lovelace") ? Object.getPrototypeOf(customElements.get("ha-panel-lovelace")) : Object.getPrototypeOf(customElements.get("hc-lovelace")));
 
 window.customCards = window.customCards || [];
 window.customCards.push({

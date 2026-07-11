@@ -1,13 +1,3 @@
-- platform: pfsense_gateways
-  host: 10.0.1.1
-  name: pfSense gateway
-  # https://github.com/alexpmorris/pfsense-status-gateways-json
-  # This depends on manual file creation on pfsense itself. See above link
-  key: !secret pfsense_json_key
-  monitored_gateway_interfaces:
-    - wan
-    - opt3 # WWAN
-
 - platform: history_stats
   name: ac_runtime_today_cool
   entity_id: sensor.thermostat_state

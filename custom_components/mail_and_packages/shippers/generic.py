@@ -148,6 +148,9 @@ class GenericShipper(Shipper):
         if result[ATTR_TRACKING]:
             count = len(result[ATTR_TRACKING])
 
+        if is_delivered:
+            result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
+
         # For _delivered sensors, the extended-window search gives us tracking
         # numbers needed for deduplication (above), but the count must reflect
         # only today's deliveries so the sensor resets at midnight.
@@ -169,6 +172,7 @@ class GenericShipper(Shipper):
                 sensor_type, today_found, account, cache
             )
             count = len(today_tracking) if today_tracking else today_count
+            result[ATTR_TRACKING] = today_tracking
 
         result[ATTR_COUNT] = count
         if shipper_cfg:
@@ -221,10 +225,14 @@ class GenericShipper(Shipper):
         # Merge results and aggregate global tracking
         res = {}
         for sensor, sensor_res in batch_results:
+            tracking = (
+                sensor_res.pop("pre_filtered_tracking", [])
+                if sensor.endswith("_delivered")
+                else sensor_res.get(ATTR_TRACKING)
+            )
             res.update(sensor_res)
             # Expose per-sensor raw tracking for coordinator state management.
             # Keyed as "_tracking_details" to distinguish from the public data dict.
-            tracking = sensor_res.get(ATTR_TRACKING)
             if tracking and sensor.endswith(
                 ("_delivering", "_delivered", "_exception")
             ):
@@ -255,11 +263,17 @@ class GenericShipper(Shipper):
             if sensor not in sensor_res and ATTR_COUNT in sensor_res:
                 sensor_res[sensor] = sensor_res[ATTR_COUNT]
 
+            # Capture today-only tracking for _delivered sensors BEFORE
+            # _deduplicate_batch_tracking runs (which currently only modifies
+            # _delivering and _packages sensor results).
+            if sensor_res.get(ATTR_TRACKING) and sensor.endswith("_delivered"):
+                sensor_res[f"{sensor}_tracking"] = sensor_res[ATTR_TRACKING]
+
             # Record results for post-processing
             batch_results.append((sensor, sensor_res))
 
             # Aggregate all tracking numbers found
-            if ATTR_TRACKING in sensor_res:
+            if sensor_res.get(ATTR_TRACKING):
                 all_tracking.update(sensor_res[ATTR_TRACKING])
 
         return batch_results, all_tracking
@@ -283,7 +297,14 @@ class GenericShipper(Shipper):
 
             tracking = set(sensor_res.get(ATTR_TRACKING, []))
             if sensor.endswith("_delivered"):
-                shippers[prefix]["delivered"].update(tracking)
+                # ATTR_TRACKING on _delivered sensors holds only TODAY's
+                # deliveries (so the sensor resets at midnight); dedup must
+                # use the extended-window list or packages delivered on a
+                # previous day are never subtracted from _delivering.
+                extended = sensor_res.get("pre_filtered_tracking")
+                shippers[prefix]["delivered"].update(
+                    tracking if extended is None else set(extended)
+                )
             elif sensor.endswith(("_delivering", "_exception")):
                 shippers[prefix]["delivering"].update(tracking)
                 shippers[prefix]["update_targets"].append((sensor, sensor_res))
@@ -390,11 +411,12 @@ class GenericShipper(Shipper):
         image_found = False
 
         (server_response, sdata) = await email_search(
-            account,
-            email_addresses,
-            date,
-            subjects,
-            forwarding_header,
+            account=account,
+            address=email_addresses,
+            date=date,
+            subject=subjects,
+            body=config.get(ATTR_BODY, ""),
+            header=forwarding_header,
         )
 
         if server_response == "OK" and sdata[0]:
@@ -647,7 +669,11 @@ class GenericShipper(Shipper):
                 msg_parts = (await email_fetch(account, eid, "(RFC822)"))[1]
             for response_part in msg_parts:
                 if isinstance(response_part, (bytes, bytearray)):
-                    if generic_delivery_image_extraction(
+                    # The extraction does blocking file I/O (the image
+                    # write) and CPU-heavy email parsing — run the whole
+                    # sync function off the event loop.
+                    if await self.hass.async_add_executor_job(
+                        generic_delivery_image_extraction,
                         response_part,
                         s_config["image_path"],
                         s_config["image_name"],

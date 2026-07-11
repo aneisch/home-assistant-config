@@ -5,7 +5,7 @@
     },
     "step": {
       "user": {
-        "description": "Čítali ste readme? Čítali ste licenciu? Si naozaj istý?"
+        "description": "Čítali ste readme? Čítali ste licenciu? Ste si naozaj istý?"
       },
       "choice_restart": {
         "description": "Aby Spook dokončil nastavenie, musí sa reštartovať Home Assistant.\n\nChcete teraz reštartovať Home Assistant?",
@@ -42,7 +42,7 @@
             }
           },
           "domain": {
-            "name": "Issue issuer"
+            "name": "Vydavateľ vydania"
           },
           "issue_id": {
             "name": "ID problému"
@@ -109,7 +109,7 @@
         "name": "Obrázky"
       },
       "homeassistant_input_boolean": {
-        "name": "Vstupné booleans"
+        "name": "Vstupné booleany"
       },
       "homeassistant_input_button": {
         "name": "Vstupné tlačidlá"
@@ -216,13 +216,13 @@
         "name": "Správa stavu Google Assistant"
       },
       "cloud_remote": {
-        "name": "Diaľkové"
+        "name": "Diaľkový"
       }
     }
   },
   "issues": {
     "automation_unknown_area_references": {
-      "description": "Spook našiel ducha vo vašich automatizáciách 👻\n\nZatiaľ čo plával okolo, Spook prekročil cestu s nasledujúcou automatizáciou:\n\n[{automation}]({edit}) (ententity_id}`)\n\nTáto automatizácia odkazuje na nasledujúce oblasti, ktoré nie sú známe Home Assistant:\n\n{areas}\n\n\n\nAk chcete opraviť túto chybu, [edit automatizáciu]({edit}) a odstrániť používanie týchto neexistujúcich oblastí.\n\nSpook 👻 Tvoj homie.",
+      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
       "title": "Neznáme oblasti používané v: {automation}"
     },
     "automation_unknown_device_references": {
@@ -266,7 +266,7 @@
       "title": "Neznáme sledované entity: {name}"
     },
     "proximity_unknown_zone": {
-      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is based on a zone that is unknown to Home Assistant:\n\n`{zone}`\n\n\n\nTo fix this error, as you can't change the zone of a proximity configuration, the only option is to remove this specific proximity integration instance.\n\nSpook 👻 Your homie.",
+      "description": "Spook našiel ducha vo vašej blízkosti konfigurácii 👻\n\nZatiaľ čo plával okolo, Spook prekročil cestu s nasledujúcou konfiguráciou blízkosti:\n\n{name}\n\nTáto konfigurácia je založená na zóne, ktorá nie je známa pre Home Assistant:\n\n`{zone} `\n\n\n\n\nAk chcete opraviť túto chybu, pretože nemôžete zmeniť zóny konfigurácie blízkosti, jedinou možnosťou je odstrániť túto špecifickú integráciu.\n\nSpook 👻 Tvoj homie.",
       "title": "Neznáma zóna: {zone}"
     },
     "scene_unknown_entity_references": {
@@ -292,6 +292,10 @@
     "script_unknown_label_references": {
       "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
       "title": "Neznáme štítky používané v: {script}"
+    },
+    "script_unknown_service_references": {
+      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following actions, which are unknown to Home Assistant:\n\n{services}\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
+      "title": "Neznáme akcie používané v: {script}"
     },
     "switch_as_x_unknown_source": {
       "description": "Spook has found a ghost in your Switch as X helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source switch entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
@@ -322,7 +326,7 @@
         "step": {
           "confirm_restart": {
             "title": "Reštart požadovaný",
-            "description": "In order for Spook 👻 to finish setting up, Home Assistant needs to be restarted.\n\nSelect submit to restart Home Assistant now."
+            "description": "Aby Spook 👻 na dokončenie nastavenia, musí sa reštartovať Home Assistant.\n\nVyberte predložiť reštart Home Assistant teraz."
           }
         }
       }

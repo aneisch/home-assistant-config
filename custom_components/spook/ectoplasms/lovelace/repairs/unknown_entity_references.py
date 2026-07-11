@@ -9,15 +9,22 @@ from homeassistant.components.lovelace.const import ConfigNotFound
 from homeassistant.const import (
     EVENT_COMPONENT_LOADED,
     EVENT_LOVELACE_UPDATED,
+    EVENT_STATE_CHANGED,
 )
-from homeassistant.core import callback
+from homeassistant.core import Event, callback
 from homeassistant.helpers import entity_registry as er
 
 from ....const import LOGGER
+from ....entity_filtering import (
+    async_filter_known_entity_ids,
+    async_get_all_entity_ids,
+    split_comma_separated_entity_ids,
+)
 from ....repairs import AbstractSpookRepair
-from ....util import async_filter_known_entity_ids, async_get_all_entity_ids
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.components.lovelace.dashboard import (
         LovelaceStorage,
         LovelaceYAML,
@@ -45,6 +52,27 @@ class SpookRepair(AbstractSpookRepair):
         self._dashboards = self.hass.data["lovelace"].dashboards
         await super().async_activate()
 
+        @callback
+        def _state_entity_changed(event_data: Mapping[str, Any]) -> bool:
+            """Return if a state entity was added or removed."""
+            return (
+                event_data.get("old_state") is None
+                or event_data.get("new_state") is None
+            )
+
+        @callback
+        def _async_call_inspect_debouncer(_: Event) -> None:
+            """Trigger an inspection when a state entity is added or removed."""
+            self.inspect_debouncer.async_schedule_call()
+
+        self._event_subs.add(
+            self.hass.bus.async_listen(
+                EVENT_STATE_CHANGED,
+                _async_call_inspect_debouncer,
+                event_filter=_state_entity_changed,
+            ),
+        )
+
     async def async_inspect(self) -> None:
         """Trigger a inspection."""
         LOGGER.debug("Spook is inspecting: %s", self.repair)
@@ -62,11 +90,18 @@ class SpookRepair(AbstractSpookRepair):
                 LOGGER.debug("Config for dashboard %s not found, skipping", url_path)
                 continue
 
+            extracted_entities = self.__async_extract_entities(config)
             if unknown_entities := async_filter_known_entity_ids(
                 self.hass,
-                entity_ids=self.__async_extract_entities(config),
+                entity_ids=set(extracted_entities.keys()),
                 known_entity_ids=known_entity_ids,
             ):
+                # Get the view path of the first unknown entity (by view order)
+                first_view_path = next(
+                    path
+                    for entity_id, path in extracted_entities.items()
+                    if entity_id in unknown_entities
+                )
                 title = "Overview"
                 if dashboard.config:
                     title = dashboard.config.get("title", url_path)
@@ -74,10 +109,10 @@ class SpookRepair(AbstractSpookRepair):
                     issue_id=url_path,
                     translation_placeholders={
                         "entities": "\n".join(
-                            f"- `{entity_id}`" for entity_id in unknown_entities
+                            f"- `{entity_id}`" for entity_id in sorted(unknown_entities)
                         ),
                         "dashboard": title,
-                        "edit": f"/{url_path}/0?edit=1",
+                        "edit": f"/{url_path}/{first_view_path}?edit=1",
                     },
                 )
                 LOGGER.debug(
@@ -90,12 +125,18 @@ class SpookRepair(AbstractSpookRepair):
                 )
 
     @callback
-    def __async_extract_entities(self, config: dict[str, Any]) -> set[str]:
+    def __async_extract_entities(self, config: dict[str, Any]) -> dict[str, int | str]:
         """Extract entities from a dashboard config."""
-        entities = set()
+        entities: dict[str, int | str] = {}
         if isinstance(config, dict) and (views := config.get("views")):
-            for view in views:
-                entities.update(self.__async_extract_entities_from_view(view))
+            for view_index, view in enumerate(views):
+                if not isinstance(view, dict):
+                    continue
+                view_path: int | str = view.get("path") or view_index
+                for entity_id_raw in self.__async_extract_entities_from_view(view):
+                    for entity_id in split_comma_separated_entity_ids(entity_id_raw):
+                        if entity_id not in entities:
+                            entities[entity_id] = view_path
         return entities
 
     @callback
@@ -216,6 +257,13 @@ class SpookRepair(AbstractSpookRepair):
         if chips := config.get("chips"):
             for chip in chips:
                 entities.update(self.__async_extract_entities_from_mushroom_chip(chip))
+
+        # Heading card
+        if badges := config.get("badges"):
+            for badge in badges:
+                if isinstance(badge, dict):
+                    entities.update(self.__async_extract_common(badge))
+                    entities.update(self.__async_extract_entities_from_actions(badge))
 
         visibility = config.get("visibility")
         if isinstance(visibility, list):

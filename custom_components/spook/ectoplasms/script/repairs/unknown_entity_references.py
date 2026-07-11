@@ -9,12 +9,12 @@ from homeassistant.const import EVENT_COMPONENT_LOADED
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_component import DATA_INSTANCES, EntityComponent
 
-from ....repairs import AbstractSpookRepair
-from ....util import (
+from ....entity_filtering import (
     async_extract_entities_from_config,
     async_filter_known_entity_ids_with_templates,
     async_get_all_entity_ids,
 )
+from ....repairs import AbstractSpookRepair
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
@@ -49,6 +49,16 @@ def extract_entities_from_trigger_config(config: dict[str, Any] | list) -> set[s
             entities.update(extract_entities_from_trigger_config(value))
 
     return entities
+
+
+def extract_referenced_entities_from_script(entity: script.ScriptEntity) -> set[str]:
+    """Return entity references from a script entity."""
+    try:
+        return set(entity.script.referenced_entities)
+    except TypeError as err:
+        if str(err) != "unhashable type: 'dict'":
+            raise
+        return set()
 
 
 async def extract_template_entities_from_script_entity(
@@ -135,7 +145,7 @@ class SpookRepair(AbstractSpookRepair):
                 continue
 
             # Get all referenced entities from the script
-            all_entities = set(entity.script.referenced_entities)
+            all_entities = extract_referenced_entities_from_script(entity)
 
             # Check for blueprint trigger inputs
             blueprint_entities = self._get_blueprint_trigger_entities(entity)

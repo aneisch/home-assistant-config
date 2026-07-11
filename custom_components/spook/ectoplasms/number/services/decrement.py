@@ -10,6 +10,7 @@ import voluptuous as vol
 from homeassistant.components.number import DOMAIN, NumberEntity
 
 from ....services import AbstractSpookEntityComponentService
+from . import native_value_as_float
 
 if TYPE_CHECKING:
     from homeassistant.core import ServiceCall
@@ -32,11 +33,11 @@ class SpookService(AbstractSpookEntityComponentService[NumberEntity]):
         if not math.isclose(amount % entity.step, 0, abs_tol=1e-9):
             msg = (
                 f"Amount {amount} not valid for {entity.entity_id}, "
-                f"it needs to be a multiple of {entity.step}",
+                f"it needs to be a multiple of {entity.step}"
             )
             raise ValueError(msg)
 
-        value = entity.value - amount
+        value = native_value_as_float(entity) - amount
 
         if entity.min_value is not None:
             value = max(value, entity.min_value)

@@ -59,3 +59,11 @@ class XButton(XEntity, ButtonEntity):
 
     async def async_press(self):
         await self.ewelink.send(self.device, {self.param: self.value})
+
+
+class XT5Effect(XEntity, ButtonEntity):
+    uid = "effect"
+
+    async def async_press(self):
+        if pre := self.device["params"].get("preEffects"):
+            await self.ewelink.send(self.device, {"preEffects": pre})

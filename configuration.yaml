@@ -171,6 +171,15 @@ ifttt:
 
 input_boolean: !include input_boolean.yaml
 
+input_number:
+  cool_boost_unoccupied_target:
+    name: "Cool Boost Unoccupied Target Temp"
+    min: 70
+    max: 80
+    step: 1
+    unit_of_measurement: "°F"
+    icon: mdi:thermometer
+
 input_datetime: !include input_datetime.yaml
 
 input_select: !include input_select.yaml
@@ -260,6 +269,7 @@ logger:
     homeassistant.components.tts: debug
     homeassistant.components.pico_tts: debug
     #homeassistant.components.google_generative_ai_conversation: debug
+    homeassistant.components.command_line: debug
     #zigpy: debug
     # bellows: debug
     # zigpy_xbee: debug
@@ -505,7 +515,6 @@ plant:
 python_script:
 
 readme:
-
 
 # SELECT 
 #     states_meta.entity_id,

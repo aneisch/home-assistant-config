@@ -6,6 +6,7 @@ automation:
     mode: "parallel"
     trigger:
       - platform: state
+        id: state
         entity_id: 
           - media_player.office_photo_frame
           - media_player.kitchen_photo_frame
@@ -14,11 +15,19 @@ automation:
           - "unavailable"
           - "unknown"
     action:
-      - if: "{{ trigger.to_state.state != 'off' }}"
+      - if: "{{ trigger.to_state.state != 'off' and trigger.id == 'state' }}"
         then:
           - action: script.photo_frame_launch_fotoo
             data:
               entity_id: "{{ trigger.entity_id }}"
+      - if: "{{ trigger.id != 'state' }}"
+        then:
+          - action: script.photo_frame_launch_fotoo
+            data:
+              entity_id:          
+                - media_player.office_photo_frame
+                - media_player.kitchen_photo_frame
+                - media_player.misc_photo_frame
 
   - alias: "Photo Frames on when MacBook Active"
     id: "photo_frames_macbook_active"

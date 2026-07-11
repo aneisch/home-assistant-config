@@ -2,6 +2,10 @@
 # Be sure to check ./storage/ for entity names, some entities
 # have been renamed in the entity_registry instead of here
 
+
+sensor.solark_sol_ark_battery_soc:
+  state_class: measurement
+
 ### LIGHTS ###
 light.aquarium_light:
   icon: mdi:fish

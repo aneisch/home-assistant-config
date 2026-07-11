@@ -59,7 +59,7 @@ homeassistant_add_alias_to_area:
         area:
     alias:
       name: Alias
-      description: The alias (or list of aliasses) to add to the area.
+      description: The alias (or list of aliases) to add to the area.
       required: true
       selector:
         object:
@@ -77,7 +77,7 @@ homeassistant_remove_alias_from_area:
         area:
     alias:
       name: Alias
-      description: The alias (or list of aliasses) to remove from the area.
+      description: The alias (or list of aliases) to remove from the area.
       required: true
       selector:
         object:
@@ -85,7 +85,7 @@ homeassistant_remove_alias_from_area:
 homeassistant_set_area_aliases:
   name: Sets aliases for an area 👻
   description: >-
-    Sets aliases for an area. Overwrite and removed any existing aliases,
+    Sets aliases for an area. Overwrites and removes any existing aliases,
     fully replacing them with the new ones.
   fields:
     area_id:
@@ -104,7 +104,7 @@ homeassistant_set_area_aliases:
 homeassistant_add_device_to_area:
   name: Add a device to an area 👻
   description: >-
-    Adds an device to an area. Please note, if the device is already in an area,
+    Adds a device to an area. Please note, if the device is already in an area,
     it will be removed from the previous area.
   fields:
     area_id:
@@ -138,7 +138,7 @@ homeassistant_remove_device_from_area:
 homeassistant_add_entity_to_area:
   name: Add an entity to an area 👻
   description: >-
-    Adds an entity to an area. Please note, if the enity is already in an area,
+    Adds an entity to an area. Please note, if the entity is already in an area,
     it will be removed from the previous area. This will override the area
     the device, that provides this entity, is in.
   fields:
@@ -174,7 +174,7 @@ homeassistant_remove_entity_from_area:
 homeassistant_delete_area:
   name: Delete an area 👻
   description: >-
-    Deletes a new area on the fly.
+    Deletes an area on the fly.
   fields:
     area_id:
       name: Area ID
@@ -226,12 +226,37 @@ homeassistant_enable_device:
     Enables a device on the fly.
   fields:
     device_id:
-      name: Device
-      description: The device(s) to enable.
+      name: Device ID
+      description: >-
+        The raw device ID to enable. Disabled devices are not shown by Home
+        Assistant's device selector. Multiple IDs can be provided as a YAML list.
       required: true
       selector:
-        device:
-          multiple: true
+        text:
+
+homeassistant_disable_user:
+  name: Disable a user 👻
+  description: >-
+    Disables a user account, preventing them from logging in.
+  fields:
+    user_id:
+      name: User ID
+      description: The ID(s) of the user(s) to disable.
+      required: true
+      selector:
+        text:
+
+homeassistant_enable_user:
+  name: Enable a user 👻
+  description: >-
+    Enables a user account, allowing them to log in.
+  fields:
+    user_id:
+      name: User ID
+      description: The ID(s) of the user(s) to enable.
+      required: true
+      selector:
+        text:
 
 homeassistant_update_entity_id:
   name: Update an entity's ID 👻
@@ -246,7 +271,7 @@ homeassistant_update_entity_id:
         entity:
     new_entity_id:
       name: New Entity ID
-      description: The new ID for the entity
+      description: The new ID for the entity.
       required: true
       selector:
         text:
@@ -367,7 +392,7 @@ homeassistant_add_alias_to_floor:
         floor:
     alias:
       name: Alias
-      description: The alias (or list of aliasses) to add to the floor.
+      description: The alias (or list of aliases) to add to the floor.
       required: true
       selector:
         object:
@@ -385,7 +410,7 @@ homeassistant_remove_alias_from_floor:
         floor:
     alias:
       name: Alias
-      description: The alias (or list of aliasses) to remove from the floor.
+      description: The alias (or list of aliases) to remove from the floor.
       required: true
       selector:
         object:
@@ -393,7 +418,7 @@ homeassistant_remove_alias_from_floor:
 homeassistant_set_floor_aliases:
   name: Sets aliases for a floor 👻
   description: >-
-    Sets aliases for a floor. Overwrite and removed any existing aliases,
+    Sets aliases for a floor. Overwrites and removes any existing aliases,
     fully replacing them with the new ones.
   fields:
     floor_id:
@@ -600,7 +625,7 @@ homeassistant_add_label_to_entity:
 homeassistant_remove_label_from_area:
   name: Remove a label from an area 👻
   description: >-
-    Removes a label to an area. If multiple labels or multiple areas are
+    Removes a label from an area. If multiple labels or multiple areas are
     provided, all combinations will be removed.
   fields:
     label_id:
@@ -805,7 +830,7 @@ recorder_import_statistics:
 select_random:
   name: Select random option 👻
   description: >-
-    Select an random option for a select entity.
+    Select a random option for a select entity.
   target:
     entity:
       domain: select
@@ -822,7 +847,7 @@ select_random:
 input_select_random:
   name: Select random option 👻
   description: >-
-    Select an random option for an input_select entity.
+    Select a random option for an input_select entity.
   target:
     entity:
       domain: input_select
@@ -956,6 +981,98 @@ input_number_min:
     entity:
       domain: input_number
 
+input_number_create:
+  name: Create an input number 👻
+  description: >-
+    Create a new input number helper on the fly.
+  fields:
+    name:
+      name: Name
+      description: The name of the new input number helper.
+      required: true
+      selector:
+        text:
+    input_number_id:
+      name: Input number entity ID
+      description: >-
+        The entity ID for the new input number helper. The input_number. prefix
+        is added automatically. If not provided, the entity ID will be generated
+        based on the name.
+      required: false
+      selector:
+        text:
+    min:
+      name: Minimum
+      description: The minimum value of the input number.
+      required: false
+      default: 0
+      selector:
+        number:
+          mode: box
+          step: any
+    max:
+      name: Maximum
+      description: The maximum value of the input number.
+      required: false
+      default: 100
+      selector:
+        number:
+          mode: box
+          step: any
+    initial:
+      name: Initial value
+      description: The initial value of the input number when Home Assistant starts.
+      required: false
+      selector:
+        number:
+          mode: box
+          step: any
+    step:
+      name: Step size
+      description: The step size of the input number.
+      required: false
+      default: 1
+      selector:
+        number:
+          mode: box
+          step: any
+    mode:
+      name: Display mode
+      description: >-
+        The display mode of the input number, which can be either a slider or
+        an input box.
+      required: false
+      default: slider
+      selector:
+        select:
+          options:
+            - label: Slider
+              value: slider
+            - label: Input field
+              value: box
+    icon:
+      name: Icon
+      description: The icon to use for the input number helper.
+      required: false
+      selector:
+        icon:
+    unit_of_measurement:
+      name: Unit of measurement
+      description: The unit of measurement of the input number.
+      required: false
+      selector:
+        text:
+
+input_number_delete:
+  name: Delete an input number 👻
+  description: >-
+    Delete an input number helper. This works only with input numbers created
+    and managed via the UI. Input numbers created and managed in YAML cannot
+    be managed by Spook.
+  target:
+    entity:
+      domain: input_number
+
 person_add_device_tracker:
   name: Add a device tracker 👻
   description: >-
@@ -1009,7 +1126,7 @@ person_remove_device_tracker:
 repairs_create:
   name: Create issue 👻
   description: >-
-    Manually create and raise a issue in Home Assistant repairs.
+    Manually create and raise an issue in Home Assistant repairs.
   fields:
     title:
       name: Title
@@ -1028,7 +1145,7 @@ repairs_create:
       name: Issue ID
       description: >-
         The issue can have an identifier, which allows you to cancel it
-        later with that ID if needed. It also prevent duplicate issues
+        later with that ID if needed. It also prevents duplicate issues
         to be created. If not provided, a random ID will be generated.
       required: false
       selector:
@@ -1048,7 +1165,7 @@ repairs_create:
       name: Severity
       description: >-
         The severity of the issue. This will be used to determine the
-        priority of the issue. If not set, "warning" will be used
+        priority of the issue. If not set, "warning" will be used.
       required: false
       selector:
         select:
@@ -1128,26 +1245,16 @@ zone_create:
           placeholder: mdi:map-marker
     latitude:
       name: Latitude
-      description: Latitude of the zone
+      description: Latitude of the zone. This can be a template.
       required: true
       selector:
-        number:
-          min: -90
-          max: 90
-          step: any
-          mode: box
-          unit_of_measurement: °
+        template:
     longitude:
       name: Longitude
-      description: Longitude of the zone
+      description: Longitude of the zone. This can be a template.
       required: true
       selector:
-        number:
-          min: -180
-          max: 180
-          step: any
-          mode: box
-          unit_of_measurement: °
+        template:
     radius:
       name: Radius
       description: Radius of the zone
@@ -1188,26 +1295,16 @@ zone_update:
           placeholder: mdi:map-marker
     latitude:
       name: Latitude
-      description: Latitude of the zone
+      description: Latitude of the zone. This can be a template.
       required: false
       selector:
-        number:
-          min: -90
-          max: 90
-          step: any
-          mode: box
-          unit_of_measurement: °
+        template:
     longitude:
       name: Longitude
-      description: Longitude of the zone
+      description: Longitude of the zone. This can be a template.
       required: false
       selector:
-        number:
-          min: -180
-          max: 180
-          step: any
-          mode: box
-          unit_of_measurement: °
+        template:
     radius:
       name: Radius
       description: Radius of the zone

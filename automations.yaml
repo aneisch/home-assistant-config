@@ -115,18 +115,27 @@
   - action: script.notify_wrapper
     data:
       message: The thermostat appears to be offline...
-- alias: Notify AC Equipment Event Occurs
-  id: notify_ac_equipment_event
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id: sensor.thermostat_active_equipment_event
-  condition: '{{ trigger.to_state.state not in [ ''unavailable'', '''' ] and trigger.from_state.state
-    not in [ ''unavailable'', '''' ] }}'
-  action:
+- id: notify_ac_equipment_event
+  alias: Notify AC Equipment Event Occurs
+  triggers:
+  - entity_id: sensor.thermostat_active_equipment_event
+    trigger: state
+  - trigger: state
+    entity_id:
+    - sensor.easy_start_ble_status
+    from:
+    - Normal
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.to_state.state not in [ ''unavailable'', '''', ''Pwr
+      Intrrptn Fault'' ] and trigger.from_state.state not in [ ''unavailable'', ''''
+      ] }}'
+  actions:
   - action: script.notify_wrapper
     data:
-      message: 'AC Equipment Event: {{ trigger.to_state.state }}'
+      message: 'AC Equipment Event: {{ trigger.to_state.state }} ({{ trigger.to_state.entity_id
+        }})'
+  initial_state: true
 - alias: Notify when AC setting changes
   id: ac_notify_change
   initial_state: true
@@ -346,6 +355,7 @@
     entity_id: light.andrew_desk_lamp
   - action: homeassistant.turn_off
     entity_id: switch.andrew_monitor
+    enabled: true
   initial_state: true
 - alias: Tablet off After Monitor
   id: tablet_off_after_monitor
@@ -953,18 +963,6 @@
     then:
     - action: lock.lock
       entity_id: lock.all_doors
-- id: '1718318289284'
-  alias: PFsense Backup
-  description: ''
-  trigger:
-  - platform: time_pattern
-    hours: /1
-  condition: []
-  action:
-  - action: shell_command.commit_pfsense_changes
-    metadata: {}
-    data: {}
-  mode: single
 - id: '1720406432197'
   alias: Back Bedroom Remote
   description: ''

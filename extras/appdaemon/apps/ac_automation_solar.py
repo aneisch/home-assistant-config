@@ -1,6 +1,5 @@
 import appdaemon.plugins.hass.hassapi as hass
 import datetime
-#from datetime import timedelta
 
 class AutoAdjust(hass.Hass):
     def initialize(self):
@@ -22,8 +21,6 @@ class AutoAdjust(hass.Hass):
         self.run_daily(self.adjust_night, self.night_adjust_weekday, constrain_days="mon,tue,wed,thu,fri")
         self.run_daily(self.adjust_morning, self.morning_adjust_weekend, constrain_days="sat,sun")
         self.run_daily(self.adjust_night, self.night_adjust_weekend, constrain_days="sat,sun")
-        # Only have "midnight" adjustment active when non guest mode
-        #self.run_daily(self.adjust_midnight, self.midnight_adjust, constrain_input_boolean="input_boolean.guest_mode,off")
         self.run_daily(self.adjust_midnight, self.midnight_adjust)
 
         # Debounce window and boost status
@@ -32,17 +29,19 @@ class AutoAdjust(hass.Hass):
         self.boost_debounce_handle = None
         self.midnight_scheduled_handle = None
 
-        # Listen to solar, load, SOC changes
+        # Listen to solar, load, SOC changes (update -- only listen for solar changes. 5s tick)
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_solar_power")
-        self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_load_power")
-        self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_battery_soc")
 
         # Presence detection
         if "device_tracker" in self.args:
             self.listen_state(self.occupancy_changed, self.args["device_tracker"])
-        # if "door_trigger" in self.args:
-        #     for device in self.split_device_list(self.args["door_trigger"]):
-        #         self.listen_state(self.presence_adjust, device)
+
+        if "cool_boost_unoccupied_entity" in self.args:
+            self.listen_state(self.slider_changed_callback, self.args["cool_boost_unoccupied_entity"])
+
+    def slider_changed_callback(self, entity, attribute, old, new, kwargs):
+        self.log(f"Slider changed to {new}, updating temperature settings.")
+        self.adjust_morning() # Re-runs the current period logic
 
     def parse_time(self, time_str):
         return datetime.datetime.strptime(time_str, "%H:%M:%S").time()
@@ -63,11 +62,9 @@ class AutoAdjust(hass.Hass):
     def get_sunset_today(self):
         now = datetime.datetime.now()
         next_sunset = self.sunset()  # always returns the next one (could be tomorrow)
-        prev_sunrise = self.sunrise()  # the most recent sunrise
 
         # If the next sunset is more than 12h away, it's likely tomorrow's
         if (next_sunset - now).total_seconds() > 12 * 3600:
-            # Compute yesterday's by subtracting one day
             return next_sunset - datetime.timedelta(days=1)
         return next_sunset
 
@@ -100,19 +97,15 @@ class AutoAdjust(hass.Hass):
 
         # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
         # If grid outage --> Deactivate boost immediately 
-        # If EV charging --> Deactivate immediately
-        # 03/03/2026 comment out ev_is_charging rule
-        if not (start <= now <= end) or not self.grid_online(): #or ev_is_charging:
-            self.log(f"Rule 0.1 - In Window: {start <= now <= end} - Grid On: {self.grid_online()} - EV Charging: {ev_is_charging}")
+        if not (start <= now <= end) or not self.grid_online():
             if self.boost_active:
                 self.should_boost = False
                 self.commit_boost_change({})
-                self.log("Boost deactivated: outside allowed window, grid offline")
+                self.log("Boost deactivated: outside allowed window or grid offline")
             return
 
         # Rule 0.2: Allow disabling the feature by boolean
         if self.get_state("input_boolean.ac_boost_feature_evaluation") == "off":
-            self.log("Rule 0.2")
             if self.boost_debounce_handle:
                 self.cancel_timer(self.boost_debounce_handle)
                 self.boost_debounce_handle = None
@@ -132,37 +125,39 @@ class AutoAdjust(hass.Hass):
             return
 
         # Adjust load depending on AC state
-        if grid_power < -500:  # exporting
-            self.log("Rule 1")
+        if grid_power < -100:  # exporting: Make sure we truly have excess
             if ac_running:
-                self.log("Rule 1.1")
                 # Rule 4: Don’t let AC running disable boost → ignore AC load when already running
                 adjusted_load = max(0, load_power - ac_power)
             else:
-                self.log("Rule 1.2")
                 # If AC is off, test whether solar can also handle turning it on
                 adjusted_load = load_power + 4500
             excess_solar = solar_power - adjusted_load
         else:
-            self.log("Rule 2")
-            adjusted_load = 0
+            adjusted_load = load_power
             excess_solar = 0
 
         self.excess_solar = excess_solar
         self.battery_soc = battery_soc
 
-        # Rule 3: Only activate if there is enough solar + buffer threshold
-        # solar_threshold = float(self.args["solar_boost_threshold"])
-        # battery_threshold = float(self.args["battery_boost_threshold"])
-
-        # We need to produce at least what the AC is currently drawing to be eligible for boost
+        # Rule 3: Evaluate eligibility with late-afternoon battery sustaining check
         required_solar = ac_power + float(self.args["solar_boost_threshold"])
-
-        eligible = (
+        
+        # Standard rules required to INITIATE a brand new boost
+        solar_ok = (
             solar_power >= required_solar and
-            excess_solar > float(self.args["solar_boost_threshold"]) and
-            battery_soc >= float(self.args["battery_boost_threshold"])
+            excess_solar > float(self.args["solar_boost_threshold"])
         )
+        battery_ok = battery_soc >= float(self.args["battery_boost_threshold"])
+
+        if self.boost_active:
+            # SUSTAIN BOOST: Once active, allow battery drainage down to 97% at the end of the day
+            eligible = battery_soc >= 97.0
+            if not eligible:
+                self.log(f"Boost ending: Battery SOC ({battery_soc}%) dropped below 97% safety limit.")
+        else:
+            # INITIATE BOOST: Standard solar and battery rules apply to trigger it on
+            eligible = solar_ok and battery_ok
 
         self.log(f"Boost Evaluation Result: {eligible} - Solar: {solar_power}W - Load: {load_power}W - Adjusted Load: {adjusted_load}W - Calculated Excess: {excess_solar}W - Battery SOC {battery_soc}%", level="INFO")
 
@@ -170,7 +165,7 @@ class AutoAdjust(hass.Hass):
             self.log(f"Eligibility changed --> {eligible} (was {self.should_boost})", level="INFO")
             self.should_boost = eligible
 
-            # Cancel any pending debounce
+            # Cancel any pending deactivation timer
             if self.boost_debounce_handle:
                 self.cancel_timer(self.boost_debounce_handle)
                 self.boost_debounce_handle = None
@@ -182,11 +177,10 @@ class AutoAdjust(hass.Hass):
             else:
                 # Delay OFF
                 self.log(f"Boost Deactivation Scheduled")
-                self.boost_debounce_handle = self.run_in(self.commit_boost_change, 150)  # 2.5 minutes
+                self.boost_debounce_handle = self.run_in(self.commit_boost_change, 300)  # 5 minutes
 
     def commit_boost_change(self, kwargs):
         self.log("evaluating")
-        #if self.should_boost != self.boost_active:
         if self.should_boost:
             self.log(f"Boost Activated")
             self.set_state("input_boolean.ac_is_boosting", state="on")
@@ -270,12 +264,21 @@ class AutoAdjust(hass.Hass):
                     else:
                         temp = int(base_temp) - int(self.args.get("cool_boost_offset", 0))
                 else:
-                    base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
-                    temp = int(base_temp) - int(self.args.get("cool_boost_unoccupied_offset", 0))
+                    unoccupied_slider_entity = self.args.get("cool_boost_unoccupied_entity")
+                    if unoccupied_slider_entity:
+                        try:
+                            temp = int(float(self.get_state(unoccupied_slider_entity)))
+                        except (TypeError, ValueError):
+                            base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
+                            temp = int(base_temp) - 5 
+                    else:
+                        base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
+                        temp = int(base_temp) - int(self.args.get("cool_boost_unoccupied_offset", 0))
             else:
                 temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"]) if occupied \
                     else self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
 
+        # Actually make the changes
         self.log(
             f"Adjust period: '{mode}_{label if occupied else 'unoccupied'}' "
             f"Mode: '{mode}' Temp: '{temp}' Boost: '{self.boost_active}' Guest: {guest_mode}"
@@ -283,7 +286,6 @@ class AutoAdjust(hass.Hass):
         self.run_in(self.adjust_temp, 1, temp=temp)
 
     # API-compliant wrappers
-    # We always force the change if called via API (bypassing occupancy requirement)
     def api_adjust_morning(self, *args, **kwargs):
         self.adjust_morning(force=True)
         return "OK", 200

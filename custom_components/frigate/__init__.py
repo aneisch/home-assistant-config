@@ -63,6 +63,7 @@ from .const import (
     ATTR_WS_REVIEW_PROXY,
     CONF_CAMERA_STATIC_IMAGE_HEIGHT,
     CONF_RTMP_URL_TEMPLATE,
+    CONF_VALIDATE_SSL,
     DOMAIN,
     FRIGATE_RELEASES_URL,
     FRIGATE_VERSION_ERROR_CUTOFF,
@@ -264,9 +265,9 @@ def get_zones(config: dict[str, Any]) -> set[str]:
     return cameras_zones
 
 
-def decode_if_necessary(data: str | bytes) -> str:
+def decode_if_necessary(data: str | bytes | bytearray) -> str:
     """Decode a string if necessary."""
-    return data.decode("utf-8") if isinstance(data, bytes) else data
+    return data.decode("utf-8") if isinstance(data, (bytes, bytearray)) else data
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -292,7 +293,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         async_get_clientsession(hass),
         entry.data.get(CONF_USERNAME),
         entry.data.get(CONF_PASSWORD),
-        bool(entry.data.get("validate_ssl")),
+        entry.data.get(CONF_VALIDATE_SSL, True),
     )
     coordinator = FrigateDataUpdateCoordinator(hass, client=client)
     await coordinator.async_config_entry_first_refresh()
@@ -416,7 +417,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             and valid_entity_id(new_id)
             and not entity_registry.async_get(new_id)
         ):
-            new_name = f"{get_friendly_name(cam_name)} {obj_name} Count".title()
+            new_name = titlecase(f"{get_friendly_name(cam_name)} {obj_name} Count")
             entity_registry.async_update_entity(
                 entity_id=entity_id,
                 new_entity_id=new_id,

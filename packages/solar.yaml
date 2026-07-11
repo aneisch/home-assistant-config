@@ -77,48 +77,84 @@ automation:
   - alias: Battery Charge Limit - Away Mode Protection
     id: b84c9ec2-ae80-4b49-8520-f1583705c23e
     description: >
-      When away and guest mode is off: throttle max charge current to 0A when
-      battery SOC > 90% to avoid prolonged high SOC. Restore to 200A when SOC
-      drops below 80%, or when anyone returns home.
+      Throttle charge to 0A at 98% if away. Restore to 200A if battery drops 
+      below 80%, someone comes home, or 1 hour before sunset while away.
     mode: single
+    
     trigger:
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
-        above: 95
-        alias: Battery SOC rises above 95%
+        above: 97
+        id: throttle_needed
+        alias: Battery SOC rises to 98%
+        
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
         below: 80
+        id: restore_needed
         alias: Battery SOC drops below 80%
+        
       - platform: state
         entity_id: group.trackers
         to: home
+        id: restore_needed
         alias: Someone returns home
+        
+      - platform: sun
+        event: sunset
+        offset: "-01:00:00"
+        id: sunset_restore
+        alias: One hour before sunset
+
+    condition:
+      # Global condition: Only run if Guest Mode is off
+      - condition: state
+        entity_id: input_boolean.guest_mode # Replace with your actual guest mode entity
+        state: 'off'
+
     action:
       - choose:
-          - alias: Away + guest mode off + battery > 95% → throttle charging
-            conditions:
+          # PATH 1: THROTTLE TO 0A
+          # Fired by hitting 98% SOC, but ONLY if you are actually away.
+          - conditions:
+              - condition: trigger
+                id: throttle_needed
               - condition: state
                 entity_id: group.trackers
                 state: not_home
+            sequence:
+              - service: number.set_value
+                target:
+                  entity_id: number.solark_sol_ark_battery_max_charge_current # Replace with your actual entity
+                data:
+                  value: 0
+
+          # PATH 2: RESTORE TO 200A (Sunset Version)
+          # Fired by the sunset trigger, but ONLY if you are away.
+          - conditions:
+              - condition: trigger
+                id: sunset_restore
               - condition: state
-                entity_id: input_boolean.guest_mode
-                state: "off"
-              - condition: numeric_state
-                entity_id: sensor.solark_sol_ark_battery_soc
-                above: 95
+                entity_id: group.trackers
+                state: not_home
             sequence:
               - service: number.set_value
                 target:
                   entity_id: number.solark_sol_ark_battery_max_charge_current
                 data:
-                  value: 0
-        default:
-          - service: number.set_value
-            target:
-              entity_id: number.solark_sol_ark_battery_max_charge_current
-            data:
-              value: 200
+                  value: 200
+
+          # PATH 3: RESTORE TO 200A (Standard Version)
+          # Fired by dropping below 80% OR someone coming home (doesn't care about away status).
+          - conditions:
+              - condition: trigger
+                id: restore_needed
+            sequence:
+              - service: number.set_value
+                target:
+                  entity_id: number.solark_sol_ark_battery_max_charge_current
+                data:
+                  value: 200
 
   - alias: "Lock in daily solar max sensor"
     mode: single

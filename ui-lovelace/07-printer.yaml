@@ -18,12 +18,12 @@ cards:
     stop_btn: button.ender3v3ke_4bc5_stop_print
   # --- STATUS CARD ---
 
-  - type: markdown
-    title: Layer Time
-    content: |
-      {# force refresh every minute #}
-      {% set _ = now() %}
-      {{ now() - states.sensor.ender3v3ke_4bc5_working_layer.last_changed }}
+  # - type: markdown
+  #   title: Layer Time
+  #   content: |
+  #     {# force refresh every minute #}
+  #     {% set _ = now() %}
+  #     {{ now() - states.sensor.ender3v3ke_4bc5_working_layer.last_changed }}
   - type: entities
     title: Ender 3 V3 KE — Status
     entities:

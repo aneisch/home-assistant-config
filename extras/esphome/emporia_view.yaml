@@ -168,3 +168,29 @@ sensor:
   - { power_id: cir14, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_14} Daily Energy", filters: [ *toint ] }
   - { power_id: cir15, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_15} Daily Energy", filters: [ *toint ] }
   - { power_id: cir16, platform: total_daily_energy, accuracy_decimals: 0, name: "${circuit_16} Daily Energy", filters: [ *toint ] }
+
+  - platform: template
+    name: "Untracked Circuits"
+    id: untracked_power
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: "W"
+    accuracy_decimals: 0
+    update_interval: 5s
+    lambda: |-
+      float total = id(total_power).state;
+      float monitored = id(cir1).state + id(cir2).state + id(cir3).state + 
+                        id(cir4).state + id(cir5).state + id(cir6).state + 
+                        id(cir7).state + id(cir8).state + id(cir9).state + 
+                        id(cir10).state + id(cir11).state + id(cir12).state + 
+                        id(cir13).state + id(cir14).state + id(cir15).state + 
+                        id(cir16).state;
+      
+      // Prevent slight negative values due to minor calibration or sync discrepancies
+      return std::max(0.0f, total - monitored);
+
+  - platform: total_daily_energy
+    name: "Untracked Circuits Daily Energy"
+    power_id: untracked_power
+    accuracy_decimals: 0
+    filters: [ *toint ]

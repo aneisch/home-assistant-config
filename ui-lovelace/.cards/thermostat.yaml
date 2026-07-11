@@ -29,9 +29,8 @@ sensors:
     name: Master Closet
   - entity: sensor.master_bathroom_temperature
     name: Master Bathroom
-  - entity: ensor.netatmo_home_indoor_temperature
+  - entity: sensor.netatmo_home_indoor_temperature
     name: Office
-    decimals: 2
   - entity: sensor.garage_temperature
     name: Garage
   - entity: sensor.water_shutoff_air_temperature
@@ -44,4 +43,7 @@ sensors:
     name: Today
   - entity: sensor.ac_runtime_yesterday
     name: Yesterday
+  - entity: input_number.cool_boost_unoccupied_target
+    name: Unoccupied Boost Target
+  # - entity: sensor.easy_start_ble_last_start_peak
 control: false

@@ -1,0 +1,407 @@
+# https://github.com/DerekSeaman/ESPHome-Micro-Air-EasyStart
+# https://www.derekseaman.com/2026/03/esphome-micro-air-easystart-integration.html
+
+substitutions:
+  name: easy_start_ble
+  friendly_name: "Easy Start BLE"
+  easystart_mac: "C9:3E:35:CA:FA:D3"
+
+esp32:
+  board: lolin_c3_mini
+  variant: esp32c3
+      
+# Enable web server for config change and log view
+web_server:
+  local: true
+
+logger:
+  level: DEBUG
+  
+api:
+  #reboot_timeout: 0s # default is 15m
+  encryption:
+    key: !secret encryption_key
+
+ota:
+  platform: esphome
+  password: esphome_recovery
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: America/Chicago # UTC must be set here or the processing on the home assistant side for the datetime sensor is wrong
+
+esphome:
+    name: ${name}
+    friendly_name: ${friendly_name}
+    on_boot:
+        priority: -10
+        then:
+            # Initialize sensors to 0 on boot (avoid "Unknown" state)
+            - sensor.template.publish:
+                  id: live_current_sen
+                  state: 0.0
+            - sensor.template.publish:
+                  id: live_power_sen
+                  state: 0.0
+            # Initialize EasyStart MAC from substitution
+            - text_sensor.template.publish:
+                  id: detected_mac
+                  state: "${easystart_mac}"
+            # Restore persisted sensors from flash
+            - sensor.template.publish:
+                  id: total_faults_sen
+                  state: !lambda 'return id(_last_total_faults);'
+            - sensor.template.publish:
+                  id: total_starts_sen
+                  state: !lambda 'return id(_last_total_starts);'
+            - sensor.template.publish:
+                  id: last_start_peak_sen
+                  state: !lambda 'return id(_last_start_peak);'
+            - sensor.template.publish:
+                  id: line_frequency_sen
+                  state: !lambda 'return id(_last_line_frequency);'
+
+# logger:
+#     level: DEBUG
+#     baud_rate: 115200
+#     hardware_uart: USB_SERIAL_JTAG
+#     logs:
+#         esp32_ble_tracker: DEBUG
+
+wifi:
+    ssid: !secret wifi_ssid
+    password: !secret wifi_password
+    domain: .local
+    power_save_mode: NONE
+    fast_connect: true
+    enable_on_boot: true
+    reboot_timeout: 10min
+
+esp32_ble:
+    max_connections: 4
+
+esp32_ble_tracker:
+    on_ble_advertise:
+        - then:
+              - lambda: |-
+                  if (x.get_name().find("EasyStart") == 0) {
+                    id(detected_mac).publish_state(x.address_str());
+                  }
+
+ble_client:
+  - mac_address: ${easystart_mac}
+    id: ble_client_1
+    auto_connect: true
+    on_connect:
+        then:
+            - delay: 2s
+            - switch.turn_on: easystart_read
+    on_disconnect:
+        then:
+            - switch.turn_off: easystart_read
+            - sensor.template.publish:
+                  id: live_current_sen
+                  state: 0.0
+            - sensor.template.publish:
+                  id: live_power_sen
+                  state: 0.0
+
+# Text sensors
+text_sensor:
+    - platform: wifi_info
+      ip_address:
+          name: "IP"
+          entity_category: diagnostic
+      mac_address:
+          name: "MAC"
+          entity_category: diagnostic
+      ssid:
+          name: "SSID"
+          entity_category: diagnostic
+      bssid:
+          name: "BSSID"
+          entity_category: diagnostic
+    - platform: template
+      name: "EasyStart MAC"
+      id: detected_mac
+      entity_category: diagnostic
+    - platform: template
+      name: "Status"
+      id: status
+
+# Buttons
+button:
+    - platform: restart
+      name: "Restart Device"
+
+sensor:
+  - platform: internal_temperature
+    name: "Internal Temp"
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: "Uptime"
+    unit_of_measurement: "h"
+    accuracy_decimals: 2
+    update_interval: 60s
+    filters:
+        - lambda: return x / 3600.0;
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Live Current"
+    id: live_current_sen
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: "A"
+
+  - platform: template
+    name: "Line Frequency"
+    id: line_frequency_sen
+    device_class: frequency
+    state_class: measurement
+    unit_of_measurement: "Hz"
+
+  - platform: template
+    name: "Last Start Peak"
+    id: last_start_peak_sen
+    device_class: current
+    state_class: measurement
+    unit_of_measurement: "A"
+
+  - platform: template
+    name: "SCPT Delay"
+    id: scpt_delay_sen
+    unit_of_measurement: "s"
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Total Faults"
+    state_class: total
+    id: total_faults_sen
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Total Starts"
+    state_class: total
+    id: total_starts_sen
+    accuracy_decimals: 0
+
+  - platform: template
+    name: "Live Power"
+    id: live_power_sen
+    device_class: power
+    state_class: measurement
+    unit_of_measurement: "W"
+
+  - platform: total_daily_energy
+    name: "Energy (Daily)"
+    power_id: live_power_sen
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    method: left
+    filters:
+        - multiply: 0.001
+
+  - platform: template
+    name: "Run Time (Daily)"
+    id: daily_runtime_sen
+    unit_of_measurement: "h"
+    accuracy_decimals: 1
+    icon: "mdi:timer-outline"
+
+  - platform: integration
+    name: "Energy (Total)"
+    sensor: live_power_sen
+    unit_of_measurement: "kWh"
+    accuracy_decimals: 1
+    time_unit: h
+    integration_method: left
+    restore: true
+    filters:
+        - multiply: 0.001
+
+  - platform: ble_client
+    type: characteristic
+    ble_client_id: ble_client_1
+    service_uuid:        "d973f2e0-b19e-11e2-9e96-0800200c9a66"
+    characteristic_uuid: "d973f2e1-b19e-11e2-9e96-0800200c9a66"
+    name: "EasyStart Diag"
+    update_interval: never
+    notify: True
+    lambda: |-
+
+        std::vector<std::string> statusText = {
+            "Normal",
+            "Unexpected Curr Flt",
+            "Short Cycle Delay",
+            "Pwr Intrrptn Fault",
+            "Stall Fault",
+            "Stuck SR Fault",
+            "Open Ovrld Fault",
+            "Overcurrent Fault",
+            "Bad Wiring Fault",
+            "Wrong Voltage Flt"
+        };
+
+        uint8_t* data = (uint8_t*) x.data();
+        size_t length = x.size();
+
+        // Convert the response to a hexadecimal string
+        std::string hex_str;
+        for (size_t i = 0; i < length; ++i) {
+            char buf[3];
+            snprintf(buf, sizeof(buf), "%02X", data[i]);
+            hex_str += buf;
+        }
+
+        // Check if the response contains the success message
+        std::string response = std::string((char*)x.data(), x.size());
+        if (response.find("{\"Sts\": Success}") != std::string::npos) {
+            ESP_LOGD("ble_client", "Success Response: %s", response.c_str());
+        } else {
+            ESP_LOGD("ble_client", "Data Response (Hex): %s", hex_str.c_str());
+
+            // Ensure there are enough bytes for extraction
+            if (length >= 18) {
+                float factor = 256.0;
+
+                // Extract and log Live Current
+                float live_current = ((data[4] & 0xFF) + ((data[5] & 0xFF) * factor)) / 10.0;
+                ESP_LOGD("ble_client", "Live Current: %.1f", live_current);
+                if (live_current >= 0.0 && live_current <= 50.0) {
+                    id(live_current_sen).publish_state(live_current);
+                    id(live_power_sen).publish_state(live_current * 240.0);
+                } else {
+                    ESP_LOGW("ble_client", "Live Current out of range (%.1f A), discarding", live_current);
+                }
+
+                // Extract and log Line Frequency
+                float line_frequency = 500000.0 / ((data[6] & 0xFF) + ((data[7] & 0xFF) * factor));
+                ESP_LOGD("ble_client", "Line Frequency: %.1f", line_frequency);
+                id(_last_line_frequency) = line_frequency;
+                id(line_frequency_sen).publish_state(line_frequency);
+
+                // Extract and log Last Start Peak
+                float last_start_peak = ((data[8] & 0xFF) + ((data[9] & 0xFF) * factor)) / 10.0;
+                ESP_LOGD("ble_client", "Last Start Peak: %.1f", last_start_peak);
+                id(_last_start_peak) = last_start_peak;
+                id(last_start_peak_sen).publish_state(last_start_peak);
+
+                // Extract and log SCPT Delay
+                uint16_t scpt_delay = (data[10] & 0xFF) + ((data[11] & 0xFF) * 256);
+                ESP_LOGD("ble_client", "SCPT Delay: %u", scpt_delay);
+                id(scpt_delay_sen).publish_state(scpt_delay);
+
+                // Extract and log Total Faults
+                uint16_t total_faults = (data[12] & 0xFF) + ((data[13] & 0xFF) * 256);
+                ESP_LOGD("ble_client", "Total Faults: %u", total_faults);
+                id(_last_total_faults) = total_faults;
+                id(total_faults_sen).publish_state(total_faults);
+
+                // Extract and log Total Starts
+                uint32_t total_starts = data[14] + (data[15] << 8) + (data[16] << 16) + (data[17] << 24);
+                ESP_LOGD("ble_client", "Total Starts: %u", total_starts);
+                id(_last_total_starts) = total_starts;
+                id(total_starts_sen).publish_state(total_starts);
+
+                // Extract and log Status Text
+                uint8_t status_index = data[2] & 0xFF;
+                ESP_LOGD("ble_client", "Status: %u", status_index);
+                std::string status_str;
+                if (status_index < statusText.size()) {
+                    status_str = statusText[status_index];
+                } else {
+                    status_str = "Unknown";
+                }
+                id(status).publish_state(status_str);
+
+            } else {
+                ESP_LOGD("ble_client", "Data Response is too short to extract all values");
+            }
+        }
+
+        // Return a dummy value to comply with the lambda return type
+        return (float)length;
+
+# Switches
+switch:
+    - platform: template
+      id: easystart_read
+      name: "Read Status"
+      restore_mode: RESTORE_DEFAULT_OFF
+      turn_on_action:
+          then:
+              - switch.template.publish:
+                    id: easystart_read
+                    state: ON
+              - while:
+                    condition:
+                        - switch.is_on: easystart_read
+                    then:
+                        - ble_client.ble_write:
+                              id: ble_client_1
+                              service_uuid: "d973f2e0-b19e-11e2-9e96-0800200c9a66"
+                              characteristic_uuid: "d973f2e2-b19e-11e2-9e96-0800200c9a66"
+                              value: [0x7B, 0x22, 0x43, 0x6D, 0x64, 0x22, 0x3A, 0x20, 0x52, 0x65, 0x61, 0x64, 0x4C, 0x69, 0x76, 0x65, 0x7D]
+                        - delay: 10s
+      turn_off_action:
+          then:
+              - switch.template.publish:
+                    id: easystart_read
+                    state: OFF
+
+globals:
+    # Wi-Fi disconnect counter (since-boot only; not restored)
+    - id: _wifi_disconnects_since_boot
+      type: int
+      restore_value: no
+      initial_value: '0'
+    # Total starts counter (persisted across reboots)
+    - id: _last_total_starts
+      type: uint32_t
+      restore_value: yes
+      initial_value: '0'
+    # Total faults counter (persisted across reboots)
+    - id: _last_total_faults
+      type: uint16_t
+      restore_value: yes
+      initial_value: '0'
+    # Last start peak current (persisted across reboots)
+    - id: _last_start_peak
+      type: float
+      restore_value: yes
+      initial_value: '0.0'
+    # Line frequency (persisted across reboots)
+    - id: _last_line_frequency
+      type: float
+      restore_value: yes
+      initial_value: '0.0'
+    # Daily runtime accumulator (seconds, persisted across reboots)
+    - id: _daily_runtime_s
+      type: uint32_t
+      restore_value: yes
+      initial_value: '0'
+    # Day of year tracker for midnight reset
+    - id: _runtime_day
+      type: uint16_t
+      restore_value: yes
+      initial_value: '0'
+
+interval:
+    - interval: 10s
+      then:
+          - lambda: |-
+              auto time = id(homeassistant_time).now();
+              if (time.is_valid()) {
+                uint16_t today = time.day_of_year;
+                if (today != id(_runtime_day)) {
+                  id(_runtime_day) = today;
+                  id(_daily_runtime_s) = 0;
+                }
+                if (id(live_current_sen).state > 0.1) {
+                  id(_daily_runtime_s) += 10;
+                }
+                id(daily_runtime_sen).publish_state(id(_daily_runtime_s) / 3600.0);
+              }

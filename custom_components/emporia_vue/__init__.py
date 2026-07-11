@@ -1,7 +1,10 @@
 """The Emporia Vue integration."""
 
 import asyncio
+import calendar
+from collections.abc import Mapping
 from datetime import UTC, datetime, timedelta, tzinfo
+from functools import partial
 import logging
 import re
 from typing import Any
@@ -11,6 +14,7 @@ import dateutil.tz
 from pyemvue import PyEmVue
 from pyemvue.device import (
     ChargerDevice,
+    OutletDevice,
     VueDevice,
     VueDeviceChannel,
     VueDeviceChannelUsage,
@@ -33,9 +37,13 @@ from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .const import (
+    AUTH_METHOD,
+    AUTH_METHOD_EMAIL_PASSWORD,
+    AUTH_METHOD_TOKENS,
+    CONF_ACCESS_TOKEN,
+    CONF_ID_TOKEN,
+    CONF_REFRESH_TOKEN,
     CONFIG_FLOW_SCHEMA,
-    CONFIG_TITLE,
-    CUSTOMER_GID,
     DOMAIN,
     ENABLE_1D,
     ENABLE_1M,
@@ -46,7 +54,13 @@ from .const import (
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
-PLATFORMS: list[str] = ["sensor", "switch"]
+PLATFORMS: list[str] = ["sensor", "switch", "number"]
+SENSITIVE_CONFIG_KEYS = {
+    CONF_PASSWORD,
+    CONF_ID_TOKEN,
+    CONF_ACCESS_TOKEN,
+    CONF_REFRESH_TOKEN,
+}
 
 CONFIG_SCHEMA = vol.Schema(
     {DOMAIN: CONFIG_FLOW_SCHEMA},
@@ -59,7 +73,17 @@ DEVICES_ONLINE: list[str] = []
 LAST_MINUTE_DATA: dict[str, Any] = {}
 LAST_DAY_DATA: dict[str, Any] = {}
 LAST_DAY_UPDATE: datetime | None = None
+LAST_MONTH_DATA: dict[str, Any] = {}
+LAST_MONTH_UPDATE: datetime | None = None
 INVERT_SOLAR: bool = True
+
+
+def redact_config_data(data: Mapping[str, Any]) -> dict[str, Any]:
+    """Return config data with sensitive auth values hidden for logging."""
+    return {
+        key: "***" if key in SENSITIVE_CONFIG_KEYS else value
+        for key, value in data.items()
+    }
 
 
 async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
@@ -79,13 +103,41 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
                 ENABLE_1M: conf[ENABLE_1M],
                 ENABLE_1D: conf[ENABLE_1D],
                 ENABLE_1MON: conf[ENABLE_1MON],
-                INVERT_SOLAR: conf[SOLAR_INVERT],
-                CUSTOMER_GID: conf[CUSTOMER_GID],
-                CONFIG_TITLE: conf[CONFIG_TITLE],
+                SOLAR_INVERT: conf[SOLAR_INVERT],
             },
         )
     )
     return True
+
+
+async def async_login_vue(
+    loop: asyncio.AbstractEventLoop,
+    vue: PyEmVue,
+    entry_data: Mapping[str, Any],
+) -> bool:
+    """Log in to Emporia using the configured authentication method."""
+    auth_method = entry_data.get(AUTH_METHOD, AUTH_METHOD_EMAIL_PASSWORD)
+    if auth_method == AUTH_METHOD_TOKENS:
+        return await loop.run_in_executor(
+            None,
+            partial(
+                vue.login,
+                id_token=entry_data[CONF_ID_TOKEN],
+                access_token=entry_data[CONF_ACCESS_TOKEN],
+                refresh_token=entry_data[CONF_REFRESH_TOKEN],
+            ),
+        )
+
+    email: str = entry_data[CONF_EMAIL]
+    password: str = entry_data[CONF_PASSWORD]
+    # support using the simulator by looking at the username
+    if email.startswith("vue_simulator@"):
+        host = email.split("@")[1]
+        return await loop.run_in_executor(None, vue.login_simulator, host)
+    return await loop.run_in_executor(
+        None,
+        partial(vue.login, username=email, password=password),
+    )
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -97,20 +149,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     DEVICE_INFORMATION = {}
 
     entry_data = entry.data
-    _LOGGER.debug("Setting up Emporia Vue with entry data: %s", entry_data)
-    email: str = entry_data[CONF_EMAIL]
-    password: str = entry_data[CONF_PASSWORD]
+    _LOGGER.debug(
+        "Setting up Emporia Vue with entry data: %s",
+        redact_config_data(entry_data),
+    )
     if SOLAR_INVERT in entry_data:
         INVERT_SOLAR = entry_data[SOLAR_INVERT]
     vue = PyEmVue()
     loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
     try:
-        # support using the simulator by looking at the username
-        if email.startswith("vue_simulator@"):
-            host = email.split("@")[1]
-            result: bool = await loop.run_in_executor(None, vue.login_simulator, host)
-        else:
-            result: bool = await loop.run_in_executor(None, vue.login, email, password)
+        result: bool = await async_login_vue(loop, vue, entry_data)
         if not result:
             _LOGGER.error("Failed to login to Emporia Vue")
             raise ConfigEntryAuthFailed("Failed to login to Emporia Vue")
@@ -119,6 +167,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except Exception as err:  # pylint: disable=broad-exception-caught
         _LOGGER.error("Failed to login to Emporia Vue: %s", err)
         raise ConfigEntryAuthFailed("Failed to login to Emporia Vue") from err
+
+    if entry_data.get(AUTH_METHOD) == AUTH_METHOD_TOKENS and vue.auth and vue.auth.tokens:
+        # Persist the tokens refreshed during login back to the config entry so
+        # that the stored tokens stay current across restarts.
+        hass.config_entries.async_update_entry(
+            entry,
+            data={
+                **entry.data,
+                CONF_ID_TOKEN: vue.auth.tokens["id_token"],
+                CONF_ACCESS_TOKEN: vue.auth.tokens["access_token"],
+                CONF_REFRESH_TOKEN: vue.auth.tokens["refresh_token"],
+            },
+        )
+
+        def _token_updater(tokens: dict[str, Any]) -> None:
+            """Persist tokens refreshed mid-session back to the config entry."""
+            hass.loop.call_soon_threadsafe(
+                lambda: hass.config_entries.async_update_entry(
+                    entry,
+                    data={
+                        **entry.data,
+                        CONF_ID_TOKEN: tokens["id_token"],
+                        CONF_ACCESS_TOKEN: tokens["access_token"],
+                        CONF_REFRESH_TOKEN: tokens["refresh_token"],
+                    },
+                )
+            )
+
+        vue.auth.token_updater = _token_updater
 
     try:
         devices: list[VueDevice] = await loop.run_in_executor(None, vue.get_devices)
@@ -153,14 +230,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 LAST_MINUTE_DATA = data
             return data
 
-        async def async_update_data_1mon() -> dict:
-            """Fetch data from API endpoint at a 1 hour interval.
-
-            This is the place to pre-process the data to lookup tables
-            so entities can quickly look up their data.
-            """
-            return await update_sensors(vue, [Scale.MONTH.value])
-
         async def async_update_day_sensors() -> dict:
             global LAST_DAY_UPDATE
             global LAST_DAY_DATA
@@ -168,7 +237,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if not LAST_DAY_UPDATE or (now - LAST_DAY_UPDATE) > timedelta(minutes=15):
                 _LOGGER.info("Updating day sensors")
                 LAST_DAY_UPDATE = now
-                LAST_DAY_DATA = await update_sensors(vue, [Scale.DAY.value])
+                updated_day_data = await update_sensors(vue, [Scale.DAY.value])
+                apply_api_update_debounce(updated_day_data, LAST_DAY_DATA, "day")
+                LAST_DAY_DATA = updated_day_data
             else:
                 # integrate the minute data
                 _LOGGER.info("Integrating minute data into day sensors")
@@ -193,6 +264,44 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                             ]  # already in kwh
             return LAST_DAY_DATA
 
+        async def async_update_month_sensors() -> dict:
+            global LAST_MONTH_UPDATE
+            global LAST_MONTH_DATA
+            now: datetime = datetime.now(UTC)
+            if not LAST_MONTH_UPDATE or (now - LAST_MONTH_UPDATE) > timedelta(minutes=30):
+                _LOGGER.info("Updating month sensors")
+                LAST_MONTH_UPDATE = now
+                updated_month_data = await update_sensors(vue, [Scale.MONTH.value])
+                apply_api_update_debounce(
+                    updated_month_data,
+                    LAST_MONTH_DATA,
+                    "month",
+                )
+                LAST_MONTH_DATA = updated_month_data
+            else:
+                # integrate the minute data
+                _LOGGER.info("Integrating minute data into month sensors")
+                if LAST_MINUTE_DATA:
+                    for identifier, data in LAST_MINUTE_DATA.items():
+                        device_gid, channel_gid, _ = identifier.split("-")
+                        month_id: str = f"{device_gid}-{channel_gid}-{Scale.MONTH.value}"
+                        if (
+                            data
+                            and LAST_MONTH_DATA
+                            and month_id in LAST_MONTH_DATA
+                            and LAST_MONTH_DATA[month_id]
+                            and "usage" in LAST_MONTH_DATA[month_id]
+                            and LAST_MONTH_DATA[month_id]["usage"] is not None
+                        ):
+                            # if we just passed the billing cycle start, reset back to zero
+                            timestamp: datetime = data["timestamp"]
+                            await check_for_new_month(timestamp, int(device_gid), month_id)
+
+                            LAST_MONTH_DATA[month_id]["usage"] += data[
+                                "usage"
+                            ]  # already in kwh
+            return LAST_MONTH_DATA
+
         coordinator_1min = None
         if ENABLE_1M not in entry_data or entry_data[ENABLE_1M]:
             coordinator_1min = DataUpdateCoordinator(
@@ -213,9 +322,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 _LOGGER,
                 # Name of the data. For logging purposes.
                 name="sensor",
-                update_method=async_update_data_1mon,
+                update_method=async_update_month_sensors,
                 # Polling interval. Will only be polled if there are subscribers.
-                update_interval=timedelta(hours=1),
+                update_interval=timedelta(minutes=1),
             )
             await coordinator_1mon.async_config_entry_first_refresh()
             _LOGGER.debug("1mon Update data: %s", coordinator_1mon.data)
@@ -232,6 +341,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 update_interval=timedelta(minutes=1),
             )
             await coordinator_day_sensor.async_config_entry_first_refresh()
+
+        # Check if any devices have outlets or chargers
+        has_controllable_devices = any(
+            device.outlet or device.ev_charger
+            for device in DEVICE_INFORMATION.values()
+        )
+
+        async def async_update_device_status() -> dict[str, Any]:
+            """Fetch device status (outlets and chargers)."""
+            try:
+                data: dict[str, Any] = {}
+                outlets: list[OutletDevice]
+                chargers: list[ChargerDevice]
+
+                outlets, chargers = await hass.async_add_executor_job(vue.get_devices_status)
+
+                if outlets:
+                    for outlet in outlets:
+                        data[str(outlet.device_gid)] = outlet
+                if chargers:
+                    for charger in chargers:
+                        data[str(charger.device_gid)] = charger
+                return data
+            except Exception as err:
+                raise UpdateFailed(f"Error communicating with Emporia API: {err}") from err
+
+        coordinator_device_status = None
+        if has_controllable_devices:
+            coordinator_device_status = DataUpdateCoordinator(
+                hass,
+                _LOGGER,
+                name="device_status",
+                update_method=async_update_device_status,
+                update_interval=timedelta(minutes=1),
+            )
+            await coordinator_device_status.async_config_entry_first_refresh()
 
         # Setup custom services
         async def handle_set_charger_current(call) -> None:
@@ -350,6 +495,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator_1min": coordinator_1min,
         "coordinator_1mon": coordinator_1mon,
         "coordinator_day_sensor": coordinator_day_sensor,
+        "coordinator_device_status": coordinator_device_status,
+        "device_information": DEVICE_INFORMATION,
     }
 
     try:
@@ -642,6 +789,33 @@ async def check_for_midnight(timestamp: datetime, device_gid: int, day_id: str):
             LAST_DAY_DATA[day_id]["reset"] = local_midnight
 
 
+async def check_for_new_month(timestamp: datetime, device_gid: int, month_id: str):
+    """If a new billing cycle has started, reset the LAST_MONTH_DATA for Month sensors to zero."""
+    if device_gid in DEVICE_INFORMATION:
+        device_info: VueDevice = DEVICE_INFORMATION[device_gid]
+        local_time: datetime = await change_time_to_local(
+            timestamp, device_info.time_zone
+        )
+        current_reset: datetime = determine_reset_datetime(
+            local_time,
+            device_info.billing_cycle_start_day,
+            True,
+        )
+        last_reset = LAST_MONTH_DATA[month_id]["reset"]
+        if current_reset > last_reset:
+            # New billing cycle started
+            _LOGGER.info(
+                "New billing cycle started for id %s! Timestamp is %s, "
+                "current reset is %s, previous reset was %s",
+                month_id,
+                local_time,
+                current_reset,
+                last_reset,
+            )
+            LAST_MONTH_DATA[month_id]["usage"] = 0
+            LAST_MONTH_DATA[month_id]["reset"] = current_reset
+
+
 def determine_reset_datetime(
     local_time: datetime, monthly_cycle_start: int, is_month: bool
 ) -> datetime:
@@ -650,11 +824,27 @@ def determine_reset_datetime(
         hour=0, minute=0, second=0, microsecond=0
     )
     if is_month:
-        # Month should use the last billing_cycle_start_day of either this or last month
-        reset_datetime = reset_datetime.replace(day=monthly_cycle_start)
-        if reset_datetime.day < monthly_cycle_start:
-            # we're in the start of a month, use the reset_day for last month
-            reset_datetime -= dateutil.relativedelta.relativedelta(months=1)
+        # Month should use the most recent billing_cycle_start_day midnight.
+        # Never return a future reset datetime.
+        last_day_this_month = calendar.monthrange(
+            reset_datetime.year, reset_datetime.month
+        )[1]
+        target_day_this_month = min(monthly_cycle_start, last_day_this_month)
+        candidate_this_month = reset_datetime.replace(day=target_day_this_month)
+
+        if local_time >= candidate_this_month:
+            reset_datetime = candidate_this_month
+        else:
+            previous_month = reset_datetime - dateutil.relativedelta.relativedelta(
+                months=1
+            )
+            last_day_previous_month = calendar.monthrange(
+                previous_month.year, previous_month.month
+            )[1]
+            target_day_previous_month = min(
+                monthly_cycle_start, last_day_previous_month
+            )
+            reset_datetime = previous_month.replace(day=target_day_previous_month)
     return reset_datetime
 
 
@@ -673,3 +863,70 @@ def handle_none_usage(scale: str, identifier: str):
     ):
         return LAST_DAY_DATA[identifier]["usage"]
     return 0
+
+
+def apply_api_update_debounce(
+    updated_data: dict[str, Any],
+    existing_data: dict[str, Any],
+    scale_name: str,
+) -> None:
+    """Prevent API reset lag from inflating totals shortly after local reset time.
+
+    During the debounce window after reset, API values may lag and still include prior
+    period usage. In that case, allow API values to lower totals but not raise them
+    above the minute-integrated value already tracked in memory.
+    """
+    if not updated_data or not existing_data:
+        return
+
+    for identifier, updated in updated_data.items():
+        if identifier not in existing_data or not updated:
+            continue
+
+        existing = existing_data[identifier]
+        if not existing:
+            continue
+
+        updated_usage = updated.get("usage")
+        existing_usage = existing.get("usage")
+        reset_datetime = updated.get("reset")
+        timestamp = updated.get("timestamp")
+
+        if (
+            updated_usage is None
+            or existing_usage is None
+            or reset_datetime is None
+            or timestamp is None
+        ):
+            continue
+
+        if is_in_reset_debounce_window(
+            timestamp,
+            reset_datetime,
+            scale_name,
+        ):
+            bounded_usage = min(updated_usage, existing_usage)
+            if bounded_usage != updated_usage:
+                _LOGGER.info(
+                    "Debouncing %s API reset lag for %s: keeping %.6f instead of %.6f",
+                    scale_name,
+                    identifier,
+                    bounded_usage,
+                    updated_usage,
+                )
+                updated["usage"] = bounded_usage
+
+
+def is_in_reset_debounce_window(
+    local_time: datetime,
+    reset_datetime: datetime,
+    scale_name: str,
+    debounce_minutes: int = 30,
+) -> bool:
+    """Return true when local_time is in the reset debounce window for the scale."""
+    if scale_name == "month" and local_time.date() != reset_datetime.date():
+        # Monthly debounce only applies on billing-cycle reset date rollover.
+        return False
+
+    elapsed = local_time - reset_datetime
+    return timedelta(0) <= elapsed < timedelta(minutes=debounce_minutes)

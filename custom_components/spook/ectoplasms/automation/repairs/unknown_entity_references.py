@@ -6,13 +6,12 @@ import re
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components import automation
-from homeassistant.const import EVENT_COMPONENT_LOADED
+from homeassistant.const import EVENT_COMPONENT_LOADED, EVENT_STATE_CHANGED
+from homeassistant.core import Event, callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.entity_component import DATA_INSTANCES, EntityComponent
 
 from ....const import LOGGER
-from ....repairs import AbstractSpookRepair
-from ....util import (
+from ....entity_filtering import (
     ENTITY_ID_PATTERN,
     async_extract_entities_from_config,
     async_extract_entities_from_template_string,
@@ -20,8 +19,11 @@ from ....util import (
     async_get_all_entity_ids,
     is_template_string,
 )
+from ....repairs import AbstractSpookEntityComponentUnknownReferencesRepair
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from homeassistant.core import HomeAssistant
 
 
@@ -54,22 +56,25 @@ async def extract_entities_from_automation_config(
         return entities
 
     # Extract entities from trigger config
-    if "trigger" in config:
-        entities.update(
-            await extract_entities_from_trigger_config(hass, config["trigger"])
-        )
+    for key in ("trigger", "triggers"):
+        if key in config:
+            entities.update(
+                await extract_entities_from_trigger_config(hass, config[key])
+            )
 
     # Extract entities from condition config
-    if "condition" in config:
-        entities.update(
-            await extract_entities_from_condition_config(hass, config["condition"])
-        )
+    for key in ("condition", "conditions"):
+        if key in config:
+            entities.update(
+                await extract_entities_from_condition_config(hass, config[key])
+            )
 
     # Extract entities from action config
-    if "action" in config:
-        entities.update(
-            await extract_entities_from_action_config(hass, config["action"])
-        )
+    for key in ("action", "actions"):
+        if key in config:
+            entities.update(
+                await extract_entities_from_action_config(hass, config[key])
+            )
 
     return entities
 
@@ -106,6 +111,34 @@ async def extract_entities_from_trigger_config(
             entities.update(await extract_entities_from_trigger_config(hass, value))
 
     return entities
+
+
+def extract_event_types_from_trigger_config(config: dict[str, Any] | list) -> set[str]:
+    """Extract event types from trigger configuration."""
+    event_types = set()
+
+    if not config:
+        return event_types
+
+    if isinstance(config, list):
+        for item in config:
+            event_types.update(extract_event_types_from_trigger_config(item))
+        return event_types
+
+    if not isinstance(config, dict):
+        return event_types
+
+    value = config.get("event_type")
+    if isinstance(value, str):
+        event_types.add(value)
+    elif isinstance(value, list):
+        event_types.update(item for item in value if isinstance(item, str))
+
+    for value in config.values():
+        if isinstance(value, (dict, list)):
+            event_types.update(extract_event_types_from_trigger_config(value))
+
+    return event_types
 
 
 async def extract_entities_from_condition_config(
@@ -194,6 +227,20 @@ async def _extract_entities_from_target(
     return entities
 
 
+def _get_action_service(config: dict[str, Any]) -> str | None:
+    """Return the service/action name configured for an action."""
+    service = config.get("service", config.get("action"))
+    return service if isinstance(service, str) else None
+
+
+def _should_skip_service_data_value(
+    service: str | None,
+    key: str,
+) -> bool:
+    """Return if a service data value should not be scanned for entity IDs."""
+    return service is not None and service.startswith("notify.") and key == "target"
+
+
 async def _extract_entities_from_service_data(
     hass: HomeAssistant, config: dict[str, Any]
 ) -> set[str]:
@@ -205,8 +252,11 @@ async def _extract_entities_from_service_data(
             # data field is a template string itself
             entities.update(await extract_entities_from_value(hass, data_value))
         elif isinstance(data_value, dict):
+            service = _get_action_service(config)
             # data field is a dictionary, process all its values
-            for value in data_value.values():
+            for key, value in data_value.items():
+                if _should_skip_service_data_value(service, key):
+                    continue
                 entities.update(await extract_entities_from_value(hass, value))
     return entities
 
@@ -259,7 +309,7 @@ async def extract_entities_from_value(hass: HomeAssistant, value: Any) -> set[st
     return entities
 
 
-class SpookRepair(AbstractSpookRepair):
+class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
     """Spook repair tries to find unknown referenced entity in automations."""
 
     domain = automation.DOMAIN
@@ -271,67 +321,71 @@ class SpookRepair(AbstractSpookRepair):
     inspect_config_entry_changed = True
     inspect_on_reload = True
 
-    automatically_clean_up_issues = True
+    unavailable_entity_class = automation.UnavailableAutomationEntity
+    entity_label = "automation"
+    reference_label = "entities"
+    edit_url_pattern = "/config/automation/edit/{unique_id}"
 
-    async def async_inspect(self) -> None:
-        """Trigger a inspection."""
-        if self.domain not in self.hass.data[DATA_INSTANCES]:
-            return
+    _known_entity_ids: set[str]
 
-        entity_component: EntityComponent[automation.AutomationEntity] = self.hass.data[
-            DATA_INSTANCES
-        ][self.domain]
+    async def async_activate(self) -> None:
+        """Activate the repair."""
+        await super().async_activate()
 
-        LOGGER.debug("Spook is inspecting: %s", self.repair)
+        @callback
+        def _state_entity_changed(event_data: Mapping[str, Any]) -> bool:
+            """Return if a state entity was added or removed."""
+            return (
+                event_data.get("old_state") is None
+                or event_data.get("new_state") is None
+            )
 
-        known_entity_ids = async_get_all_entity_ids(self.hass, include_all_none=True)
+        @callback
+        def _async_call_inspect_debouncer(_: Event) -> None:
+            """Trigger an inspection when a state entity is added or removed."""
+            self.inspect_debouncer.async_schedule_call()
 
-        for entity in entity_component.entities:
-            self.possible_issue_ids.add(entity.entity_id)
+        self._event_subs.add(
+            self.hass.bus.async_listen(
+                EVENT_STATE_CHANGED,
+                _async_call_inspect_debouncer,
+                event_filter=_state_entity_changed,
+            ),
+        )
 
-            # Skip disabled automations
-            if not entity.enabled:
-                continue
+    async def _async_setup_inspection(self) -> None:
+        """Cache known entity IDs (including ALL/NONE) for this inspection cycle."""
+        self._known_entity_ids = async_get_all_entity_ids(
+            self.hass, include_all_none=True
+        )
 
-            # Collect entities from multiple sources
-            all_entities = set(entity.referenced_entities)
+    def _should_inspect_entity(self, entity: Any) -> bool:
+        """Skip disabled automations."""
+        return entity.enabled
 
-            # Also extract entities directly from raw configuration if available
-            if hasattr(entity, "raw_config") and entity.raw_config:
-                config_entities = await extract_entities_from_automation_config(
+    async def _async_compute_unknown_references(self, entity: Any) -> set[str]:
+        """Return unknown entity IDs referenced by ``entity`` (incl. templates)."""
+        all_entities = set(entity.referenced_entities)
+
+        # Also extract entities directly from raw configuration if available
+        if hasattr(entity, "raw_config") and entity.raw_config:
+            all_entities.update(
+                await extract_entities_from_automation_config(
                     self.hass, entity.raw_config
                 )
-                all_entities.update(config_entities)
-
-            # Extract entities from Template objects within the automation entity
-            template_entities = await extract_template_entities_from_automation_entity(
-                self.hass, entity
             )
-            all_entities.update(template_entities)
+            for key in ("trigger", "triggers"):
+                all_entities.difference_update(
+                    extract_event_types_from_trigger_config(entity.raw_config.get(key))
+                )
 
-            if not isinstance(entity, automation.UnavailableAutomationEntity) and (
-                unknown_entities := await async_filter_known_entity_ids_with_templates(
-                    self.hass,
-                    entity_ids=all_entities,
-                    known_entity_ids=known_entity_ids,
-                )
-            ):
-                self.async_create_issue(
-                    issue_id=entity.entity_id,
-                    translation_placeholders={
-                        "entities": "\n".join(
-                            f"- `{entity_id}`" for entity_id in unknown_entities
-                        ),
-                        "automation": entity.name,
-                        "edit": f"/config/automation/edit/{entity.unique_id}",
-                        "entity_id": entity.entity_id,
-                    },
-                )
-                LOGGER.debug(
-                    (
-                        "Spook found unknown entities in %s "
-                        "and created an issue for it; Entities: %s",
-                    ),
-                    entity.entity_id,
-                    ", ".join(unknown_entities),
-                )
+        # Extract entities from Template objects within the automation entity
+        all_entities.update(
+            await extract_template_entities_from_automation_entity(self.hass, entity)
+        )
+
+        return await async_filter_known_entity_ids_with_templates(
+            self.hass,
+            entity_ids=all_entities,
+            known_entity_ids=self._known_entity_ids,
+        )

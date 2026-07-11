@@ -22,16 +22,19 @@ class SolarEVCharger(hass.Hass):
         # Entities
         self.entities = {
             # Shared Core Entities
+            # "ev_soc": "sensor.tesla_battery_level", # Use local BLE soc vs. TeslaMate
             "home_soc": "sensor.solark_sol_ark_battery_soc",
+            "ev_soc": "sensor.tesla_battery_level",
             "ev_prioritization": "input_boolean.ev_charge_prioritize_vehicle_over_home_battery",
             "solar": "sensor.solark_sol_ark_solar_power",
             "load": "sensor.solark_sol_ark_load_power",
             "override_boolean": "input_boolean.ev_charge_override",
             "grid_status": "binary_sensor.solark_sol_ark_grid_connected_status",
             "charger_switch": "switch.emporia_charger",
+            "charger_status": "sensor.tesla_status",
             
             # Master Rate Adjuster (Controls Emporia via your existing setup)
-            "charge_rate": "input_number.tesla_charge_rate_master",
+            "charge_rate": "number.tesla_current_limit",
             
             # Mode Gate Toggle Helper
             "guest_mode": "input_boolean.ev_charge_guest_mode",
@@ -42,6 +45,7 @@ class SolarEVCharger(hass.Hass):
         }
 
         # Track fundamental state changes
+        # 6/16/26 I think we only need the three 
         for sensor in ["solar", "home_soc", "load", "target_soc", "grid_status", "guest_mode"]:
             self.listen_state(self.evaluate_charging, self.entities[sensor])
 
@@ -67,12 +71,12 @@ class SolarEVCharger(hass.Hass):
         # 2. OVERRIDE & CONNECTION CHECKS
         if self.get_state(self.entities["override_boolean"]) == "on":
             self.log("DEBUG: Evaluation skipped (Manual Override ON)", level="DEBUG")
+            self.eval_locked = False
             self.insufficient_solar_since = None
             self.insufficient_disabled = False
             return
 
-        icon = self.get_state(self.entities["charger_switch"], attribute='icon_name')
-        if icon == "CarNotConnected":
+        if self.get_state(self.entities["charger_status"]) == "Disconnected":
             self.log("DEBUG: No vehicle connected.", level="DEBUG")
             self.eval_locked = False
             self.insufficient_solar_since = None
@@ -104,13 +108,19 @@ class SolarEVCharger(hass.Hass):
         charger_state = self.get_state(self.entities["charger_switch"])
         ev_power = (present_rate * self.volts) if charger_state == "on" else 0
         house_load_only = load_watts - ev_power 
-        modified_buffer_watts = self.buffer_watts + 2000 if home_soc < 99 else self.buffer_watts
+
+        # Charge home battery at 2000W from 90-98% SOC if not EV Prioritization
+        if home_soc < 98 and ev_prioritization == "off":
+            modified_buffer_watts = self.buffer_watts + 2000
+        else:
+            modified_buffer_watts = self.buffer_watts
+
         excess_watts = max(0, solar_watts - house_load_only - modified_buffer_watts)
         target_amps = excess_watts // self.volts
 
         # 5. DEFICIT LOGIC
         battery_blocked = (ev_prioritization == "off" and home_soc < self.min_home_soc) or \
-                          (ev_prioritization == "on" and home_soc < 50)
+                          (ev_prioritization == "on" and home_soc < 30)
 
         if target_amps < self.min_amps or battery_blocked:
             if self.insufficient_solar_since is None:
@@ -128,10 +138,13 @@ class SolarEVCharger(hass.Hass):
                     elif elapsed >= self.disable_timeout:
                         self.log(f"STOP [{mode_str}]: Deficit timeout expired, lasted {int(elapsed)}s. Executing deficit routine.")
                     self.insufficient_disabled = True
+                    self.safe_set_rate(self.min_amps, disable=True, guest_mode=(guest_mode == "on"))
                 
-                self.safe_set_rate(self.min_amps, disable=True, guest_mode=(guest_mode == "on"))
+                else:
+                    self.log(f"THROTTLE: Deficit ongoing. {home_soc}% Home SOC, {solar_watts}W Solar. (Deficit duration: {int(elapsed)}s)")
+
             else:
-                self.log(f"THROTTLE: Deficit detected. {home_soc}% SOC, {solar_watts}W Solar. Dropping to {self.min_amps}A. (Shutdown in {int(self.disable_timeout - elapsed)}s)")
+                self.log(f"THROTTLE: Deficit detected. {home_soc}% Home SOC, {solar_watts}W Solar. Dropping to {self.min_amps}A. (Shutdown in {int(self.disable_timeout - elapsed)}s)")
                 self.safe_set_rate(self.min_amps, disable=False, guest_mode=(guest_mode == "on"))
         else:
             # 6. SURPLUS LOGIC
@@ -149,13 +162,16 @@ class SolarEVCharger(hass.Hass):
         try:
             charger_state = self.get_state(self.entities["charger_switch"])
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
+            ev_soc = int(float(self.get_state(self.entities["ev_soc"])))
             
             if not guest_mode:
                 present_limit = int(float(self.get_state(self.entities["charge_limit"])))
                 target_soc = int(float(self.get_state(self.entities["target_soc"])))
         except Exception as e:
-            self.log(f"WARNING: safe_set_rate skipped, state fetch failed: {e}")
-            return
+            self.log(f"WARNING: safe_set_rate state fetch failed, using hardcoded defaults. {e}")
+            charger_state = 'on'
+            present_rate = 40
+            ev_soc = 45
 
         if disable:
             changes_made = False
@@ -167,7 +183,7 @@ class SolarEVCharger(hass.Hass):
                     self.log("FORCE [Guest]: Turning Emporia Station OFF (No Solar/Night).")
                     changes_made = True
                 if present_rate != self.min_amps:
-                    self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
+                    self.call_service("number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
                     changes_made = True
             else:
                 # TESLA DEFICIT PATH: Clamp car SoC via BLE to 50%, leave station hardware active
@@ -179,8 +195,13 @@ class SolarEVCharger(hass.Hass):
                     changes_made = True
                     
                 if present_rate != self.min_amps:
-                    self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
+                    self.call_service("number/set_value", entity_id=self.entities["charge_rate"], value=self.min_amps)
                     self.log(f"FORCE [Tesla]: Setting master charge rate to minimum ({self.min_amps}A).")
+                    changes_made = True
+
+                if ev_soc < 50 and charger_state != "off":
+                    self.log(f"ALERT: Tesla SOC is below 50% at {ev_soc}%. Turning off charger.")
+                    self.turn_off(self.entities["charger_switch"])
                     changes_made = True
 
             # Exit without evaluation lock if states match target parameters
@@ -203,7 +224,7 @@ class SolarEVCharger(hass.Hass):
             
             # BOTH MODES: Modulate charge current via the master rate entity
             if present_rate != amps:
-                self.call_service("input_number/set_value", entity_id=self.entities["charge_rate"], value=amps)
+                self.call_service("number/set_value", entity_id=self.entities["charge_rate"], value=amps)
 
             if not guest_mode:
                 # Tesla-specific internal target updates
@@ -212,6 +233,7 @@ class SolarEVCharger(hass.Hass):
                     self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=target_soc)
                     self.notify_handler = self.run_in(self._enable_notice, 60)
 
+        # Local eval to ensure we only update every self.cooldown seconds at most, preventing BLE flooding and rapid state changes
         self.eval_locked = True
         self.run_in(self._unlock_eval, self.cooldown)
 

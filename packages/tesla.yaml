@@ -16,27 +16,33 @@ template:
       state: '{{ is_state(''binary_sensor.tesla_locked'', ''off'') }}'
 
   - sensor:
-      # This is needed to to flipping of milage reported by odometer. Prevents over-counting
-      - name: "Tesla Odometer Stable"
-        unit_of_measurement: "mi"
-        device_class: distance
-        state_class: total_increasing
-        state: >
-          {% set current = states('sensor.tesla_odometer') | float(0) %}
-          {% set last = states('sensor.tesla_odometer_stable') | float(0) %}
-          {# Only update if the new value is greater than the last known value #}
+    # This is needed to to flipping of milage reported by odometer. Prevents over-counting
+    - name: "Tesla Odometer Stable"
+      unit_of_measurement: "mi"
+      device_class: distance
+      state_class: total_increasing
+      state: >
+        {% set current = states('sensor.tesla_odometer') | float(-1) %}
+        {% set last = states('sensor.tesla_odometer_stable') | float(-1) %}
+        
+        {# If the current reading is invalid, unavailable, or 0, stick to the last known good value #}
+        {% if current <= 0 %}
+          {{ last if last > 0 else 0 }}
+        {% else %}
+          {# Only update if the new value is greater than or equal to the last known value #}
           {{ [current, last] | max }}
+        {% endif %}
 
 input_number:
   # Emporia View, Appdaemon app, and Tesla BLE follow this
-  tesla_charge_rate_master:
-    name: Emporia Tesla Charge Rate
-    initial: 40
-    min: 6
-    max: 40
-    step: 1
-    mode: slider  # or 'box' if you want a number input box instead
-    unit_of_measurement: "A"  
+  # tesla_charge_rate_master:
+  #   name: Emporia Tesla Charge Rate
+  #   initial: 40
+  #   min: 6
+  #   max: 40
+  #   step: 1
+  #   mode: slider  # or 'box' if you want a number input box instead
+  #   unit_of_measurement: "A"  
   tesla_solar_target_soc_limit:
     name: EV Charge Solar SOC Target
     min: 50
@@ -615,6 +621,13 @@ mqtt:
       icon: mdi:ev-plug-tesla
 
 script:
+  request_tesla_sleep:
+    alias: "Request Tesla Sleep"
+    icon: mdi:sleep
+    mode: single
+    sequence:
+      - service: rest_command.tesla_request_sleep
+
   force_tesla_grid_charge_to_safe_soc:
     alias: "Force Tesla Grid Charge to Safe SOC"
     icon: mdi:battery-sync
@@ -636,9 +649,14 @@ script:
           entity_id: input_boolean.ev_charge_override
 
       # Set Tesla charge rate to 40A
-      - service: input_number.set_value
+      # - service: input_number.set_value
+      #   target:
+      #     entity_id: input_number.tesla_charge_rate_master
+      #   data:
+      #     value: 40
+      - service: number.set_value
         target:
-          entity_id: input_number.tesla_charge_rate_master
+          entity_id: number.tesla_current_limit
         data:
           value: 40
 
@@ -658,11 +676,6 @@ script:
       # Wait 60 seconds
       - delay: "00:01:00"
 
-      # Turn off Emporia charger
-      - service: switch.turn_off
-        target:
-          entity_id: switch.emporia_charger
-
       # Disable EV charge override
       - service: input_boolean.turn_off
         target:
@@ -672,6 +685,13 @@ script:
       - service: switch.turn_on
         target:
           entity_id: switch.solark_sol_ark_system_tou
+
+      - delay: "00:01:00"
+
+      - service: mqtt.publish
+        data:
+          topic: tesla_ble/VIN/charging
+          payload: "stop"
 
   tesla_hvac:
     sequence:
@@ -726,7 +746,13 @@ script:
             - select.tesla_ble_heated_seat_front_right
             - select.tesla_ble_heated_seat_front_left
 
-# rest_command:
+
+rest_command:
+  # Put car to sleep
+  tesla_request_sleep:
+    url: "http://10.0.1.22:4001/api/car/1/logging/suspend"
+    method: PUT
+
 #   tesla_ble_proxy:
 #     url: "http://100.74.170.3:8080/api/1/vehicles/VIN/command/{{ command }}"
 #     method: post
@@ -758,32 +784,54 @@ script:
 #     restore: true
 
 automation:
-  - alias: "Set Emporia Charger Current from Slider"
-    mode: restart
+  - alias: "Tesla Exceeds 20 Miles From Home"
+    description: "Triggers when the Tesla is more than 20 miles away from home."
     trigger:
-      - platform: state
-        entity_id: input_number.tesla_charge_rate_master
-    condition: []
+      - platform: numeric_state
+        entity_id: sensor.tesla_home_proximity_tesla_location_distance
+        above: 20
+        for:
+          hours: 0
+          minutes: 2
+          seconds: 0
+    condition: "{{ is_state('input_boolean.guest_mode') == 'off'}}"
     action:
-      - service: emporia_vue.set_charger_current
+      - service: notify.signal_self
         data:
-          current: "{{ states('input_number.tesla_charge_rate_master') | int }}"
-        target:
-          entity_id: switch.emporia_charger
-
-  - alias: "Sync Tesla Charge Rate Slider with Charger"
-    mode: restart
-    trigger:
-      - platform: state
-        entity_id: switch.emporia_charger
-        attribute: charging_rate
-    condition: []
-    action:
+          message: "Tesla now more than 20 miles away from home, setting away boost to 80"
       - service: input_number.set_value
         target:
-          entity_id: input_number.tesla_charge_rate_master
+          entity_id: input_number.cool_boost_unoccupied_target
         data:
-          value: "{{ state_attr('switch.emporia_charger', 'charging_rate') | int }}"
+          value: 80
+    mode: single
+
+  # - alias: "Set Emporia Charger Current from Slider"
+  #   mode: restart
+  #   trigger:
+  #     - platform: state
+  #       entity_id: input_number.tesla_charge_rate_master
+  #   condition: []
+  #   action:
+  #     - service: emporia_vue.set_charger_current
+  #       data:
+  #         current: "{{ states('input_number.tesla_charge_rate_master') | int }}"
+  #       target:
+  #         entity_id: switch.emporia_charger
+
+  # - alias: "Sync Tesla Charge Rate Slider with Charger"
+  #   mode: restart
+  #   trigger:
+  #     - platform: state
+  #       entity_id: switch.emporia_charger
+  #       attribute: charging_rate
+  #   condition: []
+  #   action:
+  #     - service: input_number.set_value
+  #       target:
+  #         entity_id: input_number.tesla_charge_rate_master
+  #       data:
+  #         value: "{{ state_attr('switch.emporia_charger', 'charging_rate') | int }}"
 
   # This fixes the issue of charging not starting due to "stuck" charge rate
   - alias: "Tesla: Reduce Charge Rate from 40 to 39"
@@ -791,7 +839,7 @@ automation:
     description: "Drops charge rate to 39A after being at 40A for 5 minutes"
     trigger:
       - platform: state
-        entity_id: input_number.tesla_charge_rate_master
+        entity_id: number.tesla_current_limit
         # This state is a float so we need the decimal
         to: "40.0"
         for:
@@ -800,18 +848,21 @@ automation:
         entity_id: sensor.tesla_state
         to: "charging"
     action:
-      - service: input_number.set_value
+      - service: number.set_value
         target:
-          entity_id: input_number.tesla_charge_rate_master
+          entity_id: number.tesla_current_limit
         data:
           value: 39
     mode: restart
 
-  - alias: Tesla BLE - Hourly Refresh
-    description: Press force update and turn on polling every hour
+  # Disabled -- this causes car wake up
+  - alias: Tesla BLE - Hourly Refresh if Unknown
+    id: tesla_ble_hourly_refresh_if_unknown
+    description: Press force update and turn on polling every hour if BLE unknown
     trigger:
       - platform: time_pattern
-        minutes: "0"
+        minutes: "/30"
+    condition: "{{ is_state('number.tesla_ble_charging_limit', 'unknown') }}"
     action:
       - service: button.press
         target:

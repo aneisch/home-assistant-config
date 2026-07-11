@@ -2,7 +2,7 @@ title: Server Status
 icon: mdi:server
 cards:
   # - !include .cards/kitchen_timer.yaml
-  - !include .cards/grill.yaml
+  # - !include .cards/grill.yaml
 
   - type: vertical-stack
     cards:
@@ -158,14 +158,14 @@ cards:
       #   detail: 2
       #   hours_to_show: 730
       #   icon: mdi:water
-  - type: entities
-    show_header_toggle: false
-    title: UPS
-    entities:
-      - sensor.ups_status
-      - sensor.ups_battery
-      - sensor.ups_time_left
-      - sensor.ups_load
+  # - type: entities
+  #   show_header_toggle: false
+  #   title: UPS
+  #   entities:
+  #     - sensor.ups_status
+  #     - sensor.ups_battery
+  #     - sensor.ups_time_left
+  #     - sensor.ups_load
 
   # - type: entities
   #   show_header_toggle: false
@@ -283,18 +283,18 @@ cards:
               {%- endif -%}
             {%- endfor %}
 
-  - type: custom:k-printer-card
-    name: "3D Printer"
-    #camera: camera.ender3v3ke_4bc5_printer_camera
-    status: sensor.ender3v3ke_4bc5_print_status
-    progress: sensor.ender3v3ke_4bc5_print_progress
-    time_left: sensor.ender3v3ke_4bc5_print_time_left
-    nozzle: sensor.ender3v3ke_4bc5_nozzle_temperature
-    bed: sensor.ender3v3ke_4bc5_bed_temperature
-    layer: sensor.ender3v3ke_4bc5_working_layer
-    total_layers: sensor.ender3v3ke_4bc5_total_layers
-    power: switch.sonoff_s31_1_s31_1_relay
-    #light: switch.ender3v3ke_4bc5_light
-    pause_btn: button.ender3v3ke_4bc5_pause_print
-    resume_btn: button.ender3v3ke_4bc5_resume_print
-    stop_btn: button.ender3v3ke_4bc5_stop_print
+  # - type: custom:k-printer-card
+  #   name: "3D Printer"
+  #   #camera: camera.ender3v3ke_4bc5_printer_camera
+  #   status: sensor.ender3v3ke_4bc5_print_status
+  #   progress: sensor.ender3v3ke_4bc5_print_progress
+  #   time_left: sensor.ender3v3ke_4bc5_print_time_left
+  #   nozzle: sensor.ender3v3ke_4bc5_nozzle_temperature
+  #   bed: sensor.ender3v3ke_4bc5_bed_temperature
+  #   layer: sensor.ender3v3ke_4bc5_working_layer
+  #   total_layers: sensor.ender3v3ke_4bc5_total_layers
+  #   power: switch.sonoff_s31_1_s31_1_relay
+  #   #light: switch.ender3v3ke_4bc5_light
+  #   pause_btn: button.ender3v3ke_4bc5_pause_print
+  #   resume_btn: button.ender3v3ke_4bc5_resume_print
+  #   stop_btn: button.ender3v3ke_4bc5_stop_print

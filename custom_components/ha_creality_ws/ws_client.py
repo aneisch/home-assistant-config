@@ -18,6 +18,7 @@ from .const import (
     RETRY_BACKOFF_MULTIPLIER,
     HEARTBEAT_SECS,
     PROBE_ON_SILENCE_SECS,
+    WS_SUBPROTOCOL,
     WS_URL_TEMPLATE,
 )
 from .utils import coerce_numbers
@@ -29,6 +30,10 @@ OnMessage = Callable[[dict[str, Any]], Awaitable[None]]
 GET_REQPRINTERPARA_SEC = 5.0         # curPosition, autohome, etc.
 GET_PRINT_OBJECTS_SEC = 2.0          # objects/exclusions/current object
 GET_BOXS_INFO_SEC = 300.0             # CFS box info (temp/humidity/filaments) every 5m
+# A connection must survive this long before we consider it stable enough to
+# reset the failure/backoff counters. Prevents fast connect/drop flapping from
+# masquerading as healthy reconnects.
+STABLE_CONNECT_SECS = 10.0
 
 
 
@@ -206,31 +211,32 @@ class KClient:
                         pass
                     continue
 
+            connected_this_attempt = False
             try:
                 url = self._url()
                 _LOGGER.debug("K WS connecting host=%s url=%s", self._host, url)
                 # Disable library pings; we do app-level heartbeat + periodic GETs.
-                async with websockets.connect(url, ping_interval=None) as ws:
+                # Advertise the printer web UI's subprotocol for handshake parity.
+                async with websockets.connect(
+                    url,
+                    ping_interval=None,
+                    subprotocols=[WS_SUBPROTOCOL],
+                ) as ws:
                     self._ws = ws
-                    self._ws_ready.set()  # signal connected
-                    _LOGGER.info("K WS connected host=%s url=%s", self._host, url)
-                    self._connected_once.set()
-                    
-                    # Store connect time to calculate duration later
-                    self._last_rx = time.monotonic()
+                    connected_this_attempt = True
+                    _LOGGER.debug("K WS handshake connected host=%s url=%s", self._host, url)
+
+                    # Store connect time to calculate duration later. Do NOT set
+                    # _ws_ready/_connected_once/_last_rx here: readiness and
+                    # availability require actual data, not just a TCP handshake.
                     self.uptime_start = time.monotonic()
                     self.reconnect_count += 1
-                    
-                    # Reset failure counters on successful connection
-                    connect_failures = 0
-                    backoff = RETRY_MIN_BACKOFF
 
                     # background tasks
                     self._hb_task = asyncio.create_task(self._heartbeat(), name="K-ws-heartbeat")
                     self._tick_task = asyncio.create_task(self._periodic_gets(), name="K-ws-ticker")
 
                     async for raw in ws:
-                        self._last_rx = time.monotonic()
                         # websockets>=15: text is str, binary is bytes
                         if isinstance(raw, (bytes, bytearray)):
                             text = raw.decode("utf-8", "ignore")
@@ -250,6 +256,7 @@ class KClient:
 
                         # Heartbeat handling
                         if isinstance(payload, dict) and payload.get("ModeCode") == "heart_beat":
+                            self._mark_ready(url)
                             # ACK immediately; literal 'ok' (no JSON)
                             try:
                                 await ws.send("ok")
@@ -258,6 +265,7 @@ class KClient:
                             continue
 
                         if isinstance(payload, dict):
+                            self._mark_ready(url)
                             merged = coerce_numbers(payload)
                             self._state.update(merged)
                             self.msg_count += 1
@@ -268,11 +276,21 @@ class KClient:
                         else:
                             _LOGGER.debug("K WS unexpected frame type: %r", type(payload))
 
+                    # Connection closed cleanly. Only treat it as a healthy
+                    # session (resetting backoff) if it survived long enough.
+                    if time.monotonic() - self.uptime_start >= STABLE_CONNECT_SECS:
+                        connect_failures = 0
+                        backoff = RETRY_MIN_BACKOFF
+
             except asyncio.CancelledError:
                 break
             except Exception as exc:
+                short_lived = (
+                    connected_this_attempt
+                    and time.monotonic() - self.uptime_start < STABLE_CONNECT_SECS
+                )
                 connect_failures += 1
-                
+
                 # Check power status before logging loud errors.
                 # If power is OFF, we treat it as expected (debug only).
                 is_off = self._check_power_status and self._check_power_status()
@@ -282,7 +300,10 @@ class KClient:
                         "K WS closed/failed (power OFF) host=%s reason=%s", self._host, exc
                     )
                 elif self._is_benign_close(exc):
-                    _LOGGER.debug("K WS closed host=%s reason=%s", self._host, exc)
+                    _LOGGER.debug(
+                        "K WS closed host=%s reason=%s short_lived=%s attempt=%d",
+                        self._host, exc, short_lived, connect_failures,
+                    )
                 else:
                     # Log a single warning after 3 failures (confirms it's not transient)
                     # All other failures are debug-only to avoid log spam
@@ -345,14 +366,17 @@ class KClient:
 
         _LOGGER.debug("K WS loop exited host=%s", self._host)
 
-    async def _reset_backoff_after_delay(self):
-        """Wait 5 seconds after connection; if still connected, reset backoff."""
-        try:
-            await asyncio.sleep(5.0)
-            if self._ws and not self._stop.is_set():
-                pass
-        except Exception:
-            pass
+    def _mark_ready(self, url: str) -> None:
+        """Mark the connection ready on the first valid frame.
+
+        Readiness (and entity availability, which keys off RX recency) requires
+        actual printer data, not just a completed TCP/WS handshake.
+        """
+        self._last_rx = time.monotonic()
+        if not self._ws_ready.is_set():
+            self._ws_ready.set()
+            self._connected_once.set()
+            _LOGGER.info("K WS ready host=%s url=%s", self._host, url)
 
     async def _heartbeat(self):
         """Monitor connection health by checking RX activity.
@@ -360,11 +384,13 @@ class KClient:
         application-level staleness check (Watchdog) instead.
         """
         try:
-            # Initial probe on silence (e.g. after fresh connect)
+            # Initial probe on silence (e.g. after fresh connect). Until the
+            # first frame arrives _last_rx is stale, so measure silence from the
+            # connect time to avoid a premature "dead connection" verdict.
             await asyncio.sleep(PROBE_ON_SILENCE_SECS)
             if self._stop.is_set():
                 return
-            if time.monotonic() - self._last_rx > PROBE_ON_SILENCE_SECS:
+            if time.monotonic() - max(self._last_rx, self.uptime_start) > PROBE_ON_SILENCE_SECS:
                 try:
                     await self._send_json({"method": "get", "params": {"ReqPrinterPara": 1}})
                 except Exception:
@@ -377,9 +403,9 @@ class KClient:
                 ws = self._ws
                 if not ws:
                     break
-                
+
                 now = time.monotonic()
-                silence_duration = now - self._last_rx
+                silence_duration = now - max(self._last_rx, self.uptime_start)
 
                 # If connection is quiet, try to provoke a response w/ benign command
                 if silence_duration > HEARTBEAT_SECS:
@@ -404,9 +430,18 @@ class KClient:
     async def _periodic_gets(self):
         """Mirror the web UI's periodic GETs so the printer keeps streaming state."""
         try:
-            t_para = 0.0
-            t_objs = 0.0
-            t_cfs = 0.0
+            await asyncio.sleep(2.0)
+            now = time.monotonic()
+            # Back-date each timer by its own interval so the first poll of each
+            # fires on the first ready iteration instead of a full interval after
+            # connect. Critical for CFS: boxsInfo is only sent on request (never
+            # in the regular stream), so a `now`-initialised t_cfs left CFS
+            # sensors unavailable for the full 5-minute interval after every
+            # (re)connect (issue #99). The _ws_ready gate below still prevents
+            # sending before the connection has proven it's talking.
+            t_para = now - GET_REQPRINTERPARA_SEC
+            t_objs = now - GET_PRINT_OBJECTS_SEC
+            t_cfs = now - GET_BOXS_INFO_SEC
             # Staggered loop to avoid bursts
             while True:
                 now = time.monotonic()
@@ -415,6 +450,10 @@ class KClient:
                     break
                 if self._stop.is_set():
                     break
+                # Hold off issuing GETs until the printer has proven it's talking.
+                if not self._ws_ready.is_set():
+                    await asyncio.sleep(0.2)
+                    continue
                 if now - t_para >= GET_REQPRINTERPARA_SEC:
                     try:
                         await self._send_json({"method": "get", "params": {"ReqPrinterPara": 1}})

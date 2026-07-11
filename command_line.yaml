@@ -55,3 +55,31 @@
     json_attributes:
         - urls
 
+- sensor:
+    name: "Modem WAN Connection"
+    command: >
+        curl -s -k 'https://10.0.1.1/cgi-bin/status.ha' | grep -A 1 'WAN Connection:' | tail -n 1 | sed -e 's/<[^>]*>//g' | xargs
+
+- sensor:
+    # To satellite AP
+    name: "Garage AP to Satellite AP Speed"
+    command: >
+        curl -s 'http://10.0.1.2/JNAP/'   -H 'Accept: */*'   -H 'Cache-Control: no-cache'   -H 'Content-Type: application/json; charset=UTF-8'   -b 'visited-index=true; admin-auth=Basic%20YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ%3D%3D'   -H 'X-JNAP-Action: http://linksys.com/jnap/core/Transaction'   -H 'X-JNAP-Authorization: Basic YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ=='   --data-raw '[{"action":"http://linksys.com/jnap/router/GetEthernetPortConnections","request":{}}]'   --insecure | jq -r '.responses[0].output.wanPortConnection'
+
+- sensor:
+    # To Modem
+    name: "Garage AP to Modem Speed"
+    command: >
+        curl -s 'http://10.0.1.2/JNAP/'   -H 'Accept: */*'   -H 'Cache-Control: no-cache'   -H 'Content-Type: application/json; charset=UTF-8'   -b 'visited-index=true; admin-auth=Basic%20YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ%3D%3D'   -H 'X-JNAP-Action: http://linksys.com/jnap/core/Transaction'   -H 'X-JNAP-Authorization: Basic YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ=='   --data-raw '[{"action":"http://linksys.com/jnap/router/GetEthernetPortConnections","request":{}}]'   --insecure | jq -r '.responses[0].output.lanPortConnections[3]'
+
+- sensor:
+    # To main AP
+    name: "Office AP to Main AP Speed"
+    command: >
+        curl -s 'http://10.0.1.50/JNAP/'   -H 'Accept: */*'   -H 'Cache-Control: no-cache'   -H 'Content-Type: application/json; charset=UTF-8'   -b 'visited-index=true; admin-auth=Basic%20YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ%3D%3D'   -H 'X-JNAP-Action: http://linksys.com/jnap/core/Transaction'   -H 'X-JNAP-Authorization: Basic YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ=='   --data-raw '[{"action":"http://linksys.com/jnap/router/GetEthernetPortConnections","request":{}}]'   --insecure | jq -r '.responses[0].output.wanPortConnection'
+
+- sensor:
+    # To network switch
+    name: "Office AP to Switch Speed"
+    command: >
+        curl -s 'http://10.0.1.50/JNAP/'   -H 'Accept: */*'   -H 'Cache-Control: no-cache'   -H 'Content-Type: application/json; charset=UTF-8'   -b 'visited-index=true; admin-auth=Basic%20YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ%3D%3D'   -H 'X-JNAP-Action: http://linksys.com/jnap/core/Transaction'   -H 'X-JNAP-Authorization: Basic YWRtaW46RmxhZ21hbi1jZXJ0YWludHktY3Jpc3B5MQ=='   --data-raw '[{"action":"http://linksys.com/jnap/router/GetEthernetPortConnections","request":{}}]'   --insecure | jq -r '.responses[0].output.lanPortConnections[2]'

@@ -36,6 +36,10 @@ services:
         environment:
             - TZ=America/Chicago
         network_mode: host
+        # also added to /etc/hosts
+        extra_hosts:
+            - "go2rtc.home.domain.com:10.0.1.22"    
+            - "traefik.home.domain.com:10.0.1.22"    
         cap_add:
             - NET_ADMIN
             - NET_RAW

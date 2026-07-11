@@ -35,6 +35,7 @@ from custom_components.mail_and_packages.const import (
     AMAZON_OTP_REGEX,
     AMAZON_OTP_SUBJECT,
     AMAZON_PACKAGES,
+    AMAZON_SHIPMENT_SUBJECT,
     ATTR_COUNT,
     CONF_AMAZON_DAYS,
     CONF_AMAZON_DOMAIN,
@@ -48,7 +49,7 @@ from custom_components.mail_and_packages.utils.amazon import (
     amazon_email_addresses,
     download_amazon_img,
     extract_order_numbers,
-    get_amazon_image_urls,
+    filter_amazon_strings,
     get_decoded_subject,
     get_email_body,
     parse_amazon_arrival_date,
@@ -103,12 +104,23 @@ class AmazonShipper(Shipper):
         days = self.config.get(CONF_AMAZON_DAYS, DEFAULT_AMAZON_DAYS)
         domain = self.config.get(CONF_AMAZON_DOMAIN)
 
-        if sensor_type in [AMAZON_PACKAGES, AMAZON_ORDER]:
-            param = "count" if sensor_type == AMAZON_PACKAGES else "order"
-            result = await self._parse_amazon_emails(
-                account, param, fwds, days, domain, cache, forwarding_header
+        if sensor_type == AMAZON_PACKAGES:
+            count = await self._parse_amazon_emails(
+                account, "count", fwds, days, domain, cache, forwarding_header
             )
-            return {sensor_type: result}
+            orders = await self._parse_amazon_emails(
+                account, "order", fwds, days, domain, cache, forwarding_header
+            )
+            return {
+                AMAZON_PACKAGES: count,
+                AMAZON_ORDER: orders,
+            }
+
+        if sensor_type == AMAZON_ORDER:
+            result = await self._parse_amazon_emails(
+                account, "order", fwds, days, domain, cache, forwarding_header
+            )
+            return {AMAZON_ORDER: result}
 
         if sensor_type == AMAZON_HUB:
             return await self._amazon_hub(account, fwds, cache, forwarding_header)
@@ -198,7 +210,17 @@ class AmazonShipper(Shipper):
 
         if param == "count":
             return final_count
-        return list(context["all_shipped_orders"])
+
+        return [
+            order_id
+            for order_id in context["all_shipped_orders"]
+            if context["packages_arriving_today"].get(order_id, 0)
+            > context["delivered_packages"].get(order_id, 0)
+            or (
+                context["packages_arriving_today"].get(order_id, 0) == 0
+                and context["delivered_packages"].get(order_id, 0) == 0
+            )
+        ]
 
     async def _process_amazon_email(
         self,
@@ -330,26 +352,84 @@ class AmazonShipper(Shipper):
 
         address_list = amazon_email_addresses(fwds, amazon_domain)
         _LOGGER.debug("Amazon email search addresses: %s", address_list)
+        if amazon_domain:
+            subjects = filter_amazon_strings(subjects, amazon_domain)
+
         (server_response, data) = await email_search(
-            account,
-            address_list,
-            today,
-            subjects,
-            forwarding_header,
+            account=account,
+            address=address_list,
+            date=today,
+            subject=subjects,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0]:
             for email_id in data[0].split():
-                count += 1
-                urls = await get_amazon_image_urls(email_id, account, cache)
-                for url in urls:
-                    if url not in all_image_urls:
-                        all_image_urls.append(url)
+                fetch_id = (
+                    email_id.decode() if isinstance(email_id, bytes) else email_id
+                )
+                if cache:
+                    msg_data = (await cache.fetch(fetch_id, "(RFC822)"))[1]
+                else:
+                    msg_data = (await email_fetch(account, fetch_id, "(RFC822)"))[1]
+
+                is_delivered, urls = self._is_amazon_delivered(msg_data, subjects)
+                if is_delivered:
+                    count += 1
+                    for url in urls:
+                        if url not in all_image_urls:
+                            all_image_urls.append(url)
 
         await self._process_amazon_images(
             all_image_urls, image_path, amazon_image_name, count
         )
 
         return count
+
+    def _is_amazon_delivered(
+        self, msg_data: list, subjects: list[str]
+    ) -> tuple[bool, list[str]]:
+        """Verify if email is a delivered notification and return image URLs."""
+        for response_part in msg_data:
+            if not isinstance(response_part, (bytes, bytearray)):
+                continue
+            msg = email.message_from_bytes(response_part)
+            subject = get_decoded_subject(msg)
+            if not subject:
+                continue
+
+            # Check if subject contains any delivered keyword (case-insensitive)
+            has_delivered = any(s.lower() in subject.lower() for s in subjects)
+            # Check if subject contains ordered or shipped keywords (case-insensitive)
+            has_ordered = any(
+                s.lower() in subject.lower() for s in AMAZON_ORDERED_SUBJECT
+            )
+            has_shipped = any(
+                s.lower() in subject.lower() for s in AMAZON_SHIPMENT_SUBJECT
+            )
+
+            if has_delivered and not has_ordered and not has_shipped:
+                urls = self._extract_amazon_image_urls(msg)
+                return True, urls
+        return False, []
+
+    def _extract_amazon_image_urls(self, msg: email.message.Message) -> list[str]:
+        """Extract image URLs from Amazon email body."""
+        urls = []
+        pattern = re.compile(rf"{const.AMAZON_IMG_PATTERN}")
+        for part in msg.walk():
+            if part.get_content_type() != "text/html":
+                continue
+            part_payload = part.get_payload(decode=True)
+            if part_payload:
+                part_content = part_payload.decode("utf-8", "ignore")
+                found = pattern.findall(part_content)
+                for url in found:
+                    if url[1] not in const.AMAZON_IMG_LIST:
+                        continue
+                    full_url = url[0] + url[1] + url[2]
+                    if full_url not in urls:
+                        urls.append(full_url)
+        return urls
 
     async def _process_amazon_images(
         self,
@@ -449,7 +529,8 @@ class AmazonShipper(Shipper):
                 address_list,
                 today,
                 search_subject,
-                forwarding_header,
+                body=AMAZON_HUB_BODY,
+                header=forwarding_header,
             )
             if server_response == "OK" and data[0] is not None:
                 for num in data[0].split():
@@ -492,7 +573,8 @@ class AmazonShipper(Shipper):
             address_list,
             today,
             AMAZON_OTP_SUBJECT,
-            forwarding_header,
+            body=AMAZON_OTP_REGEX,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             for num in data[0].split():
@@ -524,11 +606,11 @@ class AmazonShipper(Shipper):
         today = get_today().strftime("%d-%b-%Y")
         address_list = amazon_email_addresses(fwds, domain)
         (server_response, data) = await email_search(
-            account,
-            address_list,
-            today,
-            AMAZON_EXCEPTION_SUBJECT,
-            forwarding_header,
+            account=account,
+            address=address_list,
+            date=today,
+            subject=AMAZON_EXCEPTION_SUBJECT,
+            header=forwarding_header,
         )
         if server_response == "OK" and data[0] is not None:
             order_pattern = re.compile(r"[0-9]{3}-[0-9]{7}-[0-9]{7}")

@@ -89,20 +89,30 @@ def filter_amazon_strings(strings: list[str], domain: str) -> list[str]:
 def get_decoded_subject(msg: email.message.Message) -> str:
     """Decode email subject."""
     header_val = msg["subject"]
-    if not header_val:
-        return ""
-    decoded = decode_header(header_val)[0]
-    subject_bytes, encoding = decoded
-    if encoding:
-        try:
+    if header_val:
+        decoded_parts = []
+        for subject_bytes, encoding in decode_header(header_val):
             if isinstance(subject_bytes, bytes):
-                return subject_bytes.decode(encoding, "ignore")
-            return str(subject_bytes)
-        except (LookupError, UnicodeError):
-            pass
-    if isinstance(subject_bytes, bytes):
-        return subject_bytes.decode("utf-8", "ignore")
-    return str(subject_bytes)
+                if encoding:
+                    try:
+                        decoded_parts.append(subject_bytes.decode(encoding, "ignore"))
+                        continue
+                    except (LookupError, UnicodeError):
+                        pass
+                decoded_parts.append(subject_bytes.decode("utf-8", "ignore"))
+            else:
+                decoded_parts.append(str(subject_bytes))
+        return "".join(decoded_parts)
+
+    body = get_email_body(msg)
+    if not body:
+        return ""
+    title_match = re.search(
+        r"<title[^>]*>([^<]+)</title>", body, re.IGNORECASE | re.DOTALL
+    )
+    if not title_match:
+        return ""
+    return title_match.group(1).strip()
 
 
 def get_email_body(msg: email.message.Message) -> str:
@@ -142,16 +152,40 @@ async def parse_amazon_arrival_date(
 
     # Try using regex for more precise extraction of the arrival date string
     if date_str := amazon_date_regex(email_msg):
+        base_datetime = datetime.datetime.combine(
+            email_date or today_date,
+            datetime.time(),
+        )
+
+        # 1. Try parsing without PREFER_DATES_FROM: future to handle relative terms (any language)
+        dateobj = await hass.async_add_executor_job(
+            partial(
+                dateparser.parse,
+                date_str,
+                settings={
+                    "RELATIVE_BASE": base_datetime,
+                    "RETURN_AS_TIMEZONE_AWARE": False,
+                },
+            ),
+        )
+        if dateobj:
+            parsed_date = dateobj.date()
+            base_date = email_date or today_date
+            # Only accept matches that resolve to email_date (today) or email_date + 1 day (tomorrow)
+            if (
+                parsed_date == base_date
+                or parsed_date == base_date + datetime.timedelta(days=1)
+            ):
+                return parsed_date
+
+        # 2. Fall back to parsing with PREFER_DATES_FROM: future for absolute dates
         dateobj = await hass.async_add_executor_job(
             partial(
                 dateparser.parse,
                 date_str,
                 settings={
                     "PREFER_DATES_FROM": "future",
-                    "RELATIVE_BASE": datetime.datetime.combine(
-                        email_date or today_date,
-                        datetime.time(),
-                    ),
+                    "RELATIVE_BASE": base_datetime,
                     "RETURN_AS_TIMEZONE_AWARE": False,
                 },
             ),
@@ -241,11 +275,11 @@ async def search_amazon_emails(
         amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
 
     (server_response, sdata) = await email_search(
-        account,
-        address_list,
-        tfmt,
-        amazon_subjects,
-        forwarding_header,
+        account=account,
+        address=address_list,
+        date=tfmt,
+        subject=amazon_subjects,
+        header=forwarding_header,
     )
 
     if server_response != "OK" or not sdata[0]:
@@ -356,7 +390,7 @@ def amazon_date_regex(email_msg: str, patterns: list[str] | None = None) -> str 
         patterns = AMAZON_TIME_PATTERN_REGEX
 
     for pattern in patterns:
-        if (found := re.compile(pattern).search(email_msg)) is not None:
+        if (found := re.compile(pattern, re.IGNORECASE).search(email_msg)) is not None:
             if found.groups():
                 return found.group(1)
     return None
