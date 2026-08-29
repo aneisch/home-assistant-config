@@ -1,6 +1,41 @@
 const CARD_TAG = "k-printer-card";
 const EDITOR_TAG = "k-printer-card-editor";
 
+const I18N_URL_BASE = "/ha_creality_ws/i18n/";
+const _i18nData = {};
+const _i18nPromises = {};
+function _loadI18n(lang) {
+  if (_i18nData[lang]) return Promise.resolve(_i18nData[lang]);
+  if (_i18nPromises[lang]) return _i18nPromises[lang];
+  _i18nPromises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`)
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (data) _i18nData[lang] = data;
+      else _i18nPromises[lang] = null;
+      return data;
+    })
+    .catch(() => { _i18nPromises[lang] = null; return null; });
+  return _i18nPromises[lang];
+}
+function _resolveLang(hass) {
+  return hass?.locale?.language || hass?.language || "en";
+}
+function _translate(hass, section, fallbackDict, key) {
+  const lang = _resolveLang(hass);
+  const short = lang.split("-")[0];
+  const remote = _i18nData[lang]?.[section] ?? _i18nData[short]?.[section];
+  if (remote && key in remote) return remote[key];
+  const remoteEn = _i18nData["en"]?.[section];
+  if (remoteEn && key in remoteEn) return remoteEn[key];
+  return fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key;
+}
+function _requestI18n(instance, hass, onLoaded) {
+  if (instance._i18nRequested) return;
+  instance._i18nRequested = true;
+  const lang = _resolveLang(hass).split("-")[0];
+  Promise.all([_loadI18n("en"), lang !== "en" ? _loadI18n(lang) : null]).then(onLoaded);
+}
+
 // Per-card-id throttle for ll-rebuild dispatches. ll-rebuild may cause Lovelace to
 // recreate the element, in which case instance state (this._cardSize) is reset. A
 // module-level record survives recreation and prevents a measure→dispatch→recreate
@@ -88,7 +123,9 @@ function generateCardId(config) {
 }
 
 function fmtTimeLeft(seconds) {
-  const s = Number(seconds) || 0;
+  // Floor to whole seconds so a fractional value (some firmwares report a float)
+  // renders as e.g. 2:25 instead of 2:25.6789 and doesn't reflow the row every poll.
+  const s = Math.floor(Number(seconds) || 0);
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
   if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   if (m > 0) return `${m}:${String(sec).padStart(2, "0")}`;
@@ -212,8 +249,18 @@ class KPrinterCard extends HTMLElement {
     this._render();
   }
 
+  // i18n helpers -------------------------------------------------------
+  _resolveLanguage() {
+    return _resolveLang(this._hass);
+  }
+  _t(key) {
+    return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key);
+  }
+  // ---------------------------------------------------------------------
+
   set hass(hass) {
     this._hass = hass;
+    _requestI18n(this, hass, () => { if (this._root) this._update(); });
     if (this._root) {
       // Apply theme first, then update
       this._applyTheme();
@@ -420,6 +467,15 @@ class KPrinterCard extends HTMLElement {
 
       if (id === "power") {
         const eid = this._resolveEntityId(this._cfg.power, ["switch"]);
+        // Confirm only when the press would turn the printer OFF (not when
+        // turning it on), with a stronger warning while a print is in progress
+        // so an accidental tap can't kill a running job.
+        if (this._hass?.states?.[eid]?.state === "on") {
+          const st = normStr(this._hass?.states?.[this._cfg.status]?.state);
+          const printing = ["printing", "resuming", "pausing", "paused"].includes(st);
+          const msg = printing ? this._t("confirm_power_off_printing") : this._t("confirm_power_off");
+          if (!confirm(msg)) return;
+        }
         this._toggleEntity(eid);
       } else if (id === "light") {
         const eid = this._resolveEntityId(this._cfg.light, ["light", "switch"]);
@@ -429,7 +485,7 @@ class KPrinterCard extends HTMLElement {
       } else if (id === "resume") {
         this._pressButtonEntity(this._cfg.resume_btn);
       } else if (id === "stop") {
-        if (confirm("Are you sure you want to stop the print?")) {
+        if (confirm(this._t("confirm_stop"))) {
           this._pressButtonEntity(this._cfg.stop_btn);
         }
       } else if (id === "custom") {
@@ -646,8 +702,10 @@ class KPrinterCard extends HTMLElement {
     const nozzleStr = fmtWithUnit(this._cfg.nozzle);
     const bedStr = fmtWithUnit(this._cfg.bed);
     const boxStr = fmtWithUnit(this._cfg.box);
-    const layer = (g(this._cfg.layer) ?? "") + "";
-    const totalLayers = (g(this._cfg.total_layers) ?? "") + "";
+    const _rawLayer = g(this._cfg.layer);
+    const layer = (_rawLayer && _rawLayer !== "unavailable" && _rawLayer !== "unknown" ? _rawLayer : "") + "";
+    const _rawTotalLayers = g(this._cfg.total_layers);
+    const totalLayers = (_rawTotalLayers && _rawTotalLayers !== "unavailable" && _rawTotalLayers !== "unknown" ? _rawTotalLayers : "") + "";
     const resolvedLight = this._resolveEntityId(this._cfg.light, ["light", "switch"]);
     const lightState = this._hass?.states?.[resolvedLight]?.state;
     const resolvedPower = this._resolveEntityId(this._cfg.power, ["switch"]);
@@ -664,7 +722,7 @@ class KPrinterCard extends HTMLElement {
 
     // Title/status
     this._root.getElementById("name").textContent = name;
-    const proper = status ? status[0].toUpperCase() + status.slice(1) : "Unknown";
+    const proper = (!status || status === "unavailable" || status === "unknown") ? this._t("status_unknown") : (fmtState(gObj(this._cfg.status)) || status[0].toUpperCase() + status.slice(1));
     const sec = (isPrinting || isPaused) ? `${pct}% ${proper}` : proper;
     this._root.getElementById("secondary").textContent = sec;
 
@@ -687,37 +745,37 @@ class KPrinterCard extends HTMLElement {
         hidden: !isPrinting,
         class: "warn",
         icon: this._cfg.pause_btn_icon || "mdi:pause",
-        title: "Pause"
+        title: this._t("chip_pause")
       },
       resume: {
         hidden: !isPaused,
         class: "ok",
         icon: this._cfg.resume_btn_icon || "mdi:play",
-        title: "Resume"
+        title: this._t("chip_resume")
       },
       stop: {
         hidden: !showStop,
         class: "danger",
         icon: this._cfg.stop_btn_icon || "mdi:stop",
-        title: "Stop"
+        title: this._t("chip_stop")
       },
       light: {
         hidden: !showLight,
         class: lightState === "on" ? "light-on" : "light-off",
         icon: this._cfg.light_btn_icon || "mdi:lightbulb",
-        title: "Light"
+        title: this._t("chip_light")
       },
       power: {
         hidden: !showPower,
         class: "unknown", // Calculated below
         icon: this._cfg.power_btn_icon || "mdi:power",
-        title: "Power"
+        title: this._t("chip_power")
       },
       custom: {
         hidden: Boolean(this._cfg.custom_btn_hidden) || !this._cfg.custom_btn,
         class: "custom",
         icon: this._cfg.custom_btn_icon || "mdi:gesture-tap",
-        title: "Custom Action"
+        title: this._t("chip_custom")
       }
     };
 
@@ -776,25 +834,134 @@ class KPrinterCard extends HTMLElement {
     this._root.getElementById("bed").textContent = bedStr;
     this._root.getElementById("box").textContent = boxStr;
     this._root.getElementById("time").textContent = fmtTimeLeft(timeLeft);
-    this._root.getElementById("layers").textContent = `${layer || "?"}/${totalLayers || "?"}`;
+    this._root.getElementById("layers").textContent = `${layer || "—"}/${totalLayers || "—"}`;
 
-    // Toggle Chamber Temp visibility
+    // Toggle Chamber Temp visibility.
+    // Hide when explicitly hidden, when no chamber entity is configured, or when
+    // the configured entity does not exist in HA (printers without a chamber,
+    // e.g. Ender 3 V3 KE) so we don't render a stray thermometer icon that
+    // offsets the adjacent telemetry. A configured-but-unavailable entity stays
+    // visible and shows "—", matching the nozzle/bed pills.
     const boxPill = this._root.getElementById("box-pill");
     if (boxPill) {
-      if (this._cfg.hide_box_temp) {
-        boxPill.style.display = "none";
-      } else {
-        boxPill.style.display = "";
-      }
+      const boxConfigured = Boolean(this._cfg.box) && Boolean(this._hass?.states?.[this._cfg.box]);
+      boxPill.style.display = (this._cfg.hide_box_temp || !boxConfigured) ? "none" : "";
     }
     this._scheduleTelemetrySizeUpdate();
   }
 }
+const CARD_TRANSLATIONS = {
+  en: {
+    status_unknown: "Unknown",
+    confirm_stop: "Are you sure you want to stop the print?",
+    confirm_power_off: "Are you sure you want to power off the printer?",
+    confirm_power_off_printing: "A print is in progress. Are you sure you want to power off the printer?",
+    chip_pause: "Pause",
+    chip_resume: "Resume",
+    chip_stop: "Stop",
+    chip_light: "Light",
+    chip_power: "Power",
+    chip_custom: "Custom Action",
+    editor_title: "Creality Printer Card Configuration",
+    tab_entities: "Entities",
+    tab_theme: "Theme",
+    group_layout: "Layout & Icons",
+    group_action_colors: "Action Colors",
+    group_status_area: "Status Area",
+    group_telemetry: "Telemetry",
+    color_pause_bg: "Pause Button Background",
+    color_pause_icon: "Pause Button Icon",
+    color_resume_bg: "Resume Button Background",
+    color_resume_icon: "Resume Button Icon",
+    color_stop_bg: "Stop Button Background",
+    color_stop_icon: "Stop Button Icon",
+    color_light_on_bg: "Light On Background",
+    color_light_off_bg: "Light Off Background",
+    color_light_icon_on: "Light Button Icon (On)",
+    color_light_icon_off: "Light Button Icon (Off)",
+    color_custom_bg: "Custom Button Background",
+    color_custom_icon: "Custom Button Icon",
+    color_status_icon: "Status Icon Color",
+    color_progress_ring: "Progress Ring Color",
+    color_status_bg: "Status Background",
+    color_telemetry_icon: "Telemetry Icon Color",
+    color_telemetry_text: "Telemetry Text Color",
+    btn_save: "Save",
+    btn_reset: "Reset to Defaults",
+    color_picker_hint: "Click to open color picker",
+    label_name: "Printer Name",
+    label_camera: "Camera",
+    label_status: "Print Status Sensor",
+    label_progress: "Print Progress Sensor (%)",
+    label_time_left: "Time Left Sensor",
+    label_nozzle: "Nozzle Temperature Sensor",
+    label_bed: "Bed Temperature Sensor",
+    label_box: "Chamber Temperature Sensor",
+    label_power: "Power Switch",
+    label_show_power_button: "Show Power Button",
+    label_layer: "Current Layer Sensor",
+    label_total_layers: "Total Layers Sensor",
+    label_light: "Light Switch",
+    label_pause_btn: "Pause Button",
+    label_resume_btn: "Resume Button",
+    label_stop_btn: "Stop Button",
+    label_custom_btn: "Custom Action Entity",
+    label_custom_btn_icon: "Custom Button Icon",
+    label_custom_btn_hidden: "Hide Custom Button",
+    label_button_order: "Button Order (list)",
+    helper_name: "Display name for the printer card",
+    helper_camera: "Camera entity for live video feed",
+    helper_status: "Sensor showing current print status",
+    helper_progress: "Sensor showing print progress (0-100%)",
+    helper_time_left: "Sensor showing remaining print time (seconds)",
+    helper_nozzle: "Sensor showing nozzle temperature",
+    helper_bed: "Sensor showing bed temperature",
+    helper_box: "Sensor showing chamber/enclosure temperature (optional)",
+    helper_power: "Optional power switch entity for the printer (shows a Power button when set)",
+    helper_show_power_button: "Show the Power button when a power switch entity is configured",
+    helper_layer: "Sensor showing current print layer",
+    helper_total_layers: "Sensor showing total print layers",
+    helper_light: "Switch entity for printer light control",
+    helper_pause_btn: "Button entity to pause printing",
+    helper_resume_btn: "Button entity to resume printing",
+    helper_stop_btn: "Button entity to stop printing",
+    helper_custom_btn: "Any entity to trigger (Button, Script, Switch, etc.)",
+    helper_custom_btn_icon: "Icon for the custom button",
+    helper_custom_btn_hidden: "Hide the custom button",
+    helper_button_order: "List of buttons to show in order (pause, resume, stop, light, power, custom)",
+    schema_button_order: "Button Order (pause, resume, stop, light, power, custom)",
+    schema_hide_custom: "Hide Custom Button",
+    schema_hide_box_temp: "Hide Chamber Temperature",
+    schema_pause_icon: "Pause Icon Override",
+    schema_resume_icon: "Resume Icon Override",
+    schema_stop_icon: "Stop Icon Override",
+    schema_light_icon: "Light Icon Override",
+    schema_power_icon: "Power Icon Override",
+    schema_custom_icon: "Custom Button Icon",
+    editor_error_title: "Editor Error",
+    editor_error_msg: "There was an error loading the visual editor. You can still edit your configuration using YAML.",
+    editor_error_prefix: "Error:",
+  },
+};
+
 customElements.define(CARD_TAG, KPrinterCard);
 
 /* Interactive theme editor */
 class KPrinterCardEditor extends HTMLElement {
-  set hass(hass) { this._hass = hass; if (this._entitiesForm) this._entitiesForm.hass = hass; }
+  // i18n helpers -------------------------------------------------------
+  _resolveLanguage() {
+    return _resolveLang(this._hass);
+  }
+  _t(key) {
+    return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key);
+  }
+  // ---------------------------------------------------------------------
+
+  set hass(hass) {
+    this._hass = hass;
+    if (this._entitiesForm) this._entitiesForm.hass = hass;
+    _requestI18n(this, hass, () => { if (this._root) this._render(); });
+  }
   setConfig(config) {
     const defaultConfig = KPrinterCard.getStubConfig();
     this._cfg = { ...defaultConfig, ...(config || {}) };
@@ -919,10 +1086,10 @@ class KPrinterCardEditor extends HTMLElement {
       this._root.innerHTML = `
       <style>${style}</style>
       <div class="editor-container">
-        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color);">Creality Printer Card Configuration</h2>
+        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color);">${this._t("editor_title")}</h2>
         <div class="tabs">
-          <div class="tab active" data-tab="entities">Entities</div>
-          <div class="tab" data-tab="theme">Theme</div>
+          <div class="tab active" data-tab="entities">${this._t("tab_entities")}</div>
+          <div class="tab" data-tab="theme">${this._t("tab_theme")}</div>
         </div>
         
         <div class="tab-content active" id="entities-tab">
@@ -933,210 +1100,210 @@ class KPrinterCardEditor extends HTMLElement {
           <div class="theme-editor">
             <div class="theme-controls">
               <div class="control-group">
-                <div class="group-title">Layout & Icons</div>
+                <div class="group-title">${this._t("group_layout")}</div>
                 <ha-form id="theme-settings-form"></ha-form>
               </div>
 
               <div class="control-group">
-                <div class="group-title">Action Colors</div>
-                <div class="clickable-element" data-theme="pause_bg" data-label="Pause Button Background">
+                <div class="group-title">${this._t("group_action_colors")}</div>
+                <div class="clickable-element" data-theme="pause_bg" data-label="${this._t("color_pause_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.pause_bg}"></div>
-                  <div class="element-label">Pause Button Background</div>
+                  <div class="element-label">${this._t("color_pause_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-pause_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.pause_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="pause_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="pause_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="pause_icon" data-label="Pause Button Icon">
+                <div class="clickable-element" data-theme="pause_icon" data-label="${this._t("color_pause_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.pause_icon}; color: ${this._cfg.theme.pause_icon}">⏸</div>
-                  <div class="element-label">Pause Button Icon</div>
+                  <div class="element-label">${this._t("color_pause_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-pause_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.pause_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="pause_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="pause_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="resume_bg" data-label="Resume Button Background">
+                <div class="clickable-element" data-theme="resume_bg" data-label="${this._t("color_resume_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.resume_bg}"></div>
-                  <div class="element-label">Resume Button Background</div>
+                  <div class="element-label">${this._t("color_resume_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-resume_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.resume_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="resume_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="resume_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="resume_icon" data-label="Resume Button Icon">
+                <div class="clickable-element" data-theme="resume_icon" data-label="${this._t("color_resume_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.resume_icon}; color: ${this._cfg.theme.resume_icon}">▶</div>
-                  <div class="element-label">Resume Button Icon</div>
+                  <div class="element-label">${this._t("color_resume_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-resume_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.resume_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="resume_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="resume_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="stop_bg" data-label="Stop Button Background">
+                <div class="clickable-element" data-theme="stop_bg" data-label="${this._t("color_stop_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.stop_bg}"></div>
-                  <div class="element-label">Stop Button Background</div>
+                  <div class="element-label">${this._t("color_stop_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-stop_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.stop_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="stop_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="stop_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="stop_icon" data-label="Stop Button Icon">
+                <div class="clickable-element" data-theme="stop_icon" data-label="${this._t("color_stop_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.stop_icon}; color: ${this._cfg.theme.stop_icon}">⏹</div>
-                  <div class="element-label">Stop Button Icon</div>
+                  <div class="element-label">${this._t("color_stop_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-stop_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.stop_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="stop_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="stop_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="light_on_bg" data-label="Light On Background">
+                <div class="clickable-element" data-theme="light_on_bg" data-label="${this._t("color_light_on_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.light_on_bg}"></div>
-                  <div class="element-label">Light On Background</div>
+                  <div class="element-label">${this._t("color_light_on_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-light_on_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_on_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_on_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_on_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_on_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="light_on_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="light_off_bg" data-label="Light Off Background">
+                <div class="clickable-element" data-theme="light_off_bg" data-label="${this._t("color_light_off_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.light_off_bg}"></div>
-                  <div class="element-label">Light Off Background</div>
+                  <div class="element-label">${this._t("color_light_off_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-light_off_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_off_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_off_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_off_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_off_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="light_off_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="light_icon_on" data-label="Light Button Icon (On)">
+                <div class="clickable-element" data-theme="light_icon_on" data-label="${this._t("color_light_icon_on")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.light_icon_on}; color: ${this._cfg.theme.light_icon_on}">💡</div>
-                  <div class="element-label">Light Button Icon (On)</div>
+                  <div class="element-label">${this._t("color_light_icon_on")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-light_icon_on">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_on)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_on)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_icon_on)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_icon_on" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="light_icon_on" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="light_icon_off" data-label="Light Button Icon (Off)">
+                <div class="clickable-element" data-theme="light_icon_off" data-label="${this._t("color_light_icon_off")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.light_icon_off}; color: ${this._cfg.theme.light_icon_off}">💡</div>
-                  <div class="element-label">Light Button Icon (Off)</div>
+                  <div class="element-label">${this._t("color_light_icon_off")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-light_icon_off">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_off)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_off)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_icon_off)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_icon_off" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="light_icon_off" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="custom_bg" data-label="Custom Button Background">
+                <div class="clickable-element" data-theme="custom_bg" data-label="${this._t("color_custom_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.custom_bg}"></div>
-                  <div class="element-label">Custom Button Background</div>
+                  <div class="element-label">${this._t("color_custom_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-custom_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="custom_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="custom_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="custom_icon" data-label="Custom Button Icon">
+                <div class="clickable-element" data-theme="custom_icon" data-label="${this._t("color_custom_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.custom_icon}; color: ${this._cfg.theme.custom_icon}">★</div>
-                  <div class="element-label">Custom Button Icon</div>
+                  <div class="element-label">${this._t("color_custom_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-custom_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="custom_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="custom_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
               </div>
               
               <div class="control-group">
-                <div class="group-title">Status Area</div>
-                <div class="clickable-element" data-theme="status_icon" data-label="Status Icon Color">
+                <div class="group-title">${this._t("group_status_area")}</div>
+                <div class="clickable-element" data-theme="status_icon" data-label="${this._t("color_status_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.status_icon === 'auto' ? 'var(--primary-color)' : this._cfg.theme.status_icon}">🖨</div>
-                  <div class="element-label">Status Icon Color</div>
+                  <div class="element-label">${this._t("color_status_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-status_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_icon === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.status_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_icon === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.status_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${this._cfg.theme.status_icon === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.status_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="status_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="status_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="progress_ring" data-label="Progress Ring Color">
+                <div class="clickable-element" data-theme="progress_ring" data-label="${this._t("color_progress_ring")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.progress_ring === 'auto' ? 'var(--primary-color)' : this._cfg.theme.progress_ring}">⭕</div>
-                  <div class="element-label">Progress Ring Color</div>
+                  <div class="element-label">${this._t("color_progress_ring")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-progress_ring">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.progress_ring === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.progress_ring)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.progress_ring === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.progress_ring)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${this._cfg.theme.progress_ring === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.progress_ring)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="progress_ring" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="progress_ring" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="status_bg" data-label="Status Background">
+                <div class="clickable-element" data-theme="status_bg" data-label="${this._t("color_status_bg")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.status_bg}">🎯</div>
-                  <div class="element-label">Status Background</div>
+                  <div class="element-label">${this._t("color_status_bg")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-status_bg">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_bg === 'auto' ? 'var(--card-background-color)' : rgbaToHex(this._cfg.theme.status_bg)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_bg === 'auto' ? 'var(--card-background-color)' : rgbaToHex(this._cfg.theme.status_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${this._cfg.theme.status_bg === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.status_bg)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="status_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="status_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
               </div>
               
               <div class="control-group">
-                <div class="group-title">Telemetry</div>
-                <div class="clickable-element" data-theme="telemetry_icon" data-label="Telemetry Icon Color">
+                <div class="group-title">${this._t("group_telemetry")}</div>
+                <div class="clickable-element" data-theme="telemetry_icon" data-label="${this._t("color_telemetry_icon")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.telemetry_icon}">🌡</div>
-                  <div class="element-label">Telemetry Icon Color</div>
+                  <div class="element-label">${this._t("color_telemetry_icon")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-telemetry_icon">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_icon === 'auto' ? 'var(--secondary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_icon)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_icon === 'auto' ? 'var(--secondary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${this._cfg.theme.telemetry_icon === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.telemetry_icon)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="telemetry_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="telemetry_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
-                <div class="clickable-element" data-theme="telemetry_text" data-label="Telemetry Text Color">
+                <div class="clickable-element" data-theme="telemetry_text" data-label="${this._t("color_telemetry_text")}">
                   <div class="element-preview" style="background: ${this._cfg.theme.telemetry_text}">📝</div>
-                  <div class="element-label">Telemetry Text Color</div>
+                  <div class="element-label">${this._t("color_telemetry_text")}</div>
                 </div>
                 <div class="color-picker-inline" id="color-picker-telemetry_text">
                   <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_text === 'auto' ? 'var(--primary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_text)}; cursor: pointer;" title="Click to open color picker"></div>
+                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_text === 'auto' ? 'var(--primary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_text)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
                     <input type="text" class="color-text" value="${this._cfg.theme.telemetry_text === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.telemetry_text)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="telemetry_text" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">Save</button>
+                    <button class="save-color-btn" data-theme="telemetry_text" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
                   </div>
                 </div>
               </div>
               
-              <button class="reset-btn" id="reset-theme">Reset to Defaults</button>
+              <button class="reset-btn" id="reset-theme">${this._t("btn_reset")}</button>
             </div>
           </div>
         </div>
@@ -1152,8 +1319,8 @@ class KPrinterCardEditor extends HTMLElement {
       this._root.innerHTML = `
         <div style="padding: 16px; color: var(--error-color);">
           <h3>Editor Error</h3>
-          <p>There was an error loading the visual editor. You can still edit your configuration using YAML.</p>
-          <p>Error: ${error.message}</p>
+          <p>${this._t("editor_error_msg")}</p>
+          <p>${this._t("editor_error_prefix")} ${error.message}</p>
         </div>
       `;
     }
@@ -1225,26 +1392,26 @@ class KPrinterCardEditor extends HTMLElement {
 
     // Label text mapping for form fields
     const labelText = {
-      "name": "Printer Name",
-      "camera": "Camera",
-      "status": "Print Status Sensor",
-      "progress": "Print Progress Sensor (%)",
-      "time_left": "Time Left Sensor",
-      "nozzle": "Nozzle Temperature Sensor",
-      "bed": "Bed Temperature Sensor",
-      "box": "Chamber Temperature Sensor",
-      "power": "Power Switch",
-      "show_power_button": "Show Power Button",
-      "layer": "Current Layer Sensor",
-      "total_layers": "Total Layers Sensor",
-      "light": "Light Switch",
-      "pause_btn": "Pause Button",
-      "resume_btn": "Resume Button",
-      "stop_btn": "Stop Button",
-      "custom_btn": "Custom Action Entity",
-      "custom_btn_icon": "Custom Button Icon",
-      "custom_btn_hidden": "Hide Custom Button",
-      "button_order": "Button Order (list)"
+      "name": this._t("label_name"),
+      "camera": this._t("label_camera"),
+      "status": this._t("label_status"),
+      "progress": this._t("label_progress"),
+      "time_left": this._t("label_time_left"),
+      "nozzle": this._t("label_nozzle"),
+      "bed": this._t("label_bed"),
+      "box": this._t("label_box"),
+      "power": this._t("label_power"),
+      "show_power_button": this._t("label_show_power_button"),
+      "layer": this._t("label_layer"),
+      "total_layers": this._t("label_total_layers"),
+      "light": this._t("label_light"),
+      "pause_btn": this._t("label_pause_btn"),
+      "resume_btn": this._t("label_resume_btn"),
+      "stop_btn": this._t("label_stop_btn"),
+      "custom_btn": this._t("label_custom_btn"),
+      "custom_btn_icon": this._t("label_custom_btn_icon"),
+      "custom_btn_hidden": this._t("label_custom_btn_hidden"),
+      "button_order": this._t("label_button_order"),
     };
 
     // Add label computation using computeLabel if supported
@@ -1279,15 +1446,15 @@ class KPrinterCardEditor extends HTMLElement {
     this._themeSettingsForm.hass = this._hass;
 
     const themeSettingsSchema = [
-      { name: "button_order", selector: { text: {} }, label: "Button Order (pause, resume, stop, light, power, custom)" },
-      { name: "custom_btn_hidden", selector: { boolean: {} }, label: "Hide Custom Button" },
-      { name: "hide_box_temp", selector: { boolean: {} }, label: "Hide Chamber Temperature" },
-      { name: "pause_btn_icon", selector: { icon: {} }, label: "Pause Icon Override" },
-      { name: "resume_btn_icon", selector: { icon: {} }, label: "Resume Icon Override" },
-      { name: "stop_btn_icon", selector: { icon: {} }, label: "Stop Icon Override" },
-      { name: "light_btn_icon", selector: { icon: {} }, label: "Light Icon Override" },
-      { name: "power_btn_icon", selector: { icon: {} }, label: "Power Icon Override" },
-      { name: "custom_btn_icon", selector: { icon: {} }, label: "Custom Button Icon" },
+      { name: "button_order", selector: { text: {} }, label: this._t("schema_button_order") },
+      { name: "custom_btn_hidden", selector: { boolean: {} }, label: this._t("schema_hide_custom") },
+      { name: "hide_box_temp", selector: { boolean: {} }, label: this._t("schema_hide_box_temp") },
+      { name: "pause_btn_icon", selector: { icon: {} }, label: this._t("schema_pause_icon") },
+      { name: "resume_btn_icon", selector: { icon: {} }, label: this._t("schema_resume_icon") },
+      { name: "stop_btn_icon", selector: { icon: {} }, label: this._t("schema_stop_icon") },
+      { name: "light_btn_icon", selector: { icon: {} }, label: this._t("schema_light_icon") },
+      { name: "power_btn_icon", selector: { icon: {} }, label: this._t("schema_power_icon") },
+      { name: "custom_btn_icon", selector: { icon: {} }, label: this._t("schema_custom_icon") },
     ];
 
     // Polyfill label if needed or rely on 'label' property in schema if HA supports it (HA Form supports 'label' in schema usually? No, it uses computeLabel)
@@ -1579,8 +1746,8 @@ class KPrinterCardEditor extends HTMLElement {
   }
 
   _dispatchConfigChange() {
-    clearTimeout(this._t);
-    this._t = setTimeout(() => {
+    clearTimeout(this._debounceTimer);
+    this._debounceTimer = setTimeout(() => {
       // Preserve current tab state
       const activeTab = this._root.querySelector('.tab.active');
       const activeTabId = activeTab ? activeTab.dataset.tab : 'entities';

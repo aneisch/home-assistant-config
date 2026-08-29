@@ -257,16 +257,20 @@ cards:
           - entity: sensor.imap_gmail_com_mail_usps_mail
             name: "Today's Mail"
           - entity: sensor.imap_gmail_com_mail_packages_in_transit
-            name: "Today's Package Delivery"
-          - entity: sensor.imap_gmail_com_mail_usps_delivering
             icon: "mdi:package-variant-closed"
-            name: USPS
-          - entity: sensor.imap_gmail_com_mail_fedex_delivering
+            name: Packages in Transit
+          - entity: sensor.imap_gmail_com_mail_fedex_packages
             icon: "mdi:package-variant-closed"
             name: FedEx
-          - entity: sensor.imap_gmail_com_mail_ups_delivering
+          - entity: sensor.imap_gmail_com_mail_ups_packages
             icon: "mdi:package-variant-closed"
             name: UPS
+          - entity: sensor.imap_gmail_com_mail_usps_packages
+            icon: "mdi:package-variant-closed"
+            name: USPS
+          - entity: sensor.imap_gmail_com_mail_amazon_packages
+            icon: "mdi:package-variant-closed"
+            name: Amazon
 
   - !include .cards/spotify.yaml
   - !include .cards/alexa.yaml
@@ -342,7 +346,7 @@ cards:
           # - sensor.netatmo_home_rain_sum_rain_today_inches
           - sensor.compost_external_temperature
           - sensor.compost_internal_temperature
-          - sensor.deep_freeze_temperature
+          #- sensor.deep_freeze_temperature
       - type: custom:weather-card
         entity: weather.kcll_daynight
 

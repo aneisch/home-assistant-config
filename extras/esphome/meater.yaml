@@ -26,8 +26,8 @@ esp32:
 #     subnet: 255.255.254.0
  
 ble_client:
-  - mac_address: B8:1F:5E:90:91:91 # Repeater Block - disabled due to disconnects
-  #- mac_address: B8:1F:5E:7B:54:E9 # Probe (take battery out of block to prevent probe connection to it: Only 1 connection to probe allowed)
+  #- mac_address: B8:1F:5E:90:91:91 # Repeater Block - disabled due to disconnects (need to press button every few hours)
+  - mac_address: B8:1F:5E:7B:54:E9 # Probe (take battery out of block to prevent probe connection to it: Only 1 connection to probe allowed) (low range)
     id: meater
 
 text_sensor:

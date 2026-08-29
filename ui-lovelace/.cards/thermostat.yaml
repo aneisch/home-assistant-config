@@ -37,13 +37,17 @@ sensors:
     name: Water Supply Closet
   - entity: sensor.netatmo_home_attic_temperature
     name: Attic
+  - entity: sensor.andrew_office_register_temperature
+    name: Office Register
+  # - entity: sensor.andrew_office_register_humidity
+  #   name: Register Humidity
   - entity: sensor.tesla_inside_temp
     name: Tesla Interior
   - entity: sensor.ac_runtime_today
     name: Today
   - entity: sensor.ac_runtime_yesterday
     name: Yesterday
-  - entity: input_number.cool_boost_unoccupied_target
-    name: Unoccupied Boost Target
+  - entity: input_number.cool_boost_target
+    name: Cool Boost Target
   # - entity: sensor.easy_start_ble_last_start_peak
 control: false

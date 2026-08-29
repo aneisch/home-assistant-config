@@ -10,6 +10,7 @@ PRINTER_CARD_NAME = "k_printer_card.js"
 CFS_CARD_NAME = "k_cfs_card.js"
 CARDS = [PRINTER_CARD_NAME, CFS_CARD_NAME]
 INTEGRATION_URL_BASE = f"/{LOCAL_SUBDIR}/"
+I18N_URL_BASE = f"{INTEGRATION_URL_BASE}i18n"
 # Use timestamp to bust cache on every load
 _VERSION = str(int(time.time()))
 
@@ -225,6 +226,10 @@ class CrealityCardRegistration:
                     _LOGGER.info("Migrated %d Lovelace /local/ resources to integration-hosted URL", migrated)
             except Exception:
                 _LOGGER.debug("Local-to-integration resource migration failed for %s", integration_url)
+
+        i18n_path = Path(__file__).parent / "www" / "i18n"
+        if i18n_path.exists():
+            _register_static_path(self.hass, I18N_URL_BASE, str(i18n_path))
 
         # Fix any base-only resource entries (e.g. "/ha_creality_ws/?v=1") by expanding
         # them into the concrete card file URL(s).

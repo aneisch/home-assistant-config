@@ -4,6 +4,71 @@ const EDITOR_TAG = "k-cfs-card-editor";
 
 const mdi = (name) => `mdi:${name}`;
 
+const I18N_URL_BASE = "/ha_creality_ws/i18n/";
+const _i18nData = {};
+const _i18nPromises = {};
+function _loadI18n(lang) {
+  if (_i18nData[lang]) return Promise.resolve(_i18nData[lang]);
+  if (_i18nPromises[lang]) return _i18nPromises[lang];
+  _i18nPromises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`)
+    .then((res) => (res.ok ? res.json() : null))
+    .then((data) => {
+      if (data) _i18nData[lang] = data;
+      else _i18nPromises[lang] = null;
+      return data;
+    })
+    .catch(() => { _i18nPromises[lang] = null; return null; });
+  return _i18nPromises[lang];
+}
+function _resolveLang(hass) {
+  return hass?.locale?.language || hass?.language || "en";
+}
+function _translate(hass, section, fallbackDict, key, vars) {
+  const lang = _resolveLang(hass);
+  const short = lang.split("-")[0];
+  const remote = _i18nData[lang]?.[section] ?? _i18nData[short]?.[section];
+  const remoteEn = _i18nData["en"]?.[section];
+  let text = (remote && key in remote) ? remote[key]
+    : (remoteEn && key in remoteEn) ? remoteEn[key]
+    : (fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key);
+  if (vars) {
+    Object.entries(vars).forEach(([k, v]) => {
+      text = text.replace(new RegExp(`\\{${k}\\}`, "g"), v);
+    });
+  }
+  return text;
+}
+function _requestI18n(instance, hass, onLoaded) {
+  if (instance._i18nRequested) return;
+  instance._i18nRequested = true;
+  const lang = _resolveLang(hass).split("-")[0];
+  Promise.all([_loadI18n("en"), lang !== "en" ? _loadI18n(lang) : null]).then(onLoaded);
+}
+
+const CFS_TRANSLATIONS = {
+  en: {
+    no_data: "No CFS data available",
+    ext_label: "EXT",
+    cfs_label: "CFS",
+    cfs_number_label: "CFS {number}",
+    // Editor
+    label_card_title: "Card Title",
+    label_external_filament: "External Filament",
+    label_external_color: "External Color",
+    label_external_percent: "External Percent",
+    label_box_temp: "Box {box} Temperature",
+    label_box_humidity: "Box {box} Humidity",
+    label_slot_filament: "Box {box} Slot {slot} Filament",
+    label_slot_color: "Box {box} Slot {slot} Color",
+    label_slot_percent: "Box {box} Slot {slot} Remaining Percent",
+    schema_compact_view: "Compact View (Mini Mode)",
+    schema_show_type_in_mini: "Show Filament Type in Mini Mode",
+    // Editor tab/header
+    tab_entities: "Entities",
+    tab_theme: "Theme",
+  },
+};
+
 class KCFSCard extends HTMLElement {
   constructor() {
     super();
@@ -41,10 +106,10 @@ class KCFSCard extends HTMLElement {
 
   static _getHumidityColor(humidityStr) {
     if (!humidityStr || humidityStr === "—") return '#64b5f6'; // default blue
-    
+
     const match = String(humidityStr).match(/(\d+\.?\d*)/);
     if (!match) return '#64b5f6';
-    
+
     const value = parseFloat(match[1]);
     if (value < 40) return '#4caf50';   // Green (0-39%) - Ideal
     if (value < 60) return '#ff9800';   // Orange (40-59%) - Attention
@@ -86,8 +151,18 @@ class KCFSCard extends HTMLElement {
     this._render();
   }
 
+  // i18n helpers -------------------------------------------------------
+  _resolveLanguage() {
+    return _resolveLang(this._hass);
+  }
+  _t(key, vars) {
+    return _translate(this._hass, "cfs_card", CFS_TRANSLATIONS, key, vars);
+  }
+  // ---------------------------------------------------------------------
+
   set hass(hass) {
     this._hass = hass;
+    _requestI18n(this, hass, () => { this._update(); });
     this._update();
   }
 
@@ -655,7 +730,7 @@ class KCFSCard extends HTMLElement {
 
     const boxValues = Object.values(boxes);
     if (boxValues.length === 0 && !hasExternal) {
-      contentContainer.innerHTML = `<div class="no-data">No CFS data available</div>`;
+      contentContainer.innerHTML = `<div class="no-data">${this._t("no_data")}</div>`;
       return;
     }
 
@@ -672,7 +747,7 @@ class KCFSCard extends HTMLElement {
   _renderNormalMode(boxes, external) {
     // Ensure we have at least one box
     if (boxes.length === 0 && !external) {
-      return `<div class="no-data">No CFS data available</div>`;
+      return `<div class="no-data">${this._t("no_data")}</div>`;
     }
 
     // Unit selector (only if we have multiple boxes)
@@ -682,7 +757,7 @@ class KCFSCard extends HTMLElement {
         <div class="unit-selector">
           ${boxes.map((box, idx) => `
             <button class="unit-btn ${idx === this._selectedCFS ? 'active' : ''}" data-cfs="${idx}">
-              CFS ${box.id + 1}
+              ${this._t("cfs_number_label", { number: box.id + 1 })}
             </button>
           `).join('')}
         </div>
@@ -692,7 +767,7 @@ class KCFSCard extends HTMLElement {
     // Get the selected box
     const selectedBox = boxes[this._selectedCFS] || boxes[0];
     if (!selectedBox && !external) {
-      return `<div class="no-data">No CFS data available</div>`;
+      return `<div class="no-data">${this._t("no_data")}</div>`;
     }
 
     // Header with environment info
@@ -700,7 +775,7 @@ class KCFSCard extends HTMLElement {
     if (selectedBox) {
       const tempStr = selectedBox.temp !== "—" ? selectedBox.temp : '';
       const humStr = selectedBox.humidity !== "—" ? selectedBox.humidity : '';
-      
+
       if (tempStr || humStr) {
         const tempHtml = tempStr ? `<span class="env-temp">${tempStr}</span>` : '';
         const humHtml = humStr ? `<span class="env-hum" style="color: ${selectedBox.humidityColor}">${humStr}</span>` : '';
@@ -740,7 +815,7 @@ class KCFSCard extends HTMLElement {
       externalSection = `
         <div class="external-section">
           <div class="external-normal" data-eid="${external.entity_id}">
-            <div class="ext-icon">EXT</div>
+            <div class="ext-icon">${this._t("ext_label")}</div>
             <div class="ext-info">
               <div class="ext-name">${displayName}</div>
               <div class="ext-bar">
@@ -758,7 +833,7 @@ class KCFSCard extends HTMLElement {
 
   _renderCompactMode(boxes, external) {
     if (boxes.length === 0 && !external) {
-      return `<div class="no-data">No CFS data available</div>`;
+      return `<div class="no-data">${this._t("no_data")}</div>`;
     }
 
     // CFS rows
@@ -782,7 +857,7 @@ class KCFSCard extends HTMLElement {
       externalSection = `
         <div class="external-section">
           <div class="external-compact" data-eid="${external.entity_id}">
-            <div class="ext-dot">EXT</div>
+            <div class="ext-dot">${this._t("ext_label")}</div>
             <div class="ext-compact-info">
               <div>${displayName}</div>
               <div>${percentTextDisplay}</div>
@@ -811,7 +886,7 @@ class KCFSCard extends HTMLElement {
 
     return `
       <div class="cfs-row">
-        <div class="cfs-label">CFS ${box.id + 1}</div>
+        <div class="cfs-label">${this._t("cfs_number_label", { number: box.id + 1 })}</div>
         <div class="spools-inline">
           ${box.slots.map((slot) => this._renderSpoolMini(slot)).join('')}
         </div>
@@ -829,7 +904,7 @@ class KCFSCard extends HTMLElement {
     const color = slot.color || '#cccccc';
     const safeType = slot.type && !["unknown", "unavailable", "—", "-"].includes(String(slot.type).toLowerCase()) ? slot.type : "—";
     const safeName = slot.name && !["unknown", "unavailable", "—", "-"].includes(String(slot.name).toLowerCase()) ? slot.name : "—";
-    
+
     // If no filament (type is "—" or name is "—"), show 0% regardless of actual value
     const hasFilament = safeType !== "—" && safeName !== "—";
     const pct = hasFilament && slot.percent !== null ? slot.percent : 0;
@@ -856,7 +931,7 @@ class KCFSCard extends HTMLElement {
 
   _renderSpoolMini(slot) {
     const showType = this._cfg.show_type_in_mini;
-    
+
     if (!slot) {
       if (showType) {
         return `<div class="spool-mini-wrapper"><div class="spool-mini" style="--spool-color: #333; --spool-pct: 0%"><span>—</span></div><div class="spool-mini-type">—</div></div>`;
@@ -868,7 +943,7 @@ class KCFSCard extends HTMLElement {
     const color = slot.color || '#cccccc';
     const safeType = slot.type && !["unknown", "unavailable", "—", "-"].includes(String(slot.type).toLowerCase()) ? slot.type : "—";
     const safeName = slot.name && !["unknown", "unavailable", "—", "-"].includes(String(slot.name).toLowerCase()) ? slot.name : null;
-    
+
     // If no filament (type is "—" or name is empty/dash), show 0% regardless of actual value
     const hasFilament = safeType !== "—" && safeName !== null;
     const pct = hasFilament && slot.percent !== null ? slot.percent : 0;
@@ -912,7 +987,7 @@ class KCFSCard extends HTMLElement {
     this._root.querySelectorAll('.spool-card, .spool-mini, .spool-mini-wrapper .spool-mini, .external-normal, .external-compact').forEach(el => {
       const eid = el.dataset.eid;
       if (!eid) return;
-      
+
       el.onclick = () => {
         this.dispatchEvent(new CustomEvent("hass-more-info", {
           detail: { entityId: eid },
@@ -930,16 +1005,16 @@ class KCFSCard extends HTMLElement {
       let boxCount = 0;
       for (let box = 0; box < 4; box++) {
         const hasBox = this._cfg[`box${box}_temp`] || this._cfg[`box${box}_humidity`] ||
-          [0,1,2,3].some(s => this._cfg[`box${box}_slot${s}_filament`]);
+          [0, 1, 2, 3].some(s => this._cfg[`box${box}_slot${s}_filament`] || this._cfg[`box${box}_slot${s}_color`] || this._cfg[`box${box}_slot${s}_percent`]);
         if (hasBox) boxCount++;
       }
       // Check for external filament
       const hasExternal = this._cfg.external_filament || this._cfg.external_color || this._cfg.external_percent;
       const externalRows = hasExternal ? 1 : 0;
-      
+
       // Add extra space when more than 2 rows
       const extraPadding = (boxCount + externalRows) > 2 ? 1 : 0;
-      
+
       return Math.max(1, boxCount + externalRows + extraPadding);
     }
     return 5;
@@ -951,21 +1026,21 @@ class KCFSCard extends HTMLElement {
     if (this._cfg) {
       for (let box = 0; box < 4; box++) {
         const hasBox = this._cfg[`box${box}_temp`] || this._cfg[`box${box}_humidity`] ||
-          [0,1,2,3].some(s => this._cfg[`box${box}_slot${s}_filament`]);
+          [0, 1, 2, 3].some(s => this._cfg[`box${box}_slot${s}_filament`] || this._cfg[`box${box}_slot${s}_color`] || this._cfg[`box${box}_slot${s}_percent`]);
         if (hasBox) boxCount++;
       }
     }
-    
+
     // Check for external filament
     const hasExternal = this._cfg?.external_filament || this._cfg?.external_color || this._cfg?.external_percent;
     const externalRows = hasExternal ? 1 : 0;
-    
+
     // Add extra space when more than 2 rows
     const totalRows = boxCount + externalRows;
     const extraPadding = totalRows > 2 ? 1 : 0;
-    
+
     const minRows = this._cfg?.compact_view ? Math.max(1, totalRows + extraPadding) : 5;
-    
+
     return {
       grid_rows: minRows,
       grid_min_rows: minRows,
@@ -976,11 +1051,19 @@ class KCFSCard extends HTMLElement {
 customElements.define(CARD_TAG, KCFSCard);
 
 class KCFSCardEditor extends HTMLElement {
+  // i18n helpers -------------------------------------------------------
+  _resolveLanguage() {
+    return _resolveLang(this._hass);
+  }
+  _t(key, vars) {
+    return _translate(this._hass, "cfs_card", CFS_TRANSLATIONS, key, vars);
+  }
+  // ---------------------------------------------------------------------
+
   set hass(hass) {
     this._hass = hass;
-    if (this._form) {
-      this._form.hass = hass;
-    }
+    if (this._form) this._form.hass = hass;
+    _requestI18n(this, hass, () => { if (this._root) this._render(); });
   }
 
   setConfig(config) {
@@ -1011,8 +1094,8 @@ class KCFSCardEditor extends HTMLElement {
       <style>${style}</style>
       <div class="editor-container">
         <div class="tabs">
-          <div class="tab active" data-tab="entities">Entities</div>
-          <div class="tab" data-tab="theme">Theme</div>
+          <div class="tab active" data-tab="entities">${this._t("tab_entities")}</div>
+          <div class="tab" data-tab="theme">${this._t("tab_theme")}</div>
         </div>
         <div class="tab-content active" id="entities-tab">
           <ha-form id="form"></ha-form>
@@ -1064,26 +1147,27 @@ class KCFSCardEditor extends HTMLElement {
 
     this._form.schema = schema;
     this._form.computeLabel = (s) => {
-      if (s.name === "name") return "Card Title";
-      if (s.name === "external_filament") return "External Filament";
-      if (s.name === "external_color") return "External Color";
-      if (s.name === "external_percent") return "External Percent";
+      if (s.name === "name") return this._t("label_card_title");
+      if (s.name === "external_filament") return this._t("label_external_filament");
+      if (s.name === "external_color") return this._t("label_external_color");
+      if (s.name === "external_percent") return this._t("label_external_percent");
 
       const boxMatch = s.name.match(/^box(\d+)_(temp|humidity)$/);
       if (boxMatch) {
         const [, boxId, metric] = boxMatch;
-        return `Box ${Number(boxId) + 1} ${metric === "temp" ? "Temperature" : "Humidity"}`;
+        const key = metric === "temp" ? "label_box_temp" : "label_box_humidity";
+        return this._t(key, { box: Number(boxId) + 1 });
       }
 
       const slotMatch = s.name.match(/^box(\d+)_slot(\d+)_(filament|color|percent)$/);
       if (slotMatch) {
         const [, boxId, slotId, metric] = slotMatch;
-        const labelMap = {
-          filament: "Filament",
-          color: "Color",
-          percent: "Remaining Percent",
+        const keyMap = {
+          filament: "label_slot_filament",
+          color: "label_slot_color",
+          percent: "label_slot_percent",
         };
-        return `Box ${Number(boxId) + 1} Slot ${Number(slotId) + 1} ${labelMap[metric]}`;
+        return this._t(keyMap[metric], { box: Number(boxId) + 1, slot: Number(slotId) + 1 });
       }
 
       return s.name;
@@ -1107,8 +1191,8 @@ class KCFSCardEditor extends HTMLElement {
       { name: "show_type_in_mini", selector: { boolean: {} } },
     ];
     themeForm.computeLabel = (s) => ({
-      compact_view: "Compact View (Mini Mode)",
-      show_type_in_mini: "Show Filament Type in Mini Mode",
+      compact_view: this._t("schema_compact_view"),
+      show_type_in_mini: this._t("schema_show_type_in_mini"),
     }[s.name] || s.name);
 
     themeForm.addEventListener("value-changed", (ev) => {

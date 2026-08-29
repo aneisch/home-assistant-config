@@ -31,10 +31,16 @@ automation:
     trigger:
       - platform: state
         entity_id: binary_sensor.flume_flow_status
-        id: minutes
+        id: two_minutes
         from: "off"
         to: "on"
-        for: "00:03:00"
+        for: "00:02:00"
+      - platform: state
+        entity_id: binary_sensor.flume_flow_status
+        id: five_minutes
+        from: "off"
+        to: "on"
+        for: "00:05:00"
       - platform: state
         entity_id: binary_sensor.flume_flow_status
         id: hours
@@ -42,9 +48,9 @@ automation:
         to: "on"
         for: "02:00:00"
     action:
-      # any flow when not home and irrigation off AND not during a scheduled timer AND bhyve off
-      - if: "{{ trigger.id == 'minutes' 
-            and states('sensor.flume_sensor_home_current') | float > 0 
+      # any real flow for 5 minutes when not home and irrigation off AND not during a scheduled timer AND bhyve off
+      - if: "{{ trigger.id == 'five_minutes' 
+            and states('sensor.flume_sensor_home_current') | float >= 0.1
             and is_state('switch.irrigation_master_valve', 'off') 
             and not is_state('switch.bhyve_1','on')
             and not is_state('switch.bhyve_2','on')
@@ -58,9 +64,9 @@ automation:
               message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
               data:
                 priority: 1
-      # high flow when not home and irrigation off AND washer not running
-      - if: "{{ trigger.id == 'minutes' 
-            and states('sensor.flume_sensor_home_current') | float > 2.5 
+      # significant flow when not home and irrigation off AND washer not running
+      - if: "{{ trigger.id == 'two_minutes' 
+            and states('sensor.flume_sensor_home_current') | float > 1
             and is_state('switch.irrigation_master_valve', 'off') 
             and not is_state('switch.bhyve_1','on')
             and not is_state('switch.bhyve_2','on')

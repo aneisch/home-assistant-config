@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, entry: MailAndPackagesConfigEntry, async_add_devices):
     """Initialize binary_sensor platform."""
     coordinator = entry.runtime_data.coordinator
-    resources = entry.data.get(CONF_RESOURCES, [])
+    resources = coordinator.config.get(CONF_RESOURCES, [])
 
     binary_sensors = [
         PackagesBinarySensor(value, coordinator, entry)
@@ -71,13 +71,10 @@ class PackagesBinarySensor(CoordinatorEntity, BinarySensorEntity):
         return False
 
     @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return self.coordinator.data is not None
-
-    @property
     def is_on(self) -> bool:
         """Return True if the image is updated."""
+        if self.coordinator.data is None:
+            return False
         if self._type in self.coordinator.data:
             _LOGGER.debug(
                 "binary_sensor: %s value: %s",

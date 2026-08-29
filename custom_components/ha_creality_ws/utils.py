@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import re
-from typing import Any, Optional
+from typing import Any, ClassVar, Optional
 
 __all__ = [
     "coerce_numbers",
@@ -171,6 +171,15 @@ class ModelDetection:
     Provides capability flags and a resolved model name if possible.
     """
     
+    # Klipper output_pin name per model for LED brightness (SET_PIN dimming).
+    # Keys are ModelDetection boolean-attribute names (evaluated in order); the
+    # value is the Klipper output_pin name. Extend this to enable dimming for
+    # more models, e.g. add "is_k2_base": "LED" once its PWM support is confirmed.
+    LED_PIN_BY_MODEL: ClassVar[dict[str, str]] = {
+        "is_k2_pro": "LED",
+        "is_k2_plus": "LED",
+    }
+
     def __init__(self, coord_data):
         d = coord_data or {}
         self.model = d.get("model") or ""
@@ -278,6 +287,12 @@ class ModelDetection:
 
         # Light is present on most models except K1 SE and Ender V3 family
         self.has_light = not (self.is_k1_se or self.is_ender_v3_family)
+
+        self.led_pin: str | None = next(
+            (pin for attr, pin in self.LED_PIN_BY_MODEL.items() if getattr(self, attr, False)),
+            None,
+        )
+        self.has_brightness_control = self.led_pin is not None
 
     # ---- Resolved/canonical model name helpers ----
     def canonical_model(self) -> str | None:

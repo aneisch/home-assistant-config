@@ -44,11 +44,11 @@ class CurrentPrintPreviewImage(KEntity, ImageEntity):
     `preview_reason`.
     """
 
-    _attr_name = "Current Print Preview"
+    _attr_translation_key = "current_print_preview"
     _attr_content_type = "image/png"
 
     def __init__(self, coordinator):
-        KEntity.__init__(self, coordinator, self._attr_name, "current_print_preview")
+        KEntity.__init__(self, coordinator, unique_id="current_print_preview")
         ImageEntity.__init__(self, coordinator.hass)
         self._last_image: Optional[bytes] = None
         self._attr_image_last_updated = None

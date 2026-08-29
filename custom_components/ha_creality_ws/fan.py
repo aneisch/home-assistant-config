@@ -15,9 +15,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     ents: list[FanEntity] = []
     # Three controllable fans exposed by telemetry and gcode M106 channels
-    ents.append(_KFanEntity(coord, name="Model Fan", read_field="modelFanPct", uid="model_fan", channel=0))
-    ents.append(_KFanEntity(coord, name="Case Fan", read_field="caseFanPct", uid="case_fan", channel=1))
-    ents.append(_KFanEntity(coord, name="Side Fan", read_field="auxiliaryFanPct", uid="side_fan", channel=2))
+    ents.append(_KFanEntity(coord, name="Model Fan", read_field="modelFanPct", uid="model_fan", channel=0, translation_key="model_fan"))
+    ents.append(_KFanEntity(coord, name="Case Fan", read_field="caseFanPct", uid="case_fan", channel=1, translation_key="case_fan"))
+    ents.append(_KFanEntity(coord, name="Side Fan", read_field="auxiliaryFanPct", uid="side_fan", channel=2, translation_key="side_fan"))
 
     async_add_entities(ents)
 
@@ -33,8 +33,8 @@ class _KFanEntity(KEntity, FanEntity):
     # New native fan entities should be enabled by default; keep old Number entities for BC
     _attr_entity_registry_enabled_default = True
 
-    def __init__(self, coordinator, name: str, read_field: str, uid: str, channel: int) -> None:
-        super().__init__(coordinator, name, uid)
+    def __init__(self, coordinator, name: str, read_field: str, uid: str, channel: int, translation_key: str | None = None) -> None:
+        super().__init__(coordinator, name, uid, translation_key=translation_key)
         self._read_field = read_field
         self._channel = int(channel)
 

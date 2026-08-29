@@ -1,6 +1,4 @@
-"""Solcast PV forecast, config validation functions."""
-
-from __future__ import annotations
+"""Solcast config validation functions."""
 
 import re
 from typing import Any
@@ -79,12 +77,16 @@ def validate_api_limit_value(api_limit: str, api_count: int, allow_exceed: bool 
     """
     api_limit_cleaned = api_limit.replace(" ", "")
     quotas = [s for s in api_limit_cleaned.split(",") if s]
+    if not quotas:
+        return "", EXCEPTION_LIMIT_ONE_OR_GREATER
     for q in quotas:
-        if not q.isnumeric():
+        try:
+            quota = int(q)
+        except ValueError:
             return "", EXCEPTION_LIMIT_NOT_NUMBER
-        if int(q) < 1:
+        if quota < 1:
             return "", EXCEPTION_LIMIT_ONE_OR_GREATER
-        if not allow_exceed and int(q) > 50:
+        if not allow_exceed and quota > 50:
             return "", EXCEPTION_LIMIT_EXCEEDS_MAXIMUM
     if len(quotas) > api_count:
         return "", EXCEPTION_LIMIT_TOO_MANY

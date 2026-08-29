@@ -64,6 +64,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "bed_temperature",
         "name": "Bed Temperature",
+        "translation_key": "bed_temperature",
         "field": "bedTemp0",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": U_C,
@@ -76,6 +77,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "box_temperature",  # keep uid stable for existing entity IDs
         "name": "Chamber Temperature",
+        "translation_key": "chamber_temperature",
         "field": "boxTemp",  # protocol field remains boxTemp
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": U_C,
@@ -88,6 +90,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "nozzle_temperature",
         "name": "Nozzle Temperature",
+        "translation_key": "nozzle_temperature",
         "field": "nozzleTemp",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": U_C,
@@ -102,6 +105,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "print_progress",
         "name": "Print Progress",
+        "translation_key": "print_progress",
         "field": "__progress__",
         "device_class": None,
         "unit": U_PERCENT,
@@ -113,6 +117,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "total_layers",
         "name": "Total Layers",
+        "translation_key": "total_layers",
         "field": "TotalLayer",
         "device_class": None,
         "unit": None,
@@ -122,6 +127,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "current_layer",
         "name": "Working Layer",
+        "translation_key": "current_layer",
         "field": "layer",
         "device_class": None,
         "unit": None,
@@ -133,6 +139,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "position_x",
         "name": "Position X",
+        "translation_key": "position_x",
         "field": "__pos_x__",
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
@@ -142,6 +149,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "position_y",
         "name": "Position Y",
+        "translation_key": "position_y",
         "field": "__pos_y__",
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
@@ -151,6 +159,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "position_z",
         "name": "Position Z",
+        "translation_key": "position_z",
         "field": "__pos_z__",
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
@@ -162,6 +171,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "feedrate_pct",
         "name": "Print Speed %",
+        "translation_key": "feedrate_pct",
         "field": "curFeedratePct",
         "device_class": None,
         "unit": "%",
@@ -171,6 +181,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "flowrate_pct",
         "name": "Flow Rate %",
+        "translation_key": "flowrate_pct",
         "field": "curFlowratePct",
         "device_class": None,
         "unit": "%",
@@ -182,6 +193,7 @@ SPECS: list[dict[str, Any]] = [
     {
         "uid": "system",
         "name": "System",
+        "translation_key": "system",
         "field": "model",
         "device_class": None,
         "unit": None,
@@ -198,10 +210,11 @@ MAPPED_SPECS: list[dict[str, Any]] = [
     {
         "uid": "filament_status",
         "name": "Filament Status",
+        "translation_key": "filament_status",
         "field": "materialStatus",
         "mapping": {
-            0: "Normal",
-            1: "Filament Runout",
+            0: "normal",
+            1: "runout",
         },
         "icon": "mdi:printer-3d-nozzle-alert",
     },
@@ -212,7 +225,7 @@ class KSimpleFieldSensor(KEntity, SensorEntity):
     """Generic sensor bound to one telemetry field or a special computed field."""
 
     def __init__(self, coordinator, spec: dict[str, Any]):
-        super().__init__(coordinator, spec["name"], spec["uid"])
+        super().__init__(coordinator, spec["name"], spec["uid"], translation_key=spec.get("translation_key"))
         self._field: str = spec["field"]
         self._attr_device_class = spec.get("device_class")
         self._attr_native_unit_of_measurement = spec.get("unit")
@@ -284,7 +297,7 @@ class KMappedSensor(KEntity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, spec: dict[str, Any]):
-        super().__init__(coordinator, spec["name"], spec["uid"])
+        super().__init__(coordinator, spec["name"], spec["uid"], translation_key=spec.get("translation_key"))
         self._field: str = spec["field"]
         self._mapping: dict[int, str] = spec.get("mapping", {})
         if spec.get("icon"):
@@ -293,16 +306,16 @@ class KMappedSensor(KEntity, SensorEntity):
     @property
     def native_value(self) -> str | None:
         if self._should_zero():
-            return "Unknown"
-            
+            return "unknown"
+
         d = self.coordinator.data
         if not d:
-            return "Unknown"
-            
+            return "unknown"
+
         raw = d.get(self._field)
         if raw is None:
-            return "Unknown"
-            
+            return "unknown"
+
         try:
             val = int(raw)
             return self._mapping.get(val, str(raw))
@@ -311,11 +324,11 @@ class KMappedSensor(KEntity, SensorEntity):
 
 
 class PrintStatusSensor(KEntity, SensorEntity):
-    _attr_name = "Print Status"
+    _attr_translation_key = "print_status"
     _attr_icon = "mdi:printer-3d"
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "print_status")
+        super().__init__(coordinator, unique_id="print_status")
 
     @property
     def native_value(self) -> str | None:
@@ -386,14 +399,14 @@ class PrintStatusSensor(KEntity, SensorEntity):
 
 
 class UsedMaterialLengthSensor(KEntity, SensorEntity):
-    _attr_name = "Used Material Length"
+    _attr_translation_key = "used_material_length"
     _attr_icon = "mdi:counter"
     _attr_native_unit_of_measurement = U_CM
     _attr_device_class = SensorDeviceClass.DISTANCE
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "used_material_length")
+        super().__init__(coordinator, unique_id="used_material_length")
 
     @property
     def native_value(self) -> float | None:
@@ -407,14 +420,14 @@ class UsedMaterialLengthSensor(KEntity, SensorEntity):
             return None
 
 class PrintJobTimeSensor(KEntity, SensorEntity):
-    _attr_name = "Print Job Time"
+    _attr_translation_key = "print_job_time"
     _attr_icon = "mdi:timer-play"
     _attr_native_unit_of_measurement = U_S
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "print_job_time")
+        super().__init__(coordinator, unique_id="print_job_time")
 
     @property
     def native_value(self) -> int | None:
@@ -427,14 +440,14 @@ class PrintJobTimeSensor(KEntity, SensorEntity):
             return None
 
 class PrintLeftTimeSensor(KEntity, SensorEntity):
-    _attr_name = "Print Time Left"
+    _attr_translation_key = "print_left_time"
     _attr_icon = "mdi:timer-sand"
     _attr_native_unit_of_measurement = U_S
     _attr_device_class = SensorDeviceClass.DURATION
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "print_left_time")
+        super().__init__(coordinator, unique_id="print_left_time")
 
     @property
     def native_value(self) -> int | None:
@@ -447,14 +460,14 @@ class PrintLeftTimeSensor(KEntity, SensorEntity):
             return None
 
 class RealTimeFlowSensor(KEntity, SensorEntity):
-    _attr_name = "Real-Time Flow"
+    _attr_translation_key = "real_time_flow"
     _attr_icon = "mdi:cube-send"
     # Use engineering unit mm³/s directly; omit device_class to avoid HA validation warnings.
     _attr_native_unit_of_measurement = "mm³/s"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "real_time_flow")
+        super().__init__(coordinator, unique_id="real_time_flow")
 
     @property
     def native_value(self) -> float | None:
@@ -464,11 +477,11 @@ class RealTimeFlowSensor(KEntity, SensorEntity):
 
 
 class CurrentObjectSensor(KEntity, SensorEntity):
-    _attr_name = "Current Object"
+    _attr_translation_key = "current_object"
     _attr_icon = "mdi:cube-outline"
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "current_object")
+        super().__init__(coordinator, unique_id="current_object")
 
     @property
     def native_value(self) -> str | None:
@@ -478,15 +491,17 @@ class CurrentObjectSensor(KEntity, SensorEntity):
         
         d = self.coordinator.data or {}
         v = d.get("current_object") or d.get("currentObject")
-        
-        # If no current object and printer is not printing, show "not printing"
-        if not v or v.strip() == "":
+
+        # If no current object and printer is not printing, show "not printing".
+        # Firmware may send this as a non-string (e.g. an int object index), so
+        # only run the whitespace check on actual strings to avoid AttributeError.
+        if not v or (isinstance(v, str) and not v.strip()):
             # Check if printer is actually printing
             fname = d.get("printFileName") or ""
             if not fname:
                 return "not printing"
             return None
-        
+
         return str(v)
 
     @property
@@ -498,12 +513,12 @@ class CurrentObjectSensor(KEntity, SensorEntity):
 
 
 class ObjectCountSensor(KEntity, SensorEntity):
-    _attr_name = "Object Count"
+    _attr_translation_key = "object_count"
     _attr_icon = "mdi:format-list-numbered"
     _attr_state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "object_count")
+        super().__init__(coordinator, unique_id="object_count")
 
     @property
     def native_value(self) -> int | None:
@@ -545,12 +560,12 @@ class ObjectCountSensor(KEntity, SensorEntity):
 
 class KPrintControlSensor(KEntity, SensorEntity):
     """Diagnostic sensor exposing control pipeline state (queued actions, paused flag, raw states)."""
-    _attr_name = "Print Control"
+    _attr_translation_key = "print_control"
     _attr_icon = "mdi:debug-step-over"
     _attr_state_class = None  # not a measurement
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, self._attr_name, "print_control")
+        super().__init__(coordinator, unique_id="print_control")
 
     @property
     def native_value(self) -> str | None:
@@ -581,7 +596,9 @@ class KCFSBoxSensor(KEntity, SensorEntity):
     def __init__(self, coordinator, box_id: int, sensor_type: str):
         uid = f"cfs_box_{box_id}_{sensor_type}"
         name = f"CFS Box {box_id} {sensor_type.capitalize()}"
-        super().__init__(coordinator, name, uid)
+        tk = "cfs_box_temp" if sensor_type == "temp" else "cfs_box_humidity"
+        super().__init__(coordinator, name, uid, translation_key=tk)
+        self._attr_translation_placeholders = {"box_id": str(box_id)}
         self._box_id = box_id
         self._type = sensor_type  # "temp" or "humidity"
         if sensor_type == "temp":
@@ -616,7 +633,9 @@ class KCFSSlotSensor(KEntity, SensorEntity):
         uid = f"cfs_box_{box_id}_slot_{slot_id}_{sensor_type}"
         type_label = sensor_type.replace("_", " ").capitalize()
         name = f"CFS Box {box_id} Slot {slot_id + 1} {type_label}"
-        super().__init__(coordinator, name, uid)
+        tk = f"cfs_slot_{sensor_type}"
+        super().__init__(coordinator, name, uid, translation_key=tk)
+        self._attr_translation_placeholders = {"box_id": str(box_id), "slot": str(slot_id + 1)}
         self._box_id = box_id
         self._slot_id = slot_id
         self._type = sensor_type  # "filament", "color", "percent"
@@ -680,7 +699,8 @@ class KCFSExtSlotSensor(KEntity, SensorEntity):
         uid = f"cfs_external_{sensor_type}"
         type_label = sensor_type.replace("_", " ").capitalize()
         name = f"CFS External {type_label}"
-        super().__init__(coordinator, name, uid)
+        tk = f"cfs_ext_{sensor_type}"
+        super().__init__(coordinator, name, uid, translation_key=tk)
         self._slot_id = slot_id
         self._type = sensor_type
 
@@ -746,7 +766,7 @@ class KActiveFilamentSensor(KEntity, SensorEntity):
     """Sensor reporting which CFS slot or external filament is currently selected."""
 
     def __init__(self, coordinator):
-        super().__init__(coordinator, "Active Filament Slot", "active_filament_slot")
+        super().__init__(coordinator, "", "active_filament_slot", translation_key="active_filament_slot")
         self._attr_icon = "mdi:printer-3d-nozzle"
 
     @property
@@ -912,10 +932,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
         {
             "uid": "model_info",
             "name": "Model",
+            "translation_key": "model_info",
             "field": "model",
             "device_class": None,
-            "unit": None,    
-            "state_class": None, 
+            "unit": None,
+            "state_class": None,
             "attrs": lambda d: _attr_dict(
                 ("hostname", d.get("hostname")),
                 ("modelVersion", d.get("modelVersion")),
@@ -976,12 +997,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
     max_box = _cached_or_live("max_box_temp")
 
     if max_noz is not None:
-        ents.append(KMaxTempSensor(coord, name="Max Nozzle Temperature", uid="max_nozzle_temp", key="max_nozzle_temp"))
+        ents.append(KMaxTempSensor(coord, uid="max_nozzle_temp", key="max_nozzle_temp", translation_key="max_nozzle_temp"))
     if max_bed is not None:
-        ents.append(KMaxTempSensor(coord, name="Max Bed Temperature", uid="max_bed_temp", key="max_bed_temp"))
+        ents.append(KMaxTempSensor(coord, uid="max_bed_temp", key="max_bed_temp", translation_key="max_bed_temp"))
     # Only expose chamber max if model supports chamber sensor/control or we detect a value
     if has_box_sensor and max_box is not None:
-        ents.append(KMaxTempSensor(coord, name="Max Chamber Temperature", uid="max_box_temp", key="max_box_temp"))
+        ents.append(KMaxTempSensor(coord, uid="max_box_temp", key="max_box_temp", translation_key="max_chamber_temp"))
 
     # Register static entities immediately
     try:
@@ -1009,8 +1030,8 @@ class KMaxTempSensor(KEntity, SensorEntity):
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
 
-    def __init__(self, coordinator, name: str, uid: str, key: str):
-        super().__init__(coordinator, name, uid)
+    def __init__(self, coordinator, uid: str, key: str, translation_key: str):
+        super().__init__(coordinator, "", uid, translation_key=translation_key)
         self._key = key  # one of: max_nozzle_temp, max_bed_temp, max_box_temp
         # Use Celsius unit
         try:

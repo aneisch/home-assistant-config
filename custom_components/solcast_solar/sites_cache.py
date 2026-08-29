@@ -1,7 +1,5 @@
 """Solcast sites, usage and cache management."""
 
-# pylint: disable=pointless-string-statement
-
 from __future__ import annotations
 
 from collections import defaultdict
@@ -9,10 +7,9 @@ import contextlib
 import copy
 from datetime import UTC, datetime as dt, timedelta
 import json
-import logging
 from pathlib import Path
 import re
-import traceback
+import shutil
 from typing import TYPE_CHECKING, Any, Final
 
 import aiofiles
@@ -22,17 +19,23 @@ from aiohttp.client_reqrep import ClientResponse
 from homeassistant.exceptions import ConfigEntryError, ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
 
+from . import entry_state
 from .const import (
+    ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM,
     ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_CONFIGURATION,
+    ADVANCED_SOLCAST_PORT,
     ADVANCED_SOLCAST_URL,
     API_KEY,
     AUTO_UPDATED,
+    DAILY_ACTUALS_CONSUMED,
+    DAILY_FORCED_CONSUMED,
     DAILY_LIMIT,
     DAILY_LIMIT_CONSUMED,
+    DAILY_TYPICAL,
+    DAILY_TYPICAL_FORECAST_UPDATES,
     DISMISSAL,
     DOMAIN,
     DT_DATE_FORMAT,
-    ENTRY_OPTIONS,
     EXCEPTION_INIT_CORRUPT,
     EXCEPTION_INIT_INCOMPATIBLE,
     EXTANT,
@@ -52,7 +55,6 @@ from .const import (
     LAST_UPDATED,
     LEARN_MORE,
     LEARN_MORE_UNUSUAL_AZIMUTH,
-    OLD_API_KEY,
     PERIOD_START,
     PROPOSAL,
     RESET,
@@ -64,32 +66,34 @@ from .const import (
     SITE_INFO,
     SITES,
     SUCCESS,
+    SUCCESS_ACTUALS,
     SUCCESS_FORCED,
     SUCCESS_TRACKED,
     TOTAL_RECORDS,
     UNKNOWN,
     VERSION,
 )
-from .util import (
+from .dates import DateTimeEncoder, JSONDecoder
+from .enums import (
     AutoUpdate,
-    DateTimeEncoder,
-    JSONDecoder,
-    SchemaIncompatibleError,
     SitesStatus,
     SolcastApiStatus,
     UpdateOutcome,
     UpdateResult,
     UsageStatus,
-    check_unusual_azimuth,
-    clear_cache,
-    http_status_translate,
-    raise_and_record,
+)
+from .issues import check_unusual_azimuth
+from .log import get_logger
+from .migration import SchemaIncompatibleError, clear_cache, upgrade_cache_schema
+from .redact import (
     redact_api_key,
+    redact_filename_api_key,
     redact_lat_lon,
     redact_lat_lon_simple,
     redact_msg_api_key,
-    upgrade_cache_schema,
 )
+from .state import raise_and_record
+from .util import split_and_strip
 
 if TYPE_CHECKING:
     from .solcastapi import SolcastApi
@@ -100,13 +104,12 @@ FRESH_DATA: Final[dict[str, Any]] = {
     LAST_ATTEMPT: dt.fromtimestamp(0, UTC),
     AUTO_UPDATED: 0,
     FAILURE: {LAST_24H: 0, LAST_7D: [0] * 7, LAST_14D: [0] * 14},
-    SUCCESS: {SUCCESS_TRACKED: {}, SUCCESS_FORCED: {}},
+    SUCCESS: {SUCCESS_TRACKED: {}, SUCCESS_FORCED: {}, SUCCESS_ACTUALS: {}},
     INTEGRATION_VERSION: "",
     VERSION: JSON_VERSION,
 }
 
-
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 class SitesCache:
@@ -127,6 +130,23 @@ class SitesCache:
         self._extant_usage: defaultdict[str, dict[str, Any]] = defaultdict(dict[str, Any])
         self._rekey: dict[str, Any] = {}
         self._site_latitude: defaultdict[str, dict[str, bool | float | int | None]] = defaultdict(dict[str, bool | float | int | None])
+        self._site_transfers: dict[str, str] = {}
+
+    def _clear_old_api_key(self) -> None:
+        """Clear the prior API key tracked for entry state, if any."""
+        if self.api.entry is not None:
+            entry_state.get(self.api.entry.entry_id).old_api_key = None
+
+    def _old_api_key_for_comparison(self) -> str:
+        """Return the API key(s) used to detect new sites since the last reconfigure.
+
+        Returns the configured API key when no prior key is tracked for fresh setup.
+        """
+        if self.api.entry is not None:
+            old = entry_state.get(self.api.entry.entry_id).old_api_key
+            if old is not None:
+                return old
+        return self.api.entry_options.get(API_KEY, "")
 
     # Properties (alphabetical).
 
@@ -216,6 +236,7 @@ class SitesCache:
             tuple[int, str, str]: The status code, message and relevant API key from load sites.
         """
         issue_registry = ir.async_get(self.api.hass)
+        cache_mutation_allowed = self.api.entry is not None
 
         def rename(file1: str, file2: str, api_key: str):
             if Path(file1).is_file():
@@ -284,7 +305,7 @@ class SitesCache:
 
             await self.cleanup_issues(any_unusual)
 
-            if self.api.sites != old_sites:
+            if cache_mutation_allowed and self.api.sites != old_sites:
                 # Sites have been updated with dismissables, so re-serialise the sites cache(s).
                 for api_key in self.api.options.api_key.split(","):
                     api_key = api_key.strip()
@@ -329,15 +350,13 @@ class SitesCache:
                         )
                         Path(file).unlink()
 
-        def list_all_files() -> tuple[list[str], list[str]]:
-            sites = [str(sites) for sites in Path(self.api.config_dir).glob("solcast-sites*.json")]
-            usage = [str(usage) for usage in Path(self.api.config_dir).glob("solcast-usage*.json")]
-            return sorted(sites), sorted(usage)
-
-        def list_multi_key_files() -> tuple[list[str], list[str]]:
-            sites = [str(sites) for sites in Path(self.api.config_dir).glob("solcast-sites-*.json")]
-            usage = [str(usage) for usage in Path(self.api.config_dir).glob("solcast-usage-*.json")]
-            return sorted(sites), sorted(usage)
+        def list_all_and_multi_key_files() -> tuple[tuple[list[str], list[str]], tuple[list[str], list[str]]]:
+            config_dir = Path(self.api.config_dir)
+            all_sites = sorted(str(s) for s in config_dir.glob("solcast-sites*.json"))
+            all_usage = sorted(str(u) for u in config_dir.glob("solcast-usage*.json"))
+            multi_sites = sorted(str(s) for s in config_dir.glob("solcast-sites-*.json"))
+            multi_usage = sorted(str(u) for u in config_dir.glob("solcast-usage-*.json"))
+            return (all_sites, all_usage), (multi_sites, multi_usage)
 
         async def load_extant_sites_and_usage(sites: list[str], usages: list[str]):
             extant_sites: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -373,19 +392,22 @@ class SitesCache:
                         extant_usage[UNKNOWN] = response_json
             return extant_sites, extant_usage
 
-        api_keys = [api_key.strip() for api_key in self.api.options.api_key.split(",")]
-        if self.multi_key:
-            await from_single_site_to_multi(api_keys)
-        else:
-            await from_multi_site_to_single(api_keys)
+        api_keys = split_and_strip(self.api.options.api_key)
+        if cache_mutation_allowed:
+            if self.multi_key:
+                await from_single_site_to_multi(api_keys)
+            else:
+                await from_multi_site_to_single(api_keys)
         multi_sites = [f"{self.api.config_dir}/solcast-sites-{api_key}.json" for api_key in api_keys]
         multi_usage = [f"{self.api.config_dir}/solcast-usage-{api_key}.json" for api_key in api_keys]
 
-        all_sites, all_usage = await self.api.hass.async_add_executor_job(list_all_files)
-        multi_key_sites, multi_key_usage = await self.api.hass.async_add_executor_job(list_multi_key_files)
+        (all_sites, all_usage), (multi_key_sites, multi_key_usage) = await self.api.hass.async_add_executor_job(
+            list_all_and_multi_key_files
+        )
         self._extant_sites, self._extant_usage = await load_extant_sites_and_usage(all_sites, all_usage)
-        remove_orphans(multi_key_sites, multi_sites)
-        remove_orphans(multi_key_usage, multi_usage)
+        if cache_mutation_allowed:
+            remove_orphans(multi_key_sites, multi_sites)
+            remove_orphans(multi_key_usage, multi_usage)
 
         status, message, api_key_in_error = await self._sites_data(prior_crash=prior_crash, use_cache=use_cache)
         if self.api.sites_status == SitesStatus.OK:
@@ -416,7 +438,9 @@ class SitesCache:
                             json_data: dict[str, Any] = json.loads(await data_file.read(), cls=JSONDecoder)
                             if not isinstance(json_data, dict):
                                 _LOGGER.error("The %s cache appears corrupt", filename)
-                                raise_and_record(self.api.hass, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file})
+                                await raise_and_record(
+                                    self.api.hass, self.api.entry, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file}
+                                )
                             json_version = json_data.get(VERSION, 1)
                             _LOGGER.debug(
                                 "Data cache %s exists, file type is %s",
@@ -465,7 +489,9 @@ class SitesCache:
                                 except SchemaIncompatibleError:
                                     self.api.status = SolcastApiStatus.DATA_INCOMPATIBLE
                                     _LOGGER.critical("The %s appears incompatible, so cannot upgrade it", filename)
-                                    raise_and_record(self.api.hass, ConfigEntryError, EXCEPTION_INIT_INCOMPATIBLE, {"file": file})
+                                    await raise_and_record(
+                                        self.api.hass, self.api.entry, ConfigEntryError, EXCEPTION_INIT_INCOMPATIBLE, {"file": file}
+                                    )
 
                                 if json_version > current_version:
                                     await self.serialise_data(data, filename)
@@ -480,9 +506,9 @@ class SitesCache:
                     reset_usage = False
                     new_sites: dict[str, str] = {}
                     cache_sites = list(self.api.data[SITE_INFO].keys())
-                    old_api_keys = (
-                        self.api.hass.data[DOMAIN].get(OLD_API_KEY, self.api.hass.data[DOMAIN][ENTRY_OPTIONS].get(API_KEY, "")).split(",")
-                    )
+                    old_api_keys = split_and_strip(self._old_api_key_for_comparison())
+                    configured_api_keys = split_and_strip(self.api.options.api_key)
+                    api_key_set_changed = set(old_api_keys) != set(configured_api_keys)
                     for site in self.api.sites:
                         api_key = site[API_KEY]
                         site = site[RESOURCE_ID]
@@ -493,7 +519,7 @@ class SitesCache:
                             ):  # If a new site is seen in conjunction with an API key change then reset the usage.
                                 reset_usage = True
                     with contextlib.suppress(Exception):
-                        del self.api.hass.data[DOMAIN][OLD_API_KEY]
+                        self._clear_old_api_key()
 
                     if reset_usage:
                         _LOGGER.info("An API key has changed with a new site added, resetting usage")
@@ -520,7 +546,8 @@ class SitesCache:
                     configured_sites = [site[RESOURCE_ID] for site in self.api.sites]
                     for site in cache_sites:
                         if site not in configured_sites:
-                            _LOGGER.warning(
+                            expected_reconfigure_cleanup = api_key_set_changed and bool(new_sites)
+                            (_LOGGER.debug if expected_reconfigure_cleanup else _LOGGER.warning)(
                                 "Site resource id %s is no longer configured, will remove saved data from %s, %s, %s, %s",
                                 site,
                                 self.api.filename,
@@ -547,6 +574,42 @@ class SitesCache:
                         }.items():
                             await self.serialise_data(data, filename)
 
+                async def apply_site_transfer_migration() -> None:
+                    if not self._site_transfers:
+                        return
+
+                    await self._backup_json_caches()
+
+                    changed = False
+                    for data in [self.api.data, self.api.data_undampened, self.api.data_actuals, self.api.data_actuals_dampened]:
+                        changed |= self._apply_site_transfer_to_cached_data(data, self._site_transfers)
+
+                    factors_changed = False
+                    for old_site_id, new_site_id in self._site_transfers.items():
+                        if old_site_id in self.api.dampening.factors:
+                            if new_site_id not in self.api.dampening.factors:
+                                self.api.dampening.factors[new_site_id] = self.api.dampening.factors[old_site_id]
+                            del self.api.dampening.factors[old_site_id]
+                            factors_changed = True
+
+                    if changed:
+                        _LOGGER.info(
+                            "Applying cached history transfer for moved site IDs: %s",
+                            ", ".join(f"{old}->{new}" for old, new in sorted(self._site_transfers.items())),
+                        )
+                        for filename, data in {
+                            self.api.filename: self.api.data,
+                            self.api.filename_undampened: self.api.data_undampened,
+                            self.api.filename_actuals: self.api.data_actuals,
+                            self.api.filename_actuals_dampened: self.api.data_actuals_dampened,
+                        }.items():
+                            await self.serialise_data(data, filename)
+
+                    if factors_changed:
+                        await self.api.dampening.serialise_granular()
+
+                    self._site_transfers = {}
+
                 dampened_data = await load_data(self.api.filename)
                 if dampened_data is not None:
                     self.api.data = dampened_data
@@ -564,6 +627,9 @@ class SitesCache:
                         self.api.data_actuals_dampened = actuals_dampened_data
                     elif actuals_data:
                         self.api.data_actuals_dampened = actuals_data
+
+                    await apply_site_transfer_migration()
+
                     # Load the generation history
                     file = self.api.filename_generation
                     generation_data = await self.api.dampening.load_generation_data()
@@ -615,7 +681,7 @@ class SitesCache:
         except json.decoder.JSONDecodeError:
             _LOGGER.error("The cached data in %s is corrupt in load_saved_data()", file)
             self.api.status = SolcastApiStatus.DATA_CORRUPT
-            raise_and_record(self.api.hass, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file})
+            await raise_and_record(self.api.hass, self.api.entry, ConfigEntryNotReady, EXCEPTION_INIT_CORRUPT, {"file": file})
         return True
 
     async def reset_api_usage(self, force: bool = False) -> None:
@@ -627,7 +693,21 @@ class SitesCache:
         if force or self.stale_usage_cache:
             _LOGGER.debug("Reset API usage")
             for api_key in self.api.api_used:
+                yesterday_total = self.api.api_used[api_key] + self.api.api_forced.get(api_key, 0)
+                self.api.api_typical_forecast_updates[api_key] = yesterday_total
+                if yesterday_total > 0:
+                    self.api.api_typical[api_key] = yesterday_total
+                    _LOGGER.debug(
+                        "Typical daily API usage for %s updated to %d (tracked %d + forced %d, actuals excluded %d)",
+                        redact_api_key(api_key),
+                        yesterday_total,
+                        self.api.api_used[api_key],
+                        self.api.api_forced.get(api_key, 0),
+                        self.api.api_actuals.get(api_key, 0),
+                    )
                 self.api.api_used[api_key] = 0
+                self.api.api_forced[api_key] = 0
+                self.api.api_actuals[api_key] = 0
                 await self.serialise_usage(api_key, reset=True)
         else:
             _LOGGER.debug("Usage cache is fresh, so not resetting")
@@ -638,6 +718,8 @@ class SitesCache:
         for api_key in api_keys:
             api_key = api_key.strip()
             self.api.api_used[api_key] = 0
+            self.api.api_forced[api_key] = 0
+            self.api.api_actuals[api_key] = 0
             await self.serialise_usage(api_key, reset=True)
 
     async def serialise_data(self, data: dict[str, Any], filename: str) -> bool:
@@ -686,12 +768,149 @@ class SitesCache:
         )
         json_content: dict[str, Any] = {
             DAILY_LIMIT: self.api.api_limits[api_key],
+            DAILY_FORCED_CONSUMED: self.api.api_forced.get(api_key, 0),
+            DAILY_ACTUALS_CONSUMED: self.api.api_actuals.get(api_key, 0),
             DAILY_LIMIT_CONSUMED: self.api.api_used[api_key],
+            DAILY_TYPICAL: self.api.api_typical.get(api_key, 0),
+            DAILY_TYPICAL_FORECAST_UPDATES: self.api.api_typical_forecast_updates.get(api_key),
             RESET: self._api_used_reset[api_key],
         }
         payload = json.dumps(json_content, ensure_ascii=False, cls=DateTimeEncoder)
         async with self.api.serialise_lock, aiofiles.open(filename, "w") as file:
             await file.write(payload)
+
+    async def _backup_json_caches(self) -> None:
+        """Backup all JSON caches.
+
+        Backups are stamped by day as YYMMDD and written as .json.bak files. Older
+        dated backups for each cache file are removed to reduce storage usage.
+        """
+
+        def list_matching_files(config_dir: Path, pattern: str) -> list[Path]:
+            return sorted(path for path in config_dir.glob(pattern) if path.is_file())
+
+        backup_day = dt.now(UTC).strftime("%y%m%d")
+        config_dir = Path(self.api.config_dir)
+        cache_files = await self.api.hass.async_add_executor_job(list_matching_files, config_dir, "solcast*.json")
+
+        for cache_file in cache_files:
+            backup_file = cache_file.with_name(f"{cache_file.stem}-{backup_day}{cache_file.suffix}.bak")
+
+            legacy_backups = await self.api.hass.async_add_executor_job(
+                list_matching_files,
+                config_dir,
+                f"{cache_file.stem}-*-auto_backup{cache_file.suffix}",
+            )
+            for extant_backup in legacy_backups:
+                with contextlib.suppress(OSError):
+                    await self.api.hass.async_add_executor_job(extant_backup.unlink)
+
+            backup_pattern = re.compile(rf"^{re.escape(cache_file.stem)}-(\d{{6}}){re.escape(cache_file.suffix)}\.bak$")
+            extant_backups = await self.api.hass.async_add_executor_job(
+                list_matching_files,
+                config_dir,
+                f"{cache_file.stem}-*{cache_file.suffix}.bak",
+            )
+            for extant_backup in extant_backups:
+                match = backup_pattern.match(extant_backup.name)
+                if match is None:
+                    continue
+                if match.group(1) < backup_day:
+                    with contextlib.suppress(OSError):
+                        await self.api.hass.async_add_executor_job(extant_backup.unlink)
+
+            try:
+                await self.api.hass.async_add_executor_job(shutil.copy2, cache_file, backup_file)
+                _LOGGER.debug("Created backup %s", redact_filename_api_key(str(backup_file)))
+            except OSError as err:
+                _LOGGER.warning("Could not create backup %s: %s", redact_filename_api_key(str(backup_file)), err)
+
+    def _site_transfer_signature(self, site: dict[str, Any]) -> tuple[str, str, str] | None:
+        """Return a comparable site signature used for site-ID transfer matching."""
+
+        name = site.get("name")
+        capacity_dc = site.get("capacity_dc")
+        tilt = site.get("tilt")
+        if name is None or capacity_dc is None or tilt is None:
+            return None
+
+        try:
+            capacity_text = f"{float(capacity_dc):.6f}"
+            tilt_text = f"{float(tilt):.6f}"
+        except (TypeError, ValueError):
+            return None
+
+        return str(name).strip().casefold(), capacity_text, tilt_text
+
+    def _infer_site_transfer_map(self, api_sites: list[dict[str, Any]], extant_sites: list[dict[str, Any]]) -> dict[str, str]:
+        """Infer old->new site-ID mapping for a transferred site/account pair."""
+
+        extant_by_signature: dict[tuple[str, str, str], str] = {}
+        for extant_site in extant_sites:
+            signature = self._site_transfer_signature(extant_site)
+            site_id = extant_site.get(RESOURCE_ID)
+            if signature is None or site_id is None or signature in extant_by_signature:
+                return {}
+            extant_by_signature[signature] = site_id
+
+        api_by_signature: dict[tuple[str, str, str], str] = {}
+        for api_site in api_sites:
+            signature = self._site_transfer_signature(api_site)
+            site_id = api_site.get(RESOURCE_ID)
+            if signature is None or site_id is None or signature in api_by_signature:
+                return {}
+            api_by_signature[signature] = site_id
+
+        if not set(api_by_signature).issubset(extant_by_signature):
+            return {}
+
+        return {
+            extant_by_signature[signature]: api_site_id
+            for signature, api_site_id in api_by_signature.items()
+            if extant_by_signature[signature] != api_site_id
+        }
+
+    def _match_site_set_against_extant(self, api_sites: list[dict[str, Any]], extant_sites: list[dict[str, Any]]) -> dict[str, str] | None:
+        """Return transfer mapping when all API sites are already represented in extant cache data."""
+
+        api_site_ids = {api_site_id for api_site_id in (site.get(RESOURCE_ID) for site in api_sites) if api_site_id is not None}
+        if not api_site_ids:
+            return None
+
+        extant_site_ids = {site_id for site_id in (site.get(RESOURCE_ID) for site in extant_sites) if site_id is not None}
+        site_transfers = self._infer_site_transfer_map(api_sites, extant_sites)
+        if api_site_ids.issubset(extant_site_ids | set(site_transfers.values())):
+            return site_transfers
+
+        return None
+
+    def _apply_site_transfer_to_cached_data(self, data: dict[str, Any], transfers: dict[str, str]) -> bool:
+        """Apply old->new site-ID mapping to a loaded cache dataset."""
+
+        site_info = data.get(SITE_INFO)
+        if not isinstance(site_info, dict):
+            return False
+
+        changed = False
+        for old_site_id, new_site_id in transfers.items():
+            if old_site_id not in site_info:
+                continue
+
+            old_site_data = site_info.pop(old_site_id)
+            if new_site_id in site_info and isinstance(site_info[new_site_id], dict) and isinstance(old_site_data, dict):
+                old_forecasts = old_site_data.get(FORECASTS, [])
+                new_forecasts = site_info[new_site_id].get(FORECASTS, [])
+                if isinstance(old_forecasts, list) and isinstance(new_forecasts, list):
+                    site_info[new_site_id][FORECASTS] = [
+                        *new_forecasts,
+                        *[forecast for forecast in old_forecasts if forecast not in new_forecasts],
+                    ]
+            else:
+                site_info[new_site_id] = old_site_data
+
+            changed = True
+
+        return changed
 
     # Private methods (alphabetical).
 
@@ -734,6 +953,7 @@ class SitesCache:
         """
         one_only = False
         status = 999
+        cache_mutation_allowed = self.api.entry is not None
 
         async def load_cache(cache_filename: str) -> dict[str, Any]:
             _LOGGER.info("Loading cached sites for %s", redact_api_key(api_key))
@@ -741,6 +961,8 @@ class SitesCache:
                 return json.loads(await file.read())
 
         async def save_cache(cache_filename: str, response_data: dict[str, Any]):
+            if not cache_mutation_allowed:
+                return
             _LOGGER.debug("Writing sites cache for %s", redact_api_key(api_key))
             async with self.api.serialise_lock, aiofiles.open(cache_filename, "w") as file:
                 await file.write(json.dumps(response_json, ensure_ascii=False))
@@ -790,6 +1012,22 @@ class SitesCache:
             cache_status = False
             all_sites = sorted([site[RESOURCE_ID] for site in response_json[SITES]])
             self._rekey[api_key] = None
+
+            def apply_site_match(site_transfers: dict[str, str]) -> None:
+                old_site_by_new = {new_site: old_site for old_site, new_site in site_transfers.items()}
+                if site_transfers:
+                    _LOGGER.info(
+                        "Site transfer detected for API key %s, migrating cached history (%s)",
+                        redact_api_key(api_key),
+                        ", ".join(f"{old}->{new}" for old, new in sorted(site_transfers.items())),
+                    )
+
+                for site in response_json[SITES]:
+                    site[API_KEY] = api_key
+                    source_site = old_site_by_new.get(site[RESOURCE_ID], str(site[RESOURCE_ID]))
+                    site[DISMISSAL] = self._dismissal.get(source_site, False)
+                    self._dismissal[site[RESOURCE_ID]] = site[DISMISSAL]
+
             for key in self._extant_sites:
                 extant_sites = sorted([site[RESOURCE_ID] for site in self._extant_sites[key]])
                 if all_sites == extant_sites:
@@ -799,14 +1037,50 @@ class SitesCache:
                         # Note that if an API failure had occurred then the sites are not really known, so this key change is a guess at best.
                         _LOGGER.info("API key %s has changed", redact_api_key(api_key))
                         self._rekey[api_key] = key
-                        for site in response_json[SITES]:
-                            site[API_KEY] = api_key
+                    apply_site_match({})
                     cache_status = True
+                    break
+
+                site_transfers = self._match_site_set_against_extant(response_json[SITES], self._extant_sites[key])
+                if site_transfers is not None:
+                    if api_key != key:
+                        _LOGGER.info("API key %s has changed", redact_api_key(api_key))
+                        self._rekey[api_key] = key
+
+                    self._site_transfers.update(site_transfers)
+                    self.api.site_transfers = dict(self._site_transfers)
+                    apply_site_match(site_transfers)
+                    cache_status = True
+                    break
+
+            if not cache_status and allow_combined_site_match:
+                combined_extant_sites: list[dict[str, Any]] = []
+                seen_site_ids: set[str] = set()
+                for extant_sites in self._extant_sites.values():
+                    for extant_site in extant_sites:
+                        site_id = extant_site.get(RESOURCE_ID)
+                        if site_id is None or site_id in seen_site_ids:
+                            continue
+                        combined_extant_sites.append(extant_site)
+                        seen_site_ids.add(site_id)
+
+                site_transfers = self._match_site_set_against_extant(response_json[SITES], combined_extant_sites)
+                if site_transfers is not None:
+                    self._site_transfers.update(site_transfers)
+                    self.api.site_transfers = dict(self._site_transfers)
+                    apply_site_match(site_transfers)
+                    cache_status = True
+
             return cache_status
 
         self.api.sites = []
         api_key_in_error = ""
         api_keys = self.api.options.api_key.split(",")
+        prior_api_keys = split_and_strip(self._old_api_key_for_comparison())
+        configured_api_keys = split_and_strip(self.api.options.api_key)
+        allow_combined_site_match = len(prior_api_keys) > len(configured_api_keys)
+        self._site_transfers = {}
+        self.api.site_transfers = {}
 
         try:
             for api_key in api_keys:
@@ -825,7 +1099,10 @@ class SitesCache:
                 success = False
 
                 if not prior_crash:
-                    url = f"{self.api.advanced_options[ADVANCED_SOLCAST_URL]}/rooftop_sites"
+                    url = (
+                        f"{self.api.get_solcast_base_url(self.api.advanced_options[ADVANCED_SOLCAST_URL], self.api.advanced_options[ADVANCED_SOLCAST_PORT])}"
+                        "/rooftop_sites"
+                    )
                     params = {FORMAT: JSON, API_KEY: api_key}
                     _LOGGER.debug("Connecting to %s?format=json&api_key=%s", url, redact_api_key(api_key))
                     response: ClientResponse = await self.api.aiohttp_session.get(
@@ -834,7 +1111,7 @@ class SitesCache:
                     status = response.status
                     (_LOGGER.debug if status == 200 else _LOGGER.warning)(
                         "HTTP session returned status %s for API key %s%s",
-                        http_status_translate(status),
+                        self.api.http_status_translate(status),
                         redact_api_key(api_key),
                         ", trying cache" if status not in (200, 403) and cache_exists and use_cache else "",
                     )
@@ -876,12 +1153,12 @@ class SitesCache:
                     if cache_exists and use_cache:
                         _LOGGER.warning(
                             "Get sites failed, last call result: %s, using cached data",
-                            http_status_translate(status),
+                            self.api.http_status_translate(status),
                         )
                     else:
                         _LOGGER.error(
                             "Get sites failed, last call result: %s",
-                            http_status_translate(status),
+                            self.api.http_status_translate(status),
                         )
                     if status != 200:
                         api_key_in_error = redact_api_key(api_key)
@@ -950,11 +1227,11 @@ class SitesCache:
                 "Cached sites loaded" if self.api.sites_status == SitesStatus.OK else "Cached sites not loaded",
                 api_key_in_error,
             )
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Exception in _sites_data(): %s: %s", e, traceback.format_exc())
-            return 999, f"Exception in _sites_data(): {e}", ""
+        except Exception as err:
+            _LOGGER.exception("Exception in _sites_data()")
+            return 999, f"Exception in _sites_data(): {err}", ""
 
-        return status, http_status_translate(status), api_key_in_error
+        return status, self.api.http_status_translate(status), api_key_in_error
 
     async def _sites_usage(self) -> None:
         """Load api usage cache.
@@ -972,6 +1249,24 @@ class SitesCache:
                 assert isinstance(self.api.api_limits[api_key], int), "daily_limit is not an integer"
                 self.api.api_used[api_key] = usage.get(DAILY_LIMIT_CONSUMED, 0)
                 assert isinstance(self.api.api_used[api_key], int), "daily_limit_consumed is not an integer"
+                self.api.api_forced[api_key] = usage.get(DAILY_FORCED_CONSUMED, 0)
+                assert isinstance(self.api.api_forced[api_key], int), "daily_forced_consumed is not an integer"
+                self.api.api_actuals[api_key] = usage.get(DAILY_ACTUALS_CONSUMED, 0)
+                assert isinstance(self.api.api_actuals[api_key], int), "daily_actuals_consumed is not an integer"
+                configured_limit = quota.get(api_key, 10)
+                allow_exceed = self.api.advanced_options.get(ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM, False)
+                # Seed from the configured limit.  Auto-update can never consume more.
+                loaded_typical = usage.get(DAILY_TYPICAL, configured_limit)
+                # Cap stale values.
+                if not allow_exceed:
+                    loaded_typical = min(loaded_typical, configured_limit)
+                self.api.api_typical[api_key] = loaded_typical
+                assert isinstance(self.api.api_typical[api_key], int), "daily_typical is not an integer"
+                loaded_typical_forecast_updates = usage.get(DAILY_TYPICAL_FORECAST_UPDATES)
+                if loaded_typical_forecast_updates is None:
+                    loaded_typical_forecast_updates = self.api.api_typical[api_key] + self.api.api_forced.get(api_key, 0)
+                assert isinstance(loaded_typical_forecast_updates, int), "daily_typical_forecast_updates is not an integer"
+                self.api.api_typical_forecast_updates[api_key] = loaded_typical_forecast_updates
                 self._api_used_reset[api_key] = usage.get(RESET, self.api.dt_helper.utc_previous_midnight())
                 assert isinstance(self._api_used_reset[api_key], dt), "reset is not a datetime"
                 if (used_reset := self._api_used_reset[api_key]) is not None:
@@ -980,10 +1275,20 @@ class SitesCache:
                         redact_api_key(api_key),
                         used_reset.astimezone(self.api.tz).strftime(DT_DATE_FORMAT),
                     )
-                if usage[DAILY_LIMIT] != quota[api_key]:  # Limit has been adjusted, so rewrite the cache.
+                if usage.get(DAILY_LIMIT) != quota[api_key]:  # Limit has been adjusted, so rewrite the cache.
                     self.api.api_limits[api_key] = quota[api_key]
+                    # Reset typical to the new limit.
+                    self.api.api_typical[api_key] = quota[api_key]
                     await self.serialise_usage(api_key)
                     _LOGGER.info("Usage loaded and cache updated with new limit")
+                elif (
+                    DAILY_FORCED_CONSUMED not in usage or DAILY_ACTUALS_CONSUMED not in usage
+                ):  # Schema upgraded, rewrite to persist new field.
+                    await self.serialise_usage(api_key)
+                    _LOGGER.debug("Usage loaded and cache updated with new schema")
+                elif DAILY_TYPICAL_FORECAST_UPDATES not in usage:
+                    await self.serialise_usage(api_key)
+                    _LOGGER.debug("Usage loaded and cache updated with typical forecast updates")
                 else:
                     _LOGGER.debug(
                         "Usage loaded%s",
@@ -1004,7 +1309,8 @@ class SitesCache:
             for index in range(len(api_keys)):  # If only one limit value is present, yet there are multiple sites then use the same limit.
                 if len(api_limit_values) < index + 1:
                     api_limit_values.append(api_limit_values[index - 1])
-            quota = {api_keys[index].strip(): int(api_limit_values[index].strip()) for index in range(len(api_limit_values))}
+            api_limit_values = api_limit_values[: len(api_keys)]
+            quota = {k.strip(): int(v.strip()) for k, v in zip(api_keys, api_limit_values, strict=True)}
 
             for api_key in api_keys:
                 api_key = api_key.strip()
@@ -1043,6 +1349,10 @@ class SitesCache:
                         _LOGGER.warning("Creating usage cache for %s, assuming zero API used", redact_api_key(api_key))
                         self.api.api_limits[api_key] = quota[api_key]
                         self.api.api_used[api_key] = 0
+                        self.api.api_forced[api_key] = 0
+                        self.api.api_actuals[api_key] = 0
+                        self.api.api_typical[api_key] = quota[api_key]
+                        self.api.api_typical_forecast_updates[api_key] = quota[api_key]
                         self._api_used_reset[api_key] = self.api.dt_helper.utc_previous_midnight()
                     await self.serialise_usage(api_key, reset=True)
                 _LOGGER.debug(
@@ -1052,6 +1362,6 @@ class SitesCache:
                     self.api.api_limits[api_key],
                 )
 
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Exception in _sites_usage(): %s: %s", e, traceback.format_exc())
+        except Exception:
+            _LOGGER.exception("Exception in _sites_usage()")
             self.api.usage_status = UsageStatus.ERROR

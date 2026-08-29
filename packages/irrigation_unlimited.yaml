@@ -59,6 +59,28 @@ irrigation_unlimited:
           allow_manual: true
 
       sequences:
+        - name: "Lawn and Beds"
+          delay: "00:00:05" # Delay between zones
+          schedules:
+            - name: "Morning"
+              time: "05:00"
+              weekday:
+                # IMPORTANT: Manual Timer for Master Valve must be set to run!
+                - mon
+                - wed
+                - fri
+          zones: # 120 minutes total per manual master valve timer
+            - zone_id: 1 # Front Lawn
+              duration: "00:05:00"
+            - zone_id: 2 # Front Lawn
+              duration: "00:28:00"
+            - zone_id: 3 # Left and Main Rear
+              duration: "00:32:00"
+            - zone_id: 4 # Front and Right Rear
+              duration: "00:32:00"
+            - zone_id: 5 # Side Lawn
+              duration: "00:23:00"
+
         - name: "Lawn Only"
           delay: "00:00:05" # Delay between zones
           schedules:
@@ -66,18 +88,20 @@ irrigation_unlimited:
               time: "05:00"
               weekday:
                 # IMPORTANT: Manual Timer for Master Valve must be set to run!
-                - tue
+                #- tue
+                - mon
+                - wed
                 - fri
 
           zones:
             - zone_id: 2 # Front Lawn
-              duration: "00:25:00"
+              duration: "00:35:00"
             - zone_id: 3 # Left and Main Rear
-              duration: "00:30:00"
+              duration: "00:40:00"
             - zone_id: 4 # Front and Right Rear
-              duration: "00:30:00"
+              duration: "00:40:00"
             - zone_id: 5 # Side Lawn
-              duration: "00:15:00"
+              duration: "00:30:00"
 
         - name: "Beds Only"
           delay: "00:00:05" # Delay between zones

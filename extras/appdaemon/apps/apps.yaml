@@ -26,13 +26,13 @@ AC Automation Solar:
   constrain_input_boolean: input_boolean.ac_automation # This makes AC totally manual if on
   thermostats: climate.thermostat
   device_tracker: group.trackers
-  morning_adjust_weekday: "08:30:00"
-  morning_adjust_weekend: "09:30:00"
+  morning_adjust_weekday: "09:00:00"
+  morning_adjust_weekend: "10:00:00"
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "04:00:00"
-  cool_morning: "82"
-  cool_night: "72"
+  cool_morning: "80"
+  cool_night: "74"
   cool_midnight: "75" # change to this temp at midnight_adjust
   cool_unoccupied: "82"
   guest_cool_morning: "77" # applied if guest_mode on
@@ -48,11 +48,9 @@ AC Automation Solar:
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
   battery_boost_threshold: 96       # battery SOC for boost activation
-  cool_boost_offset: 12             # amount in degrees F to lower if boost mode active (vs cool_morning temp)
-  cool_boost_offset_guest: 8
-  cool_boost_unoccupied_entity: input_number.cool_boost_unoccupied_target
+  cool_boost_entity: input_number.cool_boost_target 
   cooldown_window_start_offset: "-04:00:00"   # 4 hours before sunset
-  cooldown_window_end_offset: "-00:30:00"     # 1.5 hour before sunset
+  cooldown_window_end_offset: "-00:10:00"     # 10 min before sunset
 
 Solar EV Charger:
   module: ev
@@ -252,8 +250,8 @@ Dehumidifier Follow:
   module: follow_me
   class: Follow
   leader: humidifier.151732606535142_humidifier
-#   follower: fan.living_room_ceiling_fan
-  follower: switch.guest_bedroom_ceiling_fan
+  follower: fan.living_room_ceiling_fan
+  #follower: switch.guest_bedroom_ceiling_fan
 
 #############
 # Christmas #

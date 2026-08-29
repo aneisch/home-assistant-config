@@ -93,6 +93,9 @@
       "cooking": {
         "name": "Cooking"
       },
+      "error_code": {
+        "name": "Kód chyby"
+      },
       "filter_change_reminder": {
         "name": "Filter Change Reminder"
       },
@@ -126,6 +129,9 @@
       "keep_warm": {
         "name": "Keep Warm"
       },
+      "leak_water": {
+        "name": "Únik vody"
+      },
       "lid_status": {
         "name": "Lid Status"
       },
@@ -137,6 +143,21 @@
       },
       "middle_compartment_preheating": {
         "name": "Middle Compartment Preheating"
+      },
+      "top_elec_heat": {
+        "name": "Horné elektrické vykurovanie"
+      },
+      "bottom_elec_heat": {
+        "name": "Dolné elektrické vykurovanie"
+      },
+      "mute_effect": {
+        "name": "Účinok stíšenia"
+      },
+      "mute_status": {
+        "name": "Stav stíšenia"
+      },
+      "multi_terminal": {
+        "name": "Viacero terminálov"
       },
       "oilcup_full": {
         "name": "Oil-cup Full"
@@ -153,11 +174,32 @@
       "rinse_aid": {
         "name": "Rinse Aid Shortage"
       },
+      "rsj_stand_by": {
+        "name": "Pohotovostný režim"
+      },
       "salt": {
         "name": "Salt Shortage"
       },
       "seat_status": {
         "name": "Seat Status"
+      },
+      "smart_grid": {
+        "name": "Inteligentná sieť"
+      },
+      "eco": {
+        "name": "ECO"
+      },
+      "maintenance_reminder": {
+        "name": "Pripomienka údržby"
+      },
+      "maintain_warn": {
+        "name": "Upozornenie na údržbu"
+      },
+      "order1_effect": {
+        "name": "Plán 1 aktívny"
+      },
+      "order2_effect": {
+        "name": "Plán 2 aktívny"
       },
       "status_dhw": {
         "name": "DHW status"
@@ -206,6 +248,20 @@
       },
       "zone2_water_temp_mode": {
         "name": "Zone2 Water-temperature Mode"
+      },
+      "microcrystal_fresh": {
+        "name": "Mikrokryštalická sviežosť"
+      },
+      "electronic_smell": {
+        "name": "Dezodorácia a sterilizácia"
+      },
+      "water_pump_running": {
+        "name": "Vodné čerpadlo beží"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Štart"
       }
     },
     "climate": {
@@ -214,11 +270,24 @@
       },
       "climate_zone2": {
         "name": "Zone2 Thermostat"
+      },
+      "climate_key": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "silent": "Tichý",
+              "full": "Plný"
+            }
+          }
+        }
       }
     },
     "fan": {
       "fresh_air": {
         "name": "Fresh Air"
+      },
+      "fresh_air_exhaust": {
+        "name": "Odvod čerstvého vzduchu"
       }
     },
     "lock": {
@@ -238,6 +307,21 @@
       },
       "water_temp_level": {
         "name": "Water Temperature Level"
+      },
+      "fan_speed_percent": {
+        "name": "Percento rýchlosti ventilátora"
+      },
+      "vacation_days": {
+        "name": "Dni dovolenky"
+      },
+      "leak_water_protection_value": {
+        "name": "Hodnota ochrany proti úniku vody"
+      },
+      "flushing_days": {
+        "name": "Dni regenerácie"
+      },
+      "water_hardness": {
+        "name": "Tvrdosť vody"
       }
     },
     "select": {
@@ -250,6 +334,25 @@
       "fan_speed": {
         "name": "Fan Speed"
       },
+      "fresh_air_exhaust_mode": {
+        "name": "Rýchlosť odvodu čerstvého vzduchu",
+        "state": {
+          "off": "Vypnuté",
+          "silent": "Nízka",
+          "high": "Vysoká",
+          "full": "Plná"
+        }
+      },
+      "fresh_air_mode": {
+        "name": "Rýchlosť čerstvého vzduchu",
+        "state": {
+          "off": "Vypnuté",
+          "low": "Nízka",
+          "medium": "Stredná",
+          "high": "Vysoká",
+          "full": "Plná"
+        }
+      },
       "mode": {
         "name": "Mode"
       },
@@ -258,6 +361,9 @@
       },
       "oscillation_mode": {
         "name": "Oscillation Mode"
+      },
+      "rate_select": {
+        "name": "Power Rate Limit"
       },
       "screen_display": {
         "name": "Screen Display"
@@ -268,8 +374,38 @@
       "tilting_angle": {
         "name": "Tilting Angle"
       },
+      "wash_mode": {
+        "name": "Režim prania"
+      },
       "water_level_set": {
         "name": "Water Level Setting"
+      },
+      "wind_lr_angle": {
+        "name": "Vodorovné prúdenie vzduchu",
+        "state": {
+          "off": "Vypnuté",
+          "left": "Vľavo",
+          "left-mid": "Vľavo-stred",
+          "middle": "Stred",
+          "right-mid": "Vpravo-stred",
+          "right": "Vpravo"
+        }
+      },
+      "wind_ud_angle": {
+        "name": "Zvislé prúdenie vzduchu",
+        "state": {
+          "off": "Vypnuté",
+          "up": "Hore",
+          "up-mid": "Hore-stred",
+          "middle": "Stred",
+          "down-mid": "Dole-stred",
+          "down": "Dole"
+        }
+      }
+    },
+    "time": {
+      "timing_regeneration": {
+        "name": "Časovaná regenerácia"
       }
     },
     "sensor": {
@@ -309,14 +445,70 @@
       "dehydration_time": {
         "name": "dehydration time"
       },
+      "dehydration_time_value": {
+        "name": "Hodnota času odstreďovania"
+      },
+      "temperature": {
+        "name": "Teplota"
+      },
+      "wash_time_value": {
+        "name": "Hodnota času prania"
+      },
+      "stains": {
+        "name": "Škvrny"
+      },
+      "dirty_degree": {
+        "name": "Stupeň znečistenia"
+      },
       "detergent": {
         "name": "detergent"
+      },
+      "intensity": {
+        "name": "Intenzita"
+      },
+      "dryness_level": {
+        "name": "Úroveň suchosti"
+      },
+      "dry_temperature": {
+        "name": "Teplota sušenia"
+      },
+      "door_warn": {
+        "name": "Upozornenie na dvere"
+      },
+      "ai_switch": {
+        "name": "AI prepínač"
+      },
+      "material": {
+        "name": "Materiál"
+      },
+      "water_box": {
+        "name": "Nádržka na vodu"
       },
       "energy_consumption": {
         "name": "Energy Consumption"
       },
+      "error": {
+        "name": "Chyba",
+        "state": {
+          "no_error": "Bez chyby",
+          "e1_position_not_found": "E1 Pozícia nenájdená",
+          "e2_photo_sensor_no_signal": "E2 Fotosenzor bez signálu",
+          "e3_motor_not_running": "E3 Motor nebeží",
+          "e4_wrong_position": "E4 Nesprávna pozícia",
+          "e1_motor_fault": "E1 Porucha motora",
+          "e5_communication_fault": "E5 Porucha komunikácie",
+          "e6_salt_sensor_fault": "E6 Porucha senzora soli",
+          "e7_chlorine_sterilization_fault": "E7 Porucha chlórovej sterilizácie"
+        }
+      },
       "error_code": {
         "name": "Error Code"
+      },
+      "estimated_energy_consumption": {
+        "name": "Odhadovaná spotreba energie"
+      },
+      "estimated_water_consumption": {
+        "name": "Odhadovaná spotreba vody"
       },
       "fan_level": {
         "name": "Fan level"
@@ -381,6 +573,9 @@
       "keep_warm_time": {
         "name": "Keep Warm Time"
       },
+      "left_salt": {
+        "name": "Zvyšná soľ"
+      },
       "middle_compartment_remaining": {
         "name": "Middle Compartment Remaining"
       },
@@ -417,6 +612,12 @@
       "refrigerator_setting_temp": {
         "name": "Refrigerator Setting Temperature"
       },
+      "regeneration_left_seconds": {
+        "name": "Zostávajúce sekundy regenerácie"
+      },
+      "remaining_days": {
+        "name": "Zostávajúce dni"
+      },
       "right_flex_zone_actual_temp": {
         "name": "Right Flex Zone Actual Temperature"
       },
@@ -429,11 +630,17 @@
       "rinse_level": {
         "name": "rinse level"
       },
+      "salt_setting": {
+        "name": "Nastavenie soli"
+      },
       "seat_temperature": {
         "name": "Seat Temperature"
       },
       "soak_time": {
         "name": "soak time"
+      },
+      "soft_available": {
+        "name": "Dostupná mäkká voda"
       },
       "softener": {
         "name": "softener"
@@ -481,7 +688,7 @@
         "name": "TVOC"
       },
       "wash_level": {
-        "name": "rinse count"
+        "name": "Úroveň prania"
       },
       "wash_strength": {
         "name": "wash strength"
@@ -492,14 +699,113 @@
       "water_consumption": {
         "name": "Water Consumption"
       },
+      "water_consumption_average": {
+        "name": "Priemerná spotreba vody"
+      },
+      "water_consumption_big": {
+        "name": "Spotreba vody"
+      },
       "water_temperature": {
         "name": "Water Temperature"
       },
       "water_level": {
         "name": "Water Level"
       },
+      "wind": {
+        "name": "Vietor"
+      },
+      "typeinfo": {
+        "name": "Informácie o type"
+      },
+      "use_days": {
+        "name": "Dni používania"
+      },
+      "elec_heat": {
+        "name": "Elektrické vykurovanie"
+      },
+      "water_pump": {
+        "name": "Vodné čerpadlo"
+      },
+      "four_way": {
+        "name": "Štvorcestný ventil"
+      },
+      "back_water": {
+        "name": "Spätná voda"
+      },
+      "sterilize": {
+        "name": "Sterilizácia"
+      },
+      "disinfection_temperature": {
+        "name": "Teplota dezinfekcie"
+      },
+      "max_temperature": {
+        "name": "Maximálna cieľová teplota"
+      },
+      "vacation_start_year": {
+        "name": "Rok začiatku dovolenky"
+      },
+      "vacation_start_month": {
+        "name": "Mesiac začiatku dovolenky"
+      },
+      "vacation_start_day": {
+        "name": "Deň začiatku dovolenky"
+      },
+      "auto_sterilize_week": {
+        "name": "Týždeň automatickej sterilizácie"
+      },
+      "auto_sterilize_hour": {
+        "name": "Hodina automatickej sterilizácie"
+      },
+      "auto_sterilize_minute": {
+        "name": "Minúta automatickej sterilizácie"
+      },
       "working_time": {
         "name": "Working Time"
+      },
+      "humidity": {
+        "name": "Vlhkosť"
+      },
+      "variable_mode": {
+        "name": "Variabilný režim"
+      },
+      "compressor_frequency": {
+        "name": "Frekvencia kompresora"
+      },
+      "target_compressor_frequency": {
+        "name": "Cieľová frekvencia kompresora"
+      },
+      "compressor_current": {
+        "name": "Prúd kompresora"
+      },
+      "compressor_voltage": {
+        "name": "Napätie kompresora"
+      },
+      "compressor_power": {
+        "name": "Výkon kompresora"
+      },
+      "indoor_ambient_temperature": {
+        "name": "Vnútorná teplota prostredia(T1)"
+      },
+      "indoor_coil_temperature": {
+        "name": "Teplota vnútornej špirály(T2)"
+      },
+      "outdoor_coil_temperature": {
+        "name": "Teplota vonkajšej špirály(T3)"
+      },
+      "outdoor_ambient_temperature": {
+        "name": "Vonkajšia teplota okolia(T4)"
+      },
+      "discharge_pipe_temperature": {
+        "name": "Teplota výtlačného potrubia(TP)"
+      },
+      "indoor_fan_speed": {
+        "name": "Rýchlosť vnútorného ventilátora"
+      },
+      "target_indoor_fan_speed": {
+        "name": "Cieľová rýchlosť vnútorného ventilátora"
+      },
+      "velocity": {
+        "name": "Rýchlosť"
       }
     },
     "switch": {
@@ -515,6 +821,12 @@
       "breezeless": {
         "name": "Breezeless"
       },
+      "child_lock": {
+        "name": "Detský zámok"
+      },
+      "cl_sterilization": {
+        "name": "CL sterilizácia"
+      },
       "comfort_mode": {
         "name": "Comfort Mode"
       },
@@ -524,11 +836,23 @@
       "disinfect": {
         "name": "Disinfect"
       },
+      "vacation_mode": {
+        "name": "Režim dovolenky"
+      },
       "dry": {
         "name": "Dry"
       },
+      "cold_water_single": {
+        "name": "Studená voda jednorazovo"
+      },
+      "cold_water_dot": {
+        "name": "Studená voda bodovo"
+      },
       "eco_mode": {
         "name": "ECO Mode"
+      },
+      "memory": {
+        "name": "Memo U"
       },
       "fast_dhw": {
         "name": "Fast DHW"
@@ -544,6 +868,9 @@
       },
       "indirect_wind": {
         "name": "Indirect Wind"
+      },
+      "leak_water_protection": {
+        "name": "Ochrana proti úniku vody"
       },
       "light": {
         "name": "Light"
@@ -575,8 +902,14 @@
       "prompt_tone": {
         "name": "Prompt Tone"
       },
+      "regeneration": {
+        "name": "Regenerácia"
+      },
       "water_pump": {
         "name": "Vodné čerpadlo"
+      },
+      "water_way": {
+        "name": "Vodná cesta"
       },
       "screen_display": {
         "name": "Screen Display"
@@ -593,6 +926,9 @@
       "sleep_mode": {
         "name": "Sleep Mode"
       },
+      "out_silent": {
+        "name": "Vonkajší tichý režim"
+      },
       "smart_eye": {
         "name": "Smart Eye"
       },
@@ -602,11 +938,17 @@
       "smelly_sensor": {
         "name": "Smelly Sensor"
       },
+      "soften": {
+        "name": "Zmäkčovanie"
+      },
       "standby": {
         "name": "Standby"
       },
       "start": {
         "name": "Start"
+      },
+      "sterilization": {
+        "name": "Sterilizácia"
       },
       "storage": {
         "name": "Storage"

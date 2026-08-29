@@ -11,9 +11,15 @@ class KEntity(CoordinatorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, name: str, unique_id: str):
+    def __init__(self, coordinator, name: str | None = None, unique_id: str = "", translation_key: str | None = None):
+        if not unique_id:
+            raise ValueError(f"{type(self).__name__} must provide a non-empty unique_id")
         super().__init__(coordinator)
-        self._attr_name = name
+        effective_tk = translation_key or getattr(self, "_attr_translation_key", None)
+        if effective_tk is not None:
+            self._attr_translation_key = effective_tk
+        elif name:
+            self._attr_name = name
         self._attr_unique_id = f"{coordinator.client._host}-{unique_id}"
         self._host = coordinator.client._host
 

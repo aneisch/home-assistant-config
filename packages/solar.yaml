@@ -1,4 +1,27 @@
 automation:
+  - alias: Update Grid Rates on Oct 1 2026
+    id: "update_utility_rates"
+    description: Sets grid import and export rates at midnight on October 1, 2026.
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    condition: "{{ now().strftime('%Y-%m-%d') == '2026-10-01' }}"
+    action:
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.grid_import_rate
+        data:
+          value: 0.1366
+      - service: input_number.set_value
+        target:
+          entity_id: input_number.grid_export_rate
+        data:
+          value: 0.0550
+      - service: script.notify_wrapper
+        data:
+          message: "Electric rate 2026 values updated!"
+    mode: single
+
   # Nightly Grid Data to Google Sheet
   # Long term daily statistics, ROI, etc are calculated here
   - alias: Log Solar Data to Google Sheets
@@ -21,7 +44,9 @@ automation:
             {{ states('sensor.solark_sol_ark_day_load_energy') }},
             {{ states('sensor.tesla_energy_today') }},
             {{ states('sensor.ac_compressor_daily_energy') }},
-            {{ states('sensor.attic_hvac_daily_energy') }}
+            {{ states('sensor.attic_hvac_daily_energy') }},
+            {{ states('input_number.grid_import_rate') }},
+            {{ states('input_number.grid_export_rate') }}
       - service: google_sheets.append_sheet
         alias: "Log to Google Sheet"
         data:
@@ -39,6 +64,8 @@ automation:
             Day HVAC kWh: "{{ float(states('sensor.ac_compressor_daily_energy', rounded=True), default=0) + float(states('sensor.attic_hvac_daily_energy', rounded=True), default=0) }}"
             Day Avoided kWh (load - import): "{{ float(states('sensor.solark_sol_ark_day_load_energy', rounded=True), default=0) - float(states('sensor.solark_sol_ark_day_grid_import', rounded=True), default=0) }}"
             Day Peak Output: "{{ float(states('input_number.day_solar_power_peak'), default=0) }}"
+            Grid Import Rate: "{{ float(states('input_number.grid_import_rate')) }}"
+            Grid Export Rate: "{{ float(states('input_number.grid_export_rate')) }}"
 
   - alias: "Notify on Sol-Ark Daily PV Reset"
     description: "Sends a notification when the Sol-Ark daily energy sensor resets to zero."
@@ -77,16 +104,15 @@ automation:
   - alias: Battery Charge Limit - Away Mode Protection
     id: b84c9ec2-ae80-4b49-8520-f1583705c23e
     description: >
-      Throttle charge to 0A at 98% if away. Restore to 200A if battery drops 
+      Throttle charge to 0A at 99% if away. Restore to 200A if battery drops 
       below 80%, someone comes home, or 1 hour before sunset while away.
     mode: single
-    
     trigger:
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
-        above: 97
+        above: 98
         id: throttle_needed
-        alias: Battery SOC rises to 98%
+        alias: Battery SOC rises to 99%
         
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
@@ -111,11 +137,10 @@ automation:
       - condition: state
         entity_id: input_boolean.guest_mode # Replace with your actual guest mode entity
         state: 'off'
-
     action:
       - choose:
           # PATH 1: THROTTLE TO 0A
-          # Fired by hitting 98% SOC, but ONLY if you are actually away.
+          # Fired by hitting 99% SOC, but ONLY if you are actually away.
           - conditions:
               - condition: trigger
                 id: throttle_needed
@@ -239,6 +264,18 @@ input_number:
     min: 0
     max: 15000   # adjust for your array size
     unit_of_measurement: "W"
+  grid_import_rate:
+    name: Grid Import Rate
+    unit_of_measurement: "USD/kWh"
+    min: 0
+    max: 1
+    step: 0.0001
+  grid_export_rate:
+    name: Grid Export Rate
+    unit_of_measurement: "USD/kWh"
+    min: 0
+    max: 1
+    step: 0.0001
 
 script:
   solar_summary_alexa_response:

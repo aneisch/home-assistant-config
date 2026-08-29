@@ -93,6 +93,9 @@
       "cooking": {
         "name": "Cocinando"
       },
+      "error_code": {
+        "name": "Código de error"
+      },
       "filter_change_reminder": {
         "name": "Recordatorio de cambio de filtro"
       },
@@ -126,6 +129,9 @@
       "keep_warm": {
         "name": "Mantener caliente"
       },
+      "leak_water": {
+        "name": "Fuga de agua"
+      },
       "lid_status": {
         "name": "Estado de la tapa"
       },
@@ -137,6 +143,21 @@
       },
       "middle_compartment_preheating": {
         "name": "Precalentamiento del compartimento medio"
+      },
+      "top_elec_heat": {
+        "name": "Calefacción eléctrica superior"
+      },
+      "bottom_elec_heat": {
+        "name": "Calefacción eléctrica inferior"
+      },
+      "mute_effect": {
+        "name": "Efecto de silencio"
+      },
+      "mute_status": {
+        "name": "Estado de silencio"
+      },
+      "multi_terminal": {
+        "name": "Terminal múltiple"
       },
       "oilcup_full": {
         "name": "Depósito de aceite lleno"
@@ -153,11 +174,32 @@
       "rinse_aid": {
         "name": "Escasez de abrillantador"
       },
+      "rsj_stand_by": {
+        "name": "En espera"
+      },
       "salt": {
         "name": "Escasez de sal"
       },
       "seat_status": {
         "name": "Estado del asiento"
+      },
+      "smart_grid": {
+        "name": "Red inteligente"
+      },
+      "eco": {
+        "name": "ECO"
+      },
+      "maintenance_reminder": {
+        "name": "Recordatorio de mantenimiento"
+      },
+      "maintain_warn": {
+        "name": "Advertencia de mantenimiento"
+      },
+      "order1_effect": {
+        "name": "Programación 1 activa"
+      },
+      "order2_effect": {
+        "name": "Programación 2 activa"
       },
       "status_dhw": {
         "name": "Estado ACS"
@@ -204,11 +246,22 @@
       "zone2_room_temp_mode": {
         "name": "Zona 2 Modo temperatura ambiente"
       },
+      "zone2_water_temp_mode": {
+        "name": "Zona 2 Modo temperatura del agua"
+      },
       "microcrystal_fresh": {
         "name": "Frescura microcristalina"
       },
       "electronic_smell": {
         "name": "Esterilización desodorizante"
+      },
+      "water_pump_running": {
+        "name": "Bomba de agua en funcionamiento"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Iniciar"
       }
     },
     "climate": {
@@ -232,6 +285,9 @@
     "fan": {
       "fresh_air": {
         "name": "Aire fresco"
+      },
+      "fresh_air_exhaust": {
+        "name": "Extracción de aire fresco"
       }
     },
     "lock": {
@@ -254,6 +310,18 @@
       },
       "fan_speed_percent": {
         "name": "Porcentaje de velocidad del ventilador"
+      },
+      "vacation_days": {
+        "name": "Días de vacaciones"
+      },
+      "leak_water_protection_value": {
+        "name": "Valor de protección contra fugas"
+      },
+      "flushing_days": {
+        "name": "Días de regeneración"
+      },
+      "water_hardness": {
+        "name": "Dureza del agua"
       }
     },
     "select": {
@@ -266,6 +334,25 @@
       "fan_speed": {
         "name": "Velocidad del ventilador"
       },
+      "fresh_air_exhaust_mode": {
+        "name": "Velocidad de extracción de aire fresco",
+        "state": {
+          "off": "Apagado",
+          "silent": "Baja",
+          "high": "Alta",
+          "full": "Máximo"
+        }
+      },
+      "fresh_air_mode": {
+        "name": "Velocidad de aire fresco",
+        "state": {
+          "off": "Apagado",
+          "low": "Baja",
+          "medium": "Media",
+          "high": "Alta",
+          "full": "Máximo"
+        }
+      },
       "mode": {
         "name": "Modo"
       },
@@ -275,6 +362,9 @@
       "oscillation_mode": {
         "name": "Modo de oscilación"
       },
+      "rate_select": {
+        "name": "Límite de tasa de potencia"
+      },
       "screen_display": {
         "name": "Visualización de pantalla"
       },
@@ -283,6 +373,9 @@
       },
       "tilting_angle": {
         "name": "Ángulo de inclinación"
+      },
+      "wash_mode": {
+        "name": "Modo de lavado"
       },
       "water_level_set": {
         "name": "Ajuste de nivel de agua"
@@ -308,6 +401,11 @@
           "down-mid": "Abajo-Medio",
           "down": "Abajo"
         }
+      }
+    },
+    "time": {
+      "timing_regeneration": {
+        "name": "Regeneración programada"
       }
     },
     "sensor": {
@@ -350,6 +448,9 @@
       "dehydration_time_value": {
         "name": "Valor del tiempo de centrifugado"
       },
+      "temperature": {
+        "name": "Temperatura"
+      },
       "wash_time_value": {
         "name": "Valor del tiempo de lavado"
       },
@@ -386,8 +487,28 @@
       "energy_consumption": {
         "name": "Consumo de energía"
       },
+      "error": {
+        "name": "Error",
+        "state": {
+          "no_error": "Sin error",
+          "e1_position_not_found": "E1 Posición no encontrada",
+          "e2_photo_sensor_no_signal": "E2 Sensor foto sin señal",
+          "e3_motor_not_running": "E3 Motor no funciona",
+          "e4_wrong_position": "E4 Posición incorrecta",
+          "e1_motor_fault": "E1 Fallo del motor",
+          "e5_communication_fault": "E5 Fallo de comunicación",
+          "e6_salt_sensor_fault": "E6 Fallo sensor de sal",
+          "e7_chlorine_sterilization_fault": "E7 Fallo esterilización cloro"
+        }
+      },
       "error_code": {
         "name": "Código de error"
+      },
+      "estimated_energy_consumption": {
+        "name": "Consumo estimado de energía"
+      },
+      "estimated_water_consumption": {
+        "name": "Consumo estimado de agua"
       },
       "fan_level": {
         "name": "Nivel del ventilador"
@@ -452,6 +573,9 @@
       "keep_warm_time": {
         "name": "Tiempo de mantener caliente"
       },
+      "left_salt": {
+        "name": "Sal restante"
+      },
       "middle_compartment_remaining": {
         "name": "Tiempo restante compartimento medio"
       },
@@ -488,6 +612,12 @@
       "refrigerator_setting_temp": {
         "name": "Temperatura establecida del frigorífico"
       },
+      "regeneration_left_seconds": {
+        "name": "Segundos restantes de regeneración"
+      },
+      "remaining_days": {
+        "name": "Días restantes"
+      },
       "right_flex_zone_actual_temp": {
         "name": "Temperatura real de zona flexible derecha"
       },
@@ -500,11 +630,17 @@
       "rinse_level": {
         "name": "Nivel de aclarado"
       },
+      "salt_setting": {
+        "name": "Configuración de sal"
+      },
       "seat_temperature": {
         "name": "Temperatura del asiento"
       },
       "soak_time": {
         "name": "Tiempo de remojo"
+      },
+      "soft_available": {
+        "name": "Agua suave disponible"
       },
       "softener": {
         "name": "Suavizante"
@@ -551,6 +687,9 @@
       "tvoc": {
         "name": "COVT"
       },
+      "wash_level": {
+        "name": "Nivel de lavado"
+      },
       "wash_strength": {
         "name": "Potencia de lavado"
       },
@@ -560,11 +699,65 @@
       "water_consumption": {
         "name": "Consumo de agua"
       },
+      "water_consumption_average": {
+        "name": "Consumo promedio de agua"
+      },
+      "water_consumption_big": {
+        "name": "Consumo de agua"
+      },
       "water_temperature": {
         "name": "Temperatura del agua"
       },
       "water_level": {
         "name": "Nivel de agua"
+      },
+      "wind": {
+        "name": "Viento"
+      },
+      "typeinfo": {
+        "name": "Información de tipo"
+      },
+      "use_days": {
+        "name": "Días de uso"
+      },
+      "elec_heat": {
+        "name": "Calefacción eléctrica"
+      },
+      "water_pump": {
+        "name": "Bomba de agua"
+      },
+      "four_way": {
+        "name": "Válvula de cuatro vías"
+      },
+      "back_water": {
+        "name": "Retorno de agua"
+      },
+      "sterilize": {
+        "name": "Esterilizar"
+      },
+      "disinfection_temperature": {
+        "name": "Temperatura de desinfección"
+      },
+      "max_temperature": {
+        "name": "Temperatura objetivo máxima"
+      },
+      "vacation_start_year": {
+        "name": "Año de inicio de vacaciones"
+      },
+      "vacation_start_month": {
+        "name": "Mes de inicio de vacaciones"
+      },
+      "vacation_start_day": {
+        "name": "Día de inicio de vacaciones"
+      },
+      "auto_sterilize_week": {
+        "name": "Semana de esterilización automática"
+      },
+      "auto_sterilize_hour": {
+        "name": "Hora de esterilización automática"
+      },
+      "auto_sterilize_minute": {
+        "name": "Minuto de esterilización automática"
       },
       "working_time": {
         "name": "Tiempo de funcionamiento"
@@ -574,6 +767,45 @@
       },
       "variable_mode": {
         "name": "Modo variable"
+      },
+      "compressor_frequency": {
+        "name": "Frecuencia del compresor"
+      },
+      "target_compressor_frequency": {
+        "name": "Frecuencia objetivo del compresor"
+      },
+      "compressor_current": {
+        "name": "Corriente del compresor"
+      },
+      "compressor_voltage": {
+        "name": "Voltaje del compresor"
+      },
+      "compressor_power": {
+        "name": "Potencia del compresor"
+      },
+      "indoor_ambient_temperature": {
+        "name": "Temperatura ambiente interior(T1)"
+      },
+      "indoor_coil_temperature": {
+        "name": "Temperatura del serpentín interior(T2)"
+      },
+      "outdoor_coil_temperature": {
+        "name": "Temperatura del serpentín exterior(T3)"
+      },
+      "outdoor_ambient_temperature": {
+        "name": "Temperatura ambiente exterior(T4)"
+      },
+      "discharge_pipe_temperature": {
+        "name": "Temperatura del tubo de descarga(TP)"
+      },
+      "indoor_fan_speed": {
+        "name": "Velocidad del ventilador interior"
+      },
+      "target_indoor_fan_speed": {
+        "name": "Velocidad objetivo del ventilador interior"
+      },
+      "velocity": {
+        "name": "Velocidad"
       }
     },
     "switch": {
@@ -589,6 +821,12 @@
       "breezeless": {
         "name": "Sin corrientes"
       },
+      "child_lock": {
+        "name": "Bloqueo infantil"
+      },
+      "cl_sterilization": {
+        "name": "Esterilización CL"
+      },
       "comfort_mode": {
         "name": "Modo confort"
       },
@@ -597,6 +835,9 @@
       },
       "disinfect": {
         "name": "Desinfectar"
+      },
+      "vacation_mode": {
+        "name": "Modo vacaciones"
       },
       "dry": {
         "name": "Secado"
@@ -609,6 +850,9 @@
       },
       "eco_mode": {
         "name": "Modo ECO"
+      },
+      "memory": {
+        "name": "Memo U"
       },
       "fast_dhw": {
         "name": "ACS Rápido"
@@ -624,6 +868,9 @@
       },
       "indirect_wind": {
         "name": "Viento indirecto"
+      },
+      "leak_water_protection": {
+        "name": "Protección contra fugas"
       },
       "light": {
         "name": "Luz"
@@ -655,8 +902,14 @@
       "prompt_tone": {
         "name": "Tono de aviso"
       },
+      "regeneration": {
+        "name": "Regeneración"
+      },
       "water_pump": {
         "name": "Bomba de agua"
+      },
+      "water_way": {
+        "name": "Vía de agua"
       },
       "screen_display": {
         "name": "Visualización de pantalla"
@@ -673,6 +926,9 @@
       "sleep_mode": {
         "name": "Modo sueño"
       },
+      "out_silent": {
+        "name": "Modo silencioso exterior"
+      },
       "smart_eye": {
         "name": "Ojo inteligente"
       },
@@ -682,11 +938,17 @@
       "smelly_sensor": {
         "name": "Sensor de olores"
       },
+      "soften": {
+        "name": "Suavizado"
+      },
       "standby": {
         "name": "En espera"
       },
       "start": {
         "name": "Iniciar"
+      },
+      "sterilization": {
+        "name": "Esterilización"
       },
       "storage": {
         "name": "Almacenamiento"

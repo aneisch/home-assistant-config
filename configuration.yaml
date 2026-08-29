@@ -130,14 +130,15 @@ history:
 
 homekit: !include homekit.yaml
 
-http:
-  use_x_forwarded_for: true
-  trusted_proxies:
-    - 172.18.0.0/24 # Traefik
-    - 10.0.1.22/32 # NUC
-    - 172.18.0.18
-  server_port: 8123
-  # strict_connection: guard_page
+# UI
+# http:
+#   use_x_forwarded_for: true
+#   trusted_proxies:
+#     - 172.18.0.0/24 # Traefik
+#     - 10.0.1.22/32 # NUC
+#     - 172.18.0.18
+#   server_port: 8123
+#   # strict_connection: guard_page
 
 ifttt:
   key: !secret IFTTT
@@ -172,8 +173,8 @@ ifttt:
 input_boolean: !include input_boolean.yaml
 
 input_number:
-  cool_boost_unoccupied_target:
-    name: "Cool Boost Unoccupied Target Temp"
+  cool_boost_target:
+    name: "Cool Target Temp"
     min: 70
     max: 80
     step: 1
@@ -257,7 +258,7 @@ logbook:
 logger:
   #default: debug
   default: error
-  logs:
+  #logs:
     #custom_components.solcast_solar: debug
     #homeassistant.components.recorder: debug
     #pyhap: debug
@@ -266,10 +267,10 @@ logger:
     #custom_components.alexa_media: debug
     # Start ZHA Debugging
     # asyncio: debug
-    homeassistant.components.tts: debug
-    homeassistant.components.pico_tts: debug
+    #homeassistant.components.tts: debug
+    #homeassistant.components.pico_tts: debug
     #homeassistant.components.google_generative_ai_conversation: debug
-    homeassistant.components.command_line: debug
+    #homeassistant.components.command_line: debug
     #zigpy: debug
     # bellows: debug
     # zigpy_xbee: debug
@@ -296,7 +297,7 @@ logger:
     # custom_components.aarlo.light: debug
     # custom_components.aarlo.media_player: debug
     # custom_components.aarlo.sensor: debug
-    custom_components.webrtc: debug
+    #custom_components.webrtc: debug
     # pyaarlo: debug
     #custom_components.bhyve: debug
     #pybhyve: debug

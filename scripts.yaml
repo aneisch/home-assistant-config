@@ -207,12 +207,12 @@ master_bedroom_bedtime:
           entity_id:
             - light.guest_bedroom_nightstand_lamp
             - light.back_bedroom_nightstand_lamp
+    - action: homeassistant.turn_on
+      entity_id: input_boolean.goodnight
     # Lower laptop volume
     - action: shell_command.weasel_shortcut
       data:
         shortcut: set-volume-15
-    - action: homeassistant.turn_on
-      entity_id: input_boolean.goodnight
 
 #########
 # OTHER #

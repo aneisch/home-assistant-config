@@ -1,6 +1,4 @@
-"""Provide info to system health."""
-
-from __future__ import annotations
+"""Solcast information for system health."""
 
 from typing import Any
 

@@ -194,6 +194,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         entry.data.get("_cached_max_bed_temp") is None or
         entry.data.get("_cached_max_nozzle_temp") is None
     )
+
+    # Also re-cache if LED brightness capability keys are missing (migration from
+    # versions before LED dimming support). Check key presence, not value, since
+    # led_pin is legitimately None for models without brightness control.
+    should_re_cache = should_re_cache or (
+        "_cached_has_brightness_control" not in entry.data or
+        "_cached_led_pin" not in entry.data
+    )
     
     # Re-cache if CFS info is missing but cfsConnect is 1
     if not should_re_cache and coord.data.get("cfsConnect") == 1 and not entry.data.get("_cached_cfs_detected"):
@@ -245,6 +253,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_hostname"] = hostname
                 new_data["_cached_model_version"] = model_version
                 new_data["_cached_has_light"] = printermodel.has_light
+                new_data["_cached_has_brightness_control"] = printermodel.has_brightness_control
+                new_data["_cached_led_pin"] = printermodel.led_pin
                 # Prefer chamber_* keys; mirror to legacy box_* for back-compat
                 new_data["_cached_has_chamber_sensor"] = printermodel.has_chamber_sensor
                 new_data["_cached_has_chamber_control"] = printermodel.has_chamber_control
@@ -304,12 +314,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             if not new_data.get("_cached_model"):
                 new_data["_cached_model"] = "K by Creality"
                 new_data["_cached_has_light"] = True
+                # No brightness control until we can detect the model online.
+                new_data["_cached_has_brightness_control"] = False
+                new_data["_cached_led_pin"] = None
                 new_data["_cached_has_chamber_sensor"] = False
                 new_data["_cached_has_chamber_control"] = False
                 # Legacy mirrors
                 new_data["_cached_has_box_sensor"] = False
                 new_data["_cached_has_box_control"] = False
                 new_data["_cached_camera_type"] = "mjpeg"
+            elif (
+                "_cached_has_brightness_control" not in new_data
+                or "_cached_led_pin" not in new_data
+            ):
+                # Migration from before LED-dimming support: the printer is
+                # offline so we can't read live telemetry, but the model was
+                # cached on a previous online run. Derive the brightness
+                # capability from that cached model so the light exposes dimming
+                # without waiting for the printer to be online again.
+                cached_model = ModelDetection({
+                    "model": new_data.get("_cached_model"),
+                    "modelVersion": new_data.get("_cached_model_version"),
+                })
+                new_data["_cached_has_brightness_control"] = cached_model.has_brightness_control
+                new_data["_cached_led_pin"] = cached_model.led_pin
             
             hass.config_entries.async_update_entry(entry, data=new_data)
             

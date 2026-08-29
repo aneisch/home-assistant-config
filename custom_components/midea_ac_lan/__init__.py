@@ -30,15 +30,18 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.typing import ConfigType
-from midealocal.device import DeviceType, MideaDevice, ProtocolVersion
-from midealocal.devices import device_selector
+from midealan.device import DeviceType, MideaDevice, ProtocolVersion
+from midealan.devices import device_selector
+from midealan.discover import discover
 
 from .const import (
     ALL_PLATFORM,
     CONF_ACCOUNT,
     CONF_KEY,
+    CONF_MAC,
     CONF_MODEL,
     CONF_REFRESH_INTERVAL,
+    CONF_SN,
     CONF_SUBTYPE,
     DEVICES,
     DOMAIN,
@@ -49,34 +52,46 @@ from .midea_devices import MIDEA_DEVICES
 _LOGGER = logging.getLogger(__name__)
 
 
+def _close_device(device: MideaDevice) -> None:
+    """Close a Midea device connection without failing unload/setup cleanup."""
+    try:
+        device.close()
+    except (OSError, ConnectionError, AttributeError) as e:
+        _LOGGER.warning("Failed to close Midea socket cleanly: %s", e)
+
+
+def _device_store(hass: HomeAssistant) -> dict[int, MideaDevice]:
+    """Return the integration's loaded device map.
+
+    Returns
+    -------
+    Device id to Midea device mapping.
+
+    """
+    return cast(
+        "dict[int, MideaDevice]",
+        hass.data.setdefault(DOMAIN, {}).setdefault(DEVICES, {}),
+    )
+
+
 async def update_listener(hass: HomeAssistant, config_entry: ConfigEntry) -> None:
     """Option flow signal update.
 
-    register update listener for config entry that will be called when entry is updated.
-    A listener is registered by adding the following to the `async_setup_entry`:
-    `config_entry.async_on_unload(config_entry.add_update_listener(update_listener))`
-    means the Listener is attached when the entry is loaded and detached at unload
+    Registered in `async_setup_entry` via
+    `config_entry.async_on_unload(config_entry.add_update_listener(...))`, so it
+    is attached when the entry loads and detached at unload. Reload the entry so
+    the changed options (customize JSON, IP override, refresh interval, and the
+    extra sensor/switch selection) are re-applied through the normal setup path.
+
+    Reloading avoids the previous fire-and-forget re-setup, which awaited the
+    platform unload but then re-forwarded setup via an untracked
+    `async_create_task` — swallowing any setup error and racing the customize/
+    ip/refresh application that followed.
     """
-    # Forward the unloading of an entry to platforms.
-    await hass.config_entries.async_unload_platforms(config_entry, ALL_PLATFORM)
-    # forward the Config Entry to the platforms
-    hass.async_create_task(
-        hass.config_entries.async_forward_entry_setups(config_entry, ALL_PLATFORM),
-    )
-    device_id: int = cast("int", config_entry.data.get(CONF_DEVICE_ID))
-    customize = config_entry.options.get(CONF_CUSTOMIZE, "")
-    ip_address = config_entry.options.get(CONF_IP_ADDRESS, None)
-    refresh_interval = config_entry.options.get(CONF_REFRESH_INTERVAL, None)
-    dev: MideaDevice = hass.data[DOMAIN][DEVICES].get(device_id)
-    if dev:
-        dev.set_customize(customize)
-        if ip_address is not None:
-            dev.set_ip_address(ip_address)
-        if refresh_interval is not None:
-            dev.set_refresh_interval(refresh_interval)
+    await hass.config_entries.async_reload(config_entry.entry_id)
 
 
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa: ARG001
+async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # ruff:ignore[unused-function-argument]
     """Set up midea_lan component when load this integration.
 
     Returns
@@ -91,13 +106,18 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa:
             "dict",
             device_entities["entities"],
         ).items():
+            attribute_key = (
+                attribute_name
+                if isinstance(attribute_name, str)
+                else attribute_name.value
+            )
             if (
                 attribute.get("type") in EXTRA_SWITCH
-                and attribute_name.value not in attributes
+                and attribute_key not in attributes
             ):
-                attributes.append(attribute_name.value)
+                attributes.append(attribute_key)
 
-    def service_set_attribute(service: Any) -> None:  # noqa: ANN401
+    def service_set_attribute(service: Any) -> None:  # ruff:ignore[any-type]
         """Set service attribute func."""
         device_id: int = service.data["device_id"]
         attr = service.data["attribute"]
@@ -126,7 +146,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:  # noqa:
                     attr,
                 )
 
-    def service_send_command(service: Any) -> None:  # noqa: ANN401
+    def service_send_command(service: Any) -> None:  # ruff:ignore[any-type]
         """Send command to service func."""
         device_id = service.data.get("device_id")
         cmd_type = service.data.get("cmd_type")
@@ -204,10 +224,12 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     subtype = config_entry.data.get(CONF_SUBTYPE, 0)
     protocol: ProtocolVersion = ProtocolVersion(config_entry.data[CONF_PROTOCOL])
     customize: str = config_entry.options.get(CONF_CUSTOMIZE, "")
+    mac: str | None = config_entry.data.get(CONF_MAC)
+    serial_number: str | None = config_entry.data.get(CONF_SN)
     if protocol == ProtocolVersion.V3 and (key == "" or token == ""):
         _LOGGER.error("For V3 devices, the key and the token is required")
         return False
-    # device_selector in `midealocal/devices/__init__.py`
+    # device_selector in `midealan/devices/__init__.py`
     # hass core version >= 2024.3
     if (MAJOR_VERSION, MINOR_VERSION) >= (2024, 3):
         device = await hass.async_add_import_executor_job(
@@ -223,6 +245,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             model,
             subtype,
             customize,
+            mac,
+            serial_number,
         )
     # hass core version < 2024.3
     else:
@@ -238,18 +262,24 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             model=model,
             subtype=subtype,
             customize=customize,
+            mac=mac,
+            serial_number=serial_number,
         )
     if device:
         if refresh_interval is not None:
             device.set_refresh_interval(refresh_interval)
         device.open()
-        if DOMAIN not in hass.data:
-            hass.data[DOMAIN] = {}
-        if DEVICES not in hass.data[DOMAIN]:
-            hass.data[DOMAIN][DEVICES] = {}
-        hass.data[DOMAIN][DEVICES][device_id] = device
-        # Forward the setup of an entry to all platforms
-        await hass.config_entries.async_forward_entry_setups(config_entry, ALL_PLATFORM)
+        _device_store(hass)[device_id] = device
+        try:
+            # Forward the setup of an entry to all platforms
+            await hass.config_entries.async_forward_entry_setups(
+                config_entry,
+                ALL_PLATFORM,
+            )
+        except Exception:
+            _device_store(hass).pop(device_id, None)
+            _close_device(device)
+            raise
         # Listener `update_listener` is
         # attached when the entry is loaded
         # and detached when it's unloaded
@@ -269,18 +299,22 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
     device_type = config_entry.data.get(CONF_TYPE)
     if device_type == CONF_ACCOUNT:
         return True
-    device_id = config_entry.data.get(CONF_DEVICE_ID)
-    if device_id is not None:
-        dm = hass.data[DOMAIN][DEVICES].get(device_id)
-        if dm is not None:
-            try:
-                dm.close()
-            except (OSError, ConnectionError, AttributeError) as e:
-                _LOGGER.warning("Failed to close Midea socket cleanly: %s", e)
-        hass.data[DOMAIN][DEVICES].pop(device_id)
-    # Forward the unloading of an entry to platforms
-    await hass.config_entries.async_unload_platforms(config_entry, ALL_PLATFORM)
-    return True
+    # Unload the platforms first; only tear the device down if that succeeded,
+    # and report the real result so a failed platform unload isn't masked.
+    # bool() keeps mypy happy: async_unload_platforms is typed to return Any.
+    unload_ok = bool(
+        await hass.config_entries.async_unload_platforms(
+            config_entry,
+            ALL_PLATFORM,
+        ),
+    )
+    if unload_ok:
+        device_id = config_entry.data.get(CONF_DEVICE_ID)
+        if device_id is not None:
+            dm = _device_store(hass).pop(device_id, None)
+            if dm is not None:
+                _close_device(dm)
+    return unload_ok
 
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
@@ -306,6 +340,80 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) ->
 
         _LOGGER.debug("Migration to configuration version 2 successful")
 
+    # 2.1 -> 2.2: backfill mac address and serial number for existing devices
+    entry_version_2 = 2
+    if config_entry.version == entry_version_2 and config_entry.minor_version == 1:
+        _LOGGER.debug("Migrating configuration from version 2.1")
+
+        if await _async_backfill_mac_and_sn(hass, config_entry):
+            if (MAJOR_VERSION, MINOR_VERSION) >= (2024, 3):
+                hass.config_entries.async_update_entry(config_entry, minor_version=2)
+            else:
+                config_entry.minor_version = 2
+                hass.config_entries.async_update_entry(config_entry)
+
+            _LOGGER.debug("Migration to configuration version 2.2 successful")
+        else:
+            _LOGGER.debug(
+                "Device %s did not respond to discovery;"
+                " mac/serial number migration will be retried on next start",
+                config_entry.data.get(CONF_DEVICE_ID),
+            )
+
+    return True
+
+
+async def _async_backfill_mac_and_sn(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+) -> bool:
+    """Best-effort discovery to backfill mac address and serial number.
+
+    Returns
+    -------
+    True if the entry already had the data, has no IP/device id to look up,
+    or was successfully updated. False if the device did not answer
+    discovery and the migration should be retried on a later start.
+
+    """
+    if config_entry.data.get(CONF_TYPE) == CONF_ACCOUNT:
+        return True
+    if config_entry.data.get(CONF_MAC) or config_entry.data.get(CONF_SN):
+        return True
+    # Honor an IP override set via the options flow (e.g. after a DHCP change),
+    # mirroring async_setup_entry; the data IP may be stale.
+    ip_address = config_entry.options.get(CONF_IP_ADDRESS)
+    if ip_address is None:
+        ip_address = config_entry.data.get(CONF_IP_ADDRESS)
+    device_id = config_entry.data.get(CONF_DEVICE_ID)
+    if ip_address is None or device_id is None:
+        return True
+    try:
+        found_devices = await hass.async_add_executor_job(
+            lambda: discover(ip_address=ip_address),
+        )
+    except Exception:
+        # Best-effort migration: any discovery failure (socket error, malformed
+        # reply from a legacy device, parse error) must not break entry setup.
+        # Retry on the next start instead.
+        _LOGGER.debug(
+            "Discovery for device %s failed; mac/serial number migration"
+            " will be retried on next start",
+            device_id,
+            exc_info=True,
+        )
+        return False
+    device = found_devices.get(int(device_id))
+    if device is None:
+        return False
+    hass.config_entries.async_update_entry(
+        config_entry,
+        data={
+            **config_entry.data,
+            CONF_MAC: device.get(CONF_MAC),
+            CONF_SN: device.get(CONF_SN),
+        },
+    )
     return True
 
 

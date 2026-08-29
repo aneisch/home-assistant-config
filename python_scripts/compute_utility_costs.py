@@ -1,17 +1,8 @@
 MeterEntity = data.get('meter_entity')
 inputState = hass.states.get(MeterEntity).state
 
-'''
-Electric:
-1. Service charge: $7.00 per month; plus
-2. Energy charge: $0.1187 per kWh for all kWh; plus
-3. Transmission Delivery Adjustment: $0.0169 per kWh.
-
-Buy: 0.1187 + 0.0169 = 0.1356000
-Sell: 0.0568000
-'''
-current_cost = 0.1187 + 0.0169
-current_sell = 0.0568
+current_cost = hass.states.get("input_number.grid_import_rate").state
+current_sell = hass.states.get("input_number.grid_export_rate").state
 
 if MeterEntity == "sensor.electricity_usage":
     #hass.bus.fire("debug", {"wow": ""})
@@ -41,7 +32,7 @@ elif MeterEntity == "sensor.monthly_tesla_electric_usage":
 
 elif MeterEntity == "sensor.water_usage":
     unaccountedusage = int(float(inputState))
-    computed_water_cost = 12.40 # meter charge
+    computed_water_cost = 14.05 # meter charge - updated ahead of 10/2026 update
     computed_sewer_cost = 22.55 # base sewer up 4k gallons water usage
 
     # Sewer based on water consumption

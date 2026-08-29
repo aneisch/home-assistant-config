@@ -1,7 +1,5 @@
 """Solcast advanced options."""
 
-# pylint: disable=pointless-string-statement
-
 from __future__ import annotations
 
 import asyncio
@@ -9,25 +7,31 @@ import contextlib
 import copy
 from datetime import datetime as dt, timedelta
 import json
-import logging
 from pathlib import Path
 import re
 from typing import TYPE_CHECKING, Any
 
 import aiofiles
 
+from homeassistant.core import HomeAssistant
+
 from .const import (
+    ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM,
     ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_CONFIGURATION,
     ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_EXCLUDE,
     ADVANCED_GRANULAR_DAMPENING_DELTA_ADJUSTMENT,
     ADVANCED_INVALID_JSON_TASK,
     ADVANCED_OPTION,
     ADVANCED_OPTIONS,
+    ADVANCED_SOLCAST_URL,
     ADVANCED_TYPE,
     ALIASES,
+    CONFIG_DISCRETE_NAME,
+    CONFIG_FOLDER_DISCRETE,
     CURRENT_NAME,
     DEFAULT,
     DEFAULT_KEYS,
+    DEFAULT_SOLCAST_HTTPS_URL,
     DEPRECATED,
     DT_DATE_ONLY_FORMAT,
     MAXIMUM,
@@ -40,16 +44,38 @@ from .const import (
     REQUIRED_KEYS,
     STOPS_WORKING,
 )
-from .util import (
-    clear_cache,
-    raise_or_clear_advanced_deprecated,
-    raise_or_clear_advanced_problems,
-)
+from .issues import raise_or_clear_advanced_deprecated, raise_or_clear_advanced_problems
+from .migration import clear_cache
 
 if TYPE_CHECKING:
     from .solcastapi import SolcastApi
 
-_LOGGER = logging.getLogger(__name__)
+from .log import get_logger
+
+_LOGGER = get_logger(__name__)
+
+
+async def async_is_allow_exceed_api_limit(hass: HomeAssistant) -> bool:
+    """Return whether the advanced API limit override is enabled."""
+
+    config_dir = Path(hass.config.config_dir)
+    advanced_dir = config_dir / CONFIG_DISCRETE_NAME if CONFIG_FOLDER_DISCRETE else config_dir
+    advanced_file = advanced_dir / "solcast-advanced.json"
+    if not advanced_file.exists():
+        return False
+
+    def _read_advanced_setting() -> bool:
+        with open(advanced_file, encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                return False
+            value = data.get(ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM, False)
+            return (isinstance(value, bool) and value is True) or False
+
+    try:
+        return await hass.async_add_executor_job(_read_advanced_setting)
+    except (OSError, json.JSONDecodeError, ValueError):
+        return False
 
 
 class AdvancedOptions:
@@ -113,7 +139,7 @@ class AdvancedOptions:
         """Read advanced JSON file options, validate and set them."""
 
         if self.api.suppress_advanced_watchdog_reload:
-            self.api.suppress_advanced_watchdog_reload = False  # File has just been written so reset flag but do not reload
+            self.api.suppress_advanced_watchdog_reload = False  # File was just written locally, so skip one reload
             return False
 
         advanced_options_proposal: dict[str, Any] = copy.deepcopy(self.api.advanced_options)
@@ -412,6 +438,13 @@ class AdvancedOptions:
                             advanced_options_proposal[option] = default
                             _LOGGER.debug("Advanced option default set %s: %s", option, default)
                             change = True
+                    if (
+                        advanced_options_proposal.get(ADVANCED_SOLCAST_URL) != DEFAULT_SOLCAST_HTTPS_URL
+                        and ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM not in options_present
+                    ):
+                        _LOGGER.debug("Forcing allow_exceed_api_limit_maximum to true because solcast_url is non-default")
+                        advanced_options_proposal[ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM] = True
+                        change = True
                     self.api.advanced_options.update(advanced_options_proposal)
                     if not self.api.advanced_options.get(ADVANCED_AUTOMATED_DAMPENING_ADAPTIVE_MODEL_CONFIGURATION, False):
                         await clear_cache(self.api.filename_dampening_history, False)  # remove dampening history if necessary

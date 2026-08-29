@@ -42,15 +42,37 @@ _LOGGER = logging.getLogger(__name__)
 _MAX_IMAGE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 DOMAIN_LANG_MAP = {
-    "amazon.de": ["versandbestaetigung", "Geliefert:", "Zugestellt:"],
-    "amazon.it": ["conferma-spedizione", "Consegna effettuata:", "Arriverà"],
+    "amazon.de": [
+        "versandbestaetigung",
+        "Geliefert:",
+        "Zugestellt:",
+        "Versandt:",
+        "Versendet:",
+        "In Zustellung:",
+        "Zustellung:",
+        "Ankunft",
+    ],
+    "amazon.it": [
+        "conferma-spedizione",
+        "Consegna effettuata:",
+        "Arriverà",
+        "Spedito:",
+    ],
     "amazon.nl": [
         "update-bestelling",
         "verzending-volgen",
         "auto-bevestiging",
         "Bezorgd:",
     ],
-    "amazon.fr": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
+    "amazon.fr": [
+        "Livré",
+        "Livrés",
+        "Livraison",
+        "Arrivée",
+        "Expédié",
+        "En cours de livraison",
+        "Commandé",
+    ],
     "amazon.ca": ["confirmation-commande", "Livré", "Livraison : Votre", "Arrivée :"],
     "amazon.es": [
         "confirmar-envio",
@@ -60,6 +82,33 @@ DOMAIN_LANG_MAP = {
         "Chega ",
     ],
     "amazon.pl": ["Dostarczono:"],
+}
+
+BASE_AMAZON_PREFIXES = [
+    "order-update@",
+    "shipment-tracking@",
+    "auto-confirm@",
+    "pickup-point@",
+]
+
+DOMAIN_SENDER_MAP = {
+    "amazon.fr": ["confirmation-commande@", *BASE_AMAZON_PREFIXES],
+    "amazon.de": ["versandbestaetigung@", *BASE_AMAZON_PREFIXES],
+    "amazon.it": ["conferma-spedizione@", *BASE_AMAZON_PREFIXES],
+    "amazon.es": ["confirmar-envio@", *BASE_AMAZON_PREFIXES],
+    "amazon.nl": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        *BASE_AMAZON_PREFIXES,
+    ],
+    "amazon.com.be": [
+        "update-bestelling@",
+        "verzending-volgen@",
+        "auto-bevestiging@",
+        "confirmation-commande@",
+        *BASE_AMAZON_PREFIXES,
+    ],
 }
 
 
@@ -220,6 +269,27 @@ async def parse_amazon_arrival_date(
     return None
 
 
+def _split_amazon_domains(domain: str | None) -> list[str]:
+    """Split a possibly comma-separated amazon_domain into domain list."""
+    if domain is None:
+        domain = "amazon.com"
+    domains = [d.strip() for d in str(domain).split(",") if d.strip()]
+    return domains or ["amazon.com"]
+
+
+def _amazon_address_prefixes(domain: str | None = None) -> list[str]:
+    """Build Amazon local-part prefixes used for IMAP FROM searches."""
+    if domain and domain in DOMAIN_SENDER_MAP:
+        return DOMAIN_SENDER_MAP[domain]
+
+    prefixes = list(AMAZON_EMAIL)
+    for local_part in AMAZON_SHIPMENT_TRACKING:
+        prefix = f"{local_part}@"
+        if prefix not in prefixes:
+            prefixes.append(prefix)
+    return prefixes
+
+
 def amazon_email_addresses(
     fwds: list[str] | str | None = None,
     domain: str | None = None,
@@ -230,25 +300,20 @@ def amazon_email_addresses(
     elif not isinstance(fwds, (list, tuple)):
         fwds = None
 
-    if domain is None:
-        domain = "amazon.com"
+    domains = _split_amazon_domains(domain)
+    value = []
+    for dom in domains:
+        base_prefixes = _amazon_address_prefixes(dom)
+        value.extend(f"{prefix}{dom}" for prefix in base_prefixes)
 
-    # Use both AMAZON_EMAIL and AMAZON_SHIPMENT_TRACKING for prefixes
-    prefixes = list(AMAZON_EMAIL)
-    for p in AMAZON_SHIPMENT_TRACKING:
-        if f"{p}@" not in prefixes:
-            prefixes.append(f"{p}@")
-
-    prefixes = filter_amazon_strings(prefixes, domain)
-
-    value = [f"{e}{domain}" for e in prefixes]
     if fwds:
         for fwd in fwds:
             if "@" in fwd:
                 value.append(fwd)
-            elif any(f in fwd for f in AMAZON_DOMAINS):
-                value.extend(f"{e}{fwd}" for e in prefixes)
-    return value
+            elif any(amazon_domain in fwd for amazon_domain in AMAZON_DOMAINS):
+                fwd_prefixes = _amazon_address_prefixes(fwd)
+                value.extend(f"{prefix}{fwd}" for prefix in fwd_prefixes)
+    return list(dict.fromkeys(value))
 
 
 async def search_amazon_emails(
@@ -272,7 +337,14 @@ async def search_amazon_emails(
         AMAZON_DELIVERED_SUBJECT + AMAZON_SHIPMENT_SUBJECT + AMAZON_ORDERED_SUBJECT
     )
     if domain:
-        amazon_subjects = filter_amazon_strings(amazon_subjects, domain)
+        domains = _split_amazon_domains(domain)
+        if len(domains) == 1:
+            amazon_subjects = filter_amazon_strings(amazon_subjects, domains[0])
+        else:
+            filtered: list[str] = []
+            for dom in domains:
+                filtered.extend(filter_amazon_strings(amazon_subjects, dom))
+            amazon_subjects = list(dict.fromkeys(filtered))
 
     (server_response, sdata) = await email_search(
         account=account,

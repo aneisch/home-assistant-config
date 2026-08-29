@@ -1,6 +1,5 @@
 """Repairs for the Solcast Solar integration."""
 
-import logging
 from typing import Any
 
 import voluptuous as vol
@@ -17,9 +16,18 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
 )
 
-from .const import AUTO_UPDATE, DOMAIN, ENTRY_ID, LEARN_MORE
+from .const import (
+    AFFIRMATION_RECONFIGURED,
+    AFFIRMATION_UNCHANGED,
+    AUTO_UPDATE,
+    DOMAIN,
+    ENTRY_ID,
+    EXCEPTION_ENTRY_NOT_FOUND,
+    LEARN_MORE,
+)
+from .log import get_logger
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 AUTO_UPDATE_OPTIONS: list[SelectOptionDict] = [
     SelectOptionDict(label="sunrise_sunset", value="1"),
@@ -60,11 +68,16 @@ class RecordsMissingRepairFlow(SolcastRepair):
     async def async_step_offer_auto(self, user_input: dict[str, str] | None = None) -> data_entry_flow.FlowResult:
         """Handle the offer to enable auto-update."""
 
-        if user_input is not None and self.entry is not None:
+        if self.entry is None:
+            return self.async_abort(reason=EXCEPTION_ENTRY_NOT_FOUND)
+
+        if user_input is not None:
             opts = {AUTO_UPDATE: int(user_input[AUTO_UPDATE])}
+            if opts[AUTO_UPDATE] == int(self.entry.options[AUTO_UPDATE]):
+                return self.async_abort(reason=AFFIRMATION_UNCHANGED)
             new_options: dict[str, Any] = {**self.entry.options, **opts}
             self.hass.config_entries.async_update_entry(self.entry, options=new_options)
-            return self.async_abort(reason="reconfigured")
+            return self.async_abort(reason=AFFIRMATION_RECONFIGURED)
 
         placeholders = self._async_get_placeholders()
         return self.async_show_form(

@@ -1,17 +1,14 @@
-"""Energy platform."""
+"""Solcast energy platform."""
 
-from __future__ import annotations
-
-import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
 from . import SolcastUpdateCoordinator
-from .const import DOMAIN
+from .log import get_logger
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
 
 
 async def async_get_solar_forecast(hass: HomeAssistant, config_entry_id: str) -> dict[str, Any] | None:
@@ -26,16 +23,10 @@ async def async_get_solar_forecast(hass: HomeAssistant, config_entry_id: str) ->
 
     """
 
-    if not hass.data.get(DOMAIN):
-        _LOGGER.warning("Domain %s is not yet available to provide forecast data", DOMAIN)
-        return None
-
     entry: ConfigEntry | None = hass.config_entries.async_get_entry(config_entry_id)
-    if (
-        entry is None
-        or (coordinator := entry.runtime_data.coordinator) is None
-        or not isinstance(entry.runtime_data.coordinator, SolcastUpdateCoordinator)
-    ):
+    runtime_data = getattr(entry, "runtime_data", None) if entry is not None else None
+    coordinator = getattr(runtime_data, "coordinator", None)
+    if entry is None or coordinator is None or not isinstance(coordinator, SolcastUpdateCoordinator):
         return None
 
-    return coordinator.get_energy_tab_data()
+    return coordinator.solcast.query.get_energy_data()

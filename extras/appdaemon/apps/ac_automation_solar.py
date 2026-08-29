@@ -36,8 +36,8 @@ class AutoAdjust(hass.Hass):
         if "device_tracker" in self.args:
             self.listen_state(self.occupancy_changed, self.args["device_tracker"])
 
-        if "cool_boost_unoccupied_entity" in self.args:
-            self.listen_state(self.slider_changed_callback, self.args["cool_boost_unoccupied_entity"])
+        if "cool_boost_entity" in self.args:
+            self.listen_state(self.slider_changed_callback, self.args["cool_boost_entity"])
 
     def slider_changed_callback(self, entity, attribute, old, new, kwargs):
         self.log(f"Slider changed to {new}, updating temperature settings.")
@@ -257,23 +257,18 @@ class AutoAdjust(hass.Hass):
             prefix = "guest_cool_" if guest_mode else "cool_"
 
             if self.boost_active and label == "morning":
-                if occupied:
-                    base_temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"])
-                    if guest_mode:
-                        temp = int(base_temp) - int(self.args.get("cool_boost_offset_guest", 0))
-                    else:
-                        temp = int(base_temp) - int(self.args.get("cool_boost_offset", 0))
+                cool_boost_entity = self.args.get("cool_boost_entity")
+                if cool_boost_entity:
+                    try:
+                        temp = int(float(self.get_state(cool_boost_entity)))
+                    except (TypeError, ValueError) as e:
+                        temp = 75
+                        self.log(f"Boost slider exception: {e}")
+
+                # Hard code boost temp if not defined by slider
                 else:
-                    unoccupied_slider_entity = self.args.get("cool_boost_unoccupied_entity")
-                    if unoccupied_slider_entity:
-                        try:
-                            temp = int(float(self.get_state(unoccupied_slider_entity)))
-                        except (TypeError, ValueError):
-                            base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
-                            temp = int(base_temp) - 5 
-                    else:
-                        base_temp = self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])
-                        temp = int(base_temp) - int(self.args.get("cool_boost_unoccupied_offset", 0))
+                    temp = 75
+
             else:
                 temp = self.args.get(f"{prefix}{label}", self.args[f"cool_{label}"]) if occupied \
                     else self.args.get(f"{prefix}unoccupied", self.args["cool_unoccupied"])

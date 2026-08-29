@@ -7,11 +7,18 @@ substitutions:
   devicename: "solark"
   device_description: "SolArk RS485 Logger"
   friendly_name: "Sol-Ark"
-  # Be sure to keep these updated to calculate export-offset and daily import/export totals
-  # Also update home assistant energy dashboard
-  # Also update Google sheet
-  import_rate: "0.1356" # kWh
-  export_rate: "0.0568" # kWh
+
+# Define local globals to store cached values across reboots
+globals:
+  - id: cached_import_rate
+    type: float
+    restore_value: yes
+    initial_value: '0.0001' # Fallback default
+
+  - id: cached_export_rate
+    type: float
+    restore_value: yes
+    initial_value: '0.0001' # Fallback default
 
 esphome:
   name: ${devicename}
@@ -120,28 +127,35 @@ interval:
   - interval: 3600s
     then:
       - lambda: |-
+          // Check if Home Assistant time is actually synced before doing anything
+          if (!id(homeassistant_time).now().is_valid()) {
+            ESP_LOGW("Time Sync", "Skipping time sync: HA time not valid yet.");
+            return;
+          }
+
           esphome::modbus_controller::ModbusController *controller = id(inverter);
           time_t now = ::time(nullptr);
           struct tm *time_info = ::localtime(&now);
-          int seconds = time_info->tm_sec;
-          int minutes = time_info->tm_min;
-          int hour = time_info->tm_hour;
-          int day = time_info->tm_mday;
-          int month = time_info->tm_mon + 1;
-          int year = time_info->tm_year;
-          year = year + 1900;
-          int year1 = year - 2000;
+          int year = time_info->tm_year + 1900;
           
-          uint16_t reg22_value = (year1 << 8) | month;
-          uint16_t reg23_value = (day << 8) | hour;
-          uint16_t reg24_value = (minutes << 8) | seconds;
-          
-          if (year != 1970) {
+          // Double safeguard: Never send 1970 or invalid years
+          if (year > 2020) {
+            int seconds = time_info->tm_sec;
+            int minutes = time_info->tm_min;
+            int hour = time_info->tm_hour;
+            int day = time_info->tm_mday;
+            int month = time_info->tm_mon + 1;
+            int year1 = year - 2000;
+            
+            uint16_t reg22_value = (year1 << 8) | month;
+            uint16_t reg23_value = (day << 8) | hour;
+            uint16_t reg24_value = (minutes << 8) | seconds;
+            
             std::vector<uint16_t> rtc_data = {reg22_value, reg23_value, reg24_value};
             esphome::modbus_controller::ModbusCommandItem set_rtc_command =
                 esphome::modbus_controller::ModbusCommandItem::create_write_multiple_command(controller, 22, rtc_data.size(), rtc_data);
             controller->queue_command(set_rtc_command);
-            ESP_LOGI("Time Sync", "Seconds: %d, Minutes: %d, Hour: %d, Day: %d, Month: %d, Year: %d", seconds, minutes, hour, day, month, year);
+            ESP_LOGI("Time Sync", "Synced: %04d-%02d-%02d %02d:%02d:%02d", year, month, day, hour, minutes, seconds);
           }
 
 .defaultfilters:
@@ -201,6 +215,47 @@ binary_sensor:
 
 ############################################### BATTERY ###############################################
 sensor:
+  - platform: homeassistant
+    id: ha_import_rate
+    entity_id: input_number.grid_import_rate
+    accuracy_decimals: 4
+    on_value:
+      then:
+        - lambda: |-
+            id(cached_import_rate) = x;
+  
+  - platform: homeassistant
+    id: ha_export_rate
+    entity_id: input_number.grid_export_rate
+    accuracy_decimals: 4
+    on_value:
+      then:
+        - lambda: |-
+            id(cached_export_rate) = x;
+
+
+  # Expose cached rate values back to Home Assistant
+  - platform: template
+    name: "${friendly_name} Active Import Rate"
+    id: active_import_rate
+    unit_of_measurement: "$/kWh"
+    accuracy_decimals: 4
+    icon: "mdi:currency-usd"
+    lambda: |-
+      return id(cached_import_rate);
+    update_interval: 10s
+
+  # Expose cached rate values back to Home Assistant
+  - platform: template
+    name: "${friendly_name} Active Export Rate"
+    id: active_export_rate
+    unit_of_measurement: "$/kWh"
+    accuracy_decimals: 4
+    icon: "mdi:currency-usd"
+    lambda: |-
+      return id(cached_export_rate);
+    update_interval: 10s
+            
   - platform: uptime
     id: uptime_sensor
     name: "${friendly_name} Uptime"
@@ -971,7 +1026,7 @@ sensor:
     accuracy_decimals: 2
     lambda: |-
       if (id(inverter_esphome_day_grid_import).has_state()) {
-        return id(inverter_esphome_day_grid_export).state * (${export_rate}/${import_rate});
+        return id(inverter_esphome_day_grid_export).state * (id(cached_export_rate)/id(cached_import_rate));
       } else {
         return NAN;
       }
@@ -986,7 +1041,7 @@ sensor:
     accuracy_decimals: 2
     lambda: |-
       if (id(inverter_esphome_day_grid_import).has_state()) {
-        return id(inverter_esphome_day_grid_import).state * ${import_rate};
+        return id(inverter_esphome_day_grid_import).state * id(cached_import_rate);
       } else {
         return NAN;
       }
@@ -1001,7 +1056,7 @@ sensor:
     icon: "mdi:currency-usd"
     lambda: |-
       if (id(inverter_esphome_day_grid_export).has_state()) {
-        return id(inverter_esphome_day_grid_export).state * ${export_rate};
+        return id(inverter_esphome_day_grid_export).state * id(cached_export_rate);
       } else {
         return NAN;
       }
@@ -1035,18 +1090,19 @@ sensor:
     filters:
       - multiply: 0.1
 
-  - platform: template
-    name: "${friendly_name} Total Grid Export Offset"
-    id: inverter_esphome_total_grid_export_offset
-    unit_of_measurement: "kWh"
-    accuracy_decimals: 2
-    lambda: |-
-      if (id(inverter_esphome_total_grid_import).has_state()) {
-        return id(inverter_esphome_total_grid_export).state * (${export_rate}/${import_rate});
-      } else {
-        return NAN;
-      }
-    update_interval: 300s
+  # disabled 8/2026 - doesn't work with variable rates
+  # - platform: template
+  #   name: "${friendly_name} Total Grid Export Offset"
+  #   id: inverter_esphome_total_grid_export_offset
+  #   unit_of_measurement: "kWh"
+  #   accuracy_decimals: 2
+  #   lambda: |-
+  #     if (id(inverter_esphome_total_grid_import).has_state()) {
+  #       return id(inverter_esphome_total_grid_export).state * (${cached_export_rate}/${cached_import_rate});
+  #     } else {
+  #       return NAN;
+  #     }
+  #   update_interval: 300s
 
   - platform: modbus_controller            # 084 Day Load Energy - verified
     modbus_controller_id: inverter

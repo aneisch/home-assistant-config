@@ -57,7 +57,11 @@ esphome:
                   state: !lambda 'return id(_last_total_starts);'
             - sensor.template.publish:
                   id: last_start_peak_sen
-                  state: !lambda 'return id(_last_start_peak);'
+                  state: !lambda |-
+                    if (id(_last_start_peak) > 0.0) {
+                      return id(_last_start_peak);
+                    }
+                    return {}; // Returns a blank/unset state instead of 0
             - sensor.template.publish:
                   id: line_frequency_sen
                   state: !lambda 'return id(_last_line_frequency);'
@@ -169,6 +173,8 @@ sensor:
     device_class: current
     state_class: measurement
     unit_of_measurement: "A"
+    filters:
+      - filter_out: 0.0
 
   - platform: template
     name: "SCPT Delay"
@@ -286,8 +292,13 @@ sensor:
                 // Extract and log Last Start Peak
                 float last_start_peak = ((data[8] & 0xFF) + ((data[9] & 0xFF) * factor)) / 10.0;
                 ESP_LOGD("ble_client", "Last Start Peak: %.1f", last_start_peak);
-                id(_last_start_peak) = last_start_peak;
-                id(last_start_peak_sen).publish_state(last_start_peak);
+                
+                if (last_start_peak > 0.0) {
+                    id(_last_start_peak) = last_start_peak;
+                    id(last_start_peak_sen).publish_state(last_start_peak);
+                } else {
+                    ESP_LOGD("ble_client", "Ignored 0.0 A value for Last Start Peak");
+                }
 
                 // Extract and log SCPT Delay
                 uint16_t scpt_delay = (data[10] & 0xFF) + ((data[11] & 0xFF) * 256);

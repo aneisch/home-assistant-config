@@ -9,6 +9,8 @@ esphome:
 
 <<: !include common.yaml
 
+# ddd
+
 binary_sensor:
   - platform: gpio
     pin: D3

@@ -73,5 +73,126 @@
     "error": {
       "invalid_camera_url": "Enter a full URL including the scheme, e.g. http://192.168.1.50:8080/?action=stream or rtsp://192.168.1.50:554/stream."
     }
+  },
+  "entity": {
+    "sensor": {
+      "bed_temperature": { "name": "Bed Temperature" },
+      "chamber_temperature": { "name": "Chamber Temperature" },
+      "nozzle_temperature": { "name": "Nozzle Temperature" },
+      "print_progress": { "name": "Print Progress" },
+      "total_layers": { "name": "Total Layers" },
+      "current_layer": { "name": "Working Layer" },
+      "position_x": { "name": "Position X" },
+      "position_y": { "name": "Position Y" },
+      "position_z": { "name": "Position Z" },
+      "feedrate_pct": { "name": "Print Speed" },
+      "flowrate_pct": { "name": "Flow Rate" },
+      "system": { "name": "System" },
+      "model_info": { "name": "Model" },
+      "filament_status": {
+        "name": "Filament Status",
+        "state": {
+          "normal": "Normal",
+          "runout": "Filament Runout",
+          "unknown": "Unknown"
+        }
+      },
+      "print_status": {
+        "name": "Print Status",
+        "state": {
+          "off": "Off",
+          "unknown": "Unknown",
+          "error": "Error",
+          "self-testing": "Self-Testing",
+          "completed": "Completed",
+          "paused": "Paused",
+          "stopped": "Stopped",
+          "printing": "Printing",
+          "processing": "Processing",
+          "idle": "Idle"
+        }
+      },
+      "used_material_length": { "name": "Used Material Length" },
+      "print_job_time": { "name": "Print Job Time" },
+      "print_left_time": { "name": "Print Time Left" },
+      "real_time_flow": { "name": "Real-Time Flow" },
+      "current_object": { "name": "Current Object" },
+      "object_count": { "name": "Object Count" },
+      "print_control": {
+        "name": "Print Control",
+        "state": {
+          "queued": "Queued",
+          "ok": "OK",
+          "unknown": "Unknown"
+        }
+      },
+      "max_nozzle_temp": { "name": "Max Nozzle Temperature" },
+      "max_bed_temp": { "name": "Max Bed Temperature" },
+      "max_chamber_temp": { "name": "Max Chamber Temperature" },
+      "active_filament_slot": { "name": "Active Filament Slot" },
+      "cfs_box_temp": { "name": "CFS Box {box_id} Temperature" },
+      "cfs_box_humidity": { "name": "CFS Box {box_id} Humidity" },
+      "cfs_slot_filament": { "name": "CFS Box {box_id} Slot {slot} Filament" },
+      "cfs_slot_color": { "name": "CFS Box {box_id} Slot {slot} Color" },
+      "cfs_slot_percent": { "name": "CFS Box {box_id} Slot {slot} Remaining" },
+      "cfs_ext_filament": { "name": "CFS External Filament" },
+      "cfs_ext_color": { "name": "CFS External Color" },
+      "cfs_ext_percent": { "name": "CFS External Remaining" }
+    },
+    "button": {
+      "home_xyz": { "name": "Home (XY then Z)" },
+      "pause_print": { "name": "Pause Print" },
+      "resume_print": { "name": "Resume Print" },
+      "stop_print": { "name": "Stop Print" },
+      "reconnect": { "name": "Reconnect" }
+    },
+    "number": {
+      "print_tuning_pct": { "name": "Print Tuning" },
+      "nozzle_target": { "name": "Nozzle Target" },
+      "bed_target": { "name": "Bed Target" },
+      "chamber_target": { "name": "Chamber Target" },
+      "model_fan_pct": { "name": "Model Fan" },
+      "case_fan_pct": { "name": "Case Fan" },
+      "side_fan_pct": { "name": "Side Fan" }
+    },
+    "fan": {
+      "model_fan": { "name": "Model Fan" },
+      "case_fan": { "name": "Case Fan" },
+      "side_fan": { "name": "Side Fan" }
+    },
+    "light": {
+      "light": { "name": "Light" }
+    },
+    "switch": {
+      "light": { "name": "Light" }
+    },
+    "camera": {
+      "printer_camera": { "name": "Printer Camera" }
+    },
+    "image": {
+      "current_print_preview": { "name": "Current Print Preview" }
+    }
+  },
+  "services": {
+    "diagnostic_dump": {
+      "name": "Diagnostic Dump",
+      "description": "Dump all WebSocket telemetry data from connected Creality printers to JSON format for troubleshooting and analysis.",
+      "fields": {
+        "include_sensitive_data": {
+          "name": "Include Sensitive Data",
+          "description": "Whether to include potentially sensitive data in the diagnostic output (currently unused, reserved for future use)"
+        }
+      }
+    },
+    "request_cfs_info": {
+      "name": "Request CFS Info",
+      "description": "Manually request the printer to send the latest CFS (multifilament) information including temperatures, humidity, and filament details.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The printer(s) to request info from. If omitted, all connected printers will be queried."
+        }
+      }
+    }
   }
 }

@@ -73,5 +73,126 @@
     "error": {
       "invalid_camera_url": "Introduce una URL completa incluyendo el esquema, p. ej. http://192.168.1.50:8080/?action=stream o rtsp://192.168.1.50:554/stream."
     }
+  },
+  "entity": {
+    "sensor": {
+      "bed_temperature": { "name": "Temperatura de la cama" },
+      "chamber_temperature": { "name": "Temperatura de la cámara" },
+      "nozzle_temperature": { "name": "Temperatura de la boquilla" },
+      "print_progress": { "name": "Progreso de impresión" },
+      "total_layers": { "name": "Capas totales" },
+      "current_layer": { "name": "Capa actual" },
+      "position_x": { "name": "Posición X" },
+      "position_y": { "name": "Posición Y" },
+      "position_z": { "name": "Posición Z" },
+      "feedrate_pct": { "name": "Velocidad de impresión" },
+      "flowrate_pct": { "name": "Tasa de flujo" },
+      "system": { "name": "Sistema" },
+      "model_info": { "name": "Modelo" },
+      "filament_status": {
+        "name": "Estado del filamento",
+        "state": {
+          "normal": "Normal",
+          "runout": "Filamento agotado",
+          "unknown": "Desconocido"
+        }
+      },
+      "print_status": {
+        "name": "Estado de impresión",
+        "state": {
+          "off": "Apagada",
+          "unknown": "Desconocido",
+          "error": "Error",
+          "self-testing": "Autocomprobación",
+          "completed": "Completada",
+          "paused": "En pausa",
+          "stopped": "Detenida",
+          "printing": "Imprimiendo",
+          "processing": "Procesando",
+          "idle": "En reposo"
+        }
+      },
+      "used_material_length": { "name": "Material usado" },
+      "print_job_time": { "name": "Tiempo de trabajo de impresión" },
+      "print_left_time": { "name": "Tiempo restante de impresión" },
+      "real_time_flow": { "name": "Flujo en tiempo real" },
+      "current_object": { "name": "Objeto actual" },
+      "object_count": { "name": "Cantidad de objetos" },
+      "print_control": {
+        "name": "Control de impresión",
+        "state": {
+          "queued": "En cola",
+          "ok": "OK",
+          "unknown": "Desconocido"
+        }
+      },
+      "max_nozzle_temp": { "name": "Temperatura máxima de la boquilla" },
+      "max_bed_temp": { "name": "Temperatura máxima de la cama" },
+      "max_chamber_temp": { "name": "Temperatura máxima de la cámara" },
+      "active_filament_slot": { "name": "Ranura de filamento activa" },
+      "cfs_box_temp": { "name": "Temperatura de la caja CFS {box_id}" },
+      "cfs_box_humidity": { "name": "Humedad de la caja CFS {box_id}" },
+      "cfs_slot_filament": { "name": "Filamento — caja CFS {box_id}, ranura {slot}" },
+      "cfs_slot_color": { "name": "Color — caja CFS {box_id}, ranura {slot}" },
+      "cfs_slot_percent": { "name": "Restante — caja CFS {box_id}, ranura {slot}" },
+      "cfs_ext_filament": { "name": "Filamento externo CFS" },
+      "cfs_ext_color": { "name": "Color externo CFS" },
+      "cfs_ext_percent": { "name": "Restante externo CFS" }
+    },
+    "button": {
+      "home_xyz": { "name": "Inicio (XY y luego Z)" },
+      "pause_print": { "name": "Pausar la impresión" },
+      "resume_print": { "name": "Reanudar la impresión" },
+      "stop_print": { "name": "Detener la impresión" },
+      "reconnect": { "name": "Reconectar" }
+    },
+    "number": {
+      "print_tuning_pct": { "name": "Ajuste de impresión" },
+      "nozzle_target": { "name": "Objetivo de la boquilla" },
+      "bed_target": { "name": "Objetivo de la cama" },
+      "chamber_target": { "name": "Objetivo de la cámara" },
+      "model_fan_pct": { "name": "Ventilador del modelo" },
+      "case_fan_pct": { "name": "Ventilador de la carcasa" },
+      "side_fan_pct": { "name": "Ventilador lateral" }
+    },
+    "fan": {
+      "model_fan": { "name": "Ventilador del modelo" },
+      "case_fan": { "name": "Ventilador de la carcasa" },
+      "side_fan": { "name": "Ventilador lateral" }
+    },
+    "light": {
+      "light": { "name": "Luz" }
+    },
+    "switch": {
+      "light": { "name": "Luz" }
+    },
+    "camera": {
+      "printer_camera": { "name": "Cámara de la impresora" }
+    },
+    "image": {
+      "current_print_preview": { "name": "Vista previa de la impresión actual" }
+    }
+  },
+  "services": {
+    "diagnostic_dump": {
+      "name": "Volcado de diagnóstico",
+      "description": "Vuelca todos los datos de telemetría WebSocket de las impresoras Creality conectadas en formato JSON para resolución de problemas y análisis.",
+      "fields": {
+        "include_sensitive_data": {
+          "name": "Incluir datos sensibles",
+          "description": "Si se deben incluir datos potencialmente sensibles en la salida de diagnóstico (actualmente sin uso, reservado para uso futuro)"
+        }
+      }
+    },
+    "request_cfs_info": {
+      "name": "Solicitar información del CFS",
+      "description": "Solicita manualmente a la impresora que envíe la última información del CFS (sistema multifilamento), incluyendo temperaturas, humedad y detalles del filamento.",
+      "fields": {
+        "device_id": {
+          "name": "Dispositivo",
+          "description": "La(s) impresora(s) a las que solicitar información. Si se omite, se consultarán todas las impresoras conectadas."
+        }
+      }
+    }
   }
 }

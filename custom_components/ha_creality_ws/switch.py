@@ -8,7 +8,7 @@ from .const import DOMAIN
 
 # Switch mappings (fans controlled via number entities, not switches)
 MAP = {
-    "light": ("Light", "lightSw"),
+    "light": ("Light", "lightSw", "light"),
 }
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -22,7 +22,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             has_light = True
     
     ents = []
-    for key, (name, field) in MAP.items():
+    for key, (name, field, tk) in MAP.items():
         if key == "light" and not has_light:
             continue
         # Only create the legacy light switch if it already exists in the registry (migration safety)
@@ -33,7 +33,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if not existing:
                 # No legacy switch to migrate; skip creating to avoid duplicate with new light entity
                 continue
-        ents.append(KSimpleSwitch(coord, name, field, key))
+        ents.append(KSimpleSwitch(coord, name, field, key, translation_key=tk))
     
     async_add_entities(ents)
 
@@ -43,8 +43,8 @@ class KSimpleSwitch(KEntity, SwitchEntity):
     # Keep legacy light switch but disable by default in registry now that native light exists
     _attr_entity_registry_enabled_default = False
 
-    def __init__(self, coordinator, name: str, field: str, unique_id: str):
-        super().__init__(coordinator, name, unique_id)
+    def __init__(self, coordinator, name: str, field: str, unique_id: str, translation_key: str | None = None):
+        super().__init__(coordinator, name, unique_id, translation_key=translation_key)
         self._field = field
 
     @property

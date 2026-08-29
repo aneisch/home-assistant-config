@@ -103,18 +103,28 @@
     action: "{% if trigger.to_state.state == 'on' %}\n  shell_command.mount_plex\n{%
       elif trigger.to_state.state == 'off' %}\n  shell_command.umount_plex\n{% endif
       %}\n"
-- alias: Notify when AC Offline
-  id: notify_ac_offline
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id: binary_sensor.thermostat_online
+- id: notify_ac_offline
+  alias: Notify when AC Offline
+  triggers:
+  - entity_id: binary_sensor.thermostat_online
     to: 'off'
     for: 00:30:00
-  action:
+    trigger: state
+  - trigger: state
+    entity_id:
+    - binary_sensor.thermostat_thermostat_changes_pending
+    to:
+    - 'on'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+  actions:
   - action: script.notify_wrapper
     data:
-      message: The thermostat appears to be offline...
+      message: The thermostat is unresponsive or offline. Triggered by {{ trigger.to_state.entity_id
+        }}
+  initial_state: true
 - id: notify_ac_equipment_event
   alias: Notify AC Equipment Event Occurs
   triggers:
@@ -439,6 +449,11 @@
     to: 'on'
     id: binary
     trigger: state
+  conditions:
+  - condition: state
+    entity_id: input_boolean.goodnight
+    state:
+    - 'off'
   actions:
   - if:
     - condition: template
@@ -675,23 +690,6 @@
   - delay: 00:00:30
   - action: switch.turn_on
     entity_id: switch.docker_appdaemon
-- id: deep_freeze_temperature
-  alias: Deep Freeze Temperature
-  triggers:
-  - entity_id:
-    - sensor.deep_freeze_temperature
-    above: 32
-    for:
-      minutes: 10
-    trigger: numeric_state
-  actions:
-  - action: script.notify_wrapper
-    data:
-      message: The deep freeze has been above 25°F for 10 minutes and is currently
-        {{ trigger.to_state.state }}°F
-      data:
-        priority: 2
-  initial_state: true
 - alias: Door Chime
   id: door_chime
   initial_state: true
@@ -1047,9 +1045,10 @@
       button_1_1_tap:
       - action: light.toggle
         metadata: {}
-        data: {}
+        data:
+          brightness_pct: 100
         target:
-          entity_id: light.master_bedroom_ceiling_fan
+          entity_id: light.master_bedroom_lamps
       button_2_1_tap:
       - action: switch.toggle
         metadata: {}
@@ -1058,9 +1057,11 @@
           entity_id: switch.master_bedroom_ceiling_fan
       button_3_1_tap:
       - action: light.toggle
-        data: {}
+        data:
+          brightness_pct: 100
         target:
-          entity_id: light.master_bedroom_lamps
+          entity_id:
+          - light.master_bedroom_ceiling_fan
       button_4_1_tap:
       - action: cover.stop_cover
         target:
@@ -1186,14 +1187,11 @@
     id: dryer
     trigger: numeric_state
   - entity_id:
-    - sensor.washing_machine_power
-    below: 10
-    for:
-      hours: 0
-      minutes: 5
-      seconds: 0
+    - sensor.washing_machine_state
     id: washer
-    trigger: numeric_state
+    trigger: state
+    to:
+    - Idle
   conditions:
   - condition: template
     value_template: '{{ trigger.from_state.state != ''unavailable'' }}'
@@ -1327,6 +1325,7 @@
     - binary_sensor.tesla_doors_open
     to:
     - 'on'
+    enabled: false
   - trigger: state
     entity_id:
     - sensor.tesla_state
@@ -1527,4 +1526,23 @@
     metadata: {}
     data:
       message: Mosquito CO2 now {{ trigger.to_state.state }}
+  mode: single
+- id: '1784655811614'
+  alias: Link Speed Change
+  description: ''
+  triggers:
+  - trigger: state
+    entity_id:
+    - sensor.garage_ap_to_modem_speed
+    - sensor.office_ap_to_switch_speed
+    - sensor.garage_ap_to_satellite_ap_speed
+    - sensor.office_ap_to_main_ap_speed
+    from:
+    - 1Gbps
+  conditions: []
+  actions:
+  - action: notify.signal_self
+    metadata: {}
+    data:
+      message: Network Link Speed Changed!
   mode: single

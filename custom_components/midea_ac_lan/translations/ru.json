@@ -93,6 +93,9 @@
       "cooking": {
         "name": "Приготовление"
       },
+      "error_code": {
+        "name": "Код ошибки"
+      },
       "filter_change_reminder": {
         "name": "Требуется замена фильтра"
       },
@@ -126,6 +129,9 @@
       "keep_warm": {
         "name": "Поддержание температуры"
       },
+      "leak_water": {
+        "name": "Протечка воды"
+      },
       "lid_status": {
         "name": "Крышка"
       },
@@ -137,6 +143,21 @@
       },
       "middle_compartment_preheating": {
         "name": "Middle Compartment Preheating"
+      },
+      "top_elec_heat": {
+        "name": "Верхний электронагрев"
+      },
+      "bottom_elec_heat": {
+        "name": "Нижний электронагрев"
+      },
+      "mute_effect": {
+        "name": "Эффект тихого режима"
+      },
+      "mute_status": {
+        "name": "Статус тихого режима"
+      },
+      "multi_terminal": {
+        "name": "Мультитерминал"
       },
       "oilcup_full": {
         "name": "Oil-cup Full"
@@ -153,11 +174,32 @@
       "rinse_aid": {
         "name": "Нехватка ополаскивателя"
       },
+      "rsj_stand_by": {
+        "name": "Ожидание"
+      },
       "salt": {
         "name": "Соль"
       },
       "seat_status": {
         "name": "Сиденье"
+      },
+      "smart_grid": {
+        "name": "Умная сеть"
+      },
+      "eco": {
+        "name": "ECO"
+      },
+      "maintenance_reminder": {
+        "name": "Напоминание об обслуживании"
+      },
+      "maintain_warn": {
+        "name": "Предупреждение об обслуживании"
+      },
+      "order1_effect": {
+        "name": "Расписание 1 активно"
+      },
+      "order2_effect": {
+        "name": "Расписание 2 активно"
       },
       "status_dhw": {
         "name": "DHW status"
@@ -206,6 +248,20 @@
       },
       "zone2_water_temp_mode": {
         "name": "Zone2 Water-temperature Mode"
+      },
+      "microcrystal_fresh": {
+        "name": "Микрокристаллическая свежесть"
+      },
+      "electronic_smell": {
+        "name": "Дезодорация и стерилизация"
+      },
+      "water_pump_running": {
+        "name": "Работа водяного насоса"
+      }
+    },
+    "button": {
+      "start": {
+        "name": "Старт"
       }
     },
     "climate": {
@@ -214,11 +270,24 @@
       },
       "climate_zone2": {
         "name": "Zone2 Thermostat"
+      },
+      "climate_key": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "silent": "Тихий",
+              "full": "Полная"
+            }
+          }
+        }
       }
     },
     "fan": {
       "fresh_air": {
         "name": "Fresh Air"
+      },
+      "fresh_air_exhaust": {
+        "name": "Вытяжка свежего воздуха"
       }
     },
     "lock": {
@@ -238,6 +307,21 @@
       },
       "water_temp_level": {
         "name": "Water Temperature Level"
+      },
+      "fan_speed_percent": {
+        "name": "Скорость вентилятора (%)"
+      },
+      "vacation_days": {
+        "name": "Дни отпуска"
+      },
+      "leak_water_protection_value": {
+        "name": "Значение защиты от протечек"
+      },
+      "flushing_days": {
+        "name": "Дни регенерации"
+      },
+      "water_hardness": {
+        "name": "Жёсткость воды"
       }
     },
     "select": {
@@ -250,6 +334,25 @@
       "fan_speed": {
         "name": "Скорость"
       },
+      "fresh_air_exhaust_mode": {
+        "name": "Скорость вытяжки свежего воздуха",
+        "state": {
+          "off": "Выкл",
+          "silent": "Низкая",
+          "high": "Высокая",
+          "full": "Максимальная"
+        }
+      },
+      "fresh_air_mode": {
+        "name": "Скорость свежего воздуха",
+        "state": {
+          "off": "Выкл",
+          "low": "Низкая",
+          "medium": "Средняя",
+          "high": "Высокая",
+          "full": "Максимальная"
+        }
+      },
       "mode": {
         "name": "Режим"
       },
@@ -258,6 +361,9 @@
       },
       "oscillation_mode": {
         "name": "Oscillation Mode"
+      },
+      "rate_select": {
+        "name": "Ограничение мощности"
       },
       "screen_display": {
         "name": "Screen Display"
@@ -268,8 +374,38 @@
       "tilting_angle": {
         "name": "Угол поворота"
       },
+      "wash_mode": {
+        "name": "Режим мойки"
+      },
       "water_level_set": {
         "name": "Water Level Setting"
+      },
+      "wind_lr_angle": {
+        "name": "Горизонтальный поток воздуха",
+        "state": {
+          "off": "Выкл",
+          "left": "Влево",
+          "left-mid": "Влево-центр",
+          "middle": "Центр",
+          "right-mid": "Вправо-центр",
+          "right": "Вправо"
+        }
+      },
+      "wind_ud_angle": {
+        "name": "Вертикальный поток воздуха",
+        "state": {
+          "off": "Выкл",
+          "up": "Вверх",
+          "up-mid": "Вверх-центр",
+          "middle": "Центр",
+          "down-mid": "Вниз-центр",
+          "down": "Вниз"
+        }
+      }
+    },
+    "time": {
+      "timing_regeneration": {
+        "name": "Регенерация по таймеру"
       }
     },
     "sensor": {
@@ -312,6 +448,9 @@
       "dehydration_time_value": {
         "name": "Dehydration time value"
       },
+      "temperature": {
+        "name": "Температура"
+      },
       "wash_time_value": {
         "name": "Wash time value"
       },
@@ -348,8 +487,28 @@
       "energy_consumption": {
         "name": "Энергопотребление"
       },
+      "error": {
+        "name": "Ошибка",
+        "state": {
+          "no_error": "Нет ошибок",
+          "e1_position_not_found": "E1 Позиция не найдена",
+          "e2_photo_sensor_no_signal": "E2 Датчик не даёт сигнал",
+          "e3_motor_not_running": "E3 Двигатель не работает",
+          "e4_wrong_position": "E4 Неправильная позиция",
+          "e1_motor_fault": "E1 Неисправность двигателя",
+          "e5_communication_fault": "E5 Ошибка связи",
+          "e6_salt_sensor_fault": "E6 Неисправность датчика соли",
+          "e7_chlorine_sterilization_fault": "E7 Неисправность хлорной стерилизации"
+        }
+      },
       "error_code": {
         "name": "Код ошибки"
+      },
+      "estimated_energy_consumption": {
+        "name": "Расчётное энергопотребление"
+      },
+      "estimated_water_consumption": {
+        "name": "Расчётный расход воды"
       },
       "fan_level": {
         "name": "Fan level"
@@ -414,6 +573,9 @@
       "keep_warm_time": {
         "name": "Keep Warm Time"
       },
+      "left_salt": {
+        "name": "Остаток соли"
+      },
       "middle_compartment_remaining": {
         "name": "Middle Compartment Remaining"
       },
@@ -450,6 +612,12 @@
       "refrigerator_setting_temp": {
         "name": "Refrigerator Setting Temperature"
       },
+      "regeneration_left_seconds": {
+        "name": "Оставшиеся секунды регенерации"
+      },
+      "remaining_days": {
+        "name": "Оставшиеся дни"
+      },
       "right_flex_zone_actual_temp": {
         "name": "Right Flex Zone Actual Temperature"
       },
@@ -462,11 +630,17 @@
       "rinse_level": {
         "name": "Уровень ополаскивателя"
       },
+      "salt_setting": {
+        "name": "Настройка соли"
+      },
       "seat_temperature": {
         "name": "Температура сиденья"
       },
       "soak_time": {
         "name": "Время замачивания"
+      },
+      "soft_available": {
+        "name": "Доступная мягкая вода"
       },
       "softener": {
         "name": "Умягчитель"
@@ -513,6 +687,9 @@
       "tvoc": {
         "name": "TVOC"
       },
+      "wash_level": {
+        "name": "Уровень стирки"
+      },
       "wash_strength": {
         "name": "Wash strength"
       },
@@ -522,14 +699,113 @@
       "water_consumption": {
         "name": "Water Consumption"
       },
+      "water_consumption_average": {
+        "name": "Средний расход воды"
+      },
+      "water_consumption_big": {
+        "name": "Потребление воды"
+      },
       "water_temperature": {
         "name": "Температура воды"
       },
       "water_level": {
         "name": "Уровень воды"
       },
+      "wind": {
+        "name": "Поток воздуха"
+      },
+      "typeinfo": {
+        "name": "Информация о типе"
+      },
+      "use_days": {
+        "name": "Дни использования"
+      },
+      "elec_heat": {
+        "name": "Электронагрев"
+      },
+      "water_pump": {
+        "name": "Водяной насос"
+      },
+      "four_way": {
+        "name": "Четырёхходовой клапан"
+      },
+      "back_water": {
+        "name": "Обратная вода"
+      },
+      "sterilize": {
+        "name": "Стерилизация"
+      },
+      "disinfection_temperature": {
+        "name": "Температура дезинфекции"
+      },
+      "max_temperature": {
+        "name": "Максимальная целевая температура"
+      },
+      "vacation_start_year": {
+        "name": "Год начала отпуска"
+      },
+      "vacation_start_month": {
+        "name": "Месяц начала отпуска"
+      },
+      "vacation_start_day": {
+        "name": "День начала отпуска"
+      },
+      "auto_sterilize_week": {
+        "name": "День недели автостерилизации"
+      },
+      "auto_sterilize_hour": {
+        "name": "Час автостерилизации"
+      },
+      "auto_sterilize_minute": {
+        "name": "Минута автостерилизации"
+      },
       "working_time": {
         "name": "Время работы"
+      },
+      "humidity": {
+        "name": "Влажность"
+      },
+      "variable_mode": {
+        "name": "Переменный режим"
+      },
+      "compressor_frequency": {
+        "name": "Частота компрессора"
+      },
+      "target_compressor_frequency": {
+        "name": "Целевая частота компрессора"
+      },
+      "compressor_current": {
+        "name": "Ток компрессора"
+      },
+      "compressor_voltage": {
+        "name": "Напряжение компрессора"
+      },
+      "compressor_power": {
+        "name": "Мощность компрессора"
+      },
+      "indoor_ambient_temperature": {
+        "name": "Комнатная температура(T1)"
+      },
+      "indoor_coil_temperature": {
+        "name": "Температура внутреннего теплообменника(T2)"
+      },
+      "outdoor_coil_temperature": {
+        "name": "Температура наружного теплообменника(T3)"
+      },
+      "outdoor_ambient_temperature": {
+        "name": "Наружная температура окружающей среды(T4)"
+      },
+      "discharge_pipe_temperature": {
+        "name": "Температура нагнетательной трубы(TP)"
+      },
+      "indoor_fan_speed": {
+        "name": "Скорость внутреннего вентилятора"
+      },
+      "target_indoor_fan_speed": {
+        "name": "Целевая скорость внутреннего вентилятора"
+      },
+      "velocity": {
+        "name": "Скорость"
       }
     },
     "switch": {
@@ -545,6 +821,12 @@
       "breezeless": {
         "name": "Breezeless"
       },
+      "child_lock": {
+        "name": "Блокировка от детей"
+      },
+      "cl_sterilization": {
+        "name": "CL-стерилизация"
+      },
       "comfort_mode": {
         "name": "Comfort Mode"
       },
@@ -554,11 +836,23 @@
       "disinfect": {
         "name": "Дезинфекция"
       },
+      "vacation_mode": {
+        "name": "Режим отпуска"
+      },
       "dry": {
         "name": "Dry"
       },
+      "cold_water_single": {
+        "name": "Холодная вода (однократно)"
+      },
+      "cold_water_dot": {
+        "name": "Холодная вода (порционно)"
+      },
       "eco_mode": {
         "name": "Эко-режим"
+      },
+      "memory": {
+        "name": "Memo U"
       },
       "fast_dhw": {
         "name": "Fast DHW"
@@ -574,6 +868,9 @@
       },
       "indirect_wind": {
         "name": "Indirect Wind"
+      },
+      "leak_water_protection": {
+        "name": "Защита от протечек"
       },
       "light": {
         "name": "Свет"
@@ -605,8 +902,14 @@
       "prompt_tone": {
         "name": "Prompt Tone"
       },
+      "regeneration": {
+        "name": "Регенерация"
+      },
       "water_pump": {
         "name": "Водяной насос"
+      },
+      "water_way": {
+        "name": "Водный путь"
       },
       "screen_display": {
         "name": "Screen Display"
@@ -623,6 +926,9 @@
       "sleep_mode": {
         "name": "Sleep Mode"
       },
+      "out_silent": {
+        "name": "Тихий режим наружного блока"
+      },
       "smart_eye": {
         "name": "Smart Eye"
       },
@@ -632,11 +938,17 @@
       "smelly_sensor": {
         "name": "Smelly Sensor"
       },
+      "soften": {
+        "name": "Умягчение"
+      },
       "standby": {
         "name": "Ожидание"
       },
       "start": {
         "name": "Старт"
+      },
+      "sterilization": {
+        "name": "Стерилизация"
       },
       "storage": {
         "name": "Storage"

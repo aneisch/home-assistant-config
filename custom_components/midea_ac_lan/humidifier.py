@@ -12,9 +12,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DEVICE_ID, CONF_SWITCHES, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from midealocal.device import DeviceType
-from midealocal.devices.a1 import MideaA1Device
-from midealocal.devices.fd import MideaFDDevice
+from midealan.device import DeviceType
+from midealan.devices.a1 import MideaA1Device
+from midealan.devices.fd import MideaFDDevice
 
 from .const import DEVICES, DOMAIN
 from .midea_devices import MIDEA_DEVICES
@@ -92,15 +92,15 @@ class MideaHumidifier(MideaEntity, HumidifierEntity):
         """Midea Humidifier is on."""
         return cast("bool", self._device.get_attribute(attr="power"))
 
-    def turn_on(self, **kwargs: Any) -> None:  # noqa: ANN401, ARG002
+    def turn_on(self, **kwargs: Any) -> None:  # ruff:ignore[any-type, unused-method-argument]
         """Midea Humidifier turn on."""
         self._device.set_attribute(attr="power", value=True)
 
-    def turn_off(self, **kwargs: Any) -> None:  # noqa: ANN401, ARG002
+    def turn_off(self, **kwargs: Any) -> None:  # ruff:ignore[any-type, unused-method-argument]
         """Midea Humidifier turn off."""
         self._device.set_attribute(attr="power", value=False)
 
-    def update_state(self, status: Any) -> None:  # noqa: ANN401, ARG002
+    def update_state(self, status: Any) -> None:  # ruff:ignore[any-type, unused-method-argument]
         """Midea Humidifier update state."""
         if not self.hass:
             _LOGGER.warning(
@@ -109,7 +109,7 @@ class MideaHumidifier(MideaEntity, HumidifierEntity):
                 type(self),
             )
             return
-        self.schedule_update_ha_state()
+        self.schedule_update_if_running()
 
 
 class MideaA1Humidifier(MideaHumidifier):

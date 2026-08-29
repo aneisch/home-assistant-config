@@ -1,4 +1,20 @@
 - sensor:
+  - name: "Washing Machine State"
+    unique_id: washing_machine_state
+    icon: mdi:washing-machine
+    state: >
+      {% set power = states('sensor.washing_machine_power') | float(0) %}
+      {% set is_running = states('binary_sensor.washing_machine_running') == 'on' %}
+      {% if power > 500 %}
+        Spinning
+      {% elif power > 5.0 %}
+        Washing
+      {% elif is_running %}
+        Pausing
+      {% else %}
+        Idle
+      {% endif %}
+
   - default_entity_id: sensor.kitchen_timer_countdown
     icon: mdi:timer
     state: ''
@@ -61,9 +77,9 @@
       else -%}\n          {{states(\"sensor.mail_usps_mail\")|int(0)}}\n        {%-
       endif -%}\n      {{' '}} \n        {%- if states(\"sensor.mail_usps_mail\")|int(0)
       <= 1 -%}\n          mail\n        {%- else -%}\n          pieces of mail\n        {%-
-      endif -%}\n      {{' '}}will be delivered.{{' '}} \n        {%- if states(\"sensor.mail_packages_in_transit\")|int(0)
-      == 0 -%}\n          No\n        {%- else -%}\n          {{states(\"sensor.mail_packages_in_transit\")|int(0)}}\n
-      \       {%- endif -%}\n      {{' '}} \n        {%- if states(\"sensor.mail_packages_in_transit\")|int(0)
+      endif -%}\n      {{' '}}will be delivered.{{' '}} \n        {%- if states(\"sensor.imap_gmail_com_mail_packages_in_transit\")|int(0)
+      == 0 -%}\n          No\n        {%- else -%}\n          {{states(\"sensor.imap_gmail_com_mail_packages_in_transit\")|int(0)}}\n
+      \       {%- endif -%}\n      {{' '}} \n        {%- if states(\"sensor.imap_gmail_com_mail_packages_in_transit\")|int(0)
       == 1 -%}\n          package is\n        {%- else -%}\n          packages are\n
       \       {%- endif -%}\n      {{' '}}in transit.{{' '}}\n  {%- endmacro %}\n{{deliveries_sentence()}}"
 
@@ -147,6 +163,14 @@
       and is_state(''lock.garage_exterior_door'',''locked'') }}'
 
 - binary_sensor:
+  - name: "Washing Machine Running"
+    unique_id: washing_machine_running
+    icon: mdi:washing-machine
+    state: >
+      {{ states('sensor.washing_machine_power') | float(0) > 5.0 }}
+    delay_off:
+      minutes: 3
+
   - default_entity_id: binary_sensor.backups_complete
     state: '{{ (as_timestamp(now()) - as_timestamp(states(''sensor.last_vps_backup_completed'')))
       < 600 and (as_timestamp(now()) - as_timestamp(states(''sensor.last_nuc_backup_completed'')))
@@ -212,23 +236,22 @@
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 
-# Deep Freeze
 - trigger:
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
       payload: "True"
-      value_template: "{{ value_json.model == 'Acurite-Tower' and value_json.id == 14574 }}"
+      value_template: "{{ value_json.model == 'Acurite-Tower' }}" # and value_json.id == 14830 }}"
   sensor:
-    - name: "Deep Freeze Temperature"
+    - name: "Andrew Office Register Temperature"
       state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
       unit_of_measurement: "°F"
       device_class: temperature
-    - name: "Deep Freeze Humidity"
+    - name: "Andrew Office Register Humidity"
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
       unit_of_measurement: "%"
       device_class: humidity
   binary_sensor:
-    - name: "Deep Freeze Battery"
+    - name: "Andrew Office Register Battery"
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 

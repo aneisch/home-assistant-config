@@ -1,23 +1,18 @@
 """Solcast API."""
 
-# pylint: disable=pointless-string-statement
-
-from __future__ import annotations
-
 import asyncio
 from collections import OrderedDict, defaultdict
 import contextlib
 import copy
 from dataclasses import dataclass
 from datetime import date, datetime as dt, timedelta, tzinfo
-import logging
 from operator import itemgetter
 from pathlib import Path
 import sys
 import time
-import traceback
 from types import MappingProxyType
 from typing import Any
+from urllib.parse import urlsplit, urlunsplit
 
 from aiohttp import ClientSession
 
@@ -62,6 +57,8 @@ from .const import (
     FORECASTS,
     GENERATION_ENTITIES,
     GET_ACTUALS,
+    HALF_HOUR_MINUTES,
+    HALF_HOUR_SECONDS,
     HARD_LIMIT_API,
     ISSUE_CORRUPT_FILE,
     ISSUE_RECORDS_MISSING,
@@ -82,25 +79,45 @@ from .const import (
     SITE_EXPORT_LIMIT,
     SITE_INFO,
     SUCCESS,
+    SUCCESS_ACTUALS,
     SUCCESS_FORCED,
     UNKNOWN,
     USE_ACTUALS,
 )
 from .dampen import Dampening
+from .dates import DateTimeHelper
+from .enums import AutoUpdate, HistoryType, SitesStatus, SolcastApiStatus, UsageStatus
 from .fetcher import Fetcher
 from .forecast import ForecastQuery
+from .log import get_logger
+from .redact import redact_api_key
 from .sites_cache import FRESH_DATA, SitesCache
-from .util import (
-    AutoUpdate,
-    DateTimeHelper,
-    HistoryType,
-    SitesStatus,
-    SolcastApiStatus,
-    UsageStatus,
-    redact_api_key,
-)
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
+
+# Status code translation, HTTP and more.
+# A HTTP 418 error is included here for fun. This was introduced in RFC2324#section-2.3.2 as an April Fools joke in 1998.
+# A HTTP 420 error is a Demolition Man reference previously used by Twitter to indicate rate limiting, seen rarely (and oddly) by this integration.
+# 400-599 = HTTP
+# 900-999 = Integration-specific situation to be potentially handled with retries.
+_STATUS_TRANSLATE: dict[int, str] = {
+    200: "Success",
+    400: "Bad request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not found",
+    418: "I'm a teapot",
+    420: "Enhance your calm",
+    429: "Try again later",
+    500: "Internal web server error",
+    501: "Not implemented",
+    502: "Bad gateway",
+    503: "Service unavailable",
+    504: "Gateway timeout",
+    996: "Connection refused",
+    997: "Connect call failed",
+    999: "Prior crash",
+}
 
 # Return the function name at a specified caller depth. 0=current, 1=caller, 2=caller of caller, etc.
 FunctionName = lambda n=0: sys._getframe(n + 1).f_code.co_name  # noqa: E731, SLF001 # type: ignore[no-redef]
@@ -139,6 +156,72 @@ class ConnectionOptions:
 class SolcastApi:  # pylint: disable=too-many-public-methods
     """The Solcast API."""
 
+    @staticmethod
+    def get_solcast_base_url(url: str, port: int) -> str:
+        """Return the Solcast base URL with an optional TCP port override."""
+
+        url = url.rstrip("/")
+        if port <= 0:
+            return url
+
+        split_url = urlsplit(url)
+        if not split_url.netloc:
+            return url
+
+        hostname = split_url.hostname or split_url.netloc
+        if ":" in hostname and not hostname.startswith("["):
+            hostname = f"[{hostname}]"
+
+        auth = ""
+        if "@" in split_url.netloc:
+            auth = f"{split_url.netloc.rsplit('@', 1)[0]}@"
+
+        return urlunsplit(
+            (
+                split_url.scheme,
+                f"{auth}{hostname}:{port}",
+                split_url.path.rstrip("/"),
+                split_url.query,
+                split_url.fragment,
+            )
+        ).rstrip("/")
+
+    @staticmethod
+    def http_status_translate(status: int) -> str | Any:
+        """Translate HTTP status code to a human-readable translation."""
+
+        return (f"{status}/{_STATUS_TRANSLATE[status]}") if _STATUS_TRANSLATE.get(status) else status
+
+    @staticmethod
+    def forecast_entry_update(
+        forecasts: dict[dt, Any],
+        period_start: dt,
+        pv: float,
+        pv10: float | None = None,
+        pv90: float | None = None,
+    ) -> None:
+        """Update an individual forecast entry."""
+
+        extant = forecasts.get(period_start)
+        if extant:  # Update existing.
+            forecasts[period_start][ESTIMATE] = pv
+            if pv10 is not None:
+                forecasts[period_start][ESTIMATE10] = pv10
+            if pv90 is not None:
+                forecasts[period_start][ESTIMATE90] = pv90
+        elif pv10 is not None:
+            forecasts[period_start] = {
+                "period_start": period_start,
+                "pv_estimate": pv,
+                "pv_estimate10": pv10,
+                "pv_estimate90": pv90,
+            }
+        else:
+            forecasts[period_start] = {
+                "period_start": period_start,
+                "pv_estimate": pv,
+            }
+
     def __init__(
         self,
         aiohttp_session: ClientSession,
@@ -159,6 +242,11 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.advanced_options: dict[str, Any] = {}
         self.aiohttp_session = aiohttp_session
         self.api_limits: dict[str, int] = {}
+        self.api_actuals: dict[str, int] = {}
+        self.api_forced: dict[str, int] = {}
+        self.api_typical_forecast_updates: dict[str, int] = {}
+        self.api_typical: dict[str, int] = {}
+        self.api_typical_daily_use: int | None = None
         self.api_used: dict[str, int] = {}
         self.auto_update_divisions: int = 0
         self.custom_hour_sensor: int = options.custom_hour_sensor
@@ -180,6 +268,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.estimate_set: list[str] = self._get_estimate_set(options)
         self.extant_advanced_options: dict[str, Any] = {}
         self.hard_limit: str = options.hard_limit
+        self._hard_limit_values: tuple[float, ...] | None = None
+        self._api_key_list: tuple[str, ...] = ()
         self.hass: HomeAssistant = hass
         self.headers: dict[str, str] = {}
         self.integration_version: str = ""
@@ -191,6 +281,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.serialise_lock = asyncio.Lock()
         self.site_data_forecasts: dict[str, list[dict[str, Any]]] = {}
         self.site_data_forecasts_undampened: dict[str, list[dict[str, Any]]] = {}
+        self.site_transfers: dict[str, str] = {}
         self.sites: list[dict[str, Any]] = []
         self.sites_status: SitesStatus = SitesStatus.UNKNOWN
         self.status: SolcastApiStatus = SolcastApiStatus.UNKNOWN
@@ -247,7 +338,11 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 file.unlink()
                 unlinked.append(str(file.name))
             else:
-                _LOGGER.debug("File %s has length %d", file.resolve(), file.stat().st_size)
+                filename = str(file.resolve())
+                for api_key in self.options.api_key.split(","):
+                    filename = filename.replace("usage-" + api_key.strip(), "usage-" + redact_api_key(api_key.strip()))
+                    filename = filename.replace("sites-" + api_key.strip(), "sites-" + redact_api_key(api_key.strip()))
+                _LOGGER.debug("File %s has length %d", filename, file.stat().st_size)
 
         with contextlib.suppress(OSError):
             ((Path(self.config_dir) / "solcast_solar").rmdir()) if not CONFIG_FOLDER_DISCRETE else None
@@ -317,6 +412,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             options[AUTO_DAMPEN],
         )
         self.hard_limit = self.options.hard_limit
+        self._hard_limit_values = None
+        self._api_key_list = ()
         self.use_forecast_confidence = f"pv_{self.options.key_estimate}"
         self.estimate_set = self._get_estimate_set(self.options)
 
@@ -360,6 +457,18 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
             bool: True if updated today, False otherwise.
         """
         return self.data_actuals[LAST_UPDATED].astimezone(self.tz).date() == dt.now(self.tz).date()
+
+    @property
+    def successes_actuals_24h(self) -> int:
+        """Number of successful estimated actuals fetches today.
+
+        Uses the maximum across all API keys.
+
+        Returns:
+            int: The maximum per-key count of successful estimated actuals site API calls since midnight.
+        """
+        actuals = self.data[SUCCESS].get(SUCCESS_ACTUALS, {})
+        return max(actuals.values()) if actuals else 0
 
     @property
     def successes_forced_24h(self) -> int:
@@ -426,6 +535,29 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         return min(list(self.api_limits.values()))
 
     @property
+    def api_maximum_sites(self) -> int:
+        """API maximum sites for all API keys).
+
+        Used principally when determining auto-update frequency.
+
+        Returns:
+            int: The highest number of sites for all configured API keys.
+        """
+        api_key_sites: defaultdict[str, int] = defaultdict(int)
+        for site in self.sites:
+            api_key_sites[site[CONF_API_KEY]] += 1
+        return max(api_key_sites.values()) if api_key_sites else 1
+
+    @property
+    def api_typical_forecast_updates_count(self) -> int:
+        """Typical daily forecast update + forced update count.
+
+        Returns:
+            int: The maximum typical total daily forecast update count across all configured API keys.
+        """
+        return max(self.api_typical_forecast_updates.values()) if self.api_typical_forecast_updates else 0
+
+    @property
     def last_updated(self) -> dt | None:
         """When the data was last updated.
 
@@ -442,31 +574,46 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 break
         return api_key
 
+    def _get_hard_limit_values(self) -> tuple[float, ...]:
+        """Ensure parsed hard limit values are cached.
+
+        Returns:
+            tuple[float, ...]: Parsed hard limit values as floats (immutable).
+        """
+        if self._hard_limit_values is None:
+            self._hard_limit_values = tuple(float(h) for h in self.hard_limit.split(","))
+        return self._hard_limit_values
+
+    def _get_api_key_list(self) -> tuple[str, ...]:
+        """Ensure api key list is cached.
+
+        Returns:
+            tuple[str, ...]: Parsed API keys as a tuple of stripped strings.
+        """
+        if not self._api_key_list:
+            self._api_key_list = tuple(k.strip() for k in self.options.api_key.split(","))
+        return self._api_key_list
+
     def hard_limit_set(self) -> tuple[bool, bool]:
         """Determine whether a hard limit is set.
 
         Returns:
             tuple[bool, bool]: Flags indicating whether a hard limit is set, and whether multiple keys are in use.
         """
-        limit_set = False
-        hard_limit = self.hard_limit.split(",")
-        multi_key = len(hard_limit) > 1
-        for limit in hard_limit:
-            if limit != "100.0":
-                limit_set = True
-                break
+        hard_limit_values = self._get_hard_limit_values()
+        multi_key = len(hard_limit_values) > 1
+        limit_set = any(limit != 100.0 for limit in hard_limit_values)
         return limit_set, multi_key
 
     def _hard_limit_for_key(self, api_key: str) -> float:
-        hard_limit = self.hard_limit.split(",")
-        limit = 100.0
-        if len(hard_limit) == 1:
-            limit = float(hard_limit[0])
-        else:
-            for index, key in enumerate(self.options.api_key.split(",")):
-                if key == api_key:
-                    limit = float(hard_limit[index])
-                    break
+        hard_limit_values = self._get_hard_limit_values()
+        if len(hard_limit_values) == 1:
+            return hard_limit_values[0]
+        limit: float = 100.0
+        for index, key in enumerate(self._get_api_key_list()):
+            if key == api_key:
+                limit = float(hard_limit_values[index])
+                break
         return limit
 
     async def _build_hard_limit(
@@ -529,7 +676,10 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                         dt.strftime(latest.astimezone(self.tz), DT_DATE_FORMAT),
                         data_set,
                     )
-                periods: list[dt] = [earliest + timedelta(minutes=30 * x) for x in range(int((latest - earliest).total_seconds() / 1800))]
+                periods: list[dt] = [
+                    earliest + timedelta(minutes=HALF_HOUR_MINUTES * x)
+                    for x in range(int((latest - earliest).total_seconds() / HALF_HOUR_SECONDS))
+                ]
                 sites_hard_limit[api_key] = {est: {} for est in estimates}
                 for count, period in enumerate(periods):
                     for pv_estimate in estimates:
@@ -549,7 +699,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 data_set,
             )
         elif multi_key:
-            for api_key in self.options.api_key.split(","):
+            for api_key in self._get_api_key_list():
                 sites_hard_limit[api_key] = {est: {} for est in estimates}
         else:
             sites_hard_limit[ALL] = {est: {} for est in estimates}
@@ -640,8 +790,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                             )
 
                 return sorted(actuals.values(), key=itemgetter(PERIOD_START))
-            except Exception as e:  # noqa: BLE001
-                _LOGGER.error("Exception in build_data_actuals(): %s: %s", e, traceback.format_exc())
+            except Exception:
+                _LOGGER.exception("Exception in build_data_actuals()")
                 build_success = False
                 return []
 
@@ -756,7 +906,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                                             forecasts[period_start][DAMPENING_FACTOR] = round(self.dampening.auto_factors[period_start], 4)
 
                             # Prevent blocking
-                            if forecast_count % 200 == 0:
+                            if forecast_count % 50 == 0:
                                 await asyncio.sleep(0)
 
                         site_data_forecasts[resource_id] = sorted(site_forecasts.values(), key=itemgetter(PERIOD_START))
@@ -776,8 +926,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     self.data_forecasts = sorted(forecasts.values(), key=itemgetter(PERIOD_START))
                 else:
                     self.data_forecasts_undampened = sorted(forecasts.values(), key=itemgetter(PERIOD_START))
-            except Exception as e:  # noqa: BLE001, handle all exceptions
-                _LOGGER.error("Exception in build_data(): %s: %s", e, traceback.format_exc())
+            except Exception:
+                _LOGGER.exception("Exception in build_data()")
                 self.data_forecasts = []
                 self.data_forecasts_undampened = []
                 if dampened:

@@ -23,12 +23,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class KHomeAllButton(KEntity, ButtonEntity):
     """Button to home all axes."""
-    _attr_name = "Home (XY then Z)"
+    _attr_translation_key = "home_xyz"
     _attr_icon = "mdi:home-circle"
 
     def __init__(self, coordinator):
         """Initialize the button."""
-        super().__init__(coordinator, self._attr_name, "home_all")
+        super().__init__(coordinator, unique_id="home_all")
         self._seq_lock = asyncio.Lock()
 
     async def async_press(self) -> None:
@@ -55,27 +55,30 @@ class _BasePrintButton(KEntity, ButtonEntity):
 
 class KPrintPauseButton(_BasePrintButton):
     """Button to pause the print."""
+    _attr_translation_key = "pause_print"
     def __init__(self, coordinator):
         """Initialize."""
-        super().__init__(coordinator, "Pause Print", "pause_print")
+        super().__init__(coordinator, unique_id="pause_print")
     async def async_press(self) -> None:
         """Handle the button press."""
         await self.coordinator.request_pause()  # no optimistic mark
 
 class KPrintResumeButton(_BasePrintButton):
     """Button to resume the print."""
+    _attr_translation_key = "resume_print"
     def __init__(self, coordinator):
         """Initialize."""
-        super().__init__(coordinator, "Resume Print", "resume_print")
+        super().__init__(coordinator, unique_id="resume_print")
     async def async_press(self) -> None:
         """Handle the button press."""
         await self.coordinator.request_resume()  # no optimistic mark
 
 class KPrintStopButton(_BasePrintButton):
     """Button to stop the print."""
+    _attr_translation_key = "stop_print"
     def __init__(self, coordinator):
         """Initialize."""
-        super().__init__(coordinator, "Stop Print", "stop_print")
+        super().__init__(coordinator, unique_id="stop_print")
     async def async_press(self) -> None:
         """Handle the button press."""
         # Ensure WebSocket connection is active before sending commands
@@ -87,11 +90,12 @@ class KPrintStopButton(_BasePrintButton):
 
 class KReconnectButton(KEntity, ButtonEntity):
     """Button to force a reconnect."""
+    _attr_translation_key = "reconnect"
     _attr_icon = "mdi:connection"
     def __init__(self, coordinator):
         """Initialize."""
         # Unique ID suffix: reconnect_ws
-        super().__init__(coordinator, "Reconnect", "reconnect_ws")
+        super().__init__(coordinator, unique_id="reconnect_ws")
 
     async def async_press(self) -> None:
         """Handle the button press."""

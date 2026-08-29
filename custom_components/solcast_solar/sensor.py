@@ -1,11 +1,9 @@
-"""Support for Solcast PV forecast sensors."""
+"""Solcast sensor platform."""
 
 from __future__ import annotations
 
 from datetime import datetime as dt
 from enum import Enum
-import logging
-import traceback
 from typing import Any, Final
 
 from propcache.api import cached_property
@@ -20,7 +18,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, EntityCategory, UnitOfEnergy, UnitOfPower
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -61,17 +58,228 @@ from .const import (
     FACTORS,
     HARD_LIMIT,
     HARD_LIMIT_API,
-    INTEGRATION,
-    MANUFACTURER,
+    LEARN_MORE_RAISE_ISSUE,
     NAME,
     RESOURCE_ID,
     SITES_DATA,
     UNRECORDED_ATTRIBUTES,
 )
 from .coordinator import SolcastUpdateCoordinator
-from .util import api_key_last_six, redact_api_key
+from .entity import build_service_device_info
+from .log import get_logger
+from .redact import format_site_key, redact_api_key
 
-_LOGGER = logging.getLogger(__name__)
+_LOGGER = get_logger(__name__)
+
+PARALLEL_UPDATES = 0
+
+
+def _api_key_last_six(api_key: str) -> str:
+    """Return last six characters of API key."""
+    return api_key[-6:]
+
+
+def _cleanup_stale_entities(
+    entity_registry: er.EntityRegistry,
+    coordinator: SolcastUpdateCoordinator,
+    entry: ConfigEntry,
+    expecting_limits: list[str],
+) -> None:
+    """Remove stale and legacy entities."""
+    for entity in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
+        # Clean up orphaned hard limit sensors.
+        if HARD_LIMIT in entity.unique_id and entity.unique_id not in expecting_limits:
+            entity_registry.async_remove(entity.entity_id)
+            _LOGGER.warning("Cleaning up orphaned %s", entity.entity_id)
+
+        # Clean up any orphaned day sensors.
+        if entity.translation_key is not None:
+            if (
+                entity.translation_key.startswith(f"{ENTITY_TOTAL_KWH_FORECAST}_d")
+                and int(entity.unique_id.split("_")[-1].split("d")[-1]) > coordinator.advanced_day_entities - 1
+            ):
+                entity_registry.async_remove(entity.entity_id)
+                _LOGGER.warning("Cleaning up orphaned %s", entity.entity_id)
+
+    # Clean up legacy rooftop sensor entities that would collide with new style unique IDs.
+    # Legacy is identified as having a unique ID using the resource ID, and a category that
+    # is not diagnostic.
+    for site in coordinator.solcast.sites:
+        old_style_unique_id = f"solcast_solcast_api_{site[NAME]}"
+        new_style_unique_id = f"solcast_solcast_api_{site[RESOURCE_ID]}"
+        if old_style_unique_id == new_style_unique_id:
+            # A compatible unique ID already exists (or will) because the site name is the resource ID.
+            continue
+
+        old_style_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_style_unique_id)
+        new_style_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, new_style_unique_id)
+        old_style_entity = entity_registry.async_get(old_style_entity_id) if old_style_entity_id is not None else None
+        new_style_entity = entity_registry.async_get(new_style_entity_id) if new_style_entity_id is not None else None
+        if old_style_entity is None and new_style_entity is None:
+            # Neither entity exists, so nothing to clean up.
+            continue
+
+        if (
+            old_style_entity_id is not None
+            and old_style_entity is not None
+            and old_style_entity.entity_category == EntityCategory.DIAGNOSTIC
+            and new_style_entity is not None
+            and new_style_entity.entity_category == EntityCategory.DIAGNOSTIC
+        ):
+            # An upgrade/downgrade/upgrade has occurred, as both entities are diagnostic,
+            # so remove the old style entity.
+            entity_registry.async_remove(old_style_entity_id)
+            _LOGGER.warning(
+                "Removed unexpected rooftop sensor entity '%s' while cleaning up duplicate rooftop site entity '%s'",
+                old_style_entity_id,
+                site[NAME],
+            )
+            continue
+
+        if (
+            new_style_entity_id is not None
+            and new_style_entity is not None
+            and new_style_entity.entity_category != EntityCategory.DIAGNOSTIC
+        ):
+            entity_registry.async_remove(new_style_entity_id)
+            _LOGGER.debug(
+                "Removed colliding rooftop sensor site-ID entity '%s' while cleaning up legacy rooftop site entity for '%s'",
+                new_style_entity_id,
+                site[NAME],
+            )
+
+    # Clean up orphaned rooftop sensor entities whose unique ID does not correspond to any active site.
+    # These arise when a site is removed from the account. Includes both new-style (resource-ID-based)
+    # and old-style (name-based) unique IDs, which is overkill.
+    active_rooftop_unique_ids = set()
+    for site in coordinator.solcast.sites:
+        active_rooftop_unique_ids.add(f"solcast_solcast_api_{site[RESOURCE_ID]}")
+        active_rooftop_unique_ids.add(f"solcast_solcast_api_{site[NAME]}")
+    for entity in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
+        if (
+            entity.domain == "sensor"
+            and entity.unique_id.startswith("solcast_solcast_api_")
+            and entity.unique_id not in active_rooftop_unique_ids
+        ):
+            entity_registry.async_remove(entity.entity_id)
+            _LOGGER.warning(
+                "Cleaning up orphaned rooftop site sensor '%s' (unique_id='%s') - no corresponding active site found",
+                entity.entity_id,
+                entity.unique_id,
+            )
+
+
+def _maintain_entities(
+    hass: HomeAssistant,
+    coordinator: SolcastUpdateCoordinator,
+    entry: ConfigEntry,
+    expecting_limits: list[str],
+    active_unique_ids: set[str],
+) -> None:
+    """Run entity maintenance tasks."""
+    entity_registry = er.async_get(hass)
+
+    _migrate_transferred_rooftop_unique_ids(entity_registry, coordinator)
+    _cleanup_stale_entities(entity_registry, coordinator, entry=entry, expecting_limits=expecting_limits)
+    _migrate_legacy_rooftop_unique_ids(entity_registry, coordinator)
+    _warn_unmanaged_sensor_entities(entity_registry, entry, active_unique_ids)
+
+
+def _migrate_transferred_rooftop_unique_ids(
+    entity_registry: er.EntityRegistry,
+    coordinator: SolcastUpdateCoordinator,
+) -> None:
+    """Migrate rooftop unique IDs for detected site resource-ID transfers."""
+
+    for old_site_id, new_site_id in coordinator.solcast.site_transfers.items():
+        old_transfer_unique_id = f"solcast_solcast_api_{old_site_id}"
+        new_transfer_unique_id = f"solcast_solcast_api_{new_site_id}"
+
+        old_transfer_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_transfer_unique_id)
+        if old_transfer_entity_id is None:
+            continue
+
+        if old_transfer_unique_id == new_transfer_unique_id:
+            continue
+
+        new_transfer_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, new_transfer_unique_id)
+        if new_transfer_entity_id is not None and new_transfer_entity_id != old_transfer_entity_id:
+            _LOGGER.debug(
+                "Skipping rooftop sensor unique ID transfer from '%s' to '%s' because the new unique ID is already in use",
+                old_site_id,
+                new_site_id,
+            )
+            continue
+
+        entity_registry.async_update_entity(old_transfer_entity_id, new_unique_id=new_transfer_unique_id)
+        _LOGGER.info(
+            "Migrated rooftop sensor unique ID for transferred site ID '%s' to '%s'",
+            old_site_id,
+            new_site_id,
+        )
+
+
+def _migrate_legacy_rooftop_unique_ids(
+    entity_registry: er.EntityRegistry,
+    coordinator: SolcastUpdateCoordinator,
+) -> None:
+    """Migrate rooftop unique IDs from legacy site-name format to resource ID."""
+
+    for site in coordinator.solcast.sites:
+        old_style_unique_id = f"solcast_solcast_api_{site[NAME]}"
+
+        old_style_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, old_style_unique_id)
+        if old_style_entity_id is None:
+            # Already migrated or never existed, so nothing to do.
+            continue
+
+        new_style_unique_id = f"solcast_solcast_api_{site[RESOURCE_ID]}"
+        old_style_entity = entity_registry.async_get(old_style_entity_id)
+        if old_style_entity is not None and old_style_entity.unique_id == new_style_unique_id:
+            _LOGGER.debug(
+                "Skipping rooftop sensor unique ID migration for site '%s' because entity '%s' already uses unique ID '%s'",
+                site[NAME],
+                old_style_entity_id,
+                new_style_unique_id,
+            )
+            continue
+
+        new_style_entity_id = entity_registry.async_get_entity_id("sensor", DOMAIN, new_style_unique_id)
+        if new_style_entity_id is not None and new_style_entity_id != old_style_entity_id:
+            _LOGGER.debug(
+                "Skipping rooftop sensor unique ID migration for site '%s' because unique ID '%s' is already in use",
+                site[NAME],
+                new_style_unique_id,
+            )
+            continue
+
+        entity_registry.async_update_entity(old_style_entity_id, new_unique_id=new_style_unique_id)
+        _LOGGER.debug("Migrated rooftop sensor unique ID for site '%s' to resource ID", site[NAME])
+
+
+def _warn_unmanaged_sensor_entities(
+    entity_registry: er.EntityRegistry,
+    entry: ConfigEntry,
+    active_unique_ids: set[str],
+) -> None:
+    """Warn about sensor entities for this entry that are not actively maintained."""
+
+    for entity in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
+        if entity.domain != "sensor":
+            continue
+        if entity.unique_id not in active_unique_ids:
+            _LOGGER.warning(
+                (
+                    "Unmanaged entity '%s' (unique_id='%s') is present in the entity registry "
+                    "but is not actively maintained by this integration. "
+                    "If this entity is not expected, please raise an issue at "
+                    "%s"
+                ),
+                entity.entity_id,
+                entity.unique_id,
+                LEARN_MORE_RAISE_ISSUE,
+            )
+
 
 NAMES: Final[dict[str, str]] = {
     ENTITY_API_COUNTER: "API Used",
@@ -378,7 +586,7 @@ async def async_setup_entry(
         for api_key in coordinator.solcast.options.api_key.split(","):
             k = {
                 DESCRIPTION: SensorEntityDescription(
-                    key="hard_limit_" + api_key_last_six(api_key),
+                    key="hard_limit_" + _api_key_last_six(api_key),
                     translation_key=HARD_LIMIT_API,
                     translation_placeholders={
                         CONF_API_KEY: redact_api_key(api_key),
@@ -388,27 +596,10 @@ async def async_setup_entry(
             }
             sen = SolcastSensor(coordinator, entry, k)
             entities.append(sen)
-        expecting_limits = [f"hard_limit_{api_key_last_six(api_key)}" for api_key in coordinator.solcast.options.api_key.split(",")]
-
-    # Clean up.
-    entity_registry = er.async_get(hass)
-    for entity in er.async_entries_for_config_entry(entity_registry, entry.entry_id):
-        # Clean up orphaned hard limit sensors.
-        if HARD_LIMIT in entity.unique_id and entity.unique_id not in expecting_limits:
-            entity_registry.async_remove(entity.entity_id)
-            _LOGGER.warning("Cleaning up orphaned %s", entity.entity_id)
-
-        # Clean up any orphaned day sensors.
-        if entity.translation_key is not None:
-            if (
-                entity.translation_key.startswith(f"{ENTITY_TOTAL_KWH_FORECAST}_d")
-                and int(entity.unique_id.split("_")[-1].split("d")[-1]) > coordinator.advanced_day_entities - 1
-            ):
-                entity_registry.async_remove(entity.entity_id)
-                _LOGGER.warning("Cleaning up orphaned %s", entity.entity_id)
+        expecting_limits = [f"hard_limit_{_api_key_last_six(api_key)}" for api_key in coordinator.solcast.options.api_key.split(",")]
 
     # Site sensors
-    for site in coordinator.get_solcast_sites():
+    for site in coordinator.solcast.sites:
         k = {
             DESCRIPTION: SensorEntityDescription(
                 key=site[RESOURCE_ID],
@@ -420,13 +611,15 @@ async def async_setup_entry(
             )
         }
         site_sen = RooftopSensor(
-            key=SITES_DATA,
             coordinator=coordinator,
             entry=entry,
             sensor=k,
             rooftop_id=site[RESOURCE_ID],
         )
         entities.append(site_sen)
+
+    active_unique_ids = {e.unique_id for e in entities if e.unique_id is not None}
+    _maintain_entities(hass, coordinator, entry=entry, expecting_limits=expecting_limits, active_unique_ids=active_unique_ids)
 
     async_add_entities(entities)
 
@@ -464,20 +657,12 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
 
         try:
             self._sensor_data = self._coordinator.get_sensor_value(self.entity_description.key)
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Unable to get sensor value: %s: %s", e, traceback.format_exc())
+        except Exception:
+            _LOGGER.exception("Unable to get sensor value")
 
         self._attr_available = self._sensor_data is not None
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=INTEGRATION,
-            manufacturer=MANUFACTURER,
-            model=INTEGRATION,
-            entry_type=DeviceEntryType.SERVICE,
-            sw_version=coordinator.version,
-            configuration_url="https://toolkit.solcast.com.au/",
-        )
+        self._attr_device_info = build_service_device_info(entry, coordinator.version)
 
     async def async_added_to_hass(self) -> None:
         """Entity about to be added to hass, so set recorder excluded attributes."""
@@ -490,11 +675,11 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
             exclude = [ANALYSIS, DETAILED_FORECAST, DETAILED_HOURLY]
             if self._coordinator.solcast.options.attr_brk_site_detailed:
                 for s in self._coordinator.solcast.sites:
-                    exclude.append(f"{DETAILED_FORECAST}_" + s[RESOURCE_ID].replace("-", "_"))
-                    exclude.append(f"{DETAILED_HOURLY}_" + s[RESOURCE_ID].replace("-", "_"))
+                    exclude.append(f"{DETAILED_FORECAST}_" + format_site_key(s[RESOURCE_ID]))
+                    exclude.append(f"{DETAILED_HOURLY}_" + format_site_key(s[RESOURCE_ID]))
             self._state_info[UNRECORDED_ATTRIBUTES] = self._state_info[UNRECORDED_ATTRIBUTES] | frozenset(exclude)
 
-        elif self.entity_description.key == "dampen":
+        elif self.entity_description.key == ENTITY_DAMPEN:
             exclude = [FACTORS]
             for option, settings in ADVANCED_OPTIONS.items():
                 if "dampening" in option and not settings.get(AMENDABLE, False):
@@ -526,16 +711,6 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
         """
         return self._sensor_data
 
-    @cached_property
-    def should_poll(self) -> bool:
-        """Return whether the sensor should poll.
-
-        Returns:
-            bool: Always returns False, as sensors are not polled.
-
-        """
-        return False
-
     @callback
     def _handle_coordinator_update(self):
         """Handle updated data from the coordinator.
@@ -544,15 +719,13 @@ class SolcastSensor(CoordinatorEntity, SensorEntity):
         SensorUpdatePolicy.EVERY_TIME_INTERVAL), while the remaining sensors update after each
         forecast update or when the date changes.
         """
-        if self._update_policy == SensorUpdatePolicy.DEFAULT and not (
-            self._coordinator.get_date_changed() or self._coordinator.get_data_updated()
-        ):
+        if self._update_policy == SensorUpdatePolicy.DEFAULT and not (self._coordinator.date_changed or self._coordinator.data_updated):
             return
 
         try:
             self._sensor_data = self._coordinator.get_sensor_value(self.entity_description.key)
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Unable to get sensor value: %s: %s", e, traceback.format_exc())
+        except Exception:
+            _LOGGER.exception("Unable to get sensor value")
             self._sensor_data = None
         finally:
             if self._coordinator.advanced_entity_logging:
@@ -571,7 +744,6 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
     def __init__(
         self,
         *,
-        key: str,
         coordinator: SolcastUpdateCoordinator,
         entry: ConfigEntry,
         sensor: dict[str, SensorEntityDescription],
@@ -580,7 +752,6 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         """Initialise the sensor.
 
         Arguments:
-            key (str): The sensor name.
             coordinator (SolcastUpdateCoordinator): The integration coordinator instance.
             entry (ConfigEntry): The integration entry instance, contains the configuration.
             sensor (dict[str, SensorEntityDescription]): The details of the entity.
@@ -590,7 +761,6 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
 
         self.entity_description = sensor[DESCRIPTION]
-        self._key = key
         self._coordinator = coordinator
         self._rooftop_id = rooftop_id  # entity_description.
         self._attr_extra_state_attributes = {}
@@ -598,23 +768,15 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         self._sensor_data = None
 
         try:
-            self._sensor_data = coordinator.get_site_sensor_value(self._rooftop_id, key)
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Unable to get sensor value: %s", e)
+            self._sensor_data = self._coordinator.solcast.query.get_rooftop_site_total_today(self._rooftop_id)
+        except Exception:
+            _LOGGER.exception("Unable to get sensor value")
 
         self._attr_available = self._sensor_data is not None
 
-        self._attr_device_info = DeviceInfo(
-            identifiers={(DOMAIN, entry.entry_id)},
-            name=INTEGRATION,
-            manufacturer=MANUFACTURER,
-            model=INTEGRATION,
-            entry_type=DeviceEntryType.SERVICE,
-            sw_version=coordinator.version,
-            configuration_url="https://toolkit.solcast.com.au/",
-        )
+        self._attr_device_info = build_service_device_info(entry, coordinator.version)
 
-        self._unique_id = f"solcast_api_{sensor[DESCRIPTION].name}"
+        self._unique_id = f"solcast_api_{self._rooftop_id}"
 
     @property
     def available(self) -> bool:  # type: ignore[explicit-override]  # Explicitly overridden because parent is a cached property
@@ -649,7 +811,7 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
             dict[str, Any] | None: The current attributes of a sensor.
 
         """
-        return self._coordinator.get_site_sensor_extra_attributes(self._rooftop_id, self._key)
+        return self._coordinator.solcast.query.get_rooftop_site_extra_data(self._rooftop_id)
 
     @property
     def native_value(self) -> int | dt | float | str | bool | None:  # type: ignore[explicit-override]
@@ -661,16 +823,6 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
         """
         return self._sensor_data
 
-    @cached_property
-    def should_poll(self) -> bool:
-        """Return whether the sensor should poll.
-
-        Returns:
-            bool: Always returns False, as sensors are not polled.
-
-        """
-        return False
-
     async def async_added_to_hass(self) -> None:
         """Entity is added to Home Assistant."""
         await super().async_added_to_hass()
@@ -678,12 +830,12 @@ class RooftopSensor(CoordinatorEntity, SensorEntity):
     @callback
     def _handle_coordinator_update(self):
         """Handle updated data from the coordinator."""
-        if not (self._coordinator.get_date_changed() or self._coordinator.get_data_updated()):
+        if not (self._coordinator.date_changed or self._coordinator.data_updated):
             return
         try:
-            self._sensor_data = self._coordinator.get_site_sensor_value(self._rooftop_id, self._key)
-        except Exception as e:  # noqa: BLE001
-            _LOGGER.error("Unable to get sensor value: %s: %s", e, traceback.format_exc())
+            self._sensor_data = self._coordinator.solcast.query.get_rooftop_site_total_today(self._rooftop_id)
+        except Exception:
+            _LOGGER.exception("Unable to get sensor value")
             self._sensor_data = None
         finally:
             if self._coordinator.advanced_entity_logging:

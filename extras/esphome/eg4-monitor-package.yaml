@@ -6,31 +6,12 @@ substitutions:
 esphome:
   name: eg4-powerpro-monitor
   friendly_name: eg4-powerpro-monitor-package
-  # on_boot:
-  #     priority: -10
-  #     then:
-  #       - script.execute: modbus_scanner
 
 esp32:
   board: esp32-s3-devkitc-1
   toolchain: esp-idf
   framework:
     type: esp-idf
-
-# script:
-#   - id: modbus_scanner
-#     then:
-#       - logger.log: "=== STARTING SLOW MODBUS SCAN (0x01 to 0x10) ==="
-#       - repeat:
-#           count: 16
-#           then:
-#             - lambda: |-
-#                 uint8_t target_address = iteration + 1; 
-#                 ESP_LOGI("modbus_scan", "------------------------------------");
-#                 ESP_LOGI("modbus_scan", "Pinging Address: 0x%02X...", target_address);
-#                 id(modbus0).send(target_address, 0x03, 0x0000, 0x0001);
-#             - delay: 2s  # <-- Increased to 2 seconds to let timeouts finish
-#       - logger.log: "=== SLOW MODBUS SCAN COMPLETE ==="
 
 <<: !include common.yaml
 
@@ -45,6 +26,13 @@ uart:
   tx_pin: GPIO17
   rx_pin: GPIO18
   baud_rate: 9600
+  debug:
+    direction: BOTH
+    dummy_receiver: false
+    after:
+      delimiter: "\r\n"
+    sequence:
+      - lambda: UARTDebug::log_hex(direction, bytes, ':');
 
 eg4_modbus:
   id: modbus0

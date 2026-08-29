@@ -99,15 +99,9 @@ class _BaseCamera(KEntity, Camera):
         b"\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00?\x00\xd2\xcf \xff\xd9"
     )
 
-    def __init__(self, coordinator, name: str, unique_suffix: str) -> None:
-        """Initialize the base camera.
-        
-        Args:
-            coordinator: The printer coordinator
-            name: Display name for the camera
-            unique_suffix: Unique suffix for the entity ID
-        """
-        KEntity.__init__(self, coordinator, name, unique_suffix)
+    def __init__(self, coordinator, unique_suffix: str) -> None:
+        """Initialize the base camera."""
+        KEntity.__init__(self, coordinator, unique_id=unique_suffix)
         Camera.__init__(self)
         self._last_frame: bytes | None = None
 
@@ -125,16 +119,18 @@ class _BaseCamera(KEntity, Camera):
 
 class CrealityMjpegCamera(_BaseCamera):
     """MJPEG camera for Creality K1 family printers.
-    
+
     This camera handles MJPEG streams from Creality K1 family printers,
     providing both static image capture and live streaming capabilities.
-    
+
     Features:
     - Automatic MJPEG stream detection and parsing
     - Fallback image handling when printer is offline
     - Live streaming support via handle_async_mjpeg_stream
     - JPEG validation and error recovery
     """
+
+    _attr_translation_key = "printer_camera"
 
     def __init__(self, coordinator, url: str) -> None:
         """Initialize the MJPEG camera.
@@ -143,7 +139,7 @@ class CrealityMjpegCamera(_BaseCamera):
             coordinator: The printer coordinator
             url: MJPEG stream URL from the printer
         """
-        super().__init__(coordinator, "Printer Camera", "camera")
+        super().__init__(coordinator, "camera")
         self._url = url
         # Snapshot throttling to avoid repeatedly opening MJPEG streams
         self._last_snapshot_ts: float = 0.0
@@ -326,19 +322,21 @@ class CrealityWebRTCCamera(_BaseCamera):
 
     This camera provides native WebRTC streaming support for Creality K2 family
     printers by integrating with Home Assistant's built-in go2rtc service.
-    
+
     Architecture:
     1. Configures go2rtc to pull WebRTC stream from the Creality K2 printer
     2. Exposes go2rtc's WebRTC endpoint as the camera's stream source
     3. Forwards WebRTC offers/answers between Home Assistant frontend and go2rtc
     4. Provides static image capture via go2rtc's snapshot API
-    
+
     Features:
     - Native WebRTC streaming without additional HACS integrations
     - Automatic go2rtc stream configuration
     - Graceful fallback to static images when streaming is unavailable
     - Full WebRTC offer/answer negotiation support
     """
+
+    _attr_translation_key = "printer_camera"
 
     def __init__(
         self,
@@ -364,7 +362,7 @@ class CrealityWebRTCCamera(_BaseCamera):
                 set it overrides the printer's Creality WebRTC source. Only used when
                 direct_signaling is False.
         """
-        super().__init__(coordinator, "Printer Camera", "camera")
+        super().__init__(coordinator, "camera")
         self._upstream_signaling_url = signaling_url
         self._use_proxy = use_proxy  # Deprecated, kept for compatibility
         self._custom_go2rtc_url = go2rtc_url

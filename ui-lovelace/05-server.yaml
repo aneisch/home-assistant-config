@@ -124,11 +124,11 @@ cards:
         icon: mdi:flash
       - type: markdown
         content: >
-          {%- set electric_net = ((states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) | round(2) -%}
+          {%- set electric_net = ((states('input_text.electricity_cost_monthly') | float(0)) - (states('input_text.electricity_sell_monthly') | float(0))) | round(2) -%}
 
-          Cycle Tesla Energy: {{ states('sensor.monthly_tesla_electric_usage') | int }} kWh
+          Cycle Tesla Energy: {{ states('sensor.monthly_tesla_electric_usage') | int(0) }} kWh
 
-          Cycle Tesla Charging Cost (assuming all grid): ${{ states('input_text.electricity_cost_monthly_tesla') }} ({{ states('sensor.monthly_tesla_miles') }} miles, ${% set gallons = states('sensor.monthly_tesla_miles')|float / 25 %}{{ (states('input_text.electricity_cost_monthly_tesla')|float / gallons) | round(2) }}/G @ 25 MPG)
+          Cycle Tesla Charging Cost (assuming all grid): ${{ states('input_text.electricity_cost_monthly_tesla') }} ({{ states('sensor.monthly_tesla_miles') }} miles, ${% set miles = states('sensor.monthly_tesla_miles') | float(0) %}{% set gallons = miles / 25 %}{% set cost = states('input_text.electricity_cost_monthly_tesla') | float(0) %}{{ (cost / gallons) | round(2) if gallons > 0 else 0.00 }}/G @ 25 MPG)
 
           Cycle Electric Cost Grid: ${{ states('input_text.electricity_cost_monthly') }}
 
@@ -140,8 +140,8 @@ cards:
 
           Cycle Sewer Cost: ${{ states('input_text.sewer_cost_monthly') }}
 
-          Cycle Water + Sewer + Electric (+fee, trash, etc): ${{ (((states('input_text.water_cost_monthly') | float) + (states('input_text.sewer_cost_monthly') | float) + (states('input_text.electricity_cost_monthly') | float) - (states('input_text.electricity_sell_monthly') | float)) + 7 + 7.65 + 22.25 + 10) | round(2) }}
-      
+          Cycle Water + Sewer + Electric (+fee, trash, etc): ${{ (((states('input_text.water_cost_monthly') | float(0)) + (states('input_text.sewer_cost_monthly') | float(0)) + (states('input_text.electricity_cost_monthly') | float(0)) - (states('input_text.electricity_sell_monthly') | float(0))) + 7 + 7.65 + 22.25 + 10) | round(2) }}
+
           Cycle Ends: {{ state_attr('sensor.utilities_cycle_end', 'EndDateLabel') }}
       
       # - type: sensor

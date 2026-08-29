@@ -83,6 +83,16 @@ mqtt:
       state_topic: "teslamate/cars/1/display_name"
       icon: mdi:car
 
+  - sensor:
+        name: Tesla Software Download Progress
+        default_entity_id: tesla_download_perc
+        unique_id: teslamate_1_download_perc
+        availability: *teslamate_availability
+        device: *teslamate_device_info
+        state_topic: "teslamate/cars/1/download_perc"
+        unit_of_measurement: "%"
+        icon: mdi:cloud-download
+
   - device_tracker:
       name: Tesla Location
       default_entity_id: tesla_location
@@ -538,6 +548,104 @@ mqtt:
       payload_off: "false"
       icon: mdi:car-door
 
+# --- Windows ---
+  - binary_sensor:
+      name: Tesla Driver Front Window Open
+      default_entity_id: tesla_driver_front_window_open
+      unique_id: teslamate_1_driver_front_window_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: window
+      state_topic: "teslamate/cars/1/driver_front_window_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Driver Rear Window Open
+      default_entity_id: tesla_driver_rear_window_open
+      unique_id: teslamate_1_driver_rear_window_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: window
+      state_topic: "teslamate/cars/1/driver_rear_window_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Passenger Front Window Open
+      default_entity_id: tesla_passenger_front_window_open
+      unique_id: teslamate_1_passenger_front_window_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: window
+      state_topic: "teslamate/cars/1/passenger_front_window_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Passenger Rear Window Open
+      default_entity_id: tesla_passenger_rear_window_open
+      unique_id: teslamate_1_passenger_rear_window_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: window
+      state_topic: "teslamate/cars/1/passenger_rear_window_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  # --- Doors ---
+  - binary_sensor:
+      name: Tesla Driver Front Door Open
+      default_entity_id: tesla_driver_front_door_open
+      unique_id: teslamate_1_driver_front_door_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: door
+      state_topic: "teslamate/cars/1/driver_front_door_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Driver Rear Door Open
+      default_entity_id: tesla_driver_rear_door_open
+      unique_id: teslamate_1_driver_rear_door_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: door
+      state_topic: "teslamate/cars/1/driver_rear_door_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Passenger Front Door Open
+      default_entity_id: tesla_passenger_front_door_open
+      unique_id: teslamate_1_passenger_front_door_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: door
+      state_topic: "teslamate/cars/1/passenger_front_door_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
+  - binary_sensor:
+      name: Tesla Passenger Rear Door Open
+      default_entity_id: tesla_passenger_rear_door_open
+      unique_id: teslamate_1_passenger_rear_door_open
+      availability: *teslamate_availability
+      device: *teslamate_device_info
+      device_class: door
+      state_topic: "teslamate/cars/1/passenger_rear_door_open"
+      payload_on: "true"
+      payload_off: "false"
+      icon: mdi:car-door
+
   - binary_sensor:
       name: Tesla Trunk Open
       default_entity_id: tesla_trunk_open
@@ -785,6 +893,7 @@ rest_command:
 
 automation:
   - alias: "Tesla Exceeds 20 Miles From Home"
+    id: tesla_exceeds_distance_from_home
     description: "Triggers when the Tesla is more than 20 miles away from home."
     trigger:
       - platform: numeric_state
@@ -794,14 +903,14 @@ automation:
           hours: 0
           minutes: 2
           seconds: 0
-    condition: "{{ is_state('input_boolean.guest_mode') == 'off'}}"
+    condition: "{{ is_state('input_boolean.guest_mode', 'off') and is_state('automation.tesla_service_notification', 'off')}}"
     action:
       - service: notify.signal_self
         data:
           message: "Tesla now more than 20 miles away from home, setting away boost to 80"
       - service: input_number.set_value
         target:
-          entity_id: input_number.cool_boost_unoccupied_target
+          entity_id: input_number.cool_boost_target
         data:
           value: 80
     mode: single

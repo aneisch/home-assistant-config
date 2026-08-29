@@ -15,8 +15,8 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DEVICE_ID, CONF_SWITCHES, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from midealocal.devices.x13 import DeviceAttributes as X13Attributes
-from midealocal.devices.x13 import Midea13Device
+from midealan.devices.x13 import DeviceAttributes as X13Attributes
+from midealan.devices.x13 import Midea13Device
 
 from .const import DEVICES, DOMAIN
 from .midea_devices import MIDEA_DEVICES
@@ -73,18 +73,32 @@ def _calc_supported_color_modes(device: Midea13Device) -> set[ColorMode]:
 class MideaLight(MideaEntity, LightEntity):
     """Midea Light Entries."""
 
-    _attr_color_mode: ColorMode | str | None = None
-    _attr_supported_color_modes: set[ColorMode] | set[str] | None = None
-    _attr_supported_features: LightEntityFeature = LightEntityFeature(0)
-
     _device: Midea13Device
 
-    def __init__(self, device: Midea13Device, entity_key: str) -> None:
-        """Midea Light entity init."""
-        super().__init__(device, entity_key)
-        self._attr_supported_features = _calc_supported_features(device)
-        self._attr_supported_color_modes = _calc_supported_color_modes(device)
-        self._attr_color_mode = self._calc_color_mode(self._attr_supported_color_modes)
+    # NOTE: supported_features / supported_color_modes / color_mode are computed
+    # as properties (not latched in __init__). The device starts its socket
+    # refresh on a background thread, so at construction time brightness,
+    # color_temperature and rgb_color are all still None. Latching these in
+    # __init__ would lock a dimmable/color-temp light to ONOFF forever, because
+    # update_state never recomputes them. Recomputing per access reflects the
+    # capabilities once the first status arrives.
+    @property
+    def supported_features(self) -> LightEntityFeature:
+        """Midea Light supported features."""
+        return _calc_supported_features(self._device)
+
+    @property
+    def supported_color_modes(self) -> set[ColorMode] | set[str] | None:
+        """Midea Light supported color modes."""
+        return _calc_supported_color_modes(self._device)
+
+    @property
+    def color_mode(self) -> ColorMode | str | None:
+        """Midea Light current color mode."""
+        # Call the concrete helper (returns set[ColorMode]) rather than the
+        # supported_color_modes property, whose type is widened to
+        # set[ColorMode] | set[str] | None to match LightEntity's base override.
+        return self._calc_color_mode(_calc_supported_color_modes(self._device))
 
     def _calc_color_mode(self, supported: set[ColorMode]) -> ColorMode:
         """Midea Light calculate color mode.
@@ -153,7 +167,7 @@ class MideaLight(MideaEntity, LightEntity):
         """Midea Light effect."""
         return cast("str", self._device.get_attribute(X13Attributes.effect))
 
-    def turn_on(self, **kwargs: Any) -> None:  # noqa: ANN401
+    def turn_on(self, **kwargs: Any) -> None:  # ruff:ignore[any-type]
         """Midea Light turn on."""
         if not self.is_on:
             self._device.set_attribute(attr=X13Attributes.power, value=True)
@@ -168,11 +182,11 @@ class MideaLight(MideaEntity, LightEntity):
             if key == ATTR_EFFECT:
                 self._device.set_attribute(attr=X13Attributes.effect, value=value)
 
-    def turn_off(self, **kwargs: Any) -> None:  # noqa: ANN401, ARG002
+    def turn_off(self, **kwargs: Any) -> None:  # ruff:ignore[any-type, unused-method-argument]
         """Midea Light turn off."""
         self._device.set_attribute(attr=X13Attributes.power, value=False)
 
-    def update_state(self, status: Any) -> None:  # noqa: ANN401,ARG002
+    def update_state(self, status: Any) -> None:  # ruff:ignore[any-type, unused-method-argument]
         """Midea Light update state."""
         if not self.hass:
             _LOGGER.warning(
@@ -181,4 +195,4 @@ class MideaLight(MideaEntity, LightEntity):
                 type(self),
             )
             return
-        self.schedule_update_ha_state()
+        self.schedule_update_if_running()

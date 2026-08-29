@@ -6,10 +6,12 @@ import logging
 import os
 from dataclasses import dataclass
 from datetime import timedelta
+from http import HTTPStatus
 from pathlib import Path
 from time import monotonic
 
 import anyio
+from aiohttp import ClientResponseError
 from aioimaplib import IMAP4_SSL
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -23,6 +25,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -59,6 +62,8 @@ class MailAndPackagesData:
 
     coordinator: "MailDataUpdateCoordinator"
     cameras: list
+    last_options: dict | None = None
+    last_data: dict | None = None
 
 
 type MailAndPackagesConfigEntry = ConfigEntry[MailAndPackagesData]
@@ -84,6 +89,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._file_mtime_cache = {}
         self._hash_cache = {}
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
+        self._mail_delivered_latch_date: str | None = None
+        self._mail_delivered_latched = False
+        self.email_cache = EmailCache(hass=hass)
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -108,6 +116,51 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         else:
             return file_hash
 
+    async def _async_oauth_access_token(self, auth_type: str) -> str:
+        """Return a valid OAuth2 access token, refreshing it when required.
+
+        Raises ConfigEntryAuthFailed when the grant itself is gone, so Home
+        Assistant starts a reauth flow instead of retrying forever.
+        """
+        try:
+            self.hass.data.setdefault(DOMAIN, {})
+            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
+
+            implementation = (
+                await config_entry_oauth2_flow.async_get_config_entry_implementation(
+                    self.hass,
+                    self.config_entry,
+                )
+            )
+            session = config_entry_oauth2_flow.OAuth2Session(
+                self.hass,
+                self.config_entry,
+                implementation,
+            )
+            await session.async_ensure_token_valid()
+        except ClientResponseError as err:
+            # The token endpoint rejecting the grant (typically "invalid_grant")
+            # means the refresh token has been revoked or has expired. Retrying
+            # can never recover from that, so surface it as an auth failure and
+            # let Home Assistant start a reauth flow.
+            if err.status in (HTTPStatus.BAD_REQUEST, HTTPStatus.UNAUTHORIZED):
+                _LOGGER.error(
+                    "OAuth token refresh was rejected (HTTP %s): %s. "
+                    "Reauthentication is required",
+                    err.status,
+                    err.message,
+                )
+                raise ConfigEntryAuthFailed(
+                    "OAuth token refresh failed, reauthentication required"
+                ) from err
+            _LOGGER.error("Error refreshing OAuth token: %s", err)
+            raise UpdateFailed("OAuth token refresh failed") from err
+        except Exception as err:
+            _LOGGER.error("Error refreshing OAuth token: %s", err)
+            raise UpdateFailed("OAuth token refresh failed") from err
+
+        return session.token["access_token"]
+
     async def _async_update_data(self):
         """Fetch data."""
         start = monotonic()
@@ -119,31 +172,17 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                     # Refresh OAuth2 token if using OAuth authentication
                     auth_type = config.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
                     if auth_type != AUTH_TYPE_PASSWORD and self.config_entry:
-                        try:
-                            self.hass.data.setdefault(DOMAIN, {})
-                            self.hass.data[DOMAIN]["oauth_provider"] = auth_type
-
-                            implementation = await config_entry_oauth2_flow.async_get_config_entry_implementation(
-                                self.hass,
-                                self.config_entry,
-                            )
-                            session = config_entry_oauth2_flow.OAuth2Session(
-                                self.hass,
-                                self.config_entry,
-                                implementation,
-                            )
-                            await session.async_ensure_token_valid()
-                            config["oauth_token"] = session.token["access_token"]
-                        except Exception as err:
-                            _LOGGER.error("Error refreshing OAuth token")
-                            _LOGGER.debug("OAuth token refresh error details: %s", err)
-                            raise UpdateFailed("OAuth token refresh failed") from err
+                        oauth_token = await self._async_oauth_access_token(auth_type)
+                        config["oauth_token"] = oauth_token
+                        self.config["oauth_token"] = oauth_token
 
                     data = await self.process_emails(self.hass, config)
-                except UpdateFailed:
+                except ConfigEntryAuthFailed:
                     raise
                 except Exception as error:
                     _LOGGER.error("Problem updating sensors: %s", error)
+                    if self._data:
+                        return self._data
                     raise UpdateFailed(error) from error
 
                 if data:
@@ -161,7 +200,9 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 self.timeout,
                 monotonic() - start,
             )
-            raise
+            if self._data:
+                return self._data
+            raise UpdateFailed("Scan timed out and no prior data available") from None
 
     async def process_emails(self, hass: HomeAssistant, config: dict) -> dict:
         """Process emails and update sensors."""
@@ -172,7 +213,12 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         # Connect to IMAP
         account = await self._get_imap_connection(config)
         try:
-            cache = EmailCache(account)
+            days = config.get(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS)
+            cache = self.email_cache
+            cache.set_account(account)
+            await cache.async_load()
+            await cache.async_purge_expired(custom_days=days)
+
             now = datetime.datetime.now()
             today = now.strftime("%d-%b-%Y")
             today_iso = now.date().isoformat()
@@ -185,10 +231,13 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
             tracking_details = shipper_data.pop("_tracking_details", {})
             data.update(shipper_data)
+            self._dedupe_marketplace_duplicates(data, tracking_details)
             self._apply_tracking_state(data, tracking_details, today_iso)
+            self._latch_mail_delivered(data, today_iso)
 
             # Aggregate global transit and delivered sensors
             self._aggregate_package_counts(data)
+            await cache.async_save()
         finally:
             await logout(account)
 
@@ -225,6 +274,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             "fedex_image": (False, False, False, True),
             "usps_image": (False, False, False, False),
             "post_de_image": (False, False, False, False),
+            "home_depot_image": (False, False, False, False),
         }
 
         for key, params in shipper_images.items():
@@ -249,21 +299,35 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             )
         except InvalidAuth as err:
             _LOGGER.error("Authentication failed: %s", err)
+            # Create a repairs issue for authentication failure
+            ir.async_create_issue(
+                self.hass,
+                DOMAIN,
+                "auth_failed",
+                is_fixable=True,
+                severity=ir.IssueSeverity.ERROR,
+                translation_key="auth_failed",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
             raise ConfigEntryAuthFailed from err
         except Exception as err:
             _LOGGER.error("Error logging into IMAP: %s", err)
             raise UpdateFailed(f"Login failed: {err}") from err
+        # Login succeeded, delete the issue if it exists
+        issue_registry = ir.async_get(self.hass)
+        if (DOMAIN, "auth_failed") in issue_registry.issues:
+            ir.async_delete_issue(self.hass, DOMAIN, "auth_failed")
 
         folders = config.get(CONF_FOLDER)
-        if not folders:
-            folders = ["INBOX"]
-        elif isinstance(folders, str):
+        if isinstance(folders, str):
             folders = [folders]
         elif isinstance(folders, (list, tuple, set)):
             folders = [f for f in folders if isinstance(f, str) and f]
-            if not folders:
-                folders = ["INBOX"]
         else:
+            folders = []
+        if not folders:
             folders = ["INBOX"]
         account._folders = folders  # noqa: SLF001
         account._current_folder = None  # noqa: SLF001
@@ -331,6 +395,72 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         return data
 
+    @staticmethod
+    def _dedupe_marketplace_duplicates(
+        data: dict,
+        tracking_details: dict[str, list],
+    ) -> None:
+        """Drop marketplace packages already counted by a carrier shipper.
+
+        Marketplace shippers (see MARKETPLACE_CARRIER_TRACKING) extract the
+        physical carrier's tracking number from their emails. If that number
+        also appears in a carrier shipper's results, the same package would
+        be counted twice; the carrier entry is treated as authoritative and
+        the marketplace entry is removed from counts and tracking lists.
+        Users without carrier notifications enabled are unaffected.
+        """
+        marketplace_prefixes = tuple(const.MARKETPLACE_CARRIER_TRACKING)
+        if not marketplace_prefixes:
+            return
+
+        carrier_numbers = {
+            str(num).upper()
+            for sensor, ids in tracking_details.items()
+            if not sensor.startswith(marketplace_prefixes)
+            for num in ids or []
+        }
+
+        for prefix in marketplace_prefixes:
+            mapping = data.pop(f"{prefix}_carrier_tracking", None) or {}
+            for marketplace_id, carrier_num in mapping.items():
+                if str(carrier_num).upper() in carrier_numbers:
+                    MailDataUpdateCoordinator._remove_marketplace_package(
+                        data, tracking_details, prefix, marketplace_id, carrier_num
+                    )
+
+    @staticmethod
+    def _remove_marketplace_package(
+        data: dict,
+        tracking_details: dict[str, list],
+        prefix: str,
+        marketplace_id: str,
+        carrier_num: str,
+    ) -> None:
+        """Remove one de-duplicated package from a marketplace's sensors."""
+        removed = False
+        for suffix in ("_delivering", "_delivered"):
+            sensor = f"{prefix}{suffix}"
+            ids = tracking_details.get(sensor)
+            if ids and marketplace_id in ids:
+                ids.remove(marketplace_id)
+                if isinstance(data.get(sensor), int):
+                    data[sensor] = max(0, data[sensor] - 1)
+                removed = True
+                _LOGGER.debug(
+                    "De-duplicated %s package %s (carrier tracking %s already "
+                    "counted by a carrier shipper)",
+                    prefix,
+                    marketplace_id,
+                    carrier_num,
+                )
+        packages_sensor = f"{prefix}_packages"
+        if (
+            removed
+            and not const.SENSOR_DATA.get(packages_sensor)
+            and isinstance(data.get(packages_sensor), int)
+        ):
+            data[packages_sensor] = max(0, data[packages_sensor] - 1)
+
     def _apply_tracking_state(
         self,
         data: dict,
@@ -393,10 +523,39 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
                 data[f"{prefix}_tracking"] = list(in_transit.keys())
                 data[f"{prefix}_delivering"] = len(in_transit)
             if in_transit:
-                delivered_count = data.get(f"{prefix}_delivered", 0)
-                data[f"{prefix}_packages"] = len(in_transit) + (
-                    delivered_count if isinstance(delivered_count, int) else 0
-                )
+                packages_cfg = const.SENSOR_DATA.get(f"{prefix}_packages", {})
+                # Keep IMAP-backed packages sensors (e.g. DHL "ist unterwegs")
+                # instead of overwriting them with OFD tracking totals.
+                if not (packages_cfg.get("email") or packages_cfg.get("subject")):
+                    delivered_count = data.get(f"{prefix}_delivered", 0)
+                    data[f"{prefix}_packages"] = len(in_transit) + (
+                        delivered_count if isinstance(delivered_count, int) else 0
+                    )
+
+    def _latch_mail_delivered(self, data: dict, today_iso: str) -> None:
+        """Latch usps_mail_delivered on for the rest of the day once seen.
+
+        The generic shipper recomputes this sensor from a live "delivered
+        today" IMAP search on every poll, so a transient search/verification
+        miss (or simply the message no longer matching by the time the next
+        poll runs) can flip it back to falsy even though the mail was
+        genuinely delivered earlier today. That makes off->on state-trigger
+        automations re-fire on every scan cycle instead of once per delivery.
+        Latch it: once truthy for today, keep it truthy until the date
+        changes, which is the same day boundary the underlying search
+        already resets on at midnight.
+        """
+        if "usps_mail_delivered" not in data:
+            return
+
+        if self._mail_delivered_latch_date != today_iso:
+            self._mail_delivered_latch_date = today_iso
+            self._mail_delivered_latched = False
+
+        self._mail_delivered_latched = self._mail_delivered_latched or bool(
+            data["usps_mail_delivered"]
+        )
+        data["usps_mail_delivered"] = int(self._mail_delivered_latched)
 
     def _update_tracking_for_prefix(
         self,
@@ -434,6 +593,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         # Only update if sensors were requested in initialize_data
         if "zpackages_transit" in data:
             data["zpackages_transit"] = self._sum_transit_counts(data)
+        if "zpackages_delivering" in data:
+            data["zpackages_delivering"] = self._sum_delivering_counts(data)
         if "zpackages_delivered" in data:
             data["zpackages_delivered"] = self._sum_delivered_counts(data)
 
@@ -455,6 +616,19 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             ):
                 delivered += value
         return delivered
+
+    def _sum_delivering_counts(self, data: dict) -> int:
+        """Sum out-for-delivery packages from all shippers."""
+        delivering = 0
+        for key, value in data.items():
+            if (
+                isinstance(value, int)
+                and value > 0
+                and key.endswith("_delivering")
+                and key != "zpackages_delivering"
+            ):
+                delivering += value
+        return delivering
 
     def _sum_transit_counts(self, data: dict) -> int:
         """Sum transit and exception packages from all shippers."""
@@ -480,39 +654,71 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             if not shipper or shipper in shippers_counted:
                 continue
 
-            # Priority: _delivering (preferred generic state) or _packages
-            if key.endswith(("_delivering", "_packages")):
+            if key.endswith("_delivering"):
+                transit += value
+                packages_cfg = const.SENSOR_DATA.get(f"{shipper}_packages", {})
+                # IMAP-backed packages (e.g. DHL "ist unterwegs") are additive.
+                if packages_cfg.get("email") or packages_cfg.get("subject"):
+                    packages_val = data.get(f"{shipper}_packages", 0)
+                    if isinstance(packages_val, int) and packages_val > 0:
+                        transit += packages_val
+                shippers_counted.add(shipper)
+            elif key.endswith("_packages"):
                 transit += value
                 shippers_counted.add(shipper)
 
         return transit
 
-    async def _binary_sensor_update(self):  # noqa: C901
+    async def _check_camera_update(self, base_name: str) -> None:
+        """Check image hash changes for a specific delivery camera."""
+        image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
+        image_attr = getattr(const, image_attr_name, None)
+        if not image_attr:
+            return
+
+        image = self._data.get(image_attr)
+        _LOGGER.debug("%s image from data: %s", base_name.title(), image)
+        if not image:
+            return
+
+        image_path = default_image_path(self.hass, self.config).rstrip("/") + "/"
+        path = f"{image_path}{base_name}/"
+        delivery_image = self.hass.config.path(f"{path}{image}")
+        _LOGGER.debug("Full %s image path: %s", base_name.title(), delivery_image)
+
+        custom_img_key = getattr(const, f"CONF_{base_name.upper()}_CUSTOM_IMG", None)
+        custom_img_file_key = getattr(
+            const, f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE", None
+        )
+        if custom_img_key and self.config.get(custom_img_key):
+            none_image = self.config.get(custom_img_file_key)
+        elif base_name == "post_de":
+            none_image = f"{Path(__file__).parent}/mail_none.gif"
+        else:
+            none_image = f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
+
+        if await anyio.Path(delivery_image).exists():
+            image_hash = await self._get_file_hash_if_changed(delivery_image)
+            none_hash = await self._get_file_hash_if_changed(none_image)
+            _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
+            _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
+            self._data[f"{base_name}_update"] = image_hash != none_hash
+
+    async def _binary_sensor_update(self):
         """Update binary sensor states."""
-        # USPS uses ATTR_USPS_IMAGE instead of the old ATTR_IMAGE_NAME
         _LOGGER.debug("Data: %s", self._data)
         image = self._data.get(ATTR_USPS_IMAGE)
         if image:
             path = default_image_path(self.hass, self.config)
             usps_image = f"{path}/{image}"
             usps_none = f"{Path(__file__).parent}/mail_none.gif"
-            usps_check = await anyio.Path(usps_image).exists()
-            _LOGGER.debug("USPS Check: %s", usps_check)
-            if usps_check:
-                # Optimized: Use _get_file_hash_if_changed
+            if await anyio.Path(usps_image).exists():
                 image_hash = await self._get_file_hash_if_changed(usps_image)
                 none_hash = await self._get_file_hash_if_changed(usps_none)
-
                 _LOGGER.debug("USPS Image hash: %s", image_hash)
                 _LOGGER.debug("USPS None hash: %s", none_hash)
+                self._data["usps_update"] = image_hash != none_hash
 
-                if image_hash != none_hash:
-                    self._data["usps_update"] = True
-                else:
-                    self._data["usps_update"] = False
-
-        # Handle generic delivery cameras (Amazon, UPS, Walmart, FedEx, Generic) with unified logic
-        # Derive camera list dynamically from CAMERA_DATA, excluding usps_camera and generic_camera
         delivery_cameras = [
             camera_type.replace("_camera", "")
             for camera_type in const.CAMERA_DATA
@@ -520,61 +726,4 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         ]
 
         for base_name in delivery_cameras:
-            # Derive attribute and config keys dynamically
-            image_attr_name = f"ATTR_{base_name.upper()}_IMAGE"
-            image_attr = getattr(const, image_attr_name, None)
-            if not image_attr:
-                continue
-
-            custom_img_key = getattr(
-                const,
-                f"CONF_{base_name.upper()}_CUSTOM_IMG",
-                None,
-            )
-            custom_img_file_key = getattr(
-                const,
-                f"CONF_{base_name.upper()}_CUSTOM_IMG_FILE",
-                None,
-            )
-            update_key = f"{base_name}_update"
-
-            image = self._data.get(image_attr)
-            _LOGGER.debug("%s image from data: %s", base_name.title(), image)
-            if image:
-                # Normalize path to avoid double slashes
-                image_path = (
-                    default_image_path(self.hass, self.config).rstrip("/") + "/"
-                )
-                path = f"{image_path}{base_name}/"
-                # Use absolute path for file existence check
-                delivery_image_relative = f"{path}{image}"
-                delivery_image = f"{self.hass.config.path()}/{delivery_image_relative}"
-                _LOGGER.debug(
-                    "Full %s image path: %s",
-                    base_name.title(),
-                    delivery_image,
-                )
-
-                if custom_img_key and self.config.get(custom_img_key):
-                    none_image = self.config.get(custom_img_file_key)
-                elif base_name == "post_de":
-                    none_image = f"{Path(__file__).parent}/mail_none.gif"
-                else:
-                    none_image = (
-                        f"{Path(__file__).parent}/no_deliveries_{base_name}.jpg"
-                    )
-
-                image_check = await anyio.Path(delivery_image).exists()
-                _LOGGER.debug("%s Check: %s", base_name.title(), image_check)
-                if image_check:
-                    # Optimized: Use _get_file_hash_if_changed
-                    image_hash = await self._get_file_hash_if_changed(delivery_image)
-                    none_hash = await self._get_file_hash_if_changed(none_image)
-
-                    _LOGGER.debug("%s Image hash: %s", base_name.title(), image_hash)
-                    _LOGGER.debug("%s None hash: %s", base_name.title(), none_hash)
-
-                    if image_hash != none_hash:
-                        self._data[update_key] = True
-                    else:
-                        self._data[update_key] = False
+            await self._check_camera_update(base_name)
