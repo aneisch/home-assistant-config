@@ -7,6 +7,7 @@ https://home-assistant.io/components/arlo/
 import json
 import logging
 import os.path
+import subprocess
 import pprint
 import time
 from datetime import timedelta
@@ -284,7 +285,10 @@ async def async_setup(hass, config):
     patch_file = hass.config.config_dir + "/aarlo.patch"
     if os.path.isfile(patch_file):
         _LOGGER.error("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
-        os.system("/usr/bin/patch -p0 -N < '{}'".format(patch_file))
+        with open(patch_file, "r") as patch_fh:
+            subprocess.run(
+                ["/usr/bin/patch", "-p0", "-N"], stdin=patch_fh, check=False
+            )
 
     # Login. We'll keep trying!!
     arlo = await hass.async_add_executor_job(login, hass, conf)
