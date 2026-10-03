@@ -92,7 +92,7 @@ living_room:
     - switch.living_room_speakers
     - light.living_room_sconces
     - switch.tv
-    #- switch.ir_candles
+    - light.pumpkin_patch_pumpkin_patch
 
 dining_room:
   name: Dining Room

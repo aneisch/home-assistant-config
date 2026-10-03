@@ -21,42 +21,143 @@
       "not_K": "Not a K-series printer"
     }
   },
+  "common": {
+    "title_fallback": "Creality Printer",
+    "channel_live": "3D Print",
+    "channel_finished": "3D Print Finished",
+    "channel_alerts": "3D Print Alerts",
+    "channel_soon": "3D Print Finishing Soon",
+    "action_pause": "Pause",
+    "action_resume": "Resume",
+    "action_stop": "Stop",
+    "action_dismiss": "Hide",
+    "status_starting": "Starting",
+    "status_paused": "Paused",
+    "status_finishing": "Finishing",
+    "body_progress": "{progress}%",
+    "body_paused": "Paused at {progress}%",
+    "body_paused_unknown": "Paused",
+    "body_layer": "{layer}/{total_layers}",
+    "body_time_left": "{duration}",
+    "body_fallback": "Printing",
+    "duration_hours_minutes": "{hours}h {minutes}m",
+    "duration_minutes": "{minutes}m",
+    "duration_seconds": "{seconds}s",
+    "filament_length": "{metres} m",
+    "completed": "{device} finished.",
+    "stopped": "{device} stopped at {progress}%",
+    "completed_detailed": "{device} finished. {filament} consumed.",
+    "error": "{device} error - {key} [{code}]",
+    "filament_runout": "{device} filament ran out. Print is {state}. Change the filament.",
+    "finishing_soon": "{device} will finish in {minutes} minutes."
+  },
+  "exceptions": {
+    "unsupported_ha_version": {
+      "message": "This version of the Creality WebSocket integration needs Home Assistant {minimum} or newer, but this system is running {running}. Update Home Assistant, or install integration version 0.9.7 instead."
+    }
+  },
+  "selector": {
+    "camera_mode": {
+      "options": {
+        "auto": "Auto (detect by model)",
+        "mjpeg": "MJPEG (K1 family)",
+        "webrtc": "WebRTC via go2rtc (K2 family)",
+        "webrtc_direct": "WebRTC direct, no go2rtc (alternative)",
+        "custom": "Custom camera URL (MJPEG / RTSP)"
+      }
+    }
+  },
   "options": {
     "step": {
       "init": {
         "title": "Printer Configuration",
-        "description": "Choose a settings group to edit. Each group opens its own page so its options always load fresh.",
+        "description": "Choose a settings group to edit. Each group opens its own page, and pressing Submit on that page saves it and applies it right away. There is nothing to confirm afterwards: close this dialog whenever you are finished.",
         "menu_options": {
           "camera": "Camera",
           "notifications": "Notifications",
           "power": "Power switch",
-          "connection": "Connection & performance",
-          "save": "Save and apply"
+          "connection": "Connection & performance"
         }
       },
       "camera": {
         "title": "Camera",
-        "description": "{camera_help}",
+        "description": "Camera streaming mode. Auto detects from the printer model. WebRTC via go2rtc is the default for K2-family printers; WebRTC direct is an alternative that signals the printer itself (no go2rtc) - try it if the default does not work, e.g. on newer K1C firmware. Custom lets you point at any http(s) MJPEG/snapshot URL or an rtsp:// stream (served via go2rtc). Leave the go2rtc RTSP port at 0 unless HLS / camera.record needs a non-default port. Submit saves this page and returns to the menu.",
         "data": {
           "camera_mode": "Camera Streaming Mode",
           "go2rtc_url": "External go2rtc Host/URL (if needed)",
           "go2rtc_port": "External go2rtc Port",
+          "go2rtc_rtsp_port": "go2rtc RTSP Port (0 = auto: 18554 built-in, 8554 external)",
           "custom_camera_url": "Custom Camera URL (http(s) MJPEG/snapshot or rtsp://)"
         }
       },
       "notifications": {
         "title": "Notifications",
+        "description": "Choose where notifications go, then what you want to be told about. Pressing Submit saves this page and applies it right away.",
         "data": {
-          "notify_device": "Notification Device",
-          "notify_completed": "Notify when Completed",
-          "notify_error": "Notify on Error",
-          "notify_minutes_to_end": "Notify before Completion",
-          "minutes_to_end_value": "Minutes before Completion"
+          "notify_targets": "Send notifications to"
+        },
+        "data_description": {
+          "notify_targets": "Pick one or more. Only Home Assistant companion app targets can show the live print card, the G-code preview or the buttons; any other notify platform receives the title and message only."
+        },
+        "sections": {
+          "events": {
+            "name": "What to notify me about",
+            "description": "The live print card needs Home Assistant 2026.7 or newer plus iOS 17.2+ or Android 16+, and iOS ends it after 8 hours on very long prints.",
+            "data": {
+              "notify_live": "Live print card",
+              "notify_completed": "When a print ends",
+              "notify_error": "Errors and filament runout",
+              "notify_minutes_to_end": "Shortly before a print ends",
+              "minutes_to_end_value": "How long before"
+            },
+            "data_description": {
+              "notify_live": "One notification for the whole print that updates in place, with a progress bar and a countdown that ticks on the phone.",
+              "notify_completed": "Covers both endings: a print that finished, and one that was stopped, whether from the printer, the Creality app or Home Assistant.",
+              "notify_error": "A printer error, or a spool that has run out.",
+              "notify_minutes_to_end": "A reminder to go and watch the last layers, on its own so the live card cannot replace it."
+            }
+          },
+          "extras": {
+            "name": "Buttons, pictures and tapping",
+            "description": "All of these need a companion app target, and are ignored by every other notify platform.",
+            "data": {
+              "notify_actions": "Pause, Resume and Stop buttons",
+              "notify_preview_image": "G-code preview as the icon",
+              "notify_camera_snapshot": "Camera snapshot when a print ends",
+              "notify_tap_path": "Dashboard path to open on tap"
+            },
+            "data_description": {
+              "notify_actions": "Stop asks for device authentication, so a mis-tap on a lock screen cannot end a long print.",
+              "notify_preview_image": "Skipped when the printer has no preview to serve, rather than sending an empty grey box.",
+              "notify_camera_snapshot": "What the bed actually looks like. Skipped on printers whose camera cannot take a still.",
+              "notify_tap_path": "For example /lovelace/printer. Left empty, an Android tap opens the printer camera and an iOS tap opens the app; this is the only way to make an iOS tap go anywhere specific."
+            }
+          },
+          "text": {
+            "name": "Custom text",
+            "description": "Write your own wording, or leave a field empty to keep the built-in, translated text. A placeholder the printer has not reported renders as nothing, so wrap anything optional in square brackets and the whole bracketed part disappears while its value is unknown, as in {example}. The brackets themselves are the syntax and are not shown; double them ([[ and ]]) for a bracket you want to keep. The title is always the printer name: Android fixes a live card's title when the card starts and cannot change it afterwards.",
+            "data": {
+              "notify_template_live": "Live print card",
+              "notify_template_completed": "Print finished",
+              "notify_template_stopped": "Print stopped",
+              "notify_template_soon": "Shortly before the end",
+              "notify_template_error": "Printer error",
+              "notify_template_runout": "Filament runout"
+            },
+            "data_description": {
+              "notify_template_live": "Placeholders: {fields_live}",
+              "notify_template_completed": "Placeholders: {fields_completed}",
+              "notify_template_stopped": "Placeholders: {fields_stopped}. Fewer than the others: the printer has already reset the progress, the job clock and the layer by the time a stop can be seen, so only what survives it is offered.",
+              "notify_template_soon": "Placeholders: {fields_finishing_soon}",
+              "notify_template_error": "Placeholders: {fields_error}",
+              "notify_template_runout": "Placeholders: {fields_filament_runout}"
+            }
+          }
         }
       },
       "power": {
         "title": "Power switch",
-        "description": "{power_help}",
+        "description": "Optional power switch entity ID (e.g. switch.smart_plug_name) to enable accurate 'Off' state detection.",
         "data": {
           "power_switch_enabled": "Enable Power Switch Detection",
           "power_switch": "Power Switch Entity"
@@ -71,7 +172,8 @@
       }
     },
     "error": {
-      "invalid_camera_url": "Enter a full URL including the scheme, e.g. http://192.168.1.50:8080/?action=stream or rtsp://192.168.1.50:554/stream."
+      "invalid_camera_url": "Enter a full URL including the scheme, e.g. http://192.168.1.50:8080/?action=stream or rtsp://192.168.1.50:554/stream.",
+      "unknown_placeholder": "That is not a placeholder this integration can fill. Check the list in the description above, and mind the spelling."
     }
   },
   "entity": {
@@ -87,7 +189,6 @@
       "position_z": { "name": "Position Z" },
       "feedrate_pct": { "name": "Print Speed" },
       "flowrate_pct": { "name": "Flow Rate" },
-      "system": { "name": "System" },
       "model_info": { "name": "Model" },
       "filament_status": {
         "name": "Filament Status",
@@ -113,6 +214,9 @@
         }
       },
       "used_material_length": { "name": "Used Material Length" },
+      "expected_material_length": { "name": "Expected Material Length" },
+      "expected_material_weight": { "name": "Expected Material Weight" },
+      "filament_consumption": { "name": "Filament Consumption" },
       "print_job_time": { "name": "Print Job Time" },
       "print_left_time": { "name": "Print Time Left" },
       "real_time_flow": { "name": "Real-Time Flow" },
@@ -150,10 +254,7 @@
       "print_tuning_pct": { "name": "Print Tuning" },
       "nozzle_target": { "name": "Nozzle Target" },
       "bed_target": { "name": "Bed Target" },
-      "chamber_target": { "name": "Chamber Target" },
-      "model_fan_pct": { "name": "Model Fan" },
-      "case_fan_pct": { "name": "Case Fan" },
-      "side_fan_pct": { "name": "Side Fan" }
+      "chamber_target": { "name": "Chamber Target" }
     },
     "fan": {
       "model_fan": { "name": "Model Fan" },
@@ -161,9 +262,6 @@
       "side_fan": { "name": "Side Fan" }
     },
     "light": {
-      "light": { "name": "Light" }
-    },
-    "switch": {
       "light": { "name": "Light" }
     },
     "camera": {
@@ -191,6 +289,56 @@
         "device_id": {
           "name": "Device",
           "description": "The printer(s) to request info from. If omitted, all connected printers will be queried."
+        }
+      }
+    },
+    "set_cfs_material": {
+      "name": "Set CFS Material",
+      "description": "Write filament settings to one CFS slot. Only the fields you supply are changed; leave a field out to keep the value the printer already has. Material type is required and cannot be blank, and a color, if you give one, must be six hex digits.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The printer(s) to write to."
+        },
+        "box_id": {
+          "name": "Box ID",
+          "description": "The box id as the printer reports it. See the box_id attribute on the slot's sensor; it is usually 1 for the first CFS unit."
+        },
+        "slot_id": {
+          "name": "Slot ID",
+          "description": "Slot number within the box, starting at 0."
+        },
+        "type": {
+          "name": "Material Type",
+          "description": "Filament type, for example PLA, PETG, ABS or TPU."
+        },
+        "name": {
+          "name": "Material Name",
+          "description": "Product name of the filament, for example Hyper PLA."
+        },
+        "vendor": {
+          "name": "Vendor",
+          "description": "Manufacturer or brand name."
+        },
+        "color": {
+          "name": "Color",
+          "description": "Color as six hex digits, for example #06c84f. For a multi-color spool, leave this field out rather than sending an empty value; the other fields still write."
+        },
+        "min_temp": {
+          "name": "Minimum Temperature",
+          "description": "Lowest printing temperature, in °C."
+        },
+        "max_temp": {
+          "name": "Maximum Temperature",
+          "description": "Highest printing temperature, in °C. Must not be below the minimum."
+        },
+        "pressure": {
+          "name": "Pressure Advance",
+          "description": "Pressure advance value, between 0 and 1."
+        },
+        "rfid": {
+          "name": "RFID",
+          "description": "The printer's material id. Leaving it empty omits the field, so the existing tag association is preserved."
         }
       }
     }

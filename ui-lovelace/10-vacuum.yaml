@@ -35,7 +35,7 @@ cards:
   #           transform: translate(0%,0%)
   #       - type: state-label
   #         title: Battery Level
-  #         entity: sensor.roborock_s4_battery
+  #         entity: sensor.roborock_s4_battery_2
   #         style:
   #           right: 150px
   #           bottom: -5px
@@ -243,8 +243,7 @@ cards:
         attribute: "status"
         icon: "mdi:robot-vacuum"
       - label: "Battery"
-        entity: vacuum.roborock_s4
-        attribute: "battery_level"
+        entity: sensor.roborock_s4_battery_2
         icon: mdi:battery
         unit: "%"
       - label: "Fan Speed"

@@ -9,6 +9,7 @@ from homeassistant.helpers import entity_registry as er
 
 from ....const import LOGGER
 from ....entity_filtering import async_filter_known_entity_ids, async_get_all_entity_ids
+from ....entity_suggestions import async_describe_unknown_entities
 from ....repairs import AbstractSpookRepair
 
 if TYPE_CHECKING:
@@ -49,15 +50,24 @@ class SpookRepair(AbstractSpookRepair):
                 entity_ids=entity.scene_config.states,
                 known_entity_ids=known_entity_ids,
             ):
+                # Scenes created in YAML can lack a unique ID, in which case
+                # there is no editor to deep-link to; fall back to the
+                # scene overview page.
+                edit_url = (
+                    f"/config/scene/edit/{entity.unique_id}"
+                    if entity.unique_id is not None
+                    else "/config/scene/dashboard"
+                )
                 self.async_create_issue(
                     issue_id=entity.entity_id,
+                    references=unknown_entities,
                     translation_placeholders={
-                        "entities": "\n".join(
-                            f"- `{entity_id}`" for entity_id in unknown_entities
+                        "entities": async_describe_unknown_entities(
+                            self.hass, sorted(unknown_entities)
                         ),
                         "scene": entity.name,
                         "entity_id": entity.entity_id,
-                        "edit": f"/config/scene/edit/{entity.unique_id}",
+                        "edit": edit_url,
                     },
                 )
                 LOGGER.debug(

@@ -21,42 +21,143 @@
       "not_K": "No es una impresora de la serie K"
     }
   },
+  "common": {
+    "title_fallback": "Impresora Creality",
+    "channel_live": "Impresión 3D",
+    "channel_finished": "Impresión 3D finalizada",
+    "channel_alerts": "Alertas de impresión 3D",
+    "channel_soon": "Impresión 3D a punto de finalizar",
+    "action_pause": "Pausar",
+    "action_resume": "Reanudar",
+    "action_stop": "Detener",
+    "action_dismiss": "Ocultar",
+    "status_starting": "Iniciando",
+    "status_paused": "En pausa",
+    "status_finishing": "Finalizando",
+    "body_progress": "{progress}%",
+    "body_paused": "En pausa al {progress}%",
+    "body_paused_unknown": "En pausa",
+    "body_layer": "{layer}/{total_layers}",
+    "body_time_left": "{duration}",
+    "body_fallback": "Imprimiendo",
+    "duration_hours_minutes": "{hours} h {minutes} min",
+    "duration_minutes": "{minutes} min",
+    "duration_seconds": "{seconds} s",
+    "filament_length": "{metres} m",
+    "completed": "{device} ha terminado.",
+    "stopped": "{device} se ha detenido al {progress}%",
+    "completed_detailed": "{device} ha terminado. Filamento consumido: {filament}.",
+    "error": "Error de {device} - {key} [{code}]",
+    "filament_runout": "{device} se ha quedado sin filamento. Estado de la impresión: {state}. Cambia el filamento.",
+    "finishing_soon": "{device} terminará en {minutes} minutos."
+  },
+  "exceptions": {
+    "unsupported_ha_version": {
+      "message": "Esta versión de la integración Creality WebSocket necesita Home Assistant {minimum} o posterior, pero este sistema ejecuta la versión {running}. Actualiza Home Assistant o instala en su lugar la versión 0.9.7 de la integración."
+    }
+  },
+  "selector": {
+    "camera_mode": {
+      "options": {
+        "auto": "Auto (detectar por modelo)",
+        "mjpeg": "MJPEG (familia K1)",
+        "webrtc": "WebRTC a través de go2rtc (familia K2)",
+        "webrtc_direct": "WebRTC directo, sin go2rtc (alternativa)",
+        "custom": "URL de cámara personalizada (MJPEG / RTSP)"
+      }
+    }
+  },
   "options": {
     "step": {
       "init": {
         "title": "Configuración de la impresora",
-        "description": "Elige un grupo de ajustes para editar. Cada grupo se abre en su propia página, por lo que sus opciones siempre se cargan actualizadas.",
+        "description": "Elige un grupo de ajustes para editar. Cada grupo se abre en su propia página, y al enviar esa página se guarda y se aplica de inmediato. No hay nada que confirmar después: cierra este diálogo cuando hayas terminado.",
         "menu_options": {
           "camera": "Cámara",
           "notifications": "Notificaciones",
           "power": "Interruptor de encendido",
-          "connection": "Conexión y rendimiento",
-          "save": "Guardar y aplicar"
+          "connection": "Conexión y rendimiento"
         }
       },
       "camera": {
         "title": "Cámara",
-        "description": "{camera_help}",
+        "description": "Modo de transmisión de la cámara. «Auto» lo detecta a partir del modelo de impresora. WebRTC a través de go2rtc es la opción predeterminada en las impresoras de la familia K2; WebRTC directo es una alternativa que hace la señalización contra la propia impresora (sin go2rtc): pruébala si la predeterminada no funciona, por ejemplo en firmware reciente de la K1C. El modo personalizado permite apuntar a cualquier URL http(s) MJPEG/snapshot o a un flujo rtsp:// (servido a través de go2rtc). Deja el puerto RTSP de go2rtc en 0 salvo que HLS o camera.record necesiten un puerto distinto del predeterminado. Al enviar el formulario se guarda esta página y vuelves al menú.",
         "data": {
           "camera_mode": "Modo de transmisión de la cámara",
           "go2rtc_url": "Servidor o dirección externa de go2rtc (si es necesario)",
           "go2rtc_port": "Puerto externo de go2rtc",
+          "go2rtc_rtsp_port": "Puerto RTSP de go2rtc (0 = auto: 18554 integrado, 8554 externo)",
           "custom_camera_url": "URL de cámara personalizada (MJPEG/snapshot http(s) o rtsp://)"
         }
       },
       "notifications": {
         "title": "Notificaciones",
+        "description": "Elige a dónde van las notificaciones y, después, de qué quieres que te avisen. Al enviar el formulario se guarda esta página y se aplica de inmediato.",
         "data": {
-          "notify_device": "Dispositivo de notificación",
-          "notify_completed": "Notificar al finalizar",
-          "notify_error": "Notificar en caso de error",
-          "notify_minutes_to_end": "Notificar antes de finalizar",
-          "minutes_to_end_value": "Minutos antes de finalizar"
+          "notify_targets": "Destinos de notificación"
+        },
+        "data_description": {
+          "notify_targets": "Elige uno o varios. Solo los destinos de la aplicación complementaria de Home Assistant pueden mostrar la tarjeta de impresión en vivo, la vista previa del G-code o los botones; el resto de plataformas de notificación reciben solo el título y el mensaje."
+        },
+        "sections": {
+          "events": {
+            "name": "De qué quiero que me avisen",
+            "description": "La tarjeta de impresión en vivo requiere Home Assistant 2026.7 o posterior, además de iOS 17.2+ o Android 16+; en impresiones muy largas, iOS la cierra al cabo de 8 horas.",
+            "data": {
+              "notify_live": "Tarjeta de impresión en vivo",
+              "notify_completed": "Cuando termina una impresión",
+              "notify_error": "Errores y filamento agotado",
+              "notify_minutes_to_end": "Poco antes de que termine una impresión",
+              "minutes_to_end_value": "Con cuánta antelación"
+            },
+            "data_description": {
+              "notify_live": "Una sola notificación para toda la impresión que se actualiza en su sitio, con una barra de progreso y una cuenta atrás que avanza en el teléfono.",
+              "notify_completed": "Cubre los dos finales: una impresión que ha terminado y otra que se ha detenido, ya sea desde la impresora, la aplicación de Creality o Home Assistant.",
+              "notify_error": "Un error de la impresora o una bobina que se ha agotado.",
+              "notify_minutes_to_end": "Un aviso para ir a ver las últimas capas, por separado para que la tarjeta en vivo no pueda sustituirlo."
+            }
+          },
+          "extras": {
+            "name": "Botones, imágenes y pulsaciones",
+            "description": "Todo esto necesita un destino de la aplicación complementaria y el resto de plataformas de notificación lo ignoran.",
+            "data": {
+              "notify_actions": "Botones Pausar, Reanudar y Detener",
+              "notify_preview_image": "Vista previa del G-code como icono",
+              "notify_camera_snapshot": "Captura de la cámara al terminar la impresión",
+              "notify_tap_path": "Ruta del panel que se abre al pulsar"
+            },
+            "data_description": {
+              "notify_actions": "«Detener» pide autenticación en el dispositivo, así que una pulsación accidental en la pantalla de bloqueo no puede acabar con una impresión larga.",
+              "notify_preview_image": "Se omite cuando la impresora no tiene ninguna vista previa que ofrecer, en lugar de enviar un recuadro gris vacío.",
+              "notify_camera_snapshot": "El aspecto real de la cama. Se omite en impresoras cuya cámara no puede tomar una imagen fija.",
+              "notify_tap_path": "P. ej. /lovelace/printer. Si se deja vacía, en Android la pulsación abre la cámara de la impresora y en iOS abre la aplicación; es la única forma de que en iOS la pulsación lleve a una vista concreta."
+            }
+          },
+          "text": {
+            "name": "Texto personalizado",
+            "description": "Escribe tu propio texto, o deja un campo vacío para conservar el texto integrado y ya traducido. Un marcador de posición cuyo valor no haya comunicado la impresora no muestra nada, así que encierra entre corchetes todo lo que sea opcional: la parte entre corchetes desaparece por completo mientras su valor sea desconocido, como en {example}. Los corchetes en sí son la sintaxis y no se muestran; duplícalos ([[ y ]]) cuando quieras conservar un corchete literal. El título es siempre el nombre de la impresora: en Android el título de la tarjeta en vivo se fija al crearse la tarjeta y ya no puede cambiarse.",
+            "data": {
+              "notify_template_live": "Tarjeta de impresión en vivo",
+              "notify_template_completed": "Impresión terminada",
+              "notify_template_stopped": "Impresión detenida",
+              "notify_template_soon": "Poco antes del final",
+              "notify_template_error": "Error de la impresora",
+              "notify_template_runout": "Filamento agotado"
+            },
+            "data_description": {
+              "notify_template_live": "Marcadores de posición: {fields_live}",
+              "notify_template_completed": "Marcadores de posición: {fields_completed}",
+              "notify_template_stopped": "Marcadores de posición: {fields_stopped}. Menos que en los demás: cuando se detecta una detención, la impresora ya ha reiniciado el progreso, el cronómetro del trabajo y la capa, así que solo se ofrece lo que sobrevive a ello.",
+              "notify_template_soon": "Marcadores de posición: {fields_finishing_soon}",
+              "notify_template_error": "Marcadores de posición: {fields_error}",
+              "notify_template_runout": "Marcadores de posición: {fields_filament_runout}"
+            }
+          }
         }
       },
       "power": {
         "title": "Interruptor de encendido",
-        "description": "{power_help}",
+        "description": "ID de entidad opcional de un interruptor de encendido (p. ej. switch.smart_plug_name) para detectar con precisión el estado «Apagada».",
         "data": {
           "power_switch_enabled": "Activar la detección del interruptor de encendido",
           "power_switch": "Entidad del interruptor de encendido"
@@ -71,7 +172,8 @@
       }
     },
     "error": {
-      "invalid_camera_url": "Introduce una URL completa incluyendo el esquema, p. ej. http://192.168.1.50:8080/?action=stream o rtsp://192.168.1.50:554/stream."
+      "invalid_camera_url": "Introduce una URL completa incluyendo el esquema, p. ej. http://192.168.1.50:8080/?action=stream o rtsp://192.168.1.50:554/stream.",
+      "unknown_placeholder": "Ese no es un marcador de posición que esta integración pueda rellenar. Consulta la lista que aparece en la descripción de arriba y comprueba que esté bien escrito."
     }
   },
   "entity": {
@@ -87,7 +189,6 @@
       "position_z": { "name": "Posición Z" },
       "feedrate_pct": { "name": "Velocidad de impresión" },
       "flowrate_pct": { "name": "Tasa de flujo" },
-      "system": { "name": "Sistema" },
       "model_info": { "name": "Modelo" },
       "filament_status": {
         "name": "Estado del filamento",
@@ -113,6 +214,9 @@
         }
       },
       "used_material_length": { "name": "Material usado" },
+      "expected_material_length": { "name": "Material estimado" },
+      "expected_material_weight": { "name": "Peso estimado del material" },
+      "filament_consumption": { "name": "Consumo de filamento" },
       "print_job_time": { "name": "Tiempo de trabajo de impresión" },
       "print_left_time": { "name": "Tiempo restante de impresión" },
       "real_time_flow": { "name": "Flujo en tiempo real" },
@@ -132,9 +236,9 @@
       "active_filament_slot": { "name": "Ranura de filamento activa" },
       "cfs_box_temp": { "name": "Temperatura de la caja CFS {box_id}" },
       "cfs_box_humidity": { "name": "Humedad de la caja CFS {box_id}" },
-      "cfs_slot_filament": { "name": "Filamento — caja CFS {box_id}, ranura {slot}" },
-      "cfs_slot_color": { "name": "Color — caja CFS {box_id}, ranura {slot}" },
-      "cfs_slot_percent": { "name": "Restante — caja CFS {box_id}, ranura {slot}" },
+      "cfs_slot_filament": { "name": "Filamento (caja CFS {box_id}, ranura {slot})" },
+      "cfs_slot_color": { "name": "Color (caja CFS {box_id}, ranura {slot})" },
+      "cfs_slot_percent": { "name": "Restante (caja CFS {box_id}, ranura {slot})" },
       "cfs_ext_filament": { "name": "Filamento externo CFS" },
       "cfs_ext_color": { "name": "Color externo CFS" },
       "cfs_ext_percent": { "name": "Restante externo CFS" }
@@ -150,10 +254,7 @@
       "print_tuning_pct": { "name": "Ajuste de impresión" },
       "nozzle_target": { "name": "Objetivo de la boquilla" },
       "bed_target": { "name": "Objetivo de la cama" },
-      "chamber_target": { "name": "Objetivo de la cámara" },
-      "model_fan_pct": { "name": "Ventilador del modelo" },
-      "case_fan_pct": { "name": "Ventilador de la carcasa" },
-      "side_fan_pct": { "name": "Ventilador lateral" }
+      "chamber_target": { "name": "Objetivo de la cámara" }
     },
     "fan": {
       "model_fan": { "name": "Ventilador del modelo" },
@@ -161,9 +262,6 @@
       "side_fan": { "name": "Ventilador lateral" }
     },
     "light": {
-      "light": { "name": "Luz" }
-    },
-    "switch": {
       "light": { "name": "Luz" }
     },
     "camera": {
@@ -191,6 +289,56 @@
         "device_id": {
           "name": "Dispositivo",
           "description": "La(s) impresora(s) a las que solicitar información. Si se omite, se consultarán todas las impresoras conectadas."
+        }
+      }
+    },
+    "set_cfs_material": {
+      "name": "Establecer material CFS",
+      "description": "Escribe los ajustes de filamento en una ranura del CFS. Solo se cambian los campos que indiques; omite un campo para conservar el valor que ya tiene la impresora. El tipo de material es obligatorio y no puede ir vacío, y el color, si lo indicas, debe tener seis dígitos hexadecimales.",
+      "fields": {
+        "device_id": {
+          "name": "Dispositivo",
+          "description": "La(s) impresora(s) en las que escribir."
+        },
+        "box_id": {
+          "name": "ID de caja",
+          "description": "El id de la caja tal como lo indica la impresora. Consulta el atributo box_id del sensor de la ranura; normalmente es 1 para la primera unidad CFS."
+        },
+        "slot_id": {
+          "name": "ID de ranura",
+          "description": "Número de ranura dentro de la caja, empezando en 0."
+        },
+        "type": {
+          "name": "Tipo de material",
+          "description": "Tipo de filamento, por ejemplo PLA, PETG, ABS o TPU."
+        },
+        "name": {
+          "name": "Nombre del material",
+          "description": "Nombre comercial del filamento, por ejemplo Hyper PLA."
+        },
+        "vendor": {
+          "name": "Fabricante",
+          "description": "Fabricante o marca."
+        },
+        "color": {
+          "name": "Color",
+          "description": "Color en seis dígitos hexadecimales, por ejemplo #06c84f. Si la bobina es multicolor, omite este campo en lugar de enviarlo vacío; los demás campos sí se escriben."
+        },
+        "min_temp": {
+          "name": "Temperatura mínima",
+          "description": "Temperatura mínima de impresión, en °C."
+        },
+        "max_temp": {
+          "name": "Temperatura máxima",
+          "description": "Temperatura máxima de impresión, en °C. No puede ser inferior a la mínima."
+        },
+        "pressure": {
+          "name": "Avance de presión",
+          "description": "Valor de avance de presión, entre 0 y 1."
+        },
+        "rfid": {
+          "name": "RFID",
+          "description": "El id de material de la impresora. Si lo dejas vacío, el campo se omite y se conserva la asociación de etiqueta existente."
         }
       }
     }

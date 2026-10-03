@@ -20,14 +20,20 @@ function _loadI18n(lang) {
 function _resolveLang(hass) {
   return hass?.locale?.language || hass?.language || "en";
 }
-function _translate(hass, section, fallbackDict, key) {
+function _translate(hass, section, fallbackDict, key, vars) {
   const lang = _resolveLang(hass);
   const short = lang.split("-")[0];
   const remote = _i18nData[lang]?.[section] ?? _i18nData[short]?.[section];
-  if (remote && key in remote) return remote[key];
   const remoteEn = _i18nData["en"]?.[section];
-  if (remoteEn && key in remoteEn) return remoteEn[key];
-  return fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key;
+  let text = (remote && key in remote) ? remote[key]
+    : (remoteEn && key in remoteEn) ? remoteEn[key]
+      : (fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key);
+  if (vars) {
+    for (const [name, value] of Object.entries(vars)) {
+      text = text.replace(new RegExp(`\\{${name}\\}`, "g"), value);
+    }
+  }
+  return text;
 }
 function _requestI18n(instance, hass, onLoaded) {
   if (instance._i18nRequested) return;
@@ -43,6 +49,70 @@ function _requestI18n(instance, hass, onLoaded) {
 const LL_REBUILD_MIN_INTERVAL_MS = 2000;
 const _lastCardRebuildDispatch = new Map();
 
+// How much wider, in px, the telemetry row has to get before the units it
+// dropped are worth retrying. Retrying at the width that rejected them would
+// restore them, wrap the row, and hide them again on the next measurement, for
+// as long as the card stayed that size.
+const TELEMETRY_COMPACT_HYSTERESIS = 8;
+
+const INTEGRATION_DOMAIN = "ha_creality_ws";
+// The name a card carries until the user (or the device picker) names it.
+const DEFAULT_CARD_NAME = "3D Printer";
+
+/**
+ * Card roles the printer's own device can fill, keyed by the translation_key
+ * the integration gives each entity.
+ *
+ * A translation_key survives renaming the entity, so picking a device wires the
+ * card up by role rather than by whatever the entity ids happen to be -- the
+ * same trick ha_washdata uses to auto-wire its siblings. The domain is checked
+ * too, because a key is only unique within one.
+ *
+ * `power` is deliberately absent: the integration exposes no power switch, so
+ * that field is always the user's own smart plug and cannot be guessed.
+ */
+const DEVICE_ROLE_ENTITIES = {
+  camera: { translationKey: "printer_camera", domain: "camera" },
+  status: { translationKey: "print_status", domain: "sensor" },
+  progress: { translationKey: "print_progress", domain: "sensor" },
+  time_left: { translationKey: "print_left_time", domain: "sensor" },
+  nozzle: { translationKey: "nozzle_temperature", domain: "sensor" },
+  bed: { translationKey: "bed_temperature", domain: "sensor" },
+  box: { translationKey: "chamber_temperature", domain: "sensor" },
+  layer: { translationKey: "current_layer", domain: "sensor" },
+  total_layers: { translationKey: "total_layers", domain: "sensor" },
+  light: { translationKey: "light", domain: "light" },
+  pause_btn: { translationKey: "pause_print", domain: "button" },
+  resume_btn: { translationKey: "resume_print", domain: "button" },
+  stop_btn: { translationKey: "stop_print", domain: "button" },
+};
+
+/**
+ * Find this integration's entities for one device, by card role.
+ * @param {?Object} hass
+ * @param {string} deviceId
+ * @return {!Object<string, string>} Role -> entity id. Roles the device does
+ *     not expose are omitted rather than blanked: a KE has no chamber sensor,
+ *     and a printer with the camera disabled has no camera entity.
+ */
+function entitiesForDevice(hass, deviceId) {
+  const registry = hass?.entities || {};
+  const found = {};
+  if (!deviceId) return found;
+  for (const [entityId, entry] of Object.entries(registry)) {
+    if (!entry || entry.device_id !== deviceId) continue;
+    if (entry.platform && entry.platform !== INTEGRATION_DOMAIN) continue;
+    const domain = entityId.split(".")[0];
+    for (const [role, want] of Object.entries(DEVICE_ROLE_ENTITIES)) {
+      if (found[role]) continue;
+      if (entry.translation_key !== want.translationKey) continue;
+      if (domain !== want.domain) continue;
+      found[role] = entityId;
+    }
+  }
+  return found;
+}
+
 const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
 const mdi = (name) => `mdi:${name}`;
 const normStr = (x) => String(x ?? "").toLowerCase();
@@ -50,35 +120,97 @@ const normStr = (x) => String(x ?? "").toLowerCase();
 // Theme persistence utilities
 const THEME_STORAGE_KEY = "k-printer-card-themes";
 
-// Color conversion utilities
-function rgbaToHex(rgba) {
-  if (!rgba || rgba.startsWith('#')) return rgba;
+// Colour conversion utilities.
+//
+// Theme values live in the card config as CSS colour strings so an existing
+// YAML config keeps working, while the editor's colour controls speak
+// [r, g, b] plus a separate opacity. These two functions are that boundary,
+// and alpha survives the round trip -- the pair they replace parsed only
+// 6-digit hex and `rgb(...)`, so `#fff` and every alpha the defaults ship
+// with were silently rewritten to black at 90% on the first edit.
 
-  // Handle rgba() format
-  const match = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
-  if (match) {
-    const r = parseInt(match[1]);
-    const g = parseInt(match[2]);
-    const b = parseInt(match[3]);
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+/**
+ * Parse a CSS colour the editor can round-trip.
+ * @param {string} value Colour string, or "auto"/""/`var(...)`.
+ * @return {?{rgb: !Array<number>, alpha: number}} Null when there is no
+ *     literal colour to edit, which is how "auto" reaches the form as empty.
+ */
+function parseColor(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw || raw === "auto" || raw.startsWith("var(")) return null;
+
+  const hex = /^#([0-9a-fA-F]+)$/.exec(raw);
+  if (hex) {
+    const digits = hex[1];
+    const nibble = (s) => parseInt(s.length === 1 ? s + s : s, 16);
+    if (digits.length === 3 || digits.length === 4) {
+      return {
+        rgb: [nibble(digits[0]), nibble(digits[1]), nibble(digits[2])],
+        alpha: digits.length === 4 ? nibble(digits[3]) / 255 : 1,
+      };
+    }
+    if (digits.length === 6 || digits.length === 8) {
+      return {
+        rgb: [nibble(digits.slice(0, 2)), nibble(digits.slice(2, 4)), nibble(digits.slice(4, 6))],
+        alpha: digits.length === 8 ? nibble(digits.slice(6, 8)) / 255 : 1,
+      };
+    }
+    return null;
   }
 
-  // Handle CSS variables
-  if (rgba.startsWith('var(')) {
-    return '#000000'; // fallback
-  }
-
-  return '#000000';
+  const fn = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)\s*(?:,\s*([\d.]*\d)\s*)?\)$/.exec(raw);
+  if (!fn) return null;
+  const rgb = [fn[1], fn[2], fn[3]].map((n) => Number(n));
+  if (rgb.some((n) => !Number.isFinite(n))) return null;
+  const alpha = fn[4] === undefined ? 1 : Number(fn[4]);
+  return {
+    rgb: rgb.map((n) => clamp(Math.round(n), 0, 255)),
+    alpha: Number.isFinite(alpha) ? clamp(alpha, 0, 1) : 1,
+  };
 }
 
-function hexToRgba(hex, alpha = 1) {
-  if (!hex || !hex.startsWith('#')) return hex;
+/**
+ * Render [r, g, b] plus an alpha back into the config's colour string form.
+ * @param {!Array<number>} rgb Channel values, 0-255.
+ * @param {number=} alpha 0-1. A fully opaque colour is written as hex so the
+ *     config stays readable; anything translucent needs rgba().
+ * @return {string} The colour string, or "auto" when rgb is not a triple.
+ */
+function formatColor(rgb, alpha = 1) {
+  if (!Array.isArray(rgb) || rgb.length < 3) return "auto";
+  const [r, g, b] = rgb.map((n) => clamp(Math.round(Number(n) || 0), 0, 255));
+  const a = clamp(Number.isFinite(Number(alpha)) ? Number(alpha) : 1, 0, 1);
+  if (a >= 1) {
+    return `#${[r, g, b].map((n) => n.toString(16).padStart(2, "0")).join("")}`;
+  }
+  return `rgba(${r}, ${g}, ${b}, ${Number(a.toFixed(3))})`;
+}
 
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+/**
+ * Split a formatted state into its value and unit halves.
+ *
+ * Home Assistant's formatter returns them as one string; the telemetry row
+ * needs them apart so the unit can be dropped when the pills stop fitting on
+ * one line.
+ * @param {string} text Formatted state, e.g. "210.0 \u00b0C".
+ * @param {?Object} stateObj The state the text came from.
+ * @return {{value: string, unit: string}}
+ */
+function splitUnit(text, stateObj) {
+  const s = String(text ?? "");
+  const unit = String(stateObj?.attributes?.unit_of_measurement ?? "").trim();
+  if (unit && s.length > unit.length && s.endsWith(unit)) {
+    const head = s.slice(0, s.length - unit.length);
+    // The unit has to be preceded by a digit or a space. A bare suffix
+    // match truncates a word that merely ends in the unit's letters:
+    // "idle" on a sensor whose unit is "e" rendered as "idl". Tested on
+    // the character rather than by parsing the remainder, because a
+    // locale that groups digits ("1 234,5") is not a number to Number().
+    if (/[\d\s]$/.test(head)) {
+      return { value: head.trimEnd(), unit };
+    }
+  }
+  return { value: s, unit: "" };
 }
 
 /**
@@ -122,6 +254,26 @@ function generateCardId(config) {
   return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
 }
 
+// Home Assistant rewrites a DURATION sensor's state into whichever display unit
+// the user picked in the entity settings, so the seconds sensor this card expects
+// arrives as 0.2 once someone switches it to hours. Scale back to seconds before
+// formatting; an unrecognised or missing unit is taken as seconds, which is the
+// integration's own native unit.
+const DURATION_UNIT_SECONDS = {
+  "\u00b5s": 1e-6, "\u03bcs": 1e-6, us: 1e-6, ms: 1e-3,
+  s: 1, sec: 1, secs: 1, second: 1, seconds: 1,
+  min: 60, mins: 60, minute: 60, minutes: 60,
+  h: 3600, hr: 3600, hrs: 3600, hour: 3600, hours: 3600,
+  d: 86400, day: 86400, days: 86400,
+  w: 604800, week: 604800, weeks: 604800,
+};
+function durationToSeconds(stateObj) {
+  const n = Number(stateObj?.state);
+  if (!Number.isFinite(n)) return 0;
+  const unit = String(stateObj?.attributes?.unit_of_measurement ?? "").trim();
+  const scale = DURATION_UNIT_SECONDS[unit] ?? DURATION_UNIT_SECONDS[unit.toLowerCase()];
+  return n * (scale ?? 1);
+}
 function fmtTimeLeft(seconds) {
   // Floor to whole seconds so a fractional value (some firmwares report a float)
   // renders as e.g. 2:25 instead of 2:25.6789 and doesn't reflow the row every poll.
@@ -131,10 +283,29 @@ function fmtTimeLeft(seconds) {
   if (m > 0) return `${m}:${String(sec).padStart(2, "0")}`;
   return `${sec}s`;
 }
+// Every state utils.derive_print_state can return. Mirrored here so a state
+// added on the Python side cannot silently fall through to a default, and so
+// impossible states cannot creep back in -- test_printer_card_layout.py
+// cross-checks this list against derive_print_state.
+const PRINT_STATES = new Set([
+  "off",
+  "unknown",
+  "error",
+  "self-testing",
+  "completed",
+  "paused",
+  "stopped",
+  "printing",
+  "processing",
+  "idle",
+]);
+
 function computeIcon(status) {
   const st = normStr(status);
   if (["off", "unknown", "stopped"].includes(st)) return mdi("printer-3d-off");
-  if (["printing", "resuming", "pausing", "paused"].includes(st)) return mdi("printer-3d-nozzle");
+  // `processing` is the warm-up before `printing` and is in BUSY_PRINT_STATES,
+  // so it gets the active icon too -- computeColor already treats it as active.
+  if (["printing", "paused", "processing"].includes(st)) return mdi("printer-3d-nozzle");
   if (st === "error") return mdi("close-octagon");
   if (st === "self-testing") return mdi("cogs");
   return mdi("printer-3d");
@@ -142,9 +313,9 @@ function computeIcon(status) {
 function computeColor(status) {
   const st = normStr(status);
   if (["off", "unknown", "stopped"].includes(st)) return "var(--secondary-text-color)";
-  if (["paused", "pausing"].includes(st)) return "#fc6d09";
+  if (st === "paused") return "#fc6d09";
   if (st === "error") return "var(--error-color)";
-  if (["printing", "resuming", "processing"].includes(st)) return "var(--primary-color)";
+  if (["printing", "processing"].includes(st)) return "var(--primary-color)";
   if (["idle", "completed"].includes(st)) return "var(--success-color, #4caf50)";
   if (st === "self-testing") return "var(--info-color, #2196f3)";
   return "var(--secondary-text-color)";
@@ -153,7 +324,11 @@ function computeColor(status) {
 class KPrinterCard extends HTMLElement {
   static getStubConfig() {
     return {
-      name: "3D Printer",
+      name: DEFAULT_CARD_NAME,
+      // Device the entity fields were filled from. Stored so the editor's
+      // "fill from device" button has something to re-read; the card itself
+      // resolves nothing from it, so a config written by hand needs no device.
+      device: "",
       camera: "", status: "", progress: "", time_left: "",
       nozzle: "", bed: "", box: "",
       // Optional power switch entity and visibility flag for a Power button
@@ -185,6 +360,16 @@ class KPrinterCard extends HTMLElement {
         // Custom button colors
         custom_bg: "rgba(33, 150, 243, .90)",
         custom_icon: "#fff",
+        // Off-state colours for the custom button, used when it drives a
+        // toggleable entity (switch/light/input_boolean).
+        custom_off_bg: "rgba(150,150,150,.35)",
+        custom_icon_off: "#000",
+        // Power button. The chip CSS has always read these, but nothing ever
+        // set them, so the button was the one chip the theme could not reach.
+        power_on_bg: "rgba(76, 175, 80, .90)",
+        power_off_bg: "rgba(150,150,150,.35)",
+        power_icon_on: "#fff",
+        power_icon_off: "#000",
       },
       // Config for custom button
       custom_btn: "",
@@ -208,9 +393,47 @@ class KPrinterCard extends HTMLElement {
     return editor;
   }
 
+  /**
+   * Bring an older card config up to something the editor can round-trip.
+   *
+   * Not about shape: no config key has ever been renamed or removed, and new
+   * ones pick up their defaults from the merge in setConfig. It is about
+   * values. The previous editor saved every colour through
+   * `hexToRgba(hex, 0.9)`, so colours that can only be solid -- every icon
+   * colour, none of which has an opacity control -- were stored at 90%
+   * regardless. The editor cannot show that, so without this the form and the
+   * card quietly disagree about a colour until someone happens to touch it.
+   *
+   * Anything this cannot parse (`var(--accent-color)`, a named colour, an
+   * hsl()) is left exactly as it is. The card writes those straight into CSS
+   * and they work; guessing at them would throw away a deliberate choice.
+   * @param {?Object} config
+   * @return {!Object}
+   */
+  static _migrateConfig(config) {
+    const cfg = { ...(config || {}) };
+    if (!cfg.theme || typeof cfg.theme !== "object") return cfg;
+    cfg.theme = KPrinterCard._migrateTheme(cfg.theme);
+    return cfg;
+  }
+
+  /** Normalise one theme object. Split out so the storage path shares it. */
+  static _migrateTheme(theme) {
+    const out = { ...theme };
+    for (const [key, field] of THEME_COLOR_FIELDS) {
+      const value = out[key];
+      if (value === undefined || value === "auto") continue;
+      const parsed = parseColor(value);
+      if (!parsed) continue;
+      out[key] = formatColor(parsed.rgb, field.alpha ? parsed.alpha : 1);
+    }
+    return out;
+  }
+
   setConfig(config) {
     const defaultConfig = KPrinterCard.getStubConfig();
-    this._cfg = { ...defaultConfig, ...(config || {}) };
+    const migrated = KPrinterCard._migrateConfig(config);
+    this._cfg = { ...defaultConfig, ...migrated };
     // Init optimistic state overrides map
     if (!this._optimisticStates) this._optimisticStates = {};
 
@@ -221,11 +444,13 @@ class KPrinterCard extends HTMLElement {
     if (!config?.theme) {
       const savedTheme = loadThemeFromStorage(this._cardId);
       if (savedTheme) {
-        this._cfg.theme = { ...defaultConfig.theme, ...savedTheme };
+        // Migrated too: a theme saved by the old editor is just as stale here
+        // as one that came from YAML.
+        this._cfg.theme = { ...defaultConfig.theme, ...KPrinterCard._migrateTheme(savedTheme) };
       }
     } else {
       // Deep merge theme configuration
-      this._cfg.theme = { ...defaultConfig.theme, ...config.theme };
+      this._cfg.theme = { ...defaultConfig.theme, ...migrated.theme };
       // Save theme to storage
       saveThemeToStorage(this._cardId, this._cfg.theme);
     }
@@ -305,6 +530,10 @@ class KPrinterCard extends HTMLElement {
         --custom-off-bg: ${theme.custom_off_bg || 'rgba(150,150,150,.35)'};
         --custom-icon: ${theme.custom_icon || '#fff'};
         --custom-icon-off: ${theme.custom_icon_off || '#000'};
+        --power-on-bg: ${theme.power_on_bg || 'rgba(76, 175, 80, .90)'};
+        --power-off-bg: ${theme.power_off_bg || 'rgba(150,150,150,.35)'};
+        --power-icon-on: ${theme.power_icon_on || '#fff'};
+        --power-icon-off: ${theme.power_icon_off || '#000'};
       }
     `;
 
@@ -382,7 +611,13 @@ class KPrinterCard extends HTMLElement {
       /* Order is handled by flex order style or DOM order */
 
 
-      /* telemetry row – single line, same right padding, tighter pills */
+      /* telemetry row – one line that scales with the card, then wraps.
+         .telemetry-wrap is the query container, so the pills size themselves
+         from the room the row actually has rather than from the viewport. The
+         sizes are continuous (clamp over cqi) instead of stepped at a
+         breakpoint on purpose: the row's line count feeds getCardSize(), and a
+         breakpoint makes that measurement jump. */
+      .telemetry-wrap { container-type: inline-size; min-width:0; }
       .telemetry {
         display:flex;
         gap:6px;
@@ -390,16 +625,40 @@ class KPrinterCard extends HTMLElement {
         flex-wrap:wrap;
         padding: 0 var(--row-xpad);
         min-width:0;
+        /* The ceilings used to be reached at ~470px, so on any normal card the
+           pills sat pinned at their smallest while the card around them grew.
+           These ranges put the whole scale inside the widths a Lovelace column
+           actually takes (roughly 330px to 520px), which is where the change is
+           worth seeing. The cap stays just under .name's .95rem so the readings
+           never outshout the printer's own name. */
+        --pill-font: clamp(.65rem, 3.1cqi, .92rem);
+        --pill-pad-x: clamp(7px, 2.4cqi, 14px);
+        --pill-pad-y: clamp(5px, 1.5cqi, 9px);
+        --pill-gap: clamp(4px, 1.3cqi, 8px);
+        --pill-icon: clamp(13px, 3.9cqi, 19px);
       }
       .pill {
-        display:inline-flex; align-items:center; gap:6px;
-        padding:6px 10px; border-radius:14px;
+        display:inline-flex; align-items:center; justify-content:center;
+        gap:var(--pill-gap, 6px);
+        padding:var(--pill-pad-y, 6px) var(--pill-pad-x, 10px); border-radius:999px;
         background:rgba(127,127,127,.12);
-        font-size:.8rem; border:1px solid rgba(255,255,255,0.08);
-        white-space:nowrap; flex:0 0 auto;
+        font-size:var(--pill-font, .8rem); border:1px solid rgba(255,255,255,0.08);
+        /* Grow to share out whatever the row has spare, so the pills reach the
+           same right edge as the action chips above instead of huddling in the
+           middle. Never shrink: with nowrap text that would overflow the pill
+           rather than make it fit. */
+        white-space:nowrap; flex:1 0 auto;
         color: var(--telemetry-text, var(--primary-text-color));
       }
-      .pill ha-icon { --mdc-icon-size:16px; width:16px; height:16px; color: var(--telemetry-icon, var(--secondary-text-color)); }
+      .pill ha-icon {
+        --mdc-icon-size:var(--pill-icon, 16px);
+        width:var(--pill-icon, 16px); height:var(--pill-icon, 16px);
+        color: var(--telemetry-icon, var(--secondary-text-color));
+      }
+      /* The unit suffix is the first thing to go once shrinking alone no longer
+         keeps the row on one line; _updateTelemetryDensity owns the class. */
+      .pill .unit { margin-left:.25em; }
+      .telemetry.compact .pill .unit { display:none; }
 
       .click { cursor:pointer; }
 
@@ -424,12 +683,14 @@ class KPrinterCard extends HTMLElement {
           </div>
         </div>
 
-        <div class="telemetry">
-          <div class="pill"><ha-icon icon="mdi:printer-3d-nozzle-heat"></ha-icon><span id="nozzle"></span></div>
-          <div class="pill"><ha-icon icon="mdi:heating-coil"></ha-icon><span id="bed"></span></div>
-          <div class="pill" id="box-pill"><ha-icon icon="mdi:thermometer"></ha-icon><span id="box"></span></div>
-          <div class="pill"><ha-icon icon="mdi:progress-clock"></ha-icon><span id="time"></span></div>
-          <div class="pill"><ha-icon icon="mdi:layers-triple"></ha-icon><span id="layers"></span></div>
+        <div class="telemetry-wrap">
+          <div class="telemetry">
+            <div class="pill"><ha-icon icon="mdi:printer-3d-nozzle-heat"></ha-icon><span id="nozzle"></span><span class="unit" id="nozzle-unit"></span></div>
+            <div class="pill"><ha-icon icon="mdi:heating-coil"></ha-icon><span id="bed"></span><span class="unit" id="bed-unit"></span></div>
+            <div class="pill" id="box-pill"><ha-icon icon="mdi:thermometer"></ha-icon><span id="box"></span><span class="unit" id="box-unit"></span></div>
+            <div class="pill"><ha-icon icon="mdi:progress-clock"></ha-icon><span id="time"></span></div>
+            <div class="pill"><ha-icon icon="mdi:layers-triple"></ha-icon><span id="layers"></span></div>
+          </div>
         </div>
       </ha-card>
     `;
@@ -472,7 +733,9 @@ class KPrinterCard extends HTMLElement {
         // so an accidental tap can't kill a running job.
         if (this._hass?.states?.[eid]?.state === "on") {
           const st = normStr(this._hass?.states?.[this._cfg.status]?.state);
-          const printing = ["printing", "resuming", "pausing", "paused"].includes(st);
+          // `processing` means a job is on the bed and starting, so it needs
+          // the stronger warning as much as a running print does.
+          const printing = ["printing", "paused", "processing"].includes(st);
           const msg = printing ? this._t("confirm_power_off_printing") : this._t("confirm_power_off");
           if (!confirm(msg)) return;
         }
@@ -501,14 +764,18 @@ class KPrinterCard extends HTMLElement {
       }
     });
 
+    // The row is new, so anything measured off the old one is stale.
+    this._telemetryUnitsFailedAt = 0;
+    this._telemetrySignature = null;
+
     this._update();
     this._setupTelemetrySizeObserver();
   }
 
   connectedCallback() {
     // The card may be re-attached without setConfig firing again (e.g. when Lovelace
-    // moves the element between containers). _render() — which normally wires up the
-    // telemetry observer — only runs from setConfig/hass paths, so reinstate the
+    // moves the element between containers). _render() -- which normally wires up the
+    // telemetry observer -- only runs from setConfig/hass paths, so reinstate the
     // observer here whenever a previously-rendered card returns to the DOM.
     if (this._root) {
       this._setupTelemetrySizeObserver();
@@ -561,23 +828,75 @@ class KPrinterCard extends HTMLElement {
     }
     this._telemetrySizeFrame = requestAnimationFrame(() => {
       this._telemetrySizeFrame = null;
+      // Density first: dropping the units can pull the row back onto one line,
+      // and it is that final line count getCardSize() has to report.
+      this._updateTelemetryDensity();
       this._updateTelemetryCardSize();
     });
+  }
+
+  /** The pills currently taking up space, in DOM order. */
+  _visibleTelemetryPills(telemetry) {
+    return Array.from(telemetry.children).filter((pill) => {
+      const style = getComputedStyle(pill);
+      return style.display !== "none" && style.visibility !== "hidden";
+    });
+  }
+
+  /** How many lines the telemetry row occupies right now. */
+  _telemetryLineCount(telemetry) {
+    return new Set(
+      this._visibleTelemetryPills(telemetry).map((pill) => Math.round(pill.offsetTop)),
+    ).size;
+  }
+
+  /**
+   * Drop the unit suffixes when the pills would otherwise wrap.
+   *
+   * The decision is made from the line count rather than from summed widths,
+   * because the pills grow to fill the row: their widths always add up to the
+   * row's, whether the content fits or not. Wrapping is the only honest signal
+   * left, so this asks the question by trying it.
+   *
+   * Which makes the retry the delicate part. Restoring the units at the width
+   * that just rejected them wraps the row, hides them again, and repeats for
+   * as long as the card is that size -- so the width they failed at is
+   * remembered, and they only get another go once the row is meaningfully
+   * wider than it.
+   */
+  _updateTelemetryDensity() {
+    const telemetry = this._root?.querySelector(".telemetry");
+    if (!telemetry) return;
+
+    const style = getComputedStyle(telemetry);
+    const available = telemetry.clientWidth
+      - (parseFloat(style.paddingLeft) || 0)
+      - (parseFloat(style.paddingRight) || 0);
+    // A detached or not-yet-laid-out row measures 0; leave it alone rather than
+    // compacting it on a width that means nothing.
+    if (!(available > 0)) return;
+
+    if (!telemetry.classList.contains("compact")) {
+      if (this._telemetryLineCount(telemetry) > 1) {
+        this._telemetryUnitsFailedAt = available;
+        telemetry.classList.add("compact");
+      }
+      return;
+    }
+
+    if (available <= (this._telemetryUnitsFailedAt ?? 0) + TELEMETRY_COMPACT_HYSTERESIS) return;
+    telemetry.classList.remove("compact");
+    if (this._telemetryLineCount(telemetry) > 1) {
+      this._telemetryUnitsFailedAt = available;
+      telemetry.classList.add("compact");
+    }
   }
 
   _updateTelemetryCardSize() {
     const telemetry = this._root?.querySelector(".telemetry");
     if (!telemetry) return;
 
-    const lineTops = new Set(
-      Array.from(telemetry.children)
-        .filter((pill) => {
-          const style = getComputedStyle(pill);
-          return style.display !== "none" && style.visibility !== "hidden";
-        })
-        .map((pill) => Math.round(pill.offsetTop)),
-    );
-    const nextSize = Math.max(3, 2 + lineTops.size);
+    const nextSize = Math.max(3, 2 + this._telemetryLineCount(telemetry));
     const currentSize = this._cardSize ?? 3;
     if (nextSize === currentSize) return;
 
@@ -586,7 +905,7 @@ class KPrinterCard extends HTMLElement {
     const lastDispatch = _lastCardRebuildDispatch.get(cardKey) || 0;
     // Defer the _cardSize update until the throttle clears: otherwise a throttled
     // call would record the new size locally without telling Lovelace, and the
-    // next measurement would short-circuit on the equality check above — leaving
+    // next measurement would short-circuit on the equality check above -- leaving
     // the rebuild permanently suppressed.
     if (now - lastDispatch < LL_REBUILD_MIN_INTERVAL_MS) return;
     _lastCardRebuildDispatch.set(cardKey, now);
@@ -671,11 +990,11 @@ class KPrinterCard extends HTMLElement {
     const gObj = (eid) => this._hass?.states?.[eid];
     const gNum = (eid) => Number(g(eid));
     const fmtState = (st) => {
-      if (!st) return "—";
+      if (!st) return "-";
       const v = st.state;
-      if (v === undefined || v === null) return "—";
+      if (v === undefined || v === null) return "-";
       const s = String(v);
-      if (s === "unknown" || s === "unavailable") return "—";
+      if (s === "unknown" || s === "unavailable") return "-";
       // Prefer HA's built-in formatter to honor per-entity precision and units
       if (this._hass && typeof this._hass.formatEntityState === 'function') {
         try { return this._hass.formatEntityState(st); } catch (_) { }
@@ -695,13 +1014,13 @@ class KPrinterCard extends HTMLElement {
     };
     const fmtWithUnit = (eid) => fmtState(gObj(eid));
 
-    const name = this._cfg.name || "3D Printer";
+    const name = this._cfg.name || DEFAULT_CARD_NAME;
     const status = g(this._cfg.status) ?? "unknown";
     const pct = clamp(Number.isFinite(gNum(this._cfg.progress)) ? gNum(this._cfg.progress) : 0, 0, 100);
-    const timeLeft = gNum(this._cfg.time_left) || 0;
-    const nozzleStr = fmtWithUnit(this._cfg.nozzle);
-    const bedStr = fmtWithUnit(this._cfg.bed);
-    const boxStr = fmtWithUnit(this._cfg.box);
+    const timeLeft = durationToSeconds(gObj(this._cfg.time_left));
+    const nozzleStr = splitUnit(fmtWithUnit(this._cfg.nozzle), gObj(this._cfg.nozzle));
+    const bedStr = splitUnit(fmtWithUnit(this._cfg.bed), gObj(this._cfg.bed));
+    const boxStr = splitUnit(fmtWithUnit(this._cfg.box), gObj(this._cfg.box));
     const _rawLayer = g(this._cfg.layer);
     const layer = (_rawLayer && _rawLayer !== "unavailable" && _rawLayer !== "unknown" ? _rawLayer : "") + "";
     const _rawTotalLayers = g(this._cfg.total_layers);
@@ -712,8 +1031,11 @@ class KPrinterCard extends HTMLElement {
     const powerState = g(resolvedPower);
 
     const st = normStr(status);
-    const isPrinting = ["printing", "resuming", "pausing"].includes(st);
+    const isPrinting = st === "printing";
     const isPaused = st === "paused";
+    // A job exists and is progressing. Pause stays restricted to `printing`
+    // and Stop to the states below; this is only the visual presentation.
+    const isActivePrint = ["printing", "paused", "processing"].includes(st);
     const showStop = isPrinting || isPaused || st === "self-testing";
     // Show Light chip only when the light entity exists in HA state and power (if configured) is not OFF
     const showLight = Boolean(resolvedLight && this._hass?.states?.[resolvedLight]) && !(resolvedPower && powerState === "off");
@@ -723,7 +1045,7 @@ class KPrinterCard extends HTMLElement {
     // Title/status
     this._root.getElementById("name").textContent = name;
     const proper = (!status || status === "unavailable" || status === "unknown") ? this._t("status_unknown") : (fmtState(gObj(this._cfg.status)) || status[0].toUpperCase() + status.slice(1));
-    const sec = (isPrinting || isPaused) ? `${pct}% ${proper}` : proper;
+    const sec = isActivePrint ? `${pct}% ${proper}` : proper;
     this._root.getElementById("secondary").textContent = sec;
 
     // Icon & ring
@@ -733,7 +1055,7 @@ class KPrinterCard extends HTMLElement {
     const iconColor = theme.status_icon === "auto" ? computeColor(status) : theme.status_icon;
     iconEl.style.setProperty("--icon-color", iconColor);
     const ring = this._root.getElementById("ring");
-    ring.style.setProperty("--ring-pct", isPrinting || isPaused ? `${pct}%` : "0%");
+    ring.style.setProperty("--ring-pct", isActivePrint ? `${pct}%` : "0%");
     const ringColor = theme.progress_ring === "auto" ? computeColor(status) : theme.progress_ring;
     ring.style.setProperty("--ring-color", ringColor);
 
@@ -830,18 +1152,33 @@ class KPrinterCard extends HTMLElement {
     }
 
     // Telemetry
-    this._root.getElementById("nozzle").textContent = nozzleStr;
-    this._root.getElementById("bed").textContent = bedStr;
-    this._root.getElementById("box").textContent = boxStr;
-    this._root.getElementById("time").textContent = fmtTimeLeft(timeLeft);
-    this._root.getElementById("layers").textContent = `${layer || "—"}/${totalLayers || "—"}`;
+    for (const [id, parts] of [["nozzle", nozzleStr], ["bed", bedStr], ["box", boxStr]]) {
+      this._root.getElementById(id).textContent = parts.value;
+      this._root.getElementById(`${id}-unit`).textContent = parts.unit;
+    }
+    const timeText = fmtTimeLeft(timeLeft);
+    const layersText = `${layer || "-"}/${totalLayers || "-"}`;
+    this._root.getElementById("time").textContent = timeText;
+    this._root.getElementById("layers").textContent = layersText;
+
+    // A shorter reading -- 2:25 where 1:02:25 was, or a temperature dropping
+    // below 100 -- can free up the room the units needed, so let them have
+    // another go whenever the text changes rather than waiting for a resize
+    // that may never come.
+    const signature = [
+      nozzleStr.value, bedStr.value, boxStr.value, timeText, layersText,
+    ].join("|");
+    if (signature !== this._telemetrySignature) {
+      this._telemetrySignature = signature;
+      this._telemetryUnitsFailedAt = 0;
+    }
 
     // Toggle Chamber Temp visibility.
     // Hide when explicitly hidden, when no chamber entity is configured, or when
     // the configured entity does not exist in HA (printers without a chamber,
     // e.g. Ender 3 V3 KE) so we don't render a stray thermometer icon that
     // offsets the adjacent telemetry. A configured-but-unavailable entity stays
-    // visible and shows "—", matching the nozzle/bed pills.
+    // visible and shows "-", matching the nozzle/bed pills.
     const boxPill = this._root.getElementById("box-pill");
     if (boxPill) {
       const boxConfigured = Boolean(this._cfg.box) && Boolean(this._hass?.states?.[this._cfg.box]);
@@ -865,30 +1202,51 @@ const CARD_TRANSLATIONS = {
     editor_title: "Creality Printer Card Configuration",
     tab_entities: "Entities",
     tab_theme: "Theme",
+    group_device: "Printer",
+    group_entities: "Entities",
     group_layout: "Layout & Icons",
-    group_action_colors: "Action Colors",
+    group_action_colors: "Action Button Colors",
+    group_toggle_colors: "Toggle Button Colors",
     group_status_area: "Status Area",
     group_telemetry: "Telemetry",
+    note_device: "Picking a device fills in the fields below that are still empty. Use the button to replace every field, including ones you set yourself. The power switch is never filled in, because the integration does not provide one.",
+    note_clear_resets: "Use Reset to Defaults at the bottom to undo these.",
+    note_auto_colors: "Turn Automatic off to choose a color yourself.",
+    btn_refill_from_device: "Fill all fields from device",
+    btn_reset: "Reset to Defaults",
+    status_device_filled: "Filled {filled} of {total} fields.",
+    status_device_empty: "No entities from this integration were found on that device.",
     color_pause_bg: "Pause Button Background",
     color_pause_icon: "Pause Button Icon",
     color_resume_bg: "Resume Button Background",
     color_resume_icon: "Resume Button Icon",
     color_stop_bg: "Stop Button Background",
     color_stop_icon: "Stop Button Icon",
-    color_light_on_bg: "Light On Background",
-    color_light_off_bg: "Light Off Background",
+    color_light_on_bg: "Light Button Background (On)",
+    color_light_off_bg: "Light Button Background (Off)",
     color_light_icon_on: "Light Button Icon (On)",
     color_light_icon_off: "Light Button Icon (Off)",
-    color_custom_bg: "Custom Button Background",
-    color_custom_icon: "Custom Button Icon",
+    color_power_on_bg: "Power Button Background (On)",
+    color_power_off_bg: "Power Button Background (Off)",
+    color_power_icon_on: "Power Button Icon (On)",
+    color_power_icon_off: "Power Button Icon (Off)",
+    color_custom_bg: "Custom Button Background (On)",
+    color_custom_icon: "Custom Button Icon (On)",
+    color_custom_off_bg: "Custom Button Background (Off)",
+    color_custom_icon_off: "Custom Button Icon (Off)",
     color_status_icon: "Status Icon Color",
     color_progress_ring: "Progress Ring Color",
     color_status_bg: "Status Background",
     color_telemetry_icon: "Telemetry Icon Color",
     color_telemetry_text: "Telemetry Text Color",
-    btn_save: "Save",
-    btn_reset: "Reset to Defaults",
-    color_picker_hint: "Click to open color picker",
+    label_opacity: "Opacity",
+    label_color_auto: "Automatic",
+    helper_auto_status_icon: "Automatic: follows the print state, orange while paused, red on error, green when idle or finished.",
+    helper_auto_progress_ring: "Automatic: follows the print state, matching the status icon.",
+    helper_auto_status_bg: "Automatic: blends into the card background.",
+    helper_auto_telemetry_icon: "Automatic: uses the theme's secondary text color.",
+    helper_auto_telemetry_text: "Automatic: uses the theme's primary text color.",
+    label_device: "Printer device",
     label_name: "Printer Name",
     label_camera: "Camera",
     label_status: "Print Status Sensor",
@@ -909,6 +1267,13 @@ const CARD_TRANSLATIONS = {
     label_custom_btn_icon: "Custom Button Icon",
     label_custom_btn_hidden: "Hide Custom Button",
     label_button_order: "Button Order (list)",
+    label_hide_box_temp: "Hide Chamber Temperature",
+    label_pause_btn_icon: "Pause Icon Override",
+    label_resume_btn_icon: "Resume Icon Override",
+    label_stop_btn_icon: "Stop Icon Override",
+    label_light_btn_icon: "Light Icon Override",
+    label_power_btn_icon: "Power Icon Override",
+    helper_device: "Your printer, as set up by this integration",
     helper_name: "Display name for the printer card",
     helper_camera: "Camera entity for live video feed",
     helper_status: "Sensor showing current print status",
@@ -917,7 +1282,7 @@ const CARD_TRANSLATIONS = {
     helper_nozzle: "Sensor showing nozzle temperature",
     helper_bed: "Sensor showing bed temperature",
     helper_box: "Sensor showing chamber/enclosure temperature (optional)",
-    helper_power: "Optional power switch entity for the printer (shows a Power button when set)",
+    helper_power: "Your own smart plug for the printer, if you have one (shows a Power button when set). Not filled in from the device.",
     helper_show_power_button: "Show the Power button when a power switch entity is configured",
     helper_layer: "Sensor showing current print layer",
     helper_total_layers: "Sensor showing total print layers",
@@ -929,859 +1294,761 @@ const CARD_TRANSLATIONS = {
     helper_custom_btn_icon: "Icon for the custom button",
     helper_custom_btn_hidden: "Hide the custom button",
     helper_button_order: "List of buttons to show in order (pause, resume, stop, light, power, custom)",
-    schema_button_order: "Button Order (pause, resume, stop, light, power, custom)",
-    schema_hide_custom: "Hide Custom Button",
-    schema_hide_box_temp: "Hide Chamber Temperature",
-    schema_pause_icon: "Pause Icon Override",
-    schema_resume_icon: "Resume Icon Override",
-    schema_stop_icon: "Stop Icon Override",
-    schema_light_icon: "Light Icon Override",
-    schema_power_icon: "Power Icon Override",
-    schema_custom_icon: "Custom Button Icon",
+    helper_hide_box_temp: "Hide the chamber temperature pill even when a sensor is configured",
     editor_error_title: "Editor Error",
     editor_error_msg: "There was an error loading the visual editor. You can still edit your configuration using YAML.",
     editor_error_prefix: "Error:",
   },
 };
 
-customElements.define(CARD_TAG, KPrinterCard);
+/**
+ * Register a custom element at most once.
+ *
+ * A dashboard can end up importing this module twice -- two Lovelace resource
+ * entries, or a page that was open across a Home Assistant restart picking up
+ * the new `?v=` alongside the copy it already had. A bare define() throws on
+ * the second pass, which aborts the rest of that module: the tag then keeps
+ * whichever class won the race while the functions around it come from the
+ * other copy, and the mismatch shows up as methods that exist in the source
+ * but not on the instance.
+ * @param {string} tag
+ * @param {!Function} cls
+ */
+function defineOnce(tag, cls) {
+  if (customElements.get(tag)) return;
+  try {
+    customElements.define(tag, cls);
+  } catch (err) {
+    console.error(`ha_creality_ws: could not define <${tag}>`, err);
+  }
+}
 
-/* Interactive theme editor */
+defineOnce(CARD_TAG, KPrinterCard);
+
+/**
+ * Colour controls in the theme tab, grouped the way they are rendered.
+ *
+ * `alpha` gives the field an opacity slider -- a background needs one, an icon
+ * colour does not. `auto` marks the fields where clearing the colour means
+ * something ("work it out yourself") rather than merely "reset", and each of
+ * those carries helper text saying what the card does instead -- the one thing
+ * the previous editor never told anyone, even though five fields defaulted to
+ * it.
+ */
+const THEME_COLOR_GROUPS = [
+  {
+    title: "group_action_colors",
+    note: "note_clear_resets",
+    fields: [
+      { key: "pause_bg", alpha: true },
+      { key: "pause_icon" },
+      { key: "resume_bg", alpha: true },
+      { key: "resume_icon" },
+      { key: "stop_bg", alpha: true },
+      { key: "stop_icon" },
+    ],
+  },
+  {
+    title: "group_toggle_colors",
+    note: "note_clear_resets",
+    fields: [
+      { key: "light_on_bg", alpha: true },
+      { key: "light_icon_on" },
+      { key: "light_off_bg", alpha: true },
+      { key: "light_icon_off" },
+      { key: "power_on_bg", alpha: true },
+      { key: "power_icon_on" },
+      { key: "power_off_bg", alpha: true },
+      { key: "power_icon_off" },
+      { key: "custom_bg", alpha: true },
+      { key: "custom_icon" },
+      { key: "custom_off_bg", alpha: true },
+      { key: "custom_icon_off" },
+    ],
+  },
+  {
+    title: "group_status_area",
+    note: "note_auto_colors",
+    fields: [
+      { key: "status_icon", auto: true, seed: "#4caf50" },
+      { key: "progress_ring", auto: true, seed: "#2196f3" },
+      { key: "status_bg", alpha: true, auto: true, seed: "rgba(128, 128, 128, 0.2)" },
+    ],
+  },
+  {
+    title: "group_telemetry",
+    note: "note_auto_colors",
+    fields: [
+      { key: "telemetry_icon", auto: true, seed: "#9e9e9e" },
+      { key: "telemetry_text", auto: true, seed: "#9e9e9e" },
+    ],
+  },
+];
+
+/** Every theme colour field by key, for label and helper lookups. */
+const THEME_COLOR_FIELDS = new Map(
+  THEME_COLOR_GROUPS.flatMap((group) => group.fields.map((field) => [field.key, field])),
+);
+
+/** Suffix that turns a colour field name into its opacity companion. */
+const OPACITY_SUFFIX = "_opacity";
+
+/**
+ * Suffix for a colour field's "Automatic" switch.
+ *
+ * Automatic cannot be expressed as an empty colour: the color_rgb selector
+ * renders a native `<input type="color">`, and there is no way to empty one of
+ * those. Without a switch of its own, a field the user had customised could
+ * never be put back.
+ */
+const AUTO_SUFFIX = "_auto";
+
+/** Top-level config keys the theme tab owns, and so the reset button clears. */
+const LAYOUT_RESET_KEYS = [
+  "button_order", "custom_btn_hidden", "hide_box_temp",
+  "pause_btn_icon", "resume_btn_icon", "stop_btn_icon",
+  "light_btn_icon", "power_btn_icon", "custom_btn_icon",
+];
+
+/** Last-resort label for a field nobody has written a translation for yet. */
+const humanizeName = (name) =>
+  String(name).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+const EDITOR_STYLE = `
+  :host { display: block; }
+  .editor-container { padding: 16px; max-width: 1200px; margin: 0 auto; }
+  .editor-title { margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color); }
+  .tabs { display: flex; border-bottom: 1px solid var(--divider-color); margin-bottom: 16px; }
+  .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .control-group {
+    background: var(--card-background-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+  .group-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--primary-text-color); }
+  .group-note { font-size: 12px; color: var(--secondary-text-color); margin-bottom: 8px; }
+  .group-note:empty { display: none; }
+  .row-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 8px; }
+  .ghost-btn {
+    background: transparent; color: var(--primary-color); font: inherit; font-size: 13px;
+    border: 1px solid var(--primary-color); border-radius: 4px; padding: 6px 12px; cursor: pointer;
+  }
+  .ghost-btn:disabled { color: var(--disabled-text-color); border-color: var(--divider-color); cursor: default; }
+  .status { font-size: 12px; color: var(--secondary-text-color); }
+  .status:empty { display: none; }
+  .reset-btn {
+    background: var(--error-color); color: white; border: none; font: inherit;
+    padding: 8px 16px; border-radius: 4px; cursor: pointer; width: 100%;
+  }
+  .reset-btn:hover { opacity: 0.8; }
+  ha-form { display: block; }
+`;
+
+
+/**
+ * The editor's schemas and form data, as plain functions of the config.
+ *
+ * These were instance methods, which made every one of them a `this` lookup at
+ * render time. In one Safari install `this._layoutData` came back undefined
+ * even though the method was demonstrably on the prototype and the module had
+ * been fetched exactly once -- a state nothing in this file can produce. They
+ * never needed the instance for anything but `_cfg`, so they no longer ask it:
+ * a module-scope call resolves lexically and cannot be interfered with from
+ * outside.
+ */
+
+function deviceSchema() {
+  // `filter`, not the top-level `integration` shorthand: that one is
+  // deprecated and only still works because ha-selector rewrites it.
+  return [{
+    name: "device",
+    selector: { device: { filter: [{ integration: INTEGRATION_DOMAIN }] } },
+  }];
+}
+
+function entitiesSchema() {
+  return [
+    { name: "name", selector: { text: {} } },
+    { name: "camera", selector: { entity: { domain: "camera" } } },
+    { name: "status", selector: { entity: { domain: "sensor" } } },
+    { name: "progress", selector: { entity: { domain: "sensor" } } },
+    { name: "time_left", selector: { entity: { domain: "sensor" } } },
+    { name: "nozzle", selector: { entity: { domain: "sensor" } } },
+    { name: "bed", selector: { entity: { domain: "sensor" } } },
+    { name: "box", selector: { entity: { domain: "sensor" } } },
+    { name: "power", selector: { entity: { domain: ["switch", "input_boolean"] } } },
+    { name: "show_power_button", selector: { boolean: {} } },
+    { name: "layer", selector: { entity: { domain: "sensor" } } },
+    { name: "total_layers", selector: { entity: { domain: "sensor" } } },
+    { name: "light", selector: { entity: { domain: ["switch", "light"] } } },
+    { name: "pause_btn", selector: { entity: { domain: "button" } } },
+    { name: "resume_btn", selector: { entity: { domain: "button" } } },
+    { name: "stop_btn", selector: { entity: { domain: "button" } } },
+    { name: "custom_btn", selector: { entity: {} } },
+  ];
+}
+
+function layoutSchema() {
+  return [
+    { name: "button_order", selector: { text: {} } },
+    { name: "custom_btn_hidden", selector: { boolean: {} } },
+    { name: "hide_box_temp", selector: { boolean: {} } },
+    { name: "pause_btn_icon", selector: { icon: {} } },
+    { name: "resume_btn_icon", selector: { icon: {} } },
+    { name: "stop_btn_icon", selector: { icon: {} } },
+    { name: "light_btn_icon", selector: { icon: {} } },
+    { name: "power_btn_icon", selector: { icon: {} } },
+    { name: "custom_btn_icon", selector: { icon: {} } },
+  ];
+}
+
+/**
+ * Whether `field` is currently letting the card choose the colour.
+ *
+ * Keyed on the literal "auto", not on "this is not a colour I can parse".
+ * A hand-written `var(--accent-color)` is also unparseable, and reading that
+ * as automatic would show the switch on and then overwrite the value with
+ * "auto" the next time anything in the group changed.
+ */
+function isAutoColor(cfg, field) {
+  if (!field.auto) return false;
+  const value = cfg?.theme?.[field.key];
+  return value === undefined || value === "" || value === "auto";
+}
+
+/**
+ * Colour rows for one group.
+ *
+ * A field with an opacity slider gets the pair side by side in a grid; the
+ * grid is flattened so both values stay top-level keys of the form data,
+ * whichever Home Assistant version is reading the schema.
+ */
+function colorSchema(cfg, group) {
+  const rows = [];
+  for (const field of group.fields) {
+    if (field.auto) {
+      rows.push({ name: `${field.key}${AUTO_SUFFIX}`, selector: { boolean: {} } });
+      // While a field is automatic there is no colour to show, and showing a
+      // picker that does nothing invites the user to prove it does nothing.
+      if (isAutoColor(cfg, field)) continue;
+    }
+    const color = { name: field.key, selector: { color_rgb: {} } };
+    if (!field.alpha) {
+      rows.push(color);
+      continue;
+    }
+    rows.push({
+      name: "",
+      type: "grid",
+      flatten: true,
+      column_min_width: "170px",
+      schema: [
+        color,
+        {
+          name: `${field.key}${OPACITY_SUFFIX}`,
+          selector: {
+            number: { min: 0, max: 100, step: 1, mode: "slider", unit_of_measurement: "%" },
+          },
+        },
+      ],
+    });
+  }
+  return rows;
+}
+
+function entitiesData(cfg) {
+  const data = {};
+  for (const item of entitiesSchema()) data[item.name] = cfg[item.name];
+  return data;
+}
+
+function layoutData(cfg) {
+  const data = {};
+  for (const item of layoutSchema()) data[item.name] = cfg[item.name];
+  // The card stores an ordered list; the text field edits it as prose.
+  data.button_order = Array.isArray(cfg.button_order)
+    ? cfg.button_order.join(", ")
+    : cfg.button_order;
+  return data;
+}
+
+/**
+ * Split each stored colour string into the [r, g, b] the picker wants and the
+ * 0-100 opacity the slider wants. An automatic field has no colour of its own,
+ * so its key is left out and only the Automatic switch is rendered.
+ */
+function colorData(cfg, group) {
+  const theme = cfg.theme || {};
+  const data = {};
+  for (const field of group.fields) {
+    if (field.auto) {
+      data[`${field.key}${AUTO_SUFFIX}`] = isAutoColor(cfg, field);
+      if (isAutoColor(cfg, field)) continue;
+    }
+    const parsed = parseColor(theme[field.key]);
+    if (parsed) data[field.key] = parsed.rgb;
+    if (field.alpha) {
+      data[`${field.key}${OPACITY_SUFFIX}`] = Math.round((parsed?.alpha ?? 1) * 100);
+    }
+  }
+  return data;
+}
+
+/* Visual editor: entity wiring on one tab, appearance on the other. */
 class KPrinterCardEditor extends HTMLElement {
   // i18n helpers -------------------------------------------------------
   _resolveLanguage() {
     return _resolveLang(this._hass);
   }
-  _t(key) {
-    return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key);
+  _t(key, vars) {
+    return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key, vars);
+  }
+  /** Translate, falling back to `fallback` rather than to the raw key. */
+  _tOr(key, fallback) {
+    const text = this._t(key);
+    return text === key ? fallback : text;
   }
   // ---------------------------------------------------------------------
 
   set hass(hass) {
     this._hass = hass;
-    if (this._entitiesForm) this._entitiesForm.hass = hass;
-    _requestI18n(this, hass, () => { if (this._root) this._render(); });
+    _requestI18n(this, hass, () => this._refresh());
+    this._refresh();
   }
+
   setConfig(config) {
-    const defaultConfig = KPrinterCard.getStubConfig();
-    this._cfg = { ...defaultConfig, ...(config || {}) };
+    const defaults = KPrinterCard.getStubConfig();
+    this._cfg = { ...defaults, ...KPrinterCard._migrateConfig(config) };
+    this._cfg.theme = { ...defaults.theme, ...(this._cfg.theme || {}) };
+    this._refresh();
+  }
 
-    // Always ensure theme is properly initialized
-    this._cfg.theme = { ...defaultConfig.theme, ...(this._cfg.theme || {}) };
+  connectedCallback() {
+    if (!this._root) this._root = this.attachShadow({ mode: "open" });
+    this._refresh();
+  }
 
-    if (this._root) {
-      this._render();
+  disconnectedCallback() {
+    // Flush rather than drop: closing the editor within the debounce window
+    // would otherwise lose whatever the user changed last.
+    if (this._debounceTimer) {
+      clearTimeout(this._debounceTimer);
+      this._debounceTimer = null;
+      this._emitConfig();
     }
   }
-  connectedCallback() { if (!this._root) { this._root = this.attachShadow({ mode: "open" }); this._render(); } }
 
-  _render() {
-    if (!this._root || !this._cfg) return;
+  // Shell ---------------------------------------------------------------
 
-    try {
+  /**
+   * Build the editor's DOM once.
+   *
+   * Everything after this only reassigns `schema` and `data`. Rebuilding the
+   * markup on each change -- which is what the editor used to do, because
+   * Lovelace answers every config-changed with a fresh setConfig -- threw away
+   * the focused field on every keystroke and took the tab selection with it.
+   */
+  _build() {
+    const colorGroups = THEME_COLOR_GROUPS.map((_, index) => `
+          <div class="control-group">
+            <div class="group-title" id="group-color-${index}"></div>
+            <div class="group-note" id="note-color-${index}"></div>
+            <ha-form id="color-form-${index}"></ha-form>
+          </div>`).join("");
 
-      const style = `
-      :host { display: block; }
-      .editor-container { padding: 16px; max-width: 1200px; margin: 0 auto; }
-      .tabs { display: flex; border-bottom: 1px solid var(--divider-color); margin-bottom: 16px; }
-      .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
-      .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
-      .tab-content { display: none; }
-      .tab-content.active { display: block; }
-      
-      .theme-editor { display: block; }
-      
-      .theme-controls { 
-        display: flex; 
-        flex-direction: column; 
-        gap: 16px;
-      }
-      
-      .control-group {
-        background: var(--card-background-color);
-        border: 1px solid var(--divider-color);
-        border-radius: 8px;
-        padding: 12px;
-      }
-      
-      .group-title {
-        font-size: 14px;
-        font-weight: 600;
-        margin-bottom: 8px;
-        color: var(--primary-text-color);
-      }
-      
-      .clickable-element {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px;
-        border: 1px solid transparent;
-        border-radius: 4px;
-        cursor: pointer;
-        margin: 4px 0;
-        transition: all 0.2s;
-      }
-      
-      .clickable-element:hover {
-        border-color: var(--primary-color);
-        background: rgba(var(--rgb-primary-color), 0.1);
-      }
-      
-      .element-preview {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        border: 1px solid var(--divider-color);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-      }
-      
-      .element-label {
-        font-size: 12px;
-        color: var(--primary-text-color);
-        flex: 1;
-      }
-      
-      .color-picker-inline {
-        background: var(--card-background-color, #ffffff);
-        border: 1px solid var(--divider-color, #ccc);
-        border-radius: 8px;
-        padding: 12px;
-        margin: 8px 0;
-        display: none;
-        position: relative;
-        z-index: 10;
-      }
-      
-      .color-picker-inline.active {
-        display: block;
-      }
-      
-      
-      .reset-btn { 
-        background: var(--error-color);
-        color: white;
-        border: none;
-        padding: 8px 16px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin-top: 16px;
-        width: 100%;
-      }
-      
-      .reset-btn:hover {
-        opacity: 0.8;
-      }
-      
-      .input-row { margin-bottom: 12px; }
-      .input-label { display: block; font-size: 12px; font-weight: 500; margin-bottom: 4px; color: var(--primary-text-color); }
-      .text-input { width: 100%; padding: 8px; border: 1px solid var(--divider-color); border-radius: 4px; background: var(--card-background-color); color: var(--primary-text-color); box-sizing: border-box;}
-      .input-helper { font-size: 11px; color: var(--secondary-text-color); margin-top: 2px; }
-      .checkbox-row { display: flex; align-items: center; justify-content: space-between; }
-    `;
-
-      this._root.innerHTML = `
-      <style>${style}</style>
+    this._root.innerHTML = `
+      <style>${EDITOR_STYLE}</style>
       <div class="editor-container">
-        <h2 style="margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color);">${this._t("editor_title")}</h2>
+        <h2 class="editor-title" id="editor-title"></h2>
         <div class="tabs">
-          <div class="tab active" data-tab="entities">${this._t("tab_entities")}</div>
-          <div class="tab" data-tab="theme">${this._t("tab_theme")}</div>
+          <div class="tab active" data-tab="entities" id="tab-entities"></div>
+          <div class="tab" data-tab="theme" id="tab-theme"></div>
         </div>
-        
-        <div class="tab-content active" id="entities-tab">
-          <ha-form id="entities-form"></ha-form>
-        </div>
-        
-        <div class="tab-content" id="theme-tab">
-          <div class="theme-editor">
-            <div class="theme-controls">
-              <div class="control-group">
-                <div class="group-title">${this._t("group_layout")}</div>
-                <ha-form id="theme-settings-form"></ha-form>
-              </div>
 
-              <div class="control-group">
-                <div class="group-title">${this._t("group_action_colors")}</div>
-                <div class="clickable-element" data-theme="pause_bg" data-label="${this._t("color_pause_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.pause_bg}"></div>
-                  <div class="element-label">${this._t("color_pause_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-pause_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.pause_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="pause_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="pause_icon" data-label="${this._t("color_pause_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.pause_icon}; color: ${this._cfg.theme.pause_icon}">⏸</div>
-                  <div class="element-label">${this._t("color_pause_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-pause_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.pause_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.pause_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="pause_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="resume_bg" data-label="${this._t("color_resume_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.resume_bg}"></div>
-                  <div class="element-label">${this._t("color_resume_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-resume_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.resume_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="resume_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="resume_icon" data-label="${this._t("color_resume_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.resume_icon}; color: ${this._cfg.theme.resume_icon}">▶</div>
-                  <div class="element-label">${this._t("color_resume_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-resume_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.resume_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.resume_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="resume_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="stop_bg" data-label="${this._t("color_stop_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.stop_bg}"></div>
-                  <div class="element-label">${this._t("color_stop_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-stop_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.stop_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="stop_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="stop_icon" data-label="${this._t("color_stop_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.stop_icon}; color: ${this._cfg.theme.stop_icon}">⏹</div>
-                  <div class="element-label">${this._t("color_stop_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-stop_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.stop_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.stop_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="stop_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="light_on_bg" data-label="${this._t("color_light_on_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.light_on_bg}"></div>
-                  <div class="element-label">${this._t("color_light_on_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-light_on_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_on_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_on_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_on_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="light_off_bg" data-label="${this._t("color_light_off_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.light_off_bg}"></div>
-                  <div class="element-label">${this._t("color_light_off_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-light_off_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_off_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_off_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_off_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="light_icon_on" data-label="${this._t("color_light_icon_on")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.light_icon_on}; color: ${this._cfg.theme.light_icon_on}">💡</div>
-                  <div class="element-label">${this._t("color_light_icon_on")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-light_icon_on">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_on)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_icon_on)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_icon_on" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="light_icon_off" data-label="${this._t("color_light_icon_off")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.light_icon_off}; color: ${this._cfg.theme.light_icon_off}">💡</div>
-                  <div class="element-label">${this._t("color_light_icon_off")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-light_icon_off">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.light_icon_off)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.light_icon_off)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="light_icon_off" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="custom_bg" data-label="${this._t("color_custom_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.custom_bg}"></div>
-                  <div class="element-label">${this._t("color_custom_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-custom_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_bg)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="custom_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="custom_icon" data-label="${this._t("color_custom_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.custom_icon}; color: ${this._cfg.theme.custom_icon}">★</div>
-                  <div class="element-label">${this._t("color_custom_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-custom_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${rgbaToHex(this._cfg.theme.custom_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${rgbaToHex(this._cfg.theme.custom_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="custom_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="control-group">
-                <div class="group-title">${this._t("group_status_area")}</div>
-                <div class="clickable-element" data-theme="status_icon" data-label="${this._t("color_status_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.status_icon === 'auto' ? 'var(--primary-color)' : this._cfg.theme.status_icon}">🖨</div>
-                  <div class="element-label">${this._t("color_status_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-status_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_icon === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.status_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${this._cfg.theme.status_icon === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.status_icon)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="status_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="progress_ring" data-label="${this._t("color_progress_ring")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.progress_ring === 'auto' ? 'var(--primary-color)' : this._cfg.theme.progress_ring}">⭕</div>
-                  <div class="element-label">${this._t("color_progress_ring")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-progress_ring">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.progress_ring === 'auto' ? '#000000' : rgbaToHex(this._cfg.theme.progress_ring)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${this._cfg.theme.progress_ring === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.progress_ring)}" placeholder="#000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="progress_ring" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="status_bg" data-label="${this._t("color_status_bg")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.status_bg}">🎯</div>
-                  <div class="element-label">${this._t("color_status_bg")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-status_bg">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.status_bg === 'auto' ? 'var(--card-background-color)' : rgbaToHex(this._cfg.theme.status_bg)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${this._cfg.theme.status_bg === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.status_bg)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="status_bg" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="control-group">
-                <div class="group-title">${this._t("group_telemetry")}</div>
-                <div class="clickable-element" data-theme="telemetry_icon" data-label="${this._t("color_telemetry_icon")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.telemetry_icon}">🌡</div>
-                  <div class="element-label">${this._t("color_telemetry_icon")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-telemetry_icon">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_icon === 'auto' ? 'var(--secondary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_icon)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${this._cfg.theme.telemetry_icon === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.telemetry_icon)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="telemetry_icon" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-                <div class="clickable-element" data-theme="telemetry_text" data-label="${this._t("color_telemetry_text")}">
-                  <div class="element-preview" style="background: ${this._cfg.theme.telemetry_text}">📝</div>
-                  <div class="element-label">${this._t("color_telemetry_text")}</div>
-                </div>
-                <div class="color-picker-inline" id="color-picker-telemetry_text">
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                    <div class="color-preview" style="width: 30px; height: 30px; border: 2px solid #ccc; border-radius: 4px; background: ${this._cfg.theme.telemetry_text === 'auto' ? 'var(--primary-text-color)' : rgbaToHex(this._cfg.theme.telemetry_text)}; cursor: pointer;" title="${this._t("color_picker_hint")}"></div>
-                    <input type="text" class="color-text" value="${this._cfg.theme.telemetry_text === 'auto' ? 'auto' : rgbaToHex(this._cfg.theme.telemetry_text)}" placeholder="auto or #000000" style="flex: 1; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; font-size: 12px;">
-                    <button class="save-color-btn" data-theme="telemetry_text" style="padding: 6px 12px; background: var(--primary-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 12px;">${this._t("btn_save")}</button>
-                  </div>
-                </div>
-              </div>
-              
-              <button class="reset-btn" id="reset-theme">${this._t("btn_reset")}</button>
+        <div class="tab-content active" id="entities-tab">
+          <div class="control-group">
+            <div class="group-title" id="group-device"></div>
+            <div class="group-note" id="note-device"></div>
+            <ha-form id="device-form"></ha-form>
+            <div class="row-actions">
+              <button type="button" class="ghost-btn" id="refill"></button>
+              <span class="status" id="refill-status"></span>
             </div>
           </div>
+          <div class="control-group">
+            <div class="group-title" id="group-entities"></div>
+            <ha-form id="entities-form"></ha-form>
+          </div>
         </div>
-      </div>
-    `;
 
-      this._setupTabs();
-      this._setupEntitiesForm();
-      this._setupThemeEditor();
-
-    } catch (error) {
-      console.error('Error rendering K-Printer Card Editor:', error);
-      this._root.innerHTML = `
-        <div style="padding: 16px; color: var(--error-color);">
-          <h3>Editor Error</h3>
-          <p>${this._t("editor_error_msg")}</p>
-          <p>${this._t("editor_error_prefix")} ${error.message}</p>
+        <div class="tab-content" id="theme-tab">
+          <div class="control-group">
+            <div class="group-title" id="group-layout"></div>
+            <ha-form id="layout-form"></ha-form>
+          </div>
+          ${colorGroups}
+          <button type="button" class="reset-btn" id="reset-theme"></button>
         </div>
-      `;
+      </div>`;
+
+    this._formEls = {};
+    this._appliedSchema = {};
+    this._appliedData = {};
+
+    this._bindForm("device-form", (value) => this._onDeviceChanged(value));
+    this._bindForm("entities-form", (value) => this._onEntitiesChanged(value));
+    this._bindForm("layout-form", (value) => this._onLayoutChanged(value));
+    THEME_COLOR_GROUPS.forEach((group, index) => {
+      this._bindForm(`color-form-${index}`, (value) => this._onColorChanged(group, value));
+    });
+
+    for (const tab of this._root.querySelectorAll(".tab")) {
+      tab.addEventListener("click", () => this._selectTab(tab.dataset.tab));
+    }
+    this._root.getElementById("refill")
+      .addEventListener("click", () => this._applyDeviceFill(true));
+    this._root.getElementById("reset-theme")
+      .addEventListener("click", () => this._resetTheme());
+  }
+
+  /**
+   * Wire one ha-form up.
+   *
+   * computeLabel and computeHelper are assigned unconditionally. ha-form leaves
+   * both undefined until someone sets them, so the `if (form.computeLabel)`
+   * guard this replaces was never true and every label in the editor rendered
+   * as its raw config key.
+   * @param {string} id
+   * @param {function(!Object)} onChange
+   */
+  _bindForm(id, onChange) {
+    const form = this._root.getElementById(id);
+    // Seeded before anything else can render it. _refresh assigns the real
+    // schema on the very next statement, but a throw in between would
+    // otherwise leave a form that crashes rather than one that renders empty.
+    form.schema = [];
+    form.data = {};
+    form.computeLabel = (schema) => this._label(schema);
+    form.computeHelper = (schema) => this._helper(schema);
+    form.addEventListener("value-changed", (ev) => {
+      ev.stopPropagation();
+      const value = ev.detail?.value || {};
+      // The form is now showing `value`, so record it as applied. Without this
+      // the echoed setConfig would see a difference against the last value we
+      // pushed and reassign `data` mid-edit, jogging the control under the
+      // user's finger.
+      this._appliedData[id] = JSON.stringify(value);
+      onChange(value);
+    });
+    this._formEls[id] = form;
+  }
+
+  _selectTab(name) {
+    for (const tab of this._root.querySelectorAll(".tab")) {
+      tab.classList.toggle("active", tab.dataset.tab === name);
+    }
+    for (const content of this._root.querySelectorAll(".tab-content")) {
+      content.classList.toggle("active", content.id === `${name}-tab`);
     }
   }
 
-  _setupTabs() {
-    const tabs = this._root.querySelectorAll('.tab');
-    const contents = this._root.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
-        contents.forEach(c => c.classList.remove('active'));
-
-        tab.classList.add('active');
-        const tabId = tab.dataset.tab + '-tab';
-        this._root.getElementById(tabId).classList.add('active');
-      });
-    });
+  _showBuildError(error) {
+    this._root.innerHTML =
+      '<div class="editor-error" style="padding:16px;color:var(--error-color);"><h3></h3><p></p><p></p></div>';
+    const [heading, message, detail] = this._root.querySelectorAll("h3, p");
+    heading.textContent = this._t("editor_error_title");
+    message.textContent = this._t("editor_error_msg");
+    detail.textContent = `${this._t("editor_error_prefix")} ${error?.message || error}`;
   }
 
-  _setupEntitiesForm() {
-    this._entitiesForm = this._root.getElementById('entities-form');
-    this._entitiesForm.hass = this._hass;
+  // Labels ---------------------------------------------------------------
 
-    // Helper text mapping for form fields
-    const helperText = {
-      "name": "Display name for the printer card",
-      "camera": "Camera entity for live video feed",
-      "status": "Sensor showing current print status",
-      "progress": "Sensor showing print progress (0-100%)",
-      "time_left": "Sensor showing remaining print time (seconds)",
-      "nozzle": "Sensor showing nozzle temperature",
-      "bed": "Sensor showing bed temperature",
-      "box": "Sensor showing chamber/enclosure temperature (optional)",
-      "power": "Optional power switch entity for the printer (shows a Power button when set)",
-      "show_power_button": "Show the Power button when a power switch entity is configured",
-      "layer": "Sensor showing current print layer",
-      "total_layers": "Sensor showing total print layers",
-      "light": "Switch entity for printer light control",
-      "pause_btn": "Button entity to pause printing",
-      "resume_btn": "Button entity to resume printing",
-      "stop_btn": "Button entity to stop printing",
-      "custom_btn": "Any entity to trigger (Button, Script, Switch, etc.)",
-      "custom_btn_icon": "Icon for the custom button",
-      "custom_btn_hidden": "Hide the custom button",
-      "button_order": "List of buttons to show in order (pause, resume, stop, light, power, custom)"
-    };
-
-    this._entitiesForm.schema = [
-      { name: "name", selector: { text: {} } },
-      { name: "camera", selector: { entity: { domain: "camera" } } },
-      { name: "status", selector: { entity: { domain: "sensor" } } },
-      { name: "progress", selector: { entity: { domain: "sensor" } } },
-      { name: "time_left", selector: { entity: { domain: "sensor" } } },
-      { name: "nozzle", selector: { entity: { domain: "sensor" } } },
-      { name: "bed", selector: { entity: { domain: "sensor" } } },
-      { name: "box", selector: { entity: { domain: "sensor" } } },
-      { name: "power", selector: { entity: { domain: ["switch", "input_boolean"] } } },
-      { name: "show_power_button", selector: { boolean: {} } },
-      { name: "layer", selector: { entity: { domain: "sensor" } } },
-      { name: "total_layers", selector: { entity: { domain: "sensor" } } },
-      { name: "light", selector: { entity: { domain: ["switch", "light"] } } },
-      { name: "pause_btn", selector: { entity: { domain: "button" } } },
-      { name: "resume_btn", selector: { entity: { domain: "button" } } },
-      { name: "stop_btn", selector: { entity: { domain: "button" } } },
-      { name: "custom_btn", selector: { entity: {} } },
-    ];
-
-    // Label text mapping for form fields
-    const labelText = {
-      "name": this._t("label_name"),
-      "camera": this._t("label_camera"),
-      "status": this._t("label_status"),
-      "progress": this._t("label_progress"),
-      "time_left": this._t("label_time_left"),
-      "nozzle": this._t("label_nozzle"),
-      "bed": this._t("label_bed"),
-      "box": this._t("label_box"),
-      "power": this._t("label_power"),
-      "show_power_button": this._t("label_show_power_button"),
-      "layer": this._t("label_layer"),
-      "total_layers": this._t("label_total_layers"),
-      "light": this._t("label_light"),
-      "pause_btn": this._t("label_pause_btn"),
-      "resume_btn": this._t("label_resume_btn"),
-      "stop_btn": this._t("label_stop_btn"),
-      "custom_btn": this._t("label_custom_btn"),
-      "custom_btn_icon": this._t("label_custom_btn_icon"),
-      "custom_btn_hidden": this._t("label_custom_btn_hidden"),
-      "button_order": this._t("label_button_order"),
-    };
-
-    // Add label computation using computeLabel if supported
-    if (this._entitiesForm.computeLabel) {
-      const originalComputeLabel = this._entitiesForm.computeLabel.bind(this._entitiesForm);
-      this._entitiesForm.computeLabel = (schema) => {
-        return labelText[schema.name] || originalComputeLabel(schema);
-      };
-    }
-
-    // Add helper text using computeHelper if supported
-    if (this._entitiesForm.computeHelper) {
-      const originalComputeHelper = this._entitiesForm.computeHelper.bind(this._entitiesForm);
-      this._entitiesForm.computeHelper = (schema) => {
-        return helperText[schema.name] || originalComputeHelper(schema);
-      };
-    }
-
-    this._entitiesForm.data = this._cfg;
-
-    this._entitiesForm.addEventListener("value-changed", (ev) => {
-      const val = ev.detail?.value || {};
-      this._cfg = { ...this._cfg, ...val };
-      this._dispatchConfigChange();
-    });
+  _label(schema) {
+    const name = schema?.name || "";
+    if (!name) return "";
+    if (name.endsWith(OPACITY_SUFFIX)) return this._t("label_opacity");
+    if (name.endsWith(AUTO_SUFFIX)) return this._t("label_color_auto");
+    const key = THEME_COLOR_FIELDS.has(name) ? `color_${name}` : `label_${name}`;
+    return this._tOr(key, humanizeName(name));
   }
 
-  _setupThemeEditor() {
+  _helper(schema) {
+    const name = schema?.name || "";
+    if (!name || name.endsWith(OPACITY_SUFFIX)) return "";
+    // The explanation belongs on the switch, which is the control that acts on
+    // it; the colour picker below only appears once automatic is off.
+    if (name.endsWith(AUTO_SUFFIX)) {
+      return this._tOr(`helper_auto_${name.slice(0, -AUTO_SUFFIX.length)}`, "");
+    }
+    if (THEME_COLOR_FIELDS.has(name)) return "";
+    return this._tOr(`helper_${name}`, "");
+  }
 
-    // Setup generic config form (Layout & Icons)
-    this._themeSettingsForm = this._root.getElementById('theme-settings-form');
-    this._themeSettingsForm.hass = this._hass;
+  // Schemas --------------------------------------------------------------
 
-    const themeSettingsSchema = [
-      { name: "button_order", selector: { text: {} }, label: this._t("schema_button_order") },
-      { name: "custom_btn_hidden", selector: { boolean: {} }, label: this._t("schema_hide_custom") },
-      { name: "hide_box_temp", selector: { boolean: {} }, label: this._t("schema_hide_box_temp") },
-      { name: "pause_btn_icon", selector: { icon: {} }, label: this._t("schema_pause_icon") },
-      { name: "resume_btn_icon", selector: { icon: {} }, label: this._t("schema_resume_icon") },
-      { name: "stop_btn_icon", selector: { icon: {} }, label: this._t("schema_stop_icon") },
-      { name: "light_btn_icon", selector: { icon: {} }, label: this._t("schema_light_icon") },
-      { name: "power_btn_icon", selector: { icon: {} }, label: this._t("schema_power_icon") },
-      { name: "custom_btn_icon", selector: { icon: {} }, label: this._t("schema_custom_icon") },
-    ];
+  // Refresh --------------------------------------------------------------
 
-    // Polyfill label if needed or rely on 'label' property in schema if HA supports it (HA Form supports 'label' in schema usually? No, it uses computeLabel)
-    // Let's use computeLabel for this form too.
-    this._themeSettingsForm.schema = themeSettingsSchema;
-
-    // Prepare data for the form. button_order needs to be stringified if it's an array, or handled as list.
-    // Text input expects string.
-    const prepareFormData = (cfg) => {
-      return {
-        ...cfg,
-        button_order: Array.isArray(cfg.button_order) ? cfg.button_order.join(', ') : cfg.button_order
-      };
-    };
-
-    this._themeSettingsForm.data = prepareFormData(this._cfg);
-
-    this._themeSettingsForm.addEventListener("value-changed", (ev) => {
-      const val = ev.detail?.value || {};
-
-      // Post-process button_order back to array
-      if (val.button_order && typeof val.button_order === 'string') {
-        val.button_order = val.button_order.split(',').map(s => s.trim()).filter(s => s);
-      }
-
-      this._cfg = { ...this._cfg, ...val };
-      this._dispatchConfigChange();
-    });
-
-    // Setup clickable elements to toggle inline color pickers
-    const clickableElements = this._root.querySelectorAll('.clickable-element');
-    clickableElements.forEach(element => {
-      element.addEventListener('click', () => {
-        const themeKey = element.dataset.theme;
-        this._toggleColorPicker(themeKey);
-      });
-    });
-
-    // Setup color picker interactions
-    this._setupColorPickerInteractions();
-
-    // Setup reset button
-    this._root.getElementById('reset-theme').addEventListener('click', () => {
-      const defaultConfig = KPrinterCard.getStubConfig();
-      // Reset Theme
-      this._cfg.theme = { ...defaultConfig.theme };
-
-      // Reset Layout & Icons
-      ['button_order', 'custom_btn_hidden', 'pause_btn_icon', 'resume_btn_icon', 'stop_btn_icon', 'light_btn_icon', 'power_btn_icon', 'custom_btn_icon'].forEach(k => {
-        this._cfg[k] = defaultConfig[k];
-      });
-
-      // Clear saved theme from storage
-      const cardId = generateCardId(this._cfg);
+  _refresh() {
+    // The shell is built here, not in connectedCallback, and only once there is
+    // a config: Home Assistant attaches the editor to the DOM before it calls
+    // setConfig (hui-element-editor assigns _configElement, which renders, and
+    // only then calls setConfig). An ha-form reads `schema` unguarded in its
+    // own render(), so attaching one before the schema exists throws out of
+    // Lit's update and takes the whole editor down.
+    if (!this._root || !this._cfg) return;
+    if (!this._formEls) {
       try {
-        const themes = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || "{}");
-        delete themes[cardId];
-        localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themes));
-      } catch (e) {
-        console.warn("Failed to clear theme from localStorage:", e);
+        this._build();
+      } catch (error) {
+        console.error("Error building K-Printer Card editor:", error);
+        this._showBuildError(error);
+        return;
       }
+    }
 
-      this._updateThemeControls();
+    // A refresh runs from the hass setter, which Home Assistant calls out of
+    // hui-element-editor's own Lit update. Throwing from there breaks that
+    // update rather than just this editor, so a failure is reported in place
+    // instead of being allowed to escape.
+    try {
+      this._refreshForms();
+    } catch (error) {
+      // Dump what the instance actually looked like: the one failure of this
+      // kind reported so far was a method missing from an instance while
+      // present on its prototype, and that is only diagnosable after the fact.
+      console.error("Error refreshing K-Printer Card editor:", error, {
+        constructor: this.constructor?.name,
+        own: Object.getOwnPropertyNames(this).join(" "),
+        proto: Object.getOwnPropertyNames(Object.getPrototypeOf(this) || {}).join(" "),
+      });
+      this._showBuildError(error);
+      this._formEls = null;
+    }
+  }
 
-      // Update config inputs as well
-      if (this._themeSettingsForm) {
-        this._themeSettingsForm.data = prepareFormData(this._cfg);
-      }
+  _refreshForms() {
 
-      this._dispatchConfigChange();
+    const text = {
+      "editor-title": this._t("editor_title"),
+      "tab-entities": this._t("tab_entities"),
+      "tab-theme": this._t("tab_theme"),
+      "group-device": this._t("group_device"),
+      "note-device": this._t("note_device"),
+      "group-entities": this._t("group_entities"),
+      "group-layout": this._t("group_layout"),
+      refill: this._t("btn_refill_from_device"),
+      "reset-theme": this._t("btn_reset"),
+    };
+    for (const [id, value] of Object.entries(text)) {
+      const el = this._root.getElementById(id);
+      if (el) el.textContent = value;
+    }
+    this._root.getElementById("refill").disabled = !this._cfg.device;
+
+    this._applyForm("device-form", deviceSchema(), { device: this._cfg.device || "" });
+    this._applyForm("entities-form", entitiesSchema(), entitiesData(this._cfg));
+    this._applyForm("layout-form", layoutSchema(), layoutData(this._cfg));
+
+    THEME_COLOR_GROUPS.forEach((group, index) => {
+      this._root.getElementById(`group-color-${index}`).textContent = this._t(group.title);
+      this._root.getElementById(`note-color-${index}`).textContent = this._t(group.note);
+      this._applyForm(`color-form-${index}`, colorSchema(this._cfg, group), colorData(this._cfg, group));
     });
   }
 
-  _toggleColorPicker(themeKey) {
-    const picker = this._root.getElementById(`color-picker-${themeKey}`);
-    if (!picker) return;
+  /**
+   * Push schema and data at a form, skipping assignments that change nothing.
+   *
+   * Lovelace answers every config-changed by calling setConfig again, so a
+   * refresh runs on every keystroke and every drag of the opacity slider.
+   * Reassigning identical data would make the control fight whatever the user
+   * is doing to it.
+   */
+  _applyForm(id, schema, data) {
+    const form = this._formEls[id];
+    if (!form) return;
+    if (this._hass) form.hass = this._hass;
 
-    // If this picker is already active, close it
-    if (picker.classList.contains('active')) {
-      picker.classList.remove('active');
+    const schemaJson = JSON.stringify(schema);
+    if (this._appliedSchema[id] !== schemaJson) {
+      this._appliedSchema[id] = schemaJson;
+      form.schema = schema;
+    }
+    const dataJson = JSON.stringify(data);
+    if (this._appliedData[id] !== dataJson) {
+      this._appliedData[id] = dataJson;
+      form.data = data;
+    }
+  }
+
+  // Changes --------------------------------------------------------------
+
+  _onEntitiesChanged(value) {
+    this._cfg = { ...this._cfg, ...value };
+    this._dispatchConfigChange();
+  }
+
+  _onLayoutChanged(value) {
+    const next = { ...value };
+    if (typeof next.button_order === "string") {
+      next.button_order = next.button_order.split(",").map((s) => s.trim()).filter(Boolean);
+    }
+    this._cfg = { ...this._cfg, ...next };
+    this._dispatchConfigChange();
+  }
+
+  _onColorChanged(group, value) {
+    const defaults = KPrinterCard.getStubConfig().theme;
+    const theme = { ...this._cfg.theme };
+    const wasAuto = new Map(group.fields.map((field) => [field.key, isAutoColor(this._cfg, field)]));
+    for (const field of group.fields) {
+      if (field.auto) {
+        // Absent means the switch was not rendered, which only happens while
+        // the field is already automatic.
+        if (value[`${field.key}${AUTO_SUFFIX}`] !== false) {
+          theme[field.key] = "auto";
+          continue;
+        }
+        if (wasAuto.get(field.key) && !Array.isArray(value[field.key])) {
+          // Automatic was just switched off and there is no colour yet. Seed a
+          // plausible one rather than leaving the picker on black, which looks
+          // like a bug on every theme.
+          theme[field.key] = field.seed;
+          continue;
+        }
+      }
+      const rgb = value[field.key];
+      if (!Array.isArray(rgb) || rgb.length < 3) {
+        // Nothing the picker can express: a var() or a named colour written by
+        // hand, which reaches the form as no value at all. Every field in the
+        // group is rewritten on any change here, so leaving it alone is what
+        // keeps an edit to one colour from eating another.
+        continue;
+      }
+      const alpha = field.alpha
+        ? clamp(Number(value[`${field.key}${OPACITY_SUFFIX}`] ?? 100), 0, 100) / 100
+        : 1;
+      theme[field.key] = formatColor(rgb, alpha);
+    }
+    this._cfg = { ...this._cfg, theme };
+    // Switching a field to or from automatic adds or removes its colour rows,
+    // so the form has to be rebuilt now rather than waiting for the debounced
+    // config-changed to come back round as a setConfig. Every other edit
+    // leaves the shape alone and is left for the control itself to show.
+    if (group.fields.some((field) => isAutoColor(this._cfg, field) !== wasAuto.get(field.key))) {
+      this._refresh();
+    }
+    this._dispatchConfigChange();
+  }
+
+  _onDeviceChanged(value) {
+    const deviceId = value.device || "";
+    if (deviceId === (this._cfg.device || "")) return;
+    this._cfg = { ...this._cfg, device: deviceId };
+    if (deviceId) {
+      // Picking a device fills what is still blank; replacing a field the user
+      // already chose is what the button next to it is for.
+      this._applyDeviceFill(false);
       return;
     }
-
-    // Hide all other color pickers
-    const allPickers = this._root.querySelectorAll('.color-picker-inline');
-    allPickers.forEach(p => {
-      p.classList.remove('active');
-    });
-
-    // Show the clicked color picker
-    picker.classList.add('active');
+    this._setRefillStatus("");
+    this._refresh();
+    this._dispatchConfigChange();
   }
 
-  _setupColorPickerInteractions() {
-    // Setup color preview clicks to open native color picker
-    const colorPreviews = this._root.querySelectorAll('.color-preview');
-    colorPreviews.forEach(preview => {
-      preview.addEventListener('click', () => {
-        const picker = preview.closest('.color-picker-inline');
-        if (picker) {
-          const textInput = picker.querySelector('.color-text');
-          if (textInput) {
-            // Create a visible color input that stays in the editor
-            const input = document.createElement('input');
-            input.type = 'color';
-            input.value = textInput.value === 'auto' ? '#000000' : textInput.value;
+  // Device prefill -------------------------------------------------------
 
-            // Style the input to be visible and positioned within the picker
-            input.style.position = 'absolute';
-            input.style.left = '0';
-            input.style.top = '0';
-            input.style.width = '100%';
-            input.style.height = '100%';
-            input.style.opacity = '0';
-            input.style.cursor = 'pointer';
-            input.style.zIndex = '10';
-
-            // Add the input to the picker container
-            picker.style.position = 'relative';
-            picker.appendChild(input);
-
-            // Focus and click the input
-            input.focus();
-            input.click();
-
-            // Handle color change
-            input.addEventListener('change', () => {
-              const newColor = input.value;
-              textInput.value = newColor;
-              preview.style.background = newColor;
-
-              // Remove the input after color selection
-              if (picker.contains(input)) {
-                picker.removeChild(input);
-              }
-            });
-
-            // Handle escape key
-            const handleKeyDown = (e) => {
-              if (e.key === 'Escape') {
-                if (picker.contains(input)) {
-                  picker.removeChild(input);
-                }
-                document.removeEventListener('keydown', handleKeyDown);
-              }
-            };
-            document.addEventListener('keydown', handleKeyDown);
-
-            // Handle clicks outside the picker
-            const handleClickOutside = (e) => {
-              if (!picker.contains(e.target)) {
-                if (picker.contains(input)) {
-                  picker.removeChild(input);
-                }
-                document.removeEventListener('click', handleClickOutside);
-              }
-            };
-
-            // Add click outside handler after a delay
-            setTimeout(() => {
-              document.addEventListener('click', handleClickOutside);
-            }, 100);
-          }
-        }
-      });
-    });
-
-    // Setup text input changes
-    const colorTexts = this._root.querySelectorAll('.color-text');
-    colorTexts.forEach(textInput => {
-      textInput.addEventListener('input', () => {
-        const value = textInput.value;
-        if (/^#[0-9A-Fa-f]{6}$/.test(value)) {
-          const picker = textInput.closest('.color-picker-inline');
-          if (picker) {
-            const preview = picker.querySelector('.color-preview');
-            if (preview) {
-              preview.style.background = value;
-            }
-          }
-        }
-      });
-    });
-
-    // Setup save buttons
-    const saveButtons = this._root.querySelectorAll('.save-color-btn');
-    saveButtons.forEach(button => {
-      button.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        const themeKey = button.dataset.theme;
-        const picker = button.closest('.color-picker-inline');
-        if (picker) {
-          const textInput = picker.querySelector('.color-text');
-          if (textInput) {
-            let newValue;
-            const inputValue = textInput.value;
-
-            // Handle special cases for auto-supported fields
-            if ((themeKey === 'status_icon' || themeKey === 'progress_ring' ||
-              themeKey === 'status_bg' || themeKey === 'telemetry_icon' ||
-              themeKey === 'telemetry_text') && inputValue === 'auto') {
-              newValue = 'auto';
-            } else if (/^#[0-9A-Fa-f]{6}$/.test(inputValue)) {
-              newValue = hexToRgba(inputValue, 0.9);
-            } else {
-              // Keep existing value if input is invalid
-              newValue = this._cfg.theme[themeKey];
-            }
-
-
-            this._cfg.theme = { ...this._cfg.theme, [themeKey]: newValue };
-
-            // Save to storage
-            const cardId = generateCardId(this._cfg);
-            saveThemeToStorage(cardId, this._cfg.theme);
-
-            this._updateThemeControls();
-
-            // Hide the color picker first
-            picker.classList.remove('active');
-
-            // Dispatch config change after a small delay to prevent tab switching
-            setTimeout(() => {
-              this._dispatchConfigChange();
-            }, 100);
-          }
-        }
-      });
-    });
+  /**
+   * Entity ids the chosen device can supply, as a config patch.
+   * @param {boolean} overwrite Replace fields that already hold a value.
+   * @return {!Object<string, string>}
+   */
+  _prefillFromDevice(overwrite) {
+    const deviceId = this._cfg.device;
+    const patch = {};
+    for (const [role, entityId] of Object.entries(entitiesForDevice(this._hass, deviceId))) {
+      if (overwrite || !this._cfg[role]) patch[role] = entityId;
+    }
+    const device = this._hass?.devices?.[deviceId];
+    const deviceName = device?.name_by_user || device?.name || "";
+    // Every card starts life named "3D Printer", so that counts as unset --
+    // otherwise the field the user most expects to be filled never would be.
+    const nameUnset = !this._cfg.name || this._cfg.name === DEFAULT_CARD_NAME;
+    if (deviceName && (overwrite || nameUnset)) patch.name = deviceName;
+    return patch;
   }
 
+  _applyDeviceFill(overwrite) {
+    // The card name is filled too but is not counted: it is the one field
+    // right above the button, so "13 of 13" reads as a claim about the entity
+    // list rather than an off-by-one.
+    const roles = Object.keys(DEVICE_ROLE_ENTITIES);
+    const available = Object.keys(entitiesForDevice(this._hass, this._cfg.device)).length;
+    const patch = this._prefillFromDevice(overwrite);
+    const filled = roles.filter((role) => role in patch).length;
 
+    this._cfg = { ...this._cfg, ...patch };
+    this._setRefillStatus(available
+      ? this._t("status_device_filled", { filled, total: roles.length })
+      : this._t("status_device_empty"));
+    this._refresh();
+    this._dispatchConfigChange();
+  }
 
-  _updateThemeControls() {
-    // Update all preview elements with new colors
-    const clickableElements = this._root.querySelectorAll('.clickable-element');
-    clickableElements.forEach(element => {
-      const themeKey = element.dataset.theme;
-      const preview = element.querySelector('.element-preview');
-      const currentValue = this._cfg.theme[themeKey] || '';
+  _setRefillStatus(text) {
+    const el = this._root?.getElementById("refill-status");
+    if (el) el.textContent = text;
+  }
 
-      if (themeKey === 'status_icon' || themeKey === 'progress_ring') {
-        preview.style.background = currentValue === 'auto' ? 'var(--primary-color)' : currentValue;
-      } else {
-        preview.style.background = currentValue;
-      }
+  // Reset ----------------------------------------------------------------
 
-      if (['pause_icon', 'resume_icon', 'stop_icon', 'light_icon_on', 'light_icon_off', 'custom_icon'].includes(themeKey)) {
-        preview.style.color = currentValue;
-      }
-    });
+  _resetTheme() {
+    const defaults = KPrinterCard.getStubConfig();
+    const cfg = { ...this._cfg, theme: { ...defaults.theme } };
+    for (const key of LAYOUT_RESET_KEYS) cfg[key] = defaults[key];
 
-    // Update color picker previews and text inputs
-    const colorPickers = this._root.querySelectorAll('.color-picker-inline');
-    colorPickers.forEach(picker => {
-      const themeKey = picker.id.replace('color-picker-', '');
-      const themeValue = this._cfg.theme[themeKey];
-      const preview = picker.querySelector('.color-preview');
-      const textInput = picker.querySelector('.color-text');
+    // Clear the localStorage copy too: setConfig falls back to it for a config
+    // that carries no theme of its own, so leaving it behind would resurrect
+    // the old colours on the next load.
+    try {
+      const themes = JSON.parse(localStorage.getItem(THEME_STORAGE_KEY) || "{}");
+      delete themes[generateCardId(cfg)];
+      localStorage.setItem(THEME_STORAGE_KEY, JSON.stringify(themes));
+    } catch (err) {
+      console.warn("Failed to clear theme from localStorage:", err);
+    }
 
-      if (preview && textInput) {
-        if (themeKey === 'status_icon' || themeKey === 'progress_ring' ||
-          themeKey === 'status_bg' || themeKey === 'telemetry_icon' ||
-          themeKey === 'telemetry_text') {
-          if (themeValue === 'auto') {
-            // Show appropriate theme color for auto values
-            if (themeKey === 'status_bg') {
-              preview.style.background = 'var(--card-background-color)';
-            } else if (themeKey === 'telemetry_icon') {
-              preview.style.background = 'var(--secondary-text-color)';
-            } else if (themeKey === 'telemetry_text') {
-              preview.style.background = 'var(--primary-text-color)';
-            } else {
-              preview.style.background = '#000000';
-            }
-            textInput.value = 'auto';
-          } else {
-            preview.style.background = rgbaToHex(themeValue);
-            textInput.value = rgbaToHex(themeValue);
-          }
-        } else {
-          preview.style.background = rgbaToHex(themeValue);
-          textInput.value = rgbaToHex(themeValue);
-        }
-      }
-    });
+    this._cfg = cfg;
+    this._refresh();
+    this._dispatchConfigChange();
   }
 
   _dispatchConfigChange() {
     clearTimeout(this._debounceTimer);
     this._debounceTimer = setTimeout(() => {
-      // Preserve current tab state
-      const activeTab = this._root.querySelector('.tab.active');
-      const activeTabId = activeTab ? activeTab.dataset.tab : 'entities';
-
-      this.dispatchEvent(new CustomEvent("config-changed", { detail: { config: this._cfg } }));
-
-      // Restore tab state after a brief delay
-      setTimeout(() => {
-        this._restoreTabState(activeTabId);
-      }, 50);
+      this._debounceTimer = null;
+      this._emitConfig();
     }, 120);
   }
 
-  _restoreTabState(activeTabId) {
-    // Switch to the preserved tab
-    const tabs = this._root.querySelectorAll('.tab');
-    const tabContents = this._root.querySelectorAll('.tab-content');
-
-    tabs.forEach(tab => {
-      tab.classList.remove('active');
-      if (tab.dataset.tab === activeTabId) {
-        tab.classList.add('active');
-      }
-    });
-
-    tabContents.forEach(content => {
-      content.classList.remove('active');
-      if (content.id === `${activeTabId}-tab`) {
-        content.classList.add('active');
-      }
-    });
+  _emitConfig() {
+    // The theme is persisted here rather than at each change: an opacity slider
+    // emits on every pointer move, and each one would otherwise be a
+    // localStorage write. The card saves the same thing again from setConfig.
+    saveThemeToStorage(generateCardId(this._cfg), this._cfg.theme);
+    this.dispatchEvent(new CustomEvent("config-changed", {
+      detail: { config: this._cfg },
+      bubbles: true,
+      composed: true,
+    }));
   }
 }
-customElements.define(EDITOR_TAG, KPrinterCardEditor);
+defineOnce(EDITOR_TAG, KPrinterCardEditor);
 
 try {
   window.customCards = window.customCards || [];

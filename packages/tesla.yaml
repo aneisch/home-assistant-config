@@ -16,22 +16,35 @@ template:
       state: '{{ is_state(''binary_sensor.tesla_locked'', ''off'') }}'
 
   - sensor:
-    # This is needed to to flipping of milage reported by odometer. Prevents over-counting
-    - name: "Tesla Odometer Stable"
-      unit_of_measurement: "mi"
-      device_class: distance
-      state_class: total_increasing
-      state: >
-        {% set current = states('sensor.tesla_odometer') | float(-1) %}
-        {% set last = states('sensor.tesla_odometer_stable') | float(-1) %}
-        
-        {# If the current reading is invalid, unavailable, or 0, stick to the last known good value #}
-        {% if current <= 0 %}
-          {{ last if last > 0 else 0 }}
-        {% else %}
-          {# Only update if the new value is greater than or equal to the last known value #}
+      # Prevents over-counting when the odometer flips or drops out.
+      # Unavailable (never 0) when there's no valid reading, so utility meters skip it.
+      - name: "Tesla Odometer Stable"
+        unit_of_measurement: "mi"
+        device_class: distance
+        state_class: total_increasing
+        availability: >
+          {{ states('sensor.tesla_odometer') | float(0) > 0
+            or this.state | float(0) > 0 }}
+        state: >
+          {% set current = states('sensor.tesla_odometer') | float(0) %}
+          {% set last = this.state | float(0) %}
           {{ [current, last] | max }}
-        {% endif %}
+
+  - sensor:
+      # Emporia sometimes replays a stale 15–30 min window on a loop; never let it go backwards
+      - name: "Tesla Energy This Month Stable"
+        unique_id: tesla_energy_this_month_stable
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state_class: total_increasing
+        availability: >
+          {{ has_value('sensor.tesla_energy_this_month') or this.state | float(-1) >= 0 }}
+        state: >
+          {% set c = states('sensor.tesla_energy_this_month') | float(-1) %}
+          {% set l = this.state | float(0) %}
+          {% if c < 0 %}{{ l | round(2) }}
+          {% elif c < l and now().day == 1 %}{{ c | round(2) }}
+          {% else %}{{ [c, l] | max | round(2) }}{% endif %}
 
 input_number:
   # Emporia View, Appdaemon app, and Tesla BLE follow this
@@ -827,7 +840,7 @@ script:
           - delay: '00:00:05'
           - action: number.set_value
             data:
-              value: "75"
+              value: "72"
             target:
               entity_id: number.tesla_ble_climate_temp
           # turn off seat and steering heat

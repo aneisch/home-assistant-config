@@ -1,11 +1,7 @@
 import time
 
-from homeassistant.components.light import (
-    ColorMode,
-    LightEntity,
-    LightEntityFeature,
-)
-from homeassistant.const import EntityCategory
+from homeassistant.components.light import ColorMode, LightEntity, LightEntityFeature
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.util import color
 
 from .core.const import DOMAIN
@@ -293,7 +289,7 @@ class XLightB1(XLight):
             elif color_temp_kelvin >= 3500:
                 params = {"channel0": ch, "channel1": ch}
             else:
-                params = {"channel0": ch, "channel1": ch}
+                params = {"channel0": "0", "channel1": ch}
 
             return {
                 **params,
@@ -1019,7 +1015,7 @@ class XZigbeeColorTemp(XLight):
     _attr_min_color_temp_kelvin = 2200
     _attr_max_color_temp_kelvin = 4000
 
-    _attr_color_mode = ColorMode.ONOFF
+    _attr_color_mode = ColorMode.COLOR_TEMP
     _attr_supported_color_modes = {ColorMode.COLOR_TEMP}
 
     def set_state(self, params: dict):

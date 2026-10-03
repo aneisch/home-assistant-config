@@ -15,6 +15,7 @@ INFRARED_ICON = "mdi:weather-night"
 DISARMING_ICON = "mdi:alarm-check"
 VOLUME_HIGH_ICON = "mdi:volume-high"
 BELL_ICON = "mdi:bell-ring"
+PRIVACY_MODE_ICON = "mdi:shield-lock"
 
 # Device classes - https://www.home-assistant.io/integrations/binary_sensor/#device-class
 MOTION_SENSOR_DEVICE_CLASS = "motion"
@@ -29,7 +30,10 @@ SWITCH = "switch"
 LIGHT = "light"
 CAMERA = "camera"
 SELECT = "select"
-PLATFORMS = [BINARY_SENSOR, SWITCH, LIGHT, CAMERA, SELECT]
+BUTTON = "button"
+SENSOR = "sensor"
+EVENT = "event"
+PLATFORMS = [BINARY_SENSOR, SWITCH, LIGHT, CAMERA, SELECT, BUTTON, SENSOR, EVENT]
 
 
 # Configuration and options
@@ -39,13 +43,50 @@ CONF_PASSWORD = "password"
 CONF_ADDRESS = "address"
 CONF_PORT = "port"
 CONF_RTSP_PORT = "rtsp_port"
-CONF_STREAMS = "streams"
 CONF_EVENTS = "events"
 CONF_NAME = "name"
 CONF_CHANNEL = "channel"
+CONF_AUTO_DETECT_CHANNEL = "auto_detect_channel"
+# Which other channels of a recorder to add alongside the one being set up.
+CONF_EXTRA_CHANNELS = "extra_channels"
+# Take every channel discovery found, without ticking sixteen boxes.
+CONF_ALL_CHANNELS = "all_channels"
+# Which Home Assistant area this device belongs in, as an area_id. Chosen while
+# adding a recorder, so ten channels do not arrive unfiled.
+CONF_AREA = "area"
+CONF_USE_HTTPS = "use_https"
+CONF_SCAN_INTERVAL = "scan_interval"
+# Prototype: route config reads over RPC2's session instead of a fresh digest
+# handshake per call. Off by default -- see #636.
+CONF_USE_RPC2 = "use_rpc2"
+CONF_NVR_ACTIVE_DETERRENCE = "nvr_active_deterrence"
+CONF_MANUAL_SIREN = "manual_siren"
+CONF_MANUAL_SECURITY_LIGHT = "manual_security_light"
+# Ask go2rtc not to open the RTSP talk channel. It otherwise holds it for as
+# long as HA streams, which puts doorbells in a call state -- see #595.
+CONF_DISABLE_BACKCHANNEL = "disable_backchannel"
+CONF_AUTHORIZED_PLATES = "authorized_plates"
+CONF_AUTHORIZED_HOLD_TIME = "authorized_hold_time"
+
+# Events
+EVENT_DAHUA_ANPR_RECOGNIZED = "dahua_anpr_recognized"
 
 # Defaults
 DEFAULT_NAME = "Dahua"
+# What an entry subscribes to when nothing has ever said otherwise. Lives here
+# rather than in config_flow because __init__ needs it too, and config_flow
+# imports __init__ back.
+DEFAULT_EVENTS = ["VideoMotion", "CrossLineDetection", "AlarmLocal", "VideoLoss",
+                  "VideoBlind", "AudioMutation", "CrossRegionDetection",
+                  "SmartMotionHuman", "SmartMotionVehicle"]
+DEFAULT_AUTHORIZED_HOLD_TIME = 60
+# How often the coordinator polls each device for its settings. Events do not
+# come from polling - they arrive on the event stream - so this only paces the
+# configuration read-back.
+DEFAULT_SCAN_INTERVAL = 30
+# Below this the polling costs more than it tells you, especially on an NVR
+# where every channel is a separate entry against the same host.
+MIN_SCAN_INTERVAL = 10
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------

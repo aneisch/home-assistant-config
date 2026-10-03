@@ -1,10 +1,6 @@
 from __future__ import annotations
 
 from homeassistant.components.fan import FanEntity, FanEntityFeature  # type: ignore[import]
-try:  # HA newer attribute name
-    from homeassistant.components.fan import ATTR_PERCENTAGE  # type: ignore[import]
-except Exception:  # fallback for older cores
-    ATTR_PERCENTAGE = "percentage"  # type: ignore[assignment]
 
 from .const import DOMAIN
 from .entity import KEntity
@@ -66,39 +62,29 @@ class _KFanEntity(KEntity, FanEntity):
         cmd = f"M106 P{self._channel} S{s_val}"
         await self.coordinator.client.send_set_retry(gcodeCmd=cmd)
 
-    async def async_turn_on(self, *args, **kwargs) -> None:  # type: ignore[override]
-        """Turn on the fan, honoring provided percentage across HA versions.
+    async def async_turn_on(
+        self,
+        percentage: int | None = None,
+        preset_mode: str | None = None,
+        **kwargs,
+    ) -> None:
+        """Turn the fan on, at the requested percentage if one was given.
 
-        Accepts positional args for backward-compat (older cores may pass speed/percentage
-        positionally) and keyword args via ATTR_PERCENTAGE/"percentage".
+        With no percentage, restore whatever the fan was last running at, or go
+        to full -- turning a fan "on" to 0% would be indistinguishable from off.
         """
         pct: int | None = None
-        # Try kwargs first
-        if ATTR_PERCENTAGE in kwargs and kwargs[ATTR_PERCENTAGE] is not None:
+        if percentage is not None:
             try:
-                pct = int(round(float(kwargs[ATTR_PERCENTAGE])))
-            except (TypeError, ValueError):
-                pct = None
-        elif "percentage" in kwargs and kwargs["percentage"] is not None:
-            try:
-                pct = int(round(float(kwargs["percentage"])))
+                pct = int(round(float(percentage)))
             except (TypeError, ValueError):
                 pct = None
 
-        # Positional compatibility: some cores pass (speed, percentage, preset_mode)
-        if pct is None and args:
-            # pick last numeric positional as percentage candidate
-            for a in reversed(args):
-                if isinstance(a, (int, float)):
-                    pct = int(round(float(a)))
-                    break
-
-        # Default if still None: use current or 100%
         if pct is None:
-            curr = self.percentage or 0
-            pct = curr if curr > 0 else 100
+            current = self.percentage or 0
+            pct = current if current > 0 else 100
 
-        await self.async_set_percentage(int(pct))
+        await self.async_set_percentage(pct)
 
     async def async_turn_off(self, **kwargs) -> None:  # type: ignore[override]
         await self.async_set_percentage(0)

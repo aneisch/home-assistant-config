@@ -13,3 +13,82 @@ request_cfs_info:
         device:
           integration: ha_creality_ws
           multiple: true
+
+set_cfs_material:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: ha_creality_ws
+          multiple: true
+    box_id:
+      required: true
+      default: 1
+      selector:
+        number:
+          # No upper bound: box_id is whatever the printer reports, and an
+          # external unit can present a high id (7 has been observed). Capping it
+          # at 4 made those slots unwritable. The printer rejects an unknown id.
+          min: 0
+          mode: box
+    slot_id:
+      required: true
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 3
+          mode: box
+    type:
+      required: true
+      example: "PLA"
+      selector:
+        text:
+    name:
+      required: false
+      example: "Hyper PLA"
+      selector:
+        text:
+    vendor:
+      required: false
+      example: "Creality"
+      selector:
+        text:
+    # A plain hex string, not the color_rgb selector: that selector hands back
+    # [r, g, b], which the printer does not understand.
+    color:
+      required: false
+      example: "#06c84f"
+      selector:
+        text:
+    min_temp:
+      required: false
+      selector:
+        number:
+          min: 150
+          max: 300
+          step: 1
+          unit_of_measurement: "°C"
+          mode: box
+    max_temp:
+      required: false
+      selector:
+        number:
+          min: 150
+          max: 350
+          step: 1
+          unit_of_measurement: "°C"
+          mode: box
+    pressure:
+      required: false
+      selector:
+        number:
+          min: 0.0
+          max: 1.0
+          step: 0.01
+          mode: box
+    rfid:
+      required: false
+      selector:
+        text:

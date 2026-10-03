@@ -2,10 +2,7 @@
   "domain": "midea_ac_lan",
   "name": "Midea AC LAN",
   "codeowners": [
-    "@wuwentao",
-    "@rokam",
-    "@chemelli74",
-    "@caibinqing"
+    "@wuwentao"
   ],
   "config_flow": true,
   "dependencies": [],
@@ -17,7 +14,7 @@
     "midealan"
   ],
   "requirements": [
-    "midea-lan==2026.8.0"
+    "midea-lan==2026.9.2"
   ],
-  "version": "2026.8.0"
+  "version": "2026.9.2"
 }

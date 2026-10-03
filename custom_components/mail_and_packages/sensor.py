@@ -26,22 +26,21 @@ from .const import (
     AMAZON_HUB,
     AMAZON_HUB_CODE,
     AMAZON_ORDER,
+    AMAZON_ORDER_DETAILS,
     AMAZON_OTP,
     AMAZON_OTP_CODE,
     ATTR_CODE,
-    ATTR_EMAIL,
     ATTR_GRID_IMAGE_NAME,
     ATTR_IMAGE,
     ATTR_IMAGE_NAME,
     ATTR_IMAGE_PATH,
     ATTR_ORDER,
-    ATTR_SUBJECT,
+    ATTR_ORDER_DETAILS,
     ATTR_TRACKING_NUM,
     ATTR_USPS_IMAGE,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
-    SENSOR_DATA,
     SENSOR_TYPES,
     VERSION,
 )
@@ -98,14 +97,6 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             prefix = "_".join(parts[:-1])
             if parts[-1] in DELIVERED_SUFFIXES:
                 self._tracking_key = f"{prefix}_delivered_tracking"
-            elif parts[-1] == "packages":
-                packages_cfg = SENSOR_DATA.get(self.type, {})
-                # IMAP-backed packages (e.g. DHL "ist unterwegs") keep their
-                # own tracking list; empty-config packages still mirror OFD.
-                if packages_cfg.get(ATTR_EMAIL) or packages_cfg.get(ATTR_SUBJECT):
-                    self._tracking_key = f"{self.type}_tracking"
-                else:
-                    self._tracking_key = f"{prefix}_tracking"
             else:
                 self._tracking_key = f"{prefix}_tracking"
         else:
@@ -186,6 +177,12 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
 
         return attr
 
+    def _add_amazon_order_attributes(self, attr: dict, data: dict, order: Any) -> None:
+        """Attach the order list plus per-order item details when available."""
+        attr[ATTR_ORDER] = order
+        if details := data.get(AMAZON_ORDER_DETAILS):
+            attr[ATTR_ORDER_DETAILS] = details
+
     def _add_amazon_attributes(self, attr: dict, data: dict) -> None:
         """Add Amazon specific attributes to the sensor."""
         if self.type == AMAZON_EXCEPTION:
@@ -195,7 +192,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             if order := data.get("amazon_delivering_order"):
                 attr[ATTR_ORDER] = order
         elif order := data.get(AMAZON_ORDER):
-            attr[ATTR_ORDER] = order
+            self._add_amazon_order_attributes(attr, data, order)
         elif self.type == AMAZON_HUB:
             if code := data.get(AMAZON_HUB_CODE, data.get(ATTR_CODE)):
                 attr[ATTR_CODE] = code

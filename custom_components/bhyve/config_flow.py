@@ -57,7 +57,8 @@ class BHyveConfigFlow(ConfigFlow, domain=DOMAIN):
             return None  # noqa: TRY300
         except AuthenticationError:
             return {"base": "invalid_auth"}
-        except Exception:  # pylint: disable=broad-except  # noqa: BLE001
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("BHyve login failed with an unexpected error")
             return {"base": "cannot_connect"}
 
     async def async_step_user(

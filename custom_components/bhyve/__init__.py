@@ -38,6 +38,10 @@ from .util import filter_configured_devices
 
 _LOGGER = logging.getLogger(__name__)
 
+# Home Assistant 2026.8 added `via_device_id` to DeviceInfo and deprecated
+# `via_device`, which stops working in 2027.8. Older releases reject the new key.
+VIA_DEVICE_ID_SUPPORTED = "via_device_id" in DeviceInfo.__optional_keys__
+
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.SELECT,
@@ -101,18 +105,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         str(d["id"]) for d in all_devices if d.get("type") != DEVICE_BRIDGE
     }
     if removed_device_ids := leaf_device_ids - configured_ids:
-        await remove_devices_from_registry(hass, removed_device_ids)
+        await remove_devices_from_registry(hass, entry.entry_id, removed_device_ids)
 
-    # Build a mapping from device_gateway_topic to bridge device ID
-    # so child devices can reference their bridge via via_device.
+    # Register bridges before any platform loads, so child devices can point at
+    # a bridge that already exists in the device registry. Record each bridge's
+    # gateway topic and registry id for the entities to look up.
     # Bridges are always included by filter_configured_devices.
+    device_registry = dr.async_get(hass)
     gateway_to_bridge: dict[str, str] = {}
+    bridge_device_ids: dict[str, str] = {}
     for device in devices:
-        if device.get("type") == DEVICE_BRIDGE:
-            gateway_topic = device.get("device_gateway_topic")
-            if gateway_topic:
-                gateway_to_bridge[gateway_topic] = device.get("id", "")
+        if device.get("type") != DEVICE_BRIDGE:
+            continue
+        bridge_id = device.get("id")
+        if not bridge_id:
+            continue
+        bridge_entry = device_registry.async_get_or_create(
+            config_entry_id=entry.entry_id, **build_device_info(device)
+        )
+        bridge_device_ids[bridge_id] = bridge_entry.id
+        if gateway_topic := device.get("device_gateway_topic"):
+            gateway_to_bridge[gateway_topic] = bridge_id
     coordinator.gateway_to_bridge = gateway_to_bridge
+    coordinator.bridge_device_ids = bridge_device_ids
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {
         "client": client,
@@ -129,20 +144,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def remove_devices_from_registry(
-    hass: HomeAssistant, device_ids: set[str]
+    hass: HomeAssistant, entry_id: str, device_ids: set[str]
 ) -> None:
-    """Remove devices from registry by domain-specific string identifiers."""
+    """Remove this entry's devices from the registry by their B-hyve ids."""
     device_registry = dr.async_get(hass)
+    identifiers = {(DOMAIN, device_id) for device_id in device_ids}
 
-    for device_id in device_ids:
-        # Find the device in the registry by its identifiers
-        device = device_registry.async_get_device(identifiers={(DOMAIN, device_id)})
-        if device:
-            _LOGGER.info("Removing device %s from registry", device_id)
-            try:
-                device_registry.async_remove_device(device.id)
-            except HomeAssistantError:
-                _LOGGER.exception("Failed to remove device %s from registry", device_id)
+    for device in dr.async_entries_for_config_entry(device_registry, entry_id):
+        if device.identifiers.isdisjoint(identifiers):
+            continue
+        _LOGGER.info("Removing device %s from registry", device.identifiers)
+        try:
+            device_registry.async_remove_device(device.id)
+        except HomeAssistantError:
+            _LOGGER.exception("Failed to remove device %s from registry", device.id)
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -157,6 +172,28 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
+
+def build_device_info(device: BHyveDevice) -> DeviceInfo:
+    """Describe a B-hyve device for the device registry."""
+    device_id = device.get("id", "")
+    connections: set[tuple[str, str]] = set()
+    if mac_address := device.get("mac_address"):
+        # Format raw MAC (e.g. "4467552a366e") with colons
+        raw = mac_address.replace(":", "").replace("-", "").lower()
+        formatted_mac = ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
+        connections.add((CONNECTION_NETWORK_MAC, formatted_mac))
+
+    return DeviceInfo(
+        identifiers={(DOMAIN, device_id)},
+        connections=connections,
+        manufacturer=MANUFACTURER,
+        configuration_url=f"https://techsupport.orbitbhyve.com/dashboard/support/device/{device_id}",
+        name=device.get("name", ""),
+        model=device.get("hardware_version"),
+        hw_version=device.get("hardware_version"),
+        sw_version=device.get("firmware_version"),
+    )
 
 
 class BHyveCoordinatorEntity(CoordinatorEntity[BHyveDataUpdateCoordinator]):
@@ -174,31 +211,19 @@ class BHyveCoordinatorEntity(CoordinatorEntity[BHyveDataUpdateCoordinator]):
         self._device_name = device.get("name", "")
         self._mac_address = device.get("mac_address")
 
-        # Device info for grouping
-        connections: set[tuple[str, str]] = set()
-        if self._mac_address:
-            # Format raw MAC (e.g. "4467552a366e") with colons
-            raw = self._mac_address.replace(":", "").replace("-", "").lower()
-            formatted_mac = ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
-            connections.add((CONNECTION_NETWORK_MAC, formatted_mac))
-
-        device_info = DeviceInfo(
-            identifiers={(DOMAIN, self._device_id)},
-            connections=connections,
-            manufacturer=MANUFACTURER,
-            configuration_url=f"https://techsupport.orbitbhyve.com/dashboard/support/device/{self._device_id}",
-            name=self._device_name,
-            model=device.get("hardware_version"),
-            hw_version=device.get("hardware_version"),
-            sw_version=device.get("firmware_version"),
-        )
+        device_info = build_device_info(device)
 
         # Link non-bridge devices to their bridge via device_gateway_topic
         if self._device_type != DEVICE_BRIDGE:
             gateway_topic = device.get("device_gateway_topic")
             gateway_to_bridge = getattr(coordinator, "gateway_to_bridge", {})
             bridge_id = gateway_to_bridge.get(gateway_topic) if gateway_topic else None
-            if bridge_id:
+            if bridge_id and VIA_DEVICE_ID_SUPPORTED:
+                # async_setup_entry registered the bridge, so its id is known.
+                bridge_device_ids = getattr(coordinator, "bridge_device_ids", {})
+                if bridge_entry_id := bridge_device_ids.get(bridge_id):
+                    device_info["via_device_id"] = bridge_entry_id
+            elif bridge_id:
                 device_info["via_device"] = (DOMAIN, bridge_id)
 
         self._attr_device_info = device_info

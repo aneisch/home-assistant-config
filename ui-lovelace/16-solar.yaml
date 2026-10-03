@@ -83,6 +83,7 @@ cards:
       # day_battery_charge_70: sensor.solark_sol_ark_day_battery_charge
       # day_battery_discharge_71: sensor.solark_sol_ark_day_battery_discharge
       #solar_sell_247: switch.solark_sol_ark_solar_sell
+      use_timer_248: switch.solark_sol_ark_system_tou
       battery_voltage_183: sensor.solark_sol_ark_battery_voltage
       battery_soc_184: sensor.solark_sol_ark_battery_soc
       battery_power_190: sensor.solark_sol_ark_battery_power

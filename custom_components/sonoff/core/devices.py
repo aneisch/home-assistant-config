@@ -20,6 +20,7 @@ from homeassistant.components.switch import SwitchEntity
 from .ewelink import XDevice
 from ..alarm_control_panel import XPanelAlarm
 from ..binary_sensor import (
+    XAlarmPower,
     XBinarySensor,
     XHumanSensor,
     XLightSensor,
@@ -27,10 +28,18 @@ from ..binary_sensor import (
     XWiFiDoor,
     XZigbeeMotion,
 )
-from ..button import XButton, XT5Effect
+from ..button import XAlarmButton, XButton, XT5Effect
 from ..climate import XClimateNS, XClimateTH, XThermostat, XThermostatTRVZB
 from ..core.entity import XEntity
-from ..cover import XCover, XCoverDualR3, XCoverOP, XCoverT5, XZBCover, XZigbeeCover
+from ..cover import (
+    XCover,
+    XCover216,
+    XCoverDualR3,
+    XCoverOP,
+    XCoverT5,
+    XZBCover,
+    XZigbeeCover,
+)
 from ..fan import XDiffuserFan, XFan, XFan17, XFanDualR3, XToggleFan
 from ..light import (
     XDiffuserLight,
@@ -54,10 +63,17 @@ from ..light import (
     XZigbeeLight,
 )
 from ..media_player import XPanelBuzzer
-from ..number import XPulseWidth, XSensitivity, XTempCorrectionNumber
+from ..number import (
+    XAlarmDuration,
+    XAlarmVolume,
+    XPulseWidth,
+    XSensitivity,
+    XTempCorrectionNumber,
+)
 from ..remote import XRemote
 from ..select import XSelectStartup, XStartup
 from ..sensor import (
+    XAlarmSoundType,
     XButtonKey,
     XButtonLocalKey,
     XCPUTemperature,
@@ -71,6 +87,7 @@ from ..sensor import (
     XHumidityTH,
     XOutdoorTempNS,
     XSensor,
+    XSubSensor,
     XT5Action,
     XTempCorrection,
     XTemperatureTH,
@@ -79,11 +96,14 @@ from ..sensor import (
     XWiFiDoorBattery,
 )
 from ..switch import (
+    XAlarmLight,
+    XAlarmVoice,
     XBoolSwitch,
     XIntSwitch,
     XPanelScreen,
     XSwitch,
     XSwitchPOWR3,
+    XSwitchSWV,
     XSwitchTH,
     XSwitches,
     XT5WorkMode,
@@ -261,6 +281,8 @@ DEVICES = {
         XSwitch,
         LED,
         RSSI,
+        PULSE,
+        XPulseWidth,
         spec(XSensor, param="current"),
         spec(XSensor, param="power"),
         spec(XSensor, param="voltage"),
@@ -532,6 +554,9 @@ DEVICES = {
         Startup4,
     ]
     + TX_ULTIMATE,
+    # CK-BL602-TC-01(216), CoolKit gate motor controller
+    # (VEVOR MD370/MD750 etc.), https://github.com/AlexxIT/SonoffLAN/issues/1819
+    216: [XCover216, RSSI],
     # CK-BL602-PCSW-01(225), https://github.com/AlexxIT/SonoffLAN/issues/1616
     225: [
         spec(XBoolSwitch, param="switch"),
@@ -620,15 +645,26 @@ DEVICES = {
         LED,
         RSSI,
     ],
+    # MINI-1GSP https://github.com/AlexxIT/SonoffLAN/issues/1876
+    283: [
+        Switch1,
+        spec(XSensor100, param="power"),
+        spec(XSensor100, param="current"),
+        spec(XSensor100, param="voltage"),
+        EnergyDay,
+        EnergyMonth,
+        LED,
+        RSSI,
+    ],
     # zigbee_ON_OFF_SWITCH_1000
     1000: [XButtonKey, Battery],
     # ZCL_HA_DEVICEID_ON_OFF_LIGHT, https://github.com/AlexxIT/SonoffLAN/issues/1195
     1256: [XSwitch],
-    # ZigbeeWhiteLight
+    # ZigbeeWhiteLight https://github.com/AlexxIT/SonoffLAN/issues/1557
     1257: [XLightD1],
-    # https://github.com/AlexxIT/SonoffLAN/issues/1557
+    # ZigbeeTunableWhiteLight https://github.com/AlexxIT/SonoffLAN/issues/1557
     1258: [XZigbeeColorTemp],
-    # https://github.com/AlexxIT/SonoffLAN/issues/972
+    # NON-OTA-GL(1514) https://github.com/AlexxIT/SonoffLAN/issues/972
     1514: [XZigbeeCover, spec(XSensor, param="battery", multiply=2)],
     # ZCL_HA_DEVICEID_TEMPERATURE_SENSOR
     1770: [
@@ -636,7 +672,7 @@ DEVICES = {
         spec(XSensor100, param="humidity"),
         Battery,
     ],
-    # https://github.com/AlexxIT/SonoffLAN/issues/1150
+    # SNZB-02D https://github.com/AlexxIT/SonoffLAN/issues/1150
     1771: [
         spec(XSensor100, param="temperature"),
         spec(XSensor100, param="humidity"),
@@ -666,17 +702,18 @@ DEVICES = {
     7003: [DoorLock, Battery, ZRSSI],
     # ZBMINIL2, https://github.com/AlexxIT/SonoffLAN/issues/1398
     7004: [XSwitch, ZRSSI],
-    # https://github.com/AlexxIT/SonoffLAN/issues/1283
+    # ZBCurtain https://github.com/AlexxIT/SonoffLAN/issues/1283
     7006: [XZigbeeCover, Battery],
     # CK-BL702-AL-01(7009_Z102LG03-1), https://github.com/AlexxIT/SonoffLAN/issues/1456
     7009: [XZigbeeLight],
     # ZBMicro, https://github.com/AlexxIT/SonoffLAN/issues/1525
     7010: [XSwitch, ZRSSI],
-    # https://github.com/AlexxIT/SonoffLAN/issues/1166
+    # SNZB-02D, https://github.com/AlexxIT/SonoffLAN/issues/1166
     7014: [
         spec(XSensor100, param="temperature"),
         spec(XSensor100, param="humidity"),
         Battery,
+        ZRSSI,
     ],
     # SNZB-06P
     7016: [XHumanSensor, XLightSensor, XSensitivity, ZRSSI],
@@ -740,7 +777,14 @@ DEVICES = {
         EnergyMonth,
     ],
     # SNZB-02WD, https://github.com/AlexxIT/SonoffLAN/issues/1612
-    7033: [XTempCorrection, XHumCorrection, Battery, ZRSSI],
+    7033: [
+        # Using raw values without correction
+        # https://github.com/AlexxIT/SonoffLAN/issues/1857
+        spec(XSensor, param="temperature"),
+        spec(XSensor, param="humidity"),
+        Battery,
+        ZRSSI,
+    ],
     # MINI-ZBRBS, https://github.com/AlexxIT/SonoffLAN/issues/1666
     7034: [XZBCover, LED, RSSI],
     # SNZB-02DR2
@@ -755,6 +799,67 @@ DEVICES = {
     ],
     # SNZB-01M, https://github.com/AlexxIT/SonoffLAN/issues/1786
     7039: [XButtonKey, Battery, ZRSSI],
+    # SWV-ZNE, https://github.com/AlexxIT/SonoffLAN/issues/1814
+    7047: [spec(XBoolSwitch, param="switch_00", uid="switch"), Battery, ZRSSI],
+    # SWV-ZF2E https://github.com/AlexxIT/SonoffLAN/issues/1859
+    7048: [
+        spec(XSwitchSWV, param="switch_00", uid="a"),
+        spec(XSwitchSWV, param="switch_01", uid="b"),
+        spec(XSensor, param="todayWaterUsage", uid="water_today"),
+        spec(XSensor, param="totalTimeUsage_0", uid="time_total_a"),
+        spec(XSensor, param="totalTimeUsage_1", uid="time_total_b"),
+        spec(XSubSensor, param="lastRecord_0", sub="volume", uid="water_last_a"),
+        spec(XSubSensor, param="lastRecord_1", sub="volume", uid="water_last_b"),
+        Battery,
+        ZRSSI,
+    ],
+    # SNZB-06P24 https://github.com/AlexxIT/SonoffLAN/issues/1852
+    7051: [XHumanSensor, spec(XSensor, param="illumination", uid="illuminance")],
+    # SNZB-02B
+    7052: [
+        spec(XSensor100, param="temperature"),
+        spec(XSensor100, param="humidity"),
+        Battery,
+        ZRSSI,
+    ],
+    # MINI-ZB1GP https://github.com/AlexxIT/SonoffLAN/issues/1846
+    7054: [
+        Switch1,
+        spec(XSensor100, param="power"),
+        spec(XSensor100, param="current"),
+        spec(XSensor100, param="voltage"),
+        EnergyDay,
+        EnergyMonth,
+        ZRSSI,
+    ],
+    # SNZB-03PR2 https://github.com/AlexxIT/SonoffLAN/issues/1824
+    7055: [
+        XHumanSensor,
+        spec(XSensor, param="illumination", uid="illuminance"),
+        Battery,
+        ZRSSI,
+    ],
+    # SNZB-09P (Indoor Siren)
+    7056: [
+        XAlarmButton,
+        XAlarmVoice,
+        XAlarmLight,
+        XAlarmDuration,
+        XAlarmVolume,
+        XAlarmSoundType,
+        spec(XSensor, param="alarmType", uid="alarm_status"),
+        XAlarmPower,
+        Battery,
+        ZRSSI,
+    ],
+    # SNZB-02M https://github.com/AlexxIT/SonoffLAN/issues/1866
+    7057: [
+        spec(XSensor100, param="temperature"),
+        spec(XSensor100, param="humidity"),
+        spec(XSensor100, param="pressure"),
+        Battery,
+        ZRSSI,
+    ],
 }
 
 

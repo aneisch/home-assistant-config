@@ -1,17 +1,18 @@
-electricity_cost_monthly_tesla:
-  name: "Tesla Electricity Cost"
+# UI Now Input Numbers
+# electricity_cost_monthly_tesla:
+#   name: "Tesla Electricity Cost"
 
-electricity_cost_monthly:
-  name: "Electricity Cost"
+# electricity_cost_monthly:
+#   name: "Electricity Cost"
 
-electricity_sell_monthly:
-  name: "Electricity Credit"
+# electricity_sell_monthly:
+#   name: "Electricity Credit"
 
-water_cost_monthly:
-  name: "Water Cost"
+# water_cost_monthly:
+#   name: "Water Cost"
 
-sewer_cost_monthly:
-  name: "Sewer Cost"
+# sewer_cost_monthly:
+#   name: "Sewer Cost"
 
 bluebubbles_url:
   name: BlueBubbles URL

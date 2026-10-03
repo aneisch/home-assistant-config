@@ -2,54 +2,81 @@
 from __future__ import annotations
 import logging
 import json
-from typing import Any, Callable
-from .utils import parse_position as _parse_position, safe_float as _safe_float
+import math
+from collections.abc import Callable, Mapping
+from typing import Any
+from .utils import (
+    build_spool_key as _build_spool_key,
+    derive_print_state as _derive_print_state,
+    format_filament_label as _format_filament_label,
+    normalize_color_hex as _normalize_color_hex,
+    parse_position as _parse_position,
+    safe_float as _safe_float,
+)
 
+from homeassistant.core import callback  # type: ignore[import]
 from homeassistant.components.sensor import (  # type: ignore[import]
     SensorEntity,
     SensorDeviceClass,
     SensorStateClass,
 )
-from homeassistant.helpers.entity import EntityCategory  # type: ignore[import]
+from homeassistant.const import (  # type: ignore[import]
+    PERCENTAGE as U_PERCENT,
+    EntityCategory,
+    UnitOfLength,
+    UnitOfMass,
+    UnitOfTemperature,
+    UnitOfTime,
+)
 from homeassistant.helpers.dispatcher import async_dispatcher_connect # type: ignore[import]
 from .entity import KEntity
-from .const import DOMAIN
+from .const import DOMAIN, GCODE_INFO_KEY
 
 
 _LOGGER = logging.getLogger(__name__)
 
 
 
-# Unit compatibility across HA versions
-try:
-    from homeassistant.const import ( #type: ignore[import]
-        UnitOfTemperature as UTemp,
-        UnitOfLength as ULen,
-        PERCENTAGE as U_PERCENT,
-        UnitOfTime as UTime,
-    )
-    U_C = UTemp.CELSIUS
-    U_MM = ULen.MILLIMETERS
-    U_CM = ULen.CENTIMETERS
-    U_S = UTime.SECONDS
-except ImportError:  # older cores fallback (keep compat with older HA constants)
-    from homeassistant.const import ( #type: ignore[import]
-        TEMP_CELSIUS as U_C,
-        LENGTH_MILLIMETERS as U_MM,
-        LENGTH_CENTIMETERS as U_CM,
-        PERCENTAGE as U_PERCENT,
-        TIME_SECONDS as U_S,
-    )
-    U_RPM = "rpm"
-
-
-# (imports duplicated above; keep only one set)
+U_C = UnitOfTemperature.CELSIUS
+U_MM = UnitOfLength.MILLIMETERS
+U_CM = UnitOfLength.CENTIMETERS
+U_S = UnitOfTime.SECONDS
+U_G = UnitOfMass.GRAMS
 
 
 # ----------------- helpers -----------------
 
 def _attr_dict(*pairs: tuple[str, Any]) -> dict[str, Any]:
     return {k: v for (k, v) in pairs if v is not None}
+
+
+def _gcode_info(coordinator) -> Mapping[str, Any] | None:
+    """The slicer's metadata for the running job, if the printer supplied any.
+
+    The coordinator reduces the printer's whole-listing reply to this one entry
+    and clears it when the running file changes, so anything here describes the
+    current job or is absent.
+    """
+    info = (coordinator.data or {}).get(GCODE_INFO_KEY)
+    return info if isinstance(info, Mapping) else None
+
+
+def _expected_length_mm(coordinator) -> float | None:
+    """Slicer-estimated filament length for the running job, in mm.
+
+    `consumables` shares its unit with the `usedMaterialLength` the printer
+    streams, which is what makes the two directly comparable. A zero is treated
+    as no answer rather than a real estimate -- no job consumes nothing, and it
+    is the denominator of the consumption percentage.
+    """
+    info = _gcode_info(coordinator)
+    if info is None:
+        return None
+    mm = _safe_float(info.get("consumables"))
+    # `mm and mm > 0` rejects NaN but not inf, and `json.loads` accepts an
+    # `Infinity` token, so a non-finite length would reach the state
+    # machine and be recorded in statistics.
+    return mm if mm is not None and math.isfinite(mm) and mm > 0 else None
 
 # position parsing moved to utils.parse_position
 
@@ -188,21 +215,6 @@ SPECS: list[dict[str, Any]] = [
         "attrs": lambda d: {},
         "state_class": SensorStateClass.MEASUREMENT,
     },
-
-    # System summary
-    {
-        "uid": "system",
-        "name": "System",
-        "translation_key": "system",
-        "field": "model",
-        "device_class": None,
-        "unit": None,
-        "attrs": lambda d: _attr_dict(
-            ("hostname", d.get("hostname")),
-            ("modelVersion", d.get("modelVersion")),
-        ),
-        "state_class": None,
-    },
 ]
 
 # ----------------- dynamic "mapped" sensors -----------------
@@ -332,48 +344,14 @@ class PrintStatusSensor(KEntity, SensorEntity):
 
     @property
     def native_value(self) -> str | None:
-        # HIGHEST PRIORITY: Check the power switch first.
-        if self.coordinator.power_is_off():
-            return "off"
-
-        # SECOND PRIORITY: Check for a lost WebSocket connection.
-        if not self.coordinator.available:
-            return "unknown"
-
-        # If we get here, the printer is ON and CONNECTED.
-        # Now, determine the operational state.
-        d = self.coordinator.data or {}
-
-        if d.get("err", {}).get("errcode", 0) != 0:
-            return "error"
-
-        if 1 <= d.get("withSelfTest", 0) <= 99:
-            return "self-testing"
-
-        st = d.get("state")
-        fname = d.get("printFileName") or ""
-        progress = d.get("printProgress") or d.get("dProgress")
-
-        # Ensure progress is a number before comparing
-        try:
-            progress = int(progress) if progress is not None else -1
-        except (ValueError, TypeError):
-            progress = -1
-
-        if fname:
-            if progress >= 100:
-                return "completed"
-            # THIS IS THE LINE THAT WAS BROKEN
-            if st == 5 or self.coordinator.paused_flag():
-                return "paused"
-            if st == 4:
-                return "stopped"
-            if st == 1:
-                return "printing"
-            if st == 0:
-                return "processing"
-
-        return "idle"
+        # The mapping lives in utils.derive_print_state so that services gating on
+        # "is the printer busy" use the same definition the dashboard shows.
+        return _derive_print_state(
+            self.coordinator.data or {},
+            power_off=self.coordinator.power_is_off(),
+            available=self.coordinator.available,
+            paused_flag=self.coordinator.paused_flag(),
+        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -389,8 +367,16 @@ class PrintStatusSensor(KEntity, SensorEntity):
             "state_raw": d.get("state"),
             "err": d.get("err"),
         }
-        err_code = d.get("err", {}).get("errcode", 0)
-        if err_code != 0:
+        # Most firmware reports `err` as a mapping, some as a bare code, and
+        # `derive_print_state` has handled both since the state it derives
+        # depends on it. Here it was still `.get()`-ed unconditionally, so a
+        # bare code raised AttributeError while the attribute dict was being
+        # built -- taking every attribute down, not just this one. `err` is
+        # published raw above either way.
+        err_raw = d.get("err")
+        err_code = err_raw.get("errcode", 0) if isinstance(err_raw, Mapping) else err_raw
+        err_value = _safe_float(err_code)
+        if err_value is not None and err_value != 0:
             attrs["error_code"] = err_code
             # The error message mapping function is not yet implemented, so it remains commented out.
             # attrs["error_message"] = self._map_error_code_to_message(err_code)
@@ -418,6 +404,93 @@ class UsedMaterialLengthSensor(KEntity, SensorEntity):
             return round(mm / 10.0, 2)
         except (TypeError, ValueError):
             return None
+
+class ExpectedMaterialLengthSensor(KEntity, SensorEntity):
+    _attr_translation_key = "expected_material_length"
+    _attr_icon = "mdi:ruler"
+    _attr_native_unit_of_measurement = U_CM
+    _attr_device_class = SensorDeviceClass.DISTANCE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, unique_id="expected_material_length")
+
+    @property
+    def native_value(self) -> float | None:
+        # Not zeroed when the printer is off or unreachable, unlike the live
+        # measurements: this describes a file, and a stale estimate stays true
+        # in a way a stale temperature does not.
+        mm = _expected_length_mm(self.coordinator)
+        # In cm to match UsedMaterialLengthSensor, so the two can be compared
+        # or subtracted without converting one of them first.
+        return None if mm is None else round(mm / 10.0, 2)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        info = _gcode_info(self.coordinator) or {}
+        # Passed through as the printer words them. On a multi-material job
+        # these fields carry several values in one string, and this integration
+        # has no hardware to confirm how they are delimited -- so they are
+        # published raw rather than split into something possibly wrong.
+        return _attr_dict(
+            ("material", info.get("material") or None),
+            ("color", info.get("materialColors") or None),
+            ("slicer", info.get("software") or None),
+            ("estimated_time_s", _safe_float(info.get("timeCost"))),
+            ("gcode_file", info.get("name") or None),
+        )
+
+
+class ExpectedMaterialWeightSensor(KEntity, SensorEntity):
+    _attr_translation_key = "expected_material_weight"
+    _attr_icon = "mdi:weight-gram"
+    _attr_native_unit_of_measurement = U_G
+    _attr_device_class = SensorDeviceClass.WEIGHT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, unique_id="expected_material_weight")
+
+    @property
+    def native_value(self) -> float | None:
+        info = _gcode_info(self.coordinator)
+        if info is None:
+            return None
+        # Empty on files the printer did not slice itself -- Creality Print
+        # output and the stock sample models both arrive with a blank weight
+        # and a usable length. Multi-material jobs put several weights in this
+        # one string, which `_safe_float` also declines. Either way the sensor
+        # goes unknown, which beats publishing one filament's weight as the
+        # whole job's.
+        grams = _safe_float(info.get("filamentWeight"))
+        # NaN compares false against everything, so `<= 0` lets it past.
+        if grams is None or not math.isfinite(grams) or grams <= 0:
+            return None
+        return round(grams, 2)
+
+
+class FilamentConsumptionSensor(KEntity, SensorEntity):
+    _attr_translation_key = "filament_consumption"
+    _attr_icon = "mdi:printer-3d-nozzle"
+    _attr_native_unit_of_measurement = U_PERCENT
+    _attr_state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, coordinator):
+        super().__init__(coordinator, unique_id="filament_consumption")
+
+    @property
+    def native_value(self) -> float | None:
+        expected_mm = _expected_length_mm(self.coordinator)
+        if expected_mm is None:
+            return None
+        used_mm = _safe_float((self.coordinator.data or {}).get("usedMaterialLength"))
+        if used_mm is None or not math.isfinite(used_mm):
+            return None
+        # Left uncapped on purpose. A job that runs past its estimate has
+        # genuinely used more filament than the slicer predicted, and clamping
+        # to 100% would hide exactly the case worth seeing.
+        return round(used_mm / expected_mm * 100.0, 1)
+
 
 class PrintJobTimeSensor(KEntity, SensorEntity):
     _attr_translation_key = "print_job_time"
@@ -626,6 +699,48 @@ class KCFSBoxSensor(KEntity, SensorEntity):
         return None
 
 
+def _cfs_slot_attributes(
+    data: dict[str, Any],
+    box_id: int | None = None,
+    slot_id: int | None = None,
+) -> dict[str, Any]:
+    """Build the shared attribute set for a CFS slot (box slot or external).
+
+    ``box_id``/``slot_id`` are the ids the *printer* uses, which the card needs to
+    address the right slot when writing material back via ``set_cfs_material``.
+    They are passed in because the raw slot dict only carries its own ``id``, not
+    the id of the box it belongs to.
+    """
+    raw_color = data.get("color")
+    return {
+        "vendor": data.get("vendor"),
+        "type": data.get("type"),
+        "name": data.get("name"),
+        "color_hex": _normalize_color_hex(raw_color),
+        # Kept so the printer's original value stays visible after the
+        # leading-pad-character fix (issue #113).
+        "color_hex_raw": raw_color,
+        "rfid": data.get("rfid"),
+        # Derived, stable per material+colour; see utils.build_spool_key (#117).
+        "spool_key": _build_spool_key(
+            rfid=data.get("rfid"),
+            vendor=data.get("vendor"),
+            material_type=data.get("type"),
+            name=data.get("name"),
+            color=raw_color,
+        ),
+        "state": data.get("state"),
+        "selected": data.get("selected"),
+        # Addressing + editable material settings, so the CFS card can target the
+        # right slot and prefill its edit dialog with the printer's current values.
+        "box_id": box_id,
+        "slot_id": slot_id,
+        "min_temp": _safe_float(data.get("minTemp")),
+        "max_temp": _safe_float(data.get("maxTemp")),
+        "pressure": _safe_float(data.get("pressure")),
+    }
+
+
 class KCFSSlotSensor(KEntity, SensorEntity):
     """Sensor for a CFS Slot (Filament type/color/percent)."""
 
@@ -666,30 +781,26 @@ class KCFSSlotSensor(KEntity, SensorEntity):
             return None
             
         if self._type == "filament":
-            # Combine vendor and name/type
-            vendor = data.get("vendor", "Generic")
-            name = data.get("name") or data.get("type", "Unknown")
-            return f"{vendor} {name}"
+            return _format_filament_label(
+                data.get("vendor"), data.get("name"), data.get("type")
+            )
         if self._type == "color":
-            return data.get("color")
+            return _normalize_color_hex(data.get("color"))
         if self._type == "percent":
             return data.get("percent")
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        # native_value already zeroes here; publishing the last-known material
+        # alongside a zeroed state is worse than publishing nothing, because the
+        # card builds its edit payload out of these attributes.
+        if self._should_zero():
+            return {}
         data = self._get_slot_data()
         if not data:
             return {}
-        return {
-            "vendor": data.get("vendor"),
-            "type": data.get("type"),
-            "name": data.get("name"),
-            "color_hex": data.get("color"),
-            "rfid": data.get("rfid"),
-            "state": data.get("state"),
-            "selected": data.get("selected"),
-        }
+        return _cfs_slot_attributes(data, self._box_id, self._slot_id)
 
 
 class KCFSExtSlotSensor(KEntity, SensorEntity):
@@ -737,29 +848,26 @@ class KCFSExtSlotSensor(KEntity, SensorEntity):
             return None
 
         if self._type == "filament":
-            vendor = data.get("vendor", "Generic")
-            name = data.get("name") or data.get("type", "Unknown")
-            return f"{vendor} {name}"
+            return _format_filament_label(
+                data.get("vendor"), data.get("name"), data.get("type")
+            )
         if self._type == "color":
-            return data.get("color")
+            return _normalize_color_hex(data.get("color"))
         if self._type == "percent":
             return data.get("percent")
         return None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
+        if self._should_zero():
+            return {}
         data = self._get_slot_data()
         if not data:
             return {}
-        return {
-            "vendor": data.get("vendor"),
-            "type": data.get("type"),
-            "name": data.get("name"),
-            "color_hex": data.get("color"),
-            "rfid": data.get("rfid"),
-            "state": data.get("state"),
-            "selected": data.get("selected"),
-        }
+        # The external box's id is whatever the printer reports for the type==1
+        # box, so read it back rather than assuming 0.
+        box = self._get_external_box() or {}
+        return _cfs_slot_attributes(data, box.get("id"), data.get("id", self._slot_id))
 
 
 class KActiveFilamentSensor(KEntity, SensorEntity):
@@ -795,11 +903,11 @@ class KActiveFilamentSensor(KEntity, SensorEntity):
         for box in boxes:
             for slot in box.get("materials", []):
                 if slot.get("selected"):
-                    vendor = slot.get("vendor", "Generic")
-                    name = slot.get("name") or slot.get("type", "Unknown")
                     return {
-                        "filament": f"{vendor} {name}",
-                        "color": slot.get("color"),
+                        "filament": _format_filament_label(
+                            slot.get("vendor"), slot.get("name"), slot.get("type")
+                        ),
+                        "color": _normalize_color_hex(slot.get("color")),
                         "percent": slot.get("percent"),
                     }
         return {}
@@ -893,18 +1001,109 @@ async def async_setup_entry(hass, entry, async_add_entities):
         return new_ents
 
 
+    # `call_soon` cannot be cancelled, and disconnecting the dispatcher does not
+    # unschedule a callback that is already queued. Without this flag the
+    # deferred `async_add_entities` could run against an unloaded entry.
+    platform_live = True
+
+    def _mark_unloaded() -> None:
+        nonlocal platform_live
+        platform_live = False
+
+    entry.async_on_unload(_mark_unloaded)
+
+    def _add_if_live(new_ents: list[SensorEntity]) -> None:
+        if platform_live:
+            async_add_entities(new_ents)
+
+    added_chamber_uids: set[str] = set()
+
+    def add_chamber_entities() -> list[SensorEntity]:
+        """Chamber sensors not yet created, re-evaluated on every call.
+
+        Capability is read fresh rather than captured at setup: a printer that was
+        off during setup reports boxTemp/maxBoxTemp later, and the discovery
+        signal is what brings us back here. Returning [] and never being asked
+        again left the sensors missing for the whole session.
+        """
+        has_chamber = entry.data.get(
+            "_cached_has_chamber_sensor", entry.data.get("_cached_has_box_sensor", False)
+        )
+        live = coord.data or {}
+        if not has_chamber and any(
+            k in live for k in ("boxTemp", "targetBoxTemp", "maxBoxTemp")
+        ):
+            has_chamber = True
+        if not has_chamber:
+            return []
+
+        out: list[SensorEntity] = []
+        if "box_temperature" not in added_chamber_uids:
+            for spec in SPECS:
+                if spec.get("uid") == "box_temperature":
+                    added_chamber_uids.add("box_temperature")
+                    out.append(KSimpleFieldSensor(coord, spec))
+                    break
+
+        if "max_box_temp" not in added_chamber_uids:
+            max_box = entry.data.get(
+                "_cached_max_chamber_temp", entry.data.get("_cached_max_box_temp")
+            )
+            if max_box is None:
+                max_box = live.get("maxBoxTemp")
+            if max_box is not None:
+                added_chamber_uids.add("max_box_temp")
+                out.append(
+                    KMaxTempSensor(
+                        coord, uid="max_box_temp", key="max_box_temp",
+                        translation_key="max_chamber_temp",
+                    )
+                )
+        return out
+
+    added_gcode_uids: set[str] = set()
+
+    def add_gcode_info_entities() -> list[SensorEntity]:
+        """Sensors for the slicer's estimates, once the printer has supplied any.
+
+        Gated rather than unconditional because firmware without the metadata
+        request simply never answers it, and three permanently-unknown entities
+        are a worse answer than none. The key only appears once a real entry has
+        been matched to a job, so its presence is the printer's yes.
+        """
+        if GCODE_INFO_KEY not in (coord.data or {}):
+            return []
+
+        out: list[SensorEntity] = []
+        for uid, cls in (
+            ("expected_material_length", ExpectedMaterialLengthSensor),
+            ("expected_material_weight", ExpectedMaterialWeightSensor),
+            ("filament_consumption", FilamentConsumptionSensor),
+        ):
+            if uid not in added_gcode_uids:
+                added_gcode_uids.add(uid)
+                out.append(cls(coord))
+        return out
+
     # Dynamic CFS entity handler
-    def _on_new_entities():
+    # The dispatcher runs a plain sync target in an executor thread, and this
+    # calls `hass.loop.call_soon`, which is not thread-safe. Cheap enough to
+    # belong on the loop.
+    @callback
+    def _on_new_entities() -> None:
         """Handle signal for new entities (e.g. late CFS discovery)."""
         _LOGGER.debug("Dynamic entity signal received, checking for new CFS entities...")
-        new_ents = add_cfs_entities()
+        new_ents = (
+            add_cfs_entities() + add_chamber_entities() + add_gcode_info_entities()
+        )
         if new_ents:
-            _LOGGER.info("Adding %d dynamic CFS entities", len(new_ents))
-            # Ensure we run on the main loop if we are in a thread
-            from asyncio import run_coroutine_threadsafe
-            async def _schedule_add():
-                await async_add_entities(new_ents)
-            run_coroutine_threadsafe(_schedule_add(), hass.loop)
+            _LOGGER.debug("Adding %d dynamic entities", len(new_ents))
+            # Must not be called inline from the dispatcher: async_add_entities
+            # eager-starts a task on the config entry, and doing that from inside
+            # the dispatch chain leaves it unreferenced ("Task was destroyed but
+            # it is pending"), so no entities get added. Deferring to the next
+            # loop iteration schedules it in a normal context.
+            hass.loop.call_soon(_add_if_live, new_ents)
     
     # Listen for the signal fired by coordinator
     entry.async_on_unload(
@@ -926,7 +1125,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ents.append(ObjectCountSensor(coord))
     ents.append(KPrintControlSensor(coord))
     
-    # Static model/host sensor
+    # The printer's identity. Deliberately not a SPECS row: SPECS is for
+    # telemetry fields, and this is static. A second, byte-identical copy of
+    # this sensor used to live there under the uid "system"; it was retired
+    # in favour of this one, whose name says what the value is.
     ents.append(KSimpleFieldSensor(
         coord,
         {
@@ -945,19 +1147,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ))
 
 
-    # Add chamber temperature if supported by model. Also allow live-telemetry fallback if cache missing.
-    has_box_sensor = entry.data.get("_cached_has_chamber_sensor", entry.data.get("_cached_has_box_sensor", False))
-    live = coord.data or {}
-    if not has_box_sensor:
-        # Heuristics: if boxTemp or targetBoxTemp appears, expose the sensor.
-        if any(k in live for k in ("boxTemp", "targetBoxTemp", "maxBoxTemp")):
-            has_box_sensor = True
-    
+    # Chamber sensors come from add_chamber_entities() so the late-discovery pass
+    # applies the identical gate; everything else is unconditional.
     for spec in SPECS:
-        if spec.get("uid") == "box_temperature":
-            if has_box_sensor:
-                ents.append(KSimpleFieldSensor(coord, spec))
-        else:
+        if spec.get("uid") != "box_temperature":
             ents.append(KSimpleFieldSensor(coord, spec))
 
     # Mapped sensors
@@ -968,47 +1161,56 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # --- Max temperature sensors (non-editable, from cached/live capability limits) ---
     # Pull cached values first
-    cached = None
-    try:
-        cached = coord.hass.config_entries.async_get_entry(getattr(coord, "_config_entry_id", None)).data  # type: ignore[assignment]
-    except Exception:  # pylint: disable=broad-except
-        cached = None
+    cached = coord.config_entry.data if coord.config_entry else None
 
     def _cached_or_live(key: str):
-        if cached and (key in cached or f"_cached_{key}" in cached):
-            # keys in entry use _cached_max_* naming; coordinator/live uses max* keys
-            if key == "max_bed_temp":
-                return cached.get("_cached_max_bed_temp")
-            if key == "max_nozzle_temp":
-                return cached.get("_cached_max_nozzle_temp")
-            if key == "max_box_temp":
-                return cached.get("_cached_max_chamber_temp", cached.get("_cached_max_box_temp"))
+        """The cached limit, or the live one when the cache has no value for it.
+
+        Per field, matching `KMaxTempSensor._read_cached_or_live` and
+        `add_chamber_entities`. The cache writer always *writes* these keys --
+        `d.get("maxBedTemp", <previous>)` -- so a key can be present and `None`,
+        and keying the fallback on presence alone meant this gate returned that
+        `None` and skipped creating the sensor for the rest of the session, even
+        though the entity itself would have served the live value.
+        """
         d = coord.data or {}
         if key == "max_bed_temp":
-            return d.get("maxBedTemp")
-        if key == "max_nozzle_temp":
-            return d.get("maxNozzleTemp")
-        if key == "max_box_temp":
-            return d.get("maxBoxTemp")
-        return None
+            live = d.get("maxBedTemp")
+            cached_value = cached.get("_cached_max_bed_temp") if cached else None
+        elif key == "max_nozzle_temp":
+            live = d.get("maxNozzleTemp")
+            cached_value = cached.get("_cached_max_nozzle_temp") if cached else None
+        elif key == "max_box_temp":
+            live = d.get("maxBoxTemp")
+            cached_value = (
+                cached.get("_cached_max_chamber_temp", cached.get("_cached_max_box_temp"))
+                if cached else None
+            )
+        else:
+            return None
+        return cached_value if cached_value is not None else live
 
     max_noz = _cached_or_live("max_nozzle_temp")
     max_bed = _cached_or_live("max_bed_temp")
-    max_box = _cached_or_live("max_box_temp")
 
     if max_noz is not None:
         ents.append(KMaxTempSensor(coord, uid="max_nozzle_temp", key="max_nozzle_temp", translation_key="max_nozzle_temp"))
     if max_bed is not None:
         ents.append(KMaxTempSensor(coord, uid="max_bed_temp", key="max_bed_temp", translation_key="max_bed_temp"))
-    # Only expose chamber max if model supports chamber sensor/control or we detect a value
-    if has_box_sensor and max_box is not None:
-        ents.append(KMaxTempSensor(coord, uid="max_box_temp", key="max_box_temp", translation_key="max_chamber_temp"))
+    # Chamber max is gated with the chamber temperature sensor, in one place.
+    ents.extend(add_chamber_entities())
+    ents.extend(add_gcode_info_entities())
 
     # Register static entities immediately
     try:
         async_add_entities(ents)
     except Exception as err:  # pylint: disable=broad-except
         _LOGGER.error("Failed to add static sensors: %s", err)
+        # Both helpers marked their uids before handing the entities over, so a
+        # failure here would otherwise make every later discovery pass return []
+        # and those sensors would stay missing for the whole session.
+        added_chamber_uids.clear()
+        added_gcode_uids.clear()
 
     # --- CFS Entities (Dynamic Initial Load) ---
     try:
@@ -1033,14 +1235,7 @@ class KMaxTempSensor(KEntity, SensorEntity):
     def __init__(self, coordinator, uid: str, key: str, translation_key: str):
         super().__init__(coordinator, "", uid, translation_key=translation_key)
         self._key = key  # one of: max_nozzle_temp, max_bed_temp, max_box_temp
-        # Use Celsius unit
-        try:
-            # Prefer UnitOfTemperature if available
-            from homeassistant.const import UnitOfTemperature  # type: ignore[import]
-            self._attr_native_unit_of_measurement = UnitOfTemperature.CELSIUS
-        except Exception:  # pylint: disable=broad-except
-            from homeassistant.const import TEMP_CELSIUS  # type: ignore[import] # pylint: disable=import-outside-toplevel
-            self._attr_native_unit_of_measurement = TEMP_CELSIUS
+        self._attr_native_unit_of_measurement = U_C
 
     @property
     def available(self) -> bool:
@@ -1048,31 +1243,40 @@ class KMaxTempSensor(KEntity, SensorEntity):
         return True
 
     def _read_cached_or_live(self) -> float | None:
-        # From entry cache
-        try:
-            entry_id = getattr(self.coordinator, "_config_entry_id", None)
-            if entry_id:
-                entry = self.coordinator.hass.config_entries.async_get_entry(entry_id)
-                if entry and entry.data.get("_device_info_cached"):
-                    if self._key == "max_nozzle_temp":
-                        return entry.data.get("_cached_max_nozzle_temp")
-                    if self._key == "max_bed_temp":
-                        return entry.data.get("_cached_max_bed_temp")
-                    if self._key == "max_box_temp":
-                        # Prefer new chamber cache with legacy fallback
-                        return entry.data.get("_cached_max_chamber_temp", entry.data.get("_cached_max_box_temp"))
-        except (AttributeError, KeyError):
-            # Ignore cache read errors and fall back to live telemetry.
-            pass
-        # Live telemetry fallback
+        """The cached capability constant, or the live one when it is missing.
+
+        Per *field*: `_device_info_cached` is set as soon as the model is known,
+        while `maxBoxTemp` arrives by late discovery, so an entry can carry the
+        flag with no chamber max in it. Returning the cached `None` there hid a
+        value the printer was already reporting.
+        """
+        # Live telemetry, used as the fallback for whichever field is uncached.
         d = self.coordinator.data or {}
         if self._key == "max_nozzle_temp":
-            return d.get("maxNozzleTemp")
-        if self._key == "max_bed_temp":
-            return d.get("maxBedTemp")
-        if self._key == "max_box_temp":
-            return d.get("maxBoxTemp")
-        return None
+            live = d.get("maxNozzleTemp")
+        elif self._key == "max_bed_temp":
+            live = d.get("maxBedTemp")
+        elif self._key == "max_box_temp":
+            live = d.get("maxBoxTemp")
+        else:
+            return None
+
+        entry = self.coordinator.config_entry
+        if entry and entry.data.get("_device_info_cached"):
+            if self._key == "max_nozzle_temp":
+                cached = entry.data.get("_cached_max_nozzle_temp")
+            elif self._key == "max_bed_temp":
+                cached = entry.data.get("_cached_max_bed_temp")
+            else:
+                # Prefer the chamber cache, falling back to the legacy box one
+                # for entries cached by a pre-rename release.
+                cached = entry.data.get(
+                    "_cached_max_chamber_temp", entry.data.get("_cached_max_box_temp")
+                )
+            if cached is not None:
+                return cached
+
+        return live
 
     @property
     def native_value(self) -> float | None:

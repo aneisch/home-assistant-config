@@ -135,7 +135,7 @@ automation:
           - binary_sensor.dishwasher_water_detector
         to: "on"
       - platform: state
-        id: non_critial
+        id: non_critical
         entity_id:
           - binary_sensor.water_heater_water_detector
         to: "on"
@@ -146,7 +146,7 @@ automation:
             entity_id: switch.water_shutoff
       - action: script.notify_wrapper
         data:
-          message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'non_critical' %}Shutting off water!{% endif %}"
+          message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'critical' %}Shutting off water!{% endif %}"
           data:
             priority: 2
       # - action: notify.alexa_media

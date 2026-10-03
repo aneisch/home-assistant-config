@@ -1,0 +1,31 @@
+substitutions:
+  name: teardrop_fairy_lights
+  friendly_name: "Teardrop Fairy Lights"
+
+esphome:
+  name: ${name}
+
+esp8266:
+  board: d1_mini
+
+<<: !include common.yaml
+
+switch:
+  - platform: restart
+    id: restart_device
+    name: "${friendly_name} Restart"
+
+light:
+  - platform: binary
+    output: gpio_output
+    name: "${friendly_name}"
+
+output:
+  - platform: gpio
+    pin: D1  # Change this to the GPIO pin you are using
+    id: gpio_output
+
+api:
+  reboot_timeout: 0s
+  encryption:
+    key: !secret encryption_key

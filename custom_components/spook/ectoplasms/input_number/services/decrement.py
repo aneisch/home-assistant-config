@@ -2,14 +2,18 @@
 
 from __future__ import annotations
 
-import math
 from typing import TYPE_CHECKING
-
-import voluptuous as vol
 
 from homeassistant.components.input_number import DOMAIN, InputNumber
 
 from ....services import AbstractSpookEntityComponentService, ReplaceExistingService
+from . import (
+    CONF_CYCLE,
+    STEP_SERVICE_SCHEMA,
+    cycled_value,
+    native_value_as_float,
+    step_amount,
+)
 
 if TYPE_CHECKING:
     from homeassistant.core import ServiceCall
@@ -20,12 +24,13 @@ class SpookService(
 ):
     """Input number entity service, decrease value by a single step.
 
-    It override the built-in increment service to allow for a custom amount.
+    It overrides the built-in decrement service to allow for a custom amount,
+    and to cycle around the range instead of stopping at the end of it.
     """
 
     domain = DOMAIN
     service = "decrement"
-    schema = {vol.Optional("amount"): vol.Coerce(float)}
+    schema = STEP_SERVICE_SCHEMA
 
     async def async_handle_service(
         self,
@@ -33,18 +38,16 @@ class SpookService(
         call: ServiceCall,
     ) -> None:
         """Handle the service call."""
-        # pylint: disable=protected-access
-        amount = call.data.get("amount", entity._step)  # noqa: SLF001
-        if not math.isclose(amount % entity._step, 0, abs_tol=1e-9):  # noqa: SLF001
-            msg = (
-                f"Amount {amount} not valid for {entity.entity_id}, "
-                f"it needs to be a multiple of {entity._step}",  # noqa: SLF001
-            )
-            raise ValueError(msg)
+        new_value = native_value_as_float(entity) - step_amount(entity, call)
 
-        await entity.async_set_value(
-            max(
-                entity._current_value - amount,  # noqa: SLF001
-                entity._minimum,  # noqa: SLF001
-            ),
-        )
+        if call.data[CONF_CYCLE]:
+            # A negative amount moves the other way, so either end can be the
+            # one that gets crossed.
+            if not (entity.native_min_value <= new_value <= entity.native_max_value):
+                new_value = cycled_value(entity, new_value)
+        elif new_value < entity.native_min_value:
+            # Without cycling, only the end this action moves towards is
+            # clamped, which is what it did before cycling existed.
+            new_value = entity.native_min_value
+
+        await entity.async_set_native_value(new_value)

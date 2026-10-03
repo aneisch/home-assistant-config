@@ -4,41 +4,56 @@ smart_home:
   client_secret: !secret alexa_client_secret
   filter:
     exclude_domains:
-      - alarm_control_panel
-      - alert
+      - ai_task
+      - assist_satellite
       - automation
       - binary_sensor
       - button
-      - camera
       - calendar
+      - camera
       - climate
-      - cover
+      - conversation
       - counter
+      - cover
+      - datetime
       - device_tracker
+      - event
       - fan
       - group
+      - humidifier
+      - image
       - input_boolean
-      - input_number
-      - input_text
-      - input_select
       - input_datetime
+      - input_number
+      - input_select
+      - input_text
+      - irrigation_unlimited
       - light
+      - lock
       - media_player
+      - notify
       - number
       - person
       - plant
       - remote
-      - select
-      - scene
       - script
+      - select
       - sensor
+      - setter
       - siren
+      - stt
+      - sun
       - switch
+      - text
       - timer
-      - vacuum
+      - tts
       - update
+      - vacuum
+      - valve
+      - weather
       - zone
     include_entities:
+      - button.tesla_ble_remote_start_car
       - climate.thermostat
       - cover.garage_door
       - cover.tesla_ble_trunk
@@ -52,7 +67,6 @@ smart_home:
       - light.bethany_nightstand_lamp
       - light.bethany_desk_lamp
       - light.dining_room_light
-      - light.curio_cabinet
       - light.entryway_light
       - light.guest_bedroom_nightstand_lamp
       - light.kitchen_lights
@@ -66,39 +80,33 @@ smart_home:
       - light.living_room_sconces
       - light.master_bedroom_lamps
       - light.master_bedroom_ceiling_fan
+      - light.pumpkin_patch_pumpkin_patch
       - light.office_ceiling_fan
+      - lock.back_door
+      - lock.front_door
+      - lock.garage_exterior_door
+      - lock.tesla
       - script.appdaemon_ac_night
       - script.appdaemon_ac_morning
       - script.master_bedroom_bedtime
       - script.master_bedroom_wakeup
       - script.too_cold
       - script.too_hot
-      - script.solar_summary_alexa_response
-      - script.vacuum_clean_kitchen
-      - script.vacuum_clean_living_room
-      - script.vacuum_clean_dining_room
-      - script.vacuum_clean_office
-      - script.vacuum_clean_bethany_office
-      - script.vacuum_clean_master_bedroom
-      - script.vacuum_clean_guest_bedroom
-      - script.vacuum_locate
       - script.kitchen_launch_timers
       - script.kitchen_launch_solar
+      - script.movie_mode
       - script.tesla_hvac
       - sensor.master_bedroom_temperature
       - switch.bethany_office_ceiling_fan
       - switch.master_bedroom_ceiling_fan
-      - sensor.office_temperature
+      - sensor.netatmo_home_indoor_temperature # office
       - switch.globe_lights
       - switch.home_water_supply
       - switch.living_room_speakers
       - switch.nas
-      - switch.outdoor_zwave_switch
       - switch.tv
-      - switch.ir_candles
       - input_boolean.kitchen_motion
       - script.surround_mute
-      - script.too
       #############
       # Christmas #
       #############
@@ -115,8 +123,9 @@ smart_home:
       - switch.santa_tree
 
   entity_config:
-    climate.thermostat:
-      name: "Thermostat"
+    button.tesla_ble_remote_start_car:
+      name: "Tesla Remote Start"
+      display_categories: SCENE_TRIGGER
 
     group.common_areas:
       name: "Common Areas"
@@ -126,15 +135,11 @@ smart_home:
       name: "Under Cabinet Lights"
       display_categories: LIGHT
 
-    lock.all_doors:
-      name: Doors
-      display_categories: SMARTLOCK
-
     light.andrew_nightstand_lamp:
       name: "Andrew's Lamp"
       description: "Andrew's nightstand lamp"
 
-    light.bethany_nightand_lamp:
+    light.bethany_nightstand_lamp:
       name: "Bethany's Lamp"
       description: "Bethany's nightstand lamp"
 
@@ -149,6 +154,15 @@ smart_home:
 
     light.master_bedroom_ceiling_fan:
       name: "Master Bedroom Light"
+
+    lock.back_door:
+      name: "Back Door"
+
+    lock.front_door:
+      name: "Front Door"
+
+    lock.garage_exterior_door:
+      name: "Garage Exterior Door"
 
     script.appdaemon_ac_night:
       name: "AC Night Mode"
@@ -180,48 +194,9 @@ smart_home:
       description: "Get Master Bedroom Ready for Day"
       display_categories: SCENE_TRIGGER
 
-    script.vacuum_clean_kitchen:
-      name: "Roxie Clean Kitchen"
-      description: "Vacuum the Kitchen"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_living_room:
-      name: "Roxie Clean Living Room"
-      description: "Vacuum the Living Room"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_dining_room:
-      name: "Roxie Clean Dining Room"
-      description: "Vacuum the Dining Room"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_office:
-      name: "Roxie Clean Office"
-      description: "Vacuum the Office"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_bethany_office:
-      name: "Roxie Clean Bethany's Office"
-      description: "Vacuum Bethany's Office"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_master_bedroom:
-      name: "Roxie Clean Master Bedroom"
-      description: "Vacuum the Master Bedroom"
-      display_categories: SCENE_TRIGGER
-
-    script.vacuum_clean_guest_bedroom:
-      name: "Roxie Clean Guest Bedroom"
-      description: "Vacuum the Guest Bedroom"
-      display_categories: SCENE_TRIGGER
-
     script.tesla_hvac:
       name: Tesla HVAC
       display_categories: SCENE_TRIGGER
-
-    sensor.master_bedroom_temperature:
-      name: "Master Bedroom Temperature"
-      display_categories: TEMPERATURE_SENSOR
 
     switch.tv:
       name: "TV"
@@ -230,7 +205,6 @@ smart_home:
 
     switch.nas:
       name: "Plex"
-      display_categories: SWITCH
 
     switch.bethany_office_ceiling_fan:
       name: "Bethany's Office Fan"
@@ -240,64 +214,8 @@ smart_home:
       name: "Master Bedroom Ceiling Fan"
       display_categories: FAN
 
-    switch.ir_candles:
-      name: Pumpkin Patch
-      display_categories: LIGHT
-
-    switch.home_water_supply:
-      name: Water
-
-    #############
-    # Christmas #
-    #############
-    switch.living_room_christmas_tree:
-      name: "Living Room Christmas Tree"
-      description: "Living Room Christmas Tree"
-      display_categories: SWITCH
-
-    switch.kitchen_christmas_tree:
-      name: "Kitchen Christmas Tree"
-      description: "Kitchen Christmas Tree"
-      display_categories: SWITCH
-
-    switch.dining_room_christmas_tree:
-      name: "Dining Room Christmas Tree"
-      description: "Dining Room Christmas Tree"
-      display_categories: SWITCH
-
-    switch.office_christmas_tree:
-      name: "Office Christmas Tree"
-      description: "Office Christmas Tree"
-      display_categories: SWITCH
-
-    switch.master_bedroom_christmas_tree:
-      name: "Master Bedroom Christmas Tree"
-      description: "Master Bedroom Christmas Tree"
-      display_categories: SWITCH
-
     group.christmas_trees:
-      name: Christmas Trees
       description: "All Christmas Trees"
-      display_categories: SWITCH
 
     group.christmas:
-      name: Christmas
       description: "All Indoor Christmas"
-      display_categories: SWITCH
-
-    switch.christmas_lights:
-      name: "Christmas Lights"
-      description: "Christmas Lights"
-      display_categories: SWITCH
-
-    switch.ferris_wheel:
-      name: "Ferris Wheel"
-      display_categories: SWITCH
-
-    switch.santa_tree:
-      name: "Santa Tree"
-      display_categories: SWITCH
-
-    switch.nativity:
-      name: "Nativity"
-      display_categories: SWITCH

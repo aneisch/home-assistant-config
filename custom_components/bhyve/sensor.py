@@ -23,7 +23,7 @@ from .const import (
     DEVICE_SPRINKLER,
     DOMAIN,
 )
-from .util import orbit_time_to_local_time
+from .util import next_watering_time, orbit_time_to_local_time
 
 if TYPE_CHECKING:
     from datetime import datetime
@@ -111,12 +111,11 @@ SENSOR_TYPES_SPRINKLER: tuple[BHyveSensorEntityDescription, ...] = (
         unique_id_suffix="next_watering",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:sprinkler-variant",
-        value_fn=lambda data: orbit_time_to_local_time(
-            data.get("status", {}).get("next_start_time")
-        ),
+        value_fn=lambda data: next_watering_time(data.get("status", {})),
         attributes_fn=lambda data: (
             {ATTR_NEXT_START_PROGRAMS: programs}
-            if (programs := data.get("status", {}).get("next_start_programs"))
+            if next_watering_time(status := data.get("status", {})) is not None
+            and (programs := status.get("next_start_programs"))
             else {}
         ),
     ),

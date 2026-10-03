@@ -20,12 +20,12 @@ class TimerSync(hass.Hass):
         #     self.error(f"Failed to parse timers from Alexa: {e}")
         #     return
 
-        # Cancel all existing timers
-        for i in range(self.timer_count + 1):
+        # Cancel all existing timers (entities are numbered 1..timer_count)
+        for i in range(1, self.timer_count + 1):
             self.call_service("timer/cancel", entity_id=f"timer.{self.timer_prefix}_{i}")
 
         count = 0
-        for timer_entry in new:
+        for timer_entry in new or []:
             if count >= self.timer_count:
                 break
             self.log(timer_entry)
@@ -61,4 +61,12 @@ class TimerSync(hass.Hass):
                 "input_text/set_value",
                 entity_id=f"input_text.{self.timer_prefix}_{count}_name",
                 value=label
+            )
+
+        # Clear names on slots no longer in use
+        for i in range(count + 1, self.timer_count + 1):
+            self.call_service(
+                "input_text/set_value",
+                entity_id=f"input_text.{self.timer_prefix}_{i}_name",
+                value=""
             )

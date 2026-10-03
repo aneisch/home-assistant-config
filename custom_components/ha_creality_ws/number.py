@@ -1,18 +1,23 @@
 from __future__ import annotations
 
+import logging
 
+from homeassistant.core import callback  # type: ignore[import]
 from homeassistant.components.number import NumberEntity, NumberMode, NumberDeviceClass
 
-# unit compat across HA versions
-try:
-    from homeassistant.const import UnitOfTemperature, PERCENTAGE as UNIT_PERCENT
-    UNIT_CELSIUS = UnitOfTemperature.CELSIUS
-except Exception:  # older cores
-    from homeassistant.const import TEMP_CELSIUS as UNIT_CELSIUS, PERCENTAGE as UNIT_PERCENT
+from homeassistant.const import (  # type: ignore[import]
+    PERCENTAGE as UNIT_PERCENT,
+    UnitOfTemperature,
+)
 
-from homeassistant.helpers import entity_registry as er  # type: ignore[import]
+UNIT_CELSIUS = UnitOfTemperature.CELSIUS
+
+from homeassistant.helpers.dispatcher import async_dispatcher_connect  # type: ignore[import]
 from .const import DOMAIN
 from .entity import KEntity
+
+_LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the number entities."""
@@ -23,25 +28,88 @@ async def async_setup_entry(hass, entry, async_add_entities):
     ents.append(PrintTuningPercent(coord))
     ents.append(NozzleTargetNumber(coord))
     ents.append(BedTargetNumber(coord, bed_index=0))
-    
-    # Chamber temperature control (K2 Pro/Plus only)
-    has_box_control = entry.data.get("_cached_has_chamber_control", entry.data.get("_cached_has_box_control", False))
-    if coord.data.get("maxBoxTemp") and has_box_control:
-        ents.append(BoxTargetNumber(coord))
-    
-    # Fan controls (legacy). Only create if entity already exists to avoid duplicates with native fan platform.
-    reg = er.async_get(hass)
-    host = coord.client._host
-    legacy_uids = [
-        ("model_fan_pct", "modelFanPct", "Model Fan %", 0, "model_fan_pct"),
-        ("case_fan_pct", "caseFanPct", "Case Fan %", 1, "case_fan_pct"),
-        ("side_fan_pct", "auxiliaryFanPct", "Side Fan %", 2, "side_fan_pct"),
-    ]
-    for uid, field, name, ch, tk in legacy_uids:
-        unique = f"{host}-{uid}"
-        existing = reg.async_get_entity_id("number", DOMAIN, unique)
-        if existing:
-            ents.append(_FanPctNumber(coord, name, field, uid, channel=ch, translation_key=tk))
+
+    # Chamber temperature control (K2 Pro/Plus only).
+    #
+    # This used to be gated purely on live `maxBoxTemp`, which the printer only
+    # reports once it is reachable. Platform setup deliberately does not wait for
+    # the printer, so a Home Assistant restart while the printer was off left the
+    # entity uncreated -- and nothing recreated it when the printer came back, so
+    # it stayed `unavailable` until the next restart that happened to win the
+    # race. It is now satisfied by the capability cached during onboarding, and
+    # created late via the discovery signal if neither is available yet.
+    added: set[str] = set()
+
+    def _chamber_entities() -> list[NumberEntity]:
+        if "box_target" in added:
+            return []
+        # Read the capability on every call rather than capturing it at setup:
+        # the late pass has to see the current entry data, and live telemetry
+        # promotes the capability the same way __init__ does when caching it.
+        has_box_control = entry.data.get(
+            "_cached_has_chamber_control", entry.data.get("_cached_has_box_control", False)
+        )
+        # `targetBoxTemp` only, matching the promotion in __init__.py: there,
+        # `maxBoxTemp` promotes the chamber *sensor* (:317) and only
+        # `targetBoxTemp` promotes the *control* (:314). Accepting `maxBoxTemp`
+        # here conflated the two, so a K1-family printer -- chamber sensor, no
+        # chamber control, and it does report a maximum -- was given a target
+        # control whose setter sends a `boxTempControl` it cannot honour.
+        if not has_box_control and "targetBoxTemp" in coord.data:
+            has_box_control = True
+        if not has_box_control:
+            return []
+        # A printer reporting targetBoxTemp has a settable chamber whether or not
+        # it also reports a maximum, and BoxTargetNumber already falls back to
+        # 60 C. Requiring a max here consumed the discovery signal and then left
+        # the control absent for good.
+        if "targetBoxTemp" in coord.data:
+            added.add("box_target")
+            return [BoxTargetNumber(coord)]
+        cached_max = entry.data.get(
+            "_cached_max_chamber_temp", entry.data.get("_cached_max_box_temp")
+        )
+        if not coord.data.get("maxBoxTemp") and not cached_max:
+            return []
+        added.add("box_target")
+        return [BoxTargetNumber(coord)]
+
+    ents.extend(_chamber_entities())
+
+    # `call_soon` cannot be cancelled, and disconnecting the dispatcher does not
+    # unschedule a callback that is already queued. Without this flag the
+    # deferred `async_add_entities` could run against an unloaded entry.
+    platform_live = True
+
+    def _mark_unloaded() -> None:
+        nonlocal platform_live
+        platform_live = False
+
+    entry.async_on_unload(_mark_unloaded)
+
+    def _add_if_live(new_ents: list[NumberEntity]) -> None:
+        if platform_live:
+            async_add_entities(new_ents)
+
+    # The dispatcher runs a plain sync target in an executor thread, and this
+    # calls `hass.loop.call_soon`, which is not thread-safe. Cheap enough to
+    # belong on the loop.
+    @callback
+    def _on_new_entities() -> None:
+        """Late discovery: the printer has just reported a gating field."""
+        new_ents = _chamber_entities()
+        if new_ents:
+            _LOGGER.debug("Adding %d late-discovered number entities", len(new_ents))
+            # Deferred, not inline: see the matching note in sensor.py.
+            hass.loop.call_soon(_add_if_live, new_ents)
+
+    entry.async_on_unload(
+        async_dispatcher_connect(
+            hass,
+            f"{DOMAIN}_new_entities_{entry.entry_id}",
+            _on_new_entities,
+        )
+    )
 
     async_add_entities(ents)
 
@@ -207,40 +275,12 @@ class BoxTargetNumber(KEntity, NumberEntity):
         if max_v is not None:
             v = min(int(max_v), v)
         
-        # Optimistic update
-        self.coordinator.data["targetBoxTemp"] = v
+        # Optimistic update. Via the coordinator helper, not a direct write:
+        # targetBoxTemp is a LATE_DISCOVERY_FIELDS entry, and writing it straight
+        # into .data consumes the one-shot that other gates depend on. Harmless
+        # today (this entity only exists once that gate is already satisfied) but
+        # the invariant has been broken this way before.
+        self.coordinator.merge_telemetry({"targetBoxTemp": v})
         self.coordinator.async_update_listeners()
 
         await self.coordinator.client.send_set_retry(boxTempControl=v)
-
-
-# ---------- Fan percent via M106 (0%→off) ----------
-class _FanPctNumber(KEntity, NumberEntity):
-    # Legacy fan controls; native fan platform replaces these. Keep disabled by default for new setups.
-    _attr_entity_registry_enabled_default = False
-    _attr_native_unit_of_measurement = UNIT_PERCENT
-    _attr_mode = NumberMode.SLIDER
-    _attr_native_min_value = 0.0
-    _attr_native_max_value = 100.0
-    _attr_native_step = 1.0
-
-    def __init__(self, coordinator, name: str, read_field: str, uid: str, channel: int, translation_key: str | None = None) -> None:
-        super().__init__(coordinator, name, uid, translation_key=translation_key)
-        self._read_field = read_field
-        self._channel = int(channel)
-
-    @property
-    def native_value(self) -> float | None:
-        if self._should_zero():
-            return None
-        v = self.coordinator.data.get(self._read_field)
-        try:
-            return float(v) if v is not None else None
-        except (TypeError, ValueError):
-            return None
-
-    async def async_set_native_value(self, value: float) -> None:
-        pct = max(0, min(100, int(round(value))))
-        s_val = int(round(255 * (pct / 100.0)))
-        cmd = f"M106 P{self._channel} S{s_val}"  # 0 → fan off
-        await self.coordinator.client.send_set_retry(gcodeCmd=cmd)

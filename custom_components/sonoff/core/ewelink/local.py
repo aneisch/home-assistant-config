@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def encrypt(payload: dict, devicekey: str):
-    plaintext = json.dumps(payload["data"]).encode("utf-8")
+    plaintext = json.dumps(payload["data"], separators=(",", ":")).encode("utf-8")
     key = hashlib.md5(devicekey.encode("utf-8")).digest()
     iv = os.urandom(16)
 
@@ -137,7 +137,7 @@ class XRegistryLocal(XRegistryBase):
         if host:
             msg["host"] = host
 
-        if data.get("encrypt"):
+        if data.get("encrypt") == "true":
             msg["data"] = raw
             msg["iv"] = data["iv"]
         elif raw:  # no data field from zbbridgeu

@@ -1,8 +1,8 @@
 MeterEntity = data.get('meter_entity')
 inputState = hass.states.get(MeterEntity).state
 
-current_cost = hass.states.get("input_number.grid_import_rate").state
-current_sell = hass.states.get("input_number.grid_export_rate").state
+current_cost = float(hass.states.get("input_number.grid_import_rate").state)
+current_sell = float(hass.states.get("input_number.grid_export_rate").state)
 
 if MeterEntity == "sensor.electricity_usage":
     #hass.bus.fire("debug", {"wow": ""})
@@ -11,8 +11,8 @@ if MeterEntity == "sensor.electricity_usage":
     computed_electricity_cost = round(((float(inputState)) * current_cost), 2)
 
     # Set State
-    service_data = {"entity_id": "input_text.electricity_cost_monthly", "value": computed_electricity_cost}
-    hass.services.call("input_text", "set_value", service_data)
+    service_data = {"entity_id": "input_number.electricity_cost_monthly", "value": computed_electricity_cost}
+    hass.services.call("input_number", "set_value", service_data)
 
 elif MeterEntity == "sensor.electricity_sell":
     #hass.bus.fire("debug", {"wow": ""})
@@ -20,15 +20,17 @@ elif MeterEntity == "sensor.electricity_sell":
     computed_electricity_credit = round(float(inputState) * current_sell, 2)
 
     # Set State
-    service_data = {"entity_id": "input_text.electricity_sell_monthly", "value": computed_electricity_credit}
-    hass.services.call("input_text", "set_value", service_data)
+    service_data = {"entity_id": "input_number.electricity_sell_monthly", "value": computed_electricity_credit}
+    hass.services.call("input_number", "set_value", service_data)
+    hass.bus.fire("debug", {"wow": service_data})
+
 
 elif MeterEntity == "sensor.monthly_tesla_electric_usage":
     computed_electricity_cost = round((float(inputState) * current_cost), 2)
 
     # Set State
-    service_data = {"entity_id": "input_text.electricity_cost_monthly_tesla", "value": computed_electricity_cost}
-    hass.services.call("input_text", "set_value", service_data)
+    service_data = {"entity_id": "input_number.electricity_cost_monthly_tesla", "value": computed_electricity_cost}
+    hass.services.call("input_number", "set_value", service_data)
 
 elif MeterEntity == "sensor.water_usage":
     unaccountedusage = int(float(inputState))
@@ -80,8 +82,8 @@ elif MeterEntity == "sensor.water_usage":
     computed_sewer_cost = round(computed_sewer_cost, 2)
 
     # Set states
-    service_data = {"entity_id": "input_text.water_cost_monthly", "value": computed_water_cost}
-    hass.services.call("input_text", "set_value", service_data)
+    service_data = {"entity_id": "input_number.water_cost_monthly", "value": computed_water_cost}
+    hass.services.call("input_number", "set_value", service_data)
 
-    service_data = {"entity_id": "input_text.sewer_cost_monthly", "value": computed_sewer_cost}
-    hass.services.call("input_text", "set_value", service_data)
+    service_data = {"entity_id": "input_number.sewer_cost_monthly", "value": computed_sewer_cost}
+    hass.services.call("input_number", "set_value", service_data)

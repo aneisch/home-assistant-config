@@ -145,6 +145,16 @@ class XBoolSwitch(XEntity, SwitchEntity):
         await self.ewelink.send(self.device, {self.param: False})
 
 
+class XSwitchSWV(XBoolSwitch):
+    async def async_turn_on(self):
+        params = {self.param: True, "controlMode": "manual"}
+        await self.ewelink.send(self.device, params)
+
+    async def async_turn_off(self):
+        params = {self.param: False, "controlMode": "manual"}
+        await self.ewelink.send(self.device, params)
+
+
 class XT5WorkMode(XEntity, SwitchEntity):
     params = {"workMode"}
     uid = "curtain_mode"
@@ -169,3 +179,45 @@ class XPanelScreen(XEntity, SwitchEntity):
 
     async def async_turn_off(self):
         await self.ewelink.send(self.device, {"openLED": False})
+
+
+# noinspection PyAbstractClass
+class XAlarmSettingSwitch(XEntity, SwitchEntity):
+    """Base class for SNZB-09P (uiid 7056) switches nested inside `alarmSetting`.
+
+    eWeLink sends/expects this device's config as a single nested dict:
+      "alarmSetting": {"duration": 10, "test": false, "alertSound": "alarm0",
+                        "voice": true, "volume": 0, "light": true}
+
+    Reverse engineered from device diagnostics - not from official docs, so
+    double-check behaviour on your own device.
+    """
+
+    params = {"alarmSetting"}
+    field: str = None
+
+    def set_state(self, params: dict):
+        self._attr_is_on = bool(params.get("alarmSetting", {}).get(self.field))
+
+    async def internal_send(self, value: bool):
+        setting = dict(self.device["params"].get("alarmSetting", {}))
+        setting[self.field] = value
+        await self.ewelink.send(self.device, {"alarmSetting": setting})
+
+    async def async_turn_on(self, *args, **kwargs):
+        await self.internal_send(True)
+
+    async def async_turn_off(self, *args, **kwargs):
+        await self.internal_send(False)
+
+
+class XAlarmLight(XAlarmSettingSwitch):
+    field = "light"
+    uid = "alarm_light"
+    _attr_icon = "mdi:alarm-light"
+
+
+class XAlarmVoice(XAlarmSettingSwitch):
+    field = "voice"
+    uid = "alarm_sound"
+    _attr_icon = "mdi:volume-high"

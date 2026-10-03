@@ -156,22 +156,20 @@ class SolarEVCharger(hass.Hass):
             self.safe_set_rate(final_amps, disable=False, guest_mode=(guest_mode == "on"))
 
     def safe_set_rate(self, amps, disable=False, guest_mode=False):
-        if self.notify_handler and self.info_timer(self.notify_handler):
-            self.cancel_timer(self.notify_handler)
-        
         try:
             charger_state = self.get_state(self.entities["charger_switch"])
             present_rate = int(float(self.get_state(self.entities["charge_rate"])))
-            ev_soc = int(float(self.get_state(self.entities["ev_soc"])))
-            
-            if not guest_mode:
-                present_limit = int(float(self.get_state(self.entities["charge_limit"])))
-                target_soc = int(float(self.get_state(self.entities["target_soc"])))
         except Exception as e:
-            self.log(f"WARNING: safe_set_rate state fetch failed, using hardcoded defaults. {e}")
-            charger_state = 'on'
-            present_rate = 40
-            ev_soc = 45
+            # Don't act on guessed values; the next state change will retry
+            self.log(f"WARNING: safe_set_rate charger state fetch failed, skipping. {e}")
+            return
+
+        # Tesla values are optional (BLE often reports unknown); skip Tesla-specific steps when missing
+        ev_soc = self._get_int(self.entities["ev_soc"])
+        present_limit = target_soc = None
+        if not guest_mode:
+            present_limit = self._get_int(self.entities["charge_limit"])
+            target_soc = self._get_int(self.entities["target_soc"])
 
         if disable:
             changes_made = False
@@ -187,10 +185,8 @@ class SolarEVCharger(hass.Hass):
                     changes_made = True
             else:
                 # TESLA DEFICIT PATH: Clamp car SoC via BLE to 50%, leave station hardware active
-                if present_limit != 50:
-                    self.turn_off("automation.tesla_charge_limit_change_notice")
-                    self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=50)
-                    self.notify_handler = self.run_in(self._enable_notice, 60)
+                if present_limit is not None and present_limit != 50:
+                    self._set_charge_limit(50)
                     self.log("FORCE [Tesla]: Clamping Tesla charge limit to 50%")
                     changes_made = True
                     
@@ -199,7 +195,7 @@ class SolarEVCharger(hass.Hass):
                     self.log(f"FORCE [Tesla]: Setting master charge rate to minimum ({self.min_amps}A).")
                     changes_made = True
 
-                if ev_soc < 50 and charger_state != "off":
+                if ev_soc is not None and ev_soc < 50 and charger_state != "off":
                     self.log(f"ALERT: Tesla SOC is below 50% at {ev_soc}%. Turning off charger.")
                     self.turn_off(self.entities["charger_switch"])
                     changes_made = True
@@ -228,17 +224,30 @@ class SolarEVCharger(hass.Hass):
 
             if not guest_mode:
                 # Tesla-specific internal target updates
-                if present_limit != target_soc:
-                    self.turn_off("automation.tesla_charge_limit_change_notice")
-                    self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=target_soc)
-                    self.notify_handler = self.run_in(self._enable_notice, 60)
+                if None not in (present_limit, target_soc) and present_limit != target_soc:
+                    self._set_charge_limit(target_soc)
 
         # Local eval to ensure we only update every self.cooldown seconds at most, preventing BLE flooding and rapid state changes
         self.eval_locked = True
         self.run_in(self._unlock_eval, self.cooldown)
 
+    def _get_int(self, entity):
+        try:
+            return int(float(self.get_state(entity)))
+        except (TypeError, ValueError):
+            return None
+
+    def _set_charge_limit(self, value):
+        # Mute the change notice while we adjust; restart the re-enable timer if one is pending
+        if self.notify_handler and self.timer_running(self.notify_handler):
+            self.cancel_timer(self.notify_handler)
+        self.turn_off("automation.tesla_charge_limit_change_notice")
+        self.call_service("number/set_value", entity_id=self.entities["charge_limit"], value=value)
+        self.notify_handler = self.run_in(self._enable_notice, 60)
+
     def _unlock_eval(self, kwargs):
         self.eval_locked = False
 
     def _enable_notice(self, kwargs):
+        self.notify_handler = None
         self.turn_on("automation.tesla_charge_limit_change_notice")

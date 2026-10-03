@@ -50,6 +50,7 @@ AC Automation Solar:
   battery_boost_threshold: 96       # battery SOC for boost activation
   cool_boost_entity: input_number.cool_boost_target 
   cooldown_window_start_offset: "-04:00:00"   # 4 hours before sunset
+  cooldown_window_start_offset_unoccupied: "-01:30:00"   # 1.5 hours before sunset
   cooldown_window_end_offset: "-00:10:00"     # 10 min before sunset
 
 Solar EV Charger:
@@ -91,7 +92,7 @@ Auto Dehumidifer:
 Kitchen Timer Sync:
   module: echo_timer_sync
   class: TimerSync
-  alexa_timer: sensor.kitchen_next_timer
+  alexa_timer: sensor.andrew_s_kitchen_echo_next_timer
   timer_prefix: kitchen_alexa
   # how many timer. entities are in home assistant?
   timer_count: 5
@@ -214,6 +215,18 @@ Occupancy Simulator:
   #step_dark_off_6: light.office_ceiling_fan
   step_dark_off_7: light.guest_bedroom_nightstand_lamp
   step_dark_off_8: light.back_bedroom_nightstand_lamp
+
+Fairy Teardrops:
+  module: follow_me
+  class: Follow
+  leader: light.pumpkin_patch_pumpkin_patch
+  follower: light.teardrop_fairy_lights_teardrop_fairy_lights
+
+Garage Override:
+  module: follow_me
+  class: Follow
+  leader: automation.turn_off_garage_lights
+  follower: automation.turn_off_garage_leds_when_doors_close
 
 Garage Middle:
   module: follow_me
@@ -354,8 +367,8 @@ Dehumidifer Guest Mode Follow:
 Garage Exterior Light at Night With Door:
   module: door_open
   class: DoorLight
-  constrain_start_time: sunset
-  constrain_end_time: sunrise
+  start_time: sunset
+  end_time: sunrise
   trigger_sensor: binary_sensor.garage_exterior_door
   toggle_entity: switch.garage_exterior_light
   # Seconds to turn entity on when triggered
@@ -364,9 +377,9 @@ Garage Exterior Light at Night With Door:
 Backyard Flood Lights with Person Detection:
   module: door_open
   class: DoorLight
-  constrain_end_time: sunrise - 01:00:00
-  constrain_start_time: sunset
-  constrain_input_boolean:
+  end_time: sunrise - 01:00:00
+  start_time: sunset
+  enable_boolean:
     - input_boolean.backyard_floodlight_automation
   trigger_sensor: binary_sensor.backyard_person_occupancy,binary_sensor.backyard_porch_person_occupancy,binary_sensor.bullet_person_occupancy
   toggle_entity: switch.backyard_flood_lights,switch.globe_lights,light.back_porch_fan_light 
@@ -384,10 +397,10 @@ Doorbell Ring Light:
 Office Light at Night With Door:
   module: door_open
   class: DoorLight
-  # constrain_input_boolean:
+  # enable_boolean:
   #   - input_boolean.house_lamps_automation
-  constrain_end_time: sunrise
-  constrain_start_time: sunset
+  end_time: sunrise
+  start_time: sunset
   trigger_sensor: binary_sensor.front_door
   toggle_entity: light.andrew_desk_lamp
   # Seconds to turn entity on when triggered
@@ -396,10 +409,10 @@ Office Light at Night With Door:
 Kitchen Light at Night With Door:
   module: door_open
   class: DoorLight
-  # constrain_input_boolean: 
+  # enable_boolean: 
   #   - input_boolean.house_lamps_automation
-  constrain_end_time: sunrise
-  constrain_start_time: sunset
+  end_time: sunrise
+  start_time: sunset
   trigger_sensor: binary_sensor.garage_interior_door,binary_sensor.back_porch_door
   toggle_entity: light.kitchen_table_leds
   # Seconds to turn entity on when triggered
@@ -408,8 +421,8 @@ Kitchen Light at Night With Door:
 Living Room Sconces at Night With Motion:
   module: door_open
   class: DoorLight
-  constrain_end_time: sunrise
-  constrain_input_boolean: 
+  end_time: sunrise
+  enable_boolean:
     - input_boolean.guest_mode
   trigger_sensor: binary_sensor.living_room_motion
   toggle_entity: light.living_room_sconces
@@ -445,7 +458,7 @@ Indoor Light Automation Sunset:
   # Start Christmas
   # entities: switch.living_room_christmas_tree # this tree causes a few others to also turn on #,group.christmas # disabled temporarily, no need to turn all of these on?
   # End Christmas
-  entities: light.living_room_lamps, group.under_cabinet_lights
+  entities: light.living_room_lamps,group.under_cabinet_lights
   brightness: 255
 
 Guest Light Automation Sunset:
@@ -566,7 +579,7 @@ Door Notification and Occusim Security Follow:
   module: follow_me
   class: Follow
   leader: input_boolean.security_status
-  follower: input_boolean.door_notify, input_boolean.occusim # only enable manually to preserve power
+  follower: input_boolean.door_notify,input_boolean.occusim # only enable manually to preserve power
 
 # TV Automation Smallgroup:
 #   module: entity_timer

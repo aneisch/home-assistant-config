@@ -7,6 +7,36 @@ from homeassistant.util import dt
 
 from .const import CONF_DEVICES, DEVICE_BRIDGE
 
+# Orbit returns ~2106-02-07 (epoch max) as a sentinel for "nothing scheduled".
+# Treat any timestamp from this year on as that sentinel.
+_NEXT_WATERING_SENTINEL_YEAR = 2100
+
+
+def rain_delay_active(status: dict) -> bool:
+    """Return True when the device status has a rain delay in force."""
+    return (status.get("rain_delay") or 0) > 0
+
+
+def next_watering_time(status: dict) -> datetime | None:
+    """
+    Return the device's next watering time, or None when it is known to be wrong.
+
+    Orbit only refreshes next_start_time on the 5-minute poll, and does not
+    always clear it, so hide it when (#430):
+    - a rain delay is active, since Orbit won't water through it;
+    - it is Orbit's "nothing scheduled" sentinel;
+    - it is in the past, e.g. the skipped run just after a rain delay ends.
+    """
+    if rain_delay_active(status):
+        return None
+
+    next_start = orbit_time_to_local_time(status.get("next_start_time"))
+    if next_start is None or next_start.year >= _NEXT_WATERING_SENTINEL_YEAR:
+        return None
+    if next_start <= dt.now():
+        return None
+    return next_start
+
 
 def orbit_time_to_local_time(timestamp: str | None) -> datetime | None:
     """Convert the Orbit API timestamp to local time."""

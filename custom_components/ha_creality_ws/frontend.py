@@ -1,6 +1,8 @@
+import hashlib
+import json
 import logging
-import time
 from pathlib import Path
+from homeassistant.components.http import StaticPathConfig  # type: ignore[import]
 from homeassistant.core import HomeAssistant
 
 _LOGGER = logging.getLogger(__name__)
@@ -9,49 +11,94 @@ LOCAL_SUBDIR = "ha_creality_ws"
 PRINTER_CARD_NAME = "k_printer_card.js"
 CFS_CARD_NAME = "k_cfs_card.js"
 CARDS = [PRINTER_CARD_NAME, CFS_CARD_NAME]
+# Static files the cards fetch at runtime. Listed explicitly, one registration
+# each, rather than exposing the whole www/ directory -- that would also serve
+# ha_creality_ws.code-workspace and change how the cards themselves are served
+# as a side effect of adding an image.
+ASSETS = ["cfs_box.webp"]
 INTEGRATION_URL_BASE = f"/{LOCAL_SUBDIR}/"
+# Static routes are per-process, not per-config-entry. See _register_static_path.
+_STATIC_PATHS_KEY = f"{LOCAL_SUBDIR}_static_paths"
 I18N_URL_BASE = f"{INTEGRATION_URL_BASE}i18n"
-# Use timestamp to bust cache on every load
-_VERSION = str(int(time.time()))
+def card_version(card_name: str) -> str:
+    """Cache-buster for one card, derived from what is actually being served.
 
+    This used to be ``str(int(time.time()))``, evaluated once at import. That
+    changed on every Home Assistant start, which meant two things: the Lovelace
+    resource entry was rewritten on every restart whether or not the card had
+    changed, and every browser threw away a good copy of the card each time.
 
-def _register_static_path(hass: HomeAssistant, url_path: str, path: str) -> None:
-    """Register a static path with the HA HTTP component, compatible with multiple HA versions.
+    Hashing the file's own bytes instead makes the URL change exactly when the
+    card changes -- which is the property an update needs. The manifest version
+    is folded in because HACS restores files from a release archive and can
+    preserve their timestamps, so nothing else in the path is guaranteed to
+    move on an upgrade.
 
-    We intentionally register the card from the integration `frontend/` folder so the
-    file is served from the integration package (no copying to /config/www).
+    Reads the file, so callers must keep this off the event loop.
     """
+    base = Path(__file__).parent
+    digest = hashlib.sha256()
     try:
-        # HA 2024.7+ supports async_register_static_paths/StaticPathConfig; prefer that
-        from homeassistant.components.http import StaticPathConfig
-
-        # Use async API when available. Run inside a guarded async task so any
-        # exceptions (duplicate routes, etc.) are handled and don't generate
-        # un-retrieved task exceptions which show as noisy errors in the log.
-        if hasattr(hass.http, "async_register_static_paths"):
-            async def _safe_register():
-                try:
-                    await hass.http.async_register_static_paths(
-                        [StaticPathConfig(url_path, path, True)]
-                    )
-                except Exception as exc:
-                    # Duplicate route registrations raise RuntimeError in aiohttp
-                    # when the same method/path is already present. Handle it
-                    # gracefully and log at debug level.
-                    _LOGGER.debug("Failed to async register static path %s -> %s: %s", url_path, path, exc)
-
-            hass.async_create_task(_safe_register())
-            return
-    except Exception:
-        # Fall through to sync API below
-        pass
-
-    # Fallback for older HA
+        digest.update(
+            json.loads((base / "manifest.json").read_text(encoding="utf-8"))["version"].encode()
+        )
+    except Exception:  # pylint: disable=broad-except
+        # A missing or malformed manifest is not a reason to stop serving the
+        # card; the file hash below is the part that actually has to be right.
+        _LOGGER.debug("Could not read manifest version for the %s cache buster", card_name)
     try:
-        hass.http.register_static_path(url_path, path, cache_headers=True)
-    except Exception:
-        # If registration fails, log and continue; we won't attempt to copy files.
-        _LOGGER.debug("Failed to register static path %s -> %s", url_path, path)
+        digest.update((base / "www" / card_name).read_bytes())
+    except OSError as exc:
+        # No file to hash means the card is about to 404 anyway. Return a token
+        # that is stable rather than random so the resource entry does not
+        # churn while somebody fixes the install.
+        _LOGGER.warning("Could not hash %s for its cache buster: %s", card_name, exc)
+        return "missing"
+    return digest.hexdigest()[:10]
+
+
+def _register_static_path(
+    hass: HomeAssistant, url_path: str, path: str, *, cache_headers: bool = True
+) -> None:
+    """Serve a file or directory straight out of the integration package.
+
+    Deliberately served from the integration's own `www/` folder rather than
+    copied into /config/www, so an update cannot leave a stale copy behind.
+
+    Registration is done in a task with its own error handling: aiohttp raises
+    when the same method and path are already registered, and an unretrieved
+    task exception would otherwise surface as a noisy traceback in the log.
+
+    Tracked per Home Assistant process, because `async_register_static_paths`
+    does not deduplicate and this runs from `async_setup_entry`: a second
+    printer, or any options change that reloads the entry, would otherwise
+    re-register the same four paths and raise every time. That used to be
+    accepted as the price of not being silent about a real failure, since both
+    cases logged the same warning. Skipping the duplicate instead means the
+    warning below now only ever means the real thing.
+
+    The marker is dropped again if registration fails, so a genuine failure
+    stays retryable on the next reload.
+    """
+    registered: set[str] = hass.data.setdefault(_STATIC_PATHS_KEY, set())
+    if url_path in registered:
+        return
+    registered.add(url_path)
+
+    async def _register() -> None:
+        try:
+            await hass.http.async_register_static_paths(
+                [StaticPathConfig(url_path, path, cache_headers)]
+            )
+        except Exception as exc:  # pylint: disable=broad-except
+            # Warning, not debug: if this fails the Lovelace cards 404 on every
+            # dashboard, and at debug level nothing would say why.
+            registered.discard(url_path)
+            _LOGGER.warning(
+                "Could not serve %s from %s: %s", url_path, path, exc
+            )
+
+    hass.async_create_task(_register())
 
 
 async def _init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
@@ -77,7 +124,7 @@ async def _init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
         return False
 
     resources: ResourceStorageCollection = (
-        lovelace.resources if hasattr(lovelace, "resources") else lovelace["resources"]
+        lovelace.resources
     )
 
     await resources.async_get_info()
@@ -128,7 +175,7 @@ async def _migrate_local_resources(
         return 0
 
     resources: ResourceStorageCollection = (
-        lovelace.resources if hasattr(lovelace, "resources") else lovelace["resources"]
+        lovelace.resources
     )
 
     await resources.async_get_info()
@@ -172,27 +219,19 @@ class CrealityCardRegistration:
     def __init__(self, hass: HomeAssistant) -> None:
         self.hass = hass
 
-    def _src_path(self, card_name: str) -> Path:
-        # card bundled inside the integration
-        return Path(__file__).parent / "frontend" / card_name
-
     async def async_register(self) -> None:
         """Register a static path that serves the card from the integration package.
 
         We do NOT auto-create or modify Lovelace resources to avoid clobbering user
         dashboards. Instead we log the integration-hosted URL for manual registration.
         """
+        versions: dict[str, str] = {}
         for card_name in CARDS:
             integration_url = f"{INTEGRATION_URL_BASE}{card_name}"
-            src = self._src_path(card_name)
-            # integration-local serving uses the 'www' folder name like other integrations
-            # (file lives in integration/frontend or integration/www depending on packaging)
-            www_path = Path(__file__).parent / "www" / card_name
-            if www_path.exists():
-                serve_path = str(www_path)
-            else:
-                # fall back to original frontend location when 'www' is not present
-                serve_path = str(src)
+            serve_path = str(Path(__file__).parent / "www" / card_name)
+            # Hashing reads the card off disk, so keep it out of the event loop.
+            version = await self.hass.async_add_executor_job(card_version, card_name)
+            versions[card_name] = version
 
             _register_static_path(self.hass, integration_url, serve_path)
 
@@ -211,7 +250,7 @@ class CrealityCardRegistration:
             # Try a delicate auto-registration of the lovelace resource; this will only
             # update/create the single resource URL and includes a version query param.
             try:
-                await _init_resource(self.hass, integration_url, _VERSION)
+                await _init_resource(self.hass, integration_url, version)
                 _LOGGER.debug("Auto-registered lovelace resource for %s", integration_url)
             except Exception:
                 _LOGGER.debug("Auto-registration of lovelace resource failed for %s", integration_url)
@@ -220,21 +259,39 @@ class CrealityCardRegistration:
             # migrate them to the integration-hosted URL to avoid leaving stale references.
             try:
                 migrated = await _migrate_local_resources(
-                    self.hass, f"/local/{LOCAL_SUBDIR}/{card_name}", integration_url, _VERSION
+                    self.hass, f"/local/{LOCAL_SUBDIR}/{card_name}", integration_url, version
                 )
                 if migrated:
                     _LOGGER.info("Migrated %d Lovelace /local/ resources to integration-hosted URL", migrated)
             except Exception:
                 _LOGGER.debug("Local-to-integration resource migration failed for %s", integration_url)
 
+        for asset_name in ASSETS:
+            asset_path = Path(__file__).parent / "www" / asset_name
+            if asset_path.exists():
+                _register_static_path(
+                    self.hass,
+                    f"{INTEGRATION_URL_BASE}{asset_name}",
+                    str(asset_path),
+                )
+            else:
+                _LOGGER.warning("Card asset missing, not registered: %s", asset_path)
+
         i18n_path = Path(__file__).parent / "www" / "i18n"
         if i18n_path.exists():
-            _register_static_path(self.hass, I18N_URL_BASE, str(i18n_path))
+            # No cache headers here, unlike the cards. Their URLs carry a
+            # `?v=` derived from the file's own bytes, so a month-long
+            # max-age is exactly what you want; the i18n files are fetched
+            # by bare path, so the same header would leave a browser on the
+            # old translations until the cache expired.
+            _register_static_path(
+                self.hass, I18N_URL_BASE, str(i18n_path), cache_headers=False
+            )
 
         # Fix any base-only resource entries (e.g. "/ha_creality_ws/?v=1") by expanding
         # them into the concrete card file URL(s).
         try:
-            await _expand_base_resource(self.hass, INTEGRATION_URL_BASE, CARDS)
+            await _expand_base_resource(self.hass, INTEGRATION_URL_BASE, versions)
         except Exception:
             _LOGGER.debug("Failed to expand base resource entries for %s", LOCAL_SUBDIR)
 
@@ -243,13 +300,13 @@ class CrealityCardRegistration:
             INTEGRATION_URL_BASE,
         )
 
-    async def async_unregister(self) -> None:
-        """No-op: leave Lovelace resources and HTTP registrations alone on unload."""
-        return
-
-
-async def _expand_base_resource(hass: HomeAssistant, base: str, card_names: list[str]) -> int:
+async def _expand_base_resource(
+    hass: HomeAssistant, base: str, card_versions: dict[str, str]
+) -> int:
     """Expand any resources that point to `base` (with no filename) into per-card URLs.
+
+    Takes the cache busters rather than computing them: hashing reads the cards
+    off disk, and this runs on the event loop.
 
     Returns number of newly created/updated resource entries.
     """
@@ -264,7 +321,7 @@ async def _expand_base_resource(hass: HomeAssistant, base: str, card_names: list
         return 0
 
     resources: ResourceStorageCollection = (
-        lovelace.resources if hasattr(lovelace, "resources") else lovelace["resources"]
+        lovelace.resources
     )
 
     await resources.async_get_info()
@@ -272,7 +329,7 @@ async def _expand_base_resource(hass: HomeAssistant, base: str, card_names: list
     created = 0
 
     # Build full target urls
-    targets = [f"{base.rstrip('/')}/{name}?v={_VERSION}" for name in card_names]
+    targets = [f"{base.rstrip('/')}/{name}?v={ver}" for name, ver in card_versions.items()]
 
     # Find items that point to the base (with or without ?v=)
     for item in list(resources.async_items()):

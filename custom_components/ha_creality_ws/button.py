@@ -43,8 +43,9 @@ class KHomeAllButton(KEntity, ButtonEntity):
             await self.coordinator.client.send_set_retry(autohome="Z")
 
     async def _wait_until_idle_or_timeout(self, timeout: float) -> None:
-        end = asyncio.get_event_loop().time() + timeout
-        while asyncio.get_event_loop().time() < end:
+        loop = asyncio.get_running_loop()
+        end = loop.time() + timeout
+        while loop.time() < end:
             if (self.coordinator.data or {}).get("deviceState") != 7:
                 return
             await asyncio.sleep(0.25)
@@ -81,12 +82,8 @@ class KPrintStopButton(_BasePrintButton):
         super().__init__(coordinator, unique_id="stop_print")
     async def async_press(self) -> None:
         """Handle the button press."""
-        # Ensure WebSocket connection is active before sending commands
-        if not await self.coordinator.ensure_connected():
-            _LOGGER.warning("Cannot execute stop command: printer not connected")
-            return
-        await self.coordinator.client.send_set_retry(stop=1)
-        # don't force paused flag here; telemetry will reflect idle soon
+        # Shared with the live-notification Stop action, so the two cannot drift.
+        await self.coordinator.async_stop_print()
 
 class KReconnectButton(KEntity, ButtonEntity):
     """Button to force a reconnect."""

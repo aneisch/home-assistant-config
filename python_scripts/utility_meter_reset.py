@@ -31,10 +31,10 @@ if today == reset_day:
     # Hacky way to ensure estimate only gets sent once
     if MeterEntity == "sensor.electricity_usage":
         cycle_end = hass.states.get('sensor.utilities_cycle_end').state
-        water_cost = float(hass.states.get('input_text.water_cost_monthly').state)
-        sewer_cost = float(hass.states.get('input_text.sewer_cost_monthly').state)
-        electric_cost = float(hass.states.get('input_text.electricity_cost_monthly').state) + 7 # Add monthly service charge
-        electric_credit = float(hass.states.get('input_text.electricity_sell_monthly').state) *-1
+        water_cost = float(hass.states.get('input_number.water_cost_monthly').state)
+        sewer_cost = float(hass.states.get('input_number.sewer_cost_monthly').state)
+        electric_cost = float(hass.states.get('input_number.electricity_cost_monthly').state) + 7 # Add monthly service charge
+        electric_credit = float(hass.states.get('input_number.electricity_sell_monthly').state) *-1
         # Trash, drainage fee, roadway fee
         other_cost = 22.25 + 7.50 + 10.25
         total = water_cost + sewer_cost + electric_cost + electric_credit + other_cost

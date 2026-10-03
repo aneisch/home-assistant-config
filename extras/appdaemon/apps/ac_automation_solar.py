@@ -24,10 +24,13 @@ class AutoAdjust(hass.Hass):
         self.run_daily(self.adjust_midnight, self.midnight_adjust)
 
         # Debounce window and boost status
-        self.boost_active = None
-        self.should_boost = None
+        self.boost_active = self.get_state("input_boolean.ac_is_boosting") == "on"
+        self.should_boost = self.boost_active
         self.boost_debounce_handle = None
         self.midnight_scheduled_handle = None
+
+        # Last period applied (morning/night/midnight); None until first adjustment
+        self.period = None
 
         # Listen to solar, load, SOC changes (update -- only listen for solar changes. 5s tick)
         self.listen_state(self.solar_change_callback, "sensor.solark_sol_ark_solar_power")
@@ -41,7 +44,7 @@ class AutoAdjust(hass.Hass):
 
     def slider_changed_callback(self, entity, attribute, old, new, kwargs):
         self.log(f"Slider changed to {new}, updating temperature settings.")
-        self.adjust_morning() # Re-runs the current period logic
+        self._adjust_period(self.current_period())
 
     def parse_time(self, time_str):
         return datetime.datetime.strptime(time_str, "%H:%M:%S").time()
@@ -70,10 +73,18 @@ class AutoAdjust(hass.Hass):
 
     def evaluate_boost_conditions(self):
         now = datetime.datetime.now()
-        # Read offsets from args
-        start_offset_str = self.args.get("cooldown_window_start_offset", "-02:00:00")
-        end_offset_str   = self.args.get("cooldown_window_end_offset", "-00:30:00")
+        
+        # Determine occupancy to select the appropriate start offset key
+        tracker_state = self.get_state(self.args["device_tracker"]) if "device_tracker" in self.args else "home"
+        occupied = tracker_state == "home"
 
+        if occupied:
+            start_offset_str = self.args.get("cooldown_window_start_offset", "-02:00:00")
+        else:
+            start_offset_str = self.args.get("cooldown_window_start_offset_unoccupied", "-02:00:00")
+
+
+        end_offset_str = self.args.get("cooldown_window_end_offset", "-00:30:00")
         try:
             start_offset = self.parse_offset(start_offset_str)
             end_offset   = self.parse_offset(end_offset_str)
@@ -87,7 +98,7 @@ class AutoAdjust(hass.Hass):
         # Apply offsets (still datetime)
         start = sunset + datetime.timedelta(seconds=start_offset)
         end   = sunset + datetime.timedelta(seconds=end_offset)
-        self.log(f"{now} - {start} - {end}")
+        self.log(f"Using {'occupied' if occupied else 'unoccupied'} boost schedule - {now} - {start} - {end}")
 
         # Check EV Charging
         try:
@@ -98,18 +109,12 @@ class AutoAdjust(hass.Hass):
         # Rule 0.1: Boost only allowed within window. If active and window ends → deactivate immediately.
         # If grid outage --> Deactivate boost immediately 
         if not (start <= now <= end) or not self.grid_online():
-            if self.boost_active:
-                self.should_boost = False
-                self.commit_boost_change({})
-                self.log("Boost deactivated: outside allowed window or grid offline")
+            self.deactivate_boost_now("outside allowed window or grid offline")
             return
 
-        # Rule 0.2: Allow disabling the feature by boolean
+        # Rule 0.2: Allow disabling the feature by boolean → end any active boost immediately
         if self.get_state("input_boolean.ac_boost_feature_evaluation") == "off":
-            if self.boost_debounce_handle:
-                self.cancel_timer(self.boost_debounce_handle)
-                self.boost_debounce_handle = None
-                self.log("Boost deactivation cancelled (manual override)")
+            self.deactivate_boost_now("feature evaluation disabled")
             return
 
         try:
@@ -179,16 +184,25 @@ class AutoAdjust(hass.Hass):
                 self.log(f"Boost Deactivation Scheduled")
                 self.boost_debounce_handle = self.run_in(self.commit_boost_change, 300)  # 5 minutes
 
+    def deactivate_boost_now(self, reason):
+        if self.boost_debounce_handle:
+            self.cancel_timer(self.boost_debounce_handle)
+            self.boost_debounce_handle = None
+        self.should_boost = False
+        if self.boost_active:
+            self.commit_boost_change({})
+            self.log(f"Boost deactivated: {reason}")
+
     def commit_boost_change(self, kwargs):
-        self.log("evaluating")
+        self.boost_debounce_handle = None
         if self.should_boost:
             self.log(f"Boost Activated")
-            self.set_state("input_boolean.ac_is_boosting", state="on")
+            self.turn_on("input_boolean.ac_is_boosting")
         else:
             self.log(f"Boost Deactivated")
-            self.set_state("input_boolean.ac_is_boosting", state="off")
+            self.turn_off("input_boolean.ac_is_boosting")
         self.boost_active = self.should_boost
-        self.adjust_morning()  # apply new temp
+        self._adjust_period(self.current_period())  # apply new temp
 
     def adjust_temp(self, kwargs):
         for tstat in self.split_device_list(self.args["thermostats"]):
@@ -197,15 +211,25 @@ class AutoAdjust(hass.Hass):
 
     def occupancy_changed(self, entity, attribute, old, new, kwargs):
         # Re-run adjustment based on current period whenever occupancy changes
-        now = datetime.datetime.now().time()
         self.log("Presence changed, calling period adjust")
+        self._adjust_period(self.current_period())
 
-        if self.time_in_range(self.midnight_adjust, self.morning_adjust_weekday, now):
-            self._adjust_period("midnight")
-        elif self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, now):
-            self._adjust_period("morning")
-        else:
-            self._adjust_period("night")
+    def current_period(self):
+        """Period last applied (respects early API night calls); falls back to the clock."""
+        return self.period or self.period_by_clock()
+
+    def period_by_clock(self):
+        now = datetime.datetime.now()
+        weekend = now.weekday() >= 5
+        morning = self.morning_adjust_weekend if weekend else self.morning_adjust_weekday
+        night = self.night_adjust_weekend if weekend else self.night_adjust_weekday
+        t = now.time()
+
+        if self.time_in_range(self.midnight_adjust, morning, t):
+            return "midnight"
+        elif self.time_in_range(morning, night, t):
+            return "morning"
+        return "night"
 
     def time_in_range(self, start, end, x):
         if start <= end:
@@ -226,20 +250,21 @@ class AutoAdjust(hass.Hass):
         self._adjust_period("midnight", force=kwargs.get("force", False))
 
     def _adjust_period(self, label, force=False):
+        self.period = label
         tracker_state = self.get_state(self.args["device_tracker"])
-        mode = self.get_state("sensor.thermostat_operating_mode").lower()
+        mode = (self.get_state("sensor.thermostat_operating_mode") or "").lower()
         guest_mode = self.get_state("input_boolean.guest_mode") == "on"
         occupied = tracker_state == "home" or guest_mode or force
 
-        if mode == "off":
+        if mode not in ("heat", "cool"):
+            if mode != "off":
+                self.log(f"Unsupported thermostat mode '{mode}', not adjusting", level="WARNING")
             return
 
         # If grid is offline, always fall back to unoccupied temps
         if not self.grid_online():
-            if mode == "heat":
-                temp = self.args.get("guest_heat_unoccupied" if guest_mode else "heat_unoccupied")
-            else:
-                temp = self.args.get("guest_cool_unoccupied" if guest_mode else "cool_unoccupied")
+            base = f"{mode}_unoccupied"
+            temp = self.args.get(f"guest_{base}", self.args[base]) if guest_mode else self.args[base]
             self.log(f"Grid offline, forcing unoccupied temp: {temp} ({mode})")
             self.run_in(self.adjust_temp, 1, temp=temp)
             return
@@ -310,14 +335,7 @@ class AutoAdjust(hass.Hass):
 
     def api_evaluate_now(self, *args, **kwargs):
         """Force re-evaluation of current occupancy/time period conditions."""
-        now = datetime.datetime.now().time()
         self.log("API: Forced evaluation of current period")
-
-        if self.time_in_range(self.midnight_adjust, self.morning_adjust_weekday, now):
-            self._adjust_period("midnight", force=True)
-        elif self.time_in_range(self.morning_adjust_weekday, self.night_adjust_weekday, now):
-            self._adjust_period("morning", force=True)
-        else:
-            self._adjust_period("night", force=True)
+        self._adjust_period(self.period_by_clock(), force=True)
 
         return "OK", 200

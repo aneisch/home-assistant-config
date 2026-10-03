@@ -8,15 +8,18 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.const import (
-    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
-    CONCENTRATION_PARTS_PER_MILLION,
+    LIGHT_LUX,
+    MAJOR_VERSION,
+    MINOR_VERSION,
     PERCENTAGE,
     SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     UnitOfElectricCurrent,
     UnitOfElectricPotential,
     UnitOfEnergy,
     UnitOfPower,
+    UnitOfPressure,
     UnitOfTemperature,
+    UnitOfTime,
     UnitOfVolume,
 )
 from homeassistant.util import dt
@@ -26,6 +29,15 @@ from .core.entity import XEntity
 from .core.ewelink import SIGNAL_ADD_ENTITIES, XRegistry
 
 PARALLEL_UPDATES = 0  # fix entity_platform parallel_updates Semaphore
+
+if (MAJOR_VERSION, MINOR_VERSION) >= (2026, 7):
+    from homeassistant.const import UnitOfDensity, UnitOfRatio
+
+    CONCENTRATION_MICROGRAMS_PER_CUBIC_METER = UnitOfDensity.MICROGRAMS_PER_CUBIC_METER
+    CONCENTRATION_PARTS_PER_MILLION = UnitOfRatio.PARTS_PER_MILLION
+else:
+    from homeassistant.const import CONCENTRATION_MICROGRAMS_PER_CUBIC_METER
+    from homeassistant.const import CONCENTRATION_PARTS_PER_MILLION
 
 
 async def async_setup_entry(hass, config_entry, add_entities):
@@ -44,15 +56,21 @@ DEVICE_CLASSES = {
     "current": SensorDeviceClass.CURRENT,
     "current_supply": SensorDeviceClass.CURRENT,
     "humidity": SensorDeviceClass.HUMIDITY,
+    "illuminance": SensorDeviceClass.ILLUMINANCE,
     "outdoor_temp": SensorDeviceClass.TEMPERATURE,
     "power": SensorDeviceClass.POWER,
     "power_supply": SensorDeviceClass.POWER,
     "pm25": SensorDeviceClass.PM25,
     "pm10": SensorDeviceClass.PM10,
+    "pressure": SensorDeviceClass.PRESSURE,
     "remote_temperature": SensorDeviceClass.TEMPERATURE,
     "rssi": SensorDeviceClass.SIGNAL_STRENGTH,
     "temperature": SensorDeviceClass.TEMPERATURE,
     "voltage": SensorDeviceClass.VOLTAGE,
+    "water": SensorDeviceClass.WATER,
+    "water_today": SensorDeviceClass.WATER,
+    "water_last_a": SensorDeviceClass.WATER,
+    "water_last_b": SensorDeviceClass.WATER,
 }
 
 UNITS = {
@@ -63,16 +81,23 @@ UNITS = {
     "current": UnitOfElectricCurrent.AMPERE,
     "current_supply": UnitOfElectricCurrent.AMPERE,
     "humidity": PERCENTAGE,
+    "illuminance": LIGHT_LUX,
     "outdoor_temp": UnitOfTemperature.CELSIUS,
     "power": UnitOfPower.WATT,
     "power_supply": UnitOfPower.WATT,
     "pm25": CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
     "pm10": CONCENTRATION_MICROGRAMS_PER_CUBIC_METER,
+    "pressure": UnitOfPressure.HPA,
     "remote_temperature": UnitOfTemperature.CELSIUS,
     "rssi": SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
     "temperature": UnitOfTemperature.CELSIUS,
+    "time_total_a": UnitOfTime.MINUTES,
+    "time_total_b": UnitOfTime.MINUTES,
     "voltage": UnitOfElectricPotential.VOLT,
     "water": UnitOfVolume.LITERS,
+    "water_today": UnitOfVolume.LITERS,
+    "water_last_a": UnitOfVolume.LITERS,
+    "water_last_b": UnitOfVolume.LITERS,
 }
 
 
@@ -416,65 +441,57 @@ class XButtonKey(XButtonBase):
     def set_state(self, params: dict):
         # skip stale events replayed after device reconnect
         # https://github.com/AlexxIT/SonoffLAN/issues/1669
+        # and accept events only with time...
+        # https://github.com/AlexxIT/SonoffLAN/issues/1880
         if trig_time := (params.get("trigTime") or params.get("actionTime")):
             if trig_time == self.last_trig_time:
                 return
             self.last_trig_time = trig_time
 
-        XButtonBase.set_state(self, params)
+            XButtonBase.set_state(self, params)
 
 
 class XButtonLocalKey(XButtonBase):
     params = {"localKeyPass"}
 
-    def __init__(self, ewelink: XRegistry, device: dict):
-        super().__init__(ewelink, device)
-        self.last_seq = None
-
     def set_state(self, params: dict):
-        if seq := self.device.get("local_seq"):
-            # Skip clicks from first local message, because it's just device discovery
-            if self.last_seq is None:
-                self.last_seq = seq
-
-        # skip multiple clicks (from cloud and local)
-        if self._attr_native_value:
-            return
-
-        # cloud click: {'localKeyPass': {'outlet': 0, 'key': 0}}
-        if len(params) == 1:
-            pass
-        # local click: {'triggerType': 11, 'localKeyPass': {'outlet': 0, 'key': 0}}
-        # local trash: {'triggerType': 0, 'localKeyPass': {'outlet': 0, 'key': 0}}
-        # local trash: {'triggerType': 2, 'localKeyPass': {'outlet': 0, 'key': 0}}
-        # based on https://github.com/AlexxIT/SonoffLAN/issues/1789
-        elif params.get("triggerType") == 11:
-            # Fix duplicates from mDNS https://github.com/AlexxIT/SonoffLAN/issues/1769
-            if seq == self.last_seq:
-                return
-            self.last_seq = seq
-        else:
-            return
-
+        # For local messages, it's impossible to know whether the button was pressed or
+        # not - https://github.com/AlexxIT/SonoffLAN/pull/1865
+        # So let's leave this event for cloud messages only.
+        # Related https://github.com/AlexxIT/SonoffLAN/issues/1789
+        # Related https://github.com/AlexxIT/SonoffLAN/issues/1769
         # MINI-2GS https://github.com/AlexxIT/SonoffLAN/issues/1694
         # MINI-ZB2GS-L https://github.com/AlexxIT/SonoffLAN/issues/1701
-        XButtonBase.set_state(self, params["localKeyPass"])
+        if len(params) == 1:
+            XButtonBase.set_state(self, params["localKeyPass"])
 
 
 class XT5Action(XEventSesor):
-    params = {"triggerType", "slide"}
+    params = {"slide"}
     uid = "action"
 
     def set_state(self, params: dict):
-        # https://github.com/AlexxIT/SonoffLAN/issues/1373
-        if "switches" in params and params.get("triggerType") == 2:
-            self._attr_native_value = "touch"
+        # Related https://github.com/AlexxIT/SonoffLAN/issues/1252
+        # Related https://github.com/AlexxIT/SonoffLAN/pull/1887
+        if len(params) == 1:
+            self._attr_native_value = f"slide_{params['slide']}"
             asyncio.create_task(self.clear_state())
 
-        # fix https://github.com/AlexxIT/SonoffLAN/issues/1252
-        if (slide := params.get("slide")) and len(params) == 1:
-            self._attr_native_value = f"slide_{slide}"
-            asyncio.create_task(self.clear_state())
+
+class XAlarmSoundType(XEntity, SensorEntity):
+    """SNZB-09P (uiid 7056) - read-only, value nested inside `alarmSetting`.
+
+    Kept read-only (rather than a select) because the full list of valid
+    `alertSound` values is unknown - only "alarm0" has been observed.
+    """
+
+    params = {"alarmSetting"}
+    uid = "alarm_sound_type"
+
+    _attr_entity_registry_enabled_default = False
+
+    def set_state(self, params: dict):
+        self._attr_native_value = params.get("alarmSetting", {}).get("alertSound")
 
 
 class XUnknown(XEntity, SensorEntity):
@@ -519,6 +536,14 @@ class XTodayWaterUsage(XSensor):
         # https://github.com/AlexxIT/SonoffLAN/issues/1497
         # https://github.com/AlexxIT/SonoffLAN/issues/1608
         value = next(params[k] for k in self.params if k in params)
+        XSensor.set_state(self, value=value)
+
+
+class XSubSensor(XSensor):
+    sub: str = None
+
+    def set_state(self, params: dict = None, value: float = None):
+        value = params.get(self.param, {}).get(self.sub)
         XSensor.set_state(self, value=value)
 
 

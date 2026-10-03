@@ -14,15 +14,15 @@ input_text:
     initial: ' '
     max: 255
 
-group:
-  echos:
-    name: Echos
-    entities:
-      - media_player.master
-      - media_player.office
-      - media_player.bethany_office
-      - media_player.kitchen
-      - media_player.living_room
+# group:
+#   echos:
+#     name: Echos
+#     entities:
+#       - media_player.master
+#       - media_player.office
+#       - media_player.bethany_office
+#       - media_player.kitchen
+#       - media_player.living_room
 
 script:
   send_alexa_command:

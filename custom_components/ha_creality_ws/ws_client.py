@@ -7,12 +7,15 @@ import logging
 import random
 import socket
 import time
-from typing import Any, Awaitable, Callable, Optional
+from collections.abc import Awaitable, Callable
+from typing import Any
 
 import websockets
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosed
 
 from .const import (
+    GCODE_FILE_REQUEST,
+    GCODE_FILE_RESPONSE,
     RETRY_MIN_BACKOFF,
     RETRY_MAX_BACKOFF,
     RETRY_BACKOFF_MULTIPLIER,
@@ -48,19 +51,19 @@ class KClient:
         # Resolve host to IPv4 if available and build URL via template
         self._url = lambda: WS_URL_TEMPLATE.format(host=self._resolve_host())
         self._on_message = on_message
-        self._check_power_status: Optional[Callable[[], bool]] = None
+        self._check_power_status: Callable[[], bool] | None = None
         self._state: dict[str, Any] = {}
 
-        self._task: Optional[asyncio.Task] = None
-        self._ws: Optional[websockets.client.ClientConnection] = None  # type: ignore[attr-defined]
+        self._task: asyncio.Task | None = None
+        self._ws: websockets.client.ClientConnection | None = None  # type: ignore[attr-defined]
         self._stop = asyncio.Event()
         self._connected_once = asyncio.Event()
         self._send_lock = asyncio.Lock()
         self._last_rx = 0.0
         self._last_mdns_attempt = 0.0
 
-        self._hb_task: Optional[asyncio.Task] = None
-        self._tick_task: Optional[asyncio.Task] = None
+        self._hb_task: asyncio.Task | None = None
+        self._tick_task: asyncio.Task | None = None
 
         # event that indicates a live socket is present
         self._ws_ready = asyncio.Event()
@@ -71,7 +74,7 @@ class KClient:
         # Diagnostics / Metrics
         self.reconnect_count = 0
         self.msg_count = 0
-        self.last_error: Optional[str] = None
+        self.last_error: str | None = None
         self.uptime_start = 0.0
 
     @property
@@ -269,8 +272,16 @@ class KClient:
                             merged = coerce_numbers(payload)
                             self._state.update(merged)
                             self.msg_count += 1
+                            frame = dict(self._state)
+                            # One-shot, not telemetry: the reply lists
+                            # every G-code file on the printer (~150 KiB
+                            # on a K1C). Left in the cumulative state it
+                            # would ride on every later frame, and the
+                            # coordinator would rescan the whole listing
+                            # once per frame on the receive path.
+                            self._state.pop(GCODE_FILE_RESPONSE, None)
                             try:
-                                await self._on_message(dict(self._state))
+                                await self._on_message(frame)
                             except Exception:
                                 _LOGGER.exception("K on_message failed host=%s", self._host)
                         else:
@@ -488,11 +499,13 @@ class KClient:
         """Ask the printer to send boxsInfo now."""
         await self._send_json({"method": "get", "params": {"boxsInfo": 1}})
 
-    async def send_set(self, **params: Any) -> None:
+    async def request_gcode_file_info(self) -> None:
+        """Ask the printer for its sliced-G-code metadata listing.
 
-        """Single-attempt sender (kept for internal use)."""
-        await self._send_json({"method": "set", "params": params})
-
+        Deliberately not in `_periodic_gets`: the reply carries every file on
+        the printer, so the coordinator asks only when the running file changes.
+        """
+        await self._send_json({"method": "get", "params": {GCODE_FILE_REQUEST: 1}})
     async def send_set_retry(self, *, wait_reconnect: float = 6.0, **params: Any) -> None:
         """
         Robust sender for user actions: try once; if the link recycled,

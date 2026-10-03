@@ -91,7 +91,7 @@ automation:
               data:
                 attachments:
                   - /config/media/images/front_door.jpg
-          - action: notify.alexa_media_kitchen
+          - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
             data:
               data:
                 type: tts
@@ -406,7 +406,7 @@ automation:
         event_type: call_service
         event_data:
           domain: lock
-          action: unlock
+          service: unlock
           service_data:
             entity_id: lock.front_door
     action:

@@ -1,18 +1,19 @@
 from __future__ import annotations
 import logging
-from typing import Any, Optional
-from datetime import datetime
+from typing import Any
 import base64
 import time
 
 from homeassistant.components.image import ImageEntity  # type: ignore[import]
 from homeassistant.core import HomeAssistant  # type: ignore[import]
 from homeassistant.config_entries import ConfigEntry  # type: ignore[import]
-from homeassistant.helpers.entity_platform import AddEntitiesCallback  # type: ignore[import]
+from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback  # type: ignore[import]
 from homeassistant.helpers.aiohttp_client import async_get_clientsession  # type: ignore[import]
+from homeassistant.util import dt as dt_util  # type: ignore[import]
 import aiohttp  # type: ignore[import]
 
 from .const import DOMAIN
+from .utils import PREVIEW_PRINT_STATES, derive_activity_state
 from .entity import KEntity
 
 _LOGGER = logging.getLogger(__name__)
@@ -23,7 +24,7 @@ _PNG_PLACEHOLDER = base64.b64decode(
 )
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback) -> None:
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddConfigEntryEntitiesCallback) -> None:
     coord = hass.data[DOMAIN][entry.entry_id]
     ent: list[ImageEntity] = []
 
@@ -50,7 +51,7 @@ class CurrentPrintPreviewImage(KEntity, ImageEntity):
     def __init__(self, coordinator):
         KEntity.__init__(self, coordinator, unique_id="current_print_preview")
         ImageEntity.__init__(self, coordinator.hass)
-        self._last_image: Optional[bytes] = None
+        self._last_image: bytes | None = None
         self._attr_image_last_updated = None
         self._last_reason: str | None = None
         self._last_source_url: str | None = None
@@ -58,23 +59,29 @@ class CurrentPrintPreviewImage(KEntity, ImageEntity):
         self._min_fetch_interval: float = 5.0  # seconds
 
     def _status_allows_preview(self) -> bool:
-        d = self.coordinator.data or {}
+        """Whether there is a print whose preview is worth fetching.
+
+        Routed through the shared state derivation rather than re-deriving the
+        state/progress/withSelfTest combination locally, which was a third
+        independent copy of the same mapping -- and one the notification layer
+        depends on transitively, since it reads `preview_reason` to decide
+        whether to attach the preview at all.
+
+        `derive_activity_state` rather than `derive_print_state`, so a stale
+        error code the printer never clears does not hide the preview for the
+        rest of the print. Paused and processing jobs now qualify too: the model
+        is still on the bed, and the old `state == 1` test made the preview
+        vanish for the duration of a pause.
+        """
         if self._should_zero():
             return False
-        st = d.get("state")
-        fname = (d.get("printFileName") or "").strip()
-        if not fname:
+        d = self.coordinator.data or {}
+        if not (d.get("printFileName") or "").strip():
             return False
-        prog = d.get("printProgress", d.get("dProgress"))
-        try:
-            prog = int(prog) if prog is not None else -1
-        except Exception:
-            prog = -1
-        if prog >= 100:
-            return True
-        if d.get("withSelfTest"):
-            return True
-        return st == 1
+        return (
+            derive_activity_state(d, paused_flag=self.coordinator._paused_flag)
+            in PREVIEW_PRINT_STATES
+        )
 
     @property
     def available(self) -> bool:
@@ -132,7 +139,7 @@ class CurrentPrintPreviewImage(KEntity, ImageEntity):
                         if data:
                             self._last_image = data
                             self._last_source_url = url
-                            self._attr_image_last_updated = datetime.utcnow()
+                            self._attr_image_last_updated = dt_util.utcnow()
                             self._last_reason = "ok"
                             self._last_fetch_ts = now
                             return data

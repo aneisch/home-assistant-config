@@ -2,10 +2,22 @@
   "domain": "spook",
   "name": "Spook",
   "after_dependencies": [
+    "assist_pipeline",
+    "automation",
     "blueprint",
     "cloud",
-    "timer",
-    "proximity"
+    "counter",
+    "energy",
+    "group",
+    "input_boolean",
+    "input_button",
+    "input_datetime",
+    "input_text",
+    "light",
+    "proximity",
+    "script",
+    "sensor",
+    "timer"
   ],
   "codeowners": [
     "@frenck"
@@ -28,5 +40,5 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/frenck/spook/issues",
   "requirements": [],
-  "version": "5.0.0"
+  "version": "5.7.0"
 }

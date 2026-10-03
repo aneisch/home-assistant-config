@@ -143,8 +143,14 @@
   actions:
   - action: script.notify_wrapper
     data:
-      message: 'AC Equipment Event: {{ trigger.to_state.state }} ({{ trigger.to_state.entity_id
-        }})'
+      message: "{% set entity = trigger.entity_id %} {% set state = trigger.to_state.state
+        %} {% if entity == 'sensor.thermostat_active_equipment_event' %}\n  {% if
+        state == 'No Active Event' %}\n    AC Equipment Event from Thermostat Cleared\n
+        \ {% else %}\n    AC Equipment Event from Thermostat: {{ state }}\n  {% endif
+        %}\n{% elif entity == 'sensor.easy_start_ble_status' %}\n  {% if state ==
+        'Normal' %}\n    AC Equipment Event from Soft Start Cleared\n  {% else %}\n
+        \   AC Equipment Event from Soft Start: {{ state }}\n  {% endif %}\n{% endif
+        %}"
   initial_state: true
 - alias: Notify when AC setting changes
   id: ac_notify_change
@@ -235,23 +241,24 @@
       message: '{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url
         }}'
   initial_state: true
-- alias: Panic Script Webhook Trigger
-  id: panic_script_webhook
-  initial_state: true
-  trigger:
-    platform: webhook
-    webhook_id: SECRET
+- id: panic_script_webhook
+  alias: Panic Script Webhook Trigger
+  triggers:
+  - webhook_id: SECRET
     local_only: false
-  action:
+    trigger: webhook
+  actions:
   - action: media_player.volume_set
     data:
-      entity_id: media_player.master
       volume_level: 0.3
-  - action: notify.alexa_media_master
+    target:
+      entity_id: media_player.andrew_s_master_bedroom_echo
+  - action: notify.alexa_media_andrew_s_master_bedroom_echo
     data:
       data:
         type: tts
       message: Help is on the way
+  initial_state: true
 - alias: Power off NAS after backup
   id: nas_poweroff_post_backup
   initial_state: true
@@ -402,17 +409,17 @@
     data:
       old: '{{ trigger.from_state.state }}'
       new: '{{ trigger.to_state.state }}'
-- alias: Disarm When Opening Garage
-  id: disarm_when_garage_opened
-  trigger:
-  - platform: event
-    event_type: call_service
+- id: disarm_when_garage_opened
+  alias: Disarm When Opening Garage
+  triggers:
+  - event_type: call_service
     event_data:
       domain: cover
-      action: open_cover
+      service: open_cover
       service_data:
         entity_id: cover.garage_door
-  action:
+    trigger: event
+  actions:
   - action: input_boolean.turn_off
     entity_id: input_boolean.security_status
 - alias: Commit Frigate Config
@@ -644,41 +651,57 @@
         in ['1.0','2.0'] %}Andrew{% elif states('sensor.fingerprint_last_finger_id')
         == '3.0' %}Bethany{% else %}Unknown{% endif %}!
     enabled: true
-  - action: lock.unlock
-    data: {}
-    target:
-      entity_id: lock.tesla
   - action: button.press
     metadata: {}
     data: {}
     target:
       entity_id: button.tesla_ble_remote_start_car
-- alias: Signal Webhook Message BVST
-  id: signal_webhook_message_bvst
-  mode: queued
-  initial_state: true
-  trigger:
-  - platform: webhook
-    webhook_id: SECRET
+- id: signal_webhook_message_bvst
+  alias: Signal Webhook Message BVST
+  triggers:
+  - webhook_id: SECRET
     id: contact
     local_only: false
-  - platform: webhook
-    webhook_id: SECRET
+    trigger: webhook
+  - webhook_id: SECRET
     id: insurance
     local_only: false
-  action:
-  - if: '{{ trigger.id == ''contact'' }}'
+    trigger: webhook
+  - webhook_id: SECRET_horizon
+    id: insurance_horizon
+    local_only: false
+    trigger: webhook
+    allowed_methods:
+    - POST
+    - PUT
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''contact'' }}'
     then:
     - action: notify.signal_bvst
       data:
         message: '{{ trigger.json[''message''] }}'
-  - if: '{{ trigger.id == ''insurance'' }}'
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''insurance'' }}'
     then:
     - action: notify.signal_bvst_ins
       data:
         message: '{{ trigger.json[''message''] }}'
         data:
           text_mode: styled
+  - if:
+    - condition: template
+      value_template: '{{ trigger.id == ''insurance_horizon'' }}'
+    then:
+    - action: notify.signal_bvst_ins_horizon
+      data:
+        message: '{{ trigger.json[''message''] }}'
+        data:
+          text_mode: styled
+  mode: queued
+  initial_state: true
 - alias: Restart AppDaemon
   id: restart_appdaemon
   trigger:
@@ -690,23 +713,25 @@
   - delay: 00:00:30
   - action: switch.turn_on
     entity_id: switch.docker_appdaemon
-- alias: Door Chime
-  id: door_chime
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id:
+- id: door_chime
+  alias: Door Chime
+  triggers:
+  - entity_id:
     - cover.garage_door
     from: closed
     to: open
-  condition: '{{ states(''group.trackers'') == ''home''}}'
-  action:
-  - action: notify.alexa_media_kitchen
+    trigger: state
+  conditions:
+  - condition: template
+    value_template: '{{ states(''group.trackers'') == ''home''}}'
+  actions:
+  - action: notify.alexa_media_andrew_s_kitchen_echo
     data:
       data:
         type: tts
         method: speak
       message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
+  initial_state: true
 - alias: Startup Notificiation
   id: startup_notification
   initial_state: true
@@ -900,19 +925,19 @@
 
           '
   mode: restart
-- alias: House secure at night reminder
-  id: house_secure_night_reminder
-  trigger:
-  - platform: event
-    event_type: script_started
+- id: house_secure_night_reminder
+  alias: House secure at night reminder
+  triggers:
+  - event_type: script_started
     event_data:
       entity_id: script.master_bedroom_bedtime
-  variables:
-    doors_locked: '{{ is_state(''lock.front_door'',''locked'') and is_state(''lock.back_door'',''locked'')
-      and is_state(''lock.garage_exterior_door'',''locked'') }}'
-  condition: '{{ is_state(''cover.garage_door'',''open'') or not doors_locked }}'
-  action:
-  - action: notify.alexa_media_master
+    trigger: event
+  conditions:
+  - condition: template
+    value_template: '{{ is_state(''cover.garage_door'',''open'') or not doors_locked
+      }}'
+  actions:
+  - action: notify.alexa_media_andrew_s_master_bedroom_echo
     data:
       data:
         type: tts
@@ -925,6 +950,9 @@
         the doors.''" {% endif %}
 
         '
+  variables:
+    doors_locked: '{{ is_state(''lock.front_door'',''locked'') and is_state(''lock.back_door'',''locked'')
+      and is_state(''lock.garage_exterior_door'',''locked'') }}'
 - id: doors_unlocked_noone_home
   alias: Doors still unlocked when no one home
   triggers:
@@ -1070,7 +1098,7 @@
           - cover.master_bedroom_blind_right
         data: {}
       - action: input_boolean.toggle
-        entity_id: input_boolean.guest_bedroom_blinds_mode
+        entity_id: input_boolean.master_bedroom_blinds_mode
       - action: cover.{% if is_state('input_boolean.master_bedroom_blinds_mode', 'on')
           %}close{% else %}open{% endif %}_cover
         target:
@@ -1244,6 +1272,12 @@
     target:
       entity_id:
       - input_boolean.guest_mode
+  - action: automation.turn_off
+    metadata: {}
+    target:
+      entity_id: automation.receive_guests_while_away
+    data:
+      stop_actions: true
   mode: single
 - id: '1761687935807'
   alias: Tesla BLE Pi Offline Notify
@@ -1546,3 +1580,84 @@
     data:
       message: Network Link Speed Changed!
   mode: single
+- id: '1790395559031'
+  alias: Notify AC Compressor Excess Current
+  description: Alerts when the AC compressor draws noticeably more current per watt
+    than the Sep 2026 new-capacitor baseline (24h median of sensor.ac_compressor_excess_current).
+    New capacitor runs about -1 to +2%; the failed capacitor ran +7 to +10% all summer.
+    A weakening run capacitor raises this number.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.ac_compressor_excess_current_24h_median
+    above: 3
+    for:
+      hours: 1
+    note: 3% sits about 1 point above the worst 24h median seen on the new capacitor.
+      Re-fires after an HA restart if still above, which is acceptable as a reminder.
+  actions:
+  - action: script.notify_wrapper
+    data:
+      message: 'AC capacitor early warning (low confidence): the compressor has drawn
+        {{ states(''sensor.ac_compressor_excess_current_24h_median'') }}% more current
+        than expected over the last 24h (alert threshold 3%).
+
+
+        What it is: amps from the EasyStart compared with watts and voltage from the
+        Emporia, against a baseline recorded on the new capacitor in Sep 2026. Same
+        work but more amps usually means a worse power factor, which is how a run
+        capacitor losing capacitance shows up.
+
+
+        Why it matters: the old capacitor ran about +8% for months before failing
+        on 9/11/26. A steady rise here may mean the new one is weakening, and a capacitor
+        check is cheaper than a no-cool call or a stressed compressor.
+
+
+        This could easily be a false positive: the baseline comes from only 2 weeks
+        of hot September weather; cooler weather, humidity, a dirty coil or filter,
+        or a low refrigerant charge can shift the number; it relies on 3 separate
+        devices (EasyStart, Emporia, outdoor temp sensor) whose calibration can drift;
+        and a stage misread near the low/high boundary skews it. If it''s just over
+        3% and holding steady, watch it. If it keeps climbing toward 6-8% or more,
+        have the capacitor''s µF measured.'
+  mode: single
+- id: '1790715171437'
+  alias: OpenBao Sealed
+  description: Notify when OpenBao becomes sealed and when it is unsealed again.
+  triggers:
+  - trigger: state
+    entity_id:
+    - binary_sensor.openbao_sealed
+    to:
+    - 'on'
+    id: sealed
+  - trigger: state
+    entity_id:
+    - binary_sensor.openbao_sealed
+    from:
+    - 'on'
+    to:
+    - 'off'
+    id: unsealed
+    note: 'from: on so an unavailable -> off blip doesn''t send a false ''unsealed''
+      alert.'
+  conditions: []
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: sealed
+      sequence:
+      - action: notify.signal_bvst_ins_horizon
+        metadata: {}
+        data:
+          message: OpenBao sealed and needs unsealing!
+    - conditions:
+      - condition: trigger
+        id: unsealed
+      sequence:
+      - action: notify.signal_bvst_ins_horizon
+        metadata: {}
+        data:
+          message: OpenBao has been unsealed.
+  mode: queued

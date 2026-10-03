@@ -116,7 +116,7 @@ automation:
         
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
-        below: 80
+        below: 95
         id: restore_needed
         alias: Battery SOC drops below 80%
         
@@ -251,7 +251,7 @@ automation:
         entity_id: sensor.solark_sol_ark_battery_soc
         above: 97
     action:
-      - action: notify.alexa_media_kitchen
+      - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
         data:
           data:
             type: tts

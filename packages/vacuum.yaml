@@ -71,7 +71,7 @@ automation:
           value: "KeyHeldDown"
     action:
       - action: script.vacuum_clean_kitchen
-      - action: notify.alexa_media_kitchen
+      - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
         data:
           data:
             type: tts

@@ -19,6 +19,8 @@ cards:
       - switch.living_room_ceiling_fan_light
       - fan.living_room_ceiling_fan
       #- switch.ir_candles
+      - light.pumpkin_patch_pumpkin_patch
+      - light.teardrop_fairy_lights_teardrop_fairy_lights
       #- switch.upright_fan
 
   - type: vertical-stack

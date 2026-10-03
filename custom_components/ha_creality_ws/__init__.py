@@ -4,33 +4,53 @@ import asyncio
 import json
 import os
 import time
-from datetime import datetime, timedelta
+from datetime import timedelta
 import re
 from urllib.parse import urljoin, urlparse
-from typing import Callable, List, Optional, Any
+from collections.abc import Callable
+from typing import Any
 
 
 
 from homeassistant.config_entries import ConfigEntry, OperationNotAllowed # type: ignore[import]
-from homeassistant.core import HomeAssistant, ServiceCall # type: ignore[import]
+from homeassistant.core import HomeAssistant, ServiceCall, callback # type: ignore[import]
+from homeassistant.const import __version__ as HA_VERSION  # type: ignore[import]
+from homeassistant.util import dt as dt_util  # type: ignore[import]
 from homeassistant.exceptions import ConfigEntryNotReady  # type: ignore[import]
+try:
+    from homeassistant.exceptions import ConfigEntryError  # type: ignore[import]
+    _CONFIG_ENTRY_ERROR_TRANSLATES = True
+except ImportError:  # pragma: no cover - older cores, which is what we reject
+    from homeassistant.exceptions import HomeAssistantError as ConfigEntryError  # type: ignore[import]
+    # A core without `ConfigEntryError` also predates translated exceptions
+    # (2024.4), so `HomeAssistantError.__init__` takes no `translation_*`
+    # arguments. Passing them raises TypeError *instead of* the version message,
+    # which is the one moment that message has to get through.
+    _CONFIG_ENTRY_ERROR_TRANSLATES = False
+try:  # HA 2023.10+
+    from homeassistant.exceptions import ServiceValidationError  # type: ignore[import]
+except ImportError:  # pragma: no cover - older cores
+    from homeassistant.exceptions import HomeAssistantError as ServiceValidationError  # type: ignore[import]
 from homeassistant.helpers.event import (  # type: ignore[import]
     async_track_time_interval,
     async_track_state_change_event,
 )
-from homeassistant.helpers.typing import ConfigType  # type: ignore[import]
-from homeassistant.const import (  # type: ignore[import]
-    CONF_HOST,
-    CONF_PORT,
-    EVENT_HOMEASSISTANT_STOP,
-    Platform,
-)
 import voluptuous as vol  # type: ignore[import]
 from homeassistant.helpers import config_validation as cv, entity_registry as er, device_registry as dr # type: ignore[import]
 from homeassistant.helpers.aiohttp_client import async_get_clientsession # type: ignore[import]
-from homeassistant.components.persistent_notification import async_create as pn_async_create # type: ignore[import]
+from .notification_rules import (
+    build_clear_payload,
+    coerce_targets,
+    is_mobile_target,
+    notify_tag_base,
+)
+from homeassistant.components.persistent_notification import (  # type: ignore[import]
+    async_create as pn_async_create,
+    async_dismiss as pn_async_dismiss,
+)
 
 from .const import (
+    MINIMUM_HA_VERSION,
     DOMAIN, 
     STALE_AFTER_SECS, 
     CONF_POWER_SWITCH,
@@ -49,13 +69,19 @@ from .const import (
 )
 from .coordinator import KCoordinator
 from .frontend import CrealityCardRegistration
-from .utils import ModelDetection
+from .utils import (
+    core_version_supported,
+    BUSY_PRINT_STATES,
+    ModelDetection,
+    build_modify_material_payload,
+    derive_activity_state,
+)
 
 
 
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS: list[str] = ["sensor", "switch", "camera", "button", "number", "fan", "light", "image"]
+PLATFORMS: list[str] = ["sensor", "camera", "button", "number", "fan", "light", "image"]
 
 # Import integration version from manifest
 
@@ -134,8 +160,53 @@ def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
         hass.config_entries.async_update_entry(entry, options=current_options)
         _LOGGER.info("Migration complete for entry options")
 
+def _core_version() -> tuple[int, int] | None:
+    """The running Home Assistant version, or None if it cannot be read.
+
+    MAJOR/MINOR are ints; PATCH_VERSION is a string that can read "0b3" on a
+    beta, so it is deliberately ignored.
+    """
+    try:
+        from homeassistant.const import (  # type: ignore[import]
+            MAJOR_VERSION,
+            MINOR_VERSION,
+        )
+
+        return (int(MAJOR_VERSION), int(MINOR_VERSION))
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.debug("Could not determine the Home Assistant version")
+        return None
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the Creality integration from a config entry."""
+    # HACS refuses to install this version on an older core, but a manual or git
+    # install bypasses that entirely -- and the failure would otherwise be a live
+    # print card that quietly never appears. Fail with something actionable
+    # instead. ConfigEntryError rather than ConfigEntryNotReady: retrying cannot
+    # make the core newer.
+    running = _core_version()
+    if not core_version_supported(running, MINIMUM_HA_VERSION):
+        minimum_text = ".".join(str(part) for part in MINIMUM_HA_VERSION)
+        running_text = ".".join(str(part) for part in running or ()) or "unknown"
+        if not _CONFIG_ENTRY_ERROR_TRANSLATES:
+            # The only inline user-visible string in the integration, and it has
+            # to be: this core cannot resolve a translation key, so the choice is
+            # an English sentence or a TypeError. `strings.json` still carries the
+            # translated version for every core that can use it.
+            raise ConfigEntryError(
+                f"ha_creality_ws requires Home Assistant {minimum_text} or newer; "
+                f"this system is running {running_text}."
+            )
+        raise ConfigEntryError(
+            translation_domain=DOMAIN,
+            translation_key="unsupported_ha_version",
+            translation_placeholders={
+                "minimum": minimum_text,
+                "running": running_text,
+            },
+        )
+
     # Run migrations first
     _migrate_go2rtc_settings(hass, entry)
     
@@ -149,7 +220,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.info("Power switch config: enabled=%s, entity=%s, effective=%s", 
                  power_switch_enabled, power_switch, effective_power_switch)
     
-    coord = KCoordinator(hass, host=host, power_switch=effective_power_switch, config_entry_id=entry.entry_id)
+    coord = KCoordinator(
+        hass, host=host, power_switch=effective_power_switch, config_entry=entry
+    )
 
     try:
         await coord.async_start()
@@ -181,13 +254,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         new_data["_last_ip"] = host
         hass.config_entries.async_update_entry(entry, data=new_data)
         
-    # Attempt to cache MAC address if not present
-    if not entry.data.get("_cached_mac") and not coord.power_is_off():
-        # In a real scenario, we might query M115 or check network info from the printer
-        # For now, we will rely on upcoming zeroconf updates to populate this if the printer exposes it.
-        # OR: If the coordinator captured it from initial handshake/data?
-        # Creality printers are notoriously shy about their MAC in the JSON payload.
-        pass
+    # No MAC caching here: Creality printers do not report one in the JSON
+    # payload. _cached_mac comes from zeroconf discovery instead.
          
     # Also re-cache if max temperature values are missing (migration from older versions)
     should_re_cache = should_re_cache or (
@@ -234,8 +302,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 if "maxBoxTemp" not in coord.data:
                     # Give a tiny storage for these lazier fields to arrive
                     await coord.wait_for_fields(["maxBoxTemp", "targetBoxTemp"], timeout=2.0)
-            else:
-                got_fields = False
             
             # Always update cache if we have data, even if wait timed out partially
             if (ok and coord.data):
@@ -282,7 +348,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_max_box_temp"] = new_data["_cached_max_chamber_temp"]
                 
                 # Re-detect camera type only if missing (not on every update)
-                cached_camera_type = entry.data.get("_cached_camera_type")
                 cached_camera_type = entry.data.get("_cached_camera_type")
                 if not cached_camera_type:
                     new_data["_cached_camera_type"] = "webrtc" if (printermodel.is_k2_family or printermodel.supports_webrtc) else (
@@ -345,9 +410,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _migrate_go2rtc_settings(hass, entry)
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
-    
-    # Store entry_id in coordinator for easy access
-    coord._config_entry_id = entry.entry_id  # pylint: disable=protected-access
 
 
 
@@ -361,11 +423,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Listener for options updates
     entry.async_on_unload(entry.add_update_listener(options_update_listener))
 
+    # Live-notification buttons. Registered unconditionally rather than behind
+    # the option: the action ids are namespaced per config entry and the handler
+    # matches them exactly, so with buttons switched off nothing can fire (no
+    # notification carries them) and there is no listener lifecycle to get wrong.
+    async def _on_notification_action(event) -> None:
+        action = event.data.get("action")
+        if action:
+            await coord.async_handle_notification_action(action)
+
+    entry.async_on_unload(
+        hass.bus.async_listen("mobile_app_notification_action", _on_notification_action)
+    )
+
     # Periodic state checker
+    # Home Assistant runs a plain sync job in an executor thread. This one
+    # reaches `hass.async_create_task` and `hass.loop.time()` through
+    # `notifier_tick`, which are loop-only APIs. It does no blocking work, so
+    # the loop is where it belongs.
+    @callback
     def _interval_check(_now) -> None:
         coord.check_stale()
-        # Do not force listener updates here; rely on coordinator's internal logic (throttled)
-        # hass.loop.call_soon_threadsafe(coord.async_update_listeners)
+        # Every live-card transition is otherwise driven by an incoming frame,
+        # so a printer that goes silent mid-print would leave a card counting
+        # down on the phone forever. Reuses this interval; no new timer.
+        coord.notifier_tick()
+        # Listener updates are left to the coordinator, which throttles them.
     
     cancel_interval = async_track_time_interval(
         hass, _interval_check, timedelta(seconds=max(5, STALE_AFTER_SECS // 3))
@@ -373,7 +456,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     entry.async_on_unload(cancel_interval)
 
     # Watcher for power switch state changes
-    def _watch_power_switch(entity_id: Optional[str]) -> Callable:
+    def _watch_power_switch(entity_id: str | None) -> Callable:
         if not entity_id:
             return lambda: None
         
@@ -396,6 +479,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             ("number", f"{host}-model_fan_pct"),
             ("number", f"{host}-case_fan_pct"),
             ("number", f"{host}-side_fan_pct"),
+            # A byte-identical duplicate of sensor "model_info": same field,
+            # same attributes. Removed rather than left orphaned.
+            ("sensor", f"{host}-system"),
         ]
         for domain_name, unique in legacy:
             ent_id = reg.async_get_entity_id(domain_name, DOMAIN, unique)
@@ -406,10 +492,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     
-    # Register diagnostic service (only once per integration)
-    if not hasattr(hass.data[DOMAIN], '_diagnostic_service_registered'):
+    # Asking the service registry, the same way _register_custom_services does,
+    # rather than keeping a flag: hass.data[DOMAIN] is keyed by entry id and a
+    # sentinel in there is indistinguishable from a coordinator.
+    if not hass.services.has_service(DOMAIN, "diagnostic_dump"):
         await _register_diagnostic_service(hass)
-        hass.data[DOMAIN]['_diagnostic_service_registered'] = True
 
     # Register custom services
     await _register_custom_services(hass)
@@ -418,35 +505,48 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+def _coordinators_for_devices(
+    hass: HomeAssistant, device_ids: str | list[str] | None
+) -> list[KCoordinator]:
+    """Resolve service ``device_id`` targets to coordinators.
+
+    Shared by every device-targeted service so they agree on what a target means.
+    A falsy ``device_ids`` selects every configured printer, which is what
+    ``request_cfs_info`` relies on for its "refresh everything" behaviour.
+    """
+    target_entry_ids: set[str] = set()
+
+    if device_ids:
+        # The device selector yields a list, but YAML callers often pass a string.
+        if isinstance(device_ids, str):
+            device_ids = [device_ids]
+
+        dev_reg = dr.async_get(hass)
+        for dev_id in device_ids:
+            device = dev_reg.async_get(dev_id)
+            if not device:
+                _LOGGER.warning("No such device: %s", dev_id)
+                continue
+            target_entry_ids.update(device.config_entries)
+
+        if not target_entry_ids:
+            return []
+
+    return [
+        coord
+        for entry_id, coord in hass.data[DOMAIN].items()
+        if isinstance(coord, KCoordinator)
+        and (not target_entry_ids or entry_id in target_entry_ids)
+    ]
+
+
 async def _register_custom_services(hass: HomeAssistant) -> None:
     """Register custom services for the integration."""
 
     async def request_cfs_info(call: ServiceCall) -> None:
         """Service to manually request CFS info from all or specific printers."""
-        device_ids = call.data.get("device_id")
-        target_entry_ids = set()
-        
-        # If devices selected, resolve them to config entries
-        if device_ids:
-            dev_reg = dr.async_get(hass)
-            # Handle single string or list
-            if isinstance(device_ids, str):
-                device_ids = [device_ids]
-                
-            for dev_id in device_ids:
-                device = dev_reg.async_get(dev_id)
-                if device:
-                    for entry_id in device.config_entries:
-                        target_entry_ids.add(entry_id)
-        
-        # Collect coordinators to target
-        targets = []
-        for entry_id, coord in hass.data[DOMAIN].items():
-            if isinstance(coord, KCoordinator):
-                # If no devices selected, target all. Otherwise, check if entry matches.
-                if not target_entry_ids or entry_id in target_entry_ids:
-                    targets.append(coord)
-        
+        targets = _coordinators_for_devices(hass, call.data.get("device_id"))
+
         if not targets:
             _LOGGER.warning("No applicable printers found for CFS info request")
             return
@@ -468,11 +568,187 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
             hass,
             title="CFS Info Request",
             message=f"Request sent to {success_count} printer(s).\nFailures: {fail_count}",
-            notification_id="cfs_request_result"
+            notification_id="cfs_request_result",
         )
+
+    async def set_cfs_material(call: ServiceCall) -> None:
+        """Write filament metadata to one CFS slot.
+
+        This is the only *write* path into the CFS. The payload shape comes from
+        @buzato's work in PR #75, confirmed against real hardware there but not
+        documented by Creality, so the outgoing value and the printer's echo are
+        both logged (see ``_log_material_echo``).
+        """
+        # An explicit target is mandatory here. _coordinators_for_devices reads a
+        # falsy value as "every printer", which request_cfs_info wants but a write
+        # service must not do: `device_id: []` passes the schema and would
+        # otherwise write this payload to every configured printer.
+        requested = call.data.get("device_id")
+        if not requested:
+            raise ServiceValidationError(
+                "set_cfs_material requires a device_id; refusing to write to "
+                "every configured printer."
+            )
+
+        targets = _coordinators_for_devices(hass, requested)
+        if not targets:
+            raise ServiceValidationError(
+                "No Creality printer matched the selected device."
+            )
+
+        box_id = call.data["box_id"]
+        slot_id = call.data["slot_id"]
+
+        try:
+            payload = build_modify_material_payload(
+                box_id=box_id,
+                slot_id=slot_id,
+                material_type=call.data["type"],
+                name=call.data.get("name"),
+                vendor=call.data.get("vendor"),
+                color=call.data.get("color"),
+                min_temp=call.data.get("min_temp"),
+                max_temp=call.data.get("max_temp"),
+                pressure=call.data.get("pressure"),
+                rfid=call.data.get("rfid"),
+            )
+        except ValueError as exc:
+            # Bad input, not a printer failure -- surface it on the call itself.
+            raise ServiceValidationError(str(exc)) from exc
+
+        # Check every target before writing to any of them, so a busy second
+        # printer cannot leave the first one already modified.
+        # The card guards this too, but automations and Developer Tools do not go
+        # through the card.
+        for coord in targets:
+            # The *activity* state, matching `KCoordinator._job_state`: the
+            # display state reports "error" for any non-zero `err.errcode`,
+            # including one the printer never clears, and "error" is not in
+            # BUSY_PRINT_STATES -- so a printer that was printing with a stale
+            # code sailed through this guard and took a modifyMaterial write
+            # mid-print, which is the exact thing being guarded against.
+            state = derive_activity_state(
+                coord.data or {},
+                power_off=coord.power_is_off(),
+                available=coord.available,
+                paused_flag=coord.paused_flag(),
+            )
+            if state in BUSY_PRINT_STATES:
+                raise ServiceValidationError(
+                    f"{coord.client.host} is {state}; refusing to change CFS "
+                    "material while the printer is busy."
+                )
+
+        for coord in targets:
+            host = coord.client.host
+            try:
+                _LOGGER.debug("Sending modifyMaterial to %s: %s", host, payload)
+                await coord.client.send_set_retry(modifyMaterial=payload)
+            except Exception as exc:
+                _LOGGER.error("Failed to set CFS material for %s: %s", host, exc)
+                pn_async_create(
+                    hass,
+                    title="CFS Material Update Failed",
+                    message=f"Failed to update material on {host}: {exc}",
+                    # Per-host: device_id accepts a list, and a shared id would
+                    # leave only the last printer's result visible.
+                    notification_id=f"cfs_material_error_{host}",
+                )
+                continue
+
+            # Clear any earlier failure for this printer, so a successful retry
+            # does not leave "Update Failed" and "Updated" on screen together.
+            pn_async_dismiss(hass, f"cfs_material_error_{host}")
+            pn_async_create(
+                hass,
+                title="CFS Material Updated",
+                message=(
+                    f"Box {box_id} slot {slot_id} on {host} updated."
+                ),
+                notification_id=f"cfs_material_update_{host}",
+            )
+            hass.async_create_task(_log_material_echo(coord, payload))
+
+    async def _log_material_echo(coord: KCoordinator, payload: dict[str, Any]) -> None:
+        """Log what the printer actually stored after a material write.
+
+        Creality streams colours as seven hex characters (a pad character plus
+        RRGGBB) but accepts six on write, and no public documentation confirms how
+        the other fields are echoed. Logging the round trip means the first user
+        with real CFS hardware produces the evidence in their debug log instead of
+        us guessing -- see utils.normalize_color_hex and issues #113/#117.
+        """
+        try:
+            await asyncio.sleep(1.5)
+            await coord.client.request_boxs_info()
+            await asyncio.sleep(1.5)
+
+            boxes = (coord.data or {}).get("boxsInfo", {}).get("materialBoxs", [])
+            for box in boxes:
+                if box.get("id") != payload["boxId"]:
+                    continue
+                for slot in box.get("materials", []):
+                    if slot.get("id") != payload["id"]:
+                        continue
+                    _LOGGER.debug(
+                        "modifyMaterial echo for %s box %s slot %s: sent %s, printer "
+                        "now reports %s",
+                        coord.client.host,
+                        payload["boxId"],
+                        payload["id"],
+                        payload,
+                        slot,
+                    )
+                    return
+
+            _LOGGER.debug(
+                "modifyMaterial echo for %s: box %s slot %s not present in boxsInfo "
+                "after the write",
+                coord.client.host,
+                payload["boxId"],
+                payload["id"],
+            )
+        except Exception as exc:  # pragma: no cover - diagnostics only
+            _LOGGER.debug("Could not read back CFS material echo: %s", exc)
+
+    # Bounds mirror services.yaml and the CFS card's edit form so all three agree.
+    set_cfs_material_schema = vol.Schema(
+        {
+            vol.Required("device_id"): vol.Any(cv.string, [cv.string]),
+            # No max: box_id is printer-reported and an external unit can
+            # present a high id, so an artificial ceiling made real slots
+            # unwritable. See the note in services.yaml.
+            vol.Required("box_id"): vol.All(vol.Coerce(int), vol.Range(min=0)),
+            vol.Required("slot_id"): vol.All(vol.Coerce(int), vol.Range(min=0, max=3)),
+            vol.Required("type"): cv.string,
+            vol.Optional("name"): cv.string,
+            vol.Optional("vendor"): cv.string,
+            # A plain hex string, not a color_rgb selector: that selector returns
+            # [r, g, b], which the printer does not understand.
+            vol.Optional("color"): cv.string,
+            vol.Optional("min_temp"): vol.All(
+                vol.Coerce(float), vol.Range(min=150, max=300)
+            ),
+            vol.Optional("max_temp"): vol.All(
+                vol.Coerce(float), vol.Range(min=150, max=350)
+            ),
+            vol.Optional("pressure"): vol.All(
+                vol.Coerce(float), vol.Range(min=0, max=1)
+            ),
+            vol.Optional("rfid"): cv.string,
+        }
+    )
 
     if not hass.services.has_service(DOMAIN, "request_cfs_info"):
         hass.services.async_register(DOMAIN, "request_cfs_info", request_cfs_info)
+
+    if not hass.services.has_service(DOMAIN, "set_cfs_material"):
+        hass.services.async_register(
+            DOMAIN,
+            "set_cfs_material",
+            set_cfs_material,
+            schema=set_cfs_material_schema,
+        )
 
 
 async def _register_diagnostic_service(hass: HomeAssistant) -> None:
@@ -482,7 +758,7 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
         """Collect and log telemetry data for all printers."""
         try:
             # Get all coordinators (all printer instances)
-            coordinators: List[tuple[str, KCoordinator]] = []
+            coordinators: list[tuple[str, KCoordinator]] = []
             for entry_id, coord in hass.data[DOMAIN].items():
                 if isinstance(coord, KCoordinator):
                     coordinators.append((entry_id, coord))
@@ -493,8 +769,8 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
             
             # Create diagnostic data structure
             diagnostic_data = {
-                "timestamp": datetime.now().isoformat(),
-                "home_assistant_version": getattr(hass.config, 'version', 'unknown'),
+                "timestamp": dt_util.utcnow().isoformat(),
+                "home_assistant_version": HA_VERSION,
                 "integration_version": await _get_integration_version(hass),
                 "printers": {}
             }
@@ -673,8 +949,6 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
                 
         except Exception as exc:
             _LOGGER.exception("Failed to create diagnostic dump: %s", exc)
-            if hasattr(call, 'response'):
-                call.response = {"error": str(exc)}
     
     # Register the service
     schema = vol.Schema({
@@ -689,52 +963,35 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
     )
     
     _LOGGER.info("Diagnostic service registered: ha_creality_ws.diagnostic_dump")
-
-async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Update options."""
-    await hass.config_entries.async_reload(entry.entry_id)
-
-async def async_monitor_zeroconf_update(hass: HomeAssistant, entry: ConfigEntry, info: Any) -> None:
-    """Handle triggered Zeroconf update."""
-    from .utils import extract_info_from_zeroconf
-    host, mac = extract_info_from_zeroconf(info)
-    
-    if not host:
-        return
-
-    # If we have a MAC address, we can do a robust match
-    if mac:
-        # Check if the current entry matches this MAC
-        cached_mac = entry.data.get("_cached_mac")
-        
-        # Scenario 1: We already know our MAC and it matches the discovery
-        if cached_mac and cached_mac.upper() == mac.upper():
-            current_host = entry.data.get("host")
-            if host != current_host:
-                _LOGGER.warning(
-                    "Robust IP Update: MAC match (%s) but IP changed from %s to %s. Updating...",
-                    mac, current_host, host
-                )
-                hass.config_entries.async_update_entry(entry, data={**entry.data, "host": host, "_last_ip": host})
-                await hass.config_entries.async_reload(entry.entry_id)
-            return
-
-        # Scenario 2: We don't know our MAC yet, but this update is targeting *us* by IP (initial discovery phase?)
-        # Or more likely, HA matched the zeroconf flow to this entry for some reason.
-        # If we don't have a cached MAC, and the IP matches, let's CACHE this MAC!
-        current_host = entry.data.get("host")
-        if host == current_host and not cached_mac:
-            _LOGGER.info("Caching MAC address found via Zeroconf: %s", mac)
-            hass.config_entries.async_update_entry(entry, data={**entry.data, "_cached_mac": mac})
-            return
-
     # Fallback to simple name/IP matching logic or legacy checks
     # If users rely on hostname, IP-based recovery without MAC is dangerous (DHCP shuffle).
 
 
 
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update - force full reload to apply power switch changes."""
+    """Apply an options change: in place where that is enough, else a reload."""
+    coord = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if coord is not None:
+        # A change confined to the notification settings needs no reload. One
+        # would drop the WebSocket, flip every entity unavailable and restart
+        # the camera stream, all to reword a notification -- and the options
+        # flow saves each page as it is submitted, so that used to happen once
+        # per page while someone was still editing.
+        try:
+            if coord.notifications_only_change(entry.options):
+                coord.apply_notification_options(entry.options)
+                return
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Failed to apply notification options; reloading")
+
+        # Before the reload wipes the in-memory live-card state: if the card is
+        # being switched off, this is the last moment anything knows one is still
+        # showing on a phone.
+        try:
+            coord.notify_options_changed(entry.options)
+        except Exception:  # pylint: disable=broad-except
+            _LOGGER.exception("Failed to reconcile the live card with new options")
+
     max_retries = 3
     for attempt in range(max_retries):
         try:
@@ -751,14 +1008,49 @@ async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> No
         except Exception as exc:
             _LOGGER.error("Unexpected error during reload: %s", exc)
             return
+async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Take this printer's notifications off every phone as it is deleted.
 
+    Unload deliberately leaves them alone, because `options_update_listener`
+    reloads the entry on any options change and dismissing there would make the
+    card flicker every time an unrelated setting is toggled. Removal is the one
+    teardown that is not a reload, and it is final: nothing will ever push to
+    these tags again, so a live card left behind would sit on a phone showing a
+    printer that no longer exists in Home Assistant.
 
-async def _retry_reload_later(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    try:
-        await asyncio.sleep(1.0)
-        await hass.config_entries.async_reload(entry.entry_id)
-    except Exception:
-        pass
+    Runs after the coordinator is gone, so it works from the entry alone.
+    """
+    targets = coerce_targets(entry.options)
+    if not targets:
+        return
+
+    tag_base = notify_tag_base(entry.entry_id)
+    payloads = [
+        build_clear_payload(f"{tag_base}_{suffix}")
+        for suffix in ("live", "soon", "alert")
+    ]
+
+    for target in targets:
+        # The dismiss marker renders as literal body text anywhere but the
+        # companion app, so a non-mobile target must never receive one.
+        if not is_mobile_target(target) or "." not in target:
+            continue
+        domain, service = target.split(".", 1)
+        for payload in payloads:
+            try:
+                await hass.services.async_call(
+                    domain,
+                    service,
+                    {"message": payload["message"], "data": payload["data"]},
+                )
+            except Exception:  # pylint: disable=broad-except
+                # A phone that has since been removed must not stop the others,
+                # and this is the last chance to tidy up either way.
+                _LOGGER.debug(
+                    "Could not dismiss notifications on %s during removal",
+                    target,
+                    exc_info=True,
+                )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -771,11 +1063,10 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if unload_ok:
         hass.data[DOMAIN].pop(entry.entry_id)
 
-    # If this is the last instance of the integration, unregister the card
-    if not hass.data[DOMAIN]:
-        card_register = CrealityCardRegistration(hass)
-        await card_register.async_unregister()
-
+    # The Lovelace resources and the static paths are deliberately left in
+    # place. Removing a resource would break any dashboard still referencing the
+    # card while the integration is merely reloading, and HA has no way to
+    # unregister a static path anyway.
     return unload_ok
 
 

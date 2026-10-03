@@ -41,6 +41,10 @@ tls:
   stores:
     default:
       defaultCertificate:
-        # Cloudflare Origin Cert for Proxy Traffic
+        # Cloudflare Origin Cert for Proxy Traffic aneis.ch
         certFile: /opt/certs/cert.crt
         keyFile: /opt/certs/cert.key
+
+  certificates:
+    - certFile: /opt/certs/horizon.crt
+      keyFile: /opt/certs/horizon.key

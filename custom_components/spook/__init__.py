@@ -16,17 +16,19 @@ from homeassistant.core import (
 )
 from homeassistant.helpers import issue_registry as ir
 
+from .automation_runs import async_setup_automation_runs
 from .const import DOMAIN, LOGGER, PLATFORMS
 from .entity_filtering import async_setup_all_entity_ids_cache_invalidation
 from .integration_linking import link_sub_integrations, unlink_sub_integrations
 from .listeners import async_listen_once_tracked
 from .repairs import SpookRepairManager
+from .run_history import async_setup_run_history
 from .services import SpookServiceManager
 from .setup_helpers import async_forward_setup_entry
+from .statistics_sources import async_setup_abandoned_statistics_watching
+from .timed_states import async_setup_timed_states
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
-
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.core import Event, HomeAssistant
 
@@ -79,32 +81,63 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     # Forward async_setup_entry to ectoplasms
     await async_forward_setup_entry(hass, entry)
 
+    # Before the services, because the actions that hold an automation in a
+    # state reach for this the moment they are called, and registering them
+    # first leaves a window where calling one finds nothing there.
+    #
+    # This also picks up automations held before the last restart. An
+    # automation keeps whatever state it had, so without this a snooze that
+    # spanned a restart would be a disable nobody remembers making.
+    entry.async_on_unload(await async_setup_timed_states(hass))
+
     # Set up services
     services = SpookServiceManager(hass)
     await services.async_setup()
     entry.async_on_unload(services.async_on_unload)
 
+    # Watching before anything can start a wait it has to observe. A repair
+    # can put a statistic on the clock the first time it looks, and on the
+    # reload path that happens below rather than at some later event, so a
+    # watcher registered afterwards would already have missed the beginning
+    # of what it is meant to be watching.
+    entry.async_on_unload(async_setup_abandoned_statistics_watching(hass))
+
     # Who you gonna call? SpookRepairManager!
     repairs = SpookRepairManager(hass)
 
-    _ghost_busters_unsub: Callable[[], None] | None = None
-
-    async def _ghost_busters(_: Event) -> None:
+    async def _ghost_busters(_: Event | None = None) -> None:
         """Send them in, time for some ghost chasing."""
         await repairs.async_setup()
         entry.async_on_unload(repairs.async_on_unload)
 
-    # Wait until Home Assistant is started, before doing repairs
-    _ghost_busters_unsub = async_listen_once_tracked(
-        hass, EVENT_HOMEASSISTANT_STARTED, _ghost_busters
-    )
-    entry.async_on_unload(_ghost_busters_unsub)
+    if hass.state == CoreState.running:
+        # Home Assistant is already up, so the started event has been and gone.
+        # This is the reload path, and setting up for the first time on a
+        # running instance. Waiting for an event that cannot fire again would
+        # leave every repair check dead until a core restart, silently.
+        await _ghost_busters()
+    else:
+        # Otherwise wait for a settled instance, so repairs do not inspect a
+        # half-loaded Home Assistant and report things that are still coming.
+        entry.async_on_unload(
+            async_listen_once_tracked(hass, EVENT_HOMEASSISTANT_STARTED, _ghost_busters)
+        )
 
     # Set up platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     # Set up the all entity ids cache invalidation
     entry.async_on_unload(async_setup_all_entity_ids_cache_invalidation(hass))
+
+    # Start noting which automation runs under which context. It has to begin
+    # here rather than when a condition first asks: a condition inside an
+    # action sequence is only built once that sequence runs, by which point
+    # the automation it wants to know about has already been and gone.
+    entry.async_on_unload(async_setup_automation_runs(hass))
+
+    # And when they ran, for the conditions that count runs rather than
+    # contexts. Same reason it cannot wait to be asked.
+    entry.async_on_unload(async_setup_run_history(hass))
 
     # Yay, we didn't got spooked!
     return True

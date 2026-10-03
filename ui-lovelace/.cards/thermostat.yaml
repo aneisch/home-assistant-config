@@ -20,14 +20,14 @@ sensors:
     name: Entryway
   - entity: sensor.d1_sht_1_d1_sht_1_temperature
     name: Living Room
-  - entity: sensor.kitchen_temperature
+  - entity: sensor.andrew_s_kitchen_echo_temperature
     name: Kitchen
   - entity: sensor.master_bedroom_temperature
     name: Master
     decimals: 2
   - entity: sensor.master_closet_temperature
     name: Master Closet
-  - entity: sensor.master_bathroom_temperature
+  - entity: sensor.andrew_s_master_bathroom_echo_temperature
     name: Master Bathroom
   - entity: sensor.netatmo_home_indoor_temperature
     name: Office

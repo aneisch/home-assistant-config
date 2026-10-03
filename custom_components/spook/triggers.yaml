@@ -1,0 +1,148 @@
+cron:
+  fields:
+    schedule:
+      required: true
+      example: "0 7 * * 1-5"
+      selector:
+        text:
+
+stale:
+  target:
+  fields:
+    for:
+      required: true
+      example: "01:00:00"
+      selector:
+        duration:
+
+recovered:
+  target:
+  fields:
+    for:
+      required: true
+      example: "00:15:00"
+      selector:
+        duration:
+
+integration_failed:
+  fields:
+    for:
+      required: true
+      example: "00:15:00"
+      selector:
+        duration:
+    entry_id:
+      required: false
+      selector:
+        config_entry:
+repair_issue_created:
+  fields:
+    domain:
+      required: false
+      example: hue
+      selector:
+        text:
+          multiple: true
+    severity:
+      required: false
+      selector:
+        select:
+          multiple: true
+          translation_key: repair_issue_severity
+          options:
+            - critical
+            - error
+            - warning
+repair_issue_removed:
+  fields:
+    domain:
+      required: false
+      example: hue
+      selector:
+        text:
+          multiple: true
+condition_met:
+  fields:
+    condition:
+      required: true
+      selector:
+        condition:
+debounce:
+  fields:
+    triggers:
+      required: true
+      selector:
+        trigger:
+    for:
+      required: true
+      example: "00:00:30"
+      selector:
+        duration:
+all_of:
+  fields:
+    triggers:
+      required: true
+      selector:
+        trigger:
+    within:
+      required: true
+      example: "00:05:00"
+      selector:
+        duration:
+sequence:
+  fields:
+    steps:
+      required: true
+      selector:
+        trigger:
+    timeout:
+      required: false
+      example: "00:02:00"
+      selector:
+        duration:
+    reset:
+      required: false
+      selector:
+        trigger:
+while:
+  fields:
+    condition:
+      required: true
+      selector:
+        condition:
+    every:
+      required: true
+      example: "00:10:00"
+      selector:
+        duration:
+watchdog:
+  fields:
+    arm:
+      required: true
+      selector:
+        trigger:
+    expect:
+      required: true
+      selector:
+        trigger:
+    within:
+      required: true
+      example: "00:02:00"
+      selector:
+        duration:
+flapping:
+  target:
+  fields:
+    changes:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 2
+          max: 1000
+          mode: box
+    within:
+      required: true
+      example: "00:05:00"
+      selector:
+        duration:

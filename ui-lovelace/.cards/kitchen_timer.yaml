@@ -1,10 +1,10 @@
 type: conditional
 conditions:
-  - entity: sensor.kitchen_next_timer
+  - entity: sensor.andrew_s_kitchen_echo_next_timer
     state_not: "None"
-  - entity: sensor.kitchen_next_timer
+  - entity: sensor.andrew_s_kitchen_echo_next_timer
     state_not: "unknown"
-  - entity: sensor.kitchen_next_timer
+  - entity: sensor.andrew_s_kitchen_echo_next_timer
     state_not: "unavailable"
 card:
   type: vertical-stack

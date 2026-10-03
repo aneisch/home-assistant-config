@@ -82,8 +82,6 @@ services:
         #user: '99'
         volumes:
             - /opt/grafana:/var/lib/grafana
-        #ports:
-        #    - '3000:3000'
         environment:
             - GF_SECURITY_ALLOW_EMBEDDING=true
             #- GF_SECURITY_COOKIE_SAMESITE=none
@@ -204,42 +202,6 @@ services:
         volumes:
             - /opt/bw-data:/bitwarden/data/
             - /opt/vaultwarden-backup/:/config/
-
-    # vscode:
-    #     container_name: vscode
-    #     image: ghcr.io/hassio-addons/vscode/amd64:7fd6906
-    #     restart: always
-    #     volumes:
-    #         - '/opt/vscode/data:/data/vscode'
-    #         - '/opt/homeassistant/:/config/homeassistant'
-    #         - '/opt/appdaemon/:/config/appdaemon'
-    #         - '/opt/docker-compose/:/config/docker-compose'
-    #         - '/opt/github:/config/github_projects'
-    #         - '/opt/frigate:/config/frigate'
-    #         - '/home/aneisch/.backup:/config/homeassistant-git'
-    #         - '/opt/terraform:/config/terraform'
-    #         - '/opt/traefik:/config/traefik'
-    #         - '/opt/vscode/run:/etc/s6-overlay/s6-rc.d/init-user/run'
-    #         - '/opt/esphome:/config/esphome'
-    #         - '/opt/teslausb:/config/teslausb'
-    #     environment:
-    #         - TZ=America/Chicago
-    #     labels:
-    #         #- sablier.enable=true
-    #         #- sablier.group=default
-    #         # HTTPS for CF
-    #         - traefik.enable=true
-    #         - traefik.http.routers.vscode.entrypoints=websecure
-    #         - traefik.http.routers.vscode.tls=true
-    #         - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
-    #         - traefik.http.services.vscode.loadbalancer.server.port=1337
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.vscode_local.tls=true
-    #         - traefik.http.routers.vscode_local.entrypoints=websecure
-    #         - traefik.http.routers.vscode_local.tls.certResolver=le-home
-    #         - traefik.http.routers.vscode_local.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
-    #         - traefik.http.routers.vscode_local.service=vscode
 
     vscode:
         container_name: vscode
@@ -425,10 +387,17 @@ services:
         container_name: signal-rest-api
         image: bbernhard/signal-cli-rest-api:latest
         restart: 'always'
+        user: "1000:1000" # change to UID:GID you preferre
         environment:
             - MODE=json-rpc
             - TZ=America/Chicago
+            - SIGNAL_CLI_CHOWN_ON_STARTUP=false
+
             #- AUTO_RECEIVE_SCHEDULE=31 * * * *
+        security_opt:
+            - no-new-privileges:true # additonal security control
+        tmpfs:
+            - /run:exec,size=64m,uid=1000,gid=1000,mode=0755 # Make sure this UID:GID fits those from above
         ports:
             - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
             #- "8800:8080" 
@@ -445,17 +414,16 @@ services:
             - traefik.http.routers.signal_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.signal_local.rule=Host(`signal.home.domain.com`)
 
-    apcupsd:
-        container_name: apcupsd
-        image: gersilex/apcupsd
-        ports:
-            - '127.0.0.1:3551:3551' # Expose localhost only for Home Assistant
-        volumes:
-            - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
-        devices:
-            - '/dev/ups_monitor_large:/dev/usb/hiddev0'
-        restart: always
-
+    # apcupsd:
+    #     container_name: apcupsd
+    #     image: gersilex/apcupsd
+    #     ports:
+    #         - '127.0.0.1:3551:3551' # Expose localhost only for Home Assistant
+    #     volumes:
+    #         - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+    #     devices:
+    #         - '/dev/ups_monitor_large:/dev/usb/hiddev0'
+    #     restart: always
     secret:
         container_name: secret
         image: secret_container
@@ -504,33 +472,6 @@ services:
             - traefik.http.routers.sqliteweb_local.tls.certResolver=le-home
             - traefik.http.routers.sqliteweb_local.tls.domains[0].main=*.home.domain.com
             - traefik.http.routers.sqliteweb_local.rule=Host(`sqliteweb.home.domain.com`)
-
-    # vrs:
-    #     container_name: vrs
-    #     restart: 'always'
-    #     image: mikenye/virtualradarserver
-    #     # ports:
-    #     #     - '1234:8080'
-    #     environment:
-    #         - USERNAME=aneisch
-    #         - PASSWORD=PASSWORD
-    #         - TZ=America/Chicago
-    #     volumes:
-    #         - /opt/vrs/config:/config
-    #     labels:
-    #         # HTTPS for CF
-    #         - traefik.enable=true
-    #         - traefik.http.routers.vrs.entrypoints=websecure
-    #         - traefik.http.middlewares.vrs-redirect.redirectregex.regex=^https://vrs.domain.com/$$
-    #         - traefik.http.middlewares.vrs-redirect.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/desktop.html
-    #         - traefik.http.middlewares.vrs-redirect-admin.redirectregex.regex=^https://vrs.domain.com/admin$$
-    #         - traefik.http.middlewares.vrs-redirect-admin.redirectregex.replacement=https://vrs.domain.com/VirtualRadar/WebAdmin/DatabaseWriterPluginOptions.html
-    #         - "traefik.http.middlewares.vrs.chain.middlewares=vrs-redirect@docker,vrs-redirect-admin@docker" # combine the two in a chain
-    #         - "traefik.http.routers.vrs.middlewares=vrs@docker" # apply the chain
-    #         - traefik.http.routers.vrs.tls=true
-    #         - traefik.http.routers.vrs.rule=Host(`vrs.domain.com`)
-    #         - traefik.http.services.vrs.loadbalancer.server.port=8080
-    #         - traefik.http.routers.vrs.service=vrs
 
     frigate:
         container_name: frigate
@@ -722,66 +663,6 @@ services:
         volumes:
             - '/var/run/docker.sock:/var/run/docker.sock'
 
-    # double-take:
-    #     container_name: double-take
-    #     image: jakowenko/double-take
-    #     restart: unless-stopped
-    #     volumes:
-    #         - /opt/doubletake:/.storage
-    #     # ports:
-    #     #     - 3100:3000
-    #     labels:
-    #         - traefik.enable=true
-    #         - traefik.http.services.doubletake.loadbalancer.server.port=3000
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.doubletake_local.tls=true
-    #         - traefik.http.routers.doubletake_local.entrypoints=websecure
-    #         - traefik.http.routers.doubletake_local.tls.certResolver=le-home
-    #         - traefik.http.routers.doubletake_local.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.doubletake_local.rule=Host(`doubletake.home.domain.com`)
-    #         - traefik.http.routers.doubletake_local.service=doubletake
-
-    # guacd:
-    #     image: guacamole/guacd
-    #     container_name: guacd
-    #     restart: unless-stopped
-    #     security_opt:
-    #         - no-new-privileges:true
-
-    # guacamole:
-    #     image: guacamole/guacamole:latest
-    #     container_name: guacamole
-    #     restart: unless-stopped
-    #     depends_on:
-    #         - guacd
-    #     security_opt:
-    #         - no-new-privileges:true
-    #     environment:
-    #         GUACD_HOSTNAME: guacd
-    #         MYSQL_HOSTNAME: mariadb
-    #         MYSQL_PORT: 3306
-    #         MYSQL_DATABASE: guacamole
-    #         MYSQL_USER: guacamole
-    #         MYSQL_PASSWORD: Dimmed3
-    #     labels:
-    #         - traefik.enable=true
-    #         - traefik.http.services.guacamole.loadbalancer.server.port=8080
-    #         # HTTPS for CF
-    #         - traefik.http.routers.guacamole.entrypoints=websecure
-    #         - traefik.http.routers.guacamole.tls=true
-    #         - traefik.http.routers.guacamole.rule=Host(`guacamole.domain.com`)
-    #         - traefik.http.routers.guacamole.middlewares=add-guacamole
-    #         - traefik.http.routers.guacamole.service=guacamole
-    #         # HTTPS Local Only (with 80-->443 redirect)
-    #         - traefik.http.routers.guacamole_local.tls=true
-    #         - traefik.http.routers.guacamole_local.entrypoints=websecure
-    #         - traefik.http.routers.guacamole_local.tls.certResolver=le-home
-    #         - traefik.http.routers.guacamole_local.tls.domains[0].main=*.home.domain.com
-    #         - traefik.http.routers.guacamole_local.rule=Host(`guacamole.home.domain.com`)
-    #         - traefik.http.routers.guacamole_local.middlewares=add-guacamole
-    #         - traefik.http.middlewares.add-guacamole.addPrefix.prefix=/guacamole
-    #         - traefik.http.routers.guacamole_local.service=guacamole
-
     teslamate:
         image: teslamate/teslamate:latest
         container_name: teslamate
@@ -836,8 +717,6 @@ services:
             - DATABASE_PASS=password #insert your secure database password!
             - DATABASE_NAME=teslamate
             - DATABASE_HOST=database
-        # ports:
-        # - 3001:3000
         volumes:
             - /opt/teslamate/grafana:/var/lib/grafana
         labels:
@@ -918,7 +797,3 @@ services:
         # We run as root initially to ensure we can access the socket, 
         # or you can map the GID (see the permission fix below)
         user: root
-
-# networks:
-#     macos_network:
-#         driver: bridge

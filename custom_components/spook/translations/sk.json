@@ -1,335 +1,1913 @@
 {
-  "config": {
-    "abort": {
-      "already_spooked": "Jo... no. K, thx, bye!"
-    },
-    "step": {
-      "user": {
-        "description": "Čítali ste readme? Čítali ste licenciu? Ste si naozaj istý?"
-      },
-      "choice_restart": {
-        "description": "Aby Spook dokončil nastavenie, musí sa reštartovať Home Assistant.\n\nChcete teraz reštartovať Home Assistant?",
-        "menu_options": {
-          "restart_now": "Reštartovať teraz",
-          "restart_later": "Reštartujte neskôr"
-        }
-      }
-    }
-  },
-  "entity": {
-    "button": {
-      "homeassistant_reload": {
-        "name": "Znovu načítať"
-      },
-      "homeassistant_restart": {
-        "name": "Reštart"
-      },
-      "repairs_ignore_all": {
-        "name": "Ignorovať všetko"
-      },
-      "repairs_unignore_all": {
-        "name": "Neignore všetky"
-      }
-    },
-    "event": {
-      "repairs_event": {
-        "state_attributes": {
-          "event_type": {
-            "state": {
-              "create": "Problém vytvorený",
-              "remove": "Chyba odstránená",
-              "update": "Aktualizácia problému"
+    "config": {
+        "abort": {
+            "already_spooked": "Spook je už nakonfigurovaný.",
+            "enabled_existing": "Existujúca položka Spook bola povolená.",
+            "enable_failed": "Existujúci záznam Spook sa nepodarilo povoliť."
+        },
+        "step": {
+            "user": {
+                "description": "Čítali ste readme? Čítali ste licenciu? Ste si naozaj istý?"
+            },
+            "choice_restart": {
+                "description": "Aby Spook dokončil nastavenie, musí sa reštartovať Home Assistant.\n\nChcete teraz reštartovať Home Assistant?",
+                "menu_options": {
+                    "restart_now": "Reštartovať teraz",
+                    "restart_later": "Reštartujte neskôr"
+                }
+            },
+            "already_configured": {
+                "description": "Spook je už nakonfigurovaný, ale existujúca položka je zakázaná. Chcete ju povoliť?",
+                "menu_options": {
+                    "enable_existing": "Povoliť existujúci záznam"
+                }
             }
-          },
-          "domain": {
-            "name": "Vydavateľ vydania"
-          },
-          "issue_id": {
-            "name": "ID problému"
-          }
         }
-      }
     },
-    "sensor": {
-      "homeassistant_air_quality": {
-        "name": "Kvalita ovzdušia"
-      },
-      "homeassistant_alarm_control_panel": {
-        "name": "Alarmové ovládacie panely"
-      },
-      "homeassistant_area": {
-        "name": "Oblasti"
-      },
-      "homeassistant_automation": {
-        "name": "Automatizácie"
-      },
-      "homeassistant_binary_sensor": {
-        "name": "Binárne senzory"
-      },
-      "homeassistant_button": {
-        "name": "Tlačidlá"
-      },
-      "homeassistant_calendar": {
-        "name": "Kalendáre"
-      },
-      "homeassistant_camera": {
-        "name": "Kamery"
-      },
-      "homeassistant_climate": {
-        "name": "Klíma"
-      },
-      "homeassistant_cover": {
-        "name": "Kryty"
-      },
-      "homeassistant_custom_component": {
-        "name": "Vlastné integrácie"
-      },
-      "homeassistant_date": {
-        "name": "Dátumy"
-      },
-      "homeassistant_datetime": {
-        "name": "Dátumy/časy"
-      },
-      "homeassistant_device": {
-        "name": "Zariadenia"
-      },
-      "homeassistant_device_tracker": {
-        "name": "Sledovanie zariadení"
-      },
-      "homeassistant_entities": {
-        "name": "Entity"
-      },
-      "homeassistant_fan": {
-        "name": "Fanúšikovia"
-      },
-      "homeassistant_humidifier": {
-        "name": "Zvlhčovače"
-      },
-      "homeassistant_image": {
-        "name": "Obrázky"
-      },
-      "homeassistant_input_boolean": {
-        "name": "Vstupné booleany"
-      },
-      "homeassistant_input_button": {
-        "name": "Vstupné tlačidlá"
-      },
-      "homeassistant_input_datetime": {
-        "name": "Vstupné dátumy/časy"
-      },
-      "homeassistant_input_number": {
-        "name": "Vstupné čísla"
-      },
-      "homeassistant_input_select": {
-        "name": "Vstup výberov"
-      },
-      "homeassistant_input_text": {
-        "name": "Vstupné texty"
-      },
-      "homeassistant_integration": {
-        "name": "Integrácie"
-      },
-      "homeassistant_light": {
-        "name": "Svetlá"
-      },
-      "homeassistant_lock": {
-        "name": "Zámky"
-      },
-      "homeassistant_media_player": {
-        "name": "Prehrávače médií"
-      },
-      "homeassistant_number": {
-        "name": "Čísla"
-      },
-      "homeassistant_persistent_notification": {
-        "name": "Trvalé upozornenia"
-      },
-      "homeassistant_person": {
-        "name": "Osoby"
-      },
-      "homeassistant_remote": {
-        "name": "Diaľkové"
-      },
-      "homeassistant_scene": {
-        "name": "Scény"
-      },
-      "homeassistant_script": {
-        "name": "Skripty"
-      },
-      "homeassistant_select": {
-        "name": "Výbery"
-      },
-      "homeassistant_sensor": {
-        "name": "Senzory"
-      },
-      "homeassistant_siren": {
-        "name": "Sirény"
-      },
-      "homeassistant_stt": {
-        "name": "Prevod reči na text"
-      },
-      "homeassistant_sun": {
-        "name": "Slnko"
-      },
-      "homeassistant_switch": {
-        "name": "Prepínače"
-      },
-      "homeassistant_text": {
-        "name": "Texty"
-      },
-      "homeassistant_time": {
-        "name": "Časy"
-      },
-      "homeassistant_tts": {
-        "name": "Prevod textu na reč"
-      },
-      "homeassistant_update": {
-        "name": "Aktualizovať"
-      },
-      "homeassistant_vacuum": {
-        "name": "Vysávače"
-      },
-      "homeassistant_water_heater": {
-        "name": "Vodné ohrievače"
-      },
-      "homeassistant_weather": {
-        "name": "Počasie"
-      },
-      "homeassistant_zone": {
-        "name": "Zóny"
-      },
-      "repairs_total_issues": {
-        "name": "Celkom"
-      },
-      "repairs_ignored_issues": {
-        "name": "Ignorované"
-      },
-      "repairs_active_issues": {
-        "name": "Aktívne"
-      }
+    "entity": {
+        "button": {
+            "homeassistant_reload": {
+                "name": "Znovu načítať"
+            },
+            "homeassistant_restart": {
+                "name": "Reštart"
+            },
+            "repairs_ignore_all": {
+                "name": "Ignorovať všetko"
+            },
+            "repairs_unignore_all": {
+                "name": "Neignore všetky"
+            }
+        },
+        "event": {
+            "repairs_event": {
+                "state_attributes": {
+                    "event_type": {
+                        "state": {
+                            "create": "Problém vytvorený",
+                            "remove": "Chyba odstránená",
+                            "update": "Aktualizácia problému"
+                        }
+                    },
+                    "domain": {
+                        "name": "Vydavateľ vydania"
+                    },
+                    "issue_id": {
+                        "name": "ID problému"
+                    }
+                }
+            }
+        },
+        "sensor": {
+            "homeassistant_air_quality": {
+                "name": "Kvalita ovzdušia"
+            },
+            "homeassistant_alarm_control_panel": {
+                "name": "Alarmové ovládacie panely"
+            },
+            "homeassistant_area": {
+                "name": "Oblasti"
+            },
+            "homeassistant_automation": {
+                "name": "Automatizácie"
+            },
+            "homeassistant_binary_sensor": {
+                "name": "Binárne senzory"
+            },
+            "homeassistant_button": {
+                "name": "Tlačidlá"
+            },
+            "homeassistant_calendar": {
+                "name": "Kalendáre"
+            },
+            "homeassistant_camera": {
+                "name": "Kamery"
+            },
+            "homeassistant_climate": {
+                "name": "Klíma"
+            },
+            "homeassistant_cover": {
+                "name": "Kryty"
+            },
+            "homeassistant_custom_component": {
+                "name": "Vlastné integrácie"
+            },
+            "homeassistant_date": {
+                "name": "Dátumy"
+            },
+            "homeassistant_datetime": {
+                "name": "Dátumy/časy"
+            },
+            "homeassistant_device": {
+                "name": "Zariadenia"
+            },
+            "homeassistant_device_tracker": {
+                "name": "Sledovanie zariadení"
+            },
+            "homeassistant_entities": {
+                "name": "Entity"
+            },
+            "homeassistant_fan": {
+                "name": "Fanúšikovia"
+            },
+            "homeassistant_humidifier": {
+                "name": "Zvlhčovače"
+            },
+            "homeassistant_image": {
+                "name": "Obrázky"
+            },
+            "homeassistant_input_boolean": {
+                "name": "Vstupné booleany"
+            },
+            "homeassistant_input_button": {
+                "name": "Vstupné tlačidlá"
+            },
+            "homeassistant_input_datetime": {
+                "name": "Vstupné dátumy/časy"
+            },
+            "homeassistant_input_number": {
+                "name": "Vstupné čísla"
+            },
+            "homeassistant_input_select": {
+                "name": "Vstup výberov"
+            },
+            "homeassistant_input_text": {
+                "name": "Vstupné texty"
+            },
+            "homeassistant_integration": {
+                "name": "Integrácie"
+            },
+            "homeassistant_light": {
+                "name": "Svetlá"
+            },
+            "homeassistant_lock": {
+                "name": "Zámky"
+            },
+            "homeassistant_media_player": {
+                "name": "Prehrávače médií"
+            },
+            "homeassistant_number": {
+                "name": "Čísla"
+            },
+            "homeassistant_persistent_notification": {
+                "name": "Trvalé upozornenia"
+            },
+            "homeassistant_person": {
+                "name": "Osoby"
+            },
+            "homeassistant_remote": {
+                "name": "Diaľkové"
+            },
+            "homeassistant_scene": {
+                "name": "Scény"
+            },
+            "homeassistant_script": {
+                "name": "Skripty"
+            },
+            "homeassistant_select": {
+                "name": "Výbery"
+            },
+            "homeassistant_sensor": {
+                "name": "Senzory"
+            },
+            "homeassistant_siren": {
+                "name": "Sirény"
+            },
+            "homeassistant_stt": {
+                "name": "Prevod reči na text"
+            },
+            "homeassistant_sun": {
+                "name": "Slnko"
+            },
+            "homeassistant_switch": {
+                "name": "Prepínače"
+            },
+            "homeassistant_text": {
+                "name": "Texty"
+            },
+            "homeassistant_time": {
+                "name": "Časy"
+            },
+            "homeassistant_tts": {
+                "name": "Prevod textu na reč"
+            },
+            "homeassistant_update": {
+                "name": "Aktualizovať"
+            },
+            "homeassistant_vacuum": {
+                "name": "Vysávače"
+            },
+            "homeassistant_water_heater": {
+                "name": "Vodné ohrievače"
+            },
+            "homeassistant_weather": {
+                "name": "Počasie"
+            },
+            "homeassistant_zone": {
+                "name": "Zóny"
+            },
+            "repairs_total_issues": {
+                "name": "Celkom"
+            },
+            "repairs_ignored_issues": {
+                "name": "Ignorované"
+            },
+            "repairs_active_issues": {
+                "name": "Aktívne"
+            },
+            "homeassistant_todo": {
+                "name": "Zoznamy úloh"
+            },
+            "homeassistant_counter": {
+                "name": "Počítadlá"
+            },
+            "homeassistant_group": {
+                "name": "Skupiny"
+            },
+            "homeassistant_timer": {
+                "name": "Časovače"
+            }
+        },
+        "switch": {
+            "cloud_alexa_report_state": {
+                "name": "Správy o stave Alexa"
+            },
+            "cloud_google_report_state": {
+                "name": "Správa stavu Google Assistant"
+            },
+            "cloud_remote": {
+                "name": "Diaľkový"
+            }
+        }
     },
-    "switch": {
-      "cloud_alexa_report_state": {
-        "name": "Správy o stave Alexa"
-      },
-      "cloud_google_report_state": {
-        "name": "Správa stavu Google Assistant"
-      },
-      "cloud_remote": {
-        "name": "Diaľkový"
-      }
-    }
-  },
-  "issues": {
-    "automation_unknown_area_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme oblasti používané v: {automation}"
-    },
-    "automation_unknown_device_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme zariadenia používané v: {automation}"
-    },
-    "automation_unknown_entity_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme entity používané v: {automation}"
-    },
-    "automation_unknown_floor_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme podlahy používané v: {automation}"
-    },
-    "automation_unknown_label_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme štítky používané v: {automation}"
-    },
-    "automation_unknown_service_references": {
-      "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following actions, which are unknown to Home Assistant:\n\n{services}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme akcie používané v: {automation}"
-    },
-    "group_unknown_members": {
-      "description": "Spook has found a ghost in your groups 👻\n\nWhile floating around, Spook crossed path with the following group:\n\n{group} (`{entity_id}`)\n\nThis group has members, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, edit the group, remove the use of these non-existing entities and restart Home Assistant.\n\nSpook 👻 Your homie.",
-      "title": "Neznámi členovia skupiny v: {group}"
-    },
-    "integration_unknown_source": {
-      "description": "Spook has found a ghost in your Riemann sum integral helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
-      "title": "Neznámy zdroj: {helper}"
-    },
-    "lovelace_unknown_entity_references": {
-      "description": "Spook has found a ghost in your dashboards 👻\n\nWhile floating around, Spook crossed path with the following dashboard:\n\n[{dashboard}]({edit})\n\nThis dashboard references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the dashboard]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme entity používané v: {dashboard}"
-    },
-    "proximity_unknown_ignored_zones": {
-      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is ignoring zones that are unknown to Home Assistant:\n\n{zones}\n\n\n\nTo fix this error, edit the configuration and remove this/these zones.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme ignorované zóny: {name}"
-    },
-    "proximity_unknown_tracked_entities": {
-      "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is tracking persons or devices trackers that are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, edit the configuration and remove this/these entities.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme sledované entity: {name}"
-    },
-    "proximity_unknown_zone": {
-      "description": "Spook našiel ducha vo vašej blízkosti konfigurácii 👻\n\nZatiaľ čo plával okolo, Spook prekročil cestu s nasledujúcou konfiguráciou blízkosti:\n\n{name}\n\nTáto konfigurácia je založená na zóne, ktorá nie je známa pre Home Assistant:\n\n`{zone} `\n\n\n\n\nAk chcete opraviť túto chybu, pretože nemôžete zmeniť zóny konfigurácie blízkosti, jedinou možnosťou je odstrániť túto špecifickú integráciu.\n\nSpook 👻 Tvoj homie.",
-      "title": "Neznáma zóna: {zone}"
-    },
-    "scene_unknown_entity_references": {
-      "description": "Spook has found a ghost in your scenes 👻\n\nWhile floating around, Spook crossed path with the following scene:\n\n[{scene}]({edit})\n\nThis scene references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the scene]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme entity používané v: {scene}"
-    },
-    "script_unknown_area_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme oblasti používané v: {script}"
-    },
-    "script_unknown_device_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme zariadenia používané v: {script}"
-    },
-    "script_unknown_entity_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme entity používané v: {script}"
-    },
-    "script_unknown_floor_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme podlahy používané v: {script}"
-    },
-    "script_unknown_label_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme štítky používané v: {script}"
-    },
-    "script_unknown_service_references": {
-      "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following actions, which are unknown to Home Assistant:\n\n{services}\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
-      "title": "Neznáme akcie používané v: {script}"
-    },
-    "switch_as_x_unknown_source": {
-      "description": "Spook has found a ghost in your Switch as X helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source switch entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
-      "title": "Neznámy zdroj: {helper}"
-    },
-    "utility_meter_unknown_source": {
-      "description": "Spook has found a ghost in your utility meter helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
-      "title": "Neznámy zdroj: {helper}"
-    },
-    "trend_unknown_source": {
-      "description": "Spook has found a ghost in your trend helpers 👻\n\nWhile floating around, Spook crossed path with the following helper:\n\n{helper} (`{entity_id}`)\n\nThis helper has a source entity unknown to Home Assistant:\n\n`{source}`\n\n\n\nTo fix this error, edit the helper and adjust the source entity (or remove the helper) and restart Home Assistant.\n\nSpook 👻 Your homie.",
-      "title": "Neznámy zdroj: {helper}"
-    },
-    "user_issue": {
-      "fix_flow": {
-        "step": {
-          "confirm": {
-            "description": "{description}",
+    "issues": {
+        "automation_unknown_area_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme oblasti používané v: {automation}"
+        },
+        "automation_unknown_device_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme zariadenia používané v: {automation}"
+        },
+        "automation_unknown_entity_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme entity používané v: {automation}"
+        },
+        "automation_unknown_floor_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme podlahy používané v: {automation}"
+        },
+        "automation_unknown_label_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme štítky používané v: {automation}"
+        },
+        "automation_unknown_service_references": {
+            "description": "Spook has found a ghost in your automations 👻\n\nWhile floating around, Spook crossed path with the following automation:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nThis automation references the following actions, which are unknown to Home Assistant:\n\n{services}\n\n\n\nTo fix this error, [edit the automation]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme akcie používané v: {automation}"
+        },
+        "group_unknown_members": {
+            "title": "Neznámi členovia skupiny v: {group}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Neznámi členovia skupiny v: {group}",
+                        "description": "Spook našiel ducha v tvojich skupinách 👻\n\nSkupina {group} (`{entity_id}`) má členov, ktorých Home Assistant nepozná:\n\n{entities}\n\nOdstráň ich zo skupiny, alebo si ich nechaj a Spook na nich prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť týchto členov",
+                            "manage": "Opravím si to sám",
+                            "ignore": "Nechať ich, viac mi to nehovor"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tejto skupine mlčať.",
+                    "not_editable": "Táto skupina je nastavená v YAML, takže ju Spook nevie upraviť. Uprav ju radšej vo svojej konfigurácii.",
+                    "manage": "Túto skupinu si môžeš spravovať sám na [stránke Pomocníci](/config/helpers)."
+                }
+            }
+        },
+        "lovelace_unknown_entity_references": {
+            "description": "Spook has found a ghost in your dashboards 👻\n\nWhile floating around, Spook crossed path with the following dashboard:\n\n[{dashboard}]({edit})\n\nThis dashboard references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the dashboard]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme entity používané v: {dashboard}"
+        },
+        "proximity_unknown_ignored_zones": {
+            "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is ignoring zones that are unknown to Home Assistant:\n\n{zones}\n\n\n\nTo fix this error, edit the configuration and remove this/these zones.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme ignorované zóny: {name}"
+        },
+        "proximity_unknown_tracked_entities": {
+            "description": "Spook has found a ghost in your proximity configuration 👻\n\nWhile floating around, Spook crossed path with the following proximity configuration:\n\n{name}\n\nThis configuration is tracking persons or devices trackers that are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, edit the configuration and remove this/these entities.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme sledované entity: {name}"
+        },
+        "proximity_unknown_zone": {
+            "description": "Spook našiel ducha vo vašej blízkosti konfigurácii 👻\n\nZatiaľ čo plával okolo, Spook prekročil cestu s nasledujúcou konfiguráciou blízkosti:\n\n{name}\n\nTáto konfigurácia je založená na zóne, ktorá nie je známa pre Home Assistant:\n\n`{zone} `\n\n\n\n\nAk chcete opraviť túto chybu, pretože nemôžete zmeniť zóny konfigurácie blízkosti, jedinou možnosťou je odstrániť túto špecifickú integráciu.\n\nSpook 👻 Tvoj homie.",
+            "title": "Neznáma zóna: {zone}"
+        },
+        "scene_unknown_entity_references": {
+            "description": "Spook has found a ghost in your scenes 👻\n\nWhile floating around, Spook crossed path with the following scene:\n\n[{scene}]({edit})\n\nThis scene references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the scene]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme entity používané v: {scene}"
+        },
+        "script_unknown_area_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following areas, which are unknown to Home Assistant:\n\n{areas}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing areas.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme oblasti používané v: {script}"
+        },
+        "script_unknown_device_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following devices, which are unknown to Home Assistant:\n\n{devices}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing devices.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme zariadenia používané v: {script}"
+        },
+        "script_unknown_entity_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following entities, which are unknown to Home Assistant:\n\n{entities}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing entities.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme entity používané v: {script}"
+        },
+        "script_unknown_floor_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following floors, which are unknown to Home Assistant:\n\n{floors}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing floors.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme podlahy používané v: {script}"
+        },
+        "script_unknown_label_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following labels, which are unknown to Home Assistant:\n\n{labels}\n\n\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing labels.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme štítky používané v: {script}"
+        },
+        "script_unknown_service_references": {
+            "description": "Spook has found a ghost in your scripts 👻\n\nWhile floating around, Spook crossed path with the following script:\n\n[{script}]({edit}) (`{entity_id}`)\n\nThis script references the following actions, which are unknown to Home Assistant:\n\n{services}\n\nTo fix this error, [edit the script]({edit}) and remove the use of these non-existing actions.\n\nSpook 👻 Your homie.",
+            "title": "Neznáme akcie používané v: {script}"
+        },
+        "user_issue": {
+            "fix_flow": {
+                "step": {
+                    "confirm": {
+                        "description": "{description}",
+                        "title": "{title}"
+                    }
+                }
+            },
             "title": "{title}"
-          }
-        }
-      },
-      "title": "{title}"
-    },
-    "restart_required": {
-      "title": "Reštart požadovaný",
-      "fix_flow": {
-        "step": {
-          "confirm_restart": {
+        },
+        "restart_required": {
             "title": "Reštart požadovaný",
-            "description": "Aby Spook 👻 na dokončenie nastavenia, musí sa reštartovať Home Assistant.\n\nVyberte predložiť reštart Home Assistant teraz."
-          }
+            "fix_flow": {
+                "step": {
+                    "confirm_restart": {
+                        "title": "Reštart požadovaný",
+                        "description": "Aby Spook 👻 na dokončenie nastavenia, musí sa reštartovať Home Assistant.\n\nVyberte predložiť reštart Home Assistant teraz."
+                    }
+                }
+            }
+        },
+        "alert_unknown_entity_references": {
+            "title": "Upozornenie sleduje neznámu entitu: {alert}",
+            "description": "Spook našiel ducha v tvojich upozorneniach 👻\n\nUpozornenie {alert} (`{entity_id}`) sleduje entitu, ktorú Home Assistant nepozná:\n\n{entities}\n\nUpozornenie sa vie spustiť iba na entite, ktorú sleduje, takže toto sa už nikdy nespustí. Zvonku vyzerá rovnako ako upozornenie, ktoré nemá čo hlásiť.\n\nAk chceš túto chybu opraviť, uprav v konfigurácii sekciu `alert:` a nasmeruj toto upozornenie na entitu, ktorá existuje.\n\nSpook 👻 Tvoj kamoš."
+        },
+        "alert_unknown_notifiers": {
+            "title": "Upozornenie používa neznáme oznamovače: {alert}",
+            "description": "Spook našiel ducha v tvojich upozorneniach 👻\n\nUpozornenie {alert} (`{entity_id}`) oznamuje cez nasledujúce akcie, ktoré Home Assistant nepozná:\n\n{notifiers}\n\nUpozornenie sa aj tak spustí a aj tak robí svoje kolá, ale tieto oznámenia nejdú nikam. Home Assistant to zapíše do denníka až v okamihu spustenia, čo je mizerná chvíľa na zistenie, že nikto nepočúva.\n\nAk chceš túto chybu opraviť, uprav v konfigurácii zoznam `notifiers:` tohto upozornenia a tieto položky odstráň alebo oprav.\n\nSpook 👻 Tvoj kamoš."
+        },
+        "automation_unknown_condition_references": {
+            "description": "Spook našiel ducha v tvojich automatizáciách 👻\n\nAko sa tak vznášal okolo, Spook narazil na túto automatizáciu:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nTáto automatizácia používa nasledujúce podmienky, ktoré nevie poskytnúť žiadna integrácia dostupná pre Home Assistant:\n\n{conditions}\n\n\n\nBýva to tak, keď bola odstránená integrácia, ktorá podmienku poskytovala. Ak chceš túto chybu opraviť, [uprav automatizáciu]({edit}) a prestaň tieto nedostupné podmienky používať, alebo obnov integráciu, ktorá ich poskytuje.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme podmienky použité v: {automation}"
+        },
+        "automation_unknown_trigger_references": {
+            "description": "Spook našiel ducha v tvojich automatizáciách 👻\n\nAko sa tak vznášal okolo, Spook narazil na túto automatizáciu:\n\n[{automation}]({edit}) (`{entity_id}`)\n\nTáto automatizácia používa nasledujúce spúšťače, ktoré nevie poskytnúť žiadna integrácia dostupná pre Home Assistant:\n\n{triggers}\n\n\n\nBýva to tak, keď bola odstránená integrácia, ktorá spúšťač poskytovala. Ak chceš túto chybu opraviť, [uprav automatizáciu]({edit}) a prestaň tieto nedostupné spúšťače používať, alebo obnov integráciu, ktorá ich poskytuje.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme spúšťače použité v: {automation}"
+        },
+        "empty_areas": {
+            "title": "Prázdna oblasť: {area}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Prázdna oblasť: {area}",
+                        "description": "Oblasť {area} nemá žiadne zariadenia, žiadne entity a necieli na ňu žiadna automatizácia ani skript.\n\nOdstráň ju, alebo si ju nechaj a Spook na ňu prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť túto prázdnu oblasť",
+                            "ignore": "Nechať tak, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tejto oblasti mlčať.",
+                    "manage": "Túto oblasť si môžeš spravovať sám na [stránke Oblasti](/config/areas/dashboard)."
+                }
+            }
+        },
+        "empty_floors": {
+            "title": "Prázdne poschodie: {floor}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Prázdne poschodie: {floor}",
+                        "description": "Poschodie {floor} nemá žiadne oblasti a necieli naň žiadna automatizácia ani skript.\n\nOdstráň ho, alebo si ho nechaj a Spook naň prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť toto prázdne poschodie",
+                            "ignore": "Nechať tak, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tomto poschodí mlčať.",
+                    "manage": "Toto poschodie si môžeš spravovať sám na [stránke Oblasti](/config/areas/dashboard)."
+                }
+            }
+        },
+        "energy_unknown_references": {
+            "description": "Spook našiel ducha na tvojej energetickej nástenke 👻\n\nEnergetická nástenka odkazuje na nasledujúce entity, ktoré Home Assistant nepozná:\n\n{entities}\n\n\n\nBýva to tak, keď bola entita použitá v konfigurácii energií premenovaná alebo odstránená. Ak chceš túto chybu opraviť, otvor Nastavenia > Nástenky > Energia a tieto entity uprav alebo odstráň.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme entity použité na energetickej nástenke"
+        },
+        "lovelace_missing_resources": {
+            "description": "Spook našiel ducha v tvojich nástenkách 👻\n\nNasledujúce zdroje nástenky odkazujú na súbory, ktoré neexistujú:\n\n{resources}\n\n\n\nBýva to tak, keď bola vlastná karta alebo jej súbory odstránené, ale zdroj zostal. Ak chceš túto chybu opraviť, otvor Nastavenia > Nástenky > Zdroje a tieto zdroje odstráň alebo oprav.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Zdroje nástenky odkazujú na chýbajúce súbory"
+        },
+        "lovelace_duplicate_resources": {
+            "title": "Zdroj nástenky je uvedený viac ako raz: {resource}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Zdroj nástenky je uvedený viac ako raz: {resource}",
+                        "description": "Spook našiel ducha v tvojich nástenkách 👻\n\nTento zdroj nástenky sa vyskytuje {count}-krát:\n\n{resources}\n\nBýva to tak, keď sa vlastná karta aktualizovala pridaním zdroja pre novú verziu namiesto úpravy toho, čo tam už bol. Prehliadač načíta oba, karta sa pokúsi zaregistrovať dvakrát a druhý pokus zlyhá, čo vyzerá ako pokazená karta, a nie ako zdvojený zdroj.\n\nSpook vie zbytočné kópie upratať a nechať tú, ktorá bola pridaná naposledy.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Upratať zbytočné kópie a nechať tú najnovšiu",
+                            "ignore": "Nechať ich tak, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook už o tomto zdroji nepovie ani slovo.",
+                    "manage": "Zdroje svojich nástenok si môžeš spravovať sám na [stránke Zdroje](/config/lovelace/resources).",
+                    "yaml": "Tieto zdroje sú v tvojej konfigurácii YAML, takže ich Spook nevie zmeniť za teba. Uprav sekciu `resources:` svojej konfigurácie Lovelace a odstráň tie kópie `{resource}`, ktoré už nepotrebuješ."
+                }
+            }
+        },
+        "lovelace_unknown_area_references": {
+            "description": "Spook našiel ducha v tvojich nástenkách 👻\n\nAko sa tak vznášal okolo, Spook narazil na túto nástenku:\n\n{dashboard}\n\nTáto nástenka odkazuje na nasledujúce oblasti, ktoré Home Assistant nepozná:\n\n{areas}\n\n\n\nBýva to tak, keď bola oblasť premenovaná alebo odstránená. Ak chceš túto chybu opraviť, [uprav nástenku]({edit}) a prestaň tieto neexistujúce oblasti používať.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme oblasti použité v nástenke: {dashboard}"
+        },
+        "min_max_unknown_sources": {
+            "title": "Neznámi členovia použití v pomocníkovi min/max: {helper}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Neznámi členovia použití v pomocníkovi min/max: {helper}",
+                        "description": "Spook našiel ducha v tvojich pomocníkoch 👻\n\nPomocník min/max {helper} (`{entity_id}`) spája nasledujúcich členov, ktorých Home Assistant nepozná:\n\n{sources}\n\nOdstráň ich, nech pomocník beží ďalej s tými, čo zostali, alebo si ich nechaj a Spook na nich prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť týchto členov",
+                            "manage": "Opravím si to sám",
+                            "ignore": "Nechať ich, viac mi to nehovor"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tomto pomocníkovi mlčať.",
+                    "manage": "Tohto pomocníka si môžeš spravovať sám na [stránke Pomocníci](/config/helpers).",
+                    "too_few_members": "Pomocník min/max potrebuje aspoň dvoch členov, takže po odstránení chýbajúcich by ich zostalo primálo. Nastav ho nanovo alebo ho odstráň sám na [stránke Pomocníci](/config/helpers)."
+                }
+            }
+        },
+        "notify_unknown_group_members": {
+            "description": "Spook našiel ducha v tvojich skupinách oznámení 👻\n\nSkupina oznámení `{group}` posiela ďalej nasledujúcim akciám, ktoré Home Assistant nepozná:\n\n{members}\n\nSkupina aj tak doručí zvyšku svojich členov a tomu, kto ju volal, aj tak ohlási úspech, takže si vyššie nikto nič nevšimne. Zlyhanie sa ukáže len ako zatúlané \"Task exception was never retrieved\" v denníku, ktoré nepomenuje žiadnu skupinu a číta sa ako chyba. Ten, kto bol za daným členom, jednoducho prestane dostávať oznámenia.\n\nAk chceš túto chybu opraviť, uprav v konfigurácii zoznam `services:` tejto skupiny a tieto položky odstráň alebo oprav.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznámi členovia v skupine oznámení: {group}"
+        },
+        "orphaned_statistics": {
+            "title": "Našli sa osirené dlhodobé štatistiky"
+        },
+        "person_unknown_device_trackers": {
+            "title": "Neznáme sledovače zariadení sledované osobou: {person}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Neznáme sledovače zariadení sledované osobou: {person}",
+                        "description": "Spook našiel ducha v tvojich osobách 👻\n\n{person} sleduje nasledujúce sledovače zariadení, ktoré Home Assistant nepozná:\n\n{device_trackers}\n\nBýva to tak, keď bol sledovač zariadenia premenovaný alebo bola odstránená jeho integrácia.\n\nOdstráň ich od osoby {person}, alebo si ich nechaj a Spook na ne prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť tieto sledovače zariadení",
+                            "ignore": "Nechať ich, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tejto osobe mlčať.",
+                    "not_editable": "Táto osoba je nastavená v YAML, takže ju Spook nevie upraviť. Uprav ju radšej vo svojej konfigurácii.",
+                    "manage": "Túto osobu si môžeš spravovať sám na [stránke Osoby](/config/person)."
+                }
+            }
+        },
+        "script_unknown_condition_references": {
+            "description": "Spook našiel ducha v tvojich skriptoch 👻\n\nAko sa tak vznášal okolo, Spook narazil na tento skript:\n\n[{script}]({edit}) (`{entity_id}`)\n\nTento skript používa nasledujúce podmienky, ktoré nevie poskytnúť žiadna integrácia dostupná pre Home Assistant:\n\n{conditions}\n\n\n\nBýva to tak, keď bola odstránená integrácia, ktorá podmienku poskytovala. Ak chceš túto chybu opraviť, [uprav skript]({edit}) a prestaň tieto nedostupné podmienky používať, alebo obnov integráciu, ktorá ich poskytuje.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme podmienky použité v: {script}"
+        },
+        "script_unknown_trigger_references": {
+            "description": "Spook našiel ducha v tvojich skriptoch 👻\n\nAko sa tak vznášal okolo, Spook narazil na tento skript:\n\n[{script}]({edit}) (`{entity_id}`)\n\nTento skript používa nasledujúce spúšťače, ktoré nevie poskytnúť žiadna integrácia dostupná pre Home Assistant:\n\n{triggers}\n\n\n\nBýva to tak, keď bola odstránená integrácia, ktorá spúšťač poskytovala. Ak chceš túto chybu opraviť, [uprav skript]({edit}) a prestaň tieto nedostupné spúšťače používať, alebo obnov integráciu, ktorá ich poskytuje.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme spúšťače použité v: {script}"
+        },
+        "template_unknown_entity_references": {
+            "description": "Spook našiel ducha v tvojich pomocníkoch so šablónou 👻\n\nAko sa tak vznášal okolo, Spook narazil na tohto pomocníka so šablónou:\n\n[{helper}]({edit}) (`{entity_id}`)\n\nJeho konfigurácia odkazuje na nasledujúce entity, ktoré Home Assistant nepozná:\n\n{entities}\n\n\n\nBýva to tak, keď bola entita premenovaná alebo odstránená. Ak chceš túto chybu opraviť, nastav pomocníka so šablónou nanovo tak, aby odkazoval na existujúce entity.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme entity použité v pomocníkovi so šablónou: {helper}"
+        },
+        "template_unknown_service_references": {
+            "description": "Spook našiel ducha v tvojich pomocníkoch so šablónou 👻\n\nAko sa tak vznášal okolo, Spook narazil na tohto pomocníka so šablónou:\n\n[{helper}]({edit}) (`{entity_id}`)\n\nOdkazuje na nasledujúce akcie, ktoré Home Assistant nepozná:\n\n{services}\n\n\n\nBýva to tak, keď bol odstránený poskytovateľ akcie alebo bol skript premenovaný či zmazaný. Ak chceš túto chybu opraviť, nastav pomocníka so šablónou nanovo tak, aby používal existujúce akcie.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme akcie použité v pomocníkovi so šablónou: {helper}"
+        },
+        "unknown_customized_entities": {
+            "description": "Spook našiel ducha v tvojich prispôsobeniach 👻\n\nSekcia `customize:` pripína atribúty na nasledujúce entity, ktoré Home Assistant nepozná:\n\n{entities}\n\n\n\nBýva to tak, keď bola entita premenovaná alebo odstránená, no jej prispôsobenie zostalo. Ak chceš túto chybu opraviť, uprav v konfigurácii sekciu `customize:` a tieto entity z nej odstráň.\n\nSpook 👻 Tvoj kamoš.",
+            "title": "Neznáme entity v tvojich prispôsobeniach"
+        },
+        "unknown_helper_source_references": {
+            "title": "Neznáme zdrojové entity použité v pomocníkovi: {helper}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Neznáme zdrojové entity použité v pomocníkovi: {helper}",
+                        "description": "Spook našiel ducha v tvojich pomocníkoch 👻\n\nPomocník {helper} (`{domain}`, `{entity_id}`) odkazuje na nasledujúce zdrojové entity, ktoré Home Assistant nepozná:\n\n{sources}\n\nBez svojich zdrojov tento pomocník nemôže fungovať. {usage}\n\nOdstráň ho, alebo si ho nechaj a Spook naň prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť tohto pomocníka",
+                            "manage": "Opravím si to sám",
+                            "ignore": "Nechať tak, viac mi to nehovor"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tomto pomocníkovi mlčať.",
+                    "manage": "Tohto pomocníka si môžeš spravovať sám na [stránke Pomocníci](/config/helpers)."
+                }
+            }
+        },
+        "unused_blueprints": {
+            "title": "Nepoužitý blueprint: {blueprint}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Nepoužitý blueprint: {blueprint}",
+                        "description": "Blueprint {blueprint} nepoužíva žiadny {domain}.\n\nOdstráň ho, alebo si ho nechaj a Spook naň prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť tento nepoužitý blueprint",
+                            "ignore": "Nechať tak, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tomto blueprinte mlčať.",
+                    "manage": "Tento blueprint si môžeš spravovať sám na [stránke Blueprinty](/config/blueprint/dashboard)."
+                }
+            }
+        },
+        "unused_labels": {
+            "title": "Nepoužitý štítok: {label}",
+            "fix_flow": {
+                "step": {
+                    "init": {
+                        "title": "Nepoužitý štítok: {label}",
+                        "description": "Štítok {label} nie je pridelený žiadnej entite, zariadeniu ani oblasti a necieli naň žiadna automatizácia ani skript.\n\nOdstráň ho, alebo si ho nechaj a Spook naň prestane upozorňovať.\n\nSpook 👻 Tvoj kamoš.",
+                        "menu_options": {
+                            "remove": "Odstrániť tento nepoužitý štítok",
+                            "ignore": "Nechať tak, viac mi to nehovor",
+                            "manage": "Opravím si to sám"
+                        }
+                    }
+                },
+                "abort": {
+                    "issue_ignored": "Spook bude odteraz o tomto štítku mlčať.",
+                    "manage": "Tento štítok si môžeš spravovať sám na [stránke Štítky](/config/labels)."
+                }
+            }
+        },
+        "lovelace_missing_resources_yaml": {
+            "title": "Zdroje dashboardu poukazujú na chýbajúce súbory",
+            "description": "Spook našiel ducha vo vašich paneloch 👻\n\nNasledujúce zdroje panelov odkazujú na súbory, ktoré neexistujú:\n\n{resources}\n\n\n\nZvyčajne k tomu dochádza, keď bola odstránená vlastná karta alebo jej súbory, no samotný záznam zdroja v konfigurácii zostal.\n\nTieto zdroje sú uvedené vo vašej konfigurácii YAML, takže ich nemožno upraviť priamo na stránke Zdroje. Upravte sekciu `resources:` v konfigurácii Lovelace a tieto záznamy odstráňte alebo opravte.\n\nSpook 👻 Váš parťák."
         }
-      }
+    },
+    "services": {
+        "blueprint_import": {
+            "fields": {
+                "url": {
+                    "description": "URL adresa, z ktorej sa má importovať plán.",
+                    "name": "URL"
+                }
+            },
+            "name": "Importovať plán",
+            "description": "Importovať plán."
+        },
+        "homeassistant_create_area": {
+            "name": "Vytvoriť oblasť",
+            "fields": {
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov oblasti, ktorú chcete vytvoriť."
+                },
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona pre oblasť."
+                },
+                "aliases": {
+                    "description": "Zoznam aliasov pre oblasť. Toto je užitočné, ak chcete oblasť použiť v inom jazyku alebo pod inou prezývkou.",
+                    "name": "Aliasy"
+                }
+            },
+            "description": "Vytvára novú oblasť za chodu."
+        },
+        "homeassistant_update_entity_id": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity, ktoré sa majú aktualizovať."
+                },
+                "new_entity_id": {
+                    "name": "ID novej entity",
+                    "description": "Nové ID entity."
+                }
+            },
+            "description": "Aktualizuje ID entity za chodu.",
+            "name": "Aktualizácia ID entity"
+        },
+        "homeassistant_disable_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity, ktoré sa majú zakázať."
+                }
+            },
+            "name": "Zakázať entitu",
+            "description": "Zakáže entitu (alebo entity) za chodu."
+        },
+        "homeassistant_enable_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity na povolenie."
+                }
+            },
+            "name": "Povoliť entitu",
+            "description": "Umožňuje entitu (alebo entity) za chodu."
+        },
+        "homeassistant_hide_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity na skrytie."
+                }
+            },
+            "name": "Skryť entitu",
+            "description": "Skryje entitu (alebo entity) za chodu."
+        },
+        "homeassistant_rename_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity na premenovanie."
+                },
+                "name": {
+                    "name": "Názov",
+                    "description": "Nový názov pre entitu/entity."
+                }
+            },
+            "name": "Premenovať entitu",
+            "description": "Premenuje entitu (alebo entity) za chodu."
+        },
+        "homeassistant_unhide_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity, ktoré sa majú zobraziť."
+                }
+            },
+            "description": "Zobrazí entitu (alebo entity) za chodu.",
+            "name": "Zobraziť entitu"
+        },
+        "homeassistant_create_floor": {
+            "fields": {
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov podlahy, ktorú chcete vytvoriť."
+                },
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona pre podlahu."
+                },
+                "level": {
+                    "name": "Úroveň",
+                    "description": "Úroveň, na ktorej sa nachádza podlaha vo vašom dome."
+                },
+                "aliases": {
+                    "description": "Zoznam aliasov pre dané poschodie. Toto je užitočné, ak chcete dané poschodie použiť v inom jazyku alebo pod inou prezývkou.",
+                    "name": "Aliasy"
+                }
+            },
+            "description": "Vytvára novú podlahu za chodu.",
+            "name": "Vytvoriť podlažie"
+        },
+        "homeassistant_disable_device": {
+            "fields": {
+                "device_id": {
+                    "name": "Zariadenie",
+                    "description": "Zariadenie(a), ktoré sa majú deaktivovať."
+                }
+            },
+            "name": "Zakázať zariadenie",
+            "description": "Zakáže zariadenie za chodu."
+        },
+        "homeassistant_create_label": {
+            "fields": {
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov štítku, ktorý sa má vytvoriť."
+                },
+                "description": {
+                    "name": "Popis",
+                    "description": "Popis pre štítok."
+                },
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona, ktorá sa má použiť pre štítok."
+                },
+                "color": {
+                    "name": "Farba",
+                    "description": "Farba, ktorá sa má použiť pre označenie. Môže to byť názov farby zo zoznamu alebo hexadecimálny kód farby (napríklad #FF0000)."
+                }
+            },
+            "name": "Vytvoriť štítok",
+            "description": "Vytvorí nový štítok za chodu."
+        },
+        "homeassistant_restart": {
+            "name": "Reštart",
+            "fields": {
+                "force": {
+                    "description": "Vynútené reštartovanie. UPOZORNENIE! Toto neúmyselne nevypne Home Assistant, preskočí kontroly konfigurácie a ignoruje spustené migrácie databázy. Použite to iba v prípade, že viete, čo robíte.",
+                    "name": "Vynútený reštart"
+                },
+                "safe_mode": {
+                    "description": "Ak sa má reštart vykonať v núdzovom režime. Týmto sa zakážu všetky vlastné integrácie a frontendové moduly.",
+                    "name": "Núdzový režim"
+                }
+            },
+            "description": "Reštartujte akciu Home Assistant."
+        },
+        "recorder_import_statistics": {
+            "fields": {
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov štatistiky."
+                },
+                "source": {
+                    "name": "Zdroj",
+                    "description": "Zdroj štatistických dát."
+                },
+                "stats": {
+                    "name": "Štatistika",
+                    "description": "Zoznam mapovaní/slovníkov so štatistikami na import. Slovníky musia obsahovať kľúč \"start\" s reťazcom dátumu a času. Ďalšie platné možnosti sú \"mean\", \"sum\", \"min\", \"max\", \"last_reset\" a \"state\". Všetky tieto možnosti sú voliteľné a môžu byť buď celé číslo, alebo číslo s desatinnou čiarkou, okrem \"last_reset\", ktoré je reťazcom dátumu a času."
+                },
+                "statistic_id": {
+                    "name": "ID štatistiky",
+                    "description": "ID štatistík (ID entity), pre ktoré sa má importovať."
+                },
+                "unit_of_measurement": {
+                    "name": "Jednotky merania",
+                    "description": "Jednotky merania štatistiky."
+                },
+                "has_mean": {
+                    "name": "Má priemer",
+                    "description": "Ak má štatistika priemernú hodnotu."
+                },
+                "has_sum": {
+                    "name": "Má súčet",
+                    "description": "Ak má štatistika súčtovú hodnotu."
+                }
+            },
+            "name": "Import štatistiky",
+            "description": "Importovať dlhodobú štatistiku."
+        },
+        "input_number_create": {
+            "fields": {
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona, ktorá sa má použiť ako pomocník pri zadávaní čísel."
+                },
+                "initial": {
+                    "name": "Počiatočná hodnota",
+                    "description": "Počiatočná hodnota vstupného čísla pri spustení Home Assistant."
+                },
+                "step": {
+                    "name": "Veľkosť kroku",
+                    "description": "Veľkosť kroku vstupného čísla."
+                },
+                "mode": {
+                    "name": "Režim zobrazenia",
+                    "description": "Režim zobrazenia vstupného čísla, ktorým môže byť buď posuvník, alebo vstupné pole."
+                },
+                "unit_of_measurement": {
+                    "name": "Jednotky merania",
+                    "description": "Jednotka merania vstupného čísla."
+                },
+                "max": {
+                    "description": "Maximálna hodnota vstupného čísla.",
+                    "name": "Maximum"
+                },
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov nového pomocníka pre zadávanie čísel."
+                },
+                "min": {
+                    "name": "Minimum",
+                    "description": "Minimálna hodnota vstupného čísla."
+                },
+                "input_number_id": {
+                    "description": "ID entity pre nového pomocníka pre vstupné čísla. Predpona input_number. sa pridá automaticky. Ak nie je zadaná, ID entity sa vygeneruje na základe názvu.",
+                    "name": "ID entity vstupného čísla"
+                }
+            },
+            "name": "Vytvoriť vstupné číslo",
+            "description": "Vytvorte nového pomocníka pre zadávanie čísel za chodu."
+        },
+        "person_add_device_tracker": {
+            "fields": {
+                "entity_id": {
+                    "name": "Osoba",
+                    "description": "ID entity osoby, ku ktorej sa má pridať sledovač zariadenia."
+                },
+                "device_tracker": {
+                    "description": "ID entity sledovania zariadenia, ktoré sa má pridať k osobe.",
+                    "name": "Sledovač zariadenia"
+                }
+            },
+            "name": "Pridajte sledovač zariadenia",
+            "description": "Pridajte sledovač zariadenia k osobe."
+        },
+        "person_remove_device_tracker": {
+            "fields": {
+                "entity_id": {
+                    "name": "Osoba",
+                    "description": "ID osoby, z ktorej sa má odstrániť sledovač zariadenia."
+                },
+                "device_tracker": {
+                    "description": "ID entity sledovania zariadenia, ktoré sa má z osoby odstrániť.",
+                    "name": "Sledovač zariadenia"
+                }
+            },
+            "name": "Odstránenie sledovača zariadenia",
+            "description": "Odstráňte sledovacie zariadenie od osoby."
+        },
+        "timer_set_duration": {
+            "fields": {
+                "duration": {
+                    "name": "Trvanie",
+                    "description": "Nové trvanie časovača ako reťazec timedelta."
+                }
+            },
+            "description": "Nastaviť trvanie pre existujúci časovač.",
+            "name": "Nastaviť trvanie"
+        },
+        "zone_create": {
+            "fields": {
+                "name": {
+                    "name": "Názov",
+                    "description": "Názov zóny"
+                },
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona pre zónu"
+                },
+                "latitude": {
+                    "description": "Zemepisná šírka zóny. Môže to byť šablóna.",
+                    "name": "Zemepisná šírka"
+                },
+                "longitude": {
+                    "description": "Zemepisná dĺžka zóny. Môže to byť šablóna.",
+                    "name": "Zemepisná dĺžka"
+                },
+                "radius": {
+                    "name": "Polomer",
+                    "description": "Polomer zóny"
+                }
+            },
+            "name": "Vytvoriť zónu",
+            "description": "Vytvorte novú zónu za chodu v Home Assistant."
+        },
+        "zone_update": {
+            "fields": {
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Ikona pre zónu"
+                },
+                "entity_id": {
+                    "name": "ID entity",
+                    "description": "ID entity (alebo entít), ktoré sa majú aktualizovať."
+                },
+                "name": {
+                    "description": "Názov zóny",
+                    "name": "Názov"
+                },
+                "latitude": {
+                    "description": "Zemepisná šírka zóny. Môže to byť šablóna.",
+                    "name": "Zemepisná šírka"
+                },
+                "longitude": {
+                    "description": "Zemepisná dĺžka zóny. Môže to byť šablóna.",
+                    "name": "Zemepisná dĺžka"
+                },
+                "radius": {
+                    "name": "Polomer",
+                    "description": "Polomer zóny"
+                }
+            },
+            "name": "Aktualizovať zónu",
+            "description": "Aktualizácia vlastností zóny za behu."
+        },
+        "homeassistant_add_alias_to_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, do ktorej sa má alias pridať."
+                },
+                "alias": {
+                    "description": "Alias (alebo zoznam aliasov), ktorý sa má pridať do oblasti.",
+                    "name": "Alias"
+                }
+            },
+            "name": "Pridanie aliasu k oblasti",
+            "description": "Pridá alias k oblasti."
+        },
+        "homeassistant_remove_alias_from_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, z ktorej sa má alias odstrániť."
+                },
+                "alias": {
+                    "description": "Alias (alebo zoznam aliasov), ktoré sa majú z oblasti odstrániť.",
+                    "name": "Alias"
+                }
+            },
+            "name": "Odstránenie aliasu z oblasti",
+            "description": "Odstráni alias z oblasti."
+        },
+        "homeassistant_set_area_aliases": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, pre ktorú sa majú nastaviť aliasy."
+                },
+                "aliases": {
+                    "description": "Aliasy, ktoré sa majú nastaviť pre oblasť.",
+                    "name": "Aliasy"
+                }
+            },
+            "description": "Nastaví aliasy pre oblasť. Prepíše a odstráni všetky existujúce aliasy a úplne ich nahradí novými.",
+            "name": "Nastaví aliasy pre oblasť"
+        },
+        "homeassistant_add_device_to_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, do ktorej sa má zariadenie pridať."
+                },
+                "device_id": {
+                    "name": "ID zariadenia",
+                    "description": "ID zariadenia (zariadení), ktoré sa majú pridať do oblasti."
+                }
+            },
+            "name": "Pridať zariadenie do oblasti",
+            "description": "Pridá zariadenie do oblasti. Upozorňujeme, že ak sa zariadenie už v oblasti nachádza, bude z predchádzajúcej oblasti odstránené."
+        },
+        "homeassistant_remove_device_from_area": {
+            "fields": {
+                "device_id": {
+                    "name": "ID zariadenia",
+                    "description": "ID zariadenia, z ktorého sa má oblasť odstrániť."
+                }
+            },
+            "name": "Odobrať zariadenie z oblasti",
+            "description": "Odstráni zariadenie z oblasti. Keďže zariadenie sa môže nachádzať iba v jednej oblasti, toto volanie nemusí oblasť špecifikovať."
+        },
+        "homeassistant_add_entity_to_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, do ktorej sa má entita pridať."
+                },
+                "entity_id": {
+                    "name": "ID entity",
+                    "description": "ID entity (alebo entít), ktoré sa majú pridať do oblasti."
+                }
+            },
+            "name": "Pridať entitu do oblasti",
+            "description": "Pridá entitu do oblasti. Upozorňujeme, že ak sa entita už v oblasti nachádza, bude z predchádzajúcej oblasti odstránená. Toto prepíše oblasť, v ktorej sa nachádza zariadenie, ktoré túto entitu poskytuje."
+        },
+        "homeassistant_remove_entity_from_area": {
+            "fields": {
+                "entity_id": {
+                    "name": "ID entity",
+                    "description": "ID entity (alebo entít), z ktorých sa má oblasť odstrániť."
+                }
+            },
+            "name": "Odobrať entitu z oblasti",
+            "description": "Odstráni entitu z oblasti. Keďže entita sa môže nachádzať iba v jednej oblasti, toto volanie nemusí oblasť špecifikovať. Upozorňujeme, že entita sa po tomto volaní bude stále nachádzať v oblasti zariadenia, ktoré ju poskytuje."
+        },
+        "homeassistant_delete_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, ktorú chcete odstrániť."
+                }
+            },
+            "name": "Vymazať oblasť",
+            "description": "Odstráni oblasť za chodu."
+        },
+        "homeassistant_delete_floor": {
+            "fields": {
+                "floor_id": {
+                    "name": "ID podlahy",
+                    "description": "ID poschodia, ktoré sa má odstrániť."
+                }
+            },
+            "name": "Vymazať podlahu",
+            "description": "Odstráni poschodie za chodu."
+        },
+        "homeassistant_add_label_to_device": {
+            "fields": {
+                "device_id": {
+                    "name": "ID zariadenia",
+                    "description": "ID zariadenia (zariadení), ku ktorému (ktorým) sa má pridať označenie (označenia)."
+                },
+                "label_id": {
+                    "description": "ID(-á) štítku(-ov) na pridanie zariadenia(-í).",
+                    "name": "ID štítku"
+                }
+            },
+            "description": "Pridá k zariadeniu štítok. Ak je zadaných viacero štítkov alebo viacero zariadení, pridajú sa všetky kombinácie.",
+            "name": "Pridanie štítku k zariadeniu"
+        },
+        "homeassistant_remove_label_from_area": {
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti (oblastí), z ktorej (ktorých) sa má odstrániť označenie (označenia)."
+                },
+                "label_id": {
+                    "description": "ID štítku (štítkov), ktoré sa majú odstrániť z oblasti (oblastí).",
+                    "name": "ID štítku"
+                }
+            },
+            "description": "Odstráni štítok z oblasti. Ak je zadaných viacero štítkov alebo oblastí, všetky kombinácie sa odstránia.",
+            "name": "Odstránenie štítku z oblasti"
+        },
+        "homeassistant_remove_label_from_entity": {
+            "fields": {
+                "entity_id": {
+                    "name": "ID entity",
+                    "description": "ID entity/entít, z ktorých sa má odstrániť označenie/označenia."
+                },
+                "label_id": {
+                    "description": "ID označenia (označení), ktoré sa majú odstrániť z entity/entít.",
+                    "name": "ID štítku"
+                }
+            },
+            "description": "Odstráni štítok z entity. Ak je zadaných viacero štítkov alebo viacero entít, všetky kombinácie sa odstránia.",
+            "name": "Odstránenie označenia z entity"
+        },
+        "number_decrement": {
+            "name": "Znížiť hodnotu",
+            "fields": {
+                "amount": {
+                    "name": "Množstvo",
+                    "description": "Hodnota, o ktorú sa má číslo znížiť. Ak nie je zadaný, použije sa krok číselnej entity."
+                }
+            },
+            "description": "Znížiť hodnotu číselnej entity o určitú hodnotu."
+        },
+        "number_increment": {
+            "name": "Zvýšiť hodnotu",
+            "fields": {
+                "amount": {
+                    "name": "Množstvo",
+                    "description": "Množstvo, o ktoré sa má číslo zvýšiť. Ak nie je zadaný, použije sa krok číselnej entity."
+                }
+            },
+            "description": "Zvýšiť hodnotu číselnej entity o určitú hodnotu."
+        },
+        "input_number_decrement": {
+            "name": "Znížiť hodnotu",
+            "fields": {
+                "amount": {
+                    "name": "Množstvo",
+                    "description": "Hodnota, o ktorú sa má znížiť vstupné číslo. Ak nie je zadaný, použije sa krok číselnej entity."
+                },
+                "cycle": {
+                    "name": "Cyklus",
+                    "description": "Pokračovať z druhého konca rozsahu namiesto zastavenia na tomto, tak ako výber ďalšej možnosti cyklí zoznam."
+                }
+            },
+            "description": "Znížte hodnotu vstupnej číselnej entity o určitú hodnotu."
+        },
+        "input_number_increment": {
+            "name": "Zvýšiť hodnotu",
+            "fields": {
+                "amount": {
+                    "name": "Množstvo",
+                    "description": "Hodnota, o ktorú sa má zväčšiť vstupné číslo. Ak nie je zadaný, použije sa krok číselnej entity."
+                },
+                "cycle": {
+                    "name": "Cyklus",
+                    "description": "Pokračovať z druhého konca rozsahu namiesto zastavenia na tomto, tak ako výber ďalšej možnosti cyklí zoznam."
+                }
+            },
+            "description": "Zvýšiť hodnotu vstupnej číselnej entity o určitú hodnotu."
+        },
+        "zone_delete": {
+            "fields": {
+                "entity_id": {
+                    "name": "ID entity",
+                    "description": "ID entity (alebo entít), ktoré sa majú odstrániť."
+                }
+            },
+            "name": "Vymazať zónu",
+            "description": "Odstrániť zónu. Toto funguje iba so zónami vytvorenými a spravovanými prostredníctvom používateľského rozhrania. Zóny vytvorené a spravované v YAML nie je možné spravovať pomocou Spook."
+        },
+        "homeassistant_disable_config_entry": {
+            "name": "Zakázať integráciu",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Konfiguračný záznam",
+                    "description": "Položka konfigurácie integrácie, ktorú chcete zakázať."
+                }
+            },
+            "description": "Zakáže položku konfigurácie integrácie."
+        },
+        "homeassistant_enable_config_entry": {
+            "name": "Povoliť integráciu",
+            "fields": {
+                "config_entry_id": {
+                    "name": "Konfiguračný záznam",
+                    "description": "Položka konfigurácie integrácie, ktorú chcete povoliť."
+                }
+            },
+            "description": "Umožňuje zadanie konfigurácie integrácie."
+        },
+        "homeassistant_enable_device": {
+            "name": "Povoliť zariadenie",
+            "fields": {
+                "device_id": {
+                    "name": "ID zariadenia",
+                    "description": "Nespracované ID zariadenia, ktoré sa má povoliť. Zakázané zariadenia sa nezobrazujú vo výbere zariadení Home Assistant. Viaceré ID je možné poskytnúť ako zoznam YAML."
+                }
+            },
+            "description": "Umožňuje zariadenie spúšťať za chodu."
+        },
+        "homeassistant_disable_user": {
+            "name": "Zakázať užívateľa",
+            "fields": {
+                "user_id": {
+                    "name": "ID užívateľa",
+                    "description": "ID(a) používateľa(ov), ktorého(ých) chcete zakázať."
+                }
+            },
+            "description": "Zakáže používateľský účet a zabráni mu v prihlásení."
+        },
+        "homeassistant_enable_user": {
+            "name": "Povoliť užívateľa",
+            "fields": {
+                "user_id": {
+                    "name": "ID užívateľa",
+                    "description": "ID(a) používateľa(ov), ktorého(ých) chcete povoliť."
+                }
+            },
+            "description": "Povolí používateľský účet a umožní im prihlásenie."
+        },
+        "number_max": {
+            "name": "Nastaviť maximálnu hodnotu",
+            "description": "Nastavte číselnú entitu na jej maximálnu hodnotu."
+        },
+        "number_min": {
+            "name": "Nastaviť minimálnu hodnotu",
+            "description": "Nastavte číselnú entitu na jej minimálnu hodnotu."
+        },
+        "input_number_max": {
+            "name": "Nastaviť maximálnu hodnotu",
+            "description": "Nastavte vstupnú číselnú entitu na jej maximálnu hodnotu."
+        },
+        "input_number_min": {
+            "name": "Nastaviť minimálnu hodnotu",
+            "description": "Nastavte vstupnú číselnú entitu na jej minimálnu hodnotu."
+        },
+        "homeassistant_delete_all_orphaned_entities": {
+            "name": "Vymazať všetky osirelé entity",
+            "description": "Odstráni všetky osirelé entity, ktoré už nemajú integráciu, ktorá ich nárokuje/poskytuje. Upozorňujeme, že ak bola integrácia práve odstránená, môže byť potrebný reštart, aby si Home Assistant uvedomil, že sú osirelé.\n**UPOZORNENIE** Entity mohli byť označené ako osirelé, pretože integrácia je offline alebo nefunguje od spustenia Home Assistant. Volaním tejto akcie sa odstránia aj tieto entity."
+        },
+        "homeassistant_list_orphaned_database_entities": {
+            "name": "Zoznam všetkých osirelých databázových entít",
+            "description": "Zoznam všetkých osirelých databázových entít, ktoré si žiadna integrácia nevyžiadala."
+        },
+        "homeassistant_add_area_to_floor": {
+            "name": "Pridať oblasť do podlahy",
+            "fields": {
+                "floor_id": {
+                    "name": "ID podlahy",
+                    "description": "ID poschodia, na ktoré sa má plocha pridať."
+                },
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti (oblastí), ktoré sa majú pridať k podlahe."
+                }
+            },
+            "description": "Pridá plochu k poschodiu. Upozorňujeme, že ak sa plocha už na poschodí nachádza, bude z predchádzajúceho poschodia odstránená."
+        },
+        "homeassistant_remove_area_from_floor": {
+            "name": "Odobrať oblasť z podlahy",
+            "fields": {
+                "area_id": {
+                    "name": "ID oblasti",
+                    "description": "ID oblasti, z ktorej sa má podlaha odstrániť."
+                }
+            },
+            "description": "Odstráni oblasť z poschodia. Keďže oblasť môže byť iba na jednom poschodí, toto volanie nemusí špecifikovať poschodie."
+        },
+        "select_random": {
+            "fields": {
+                "options": {
+                    "name": "Nastavenia",
+                    "description": "Obmedzuje možnosti, z ktorých je možné vyberať. Ak nie je poskytnutá, budú sa brať do úvahy všetky možnosti."
+                }
+            },
+            "description": "Vyberte náhodnú možnosť pre vybranú entitu.",
+            "name": "Vyberte náhodnú možnosť"
+        },
+        "input_select_random": {
+            "fields": {
+                "options": {
+                    "name": "Nastavenia",
+                    "description": "Obmedzuje možnosti, z ktorých je možné vyberať. Ak nie je poskytnutá, budú sa brať do úvahy všetky možnosti."
+                }
+            },
+            "description": "Vyberte náhodnú možnosť pre entitu input_select.",
+            "name": "Vyberte náhodnú možnosť"
+        },
+        "repairs_create": {
+            "fields": {
+                "title": {
+                    "name": "Nadpis",
+                    "description": "Názov problému."
+                },
+                "description": {
+                    "name": "Popis",
+                    "description": "Popis problému. Podporuje Markdown."
+                },
+                "domain": {
+                    "name": "Doména",
+                    "description": "Toto pole je možné použiť na nastavenie domény problému. Napríklad predvolene (ak nie je nastavená) sa použije \"spook\". To spôsobí, že sa Spook zobrazí v logu/obrázku problému. Ak ho nastavíte na „homeassistant“, použije sa logo Home Assistant, alebo použite \"hue\", \"zwave_js\", \"mqtt\" atď. na použitie loga danej integrácie."
+                },
+                "issue_id": {
+                    "description": "Problém môže mať identifikátor, ktorý vám umožní ho neskôr v prípade potreby zrušiť pomocou tohto ID. Taktiež sa tým zabráni vytváraniu duplicitných problémov. Ak nie je poskytnutý, vygeneruje sa náhodné ID.",
+                    "name": "ID problému"
+                },
+                "severity": {
+                    "description": "Závažnosť problému. Použije sa na určenie priority problému. Ak nie je nastavená, použije sa \"upozornenie\".",
+                    "name": "Závažnosť"
+                },
+                "persistent": {
+                    "description": "Ak by problém mal pretrvávať, znamená to, že pretrvá aj po reštartovaní Home Assistant. Predvolene problémy nie sú trvalé.",
+                    "name": "Trvalosť"
+                }
+            },
+            "description": "Manuálne vytvoriť a nahlásiť problém v opravách Home Assistant.",
+            "name": "Vytvoriť problém"
+        },
+        "homeassistant_add_alias_to_floor": {
+            "fields": {
+                "floor_id": {
+                    "name": "ID podlahy",
+                    "description": "ID poschodia, ku ktorému sa má pridať alias."
+                },
+                "alias": {
+                    "description": "Alias (alebo zoznam aliasov), ktorý sa má pridať k podlahe.",
+                    "name": "Alias"
+                }
+            },
+            "name": "Pridanie aliasu k poschodiu",
+            "description": "Pridá alias k poschodiu."
+        },
+        "homeassistant_remove_alias_from_floor": {
+            "fields": {
+                "floor_id": {
+                    "name": "ID podlahy",
+                    "description": "ID poschodia, z ktorého sa má odstrániť alias."
+                },
+                "alias": {
+                    "description": "Alias (alebo zoznam aliasov), ktorý sa má odstrániť z podlahy.",
+                    "name": "Alias"
+                }
+            },
+            "name": "Odstránenie aliasu z poschodia",
+            "description": "Odstráni alias z poschodia."
+        },
+        "homeassistant_set_floor_aliases": {
+            "fields": {
+                "floor_id": {
+                    "name": "ID podlahy",
+                    "description": "ID poschodia, pre ktoré sa majú nastaviť aliasy."
+                },
+                "aliases": {
+                    "description": "Aliasy, ktoré sa majú nastaviť pre slovo.",
+                    "name": "Aliasy"
+                }
+            },
+            "description": "Nastaví aliasy pre poschodie. Prepíše a odstráni všetky existujúce aliasy a úplne ich nahradí novými.",
+            "name": "Nastaví aliasy pre poschodie"
+        },
+        "input_select_sort": {
+            "name": "Možnosti triedenia",
+            "description": "Zoradí zoznam voliteľných možností pre entitu `input_select`. Toto nie je trvalé a bude zrušené po opätovnom načítaní alebo reštarte Home Assistant."
+        },
+        "input_number_delete": {
+            "name": "Vymazať vstupné číslo",
+            "description": "Odstrániť pomocníka pre vstupné čísla. Toto funguje iba so vstupnými číslami vytvorenými a spravovanými prostredníctvom používateľského rozhrania. Vstupné čísla vytvorené a spravované v YAML nie je možné spravovať pomocou Spook."
+        },
+        "homeassistant_ignore_all_discovered": {
+            "name": "Ignorovať všetky aktuálne objavené zariadenia",
+            "description": "Ignorovať všetky aktuálne objavené zariadenia zobrazené na integračnom paneli. Táto akcia neignoruje zariadenia objavené po tomto kroku.",
+            "fields": {
+                "domain": {
+                    "description": "Integračná doména, pre ktorú sa majú ignorovať všetky objavené zariadenia. Ak nie je zadaná, všetky domény sa budú považovať za ignorované.",
+                    "name": "Integračná doména"
+                }
+            }
+        },
+        "input_select_shuffle": {
+            "description": "Premieša zoznam voliteľných možností pre entitu `input_select`. Táto akcia nie je trvalá a bude zrušená po opätovnom načítaní alebo reštarte Home Assistant.",
+            "name": "Možnosti náhodného prehrávania"
+        },
+        "homeassistant_add_label_to_area": {
+            "description": "Pridá k oblasti štítok. Ak je zadaných viacero štítkov alebo oblastí, pridajú sa všetky kombinácie.",
+            "fields": {
+                "area_id": {
+                    "description": "ID oblasti (oblastí), ku ktorej (ktorým) sa má pridať označenie (označenia).",
+                    "name": "ID oblasti"
+                },
+                "label_id": {
+                    "description": "ID štítku (štítkov) na pridanie oblasti (oblastí).",
+                    "name": "ID štítku"
+                }
+            },
+            "name": "Pridanie štítku k oblasti"
+        },
+        "homeassistant_add_label_to_entity": {
+            "description": "Pridá k entite štítok. Ak je zadaných viacero štítkov alebo viacero entít, pridajú sa všetky kombinácie.",
+            "fields": {
+                "entity_id": {
+                    "description": "ID entity/entít, ku ktorým sa má pridať označenie/označenia.",
+                    "name": "ID entity"
+                },
+                "label_id": {
+                    "description": "ID(-á) označenia(-í) na pridanie entity/entít.",
+                    "name": "ID štítku"
+                }
+            },
+            "name": "Pridanie štítku k entite"
+        },
+        "homeassistant_remove_label_from_device": {
+            "description": "Odstráni štítok zo zariadenia. Ak je zadaných viacero štítkov alebo viacero zariadení, odstránia sa všetky kombinácie.",
+            "fields": {
+                "label_id": {
+                    "description": "ID štítku (štítkov), ktoré sa majú odstrániť zo zariadenia (zariadení).",
+                    "name": "ID štítku"
+                },
+                "device_id": {
+                    "description": "ID zariadenia (zariadení), z ktorého sa má odstrániť označenie (štítky).",
+                    "name": "ID zariadenia"
+                }
+            },
+            "name": "Odstránenie štítku zo zariadenia"
+        },
+        "repairs_remove": {
+            "description": "Odstráni manuálne vytvorený problém s opravami v aplikácii Home Assistant. Táto akcia dokáže odstrániť iba problémy vytvorené pomocou akcie `repairs_create`.",
+            "name": "Odstrániť problém",
+            "fields": {
+                "issue_id": {
+                    "name": "ID problému",
+                    "description": "ID problému, ktorý sa má odstrániť."
+                }
+            }
+        },
+        "boo": {
+            "description": "Nazývanie tejto akcie vystraší Domáceho asistenta. Vykonanie tejto akcie vždy zlyhá.",
+            "name": "Búú!"
+        },
+        "homeassistant_disable_polling": {
+            "description": "Zakáže dotazovanie na aktualizácie pre položku konfigurácie integrácie.",
+            "fields": {
+                "config_entry_id": {
+                    "description": "Položka konfigurácie integrácie, pre ktorú sa má vypnúť dotazovanie.",
+                    "name": "Konfiguračný záznam"
+                }
+            },
+            "name": "Zakázať dotazovanie na aktualizácie"
+        },
+        "homeassistant_enable_polling": {
+            "description": "Umožňuje dotazovanie na aktualizácie pre položku konfigurácie integrácie.",
+            "fields": {
+                "config_entry_id": {
+                    "description": "Položka konfigurácie integrácie na povolenie dotazovania.",
+                    "name": "Konfiguračný záznam"
+                }
+            },
+            "name": "Povoliť dotazovanie na aktualizácie"
+        },
+        "repairs_ignore_all": {
+            "description": "Ignorujte všetky problémy, ktoré sa momentálne objavujú v časti Opravy domácich asistentov.",
+            "name": "Ignorovať všetky problémy"
+        },
+        "repairs_unignore_all": {
+            "description": "Neignorujte všetky problémy, ktoré sa momentálne objavujú v časti Opravy Home Assistant.",
+            "name": "Zrušiť ignorovanie všetkých problémov"
+        },
+        "random_fail": {
+            "name": "Náhodné zlyhanie",
+            "description": "Vykonanie tejto akcie náhodne zlyhá."
+        },
+        "homeassistant_delete_label": {
+            "fields": {
+                "label_id": {
+                    "name": "ID štítku",
+                    "description": "ID štítku, ktorý sa má odstrániť."
+                }
+            },
+            "name": "Vymazať štítok",
+            "description": "Odstráni štítok za chodu."
+        },
+        "wait_for_condition": {
+            "name": "Počkať na podmienku",
+            "description": "Čaká, kým je podmienka splnená. Ak už splnená je, vráti sa hneď.",
+            "fields": {
+                "condition": {
+                    "name": "Podmienka",
+                    "description": "Podmienka, na ktorú sa čaká."
+                },
+                "timeout": {
+                    "name": "Časový limit",
+                    "description": "Ako dlho čakať, kým to vzdá. Nechaj prázdne, ak sa má čakať donekonečna."
+                }
+            }
+        },
+        "automation_snooze": {
+            "name": "Odložiť",
+            "description": "Na chvíľu vypne automatizáciu a po uplynutí času ju zase zapne.",
+            "fields": {
+                "duration": {
+                    "name": "Trvanie",
+                    "description": "Ako dlho zostane automatizácia vypnutá. Po uplynutí času sa vráti sama, aj keby sa Home Assistant medzitým reštartoval."
+                }
+            }
+        },
+        "automation_turn_on_for": {
+            "name": "Zapnúť na",
+            "description": "Na chvíľu zapne automatizáciu a po uplynutí času ju zase vypne.",
+            "fields": {
+                "duration": {
+                    "name": "Trvanie",
+                    "description": "Ako dlho zostane automatizácia zapnutá. Po uplynutí času sa sama vypne, aj keby sa Home Assistant medzitým reštartoval."
+                }
+            }
+        },
+        "light_set_brightness": {
+            "name": "Nastaviť jas",
+            "description": "Nastaví jas svetlám, ktoré už svietia, a tie zhasnuté nechá na pokoji.",
+            "fields": {
+                "brightness_pct": {
+                    "name": "Jas",
+                    "description": "Jas, ktorý sa má nastaviť, v percentách. Skupiny sa upravujú svetlo po svetle, takže zhasnuté svetlo zostane zhasnuté."
+                },
+                "transition": {
+                    "name": "Prechod",
+                    "description": "Ako dlho má zmena trvať, v sekundách."
+                }
+            }
+        },
+        "light_increase_brightness": {
+            "name": "Zvýšiť jas",
+            "description": "Pridá svetlám, ktoré už svietia, a tie zhasnuté nechá na pokoji.",
+            "fields": {
+                "step_pct": {
+                    "name": "Krok",
+                    "description": "O koľko jas zvýšiť, v percentách. Každé svetlo vychádza z vlastnej úrovne, takže si skupina zachová svoj tvar a nezrovná sa."
+                },
+                "transition": {
+                    "name": "Prechod",
+                    "description": "Ako dlho má zmena trvať, v sekundách."
+                }
+            }
+        },
+        "light_decrease_brightness": {
+            "name": "Znížiť jas",
+            "description": "Uberie svetlám, ktoré už svietia, až na najslabšie, čo zvládnu, namiesto toho, aby ich zhasol.",
+            "fields": {
+                "step_pct": {
+                    "name": "Krok",
+                    "description": "O koľko jas znížiť, v percentách. Každé svetlo vychádza z vlastnej úrovne, takže si skupina zachová svoj tvar a nezrovná sa."
+                },
+                "transition": {
+                    "name": "Prechod",
+                    "description": "Ako dlho má zmena trvať, v sekundách."
+                }
+            }
+        },
+        "light_set_color": {
+            "name": "Nastaviť farbu",
+            "description": "Nastaví farbu svetlám, ktoré už svietia, a tie zhasnuté alebo tie, čo farbu nevedia, nechá na pokoji.",
+            "fields": {
+                "rgb_color": {
+                    "name": "Farba",
+                    "description": "Farba, ktorá sa má nastaviť. Svetlá, ktoré farbu nevedia, sa preskočia, namiesto toho, aby sa prepli na bielu."
+                },
+                "transition": {
+                    "name": "Prechod",
+                    "description": "Ako dlho má zmena trvať, v sekundách."
+                }
+            }
+        },
+        "light_set_color_temperature": {
+            "name": "Nastaviť farebnú teplotu",
+            "description": "Nastaví farebnú teplotu svetlám, ktoré už svietia, každému v rozsahu, na ktorý naozaj dosiahne.",
+            "fields": {
+                "kelvin": {
+                    "name": "Farebná teplota",
+                    "description": "Farebná teplota, ktorá sa má nastaviť. Každé svetlo zostane vo svojom rozsahu, lebo teplá biela jednej lampy je číslo, na ktoré iná nedosiahne."
+                },
+                "transition": {
+                    "name": "Prechod",
+                    "description": "Ako dlho má zmena trvať, v sekundách."
+                }
+            }
+        },
+        "light_set_effect": {
+            "name": "Nastaviť efekt",
+            "description": "Zapne efekt na svetlách, ktoré už svietia a ktoré ho naozaj majú.",
+            "fields": {
+                "effect": {
+                    "name": "Efekt",
+                    "description": "Názov efektu, ktorý sa má nastaviť. Názvy efektov sa u jednotlivých výrobcov líšia, takže svetlá, ktoré tento nemajú, zostanú, ako sú."
+                }
+            }
+        },
+        "homeassistant_expose_entity": {
+            "name": "Sprístupniť entitu asistentom",
+            "description": "Sprístupní entitu (alebo entity) hlasovým asistentom.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity, ktoré sa majú sprístupniť."
+                },
+                "assistants": {
+                    "name": "Asistenti",
+                    "description": "Asistent(i), na ktorých sa to má použiť."
+                }
+            }
+        },
+        "homeassistant_unexpose_entity": {
+            "name": "Prestať sprístupňovať entitu asistentom",
+            "description": "Prestane sprístupňovať entitu (alebo entity) hlasovým asistentom.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity, ktoré sa majú prestať sprístupňovať."
+                },
+                "assistants": {
+                    "name": "Asistenti",
+                    "description": "Asistent(i), na ktorých sa to má použiť."
+                }
+            }
+        },
+        "homeassistant_update_label": {
+            "name": "Upraviť štítok",
+            "description": "Upraví existujúci štítok za chodu. Všetko, čo vynecháš, si ponechá hodnotu, ktorú už malo. Popis, ikonu a farbu možno vyprázdniť nastavením na null.",
+            "fields": {
+                "label_id": {
+                    "name": "ID štítka",
+                    "description": "ID štítka, ktorý sa má upraviť."
+                },
+                "name": {
+                    "name": "Názov",
+                    "description": "Nový názov štítka."
+                },
+                "description": {
+                    "name": "Popis",
+                    "description": "Nový popis štítka."
+                },
+                "icon": {
+                    "name": "Ikona",
+                    "description": "Nová ikona štítka."
+                },
+                "color": {
+                    "name": "Farba",
+                    "description": "Farba, ktorá sa má pre štítok použiť. Môže to byť názov farby zo zoznamu alebo šestnástkový kód farby (napríklad #FF0000)."
+                }
+            }
+        },
+        "sensor_set_display_precision": {
+            "name": "Nastaviť presnosť zobrazenia",
+            "description": "Nastaví počet desatinných miest zobrazených pri jednom alebo viacerých senzoroch.",
+            "fields": {
+                "entity_id": {
+                    "name": "Entita",
+                    "description": "Entita/entity senzora, ktoré sa majú upraviť."
+                },
+                "display_precision": {
+                    "name": "Presnosť zobrazenia",
+                    "description": "Počet desatinných miest, ktoré sa majú pri senzore zobraziť."
+                }
+            }
+        },
+        "group_add_members": {
+            "name": "Pridať členov do skupiny",
+            "description": "Pridáva entity do skupiny vytvorenej prostredníctvom rozhrania počas chodu systému Home Assistant. Entity, ktoré sa už v skupine nachádzajú, zostávajú na svojom mieste.",
+            "fields": {
+                "group": {
+                    "name": "Skupina",
+                    "description": "Skupina, do ktorej treba pridať."
+                },
+                "members": {
+                    "name": "Členovia",
+                    "description": "Entity, ktoré sa majú pridať do skupiny."
+                }
+            }
+        },
+        "group_remove_members": {
+            "name": "Odstrániť členov zo skupiny",
+            "description": "Odstraňuje entity zo skupiny vytvorenej prostredníctvom rozhrania počas chodu systému Home Assistant. Uvedenie názvu entity, ktorá v skupine nie je, nemá žiadny účinok; týmto spôsobom teda môžete odstrániť aj člena, ktorý už neexistuje.",
+            "fields": {
+                "group": {
+                    "name": "Skupina",
+                    "description": "Skupina, z ktorej ich treba vybrať."
+                },
+                "members": {
+                    "name": "Členovia",
+                    "description": "Entity, ktoré sa majú zo skupiny odstrániť."
+                }
+            }
+        },
+        "group_set_members": {
+            "name": "Nastavte členov skupiny",
+            "description": "Počas chodu Home Assistant nahradí členov skupiny vytvorenej prostredníctvom rozhrania zadanými členmi.",
+            "fields": {
+                "group": {
+                    "name": "Skupina",
+                    "description": "Skupina, ktorú treba zmeniť."
+                },
+                "members": {
+                    "name": "Členovia",
+                    "description": "Entity, ktoré by skupina mala odteraz držať."
+                }
+            }
+        }
+    },
+    "triggers": {
+        "sequence": {
+            "name": "Spúšťače v poradí",
+            "description": "Spustí sa, keď viacero spúšťačov nastane jeden po druhom, v poradí, ktoré zadáš.",
+            "fields": {
+                "steps": {
+                    "name": "Kroky",
+                    "description": "Spúšťače, ktoré musia nastať, v poradí. Počúva sa vždy len ten, na ktorý sa práve čaká, takže neskorší krok, ktorý nastane priskoro, sa neráta."
+                },
+                "timeout": {
+                    "name": "Časový limit",
+                    "description": "Ako dlho môže trvať celá postupnosť, počítané od prvého kroku. Nechaj prázdne, ak sa má čakať donekonečna."
+                },
+                "reset": {
+                    "name": "Reset",
+                    "description": "Spúšťače, ktoré opustia už rozbehnutú postupnosť a vrátia ju späť k čakaniu na prvý krok."
+                }
+            }
+        },
+        "while": {
+            "name": "Kým je podmienka splnená",
+            "description": "Spustí sa, keď sa podmienka stane pravdivou, a spúšťa sa ďalej v intervaloch, kým taká zostáva.",
+            "fields": {
+                "condition": {
+                    "name": "Podmienka",
+                    "description": "Podmienka, na ktorú sa dáva pozor. Začne spúšťať, keď sa stane pravdivou, a prestane, keď ňou byť prestane."
+                },
+                "every": {
+                    "name": "Každých",
+                    "description": "Ako dlho čakať medzi jedným spustením a ďalším, kým je podmienka splnená."
+                }
+            }
+        },
+        "watchdog": {
+            "name": "Strážny pes",
+            "description": "Spustí sa, keď niečo, čo si čakal, nenastane načas.",
+            "fields": {
+                "arm": {
+                    "name": "Natiahnuť",
+                    "description": "To, čo uvedie stráž do pohotovosti. Čakanie sa počíta odtiaľ a ďalšie natiahnutie počas čakania spustí odpočet odznova."
+                },
+                "expect": {
+                    "name": "Očakávané",
+                    "description": "To, čo očakávaš, že nastane potom. Ak to príde načas, stráž sa zruší a nič sa nespustí."
+                },
+                "within": {
+                    "name": "Do",
+                    "description": "Koľko času má očakávané na to, aby prišlo. Toto sa spustí, keď ten čas uplynie a nič neprišlo."
+                }
+            }
+        },
+        "flapping": {
+            "name": "Entita sa neupokojí",
+            "description": "Spustí sa, keď entita mení stav častejšie, než by mala, v rámci časového intervalu.",
+            "fields": {
+                "changes": {
+                    "name": "Zmeny",
+                    "description": "Koľko zmien stavu treba, kým sa toto spustí. Zmeny atribútov sa nerátajú, ani entita, ktorá sa objaví či zmizne."
+                },
+                "within": {
+                    "name": "V rámci",
+                    "description": "Časový interval, do ktorého sa tie zmeny musia zmestiť. Posúva sa dopredu, takže ide vždy o tie najčerstvejšie zmeny."
+                }
+            }
+        },
+        "condition_met": {
+            "name": "Podmienka sa stala pravdivou",
+            "description": "Spustí sa, keď podmienka prejde z nepravdivej na pravdivú, s tými istými blokmi podmienok, aké používaš všade inde.",
+            "fields": {
+                "condition": {
+                    "name": "Podmienka",
+                    "description": "Podmienka, na ktorú sa dáva pozor."
+                }
+            }
+        },
+        "cron": {
+            "name": "Plán cron",
+            "description": "Spúšťa sa podľa plánu crontab, pre časy, ktoré vlastné časové spúšťače Home Assistantu nevedia vyjadriť, ako každý pracovný deň o siedmej alebo posledný piatok v mesiaci.",
+            "fields": {
+                "schedule": {
+                    "name": "Plán",
+                    "description": "Výraz crontab s piatimi poľami: minúta, hodina, deň v mesiaci, mesiac, deň v týždni. Rozsahy a kroky fungujú, aj rozšírenia pre deň v týždni, takže \"MON#2\" je druhý pondelok a \"5L\" posledný piatok. Prezývky ako \"@daily\" nefungujú."
+                }
+            }
+        },
+        "integration_failed": {
+            "name": "Integráciu sa nepodarilo nastaviť",
+            "description": "Spustí sa, keď sa konfiguračný záznam už nejaký čas nedarí nastaviť, za bodom, kde by to vlastné opakované pokusy Home Assistantu boli vyriešili.",
+            "fields": {
+                "for": {
+                    "name": "Počas",
+                    "description": "Ako dlho musí záznam zlyhávať, kým sa toto spustí. Home Assistant skúša zlyhaný záznam znova najviac raz za desať minút, takže kratšia hodnota hlási problémy, ktoré sa ešte môžu vyriešiť samy."
+                },
+                "entry_id": {
+                    "name": "Záznamy",
+                    "description": "Obmedz toto na určité konfiguračné záznamy. Nechaj prázdne, ak sa má dávať pozor na všetky."
+                }
+            }
+        },
+        "repair_issue_created": {
+            "name": "Vznikol problém opravy",
+            "description": "Spustí sa, keď sa objaví nový problém opravy, aby si sa to dozvedel bez chodenia na stránku opráv.",
+            "fields": {
+                "domain": {
+                    "name": "Integrácie",
+                    "description": "Obmedz toto na problémy hlásené určitými integráciami, podľa ich domény. Nechaj prázdne pre všetky."
+                },
+                "severity": {
+                    "name": "Závažnosť",
+                    "description": "Obmedz toto na problémy určitej závažnosti. Nechaj prázdne pre všetky."
+                }
+            }
+        },
+        "repair_issue_removed": {
+            "name": "Problém opravy je vyriešený",
+            "description": "Spustí sa, keď problém opravy zmizne, či už preto, že bol vyriešený, alebo jednoducho preto, že sa už nehlási.",
+            "fields": {
+                "domain": {
+                    "name": "Integrácie",
+                    "description": "Obmedz toto na problémy hlásené určitými integráciami, podľa ich domény. Nechaj prázdne pre všetky."
+                }
+            }
+        },
+        "stale": {
+            "name": "Entita stíchla",
+            "description": "Spustí sa, keď už nejaký čas do entity nič nezapisuje, čo odhalí zariadenie, ktoré ticho odišlo namiesto toho, aby prešlo do stavu nedostupné.",
+            "fields": {
+                "for": {
+                    "name": "Počas",
+                    "description": "Ako dlho musí byť entita ticho, kým sa toto spustí. Entita, ktorá stále hlási tú istú hodnotu, ticho nie je."
+                }
+            }
+        },
+        "debounce": {
+            "name": "Akonáhle sa to ustáli",
+            "description": "Aktivuje sa až po tom, čo spúšťací signál na chvíľu ustane, takže séria týchto signálov dorazí naraz. Snímač pohybu neohlási pohyb len raz – ohlási ho dvadsaťkrát.",
+            "fields": {
+                "triggers": {
+                    "name": "Spúšťače",
+                    "description": "Spúšte, ktoré majú čakať. Ktorýkoľvek z nich vystrelí, spustí dávku a ktorýkoľvek z nich vystrelí znova, ju udrží v chode, takže niekoľko spúští sa zhlukuje naraz, a nie jeden po druhom."
+                },
+                "for": {
+                    "name": "Pre",
+                    "description": "Ako dlho musí byť ticho, kým sa toto spustí. Každé spustenie resetuje toto čakanie, takže niečo, čo sa spúšťa nepretržite, sa nikdy nenahlási."
+                }
+            }
+        },
+        "all_of": {
+            "name": "Všetky tieto veci sa stali.",
+            "description": "Aktivuje sa vtedy, keď sa v rámci toho istého časového úseku aktivujú všetky z viacerých spúšťačov, a to v ľubovoľnom poradí. Štandardné spúšťače v systéme Home Assistant fungujú na princípe zoznamu, kde stačí aktivácia ktoréhokoľvek z nich; toto je alternatívny spôsob.",
+            "fields": {
+                "triggers": {
+                    "name": "Spúšťače",
+                    "description": "Spúšťače, ktoré sa všetky musia aktivovať. Na poradí nezáleží a opätovná aktivácia spúšťača nahrádza jeho predchádzajúce uplatnenie, namiesto toho, aby sa počítala dvakrát."
+                },
+                "within": {
+                    "name": "V rámci",
+                    "description": "Ako blízko pri sebe sa musia nachádzať. Toto okno sa posúva, takže spúšťacia udalosť, ktorá nastala skôr než v tomto časovom rámci, sa považuje za neplatnú, zatiaľ čo ostatné pokračujú v počítaní."
+                }
+            }
+        },
+        "recovered": {
+            "name": "Entita sa vrátila.",
+            "description": "Aktivuje sa, keď sa entita vráti do stavu dostupnosti po predchádzajúcom výpadku; vďaka tomu sa reštart smerovača neinterpretuje ako obnova všetkých zariadení v domácnosti.",
+            "fields": {
+                "for": {
+                    "name": "Pre",
+                    "description": "Počíta sa, ako dlho musela byť entita preč, kým sa vrátila. Čokoľvek kratšie je len blikanie: opätovné načítanie integrácie prevedie všetky jej entity cez stav nedostupnosti a späť v priebehu sekundy."
+                }
+            }
+        }
+    },
+    "selector": {
+        "repair_issue_severity": {
+            "options": {
+                "critical": "Kritická",
+                "error": "Chyba",
+                "warning": "Varovanie"
+            }
+        }
+    },
+    "conditions": {
+        "repair_issue_present": {
+            "name": "Otvorený problém opravy",
+            "description": "Splní sa, kým existuje otvorený problém opravy. Problémy, ktoré niekto ignoroval, sa nerátajú.",
+            "fields": {
+                "domain": {
+                    "name": "Integrácie",
+                    "description": "Obmedz toto na problémy hlásené určitými integráciami, podľa ich domény. Nechaj prázdne pre všetky."
+                },
+                "severity": {
+                    "name": "Závažnosť",
+                    "description": "Obmedz toto na problémy určitej závažnosti. Nechaj prázdne pre všetky."
+                }
+            }
+        },
+        "quota": {
+            "name": "Zostávajúce behy",
+            "description": "Splní sa, kým táto automatizácia bežala menej ráz než určený počet v rámci určeného obdobia. Skripty sa nerátajú.",
+            "fields": {
+                "limit": {
+                    "name": "Limit",
+                    "description": "Koľko behov je v rámci obdobia povolených."
+                },
+                "period": {
+                    "name": "Obdobie",
+                    "description": "Okno, na ktoré sa limit vzťahuje. Posúva sa dopredu, takže deň znamená ľubovoľných dvadsaťštyri hodín, nie od polnoci do polnoci."
+                }
+            }
+        },
+        "triggered_by_automation": {
+            "name": "Spustené automatizáciou",
+            "description": "Splní sa, keď tento beh uviedla do pohybu iná automatizácia, či už priamo, alebo cez skript.",
+            "fields": {
+                "automation": {
+                    "name": "Automatizácie",
+                    "description": "Obmedz toto na určité automatizácie. Nechaj prázdne, nech prejdú všetky."
+                }
+            }
+        },
+        "triggered_by_user": {
+            "name": "Spustené používateľom",
+            "description": "Splní sa, keď je za tým, čo to uviedlo do pohybu, človek: zmena stavu alebo udalosť, ktorú spôsobil, vrátane takej, ktorá urobila spúšťač so šablónou pravdivým. Za plánom, slnkom ani integráciou, ktorá koná sama od seba, nikto nestojí, a za behom vynúteným tlačidlom Spustiť tiež nie.",
+            "fields": {
+                "person": {
+                    "name": "Osoby",
+                    "description": "Splniť sa len vtedy, keď to naštartovala jedna z týchto osôb. Nechaj prázdne, nech prejde ktokoľvek. Osoba musí mať priradený používateľský účet, inak nie je s čím porovnávať."
+                }
+            }
+        },
+        "not_triggered_by_user": {
+            "name": "Nespustené používateľom",
+            "description": "Splní sa, keď tento beh nemožno pripísať nikomu: plán, slnko, integrácia konajúca sama od seba alebo tlačidlo Spustiť. Zámerne nemá žiadne možnosti. Ak chceš vylúčiť konkrétne osoby, vlož \"Spustené používateľom\" dovnútra podmienky Nie."
+        },
+        "chance": {
+            "name": "Náhoda",
+            "description": "Splní sa v určenom percente prípadov, vyžrebovanom pri každej kontrole. Šikovné, keď chceš do svojich automatizácií pridať trochu pestrosti.",
+            "fields": {
+                "percentage": {
+                    "name": "Percento",
+                    "description": "Ako často sa má táto podmienka splniť, v percentách."
+                }
+            }
+        },
+        "cooldown": {
+            "name": "Čas na vychladnutie",
+            "description": "Splní sa len vtedy, ak táto automatizácia alebo tento skript v zadanom čase nebežali (alebo nebežali nikdy). Zabudované vychladnutie, aby sa vec nespúšťala príliš často.",
+            "fields": {
+                "duration": {
+                    "name": "Trvanie",
+                    "description": "Ako dlho čakať po poslednom behu, kým sa táto podmienka znova splní."
+                }
+            }
+        }
     }
-  }
 }

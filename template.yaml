@@ -22,14 +22,14 @@
 
   - default_entity_id: sensor.kitchen_all_timers
     attributes:
-      timers_ending: '{% set ns = namespace(timers=[]) %} {% for i in (state_attr(''sensor.kitchen_next_timer'',''sorted_active'')
-        | from_json) -%} {% set last_update = as_timestamp(state_attr(''sensor.kitchen_next_timer'',''last_updated''))
+      timers_ending: '{% set ns = namespace(timers=[]) %} {% for i in (state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''sorted_active'')
+        | from_json) -%} {% set last_update = as_timestamp(state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''last_updated''))
         -%} {% set remain = i[1][''remainingTime'']/1000 -%} {% set end_epoch = remain
         + last_update -%} {% set end_time = end_epoch | timestamp_custom(''%Y-%m-%dT%H:%M:%S'',
         True) -%} {% set ns.timers = ns.timers + [end_time] %} {% endfor %} {{ ns.timers
         }}'
     name: All Kitchen Timers
-    state: '{{ state_attr(''sensor.kitchen_next_timer'',''sorted_active'') | from_json
+    state: '{{ state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''sorted_active'') | from_json
       | length }}'
 
   - unit_of_measurement: h

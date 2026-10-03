@@ -260,6 +260,7 @@ automation:
                 target:
                   entity_id:
                     - cover.office_blinds
+                    - cover.dining_room_blinds
           # - conditions: "{{ trigger.id == 'morning_later' }}"
           #   alias: Open Blinds Morning Later
           #   sequence:

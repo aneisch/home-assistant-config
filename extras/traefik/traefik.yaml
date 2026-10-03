@@ -1,6 +1,17 @@
 api:
   dashboard: true
 
+accessLog:
+  #filePath: /logs/access.log   # omit to log to stdout
+  format: json
+  fields:
+    headers:
+      defaultMode: drop
+      names:
+        CF-Connecting-IP: keep
+        User-Agent: keep
+        X-Forwarded-For: keep
+
 entryPoints:
   web:
     address: ":80"
@@ -9,14 +20,26 @@ entryPoints:
     #   redirections:
     #     entryPoint:
     #       to: websecure
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.1.22/32"
+        - "127.0.0.1/32"
+    observability:
+      accessLogs: false
 
   websecure:
     address: ":443"
+    forwardedHeaders:
+      trustedIPs:
+        - "10.0.1.22/32"
+        - "127.0.0.1/32"
     # The {} is necessary
     http3: {}
     http:
       middlewares:
         - secureHeaders@file
+    observability:
+      accessLogs: false
 
 providers:
   docker:

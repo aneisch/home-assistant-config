@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
@@ -11,7 +13,7 @@ from .core.ewelink import XRegistry
 async def async_get_config_entry_diagnostics(hass: HomeAssistant, entry: ConfigEntry):
     try:
         if XRegistry.config:
-            config = XRegistry.config.copy()
+            config = deepcopy(XRegistry.config)
             for k in (CONF_USERNAME, CONF_PASSWORD):
                 if config.get(k):
                     config[k] = "***"

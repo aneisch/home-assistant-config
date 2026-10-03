@@ -9,6 +9,7 @@ home_empty:
       data:
         entity_id: input_boolean.security_status
     - action: homeassistant.turn_off
+      continue_on_error: true
       data:
         entity_id:
           - group.master_bedroom
@@ -22,6 +23,7 @@ home_empty:
           - media_player.kitchen_photo_frame
           - media_player.office_photo_frame
           - media_player.misc_photo_frame
+          - light.pumpkin_patch_pumpkin_patch
           #- switch.refrigerator_dispenser
     # Start Christmas
     # If before dark, turn off christmas trees in front 
@@ -63,10 +65,12 @@ home_occupied:
               #- switch.living_room_christmas_tree # Others follow
               # End Christmas
     - action: homeassistant.turn_on
+      continue_on_error: true
       entity_id: 
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
         - switch.refrigerator_dispenser
+        - light.pumpkin_patch_pumpkin_patch
     # Only turn on guest bathroom frame if guest mode
     - if: "{{ is_state('input_boolean.guest_mode', 'on') }}"
       then:
@@ -152,9 +156,11 @@ master_bedroom_wakeup:
     - action: homeassistant.turn_off
       entity_id: input_boolean.goodnight
     - action: homeassistant.turn_on
+      continue_on_error: true
       entity_id: 
         - media_player.kitchen_photo_frame
         - media_player.office_photo_frame
+        - light.pumpkin_patch_pumpkin_patch
 
 master_bedroom_bedtime:
   sequence:
@@ -211,8 +217,37 @@ master_bedroom_bedtime:
       entity_id: input_boolean.goodnight
     # Lower laptop volume
     - action: shell_command.weasel_shortcut
+      continue_on_error: true
       data:
         shortcut: set-volume-15
+
+movie_mode:
+  sequence:
+    # - action: cover.close_cover
+    #   entity_id: cover.dining_room_blinds
+
+    - action: light.turn_off
+      data:
+        entity_id: light.living_room_lamps
+        transition: 10
+
+    - action: light.turn_on
+      data:
+        entity_id: light.living_room_sconces
+        brightness: 63 # out of 255
+        transition: 5
+
+    - action: light.turn_on
+      continue_on_error: true
+      entity_id: light.pumpkin_patch_pumpkin_patch
+
+    - action: homeassistant.turn_off
+      entity_id: 
+        - group.kitchen
+
+    - action: homeassistant.turn_on
+      entity_id:
+        - switch.living_room_speakers
 
 #########
 # OTHER #

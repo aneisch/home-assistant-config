@@ -18,5 +18,5 @@
     "dateparser",
     "aioimaplib"
   ],
-  "version": "0.5.29"
+  "version": "0.6.4"
 }

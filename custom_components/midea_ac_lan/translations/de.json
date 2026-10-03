@@ -22,7 +22,7 @@
           "account": "Konto",
           "password": "Passwort"
         },
-        "description": "Mit dem Midea-Konto anmelden. Das Konto wird nur verwendet, um die Geräteinformationen zu erhalten.\nDie Konfiguration kann wieder entfernt werden, nachdem alle Geräte konfiguriert wurden.",
+        "description": "Melden Sie sich an und rufen Sie das Geräte-Token ab.\n\n\nDerzeit können nur persönliche SmartHome- und Meiju-Konten Geräte-Tokens abrufen. Details finden Sie in der README-Dokumentation.",
         "title": "Login"
       },
       "discovery": {
@@ -63,6 +63,18 @@
   },
   "entity": {
     "binary_sensor": {
+      "warm_power": {
+        "name": "Heizbetrieb"
+      },
+      "cold_power": {
+        "name": "Kühlbetrieb"
+      },
+      "sleep_power": {
+        "name": "Schlafbetrieb"
+      },
+      "pump_on": {
+        "name": "Pumpe Ein"
+      },
       "bar_door": {
         "name": "Bar-Tür"
       },
@@ -84,6 +96,12 @@
       "burning_state": {
         "name": "Brenner-Status"
       },
+      "clean_scale": {
+        "name": "Entkalken"
+      },
+      "clean_sink_ponding": {
+        "name": "Wasseransammlung im Spülbecken"
+      },
       "cleaning_reminder": {
         "name": "Reinigungs-Erinnerung"
       },
@@ -92,6 +110,12 @@
       },
       "cooking": {
         "name": "Kochen"
+      },
+      "dissipate_heat": {
+        "name": "Wärme abführen"
+      },
+      "door": {
+        "name": "Tür"
       },
       "error_code": {
         "name": "Fehlercode"
@@ -111,6 +135,9 @@
       "flex_zone_door_overtime": {
         "name": "Flexzonen-Tür"
       },
+      "flip_side": {
+        "name": "Wenden"
+      },
       "freezer_door": {
         "name": "Gefrierfachtür"
       },
@@ -123,8 +150,24 @@
       "heating": {
         "name": "Heizen"
       },
+      "dispensing": {
+        "name": "Wasserentnahme"
+      },
+      "lack_water": { "name": "Wassermangel" },
+      "standby": { "name": "Bereitschaft" },
+      "hot_water_dispensing": { "name": "Heißwasserausgabe" },
+      "fault": { "name": "Störung" },
       "heating_working": {
         "name": "Heizen Arbeitsstatus"
+      },
+      "high_temperature": {
+        "name": "Hohe Temperatur"
+      },
+      "high_temperature_lock": {
+        "name": "Hochtemperatursperre"
+      },
+      "high_temperature_work": {
+        "name": "Hochtemperaturbetrieb"
       },
       "keep_warm": {
         "name": "Warmhalten"
@@ -162,8 +205,23 @@
       "oilcup_full": {
         "name": "Ölbehälter voll"
       },
+      "ota": {
+        "name": "OTA"
+      },
+      "pre_heat": {
+        "name": "Vorheizen"
+      },
+      "probe": {
+        "name": "Fühler"
+      },
+      "probe_mode": {
+        "name": "Fühlermodus"
+      },
       "protection": {
         "name": "Schutz"
+      },
+      "reaction": {
+        "name": "Reaktion"
       },
       "refrigerator_door": {
         "name": "Kühlschranktür"
@@ -191,6 +249,66 @@
       },
       "maintenance_reminder": {
         "name": "Wartungserinnerung"
+      },
+      "dr_enable": {
+        "name": "Nachfrageantwort"
+      },
+      "electric_rod_exception": {
+        "name": "Fehler des elektrischen Heizstabs"
+      },
+      "ac_heater_priority": {
+        "name": "Wärmepumpen-Priorität"
+      },
+      "high_temp_reminder": {
+        "name": "Hinweis auf hohe Temperatur"
+      },
+      "new_version_water_heater": {
+        "name": "Erweitertes Warmwasserbereiter-Protokoll"
+      },
+      "heat_recovery_status": {
+        "name": "Wärmerückgewinnung"
+      },
+      "holiday_mode": {
+        "name": "Urlaubsmodus"
+      },
+      "hybrid_motion_mode": {
+        "name": "Hybrid-Bewegungsmodus"
+      },
+      "support_boost_mode": {
+        "name": "Boost-Modus-Unterstützung"
+      },
+      "support_silent_mode": {
+        "name": "Unterstützung für den Silent-Modus"
+      },
+      "support_remaining_hot_water": {
+        "name": "Unterstützung für verbleibendes Warmwasser"
+      },
+      "support_electric_mode": {
+        "name": "Unterstützung für den Elektromodus"
+      },
+      "support_auto_disinfect": {
+        "name": "Unterstützung für automatische Desinfektion"
+      },
+      "support_force_e_heating": {
+        "name": "Unterstützung für erzwungene elektrische Heizung"
+      },
+      "support_tou": {
+        "name": "Unterstützung für Zeitnutzung"
+      },
+      "support_ac_heater_priority": {
+        "name": "Unterstützung für Wärmepumpen-Priorität"
+      },
+      "support_heat_recovery": {
+        "name": "Unterstützung für Wärmerückgewinnung"
+      },
+      "support_heat_pump_mode": {
+        "name": "Unterstützung für Wärmepumpenmodus"
+      },
+      "support_smart_mode": {
+        "name": "Unterstützung für den Smart-Modus"
+      },
+      "support_negative_temperature": {
+        "name": "Unterstützung für negative Temperaturen"
       },
       "maintain_warn": {
         "name": "Wartungswarnung"
@@ -257,6 +375,114 @@
       },
       "water_pump_running": {
         "name": "Wasserpumpe läuft"
+      },
+      "filter_status": {
+        "name": "Filteralarm"
+      },
+      "standby_status": {
+        "name": "Standby-Status"
+      },
+      "out_water": {
+        "name": "Wasserausgabe"
+      },
+      "out_hot_water": {
+        "name": "Heißwasserausgabe"
+      },
+      "backflow": {
+        "name": "Rückfluss"
+      },
+      "sleep_status": {
+        "name": "Schlafstatus"
+      },
+      "alarm_on": {
+        "name": "Fehler - Alarm"
+      },
+      "aux_heat_on": {
+        "name": "Heizstab - Zusatzwärmequelle"
+      },
+      "compressor_on": {
+        "name": "Kompressor - Läuft"
+      },
+      "cool_capability": {
+        "name": "Funktion - Kühlen"
+      },
+      "crankcase_heater_on": {
+        "name": "Heizstab - Kurbelgehäuse"
+      },
+      "dhw_capability": {
+        "name": "Funktion - Warmwasser"
+      },
+      "disinfect_run": {
+        "name": "WW - Desinfektion läuft"
+      },
+      "double_zone": {
+        "name": "Funktion - Zwei Zonen"
+      },
+      "eco_function_state": {
+        "name": "Modus - ECO-Funktion"
+      },
+      "eco_timer_state": {
+        "name": "Modus - ECO-Zeitschaltung"
+      },
+      "heat_capability": {
+        "name": "Funktion - Heizen"
+      },
+      "hmi_energy_ana_set_en": {
+        "name": "Funktion - Energieanalyse (HMI)"
+      },
+      "ibh1_on": {
+        "name": "Heizstab - IBH1"
+      },
+      "ibh2_on": {
+        "name": "Heizstab - IBH2"
+      },
+      "load_output_tbh": {
+        "name": "Heizstab - Speicher (TBH)"
+      },
+      "pump_c_running": {
+        "name": "Pump_C - Mischkreis Zone 2"
+      },
+      "pump_d_running": {
+        "name": "Pump_D - Warmwasser"
+      },
+      "pump_i_running": {
+        "name": "Pump_I - Intern"
+      },
+      "pump_o_running": {
+        "name": "Pump_O - Extern"
+      },
+      "pump_s_running": {
+        "name": "Pump_S - Solar"
+      },
+      "remote_onoff": {
+        "name": "Funktion - Fernein/-aus"
+      },
+      "room_thermal_state": {
+        "name": "Status - Raumthermostat"
+      },
+      "room_thermal_support": {
+        "name": "Funktion - Raumthermostat"
+      },
+      "status_cool": {
+        "name": "Status - Kühlen"
+      },
+      "sv1_open": {
+        "name": "SV1 - Ventil (Warmwasser)"
+      },
+      "sv2_open": {
+        "name": "SV2 - Ventil (Heizen)"
+      },
+      "sv3_open": {
+        "name": "SV3 - Ventil"
+      },
+      "sys_energy_ana_en": {
+        "name": "Funktion - Energieanalyse (System)"
+      },
+      "tbh_control": {
+        "name": "Funktion - TBH-Steuerung"
+      },
+      "time_set": {
+        "name": "Funktion - Zeit gesetzt"
       }
     },
     "button": {
@@ -296,6 +522,9 @@
       }
     },
     "number": {
+      "heating_target_temperature": {
+        "name": "Heizungs-Solltemperatur"
+      },
       "dry_level": {
         "name": "Trocken-Level"
       },
@@ -314,6 +543,15 @@
       "vacation_days": {
         "name": "Urlaubstage"
       },
+      "max_temperature": {
+        "name": "Maximale Zieltemperatur"
+      },
+      "disinfection_temperature": {
+        "name": "Desinfektionstemperatur"
+      },
+      "schedule_mode": {
+        "name": "Planungsmodus"
+      },
       "leak_water_protection_value": {
         "name": "Leckschutzwert"
       },
@@ -322,17 +560,47 @@
       },
       "water_hardness": {
         "name": "Wasserhärte"
+      },
+      "boil_temperature": {
+        "name": "Zieltemperatur zum Kochen"
+      },
+      "keep_warm_time": {
+        "name": "Warmhaltezeit"
       }
     },
     "select": {
+      "heating_mode": {
+        "name": "Heizmodus",
+        "state": {
+          "user": "Benutzer",
+          "activity": "Aktivität",
+          "sleep": "Schlaf",
+          "unknown": "Unbekannt"
+        }
+      },
       "detect_mode": {
-        "name": "Detektions-Modus"
+        "name": "Detektions-Modus",
+        "state": {
+          "off": "Aus",
+          "pm_2_5": "PM 2.5",
+          "methanal": "Methanal"
+        }
       },
       "direction": {
-        "name": "Richtung"
+        "name": "Richtung",
+        "state": {
+          "oscillate": "Oszillieren"
+        }
       },
       "fan_speed": {
-        "name": "Lüftergeschwindigkeit"
+        "name": "Lüftergeschwindigkeit",
+        "state": {
+          "auto": "Auto",
+          "standby": "Standby",
+          "low": "Niedrig",
+          "medium": "Mittel",
+          "high": "Hoch"
+        }
       },
       "fresh_air_exhaust_mode": {
         "name": "Frischluft-Abluftgeschwindigkeit",
@@ -354,7 +622,22 @@
         }
       },
       "mode": {
-        "name": "Modus"
+        "name": "Modus",
+        "state": {
+          "standby": "Standby",
+          "auto": "Auto",
+          "manual": "Manuell",
+          "sleep": "Schlaf",
+          "fast": "Schnell",
+          "smoke": "Rauch",
+          "off": "Aus",
+          "heat_high": "Heizen (hoch)",
+          "heat_low": "Heizen (niedrig)",
+          "bath": "Baden",
+          "blow": "Blasen",
+          "ventilation": "Lüftung",
+          "dry": "Trocknen"
+        }
       },
       "oscillation_angle": {
         "name": "Oszillationswinkel"
@@ -366,7 +649,12 @@
         "name": "Leistungslimit"
       },
       "screen_display": {
-        "name": "Bildschirmanzeige"
+        "name": "Bildschirmanzeige",
+        "state": {
+          "bright": "Hell",
+          "dim": "Gedimmt",
+          "off": "Aus"
+        }
       },
       "silent_level": {
         "name": "Silent-Stufe"
@@ -409,8 +697,57 @@
       }
     },
     "sensor": {
+      "three_way_mode": {
+        "name": "Dreiwegemodus"
+      },
+      "heating_unit_type": {
+        "name": "Heizkörpertyp"
+      },
+      "return_temperature": {
+        "name": "Rücklauftemperatur"
+      },
+      "heating_temperature": {
+        "name": "Heiztemperatur"
+      },
+      "heating_gap_temperature": {
+        "name": "Heizungs-Hysteresetemperatur"
+      },
+      "user_mode_target_temperature": {
+        "name": "Solltemperatur Benutzermodus"
+      },
+      "activity_mode_target_temperature": {
+        "name": "Solltemperatur Aktivitätsmodus"
+      },
+      "sleep_mode_target_temperature": {
+        "name": "Solltemperatur Schlafmodus"
+      },
+      "last_time": {
+        "name": "Laufzeit"
+      },
+      "flow_volume": {
+        "name": "Durchfluss"
+      },
       "bathing_leaving_temperature": {
         "name": "Bathing Leaving Water Temperature"
+      },
+      "bf_status": {
+        "name": "Status",
+        "state": {
+          "save_power": "Stromsparen",
+          "standby": "Bereitschaft",
+          "work": "Arbeiten",
+          "work_finish": "Beendet",
+          "order": "Verzögerung",
+          "pause": "Pausiert",
+          "pause_c": "Pausiert C",
+          "three": "Drei",
+          "wait_to_start": "Warten auf Start",
+          "self_inspection": "Selbsttest",
+          "query_version": "Version abfragen",
+          "demo": "Demo",
+          "after_checking": "Nach Prüfung",
+          "unknown": "Unbekannt"
+        }
       },
       "bottom_compartment_remaining": {
         "name": "Bottom Compartment Remaining"
@@ -427,11 +764,26 @@
       "bright": {
         "name": "Helligkeitsstufe"
       },
+      "cbs_version": {
+        "name": "CBS-Version"
+      },
+      "cloudmenuid": {
+        "name": "Cloud-Menü-ID"
+      },
       "compressor_temperature": {
         "name": "Kompressor-Temperatur"
       },
       "condenser_temperature": {
         "name": "Kondensator-Temperature"
+      },
+      "cur_probe_temperature": {
+        "name": "Aktuelle Fühlertemperatur"
+      },
+      "cur_temperature_above": {
+        "name": "Aktuelle obere Temperatur"
+      },
+      "cur_temperature_underside": {
+        "name": "Aktuelle untere Temperatur"
       },
       "current_energy_consumption": {
         "name": "Aktueller Energieverbrauch"
@@ -504,11 +856,29 @@
       "error_code": {
         "name": "Fehlercode"
       },
+      "humidify_feedback": {
+        "name": "Luftfeuchtigkeit-Rückmeldung"
+      },
+      "temperature_feedback": {
+        "name": "Temperatur-Rückmeldung"
+      },
+      "humidify_mode": {
+        "name": "Befeuchtungsmodus"
+      },
       "estimated_energy_consumption": {
         "name": "Geschätzter Energieverbrauch"
       },
       "estimated_water_consumption": {
         "name": "Geschätzter Wasserverbrauch"
+      },
+      "execute_status": {
+        "name": "Ausführungsstatus",
+        "state": {
+          "ok": "OK",
+          "status_nonsupport": "Status nicht unterstützt",
+          "function_nonsupport": "Funktion nicht unterstützt",
+          "param_range_error": "Parameterbereichsfehler"
+        }
       },
       "fan_level": {
         "name": "Lüfterstufe"
@@ -533,6 +903,23 @@
       },
       "filter3_life": {
         "name": "Filter3 Lebensdauer Stufe"
+      },
+      "fire_power": {
+        "name": "Heizleistung",
+        "state": {
+          "fire_power_0": "Stufe 0",
+          "fire_power_1": "Stufe 1",
+          "fire_power_2": "Stufe 2",
+          "fire_power_3": "Stufe 3",
+          "fire_power_4": "Stufe 4",
+          "fire_power_5": "Stufe 5",
+          "fire_power_6": "Stufe 6",
+          "fire_power_7": "Stufe 7",
+          "fire_power_8": "Stufe 8",
+          "fire_power_9": "Stufe 9",
+          "fire_power_10": "Stufe 10",
+          "unknown": "Unbekannt"
+        }
       },
       "flex_zone_actual_temp": {
         "name": "Flex Zone Actual Temperature"
@@ -570,6 +957,7 @@
       "keep_warm_remaining": {
         "name": "Keep Warm Remaining"
       },
+      "fault_code": { "name": "Fehlercode" },
       "keep_warm_time": {
         "name": "Keep Warm Time"
       },
@@ -585,6 +973,9 @@
       "middle_compartment_temperature": {
         "name": "Middle Compartment Temperature"
       },
+      "minute_set": {
+        "name": "Minute einstellen"
+      },
       "mode": {
         "name": "Mode"
       },
@@ -593,6 +984,70 @@
       },
       "outdoor_temperature": {
         "name": "Außentemperatur"
+      },
+      "comp_run_freq": {
+        "name": "Verdichterfrequenz"
+      },
+      "outdoor_fan_speed": {
+        "name": "Lüfterdrehzahl des Außengeräts"
+      },
+      "unit_mode_run": {
+        "name": "Betriebsmodus des Geräts",
+        "state": {
+          "off": "Aus",
+          "auto": "Auto",
+          "cool": "Kühlen",
+          "heat": "Heizen",
+          "dhw": "Warmwasser"
+        }
+      },
+      "odu_target_fre": {
+        "name": "Ziel-Verdichterfrequenz"
+      },
+      "odu_voltage": {
+        "name": "Spannung des Außengeräts"
+      },
+      "odu_comp_current": {
+        "name": "Verdichterstrom"
+      },
+      "exv_current": {
+        "name": "Öffnung des elektronischen Expansionsventils"
+      },
+      "fg_capacity_need": {
+        "name": "Leistungsbedarf"
+      },
+      "pressure_high": {
+        "name": "Kältemitteldruck (Hochdruckseite)"
+      },
+      "pressure_low": {
+        "name": "Kältemitteldruck (Niederdruckseite)"
+      },
+      "temp_t1": {
+        "name": "Temperatursensor T1"
+      },
+      "temp_t2": {
+        "name": "Plattenwärmetauscher-Temperatur (T2)"
+      },
+      "temp_t2b": {
+        "name": "Austrittstemperatur des Plattenwärmetauschers (T2B)"
+      },
+      "temp_t3": {
+        "name": "Außenspulentemperatur (T3)"
+      },
+      "temp_tp": {
+        "name": "Druckrohrtemperatur (TP)"
+      },
+      "temp_th": {
+        "name": "Ansaugtemperatur (TH)"
+      },
+      "temp_tf": {
+        "name": "Leistungsmodul-Temperatur (TF)"
+      },
+      "people_number": {
+        "name": "Personenanzahl"
+      },
+      "probe_temperature": {
+        "name": "Fühlertemperatur"
       },
       "program": {
         "name": "Program"
@@ -636,6 +1091,9 @@
       "seat_temperature": {
         "name": "Seat Temperature"
       },
+      "second_set": {
+        "name": "Sekunde einstellen"
+      },
       "soak_time": {
         "name": "soak time"
       },
@@ -651,6 +1109,12 @@
       "status": {
         "name": "Status"
       },
+      "steam_quantity": {
+        "name": "Dampfmenge"
+      },
+      "stepnum": {
+        "name": "Aktueller Schritt"
+      },
       "storage_remaining": {
         "name": "Storage Remaining"
       },
@@ -662,6 +1126,12 @@
       },
       "target_temperature": {
         "name": "Temperaturziel"
+      },
+      "temperature_above": {
+        "name": "Obere Temperatur"
+      },
+      "temperature_underside": {
+        "name": "Untere Temperatur"
       },
       "time_remaining": {
         "name": "Verbleibende Zeit"
@@ -683,6 +1153,9 @@
       },
       "total_produced_energy": {
         "name": "Gesamte produzierte Energie"
+      },
+      "totalstep": {
+        "name": "Gesamtschritte"
       },
       "tvoc": {
         "name": "TVOC"
@@ -741,6 +1214,36 @@
       "max_temperature": {
         "name": "Maximales Temperaturziel"
       },
+      "max_temperature_upper_limit": {
+        "name": "Obere Grenze der maximalen Temperatur"
+      },
+      "max_temperature_lower_limit": {
+        "name": "Untere Grenze der maximalen Temperatur"
+      },
+      "disinfection_temperature_upper_limit": {
+        "name": "Obere Grenze der Desinfektionstemperatur"
+      },
+      "disinfection_temperature_lower_limit": {
+        "name": "Untere Grenze der Desinfektionstemperatur"
+      },
+      "dr_option": {
+        "name": "Nachfrageantwort-Option"
+      },
+      "remaining_hot_water_max": {
+        "name": "Maximal verbleibendes Warmwasser"
+      },
+      "force_e_heating_status": {
+        "name": "Status der erzwungenen elektrischen Heizung"
+      },
+      "holiday_max": {
+        "name": "Maximale Urlaubsdauer"
+      },
+      "holiday_min": {
+        "name": "Minimale Urlaubsdauer"
+      },
+      "timer_step_gap": {
+        "name": "Timer-Schritt"
+      },
       "vacation_start_year": {
         "name": "Urlaubsbeginn Jahr"
       },
@@ -758,6 +1261,121 @@
       },
       "auto_sterilize_minute": {
         "name": "Auto-Sterilisieren Minute"
+      },
+      "weight": {
+        "name": "Gewicht"
+      },
+      "work_mode": {
+        "name": "Arbeitsmodus",
+        "state": {
+          "microwave": "Mikrowelle",
+          "microwave_1": "Mikrowelle 1",
+          "microwave_2": "Mikrowelle 2",
+          "microwave_3": "Mikrowelle 3",
+          "microwave_4": "Mikrowelle 4",
+          "microwave_5": "Mikrowelle 5",
+          "microwave_steam_above_tube": "Mikrowelle Dampf Ober Heizstab",
+          "microwave_double_tube": "Mikrowelle Doppel Heizstab",
+          "microwave_hot_wind_tube_fan": "Mikrowelle Heißluft Heizstab Lüfter",
+          "microwave_underside_tube_hot_wind_tube_fan": "Mikrowelle Unter Heizstab Heißluft Lüfter",
+          "microwave_double_tube_hot_wind_tube_fan": "Mikrowelle Doppel Heizstab Heißluft Lüfter",
+          "microwave_steam": "Mikrowelle Dampf",
+          "microwave_steam_1": "Mikrowelle Dampf 1",
+          "unfreeze": "Auftauen",
+          "unfreeze_1": "Auftauen 1",
+          "unfreeze_2": "Auftauen 2",
+          "unfreeze_3": "Auftauen 3",
+          "unfreeze_t": "Auftauen T",
+          "microwave_above_tube": "Mikrowelle Ober Heizstab",
+          "microwave_above_tube_1": "Mikrowelle Ober Heizstab 1",
+          "microwave_above_tube_2": "Mikrowelle Ober Heizstab 2",
+          "microwave_above_tube_fan": "Mikrowelle Ober Heizstab Lüfter",
+          "fast_unfreeze": "Schnell Auftauen",
+          "fresh_unfreeze": "Frisch Auftauen",
+          "microwave_zymosis": "Mikrowelle Gärung",
+          "pure_steam": "Rein Dampf",
+          "pure_steam_1": "Rein Dampf 1",
+          "pure_steam_2": "Rein Dampf 2",
+          "pure_steam_3": "Rein Dampf 3",
+          "pure_steam_4": "Rein Dampf 4",
+          "pure_steam_5": "Rein Dampf 5",
+          "pure_steam_6": "Rein Dampf 6",
+          "pure_steam_7": "Rein Dampf 7",
+          "pure_steam_8": "Rein Dampf 8",
+          "pure_steam_9": "Rein Dampf 9",
+          "steam_above_tube": "Dampf Ober Heizstab",
+          "steam_underside_tube": "Dampf Unter Heizstab",
+          "steam_double_tube": "Dampf Doppel Heizstab",
+          "steam_hot_wind_tube_fan": "Dampf Heißluft Heizstab Lüfter",
+          "steam_hot_wind_tube_fan_1": "Dampf Heißluft Heizstab Lüfter 1",
+          "steam_hot_wind_tube_fan_2": "Dampf Heißluft Heizstab Lüfter 2",
+          "steam_hot_wind_tube": "Dampf Heißluft Heizstab",
+          "steam_double_tube_fan": "Dampf Doppel Heizstab Lüfter",
+          "steam_above_inside_outside_tube_fan": "Dampf Ober Innen Außen Heizstab Lüfter",
+          "steam_above_inside_tube_fan": "Dampf Ober Innen Heizstab Lüfter",
+          "above_tube": "Ober Heizstab",
+          "underside_tube": "Unter Heizstab",
+          "double_tube": "Doppel Heizstab",
+          "hot_wind_tube_fan": "Heißluft Heizstab Lüfter",
+          "pure_preheat": "Rein Vorheizen",
+          "above_tube_hot_wind_tube_fan": "Ober Heizstab Heißluft Lüfter",
+          "underside_tube_hot_wind_tube_fan": "Unter Heizstab Heißluft Lüfter",
+          "zymosis": "Gärung",
+          "double_tube_hot_wind_tube_fan": "Doppel Heizstab Heißluft Lüfter",
+          "above_tube_revolve": "Ober Heizstab Drehend",
+          "underside_tube_revolve": "Unter Heizstab Drehend",
+          "double_tube_revolve": "Doppel Heizstab Drehend",
+          "hot_wind_tube_fan_revolve": "Heißluft Heizstab Lüfter Drehend",
+          "warm": "Warmhalten",
+          "double_tube_fan": "Doppel Heizstab Lüfter",
+          "double_tube_fan_1": "Doppel Heizstab Lüfter 1",
+          "double_tube_fan_2": "Doppel Heizstab Lüfter 2",
+          "double_tube_fan_3": "Doppel Heizstab Lüfter 3",
+          "above_inside_tube_revolve": "Ober Innen Heizstab Drehend",
+          "above_inside_tube_fan": "Ober Innen Heizstab Lüfter",
+          "above_inside_outside_tube_revolve": "Ober Innen Außen Heizstab Drehend",
+          "above_inside_outside_tube_fan": "Ober Innen Außen Heizstab Lüfter",
+          "above_inside_underside_tube": "Ober Innen Unter Heizstab",
+          "above_inside_underside_tube_1": "Ober Innen Unter Heizstab 1",
+          "above_inside_underside_tube_fan": "Ober Innen Unter Heizstab Lüfter",
+          "above_inside_underside_tube_fan_1": "Ober Innen Unter Heizstab Lüfter 1",
+          "above_inside_tube": "Ober Innen Heizstab",
+          "above_inside_outside_tube": "Ober Innen Außen Heizstab",
+          "underside_tube_fan": "Unter Heizstab Lüfter",
+          "above_tube_fan": "Ober Heizstab Lüfter",
+          "above_tube_fan_1": "Ober Heizstab Lüfter 1",
+          "above_tube_fan_2": "Ober Heizstab Lüfter 2",
+          "scale_clean": "Entkalkung",
+          "clean": "Reinigen",
+          "remove_odor": "Geruch entfernen",
+          "remove_odor_2": "Geruch entfernen 2",
+          "high_temperature_clean": "Hohe Temperatur Reinigen",
+          "dining_utensils_clean": "Geschirr Reinigen",
+          "auto_menu": "Automatikmenü",
+          "eco": "Eco",
+          "above_tube_1": "Ober Heizstab 1",
+          "above_tube_2": "Ober Heizstab 2",
+          "above_tube_3": "Ober Heizstab 3",
+          "underside_tube_1": "Unter Heizstab 1",
+          "underside_tube_2": "Unter Heizstab 2",
+          "double_tube_1": "Doppel Heizstab 1",
+          "double_tube_2": "Doppel Heizstab 2",
+          "double_tube_3": "Doppel Heizstab 3",
+          "double_tube_4": "Doppel Heizstab 4",
+          "double_tube_5": "Doppel Heizstab 5",
+          "double_tube_6": "Doppel Heizstab 6",
+          "hot_wind_tube_fan_1": "Heißluft Heizstab Lüfter 1",
+          "hot_wind_tube_fan_2": "Heißluft Heizstab Lüfter 2",
+          "hot_wind_tube_fan_3": "Heißluft Heizstab Lüfter 3",
+          "hot_wind_tube_fan_4": "Heißluft Heizstab Lüfter 4",
+          "hot_wind_tube_fan_5": "Heißluft Heizstab Lüfter 5",
+          "double_tube_hot_wind_tube_fan_1": "Doppel Heizstab Heißluft Lüfter 1",
+          "double_tube_hot_wind_tube_fan_2": "Doppel Heizstab Heißluft Lüfter 2",
+          "double_tube_hot_wind_tube_fan_3": "Doppel Heizstab Heißluft Lüfter 3",
+          "double_tube_hot_wind_tube_fan_4": "Doppel Heizstab Heißluft Lüfter 4",
+          "double_tube_hot_wind_tube_fan_5": "Doppel Heizstab Heißluft Lüfter 5",
+          "unknown": "Unbekannt"
+        }
       },
       "working_time": {
         "name": "Working Time"
@@ -806,11 +1424,176 @@
       },
       "velocity": {
         "name": "Durchflussgeschwindigkeit"
+      },
+      "filter4_life": {
+        "name": "Filter4 Lebensdauer"
+      },
+      "filter5_life": {
+        "name": "Filter5 Lebensdauer"
+      },
+      "filter1_maxlife": {
+        "name": "Filter1 Lebensdauergrenze"
+      },
+      "filter2_maxlife": {
+        "name": "Filter2 Lebensdauergrenze"
+      },
+      "filter3_maxlife": {
+        "name": "Filter3 Lebensdauergrenze"
+      },
+      "filter4_maxlife": {
+        "name": "Filter4 Lebensdauergrenze"
+      },
+      "filter5_maxlife": {
+        "name": "Filter5 Lebensdauergrenze"
+      },
+      "hot_pot_temperature": {
+        "name": "Heißwassertopf-Temperatur"
+      },
+      "ice_gall_status": {
+        "name": "Eisbehälterstatus"
+      },
+      "water_kind": {
+        "name": "Wasserart",
+        "state": {
+          "idle": "Leerlauf",
+          "warm": "Warm",
+          "cold": "Kalt"
+        }
+      },
+      "heat_start": {
+        "name": "Heizstart",
+        "state": {
+          "heating": "Heizen",
+          "keep_warm": "Warmhalten"
+        }
+      },
+      "comp_total_run_time": {
+        "name": "Energie - Kompressor-Laufzeit"
+      },
+      "dc_bus_voltage": {
+        "name": "Außengerät - DC-Zwischenkreisspannung"
+      },
+      "dc_current": {
+        "name": "Außengerät - DC-Zwischenkreisstrom"
+      },
+      "disinfect_set_weekday": {
+        "name": "WW - Desinfektion Wochentag"
+      },
+      "disinfect_start_hour": {
+        "name": "WW - Desinfektion Startstunde"
+      },
+      "disinfect_start_minutes": {
+        "name": "WW - Desinfektion Startminute"
+      },
+      "error_code_description": {
+        "name": "Fehler - Beschreibung"
+      },
+      "hydbox_subtype": {
+        "name": "Info - Hydraulikmodul-Subtyp"
+      },
+      "hydrobox_capacity": {
+        "name": "Info - Hydraulikmodul-Leistung"
+      },
+      "idu_software_version_str": {
+        "name": "Info - Software-Version Inneneinheit"
+      },
+      "idu_t1s1": {
+        "name": "Temperatur - Zone 1 berechnet (T1s)"
+      },
+      "idu_t1s2": {
+        "name": "Temperatur - Zone 2 berechnet (T1s)"
+      },
+      "current_unit_capacity": {
+        "name": "Aktuelle Geräteleistung (roh)"
+      },
+      "instant_power0": {
+        "name": "Leistung - Heiz-Stromaufnahme"
+      },
+      "instant_renew_power0": {
+        "name": "Leistung - Erneuerbarer Heizanteil"
+      },
+      "machine_type": {
+        "name": "Info - Maschinentyp"
+      },
+      "odu_model": {
+        "name": "Info - Außengerät-Modellcode"
+      },
+      "odu_software_version_str": {
+        "name": "Info - Software-Version Außengerät"
+      },
+      "room_rel_hum": {
+        "name": "Relative Raumfeuchte"
+      },
+      "t5s": {
+        "name": "Temperatur T5s - Warmwasser-Sollwert"
+      },
+      "tas": {
+        "name": "Temperatur Tas - Luft-Sollwert"
+      },
+      "temp_t4": {
+        "name": "Temperatur T4 - Außenluft"
+      },
+      "temp_t5": {
+        "name": "Temperatur T5 - Warmwasserspeicher"
+      },
+      "temp_ta": {
+        "name": "Temperatur Ta - Raumluft"
+      },
+      "temp_tb_t1": {
+        "name": "Temperatur TB-T1 - Pufferspeicher oben"
+      },
+      "temp_tb_t2": {
+        "name": "Temperatur TB-T2 - Pufferspeicher unten"
+      },
+      "temp_tsolar": {
+        "name": "Temperatur Tsolar - Solarkollektor"
+      },
+      "temp_tw2": {
+        "name": "Temperatur Tw2 - Wasser Zone 2"
+      },
+      "temp_tw_in": {
+        "name": "Temperatur Tw_in - Wasser Eintritt"
+      },
+      "temp_tw_out": {
+        "name": "Temperatur Tw_out - Wasser Austritt"
+      },
+      "water_flow": {
+        "name": "Wasser - Durchfluss"
+      },
+      "water_pressure": {
+        "name": "Wasser - Druck"
+      },
+      "hmi_sn_code": {
+        "name": "Info - HMI-Seriennummer"
+      },
+      "zone1_temp_set": {
+        "name": "Temperatur - Sollwert Zone 1"
+      },
+      "zone2_temp_set": {
+        "name": "Temperatur - Sollwert Zone 2"
       }
     },
     "switch": {
       "anion": {
         "name": "Anion"
+      },
+      "humidify": {
+        "name": "Befeuchten"
+      },
+      "waterions": {
+        "name": "Wasserionen"
+      },
+      "anophelifuge": {
+        "name": "Mückenschutz"
+      },
+      "display_on_off": {
+        "name": "Anzeige"
+      },
+      "auto_power_off": {
+        "name": "Automatische Abschaltung"
+      },
+      "body_feeling_scan": {
+        "name": "Körpererkennung"
       },
       "aux_heating": {
         "name": "Aux Heating"
@@ -830,11 +1613,17 @@
       "comfort_mode": {
         "name": "Comfort-Modus"
       },
+      "degerming": {
+        "name": "Entkeimung"
+      },
       "dhw_power": {
         "name": "DHW Power"
       },
       "disinfect": {
         "name": "Desinfizieren"
+      },
+      "maintenance_reminder": {
+        "name": "Wartungserinnerung"
       },
       "vacation_mode": {
         "name": "Urlaubsmodus"
@@ -863,8 +1652,17 @@
       "frost_protect": {
         "name": "Frostschutz"
       },
+      "furnace_light": {
+        "name": "Ofenlicht"
+      },
       "heating_power": {
         "name": "Heizleistung"
+      },
+      "hot_wind": {
+        "name": "Heißluft"
+      },
+      "ramadan": {
+        "name": "Ramadan-Modus"
       },
       "indirect_wind": {
         "name": "Indirekter Wind"
@@ -904,6 +1702,9 @@
       },
       "regeneration": {
         "name": "Regeneration"
+      },
+      "turntable": {
+        "name": "Drehteller"
       },
       "water_pump": {
         "name": "Wasserpumpe"
@@ -965,6 +1766,9 @@
       "self_clean": {
         "name": "Selbstreinigung"
       },
+      "ieco": {
+        "name": "iECO"
+      },
       "sound": {
         "name": "Ton"
       },
@@ -997,6 +1801,36 @@
       },
       "zone2_power": {
         "name": "Zone2 Power"
+      },
+      "boiling": {
+        "name": "Wasser kochen"
+      },
+      "tea_bar_boil": {
+        "name": "Wasserkocher-Schalter"
+      },
+      "tea_bar_child_lock": {
+        "name": "Kindersicherung"
+      },
+      "keep_warm": {
+        "name": "Warmhalten"
+      },
+      "tea_bar_cooling": {
+        "name": "Kühlung"
+      },
+      "screen_off": {
+        "name": "Bildschirm aus"
+      },
+      "wash": {
+        "name": "Filterspülung"
+      },
+      "antifreeze": {
+        "name": "Frostschutz"
+      },
+      "dhw_disinfect": {
+        "name": "WW - Desinfektion"
+      },
+      "holiday_on": {
+        "name": "Modus - Urlaub"
       }
     },
     "water_heater": {

@@ -18,7 +18,9 @@ from homeassistant.components.valve import (
 )
 from homeassistant.components.valve.const import DOMAIN as VALVE_DOMAIN
 from homeassistant.const import ATTR_ENTITY_ID
+from homeassistant.core import CALLBACK_TYPE, callback
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.event import async_call_later
 from homeassistant.util import dt
 
 from custom_components.bhyve.pybhyve.typings import BHyveZoneLandscape
@@ -26,7 +28,7 @@ from custom_components.bhyve.pybhyve.typings import BHyveZoneLandscape
 from . import BHyveCoordinatorEntity
 from .const import DEVICE_SPRINKLER, DOMAIN, EVENT_CHANGE_MODE
 from .pybhyve.errors import BHyveError
-from .util import orbit_time_to_local_time
+from .util import next_watering_time, orbit_time_to_local_time
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -39,6 +41,10 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_MANUAL_RUNTIME = timedelta(minutes=5)
+
+# How long to report a requested valve state before falling back to coordinator
+# data, in case the cloud never confirms the command.
+OPTIMISTIC_TIMEOUT = timedelta(seconds=30)
 
 ATTR_MANUAL_RUNTIME = "manual_preset_runtime"
 ATTR_SMART_WATERING_ENABLED = "smart_watering_enabled"
@@ -272,14 +278,40 @@ class BHyveZoneValve(BHyveCoordinatorEntity, ValveEntity):
         self._entity_picture: str | None = zone.get("image_url")
         self._zone_name: str = zone_name
         self._smart_watering_enabled: bool = zone.get("smart_watering_enabled", False)
-        self._manual_preset_runtime: int = device.get(
+        self._initial_programs = device_programs
+
+        self._optimistic_is_closed: bool | None = None
+        self._cancel_optimistic_timeout: CALLBACK_TYPE | None = None
+
+    @property
+    def _manual_preset_runtime(self) -> int:
+        """
+        Return the device's manual preset runtime, in seconds.
+
+        Read from live coordinator data (like `is_closed` and the rest of this
+        entity) so a `set_manual_preset_runtime` websocket echo or a poll
+        refresh is reflected without re-creating the entity.
+        """
+        return self.device_data.get(
             "manual_preset_runtime_sec", DEFAULT_MANUAL_RUNTIME.seconds
         )
-        self._initial_programs = device_programs
 
     @property
     def is_closed(self) -> bool:
-        """Return if valve is closed."""
+        """
+        Return if valve is closed.
+
+        After a start or stop command, report the requested state until the
+        coordinator agrees or OPTIMISTIC_TIMEOUT passes. The cloud can take
+        many seconds to confirm a command.
+        """
+        if self._optimistic_is_closed is not None:
+            return self._optimistic_is_closed
+        return self._coordinator_is_closed
+
+    @property
+    def _coordinator_is_closed(self) -> bool:
+        """Return if valve is closed according to coordinator data."""
         status = self.device_data.get("status", {})
         watering_status = status.get("watering_status")
 
@@ -319,7 +351,7 @@ class BHyveZoneValve(BHyveCoordinatorEntity, ValveEntity):
                 attrs[ATTR_IMAGE_URL] = image_url
 
         # Add next start time if available
-        next_start_time = orbit_time_to_local_time(status.get("next_start_time"))
+        next_start_time = next_watering_time(status)
         if next_start_time is not None:
             next_start_programs = status.get("next_start_programs")
             attrs.update(
@@ -523,14 +555,64 @@ class BHyveZoneValve(BHyveCoordinatorEntity, ValveEntity):
     async def start_watering(self, minutes: float) -> None:
         """Open the valve and starts watering."""
         station_payload = [{"station": self._zone_id, "run_time": minutes}]
-        self._attr_is_closed = False
-        await self._send_station_message(station_payload)
+        await self._send_optimistic_station_message(station_payload, is_closed=False)
 
     async def stop_watering(self) -> None:
         """Close the valve and stops watering."""
         station_payload = []
-        self._attr_is_closed = True
-        await self._send_station_message(station_payload)
+        await self._send_optimistic_station_message(station_payload, is_closed=True)
+
+    async def _send_optimistic_station_message(
+        self, station_payload: Any, *, is_closed: bool
+    ) -> None:
+        """Send a station message and report the requested state until confirmed."""
+        self._set_optimistic_is_closed(is_closed)
+        self.async_write_ha_state()
+        try:
+            await self._send_station_message(station_payload)
+        except BHyveError:
+            self._clear_optimistic_is_closed()
+            self.async_write_ha_state()
+            raise
+
+    def _set_optimistic_is_closed(self, is_closed: bool) -> None:  # noqa: FBT001
+        """Hold the requested state until confirmed or timed out."""
+        self._clear_optimistic_is_closed()
+        self._optimistic_is_closed = is_closed
+        self._cancel_optimistic_timeout = async_call_later(
+            self.hass, OPTIMISTIC_TIMEOUT, self._async_optimistic_timeout
+        )
+
+    def _clear_optimistic_is_closed(self) -> None:
+        """Drop the requested state and its timeout."""
+        self._optimistic_is_closed = None
+        if self._cancel_optimistic_timeout is not None:
+            self._cancel_optimistic_timeout()
+            self._cancel_optimistic_timeout = None
+
+    @callback
+    def _async_optimistic_timeout(self, _now: datetime.datetime) -> None:
+        """Fall back to coordinator state when the cloud never confirmed."""
+        self._cancel_optimistic_timeout = None
+        self._optimistic_is_closed = None
+        self.async_write_ha_state()
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """
+        Clear the requested state once the coordinator agrees with it.
+
+        Unrelated updates, such as another device's event or the change_mode
+        echo of our own command, leave the requested state in place.
+        """
+        if self._optimistic_is_closed == self._coordinator_is_closed:
+            self._clear_optimistic_is_closed()
+        super()._handle_coordinator_update()
+
+    async def async_will_remove_from_hass(self) -> None:
+        """Cancel the optimistic timeout."""
+        self._clear_optimistic_is_closed()
+        await super().async_will_remove_from_hass()
 
     async def enable_rain_delay(self, hours: int = 24) -> None:
         """Enable rain delay for the device."""

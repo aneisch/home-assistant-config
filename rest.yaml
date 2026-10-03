@@ -177,3 +177,17 @@
       unit_of_measurement: "in"
       icon: mdi:weather-rainy
       state_class: total_increasing
+
+- resource: "http://10.0.1.22:8200/v1/sys/seal-status"
+  method: GET
+  scan_interval: 30
+  binary_sensor:
+    - name: "OpenBao Sealed"
+      value_template: "{{ value_json.sealed if value_json is defined else true }}"
+      device_class: problem
+      icon: >-
+        {% if value_json is defined and value_json.sealed %}
+          mdi:lock
+        {% else %}
+          mdi:lock-open-variant
+        {% endif %}

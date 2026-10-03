@@ -26,7 +26,7 @@ from .const import (
 )
 from .pybhyve.errors import BHyveError
 from .pybhyve.typings import BHyveTimerProgram
-from .util import orbit_time_to_local_time
+from .util import orbit_time_to_local_time, rain_delay_active
 
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
@@ -450,18 +450,15 @@ class BHyveRainDelaySwitch(BHyveCoordinatorEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return the status of the sensor."""
-        status = self.device_data.get("status", {})
-        rain_delay = status.get("rain_delay", 0)
-        return rain_delay is not None and rain_delay > 0
+        return rain_delay_active(self.device_data.get("status", {}))
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return the device state attributes."""
         status = self.device_data.get("status", {})
-        rain_delay = status.get("rain_delay", 0)
 
-        if rain_delay is not None and rain_delay > 0:
-            attrs: dict[str, Any] = {ATTR_DELAY: rain_delay}
+        if rain_delay_active(status):
+            attrs: dict[str, Any] = {ATTR_DELAY: status["rain_delay"]}
             attrs.update(
                 {
                     ATTR_CAUSE: status.get("rain_delay_cause", "Unknown"),
