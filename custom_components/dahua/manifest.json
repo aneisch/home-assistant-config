@@ -2,6 +2,8 @@
   "domain": "dahua",
   "name": "Dahua",
   "after_dependencies": [
+    "ffmpeg",
+    "media_source",
     "search",
     "tag"
   ],
@@ -27,5 +29,6 @@
   "documentation": "https://github.com/rroller/dahua",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/rroller/dahua/issues",
-  "version": "0.10.23"
+  "quality_scale": "gold",
+  "version": "2.0.0"
 }

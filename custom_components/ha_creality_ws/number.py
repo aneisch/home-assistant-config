@@ -15,6 +15,7 @@ UNIT_CELSIUS = UnitOfTemperature.CELSIUS
 from homeassistant.helpers.dispatcher import async_dispatcher_connect  # type: ignore[import]
 from .const import DOMAIN
 from .entity import KEntity
+from .utils import ModelDetection
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,10 +27,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # Standard entities for all printers
     ents.append(PrintTuningPercent(coord))
+    ents.append(FlowRatePercent(coord))
     ents.append(NozzleTargetNumber(coord))
     ents.append(BedTargetNumber(coord, bed_index=0))
 
-    # Chamber temperature control (K2 Pro/Plus only).
+    # Chamber temperature control (K2 family; never the K1 family, R71).
     #
     # This used to be gated purely on live `maxBoxTemp`, which the printer only
     # reports once it is reachable. Platform setup deliberately does not wait for
@@ -42,6 +44,10 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     def _chamber_entities() -> list[NumberEntity]:
         if "box_target" in added:
+            return []
+        # No K1-family printer has a chamber heater, although a K1C reports
+        # targetBoxTemp; the control it got that way did nothing (R71).
+        if ModelDetection.from_cache(entry.data, coord.data).is_k1_family:
             return []
         # Read the capability on every call rather than capturing it at setup:
         # the late pass has to see the current entry data, and live telemetry
@@ -116,10 +122,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 # ---------- Unified speed+flow percent ----------
 class PrintTuningPercent(KEntity, NumberEntity):
-    """
-    One control for both speed and flow.
-    Writes: setFeedratePct=value and setFlowratePct=value.
-    Reads:  curFeedratePct if present; falls back to curFlowratePct.
+    """Print speed, as a percentage of the sliced speed.
+
+    Writes setFeedratePct only. It used to write the flow rate as well, "in
+    lockstep", so 150% speed also meant 150% extrusion (R26); flow is now its
+    own number. The unique id keeps its old name so the entity is not orphaned.
     """
     _attr_translation_key = "print_tuning_pct"
     _attr_icon = "mdi:speedometer"
@@ -128,6 +135,8 @@ class PrintTuningPercent(KEntity, NumberEntity):
     _attr_native_min_value = 1.0
     _attr_native_max_value = 200.0
     _attr_native_step = 1.0
+    _field = "curFeedratePct"
+    _command = "setFeedratePct"
 
     def __init__(self, coordinator) -> None:
         super().__init__(coordinator, unique_id="print_tuning_pct")
@@ -137,10 +146,7 @@ class PrintTuningPercent(KEntity, NumberEntity):
         """Return the current value."""
         if self._should_zero():
             return None
-        d = self.coordinator.data
-        v = d.get("curFeedratePct")
-        if v is None:
-            v = d.get("curFlowratePct")
+        v = self.coordinator.data.get(self._field)
         try:
             return float(v) if v is not None else None
         except (TypeError, ValueError):
@@ -149,9 +155,18 @@ class PrintTuningPercent(KEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
         v = int(max(self._attr_native_min_value, min(self._attr_native_max_value, round(value))))
-        # Write BOTH, keep them in lockstep
-        await self.coordinator.client.send_set_retry(setFeedratePct=v)
-        await self.coordinator.client.send_set_retry(setFlowratePct=v)
+        await self._send(**{self._command: v})
+
+
+class FlowRatePercent(PrintTuningPercent):
+    """The extrusion flow rate, as a percentage (R26)."""
+    _attr_translation_key = "flow_rate_pct"
+    _attr_icon = "mdi:printer-3d-nozzle-outline"
+    _field = "curFlowratePct"
+    _command = "setFlowratePct"
+
+    def __init__(self, coordinator) -> None:
+        KEntity.__init__(self, coordinator, unique_id="flow_rate_pct")
 
 
 # ---------- Temperature targets (BOX inputs) ----------
@@ -186,11 +201,13 @@ class NozzleTargetNumber(KEntity, NumberEntity):
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
-        
-        self.coordinator.data["targetNozzleTemp"] = v
-        self.coordinator.async_update_listeners()
-        
-        await self.coordinator.client.send_set_retry(nozzleTempControl=v)
+
+        # Sent first: a target the printer never received must not show (R32).
+        before = self.coordinator.client.reported("targetNozzleTemp")
+        await self._send(nozzleTempControl=v)
+        self.coordinator.assume_commanded(
+            {"targetNozzleTemp": v}, reported_before={"targetNozzleTemp": before}
+        )
 
 
 class BedTargetNumber(KEntity, NumberEntity):
@@ -226,11 +243,11 @@ class BedTargetNumber(KEntity, NumberEntity):
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
-        
-        self.coordinator.data[f"targetBedTemp{self._idx}"] = v
-        self.coordinator.async_update_listeners()
-        
-        await self.coordinator.client.send_set_retry(bedTempControl={"num": self._idx, "val": v})
+
+        key = f"targetBedTemp{self._idx}"
+        before = self.coordinator.client.reported(key)
+        await self._send(bedTempControl={"num": self._idx, "val": v})
+        self.coordinator.assume_commanded({key: v}, reported_before={key: before})
 
 
 class BoxTargetNumber(KEntity, NumberEntity):
@@ -274,13 +291,12 @@ class BoxTargetNumber(KEntity, NumberEntity):
         max_v = self._attr_native_max_value
         if max_v is not None:
             v = min(int(max_v), v)
-        
-        # Optimistic update. Via the coordinator helper, not a direct write:
-        # targetBoxTemp is a LATE_DISCOVERY_FIELDS entry, and writing it straight
-        # into .data consumes the one-shot that other gates depend on. Harmless
-        # today (this entity only exists once that gate is already satisfied) but
-        # the invariant has been broken this way before.
-        self.coordinator.merge_telemetry({"targetBoxTemp": v})
-        self.coordinator.async_update_listeners()
 
-        await self.coordinator.client.send_set_retry(boxTempControl=v)
+        before = self.coordinator.client.reported("targetBoxTemp")
+        await self._send(boxTempControl=v)
+        # Optimistic update, which goes through merge_telemetry: targetBoxTemp
+        # is a LATE_DISCOVERY_FIELDS entry, and writing it straight into .data
+        # consumes the one-shot that other gates depend on.
+        self.coordinator.assume_commanded(
+            {"targetBoxTemp": v}, reported_before={"targetBoxTemp": before}
+        )

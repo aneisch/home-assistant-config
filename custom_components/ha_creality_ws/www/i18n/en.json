@@ -1,5 +1,8 @@
 {
   "printer_card": {
+    "default_name": "3D Printer",
+    "picker_name": "Creality Printer Card",
+    "picker_description": "Standalone card for Creality K-Series printers",
     "status_unknown": "Unknown",
     "confirm_stop": "Are you sure you want to stop the print?",
     "confirm_power_off": "Are you sure you want to power off the printer?",
@@ -77,6 +80,7 @@
     "label_custom_btn": "Custom Action Entity",
     "label_custom_btn_icon": "Custom Button Icon",
     "label_custom_btn_hidden": "Hide Custom Button",
+    "label_hidden_buttons": "Hidden Buttons",
     "label_button_order": "Button Order (list)",
     "label_hide_box_temp": "Hide Chamber Temperature",
     "label_pause_btn_icon": "Pause Icon Override",
@@ -104,6 +108,7 @@
     "helper_custom_btn": "Any entity to trigger (Button, Script, Switch, etc.)",
     "helper_custom_btn_icon": "Icon for the custom button",
     "helper_custom_btn_hidden": "Hide the custom button",
+    "helper_hidden_buttons": "Never shown on the card, whatever the printer is doing",
     "helper_button_order": "List of buttons to show in order (pause, resume, stop, light, power, custom)",
     "helper_hide_box_temp": "Hide the chamber temperature pill even when a sensor is configured",
     "editor_error_title": "Editor Error",
@@ -111,9 +116,14 @@
     "editor_error_prefix": "Error:"
   },
   "cfs_card": {
+    "picker_name": "Creality CFS Card",
+    "label_device": "Printer",
+    "btn_fill_from_device": "Fill all fields from the printer",
+    "status_device_filled": "Filled {filled} of {total} fields.",
+    "status_device_empty": "This printer has no CFS sensors yet.",
+    "picker_description": "A card to control the Creality Filament System (CFS)",
     "no_data": "No CFS data available",
     "ext_label": "EXT",
-    "cfs_label": "CFS",
     "cfs_number_label": "CFS {number}",
     "label_card_title": "Card Title",
     "label_external_filament": "External Filament",
@@ -124,7 +134,6 @@
     "label_slot_filament": "Box {box} Slot {slot} Filament",
     "label_slot_color": "Box {box} Slot {slot} Color",
     "label_slot_percent": "Box {box} Slot {slot} Remaining Percent",
-    "schema_compact_view": "Compact View (Mini Mode)",
     "schema_show_type_in_mini": "Show Filament Type in Mini Mode",
     "tab_entities": "Entities",
     "tab_theme": "Theme",

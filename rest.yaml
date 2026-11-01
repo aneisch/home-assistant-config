@@ -178,7 +178,7 @@
       icon: mdi:weather-rainy
       state_class: total_increasing
 
-- resource: "http://10.0.1.22:8200/v1/sys/seal-status"
+- resource: "http://localhost:8200/v1/sys/seal-status"
   method: GET
   scan_interval: 30
   binary_sensor:

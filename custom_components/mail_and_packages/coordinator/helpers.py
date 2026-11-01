@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import logging
 import os
 from http import HTTPStatus
@@ -88,7 +88,7 @@ async def async_oauth_access_token(
 def initialize_data(config: dict) -> dict:
     """Initialize core data structure with default values."""
     data = {
-        "mail_updated": datetime.datetime.now(datetime.UTC).isoformat(),
+        "mail_updated": dt.datetime.now(dt.UTC).isoformat(),
         "amazon_delivered_by_others": 0,
     }
     resources = config.get(CONF_RESOURCES, [])
@@ -230,14 +230,15 @@ def sum_transit_counts(data: dict) -> int:
             transit += value
             continue
 
-        # Match shipper prefix
-        shipper = next((s for s in const.SHIPPERS if key.startswith(s)), None)
-        if not shipper or shipper in shippers_counted:
+        if not key.endswith("_delivering"):
             continue
 
-        if key.endswith("_delivering"):
-            transit += value
-            shippers_counted.add(shipper)
+        shipper = key.removesuffix("_delivering")
+        if shipper not in const.SHIPPERS or shipper in shippers_counted:
+            continue
+
+        transit += value
+        shippers_counted.add(shipper)
 
     return transit
 

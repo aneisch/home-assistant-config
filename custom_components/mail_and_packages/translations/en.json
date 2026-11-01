@@ -3,7 +3,22 @@
     "abort": {
       "single_instance_allowed": "Only a single configuration of Mail and Packages is allowed.",
       "reconfigure_successful": "Reconfigure Successful",
-      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled."
+      "oauth_unauthorized": "OAuth unauthorized: access was denied or the authentication was cancelled.",
+      "oauth_imap_refused": "You signed in, but {host} refused mail (IMAP) access for {username}. Check that the address you entered is the account you signed in with, that IMAP is turned on for the mailbox (Gmail settings, or Exchange admin center > mailbox > Email apps for Microsoft 365), and that your app includes the mail permission. The OAuth2 setup section of the Mail and Packages wiki has the details.",
+      "oauth_cannot_connect": "You signed in, but Home Assistant could not reach {host}. Check the server name and port, and that Home Assistant can reach the internet, then try again.",
+      "oauth_missing_inbox": "You signed in, but the mailbox for {username} has no inbox Home Assistant can open.",
+      "missing_credentials": "No OAuth app is set up for Mail and Packages yet. Add your Google or Microsoft client ID and secret under Settings > Devices & services > Application credentials, then try again. The OAuth2 setup section of the Mail and Packages wiki has the details.",
+      "missing_configuration": "No OAuth app is set up for Mail and Packages yet. Add your client ID and secret under Settings > Devices & services > Application credentials.",
+      "oauth_error": "The sign-in service returned an error. Check that your OAuth app uses the My Home Assistant OAuth redirect URI and, for Microsoft, that the app allows accounts in any organizational directory. The OAuth2 setup section of the Mail and Packages wiki has details.",
+      "oauth_failed": "Sign-in did not finish. Please try again.",
+      "oauth_timeout": "Sign-in took too long to finish. Please try again.",
+      "authorize_url_timeout": "Timed out preparing the sign-in page. Please try again.",
+      "no_url_available": "Home Assistant has no URL configured for the sign-in redirect. Set one under Settings > System > Network.",
+      "user_rejected_authorize": "Sign-in was cancelled or access was not granted.",
+      "reauth_successful": "Signed in again successfully.",
+      "already_configured": "The All mailboxes summary is already set up.",
+      "summary_needs_mailboxes": "The All mailboxes summary needs at least two mailboxes.",
+      "summary_not_configurable": "The All mailboxes summary has no settings; it follows your mailboxes automatically."
     },
     "error": {
       "cannot_connect": "Unable to connect or login to the mail server. Please check the log for details.",
@@ -15,18 +30,19 @@
       "missing_forwarded_emails": "Missing forwarded email addresses. You may enter '(none)' to clear this setting.",
       "path_not_found": "Directory not found",
       "invalid_auth": "Invalid authentication details. Please check your username and password.",
-      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again."
+      "ssl_error": "An SSL error occurred. Change SSL cipher list and try again.",
+      "missing_inbox": "Logged in, but the mailbox has no inbox that can be opened."
     },
     "step": {
       "user": {
-        "description": "Select the authentication method for your mail server.",
+        "description": "Select how Mail and Packages signs in to your mailbox.\n\nPassword works with any IMAP mail server that accepts a password or app password.\n\nThe Google (Gmail) and Microsoft (Outlook/Exchange) options sign in with that account instead. Before picking one, register your own OAuth app with Google or Microsoft and add it under Settings > Devices & services > Application credentials. The OAuth2 setup section of the Mail and Packages wiki has step by step notes.",
         "data": {
           "auth_type": "Authentication Type"
         },
         "title": "Authentication Method"
       },
       "imap_config": {
-        "description": "Please enter the connection information of your mail server.",
+        "description": "Please enter the connection information of your mail server.\n\nFor Google or Microsoft sign in, the username has to be the exact address of the account you will sign in with; the sign in page selects it for you. Gmail uses imap.gmail.com and Microsoft 365 uses outlook.office365.com, both on port 993 with SSL.\n\nA Microsoft app has to allow accounts in any organizational directory (multitenant) and include the My Home Assistant OAuth redirect URI. If sign in fails, see the OAuth2 setup section of the Mail and Packages wiki.",
         "data": {
           "host": "Host",
           "password": "Password",
@@ -48,7 +64,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -119,7 +135,7 @@
           "generate_mp4": "Create mp4 from images",
           "resources": "Sensors List",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -205,8 +221,13 @@
           "password": "Password"
         },
         "title": "Re-authenticate Mail Server"
+      },
+      "summary_confirm": {
+        "title": "All mailboxes",
+        "description": "Combine your {count} Mail and Packages mailboxes into one set of totals. A package that appears in more than one mailbox (for example, a forwarded shipping email) is counted once, matched by its tracking number or Amazon order number. Mail without a tracking number, such as the USPS daily mail count, is added across mailboxes. Your mailbox sensors are not changed."
       }
-    }
+    },
+    "flow_title": "{name}"
   },
   "options": {
     "step": {
@@ -223,7 +244,7 @@
           "image_security": "Random Image Filename",
           "imap_timeout": "Mailbox scan time limit (seconds, minimum 10)",
           "generate_mp4": "Create mp4 from images",
-          "allow_external": "Create image for notification apps",
+          "allow_external": "Create image for notification apps (Deprecated)",
           "usps_placeholder": "Include USPS no-image placeholder in GIF?",
           "custom_img": "Use custom USPS 'no mail' image?",
           "amazon_custom_img": "Use custom 'no Amazon delivery' image?",
@@ -238,7 +259,8 @@
         },
         "data_description": {
           "imap_timeout": "Covers the entire scan — login plus every per-carrier IMAP search — not just connecting. Raise this if large mailboxes time out; lower it to fail faster.",
-          "exchange_mode": "Enable compatibility workarounds for Microsoft Exchange/Outlook IMAP servers (avoids nested parentheses in search queries and limits subject batching)."
+          "exchange_mode": "Enable compatibility workarounds for Microsoft Exchange/Outlook IMAP servers (avoids nested parentheses in search queries and limits subject batching).",
+          "allow_external": "Deprecated: Images are now served securely via Home Assistant API endpoints using signed URLs. Copying images to www/mail_and_packages/ will be removed in a future release."
         }
       },
       "options_3": {
@@ -317,6 +339,28 @@
           "confirm": {
             "title": "Re-authenticate Mail Server",
             "description": "Authentication to your IMAP mail server has failed. Click submit to start the re-authentication flow."
+          }
+        }
+      }
+    },
+    "deprecated_allow_external": {
+      "title": "External image copying is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Disable External Image Copying",
+            "description": "The 'Create image for notification apps' (`allow_external`) setting is deprecated and will be removed in a future release. Images are now served securely via Home Assistant API endpoints using signed URLs without copying files to `/config/www/mail_and_packages/`.\n\nClick Submit to automatically disable this deprecated option on your configuration."
+          }
+        }
+      }
+    },
+    "deprecated_storage": {
+      "title": "Custom image storage folder is deprecated",
+      "fix_flow": {
+        "step": {
+          "confirm": {
+            "title": "Use Managed Image Storage",
+            "description": "The custom image storage folder setting is deprecated and will be removed in a future release. Images are now stored automatically in entry-scoped internal directories and served securely via signed URLs.\n\nClick Submit to remove this deprecated setting and use managed internal storage."
           }
         }
       }

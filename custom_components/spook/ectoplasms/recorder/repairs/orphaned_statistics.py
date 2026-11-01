@@ -8,9 +8,13 @@ from homeassistant.const import EVENT_COMPONENT_LOADED
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.recorder import DATA_INSTANCE
 
-from ....const import LOGGER
+from ....const import DOMAIN, LOGGER
+from ....dismissals import async_get_dismissals
 from ....repairs import AbstractSpookRepair
-from ....statistics_sources import async_settled_orphaned_statistic_ids
+from ....statistics_sources import (
+    async_settled_orphaned_statistic_ids,
+    async_statistics_still_settling,
+)
 
 
 class SpookRepair(AbstractSpookRepair):
@@ -50,21 +54,44 @@ class SpookRepair(AbstractSpookRepair):
 
         self.possible_issue_ids.add(self.repair)
 
-        orphaned = sorted(await async_settled_orphaned_statistic_ids(self.hass))
+        settled = await async_settled_orphaned_statistic_ids(self.hass)
 
-        if orphaned:
-            self.async_create_issue(
-                issue_id=self.repair,
-                references=orphaned,
-                is_fixable=True,
-                # Handed to the fix so it knows what was offered. It looks
-                # again before clearing anything and keeps the two answers
-                # in common, so nothing goes that somebody was not shown and
-                # nothing goes that has since come back.
-                data={"orphaned_statistic_ids": ",".join(orphaned)},
-                translation_placeholders={
-                    "statistics": "\n".join(
-                        f"- `{statistic_id}`" for statistic_id in orphaned
-                    ),
-                },
+        if not settled and async_statistics_still_settling(self.hass):
+            # Right after a start everything is still being waited on, so
+            # nothing is settled yet. That is not the same as everything
+            # being fine, and clearing what is up now would only put it back
+            # a quarter of an hour later. Leave it until it is known.
+            prefix = f"{self.repair}_"
+            self.issue_ids.update(
+                issue_id.removeprefix(prefix)
+                for domain, issue_id in self.issue_registry.issues
+                if domain == DOMAIN and issue_id.startswith(prefix)
             )
+            return
+
+        # Reported apart: what is new on an issue of its own, and what
+        # somebody already said to keep on another that is ignored from the
+        # start. One statistic turning up should not bring back the couple of
+        # hundred somebody already decided about. #1699, #1702.
+        kept = async_get_dismissals(self.hass).async_dismissed(self.repair, self.repair)
+        for orphaned in (settled - kept, settled & kept):
+            if orphaned:
+                self._async_report(sorted(orphaned))
+
+    def _async_report(self, orphaned: list[str]) -> None:
+        """Raise an issue listing these statistics."""
+        self.async_create_issue(
+            issue_id=self.repair,
+            references=orphaned,
+            is_fixable=True,
+            # Handed to the fix so it knows what was offered. It looks again
+            # before clearing anything and keeps the two answers in common,
+            # so nothing goes that somebody was not shown and nothing goes
+            # that has since come back.
+            data={"orphaned_statistic_ids": ",".join(orphaned)},
+            translation_placeholders={
+                "statistics": "\n".join(
+                    f"- `{statistic_id}`" for statistic_id in orphaned
+                ),
+            },
+        )

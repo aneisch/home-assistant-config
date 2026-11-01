@@ -29,7 +29,10 @@ from .imap_fetch import (
     email_fetch,
     email_fetch_batch,
     email_fetch_headers,
+    email_fetch_headers_batch,
     email_fetch_text,
+    parse_batch_fetch_lines,
+    parse_uidvalidity,
     selectfolder,
 )
 from .imap_query import (
@@ -305,6 +308,7 @@ __all__ = [
     "email_fetch",
     "email_fetch_batch",
     "email_fetch_headers",
+    "email_fetch_headers_batch",
     "email_fetch_text",
     "email_search",
     "encode_folder_ref",
@@ -312,7 +316,9 @@ __all__ = [
     "get_subject_batch_size",
     "login",
     "logout",
+    "parse_batch_fetch_lines",
     "parse_search_response",
+    "parse_uidvalidity",
     "quote_folder",
     "selectfolder",
 ]

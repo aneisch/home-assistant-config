@@ -14,12 +14,19 @@ import asyncio
 import base64
 import json
 import logging
+import re
+import time
+from collections.abc import Callable
+from typing import Any
 
 from urllib.parse import urlparse
 
-from aiohttp import ClientError, web  # type: ignore[assignment]
+from aiohttp import ClientError, ClientTimeout  # type: ignore[assignment]
 from homeassistant.core import HomeAssistant, callback  # type: ignore[assignment]
-from homeassistant.helpers.aiohttp_client import async_get_clientsession  # type: ignore[assignment]
+from homeassistant.helpers.aiohttp_client import (  # type: ignore[assignment]
+    async_aiohttp_proxy_web,
+    async_get_clientsession,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +39,23 @@ except ImportError:
     GO2RTC_CLIENT_AVAILABLE = False
     _LOGGER.warning("go2rtc-client library not available, WebRTC cameras will not work")
 
+# go2rtc's WebSocket signalling, as Home Assistant's own go2rtc provider uses it:
+# the offer carries the frontend's ICE servers and candidates trickle both ways.
+# The REST (WHEP) offer carries neither, so go2rtc answered with LAN addresses
+# only and a phone outside the LAN never connected (#134). Optional, so an old
+# go2rtc-client still gets the WHEP path.
+try:
+    from go2rtc_client.ws import (
+        Go2RtcWsClient,
+        WebRTCAnswer as Go2RtcWsAnswer,
+        WebRTCCandidate as Go2RtcWsCandidate,
+        WebRTCOffer as Go2RtcWsOffer,
+        WsError as Go2RtcWsError,
+    )
+    GO2RTC_WS_AVAILABLE = True
+except ImportError:
+    GO2RTC_WS_AVAILABLE = False
+
 from homeassistant.components.camera import Camera, CameraEntityFeature
 
 # The go2rtc component's domain, as a literal rather than imported from it.
@@ -39,9 +63,51 @@ from homeassistant.components.camera import Camera, CameraEntityFeature
 # read one string would be an undeclared cross-component import for no gain.
 GO2RTC_DOMAIN = "go2rtc"
 
+# The no-video span clock; a name of its own so tests can move it.
+_monotonic = time.monotonic
+
 # Hosts that mean "this machine". HA addresses its own go2rtc as one of
 # these, and a bare host with no scheme parses to None.
 _GO2RTC_LOOPBACK_HOSTS = (None, "localhost", "127.0.0.1", "::1")
+
+# A browser's host candidate with its address hidden behind a random mDNS name,
+# "a=candidate:<foundation> <component> <transport> <priority> <uuid>.local ..."
+# (R87). Groups: everything before the host, the host, everything after.
+_MDNS_CANDIDATE_RE = re.compile(r"^(a=candidate:\S+ \d+ \S+ \d+ )(\S+\.local)( .*)$")
+# Per name; the names are resolved together. A browser on the LAN answered in
+# 0.27 s on the test network.
+MDNS_RESOLVE_TIMEOUT_MS = 1500
+
+
+async def _async_resolve_mdns_hosts(hass: HomeAssistant, names: list[str]) -> dict[str, str]:
+    """IPv4 addresses for browsers' mDNS host names, through HA's zeroconf.
+
+    Names that do not answer are left out. Imported here rather than at the top:
+    zeroconf is only an `after_dependencies` entry, and only direct WebRTC with
+    a hidden browser address ever needs it.
+    """
+    try:
+        from homeassistant.components import zeroconf as ha_zeroconf
+        from zeroconf import AddressResolverIPv4, IPVersion
+
+        aiozc = await ha_zeroconf.async_get_async_instance(hass)
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.debug("ha_creality_ws: cannot resolve browser mDNS candidates: %s", exc)
+        return {}
+
+    async def _resolve(name: str) -> tuple[str, str | None]:
+        resolver = AddressResolverIPv4(f"{name}.")
+        try:
+            if await resolver.async_request(aiozc.zeroconf, MDNS_RESOLVE_TIMEOUT_MS):
+                addresses = resolver.parsed_addresses(IPVersion.V4Only)
+                if addresses:
+                    return name, addresses[0]
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.debug("ha_creality_ws: mDNS lookup of %s failed: %s", name, exc)
+        return name, None
+
+    results = await asyncio.gather(*(_resolve(name) for name in names))
+    return {name: address for name, address in results if address}
 
 from .const import (
     DOMAIN,
@@ -60,6 +126,34 @@ from .const import (
     CAM_MODE_CUSTOM,
 )
 from .entity import KEntity
+from .utils import ModelDetection
+
+# Failed go2rtc snapshots in a row, each with go2rtc connected to the printer
+# and no video arriving, before an Auto camera moves to direct WebRTC (#46).
+NO_VIDEO_STRIKES = 2
+# ...and that long between the first of them and the one that decides. Two in
+# a row, 20 s apart, also fit a printer still booting or a camera service that
+# hung for a moment, and the move is cached for good: a K1 Max that go2rtc
+# streams fine ended up on direct WebRTC, blank outside the LAN (#134).
+NO_VIDEO_MIN_SPAN = 600.0
+# How long into a snapshot request go2rtc's counters are read. Before the
+# request ends: Home Assistant cancels a still image at 10 s, and go2rtc lets
+# go of the printer soon after nobody is waiting for a frame.
+NO_VIDEO_CHECK_AFTER = 6.0
+
+# go2rtc 1.9.14's creality source leaks its peer connection (about six sockets
+# and 190 KB) on every failed dial, and a snapshot dials once per dashboard
+# refresh: 600 failed snapshots grew go2rtc from 84 to 174 MB and 2,309 to
+# 5,909 open files (#133). So a snapshot first checks that the printer's
+# WebRTC endpoint answers at all, and a failed one holds off the next.
+WEBRTC_PROBE_TTL = 5.0
+WEBRTC_PROBE_TIMEOUT = 3.0
+SNAPSHOT_BACKOFF_START = 30.0
+SNAPSHOT_BACKOFF_MAX = 600.0
+# Silent strikes further apart than this are separate moments, not one lasting
+# silence: a printer booting twice an evening apart (#134). With a dashboard
+# open, the back-off above still checks at least this often.
+NO_VIDEO_STRIKE_GAP = 2 * SNAPSHOT_BACKOFF_MAX
 
 class _BaseCamera(KEntity, Camera):
     """Base camera class with common functionality and fallback image support.
@@ -83,6 +177,15 @@ class _BaseCamera(KEntity, Camera):
         KEntity.__init__(self, coordinator, unique_id=unique_suffix)
         Camera.__init__(self)
         self._last_frame: bytes | None = None
+
+    def _printer_unreachable(self) -> bool:
+        """Switched off, or silent long enough to count as gone.
+
+        Asking for a picture then only dials a dark printer: every dashboard
+        refresh waited out a timeout and, for go2rtc, logged a WARNING (seen in
+        the #121 log). The last frame is the answer instead (R38).
+        """
+        return self.coordinator.power_is_off() or not self.coordinator.available
 
     async def _fallback_image(self) -> bytes:
         """Return a fallback image when the camera is unavailable.
@@ -144,7 +247,37 @@ class CrealityMjpegCamera(_BaseCamera):
         self._last_snapshot_ts: float = 0.0
         self._snapshot_min_interval: float = 1.0  # seconds
         self._snapshot_lock = asyncio.Lock()
+        # mjpg-streamer serves one frame at ?action=snapshot; None until tried.
+        self._snapshot_endpoint_works: bool | None = None
         _LOGGER.debug("ha_creality_ws: MJPEG camera initialized with URL: %s", url)
+
+    def _snapshot_url(self) -> str | None:
+        """The single-frame endpoint beside this stream, if it has the usual one."""
+        if self._snapshot_endpoint_works is False or "action=stream" not in self._url:
+            return None
+        return self._url.replace("action=stream", "action=snapshot")
+
+    async def _grab_single_snapshot(self, timeout: float = 3.0) -> bytes | None:
+        """One JPEG from the snapshot endpoint, rather than opening the stream (R38).
+
+        Remembered when it does not work, so a printer without one costs one
+        extra request, once.
+        """
+        url = self._snapshot_url()
+        if url is None:
+            return None
+        session = async_get_clientsession(self.hass)
+        try:
+            async with session.get(url, timeout=ClientTimeout(total=timeout)) as resp:
+                data = await resp.read() if resp.status == 200 else b""
+        except (ClientError, asyncio.TimeoutError):
+            # Not remembered: a timeout says more about the printer than the endpoint.
+            return None
+        works = self._is_valid_jpeg(data)
+        if self._snapshot_endpoint_works is None:
+            self._snapshot_endpoint_works = works
+            _LOGGER.debug("ha_creality_ws: MJPEG snapshot endpoint %s", "works" if works else "not available")
+        return data if works else None
 
     def _is_valid_jpeg(self, data: bytes) -> bool:
         """Validate JPEG image data.
@@ -174,7 +307,7 @@ class CrealityMjpegCamera(_BaseCamera):
         """
         session = async_get_clientsession(self.hass)
         try:
-            async with session.get(self._url, timeout=timeout) as resp:
+            async with session.get(self._url, timeout=ClientTimeout(total=timeout)) as resp:
                 if resp.status != 200:
                     return None
                 buf = bytearray()
@@ -192,7 +325,9 @@ class CrealityMjpegCamera(_BaseCamera):
                     j = buf.find(b"\xff\xd9", tail_start)  # EOI
                     if j != -1:
                         return bytes(buf[: j + 2])
-        except (asyncio.CancelledError, ClientError, asyncio.TimeoutError):
+        # CancelledError is not caught: swallowing it kept a cancelled request
+        # running and broke the caller's timeout (R38).
+        except (ClientError, asyncio.TimeoutError):
             return None
         except Exception:  # pragma: no cover - defensive
             _LOGGER.exception("ha_creality_ws: unexpected error grabbing MJPEG snapshot")
@@ -231,15 +366,17 @@ class CrealityMjpegCamera(_BaseCamera):
         if self._last_frame and (now - self._last_snapshot_ts) < self._snapshot_min_interval:
             return self._last_frame
 
-        # Only try grabbing a fresh frame when the printer is powered
-        if not self.coordinator.power_is_off():
+        # Only try grabbing a fresh frame when the printer can answer
+        if not self._printer_unreachable():
             async with self._snapshot_lock:
                 # Check throttle again inside the lock
                 now = asyncio.get_running_loop().time()
                 if self._last_frame and (now - self._last_snapshot_ts) < self._snapshot_min_interval:
                     return self._last_frame
                 try:
-                    frame = await self._grab_snapshot_from_mjpeg(timeout=5.0)
+                    frame = await self._grab_single_snapshot() or await self._grab_snapshot_from_mjpeg(
+                        timeout=5.0
+                    )
                 except Exception:  # pragma: no cover - defensive
                     _LOGGER.exception("ha_creality_ws: unexpected error while fetching MJPEG snapshot")
                     frame = None
@@ -265,55 +402,17 @@ class CrealityMjpegCamera(_BaseCamera):
         return frame
 
     async def handle_async_mjpeg_stream(self, request):
-        """Handle live MJPEG streaming requests.
-        
-        This method provides live MJPEG streaming by proxying the printer's
-        MJPEG stream directly to the client. It handles connection errors
-        gracefully and provides appropriate HTTP status codes.
-        
-        Args:
-            request: aiohttp request object
-            
-        Returns:
-            web.Response: HTTP response with MJPEG stream or error
+        """Proxy the printer's MJPEG stream to the browser.
+
+        Through Home Assistant's own proxy (R38). The hand-rolled one opened
+        the upstream with no timeout at all, so a printer that stopped sending
+        held the request, and its connection, open for good; it also swallowed
+        the cancellation of a viewer who left. The helper gives up after 10
+        seconds without data, stops at shutdown and answers 502/504 when the
+        printer cannot be reached.
         """
         session = async_get_clientsession(self.hass)
-        try:
-            upstream = await session.get(self._url, timeout=None)
-        except ClientError:
-            _LOGGER.warning("ha_creality_ws: upstream MJPEG connection failed to %s", self._url)
-            return web.Response(status=502, text="Upstream camera connection failed")
-        except Exception:
-            _LOGGER.exception("ha_creality_ws: unexpected error opening upstream MJPEG %s", self._url)
-            return web.Response(status=502, text="Upstream camera error")
-
-        try:
-            if upstream.status != 200:
-                txt = await upstream.text(errors="ignore")
-                _LOGGER.warning("ha_creality_ws: upstream MJPEG returned status=%s text=%s", upstream.status, txt[:200])
-                return web.Response(status=upstream.status, text=txt)
-
-            ctype = upstream.headers.get("Content-Type", "multipart/x-mixed-replace;boundary=frame")
-            resp = web.StreamResponse(status=200, headers={"Content-Type": ctype})
-            await resp.prepare(request)
-
-            try:
-                async for chunk in upstream.content.iter_chunked(8192):
-                    await resp.write(chunk)
-            except (ClientError, ConnectionResetError, asyncio.CancelledError):
-                pass
-            except Exception:
-                _LOGGER.exception("ha_creality_ws: error while streaming MJPEG from %s", self._url)
-            finally:
-                await upstream.release()
-            return resp
-        except Exception:
-            _LOGGER.exception("ha_creality_ws: unexpected error handling MJPEG stream from %s", self._url)
-            try:
-                await upstream.release()
-            except Exception:
-                pass
-            return web.Response(status=502, text="Upstream camera error")
+        return await async_aiohttp_proxy_web(self.hass, request, session.get(self._url))
 
 
 class CrealityWebRTCCamera(_BaseCamera):
@@ -373,17 +472,33 @@ class CrealityWebRTCCamera(_BaseCamera):
         self._force_recreate_stream = False
         # Guards stream creation/recreation; see _ensure_stream_configured.
         self._stream_config_lock = asyncio.Lock()
-        self._last_error: str | None = None
         # Frontend ICE candidates queued per session for the non-trickle direct POST.
         self._direct_sessions: dict[str, list] = {}
+        # Set by setup for an Auto camera that may move to direct WebRTC (#46).
+        self._on_no_video: Callable[[], None] | None = None
+        self._silent_snapshots = 0
+        self._silent_since = 0.0
+        self._silent_last = 0.0
+        self._fell_back = False
+        self._video_check_pending = False
 
         # Snapshot throttling to avoid hammering go2rtc
         self._last_snapshot_ts: float = 0.0
         self._snapshot_min_interval: float = 2.0  # seconds
         self._snapshot_lock = asyncio.Lock()
-        
+        # After a failed snapshot, none before this loop time (#133).
+        self._snapshot_retry_at: float = 0.0
+        self._snapshot_backoff: float = 0.0
+        # (loop time, answered) of the last probe of the printer's endpoint.
+        self._webrtc_probe: tuple[float, bool] | None = None
+
         # Initialize go2rtc client (will be set up in async_added_to_hass)
         self._go2rtc_client: Go2RtcRestClient | None = None
+        # The session the REST client uses; WebSocket signalling reuses it
+        # (for Home Assistant's own go2rtc it carries the unix-socket connector).
+        self._go2rtc_session = None
+        # Live go2rtc WebSocket signalling sessions, by frontend session id (#134).
+        self._go2rtc_ws_sessions: dict[str, Any] = {}
         self._go2rtc_server_url: str | None = None
         self._go2rtc_version: str | None = None
         # Whether initialization ended up on HA's own go2rtc. A custom instance
@@ -633,6 +748,7 @@ class CrealityWebRTCCamera(_BaseCamera):
                     url += "/"
                     
                 self._go2rtc_client = Go2RtcRestClient(session, url)
+                self._go2rtc_session = session
                 self._go2rtc_server_url = url
                 self._go2rtc_is_ha_managed = False
                 self._go2rtc_fell_back_from_custom = False
@@ -677,6 +793,7 @@ class CrealityWebRTCCamera(_BaseCamera):
                 go2rtc_data.session,
                 go2rtc_data.url
             )
+            self._go2rtc_session = go2rtc_data.session
             self._go2rtc_server_url = go2rtc_data.url
             self._go2rtc_is_ha_managed = True
 
@@ -728,6 +845,10 @@ class CrealityWebRTCCamera(_BaseCamera):
         if not self._uses_go2rtc_webrtc_bridge():
             return await self._fallback_image()
 
+        # go2rtc would dial the printer and time out on every refresh (R38).
+        if self._printer_unreachable():
+            return await self._fallback_image()
+
         # Ensure stream is configured and client is initialized
         await self._ensure_stream_configured()
         
@@ -742,23 +863,39 @@ class CrealityWebRTCCamera(_BaseCamera):
         if self._last_frame and (now - self._last_snapshot_ts) < self._snapshot_min_interval:
             return self._last_frame
 
+        # Every failed go2rtc dial leaks (#133): no snapshot while the printer's
+        # endpoint is down, and none for a while after one failed.
+        if now < self._snapshot_retry_at or not await self._printer_webrtc_answering():
+            return await self._fallback_image()
+
+        attempted = ok = False
         try:
             async with self._snapshot_lock:
                 # Throttle check again inside the lock
                 now = asyncio.get_running_loop().time()
                 if self._last_frame and (now - self._last_snapshot_ts) < self._snapshot_min_interval:
                     return self._last_frame
+                # And the hold-off: the call ahead of this one may have just failed.
+                if now < self._snapshot_retry_at:
+                    return await self._fallback_image()
 
                 # Use go2rtc client to get snapshot
                 _LOGGER.debug("ha_creality_ws: requesting snapshot from go2rtc for stream: %s", self._stream_name)
-                
+                if self._on_no_video is not None and not self._fell_back and not self._video_check_pending:
+                    self._video_check_pending = True
+                    self.hass.async_create_background_task(
+                        self._check_video_soon(now), "ha_creality_ws go2rtc video check"
+                    )
+
+                attempted = True
                 image_data = await self._go2rtc_client.get_jpeg_snapshot(
                     name=self._stream_name,
                     width=width,
                     height=height
                 )
-                
+
                 if image_data and self._is_valid_jpeg(image_data):
+                    ok = True
                     self._last_frame = image_data
                     self._last_snapshot_ts = now
                     _LOGGER.debug("ha_creality_ws: successfully captured WebRTC snapshot")
@@ -770,8 +907,129 @@ class CrealityWebRTCCamera(_BaseCamera):
             _LOGGER.warning("ha_creality_ws: go2rtc client error getting snapshot: %s", err)
         except Exception as exc:
             _LOGGER.warning("ha_creality_ws: unexpected error getting snapshot: %s", exc)
-        
+        finally:
+            # Also when Home Assistant cancels the request at 10 s: go2rtc's
+            # handler outlives it, so the next refresh would stack another.
+            if attempted:
+                self._note_snapshot(ok)
+
         return await self._fallback_image()
+
+    def _note_snapshot(self, ok: bool) -> None:
+        """Clear the snapshot back-off on success; start or double it on failure."""
+        if ok:
+            self._snapshot_backoff = 0.0
+            self._snapshot_retry_at = 0.0
+            return
+        self._snapshot_backoff = min(
+            SNAPSHOT_BACKOFF_MAX, self._snapshot_backoff * 2 or SNAPSHOT_BACKOFF_START
+        )
+        self._snapshot_retry_at = asyncio.get_running_loop().time() + self._snapshot_backoff
+        _LOGGER.debug(
+            "ha_creality_ws: snapshot failed; next go2rtc snapshot in %.0f s", self._snapshot_backoff
+        )
+
+    async def _printer_webrtc_answering(self) -> bool:
+        """Whether the printer's WebRTC endpoint takes connections (#133).
+
+        A plain GET costs one TCP connection and no peer connection, and tells
+        whether a go2rtc dial can work: while the printer boots, or with its
+        camera service down, the dial fails and go2rtc leaks it. Only for the
+        printer's own endpoint; a custom source is somebody else's server.
+        """
+        if self._go2rtc_source:
+            return True
+        now = asyncio.get_running_loop().time()
+        if self._webrtc_probe is not None and now - self._webrtc_probe[0] < WEBRTC_PROBE_TTL:
+            return self._webrtc_probe[1]
+        answered = False
+        try:
+            session = async_get_clientsession(self.hass)
+            async with session.get(
+                self._upstream_signaling_url,
+                timeout=ClientTimeout(total=WEBRTC_PROBE_TIMEOUT),
+            ) as resp:
+                # Any HTTP answer will do: the K1C says 200 "{}", others 405.
+                answered = resp.status < 500
+        except (ClientError, asyncio.TimeoutError, OSError) as exc:
+            _LOGGER.debug("ha_creality_ws: printer WebRTC endpoint not answering: %s", exc)
+        self._webrtc_probe = (now, answered)
+        return answered
+
+    async def _check_video_soon(self, started: float) -> None:
+        """Mid-request, look whether the snapshot is getting any video (#46).
+
+        Not after the request: Home Assistant cancels a still image at 10 s,
+        the same moment go2rtc's own snapshot request gives up, so code after
+        a failed snapshot never ran.
+        """
+        try:
+            await asyncio.sleep(NO_VIDEO_CHECK_AFTER)
+            if self._last_snapshot_ts >= started:
+                self._silent_snapshots = 0
+                return
+            await self._note_failed_snapshot()
+        finally:
+            self._video_check_pending = False
+
+    async def _go2rtc_receiving(self) -> bool | None:
+        """Whether go2rtc is getting video from the printer for this stream.
+
+        True or False only while go2rtc is connected to the printer; None when
+        it is not, or the question cannot be asked. Read from the raw
+        `/api/streams` reply: the client library's model drops the counters.
+        """
+        try:
+            resp = await self._go2rtc_client._client.request(  # pylint: disable=protected-access
+                "GET", "/api/streams", params={"src": self._stream_name}
+            )
+            info = await resp.json()
+        except Exception:  # pylint: disable=broad-except
+            return None
+        connected = [p for p in (info or {}).get("producers") or [] if p.get("remote_addr")]
+        if not connected:
+            return None
+        return any(
+            r.get("bytes") or r.get("packets")
+            for p in connected
+            for r in p.get("receivers") or []
+        )
+
+    async def _note_failed_snapshot(self) -> None:
+        """Move an Auto camera to direct WebRTC when go2rtc gets no video (#46).
+
+        The K1C 2025 answers go2rtc's offer with payload types 0 and 96 and
+        then sends 98; go2rtc's WebRTC library drops every packet, so the
+        connection is up and no frame ever arrives. A browser accepts the same
+        stream, which is what direct WebRTC hands it. Only on evidence: go2rtc
+        connected to the printer and not one packet received, twice running
+        and for at least `NO_VIDEO_MIN_SPAN` (#134). A printer that is off or
+        unreachable is not that.
+        """
+        if self._on_no_video is None or self._fell_back or not self._stream_name:
+            return
+        if await self._go2rtc_receiving() is not False:
+            self._silent_snapshots = 0
+            return
+        now = _monotonic()
+        if self._silent_snapshots and now - self._silent_last > NO_VIDEO_STRIKE_GAP:
+            self._silent_snapshots = 0
+        if self._silent_snapshots == 0:
+            self._silent_since = now
+        self._silent_last = now
+        self._silent_snapshots += 1
+        if (
+            self._silent_snapshots < NO_VIDEO_STRIKES
+            or now - self._silent_since < NO_VIDEO_MIN_SPAN
+        ):
+            return
+        self._fell_back = True
+        _LOGGER.warning(
+            "ha_creality_ws: go2rtc is connected to %s but receives no video; "
+            "switching this camera to direct WebRTC (#46)",
+            self._upstream_signaling_url,
+        )
+        self._on_no_video()
 
 
 
@@ -852,7 +1110,7 @@ class CrealityWebRTCCamera(_BaseCamera):
                     getattr(p, "url", None)
                     for p in getattr(existing_stream, "producers", []) or []
                 ]
-                if go2rtc_src not in existing_urls:
+                if not any(_same_go2rtc_source(go2rtc_src, url) for url in existing_urls):
                     _LOGGER.warning(
                         "ha_creality_ws: Stream '%s' exists but source mismatch: "
                         "expected '%s', found %s. Recreating...",
@@ -978,6 +1236,13 @@ class CrealityWebRTCCamera(_BaseCamera):
             offer_sdp[:200] + "..." if len(offer_sdp) > 200 else offer_sdp,
         )
 
+        if (
+            GO2RTC_WS_AVAILABLE
+            and self._go2rtc_session is not None
+            and await self._handle_go2rtc_ws_offer(offer_sdp, session_id, send_message)
+        ):
+            return
+
         try:
             # Create offer object for go2rtc client
             offer = WebRTCSdpOffer(sdp=offer_sdp)
@@ -1056,6 +1321,65 @@ class CrealityWebRTCCamera(_BaseCamera):
 
 
 
+    async def _handle_go2rtc_ws_offer(
+        self, offer_sdp: str, session_id: str, send_message
+    ) -> bool:
+        """Signal go2rtc over its WebSocket, the way Home Assistant's provider does (#134).
+
+        The offer goes with the frontend's ICE servers, so go2rtc gathers
+        server-reflexive candidates too, and both sides' candidates trickle:
+        go2rtc's to the frontend as they come, the frontend's to go2rtc from
+        `async_on_webrtc_candidate`. Over WHEP neither happened, which left only
+        go2rtc's LAN addresses in the answer.
+
+        False when the offer never reached go2rtc, for the caller to try WHEP:
+        a go2rtc behind a proxy that does not pass WebSocket upgrades answered
+        over WHEP before this path existed.
+        """
+        ws_client = Go2RtcWsClient(
+            self._go2rtc_session, self._go2rtc_server_url, source=self._stream_name
+        )
+        self._go2rtc_ws_sessions[session_id] = ws_client
+
+        @callback
+        def on_message(message) -> None:
+            if isinstance(message, Go2RtcWsAnswer):
+                self._log_negotiated_video_codec(message.sdp, session_id)
+                payload = {"type": "answer", "answer": message.sdp}
+                _LOGGER.info("ha_creality_ws: WebRTC offer handled successfully")
+            elif isinstance(message, Go2RtcWsCandidate):
+                payload = {
+                    "type": "candidate",
+                    "candidate": {"candidate": message.candidate, "sdpMLineIndex": 0},
+                }
+            elif isinstance(message, Go2RtcWsError):
+                _LOGGER.warning(
+                    "ha_creality_ws: go2rtc refused the WebRTC offer for stream '%s': %s",
+                    self._stream_name, message.error,
+                )
+                # go2rtc lost the stream (it restarted): the next offer adds it
+                # again, as the WHEP path's recovery does.
+                if "stream not found" in str(message.error).lower():
+                    self._force_recreate_stream = True
+                payload = {"type": "error", "message": f"go2rtc error: {message.error}"}
+            else:
+                return
+            send_message(self._wrap_send_message(payload))
+
+        ws_client.subscribe(on_message)
+        try:
+            config = self.async_get_webrtc_client_configuration()
+            await ws_client.send(Go2RtcWsOffer(offer_sdp, config.configuration.ice_servers))
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.warning(
+                "ha_creality_ws: go2rtc WebSocket offer failed for stream '%s', trying WHEP: %s",
+                self._stream_name, exc,
+            )
+            self._go2rtc_ws_sessions.pop(session_id, None)
+            self.hass.async_create_task(ws_client.close())
+            return False
+        return True
+
     async def _handle_direct_webrtc_offer(
         self, offer_sdp: str, session_id: str, send_message
     ) -> None:
@@ -1077,9 +1401,11 @@ class CrealityWebRTCCamera(_BaseCamera):
         session = async_get_clientsession(self.hass)
         printer_origin = self._upstream_signaling_url.rsplit("/", 2)[0]
         try:
-            printer_offer = self._printer_direct_offer_sdp(
-                offer_sdp,
-                self._direct_sessions.get(session_id, []),
+            printer_offer = await self._printer_reachable_candidates(
+                self._printer_direct_offer_sdp(
+                    offer_sdp,
+                    self._direct_sessions.get(session_id, []),
+                )
             )
             async with session.post(
                 self._upstream_signaling_url,
@@ -1145,6 +1471,36 @@ class CrealityWebRTCCamera(_BaseCamera):
             )
         finally:
             self._direct_sessions.pop(session_id, None)
+
+    async def _printer_reachable_candidates(self, sdp: str) -> str:
+        """The offer with browsers' mDNS host candidates given their address (R87).
+
+        A browser hides its local address behind a random `<uuid>.local` name
+        unless the page holds camera or microphone permission. A K1C on
+        1.3.5.22 never checks such a candidate, so it never starts its side of
+        ICE and the stream stays at 0 bytes; given the address, it streams. The
+        name answers mDNS on the LAN, the only place direct WebRTC can work.
+        A name that does not answer is left as it was.
+        """
+        names = sorted(
+            {m.group(2) for line in sdp.splitlines() if (m := _MDNS_CANDIDATE_RE.match(line))}
+        )
+        if not names:
+            return sdp
+        resolved = await _async_resolve_mdns_hosts(self.hass, names)
+        _LOGGER.debug(
+            "ha_creality_ws: browser mDNS candidates resolved %d of %d", len(resolved), len(names)
+        )
+        if not resolved:
+            return sdp
+        out: list[str] = []
+        for line in sdp.splitlines(keepends=True):
+            body = line.rstrip("\r\n")
+            m = _MDNS_CANDIDATE_RE.match(body)
+            if m and m.group(2) in resolved:
+                line = f"{m.group(1)}{resolved[m.group(2)]}{m.group(3)}{line[len(body):]}"
+            out.append(line)
+        return "".join(out)
 
     def _wrap_direct_offer_payload(self, offer_sdp: str) -> str:
         """Wrap an SDP offer in the printer's base64 JSON signaling format."""
@@ -1233,8 +1589,21 @@ class CrealityWebRTCCamera(_BaseCamera):
         return None
 
     def _candidate_lines_for_video(self, candidates: list, offer_sdp: str) -> list[str]:
-        """Return ICE candidate SDP lines that belong to the original video m-line."""
-        _session, sections = self._split_sdp(offer_sdp)
+        """ICE candidate lines for the printer's video-only offer.
+
+        Home Assistant's player offers audio (mid 0) and then video (mid 1) in
+        one BUNDLE group, and the answer built for it bundles the video alone,
+        so the video's transport is the one the browser keeps. Under the usual
+        "balanced" policy the browser gathers per m-line and tags each
+        candidate with it: the video-tagged ones are the right ones. Under
+        "max-bundle" it gathers once, for the first m-line in the group, and
+        every candidate is tagged with that; then those carry the video too.
+
+        The candidate object is webrtc_models.RTCIceCandidateInit, whose fields
+        are snake_case. Read as sdpMid/sdpMLineIndex they were always None, so
+        no candidate was ever told apart and all of them went (R39).
+        """
+        session_lines, sections = self._split_sdp(offer_sdp)
         video_index = next(
             (idx for idx, section in enumerate(sections) if section and section[0].startswith("m=video ")),
             None,
@@ -1242,32 +1611,39 @@ class CrealityWebRTCCamera(_BaseCamera):
         if video_index is None:
             return []
         video_mid = self._section_mid(sections[video_index])
+        bundle = next(
+            (line.split()[1:] for line in session_lines if line.startswith("a=group:BUNDLE")),
+            [],
+        )
+        section_mids = [self._section_mid(section) for section in sections]
 
-        lines: list[str] = []
+        tagged: list[tuple[str, str | None]] = []
         for candidate in candidates:
-            value = getattr(candidate, "candidate", None)
-            if value is None and isinstance(candidate, dict):
+            if isinstance(candidate, dict):
                 value = candidate.get("candidate")
+                cand_mid = candidate.get("sdpMid", candidate.get("sdp_mid"))
+                cand_index = candidate.get("sdpMLineIndex", candidate.get("sdp_m_line_index"))
+            else:
+                value = getattr(candidate, "candidate", None)
+                cand_mid = getattr(candidate, "sdp_mid", None)
+                cand_index = getattr(candidate, "sdp_m_line_index", None)
             if not value:
                 continue
-
-            cand_mid = getattr(candidate, "sdpMid", None)
-            cand_index = getattr(candidate, "sdpMLineIndex", None)
-            if isinstance(candidate, dict):
-                cand_mid = candidate.get("sdpMid", cand_mid)
-                cand_index = candidate.get("sdpMLineIndex", cand_index)
-
-            if cand_mid is not None and video_mid is not None and str(cand_mid) != str(video_mid):
-                continue
-            if cand_index is not None:
+            if cand_mid is None and cand_index is not None:
                 try:
-                    if int(cand_index) != int(video_index):
-                        continue
-                except (TypeError, ValueError):
-                    pass
+                    cand_mid = section_mids[int(cand_index)]
+                except (TypeError, ValueError, IndexError):
+                    cand_mid = None
+            line = value if str(value).startswith("a=") else f"a={value}"
+            tagged.append((line, None if cand_mid is None else str(cand_mid)))
 
-            lines.append(value if str(value).startswith("a=") else f"a={value}")
-        return lines
+        untagged = [line for line, mid in tagged if mid is None]
+        video = [line for line, mid in tagged if mid is not None and mid == video_mid]
+        if video:
+            return video + untagged
+        if video_mid in bundle:
+            return [line for line, mid in tagged if mid is None or mid in bundle]
+        return untagged
 
     def _replace_mid(self, section: list[str], mid: str) -> list[str]:
         """Return media section with a replaced MID."""
@@ -1368,7 +1744,13 @@ class CrealityWebRTCCamera(_BaseCamera):
             _LOGGER.debug("ha_creality_ws: queued direct WebRTC candidate for session %s", session_id)
             return
 
-        # For go2rtc integration, candidates are handled internally
+        ws_client = self._go2rtc_ws_sessions.get(session_id)
+        if ws_client is not None:
+            # Trickled to go2rtc, which needs them to reach a phone behind NAT (#134).
+            await ws_client.send(Go2RtcWsCandidate(candidate.candidate))
+            return
+
+        # WHEP: go2rtc has the offer only, and learns the rest from ICE checks.
         _LOGGER.debug("ha_creality_ws: WebRTC candidate received for session %s", session_id)
 
     @callback
@@ -1383,6 +1765,8 @@ class CrealityWebRTCCamera(_BaseCamera):
         """
         _LOGGER.debug("ha_creality_ws: WebRTC session %s closed", session_id)
         self._direct_sessions.pop(session_id, None)
+        if (ws_client := self._go2rtc_ws_sessions.pop(session_id, None)) is not None:
+            self.hass.async_create_task(ws_client.close())
 
     @property
     def extra_state_attributes(self) -> dict:
@@ -1402,8 +1786,6 @@ class CrealityWebRTCCamera(_BaseCamera):
             # Resolved lazily by stream_source(); None until a stream exists.
             "stream_source": self._rtsp_stream_url(),
         }
-        if self._last_error:
-            attrs["error"] = self._last_error
         return attrs
 
     def _is_valid_jpeg(self, data: bytes) -> bool:
@@ -1422,40 +1804,38 @@ class CrealityWebRTCCamera(_BaseCamera):
         return data.startswith(b"\xff\xd8") and data.endswith(b"\xff\xd9")
 
 
-async def _probe_webrtc_signaling(hass: HomeAssistant, url: str, timeout: float = 1.5) -> bool:
-    """Probe the Creality WebRTC signaling endpoint.
+def _source_identity(url: str | None) -> str:
+    """What identifies a go2rtc source, without the decoration go2rtc drops.
 
-    This function performs a lightweight probe of the printer's WebRTC signaling
-    endpoint to determine if the printer supports WebRTC. It tries HEAD first
-    (cheaper), then falls back to GET if HEAD is not supported.
-
-    Printers typically answer on /call/webrtc_local even without a full offer body.
-    We treat any 200-405 (method not allowed) as presence; 404/connection errors -> absent.
-    
-    Args:
-        hass: Home Assistant instance
-        url: WebRTC signaling URL to probe
-        timeout: Request timeout in seconds
-        
-    Returns:
-        bool: True if WebRTC signaling is available, False otherwise
+    A stream is configured as `webrtc:http://<ip>:8000/call/webrtc_local
+    #format=creality`, but once a producer is connected go2rtc 1.9 reports it as
+    the bare `http://<ip>:8000/call/webrtc_local` (seen on the test box).
     """
-    session = async_get_clientsession(hass)
-    try:
-        # First try HEAD (cheap). If not supported, fall back to GET
-        async with session.head(url, timeout=timeout) as resp:
-            _LOGGER.debug("ha_creality_ws: probe HEAD %s -> status=%s", url, resp.status)
-            if resp.status in (200, 204, 405):
-                return True
-    except Exception:
-        pass
-    try:
-        async with session.get(url, timeout=timeout) as resp:
-            _LOGGER.debug("ha_creality_ws: probe GET %s -> status=%s", url, resp.status)
-            if resp.status in (200, 204, 405):
-                return True
-    except Exception:
+    text = (url or "").split("#", 1)[0].strip()
+    if text.startswith("webrtc:"):
+        text = text[len("webrtc:"):]
+    return text.rstrip("/")
+
+
+def _same_go2rtc_source(expected: str, actual: str | None) -> bool:
+    """Whether an existing producer already serves the expected source.
+
+    go2rtc reports an idle producer by its configured source, and a connected
+    one by its bare URL. The exact comparison read every stream someone was
+    watching as a mismatch, so a reload deleted and recreated it under the
+    viewers (#88, #46).
+
+    The fragment only stops mattering in the connected form. An idle stream
+    left over from 0.9.3 without `#format=creality` still has to be replaced,
+    and such a stream never connects, so it never shows the bare form. A
+    genuinely different source, a moved printer, matches in neither form.
+    """
+    if not actual:
         return False
+    if actual == expected:
+        return True
+    if expected.startswith("webrtc:") and not actual.startswith("webrtc:"):
+        return _source_identity(expected) == _source_identity(actual)
     return False
 
 
@@ -1523,11 +1903,35 @@ async def async_setup_entry(hass: HomeAssistant, entry, async_add_entities):
 
     # Use cached camera type from entry data (detected during onboarding)
     cached_camera_type = entry.data.get("_cached_camera_type", "mjpeg")
+    # Auto mode only: lets the coordinator rebuild this camera if the printer's
+    # telemetry later shows it is the wrong kind.
+    coord.camera_type_in_use = cached_camera_type
     
     # WebRTC cameras (K2 family - always present)
     if cached_camera_type == "webrtc":
         _LOGGER.info("ha_creality_ws: using cached WebRTC camera detection for %s", host)
-        async_add_entities([_make_go2rtc_camera()])
+        camera = _make_go2rtc_camera()
+        # Not the K2s: go2rtc is known to work with them, and a fallback set
+        # off by one bad moment would cost them snapshots and recording.
+        if not ModelDetection.from_cache(entry.data, coord.data).is_k2_family:
+            @callback
+            def _use_direct_webrtc() -> None:
+                # The update listener reloads the entry, which builds the
+                # direct camera below; detection keeps the choice (#46).
+                hass.config_entries.async_update_entry(
+                    entry, data={**entry.data, "_cached_camera_type": "webrtc_direct"}
+                )
+
+            camera._on_no_video = _use_direct_webrtc  # pylint: disable=protected-access
+        async_add_entities([camera])
+        return
+
+    # Auto, after go2rtc connected to this printer and never got video (#46).
+    if cached_camera_type == "webrtc_direct":
+        _LOGGER.info("ha_creality_ws: using direct WebRTC for %s (go2rtc got no video from it)", host)
+        async_add_entities([
+            CrealityWebRTCCamera(coord, WEBRTC_URL_TEMPLATE.format(host=host), direct_signaling=True)
+        ])
         return
 
     # MJPEG cameras (default or optional)

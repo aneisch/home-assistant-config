@@ -10,10 +10,15 @@ from ....entity_filtering import async_filter_known_entity_ids, async_get_all_en
 from ....entity_suggestions import async_describe_unknown_entities
 from ....repairs import AbstractSpookRepair
 
-# The area settings that name a sensor, and how the issue calls each one.
-AREA_SENSOR_FIELDS = {
-    "temperature_entity_id": "temperature",
-    "humidity_entity_id": "humidity",
+# The area settings that name a sensor.
+AREA_SENSOR_FIELDS = ("temperature_entity_id", "humidity_entity_id")
+
+# Which sensors are gone picks the text, rather than a placeholder: words
+# filled in here would stay English in every language the issue is shown in.
+TRANSLATION_KEYS = {
+    frozenset({"temperature_entity_id"}): "unknown_area_sensors_temperature",
+    frozenset({"humidity_entity_id"}): "unknown_area_sensors_humidity",
+    frozenset(AREA_SENSOR_FIELDS): "unknown_area_sensors_both",
 }
 
 
@@ -43,7 +48,10 @@ class SpookRepair(AbstractSpookRepair):
 
         known_entity_ids = async_get_all_entity_ids(self.hass)
 
-        for area in ar.async_get(self.hass).async_list_areas():
+        # Taken as a snapshot: describing what is missing can hand the event
+        # loop a turn, and a change to the live collection during it ends the
+        # inspection in a `RuntimeError`. #1558.
+        for area in list(ar.async_get(self.hass).async_list_areas()):
             self.possible_issue_ids.add(area.id)
 
             unknown = {
@@ -59,14 +67,14 @@ class SpookRepair(AbstractSpookRepair):
 
             placeholders = {
                 "area": area.name,
-                "sensors": " and ".join(AREA_SENSOR_FIELDS[field] for field in unknown),
-                "entities": async_describe_unknown_entities(
+                "entities": await async_describe_unknown_entities(
                     self.hass, sorted(unknown.values())
                 ),
             }
             self.async_create_issue(
                 issue_id=area.id,
                 is_fixable=True,
+                translation_key=TRANSLATION_KEYS[frozenset(unknown)],
                 # Which setting points at the entity is part of the finding:
                 # the same entity dangling from the other setting is a new
                 # problem, not one somebody already chose to ignore.
@@ -78,7 +86,9 @@ class SpookRepair(AbstractSpookRepair):
                 # settings listed here, the ones the user was shown.
                 data={
                     "area_sensors_area_id": area.id,
-                    "area_sensors_fields": ",".join(unknown),
+                    "area_sensors_references": ",".join(
+                        f"{field}:{entity_id}" for field, entity_id in unknown.items()
+                    ),
                     **placeholders,
                 },
                 translation_placeholders=placeholders,

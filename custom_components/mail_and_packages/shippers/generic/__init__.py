@@ -22,6 +22,7 @@ from custom_components.mail_and_packages.const import (
 from custom_components.mail_and_packages.shippers.base import Shipper
 from custom_components.mail_and_packages.utils.cache import EmailCache
 from custom_components.mail_and_packages.utils.email import find_text, find_text_matches
+from custom_components.mail_and_packages.utils.gls_us import download_gls_us_pod
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
     email_fetch_headers,
@@ -56,6 +57,9 @@ from .helpers import (
     _extract_subject_from_headers as helper_extract_subject_from_headers,
 )
 from .helpers import (
+    _filter_emails_by_date as helper_filter_emails_by_date,
+)
+from .helpers import (
     _filter_unique_ids as helper_filter_unique_ids,
 )
 from .helpers import (
@@ -85,6 +89,7 @@ __all__ = [
     "anyio",
     "copyfile",
     "decode_header",
+    "download_gls_us_pod",
     "email",
     "email_fetch",
     "email_fetch_headers",
@@ -189,12 +194,29 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
             result["pre_filtered_tracking"] = result.get(ATTR_TRACKING, [])
             if since_date and search_date != date:
                 count = await self._process_delivered_today(
-                    account, email_addresses, date, subjects, search_ctx, result
+                    account, date, search_ctx, result, found_data
                 )
+
+        if is_delivered and not image_found:
+            image_found = await self._fetch_carrier_photo(shipper_cfg, result)
 
         result[ATTR_COUNT] = count
         await self._finalize_shipper_image(shipper_cfg, image_path, image_found, result)
         return result
+
+    async def _fetch_carrier_photo(
+        self, shipper_cfg: dict[str, Any] | None, result: dict[str, Any]
+    ) -> bool:
+        """Fetch a delivery photo from the carrier when the emails carry none."""
+        if not shipper_cfg or shipper_cfg.get("photo_source") != "gls_us":
+            return False
+        return await download_gls_us_pod(
+            self.hass,
+            result.get(ATTR_TRACKING) or [],
+            shipper_cfg["image_path"],
+            shipper_cfg["name"],
+            shipper_cfg["image_name"],
+        )
 
     async def _copy_generic_placeholder(self, shipper_cfg: dict[str, Any]) -> None:
         """Copy the generic placeholder for the shipper."""
@@ -303,3 +325,16 @@ class GenericShipper(GenericBatchMixin, GenericSearchMixin, Shipper):
     ) -> None:
         """Check for Amazon mentions in emails."""
         await helper_check_amazon_mentions(account, ids, result, cache)
+
+    async def _filter_emails_by_date(
+        self,
+        account: IMAP4_SSL,
+        email_ids: list[bytes],
+        target_date_str: str,
+        shipper_name: str,
+        cache: EmailCache | None = None,
+    ) -> list[bytes]:
+        """Filter email IDs to those sent on target_date."""
+        return await helper_filter_emails_by_date(
+            account, email_ids, target_date_str, shipper_name, cache
+        )

@@ -14,8 +14,6 @@ umount_plex: ssh nuc 'umount -f /plex; docker stop plex'
 
 copy: ssh -n -f nuc "nohup /opt/homeassistant/scripts/nas-copy.sh > /dev/null 2>&1 &"
 
-commit_pfsense_changes: ssh nuc '/opt/homeassistant/scripts/commit_pfsense_changes.sh'
-
 update_cloudflare_firewall: /config/scripts/update_cloudflare_firewall.sh {{ old }} {{ new }}
 
 # If signal device changes the identity goes to untrusted and messages don't go through to that recipient

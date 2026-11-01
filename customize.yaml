@@ -51,10 +51,10 @@ sensor.sonoff_pow_yesterday_energy:
   icon: mdi:power-plug
 
 sensor.sonoff_pow_today_cost:
-  icon: mdi:square-inc-cash
+  icon: mdi:cash
 
 sensor.sonoff_pow_yesterday_cost:
-  icon: mdi:square-inc-cash
+  icon: mdi:cash
 
 ### THERMOSTAT ###
 # climate.thermostat:

@@ -1,0 +1,26 @@
+{
+  "domain": "homeconnect_ws",
+  "name": "Home Connect Local",
+  "after_dependencies": [
+    "file_upload"
+  ],
+  "codeowners": [
+    "@chris-mc1"
+  ],
+  "config_flow": true,
+  "documentation": "https://github.com/chris-mc1/homeconnect_local_hass",
+  "integration_type": "device",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/chris-mc1/homeconnect_local_hass/issues",
+  "loggers": [
+    "custom_components.homeconnect_ws",
+    "homeconnect_websocket"
+  ],
+  "requirements": [
+    "homeconnect-websocket==1.5.4"
+  ],
+  "version": "1.0.6",
+  "zeroconf": [
+    "_homeconnect._tcp.local."
+  ]
+}

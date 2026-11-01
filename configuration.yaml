@@ -27,12 +27,14 @@ homeassistant:
     grill: !include packages/grill.yaml
     blinds: !include packages/blinds.yaml
     hass_update_check: !include packages/hass_update_check.yaml
+    hvac_filter: !include packages/hvac_filter.yaml
     smoke_alarms: !include packages/smoke_alarms.yaml
     # magic_cube: !include packages/magic_cube.yaml
     irrigation_unlimited: !include packages/irrigation_unlimited.yaml
     irrigation: !include packages/irrigation.yaml
     leak_detection: !include packages/leak_detection.yaml
-    reminders: !include packages/reminders.yaml
+    maintenance: !include packages/maintenance.yaml
+    #reminders: !include packages/reminders.yaml
     solar: !include packages/solar.yaml
     terraform: !include packages/terraform.yaml
     photo_frames: !include packages/photo_frames.yaml
@@ -369,6 +371,8 @@ lovelace:
       type: module
     - url: /hacsfiles/irrigation-unlimited-card/irrigation-unlimited-card.js
       type: module
+    - url: /local/power-flow-pipes-card.js?v=1
+      type: module
   dashboards:
     lovelace:
       mode: yaml
@@ -444,16 +448,18 @@ mqtt: !include mqtt.yaml
 my:
 
 notify:
-  # - platform: pushbullet
-  #   api_key: !secret pushbullet_key
-  #   name: pushbullet
+  # Companion app recipients used by script.notify_wrapper (`to:` field)
+  - platform: group
+    name: andrew
+    services:
+      - action: mobile_app_andrew_phone
+      - action: mobile_app_mp01
+      - action: mobile_app_galaxy_watch6_kqbw
 
-  - platform: signal_messenger
-    name: signal_self
-    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
-    number: !secret signal_phone
-    recipients: # one or more recipients
-      - !secret signal_phone_andrew
+  - platform: group
+    name: bethany
+    services:
+      - action: mobile_app_bethany_s_iphone
 
   - platform: signal_messenger
     name: signal_bvst
@@ -477,13 +483,6 @@ notify:
       - !secret signal_group_bvst_ins
 
   - platform: signal_messenger
-    name: signal_adsb
-    url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
-    number: !secret signal_phone
-    recipients: # one or more recipients
-      - !secret signal_group_adsb
-
-  - platform: signal_messenger
     name: signal_frigate
     url: "http://localhost:8800" # the URL where the Signal Messenger REST API is listening
     number: !secret signal_phone
@@ -496,20 +495,6 @@ notify:
     number: !secret signal_phone
     recipients: # one or more recipients
       - !secret signal_group_homeassistant
-
-  # - name: gsm_message
-  #   platform: rest
-  #   resource: http://127.0.0.1:9999/send_message
-  #   method: POST_JSON
-  #   data:
-  #     priority: "{{ data.priority }}"
-
-  - name: cellular_message
-    platform: rest
-    resource: http://127.0.0.1:9998/send_message
-    method: POST_JSON
-    data:
-      priority: "{{ data.priority }}"
 
 plant:
   garden:
@@ -550,7 +535,7 @@ recorder:
       - script.zen30_led_color_change
       - sensor.aarlo_signal_strength_office
       - sensor.kitchen_timer_countdown
-      - sensor.andrew_s_kitchen_echo_next_timer
+      - sensor.kitchen_next_timer
       - sensor.irrigation_time_remaining
       - sensor.last_boot
       - sensor.load_1m
@@ -568,10 +553,23 @@ recorder:
       - sensor.it_c02xrkvwjg5j_last_seen
       - sensor.pixel_2_xl_last_seen
       - sensor.aneischvps_last_seen
+      - sensor.solark_l1_l2_abs_diff
+      - sensor.memory_use_percent
+      - sensor.processor_use
+      - sensor.disk_use_percent
+      - sensor.disk_use_percent_home
+      - sensor.disk_use_percent_frigate_disk
+      - sensor.easy_start_ble_uptime
+      - sensor.yahoofinance_crcl
+      - automation.run_ticker_process_on_crcl_change
+    entity_globs:
+      #- sensor.ender3v3ke_*
+      - sensor.thermopro_*_estimated_length
     domains:
       #- automation
       #- alarm_panel
       - camera
+      - image
       - media_player
       - notify
       - scene
@@ -663,7 +661,7 @@ zone:
     latitude: !secret bethany_work_lat
     longitude: !secret bethany_work_long
     radius: 200
-    icon: mdi:worker
+    icon: mdi:briefcase
 
   - name: Dan and Marilyn's
     latitude: !secret dan_lat

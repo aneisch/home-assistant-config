@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import deque
+from dataclasses import dataclass
 from functools import lru_cache
 import re
 from typing import TYPE_CHECKING, Any
@@ -20,6 +21,8 @@ from .entity_filtering import (
     async_drop_existing_action_names,
     async_get_all_entity_ids,
     async_get_all_services,
+    is_device_id_shaped,
+    is_not_an_entity_id,
     split_comma_separated_entity_ids,
 )
 
@@ -109,14 +112,6 @@ COMPILED_ENTITY_ID_TEMPLATE_PATTERNS = tuple(
 
 JINJA_COMMENT_PATTERN = re.compile(r"\{#.*?#\}", re.DOTALL)
 
-# The ``device_entities`` template function takes a device registry ID
-# directly (no name or entity resolution), so a quoted literal is
-# unambiguously a device reference.
-_DEVICE_ENTITIES_PATTERN = re.compile(
-    r"device_entities\s*\(\s*['\"]([^'\"]+)['\"]",
-    re.IGNORECASE,
-)
-
 
 def is_template_string(value: str) -> bool:
     """Check if a string looks like a Jinja2 template.
@@ -144,6 +139,7 @@ async def async_extract_entities_from_template_string(
     hass: HomeAssistant,
     template_str: str,
     known_services: set[str] | None = None,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entity IDs from a template string using regex analysis.
 
@@ -158,7 +154,7 @@ async def async_extract_entities_from_template_string(
     # Use regex patterns to find entities
     try:
         regex_entities = extract_entities_from_template_regex(
-            hass, template_str, known_services
+            hass, template_str, known_services, shadowed
         )
         entities.update(regex_entities)
     # pylint: disable-next=broad-exception-caught
@@ -179,13 +175,158 @@ def _strip_jinja_comments(template_str: str) -> str:
     return JINJA_COMMENT_PATTERN.sub("", template_str)
 
 
-def _is_concatenated_template_match(template_str: str, match: re.Match[str]) -> bool:
+# What glues a string to the one next to it in Jinja: `~`, `+` on two
+# strings, and nothing at all between two literals, which Jinja joins into
+# one. `'sensor.room' + suffix` is the start of an entity ID, not one.
+_GLUE = ("~", "+", "'", '"')
+_GLUE_OPERATORS = frozenset({"~", "+"})
+
+
+def _lexed(template_str: str) -> list[tuple[int, str, str]] | None:
+    """Return the tokens Jinja reads in a template, each with where it starts.
+
+    The lexer hands its tokens back raw, but not always all of the source:
+    `{{-` strips the whitespace in front of it from the text before, and a
+    final newline goes too. So each token is found back in the source, over
+    whitespace only, and checked to be really there. A template Jinja cannot
+    read, or one whose tokens do not line up, has none.
+    """
+    try:
+        tokens = list(_JINJA_LEXER.lex(template_str))
+    except TemplateSyntaxError:
+        return None
+
+    lexed: list[tuple[int, str, str]] = []
+    offset = 0
+    for _lineno, kind, value in tokens:
+        while (
+            not template_str.startswith(value, offset)
+            and offset < len(template_str)
+            and template_str[offset].isspace()
+        ):
+            offset += 1
+        if not template_str.startswith(value, offset):
+            return None
+
+        lexed.append((offset, kind, value))
+        offset += len(value)
+
+    return lexed
+
+
+def _ends_a_raw_value(tokens: list[tuple[int, str, str]], index: int) -> bool:
+    """Return whether the raw token at this index can end a value."""
+    if index < 0:
+        return False
+
+    _start, kind, value = tokens[index]
+    if kind == "name":
+        return value not in _KEYWORDS
+    if kind == "operator":
+        return value in _CLOSING_BRACKETS
+    return kind in ("float", "integer", "string")
+
+
+def _is_raw(
+    tokens: list[tuple[int, str, str]],
+    index: int,
+    kind: str,
+    values: Iterable[str] | None = None,
+) -> bool:
+    """Return whether the raw token at this index is of this kind, and value."""
+    if not 0 <= index < len(tokens):
+        return False
+
+    _start, token_kind, token_value = tokens[index]
+    return token_kind == kind and (values is None or token_value in values)
+
+
+def _is_glued(tokens: list[tuple[int, str, str]], index: int) -> bool:
+    """Return if the string literal at this index is a piece of a longer one.
+
+    It is when `~`, `+` or a string right next to it joins it to more, and
+    that join applies to the literal itself. Jinja joins strings side by
+    side before anything else. A filter or a test binds tighter than `~` and
+    `+`: in `10 + 'sensor.pump' | states` the filter gets the literal alone,
+    and the `+` adds up what comes out. Parentheses around the literal alone
+    only group it, so the join is looked for outside of them.
+
+    A `~` or `+` in front that follows no value is no join at all, and that
+    template is not one to trust: the literal stays a piece.
+    """
+    first = last = index
+    while (
+        _is_raw(tokens, first - 1, "operator", ("(",))
+        and _is_raw(tokens, last + 1, "operator", (")",))
+        and not _ends_a_raw_value(tokens, first - 2)
+    ):
+        first -= 1
+        last += 1
+
+    if _is_raw(tokens, last + 1, "operator", _GLUE_OPERATORS) or _is_raw(
+        tokens, last + 1, "string"
+    ):
+        return True
+
+    if _is_raw(tokens, first - 1, "string"):
+        return True
+
+    if not _is_raw(tokens, first - 1, "operator", _GLUE_OPERATORS):
+        return False
+
+    if not _ends_a_raw_value(tokens, first - 2):
+        return True
+
+    return not (
+        _is_raw(tokens, last + 1, "operator", ("|",))
+        or _is_raw(tokens, last + 1, "name", ("is",))
+    )
+
+
+def _glued_literals(template_str: str) -> dict[int, tuple[int, bool]]:
+    """Return each string literal in the template's expressions, read by Jinja.
+
+    Keyed by where the literal starts, with where it ends and whether it is
+    a piece of a longer string. A template Jinja cannot read has none: the
+    lexer takes `{{ 'sensor.pump' | states nonsense }}` just fine, only the
+    parser knows that is no template.
+    """
+    try:
+        _JINJA_PARSER.parse(template_str)
+    except TemplateSyntaxError:
+        return {}
+
+    lexed = _lexed(template_str)
+    if lexed is None:
+        return {}
+
+    tokens = [token for token in lexed if token[1] != "whitespace"]
+    return {
+        start: (start + len(value), _is_glued(tokens, index))
+        for index, (start, kind, value) in enumerate(tokens)
+        if kind == "string"
+    }
+
+
+def _is_concatenated_template_match(
+    template_str: str,
+    match: re.Match[str],
+    glued_literals: dict[int, tuple[int, bool]],
+) -> bool:
     """Return if a quoted entity ID literal is part of a concatenated string."""
     groups = match.groups()
     if len(groups) == _STATES_DOMAIN_ENTITY_GROUPS:
         return False
 
     entity_start, entity_end = match.span(1)
+
+    # The quotes around the capture are the literal Jinja read, if it read it.
+    literal = glued_literals.get(entity_start - 1)
+    if literal is not None and literal[0] == entity_end + 1:
+        return literal[1]
+
+    # Anything else, like a template Jinja cannot read, goes by the source
+    # around it.
     before_entity = template_str[:entity_start].rstrip()
     after_entity = template_str[entity_end:].lstrip()
 
@@ -194,7 +335,51 @@ def _is_concatenated_template_match(template_str: str, match: re.Match[str]) -> 
 
     before_literal = before_entity[:-1].rstrip()
     after_literal = after_entity[1:].lstrip()
-    return before_literal.endswith("~") or after_literal.startswith("~")
+    return before_literal.endswith(_GLUE) or after_literal.startswith(_GLUE)
+
+
+def _states_lookup_offsets(template_str: str) -> frozenset[int] | None:
+    """Return where each `states` Jinja reads as Home Assistant's lookup starts.
+
+    The exact name, as Jinja names are case sensitive, and not right after
+    a dot: `obj.states` is an attribute of `obj`. Not the name right after
+    a `|`, an `is` or an `is not` either. Jinja's parser reads a dotted name
+    there whole, as one filter or test name: in
+    `'x' | states.light.kitchen.state` that is a filter called
+    `states.light.kitchen.state`, which Home Assistant does not have, and
+    no lookup of `light.kitchen`.
+
+    A template Jinja cannot read has no answer, and is read by the source
+    alone.
+    """
+    lexed = _lexed(template_str)
+    if lexed is None:
+        return None
+
+    tokens = [token for token in lexed if token[1] != "whitespace"]
+    return frozenset(
+        start
+        for index, (start, kind, value) in enumerate(tokens)
+        if kind == "name"
+        and value == _STATES
+        and not _is_raw(tokens, index - 1, "operator", (".", "|"))
+        and not _is_raw(tokens, index - 1, "name", ("is",))
+        and not (
+            _is_raw(tokens, index - 1, "name", ("not",))
+            and _is_raw(tokens, index - 2, "name", ("is",))
+        )
+    )
+
+
+def _is_no_states_lookup_match(
+    match: re.Match[str], states_lookup_offsets: frozenset[int] | None
+) -> bool:
+    """Return if a `states.domain.entity` match starts at no `states` lookup."""
+    if len(match.groups()) != _STATES_DOMAIN_ENTITY_GROUPS:
+        return False
+    if states_lookup_offsets is None:
+        return False
+    return match.start() not in states_lookup_offsets
 
 
 def _is_jinja_import_match(template_str: str, match: re.Match[str]) -> bool:
@@ -269,13 +454,86 @@ _TEXT_ARGUMENT_FILTERS = frozenset(
 _TEXT_ARGUMENT_TESTS = frozenset({"match", "search"})
 _TEXT_ARGUMENT_METHODS = frozenset({"replace"})
 
+# Filters that run a test on each item, named as a string: `select('search',
+# 'light.')`, or `selectattr('entity_id', 'contains', 'light.kitchen')` with
+# the attribute first. What a substring or pattern test looks for is text, the
+# same as for `is search(...)`. #1838.
+#
+# `contains` only counts where the item is known to be a string. On a state
+# object's `entity_id`, `state` or the like it is a substring test; on a list, like a group's
+# `attributes.entity_id`, it asks whether a real entity is a member, and that
+# is a reference. Plain `select` and `reject` do not say what their items are.
+_SELECT_FILTERS = frozenset({"reject", "select"})
+_SELECTATTR_FILTERS = frozenset({"rejectattr", "selectattr"})
+_SELECT_TEXT_TESTS = frozenset({"match", "search"})
+_STRING_ATTRIBUTES = frozenset({"domain", "entity_id", "name", "object_id", "state"})
+
 # Only ever used to lex, never to render, so autoescaping has nothing to do.
 _JINJA_LEXER = Environment(autoescape=True)
 
+# Only ever used to parse, with the tags Home Assistant adds to Jinja's own:
+# `{% do %}`, `{% break %}` and `{% continue %}`. Its other extensions only
+# add functions, filters and tests, which a parse never looks up.
+_JINJA_PARSER = Environment(
+    autoescape=True, extensions=["jinja2.ext.do", "jinja2.ext.loopcontrols"]
+)
+
 _OPENING_BRACKETS = frozenset("([{")
+
+# Brackets that are not a call: parentheses that only group a value, and
+# whatever builds a list, a dict or a tuple. A grouping bracket that meets a
+# comma turns out to be a tuple.
+_GROUP = "group"
+_COLLECTION = "collection"
+
+type _Bracket = bool | _SelectCall | str
 _CLOSING_BRACKETS = frozenset(")]}")
 
 _LINE_ENDINGS = re.compile(r"\r\n?")
+
+
+@dataclass(slots=True)
+class _SelectCall:
+    """A select-style filter call, and what its arguments said so far."""
+
+    with_attribute: bool
+    argument: int = 0
+    attribute: str | None = None
+    test: str | None = None
+
+    def is_text(self, argument: int) -> bool:
+        """Return if the literal at this argument is text to look for."""
+        offset = 1 if self.with_attribute else 0
+        if argument != offset + 1 or self.test is None:
+            return False
+
+        if not self.with_attribute:
+            return self.test in _SELECT_TEXT_TESTS
+
+        return self.test in _SELECT_TEXT_TESTS or (
+            self.test == "contains" and self.attribute in _STRING_ATTRIBUTES
+        )
+
+    def remember(self, literal: str) -> None:
+        """Keep the attribute and test names, read off their literals."""
+        offset = 1 if self.with_attribute else 0
+        if self.with_attribute and self.argument == 0:
+            self.attribute = literal
+        elif self.argument == offset:
+            self.test = literal
+
+
+def _select_call(significant: deque[tuple[str, str]]) -> _SelectCall | None:
+    """Return a tracker if the tokens before a `(` name a select-style filter."""
+    *earlier, (_kind, name) = significant
+    if not earlier or earlier[-1] != ("operator", "|"):
+        return None
+
+    if name in _SELECT_FILTERS:
+        return _SelectCall(with_attribute=False)
+    if name in _SELECTATTR_FILTERS:
+        return _SelectCall(with_attribute=True)
+    return None
 
 
 def _is_text_call(significant: deque[tuple[str, str]]) -> bool:
@@ -295,15 +553,66 @@ def _is_text_call(significant: deque[tuple[str, str]]) -> bool:
     return before == ("name", "is") and name in _TEXT_ARGUMENT_TESTS
 
 
+def _track_brackets(
+    open_brackets: list[_Bracket],
+    significant: deque[tuple[str, str]],
+    operator: str,
+) -> None:
+    """Open, close or step through the brackets an operator token touches."""
+    if operator in _OPENING_BRACKETS:
+        is_call = operator == "(" and bool(significant) and significant[-1][0] == "name"
+        if is_call:
+            open_brackets.append(
+                _select_call(significant) or _is_text_call(significant)
+            )
+        else:
+            open_brackets.append(_GROUP if operator == "(" else _COLLECTION)
+    elif operator in _CLOSING_BRACKETS:
+        if open_brackets:
+            open_brackets.pop()
+    elif operator == "," and open_brackets:
+        # Only a comma right inside a select-style call moves on to its next
+        # argument; one inside a list or a nested call belongs to that.
+        if isinstance(innermost := open_brackets[-1], _SelectCall):
+            innermost.argument += 1
+        elif innermost == _GROUP:
+            open_brackets[-1] = _COLLECTION
+
+
+def _is_text_literal(open_brackets: list[_Bracket], literal: str) -> bool:
+    """Return if a string literal is text for the call it is inside of."""
+    calls = [
+        (index, bracket)
+        for index, bracket in enumerate(open_brackets)
+        if not isinstance(bracket, str)
+    ]
+    if not calls:
+        return False
+
+    index, innermost_call = calls[-1]
+    if not isinstance(innermost_call, _SelectCall):
+        return bool(innermost_call)
+
+    # Only a literal that is one of the call's arguments counts: parentheses
+    # that only group it change nothing, a list or a tuple around it does.
+    if _COLLECTION in open_brackets[index + 1 :]:
+        return False
+
+    is_text = innermost_call.is_text(innermost_call.argument)
+    innermost_call.remember(literal[1:-1])
+    return is_text
+
+
 def _text_argument_offsets(template_str: str) -> frozenset[int]:
     """Return where each string literal passed to a text function starts.
 
     Jinja's own lexer does the reading, so quotes, escaped quotes and
     delimiters inside a string are all handled the way Jinja handles them.
-    Its tokens come back raw, whitespace and prose included, so adding up
-    their lengths gives each token's offset in the template. That only holds
-    with plain newlines, which the lexer turns every line ending into, so the
-    caller hands this a template that already has them.
+    Where each token starts comes from `_lexed`, which finds every token back
+    in the source: `{{-` and `{%-` strip whitespace from the text in front,
+    so adding up token lengths drifts. That only works with plain newlines,
+    which the lexer turns every line ending into, so the caller hands this a
+    template that already has them.
 
     Only the innermost call counts, which is the one a literal is an argument
     of: in `replace(states('sensor.a'), ...)` the literal belongs to `states`,
@@ -314,40 +623,24 @@ def _text_argument_offsets(template_str: str) -> frozenset[int]:
     treated as they were before: as references.
     """
     offsets: set[int] = set()
-    # Per open bracket: True for a text call, False for any other call, and
-    # None for a bracket that only groups.
-    open_brackets: list[bool | None] = []
+    # Per open bracket: True for a text call, a tracker for a select-style
+    # call, False for any other call, or what kind of bracket it is otherwise.
+    open_brackets: list[_Bracket] = []
     # The last few tokens, enough to tell `x | replace(` from `x is match(`.
     significant: deque[tuple[str, str]] = deque(maxlen=3)
-    offset = 0
 
-    try:
-        tokens = list(_JINJA_LEXER.lex(template_str))
-    except TemplateSyntaxError:
+    tokens = _lexed(template_str)
+    if tokens is None:
         return frozenset()
 
-    for _lineno, kind, value in tokens:
-        token_start = offset
-        offset += len(value)
-
+    for token_start, kind, value in tokens:
         if kind == "whitespace":
             continue
 
-        if kind == "operator" and value in _OPENING_BRACKETS:
-            is_call = (
-                value == "(" and bool(significant) and significant[-1][0] == "name"
-            )
-            open_brackets.append(_is_text_call(significant) if is_call else None)
-        elif kind == "operator" and value in _CLOSING_BRACKETS:
-            if open_brackets:
-                open_brackets.pop()
-        elif kind == "string":
-            innermost_call = next(
-                (call for call in reversed(open_brackets) if call is not None),
-                False,
-            )
-            if innermost_call:
-                offsets.add(token_start)
+        if kind == "operator":
+            _track_brackets(open_brackets, significant, value)
+        elif kind == "string" and _is_text_literal(open_brackets, value):
+            offsets.add(token_start)
         elif kind in ("variable_end", "block_end"):
             open_brackets.clear()
 
@@ -356,16 +649,719 @@ def _text_argument_offsets(template_str: str) -> frozenset[int]:
     return frozenset(offsets)
 
 
-def _is_text_argument_match(
-    match: re.Match[str], text_argument_offsets: frozenset[int]
+def _is_left_alone_literal_match(
+    match: re.Match[str], left_alone_offsets: frozenset[int]
 ) -> bool:
-    """Return if an entity-like literal is an argument to a text function."""
+    """Return if an entity-like literal names no entity where it is used.
+
+    Handed to a text function, or looked up as a key of a dictionary.
+    """
     groups = match.groups()
     if len(groups) == _STATES_DOMAIN_ENTITY_GROUPS:
         return False
 
     # Step back over the opening quote, which is not part of the capture.
-    return match.span(1)[0] - 1 in text_argument_offsets
+    return match.span(1)[0] - 1 in left_alone_offsets
+
+
+# What comes right in front of a key looked up in a dictionary, and what can
+# come right after it when it is the whole key.
+_GET_CALL = [("operator", "."), ("name", "get"), ("operator", "(")]
+_END_OF_ARGUMENT = frozenset({("operator", ","), ("operator", ")")})
+
+
+def _dictionary_key_offsets(template_str: str) -> frozenset[int]:
+    """Return where each string literal looked up in a dictionary starts.
+
+    The first argument of `.get(...)`, when it is the whole of it. A
+    dictionary handed over by a REST sensor, for one, can be keyed by the
+    entity IDs of another Home Assistant, and none of those look up anything
+    here. #1971. In `.get('sensor.x' | states)` the literal is looked up
+    first, and the key is what that gives.
+
+    Not a literal tested with `in`: `'fan.x' in trigger.event.data.entity_id`
+    is about an entity, and reads exactly like a test for a key.
+
+    Read with Jinja's own lexer, like the text arguments above; a template
+    it cannot read yields nothing, and its literals stay references.
+    """
+    tokens = _lexed(template_str)
+    if tokens is None:
+        return frozenset()
+
+    significant = [
+        (start, kind, value) for start, kind, value in tokens if kind != "whitespace"
+    ]
+
+    return frozenset(
+        start
+        for index, (start, kind, _value) in enumerate(significant)
+        if kind == "string"
+        and [
+            (before_kind, before_value)
+            for _, before_kind, before_value in significant[max(index - 3, 0) : index]
+        ]
+        == _GET_CALL
+        and index + 1 < len(significant)
+        and significant[index + 1][1:] in _END_OF_ARGUMENT
+    )
+
+
+# The functions that look an entity up through `hass.states.get`, which tries
+# the entity ID in lower case too: `states('sensor.Pump')` reads
+# `sensor.pump`. The registry lookups (`device_id`, `area_id` and friends) do
+# not, so for those a mixed case ID is no entity at all. Neither does
+# `distance`, which takes an invalid entity ID for a coordinate.
+_STATE_LOOKUPS = frozenset(
+    {
+        "closest",
+        "expand",
+        "has_value",
+        "is_state",
+        "is_state_attr",
+        "state_attr",
+        "state_attr_translated",
+        "state_translated",
+        "states",
+    }
+)
+
+
+# The ones Home Assistant offers as a filter, where the entity is the value in
+# front of it, and as a test, where it is the value tested. `is_state` is no
+# filter, `states` no test.
+_STATE_LOOKUP_FILTERS = frozenset(
+    {
+        "closest",
+        "expand",
+        "has_value",
+        "state_attr",
+        "state_attr_translated",
+        "state_translated",
+        "states",
+    }
+)
+_STATE_LOOKUP_TESTS = frozenset({"has_value", "is_state", "is_state_attr"})
+
+# The lookups that take more than one entity, and lists of them: `expand`,
+# and `closest`, which hands its entities to `expand`.
+_EXPANDING_LOOKUPS = frozenset({"closest", "expand"})
+
+# The parameters of the other lookups, in order, and how many of them have
+# no default. Python checks a call against them before the lookup runs, so
+# with any other arguments it fails without looking anything up.
+_LOOKUP_PARAMETERS: dict[str, tuple[tuple[str, ...], int]] = {
+    "has_value": (("entity_id",), 1),
+    "is_state": (("entity_id", "state"), 2),
+    "is_state_attr": (("entity_id", "name", "value"), 3),
+    "state_attr": (("entity_id", "name"), 2),
+    "state_attr_translated": (("entity_id", "attribute"), 2),
+    "state_translated": (("entity_id",), 1),
+    "states": (("entity_id", "rounded", "with_unit"), 1),
+    # The lookups by area, floor or label take that and nothing else.
+    "area_devices": (("area_id_or_name",), 1),
+    "area_entities": (("area_id_or_name",), 1),
+    "floor_areas": (("floor_id_or_name",), 1),
+    "floor_entities": (("floor_id_or_name",), 1),
+    "label_areas": (("label_id_or_name",), 1),
+    "label_devices": (("label_id_or_name",), 1),
+    "label_entities": (("label_id_or_name",), 1),
+}
+
+# What Jinja takes for the one argument of a test without parentheses,
+# `is is_state 'on'`, unless the name is one of these.
+_TEST_ARGUMENT_STARTS = frozenset(
+    {"float", "integer", "lbrace", "lbracket", "lparen", "name", "string"}
+)
+_NO_TEST_ARGUMENT = frozenset({"and", "else", "or"})
+
+_SIGNS = frozenset({"add", "sub"})
+
+# What a value can end with. A `+` or `-` right after one adds or subtracts,
+# and the filter after it applies to what follows only: in
+# `10 - 'sensor.a' | states`, `states` gets the literal. Anywhere else, at the
+# start, after another operator, a bracket, a comma or a keyword, it is a sign.
+_ENDS_A_VALUE = frozenset(
+    {"float", "integer", "rbrace", "rbracket", "rparen", "string"}
+)
+# The names that are no value: what Jinja expects a value after.
+_KEYWORDS = frozenset({"and", "do", "elif", "else", "if", "in", "is", "not", "or"})
+
+# With this many arguments, `closest` takes the first two for a latitude and
+# a longitude, and only the third is looked up.
+_CLOSEST_WITH_COORDINATES = 3
+
+_OPENERS = frozenset({"lbrace", "lbracket", "lparen"})
+_CLOSERS = frozenset({"rbrace", "rbracket", "rparen"})
+
+# The literals that are no text. `expand` passes over them.
+_NUMBERS = frozenset({"float", "integer"})
+_CONSTANT_NAMES = frozenset({"False", "None", "True", "false", "none", "true"})
+
+
+def _call_arguments(tokens: list[_Token], start: int) -> list[list[_Token]] | None:
+    """Return the tokens of each argument of the call opened at this index.
+
+    Split on the commas of the call itself; one inside a list or a nested
+    call belongs to that.
+    """
+    if not _is(tokens, start, "lparen"):
+        return None
+
+    arguments: list[list[_Token]] = [[]]
+    depth = 0
+    for kind, value in tokens[start + 1 :]:
+        if kind in _CLOSERS and depth == 0:
+            # A trailing comma leaves nothing after it.
+            return [argument for argument in arguments if argument]
+
+        if kind in _OPENERS:
+            depth += 1
+        elif kind in _CLOSERS:
+            depth -= 1
+        elif kind == "comma" and depth == 0:
+            arguments.append([])
+            continue
+        arguments[-1].append((kind, value))
+
+    return None
+
+
+def _group_end(tokens: list[_Token], start: int) -> int | None:
+    """Return where the parentheses opened at this index close, if they group.
+
+    With a comma of their own inside, they make a tuple instead.
+    """
+    depth = 0
+    for position in range(start, len(tokens)):
+        kind = tokens[position][0]
+        if kind in _OPENERS:
+            depth += 1
+        elif kind in _CLOSERS:
+            depth -= 1
+            if depth == 0:
+                return position
+        elif kind == "comma" and depth == 1:
+            return None
+    return None
+
+
+def _ungrouped(value: list[_Token]) -> list[_Token]:
+    """Return a value without the parentheses that only group it.
+
+    `('light.a')` is the text itself, the same as `'light.a'`.
+    """
+    while _is(value, 0, "lparen") and _group_end(value, 0) == len(value) - 1:
+        value = value[1:-1]
+    return value
+
+
+def _literal(argument: list[_Token]) -> list[str]:
+    """Return the entity ID an argument is, if it is one whole literal."""
+    argument = _ungrouped(argument)
+    if len(argument) == 1 and argument[0][0] == "string":
+        return [argument[0][1]]
+    return []
+
+
+def _expanded(argument: list[_Token]) -> list[str]:
+    """Return the entity IDs `expand` looks up from one argument.
+
+    It goes through anything it can iterate over, at any depth: a literal,
+    or a list, a tuple or a mapping of nothing but literals. A mapping gives
+    its keys; its values are not looked up.
+    """
+    return _literal_entries(argument) or []
+
+
+def _literal_entries(value: list[_Token]) -> list[str] | None:
+    """Return the texts `expand` finds in a value made of literals only.
+
+    None when anything in it is not a literal: a name, a call, a filter or
+    maths could make the value something else, or fail before `expand` runs.
+    """
+    value = _ungrouped(value)
+    if len(value) == 1:
+        return _constant_entries(value[0])
+    if _is_signed_number(value):
+        return []
+
+    if (items := _items(value)) is None:
+        return None
+
+    entries: list[str] = []
+    for item in items:
+        if (found := _item_entries(item, mapping=value[0][0] == "lbrace")) is None:
+            return None
+        entries += found
+    return entries
+
+
+def _is_signed_number(value: list[_Token]) -> bool:
+    """Return whether a value is a number with a sign, like `-1`."""
+    if not value or value[0][0] not in _SIGNS:
+        return False
+
+    number = value[1:]
+    return len(number) == 1 and number[0][0] in _NUMBERS
+
+
+def _constant_entries(token: _Token) -> list[str] | None:
+    """Return the text a single literal is, nothing for any other constant."""
+    kind, text = token
+    if kind == "string":
+        return [text]
+    if kind in _NUMBERS or (kind == "name" and text in _CONSTANT_NAMES):
+        return []
+    return None
+
+
+def _item_entries(item: list[_Token], *, mapping: bool) -> list[str] | None:
+    """Return the texts `expand` finds in one item of a list, tuple or mapping.
+
+    In a mapping, it iterates over the keys, and the texts in a tuple key.
+    The value is not looked up; it only has to be a literal too.
+    """
+    if not mapping:
+        return _literal_entries(item)
+
+    if (colon := _colon_of(item)) is None or _literal_entries(
+        item[colon + 1 :]
+    ) is None:
+        return None
+    return _key_entries(item[:colon])
+
+
+def _colon_of(item: list[_Token]) -> int | None:
+    """Return where the colon between a key and its value is."""
+    depth = 0
+    for position, (kind, _) in enumerate(item):
+        if kind in _OPENERS:
+            depth += 1
+        elif kind in _CLOSERS:
+            depth -= 1
+        elif kind == "colon" and depth == 0:
+            return position
+    return None
+
+
+def _key_entries(key: list[_Token]) -> list[str] | None:
+    """Return the texts `expand` finds in a literal mapping key.
+
+    A key must be hashable: a list or a mapping makes building the mapping
+    fail, inside a tuple too. A tuple is the only key it looks into.
+    """
+    key = _ungrouped(key)
+    if len(key) == 1 or _is_signed_number(key):
+        return _literal_entries(key)
+
+    if not _is(key, 0, "lparen") or (items := _items(key)) is None:
+        return None
+
+    entries: list[str] = []
+    for item in items:
+        if (found := _key_entries(item)) is None:
+            return None
+        entries += found
+    return entries
+
+
+def _items(value: list[_Token]) -> list[list[_Token]] | None:
+    """Return the items of the list, tuple or mapping that is the whole value.
+
+    Split on its own commas; one inside a nested one belongs to that.
+    """
+    if (
+        not value
+        or value[0][0] not in _OPENERS
+        or _opening_of(value, len(value) - 1) != 0
+    ):
+        return None
+
+    items: list[list[_Token]] = [[]]
+    depth = 0
+    for kind, text in value[1:-1]:
+        if kind in _OPENERS:
+            depth += 1
+        elif kind in _CLOSERS:
+            depth -= 1
+        elif kind == "comma" and depth == 0:
+            items.append([])
+            continue
+        items[-1].append((kind, text))
+
+    # A trailing comma leaves nothing after it.
+    return [item for item in items if item]
+
+
+def _is_keyword(argument: list[_Token]) -> bool:
+    """Return whether an argument is passed by keyword, or as `**` keywords."""
+    return _shaped(argument, 0, ("name", "assign")) or _is(argument, 0, "pow")
+
+
+def _is_positional(argument: list[_Token]) -> bool:
+    """Return whether an argument takes one position: no keyword, no `*`."""
+    return not (_is_keyword(argument) or _is(argument, 0, "mul"))
+
+
+def _expand_arguments(arguments: list[list[_Token]]) -> list[str]:
+    """Return the entity IDs `expand` looks up from its arguments.
+
+    `expand` takes no keywords; with one, the call fails before it looks up
+    anything. A `*` only adds more positions, which leaves the others be.
+    """
+    if any(_is_keyword(argument) for argument in arguments):
+        return []
+    return [entity for argument in arguments for entity in _expanded(argument)]
+
+
+def _closest_arguments(arguments: list[list[_Token]]) -> list[str]:
+    """Return the entity IDs `closest` looks up from its arguments.
+
+    With one argument, those are the entities. With two, the first is the
+    point it measures from, which is looked up as well. With three, the
+    first two are a latitude and a longitude.
+    """
+    if not all(_is_positional(argument) for argument in arguments):
+        return []
+
+    if len(arguments) >= _CLOSEST_WITH_COORDINATES:
+        return _expanded(arguments[2])
+
+    found: list[str] = []
+    if len(arguments) == _CLOSEST_WITH_COORDINATES - 1:
+        found += _literal(arguments[0])
+    if arguments:
+        found += _expanded(arguments[-1])
+    return found
+
+
+def _fits(name: str, arguments: list[list[_Token]], *, in_front: int = 0) -> bool:
+    """Return whether the lookup can be called with these arguments.
+
+    `in_front` counts the positions taken before them: the value in front
+    of a filter, or the one tested. A keyword must name a parameter no
+    position took, and what has no default must be given, unless a `*` or
+    `**` can still fill it.
+    """
+    parameters, required = _LOOKUP_PARAMETERS[name]
+    positions = in_front + sum(_is_positional(argument) for argument in arguments)
+    named = [
+        argument[0][1]
+        for argument in arguments
+        if _shaped(argument, 0, ("name", "assign"))
+    ]
+    # A keyword given twice makes Jinja write a call Python cannot compile.
+    keywords = set(named)
+    if (
+        len(keywords) != len(named)
+        or positions > len(parameters)
+        or not keywords <= set(parameters[positions:])
+    ):
+        return False
+
+    if any(
+        _is(argument, 0, "mul") or _is(argument, 0, "pow") for argument in arguments
+    ):
+        return True
+    return set(parameters[positions:required]) <= keywords
+
+
+def _called_lookup(tokens: list[_Token], index: int, name: str) -> list[str]:
+    """Return what a lookup called by its name, `states(...)`, looks up."""
+    if name in _EXPANDING_LOOKUPS:
+        if (arguments := _call_arguments(tokens, index + 1)) is None:
+            return []
+        if name == "closest":
+            return _closest_arguments(arguments)
+        return _expand_arguments(arguments)
+
+    # Only a whole argument: `'sensor.Pump' + '_interval'` and two strings
+    # side by side are pieces of one.
+    arguments = _call_arguments(tokens, index + 1)
+    if not arguments or not _fits(name, arguments):
+        return []
+    return _literal(_entity_argument(name, arguments))
+
+
+def _entity_argument(name: str, arguments: list[list[_Token]]) -> list[_Token]:
+    """Return the argument a lookup takes the entity from.
+
+    The first position, or the keyword of its first parameter when no
+    position is given: `states(entity_id='sensor.Pump')`. Not when a `*`
+    can take that place first.
+    """
+    if _is_positional(arguments[0]):
+        return arguments[0]
+    if any(_is(argument, 0, "mul") for argument in arguments):
+        return []
+
+    entity_parameter = _LOOKUP_PARAMETERS[name][0][0]
+    for argument in arguments:
+        if _shaped(argument, 0, (("name", entity_parameter), "assign")):
+            return argument[2:]
+    return []
+
+
+def _value_in_front(tokens: list[_Token], end: int, *, lists: bool) -> list[str]:
+    """Return the literal, or what `expand` finds, right before this index.
+
+    With `lists`, that is a list, a tuple or a mapping of literals as well.
+    Parentheses that only group it change nothing. Only when it is all that
+    a filter or a test there applies to.
+    """
+    if _is(tokens, end - 1, "string"):
+        start = end - 1
+    elif tokens[end - 1 : end] and tokens[end - 1][0] in _CLOSERS:
+        if (opened := _opening_of(tokens, end - 1)) is None:
+            return []
+        start = opened
+    else:
+        return []
+
+    if _takes_the_value(tokens, start):
+        return []
+
+    value = tokens[start:end]
+    if (literal := _literal(value)) or not lists:
+        return literal
+    return _expanded(value)
+
+
+def _opening_of(tokens: list[_Token], close: int) -> int | None:
+    """Return where the bracket that closes at this index was opened."""
+    depth = 0
+    for position in range(close, -1, -1):
+        kind = tokens[position][0]
+        if kind in _CLOSERS:
+            depth += 1
+        elif kind in _OPENERS:
+            depth -= 1
+            if depth == 0:
+                return position
+    return None
+
+
+def _takes_the_value(tokens: list[_Token], start: int) -> bool:
+    """Return whether what comes right before a value takes it first.
+
+    A string right before a string is glued to it. A sign takes the value
+    before a filter does: `-'sensor.a' | states`. And a bracket right after a
+    value calls it or picks from it: `f('sensor.a')`, `x['sensor.a']`.
+    """
+    if start == 0:
+        return False
+
+    kind, value = tokens[start - 1]
+    if kind in _SIGNS:
+        return _is_sign(tokens, start - 1)
+    if tokens[start][0] == "string":
+        return kind == "string"
+    if kind == "name":
+        return value not in _KEYWORDS
+    return kind in _ENDS_A_VALUE
+
+
+def _is_sign(tokens: list[_Token], index: int) -> bool:
+    """Return whether the `+` or `-` at this index is a sign, not a sum."""
+    if index == 0:
+        return True
+
+    kind, value = tokens[index - 1]
+    if kind == "name":
+        return value in _KEYWORDS
+    return kind not in _ENDS_A_VALUE
+
+
+def _filtered_lookup(tokens: list[_Token], index: int, name: str) -> list[str]:
+    """Return what a lookup used as a filter, `'x' | states`, looks up.
+
+    The value in front is the first argument. `expand` and `closest` take a
+    list there too, and look up arguments of the filter as well. A dotted
+    name, `| states.x`, is another filter.
+    """
+    if name not in _STATE_LOOKUP_FILTERS or _is(tokens, index + 1, "dot"):
+        return []
+
+    # Without parentheses, the filter has no arguments of its own. The value
+    # in front is passed before them.
+    arguments = _call_arguments(tokens, index + 1) or []
+    if name not in _EXPANDING_LOOKUPS:
+        if not _fits(name, arguments, in_front=1):
+            return []
+        return _value_in_front(tokens, index - 1, lists=False)
+
+    # Neither takes a keyword, so one makes the call fail before it looks up
+    # anything.
+    if any(_is_keyword(argument) for argument in arguments):
+        return []
+
+    in_front = _value_in_front(tokens, index - 1, lists=True)
+    if name == "expand":
+        return in_front + _expand_arguments(arguments)
+    return _closest_filtered(in_front, arguments)
+
+
+def _closest_filtered(in_front: list[str], arguments: list[list[_Token]]) -> list[str]:
+    """Return what `closest` as a filter looks up.
+
+    It moves the value in front to the end of its arguments. Behind three or
+    more, the third is the one looked up, and the value in front is not.
+    """
+    if not all(_is_positional(argument) for argument in arguments):
+        return []
+    if len(arguments) >= _CLOSEST_WITH_COORDINATES:
+        return _expanded(arguments[2])
+    if len(arguments) == 1:
+        return in_front + _literal(arguments[0])
+    return in_front
+
+
+def _tested_lookup(tokens: list[_Token], index: int, name: str) -> list[str]:
+    """Return what a lookup used as a test, `'x' is has_value`, looks up.
+
+    A dotted name, `is has_value.x`, is another test.
+    """
+    if (
+        name not in _STATE_LOOKUP_TESTS
+        or _is(tokens, index + 1, "dot")
+        or not _fits(name, _test_arguments(tokens, index), in_front=1)
+    ):
+        return []
+
+    is_index = index - 2 if _is(tokens, index - 1, "name", "not") else index - 1
+    return _value_in_front(tokens, is_index, lists=False)
+
+
+def _test_arguments(tokens: list[_Token], index: int) -> list[list[_Token]]:
+    """Return the arguments of the test named at this index.
+
+    In parentheses, or one value right after the name without them, the
+    way Jinja's `parse_test` reads it: `is is_state 'on'`.
+    """
+    if _is(tokens, index + 1, "lparen"):
+        return _call_arguments(tokens, index + 1) or []
+
+    if index + 1 < len(tokens):
+        kind, value = tokens[index + 1]
+        if kind in _TEST_ARGUMENT_STARTS and not (
+            kind == "name" and value in _NO_TEST_ARGUMENT
+        ):
+            return [[tokens[index + 1]]]
+    return []
+
+
+def _literal_state_lookups(
+    expressions: list[list[_Token]], local: set[str] | frozenset[str]
+) -> set[tuple[str, str]]:
+    """Return each state lookup handed a literal, and the literal, as written.
+
+    Read with Jinja's own lexer, so only a real lookup counts: inside an
+    expression, not in a string or in the text around it, by the very name
+    (`STATES(...)`, `my_states(...)` and `obj.states(...)` are no lookups),
+    and not called by a name in `local`. Called, as a filter or as a test,
+    wherever Home Assistant offers it as one.
+    """
+    found: set[tuple[str, str]] = set()
+    for tokens in expressions:
+        for index, (kind, name) in enumerate(tokens):
+            if (
+                kind != "name"
+                or name not in _STATE_LOOKUPS
+                or _is(tokens, index - 1, "dot")
+            ):
+                continue
+
+            # Filters and tests are Jinja's own registries: a name the
+            # template defines does not hide one, it only hides a function.
+            if _is(tokens, index - 1, "pipe"):
+                values = _filtered_lookup(tokens, index, name)
+            elif _is_test(tokens, index):
+                values = _tested_lookup(tokens, index, name)
+            elif name not in local:
+                values = _called_lookup(tokens, index, name)
+            else:
+                continue
+            found.update((name, value) for value in values)
+    return found
+
+
+def _states_spelled_out(
+    expressions: list[list[_Token]], local: set[str] | frozenset[str]
+) -> set[str]:
+    """Return the entity IDs a template spells out as names, `states.light.x`.
+
+    Not after a `|` or an `is`: Jinja reads the whole dotted name there as
+    the name of a filter or a test.
+    """
+    return {
+        f"{tokens[index + 2][1]}.{tokens[index + 4][1]}"
+        for tokens in expressions
+        for index, (kind, name) in enumerate(tokens)
+        if kind == "name"
+        and name == _STATES
+        and name not in local
+        and not _is(tokens, index - 1, "dot")
+        and not _is(tokens, index - 1, "pipe")
+        and not _is_test(tokens, index)
+        and _shaped(tokens, index + 1, ("dot", "name", "dot", "name"))
+    }
+
+
+@lru_cache(maxsize=1024)
+def _looked_up_in_any_case(
+    template_str: str, shadowed: frozenset[str] = frozenset()
+) -> frozenset[str]:
+    """Return the entity IDs a template looks a state up for, as written.
+
+    Handed to a lookup as a literal, or spelled out after `states.`, and not
+    by a name the template, or the configuration in `shadowed`, defines
+    itself. These are the ones Home Assistant tries in lower case too.
+    """
+    expressions = _expressions(template_str)
+    local = _named_locally(expressions) | shadowed
+
+    return frozenset(
+        {value for _name, value in _literal_state_lookups(expressions, local)}
+        | _states_spelled_out(expressions, local)
+    )
+
+
+# The lookups that take one entity ID first and do nothing else with it.
+# Handed something that is no entity ID at all, `states`, `is_state`,
+# `state_attr`, `is_state_attr` and `has_value` find nothing and say so the
+# usual way: `unknown`, `None` or `false`. The two translated ones raise an
+# error instead, which a run only shows in the log. Not `expand` and
+# `closest`: they take lists and groups as well.
+_SINGLE_ENTITY_LOOKUPS = _STATE_LOOKUPS - _EXPANDING_LOOKUPS
+
+
+@lru_cache(maxsize=1024)
+def extract_not_entity_ids_from_template(
+    template_str: str, shadowed: frozenset[str] = frozenset()
+) -> frozenset[str]:
+    """Return the literals a template looks a state up for that are no entity ID.
+
+    `states('cover.blind.current_position')` finds nothing, whatever the
+    house looks like. Only a whole literal: anything built from pieces or
+    variables is whatever it is at runtime. Not `states.cover.blind`, which
+    is names, not a literal. A call by a name in `shadowed`, which the
+    configuration gives a meaning of its own, is not Home Assistant's
+    lookup. A filter or a test is, whatever the names around it.
+
+    Pure in its arguments, so cached like the entity extraction.
+    """
+    if not is_template_string(template_str):
+        return frozenset()
+
+    expressions = _expressions(template_str)
+    local = _named_locally(expressions) | shadowed
+
+    return frozenset(
+        value
+        for name, value in _literal_state_lookups(expressions, local)
+        if name in _SINGLE_ENTITY_LOOKUPS and is_not_an_entity_id(value)
+    )
 
 
 def _entity_id_from_template_match(match: re.Match[str]) -> str:
@@ -380,31 +1376,58 @@ def _entity_id_from_template_match(match: re.Match[str]) -> str:
 
 
 @lru_cache(maxsize=1024)
-def _extract_entity_candidates_from_template(template_str: str) -> frozenset[str]:
+def _extract_entity_candidates_from_template(
+    template_str: str, shadowed: frozenset[str] = frozenset()
+) -> frozenset[str]:
     """Extract entity ID candidates from a template string.
 
-    Pure in the template string, so results are cached: repairs re-inspect
-    the same unchanged templates over and over.
+    `shadowed` holds the names the configuration around the template gives
+    a meaning of its own, like a variable called `states`. Those, and the
+    names the template defines itself, are not Home Assistant's lookups.
+
+    Pure in its arguments, so results are cached: repairs re-inspect the
+    same unchanged templates over and over.
     """
     # One kind of line ending, so the lexer's offsets and the regex's agree.
     template_without_comments = _LINE_ENDINGS.sub(
         "\n", _strip_jinja_comments(template_str)
     )
-    text_argument_offsets = _text_argument_offsets(template_without_comments)
+    left_alone_offsets = _text_argument_offsets(
+        template_without_comments
+    ) | _dictionary_key_offsets(template_without_comments)
+    glued_literals = _glued_literals(template_without_comments)
+    states_lookup_offsets = _states_lookup_offsets(template_without_comments)
+    # `states.light.kitchen` is no literal, only names: when `states` is the
+    # template's or the configuration's own, it names no entity at all. A
+    # literal is still read, whatever it is handed to, just like one in
+    # `{% set x = 'light.kitchen' %}` or handed to a macro of any other name.
+    states_is_shadowed = _STATES in shadowed or _STATES in _named_locally(
+        _expressions(template_without_comments)
+    )
 
     entities = set()
 
     for pattern in COMPILED_ENTITY_ID_TEMPLATE_PATTERNS:
+        if states_is_shadowed and pattern.groups == _STATES_DOMAIN_ENTITY_GROUPS:
+            continue
+
         for match in pattern.finditer(template_without_comments):
             if (
-                _is_concatenated_template_match(template_without_comments, match)
+                _is_concatenated_template_match(
+                    template_without_comments, match, glued_literals
+                )
                 or _is_jinja_import_match(template_without_comments, match)
                 or _is_string_method_argument_match(template_without_comments, match)
-                or _is_text_argument_match(match, text_argument_offsets)
+                or _is_left_alone_literal_match(match, left_alone_offsets)
+                or _is_no_states_lookup_match(match, states_lookup_offsets)
             ):
                 continue
 
             entity_id = _entity_id_from_template_match(match)
+            if not entity_id.islower() and entity_id in _looked_up_in_any_case(
+                template_without_comments, shadowed
+            ):
+                entity_id = entity_id.lower()
 
             # For each entity ID (which might be comma-separated), add all valid ones
             for individual_id in split_comma_separated_entity_ids(entity_id):
@@ -420,6 +1443,7 @@ def extract_entities_from_template_regex(
     hass: HomeAssistant,
     template_str: str,
     known_services: set[str] | None = None,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entity IDs from template string using regex patterns.
 
@@ -431,7 +1455,7 @@ def extract_entities_from_template_regex(
     if not isinstance(template_str, str):
         return set()
 
-    entities = set(_extract_entity_candidates_from_template(template_str))
+    entities = set(_extract_entity_candidates_from_template(template_str, shadowed))
 
     # Filter out known services to avoid false positives
     if known_services is None:
@@ -439,12 +1463,14 @@ def extract_entities_from_template_regex(
     return entities - known_services
 
 
-async def _process_template_object(
+async def _process_template_object(  # noqa: PLR0913 # pylint: disable=too-many-arguments
     hass: HomeAssistant,
     template: Template,
     known_entity_ids: set[str],
     known_services: set[str],
     unknown_entities: set[str],
+    *,
+    shadowed: frozenset[str],
 ) -> None:
     """Process a Template object and add unknown entities to the set."""
     template_entities = set()
@@ -453,7 +1479,7 @@ async def _process_template_object(
     try:
         if hasattr(template, "template") and template.template:
             regex_entities = extract_entities_from_template_regex(
-                hass, template.template, known_services
+                hass, template.template, known_services, shadowed
             )
             template_entities.update(regex_entities)
     # pylint: disable-next=broad-exception-caught
@@ -466,16 +1492,18 @@ async def _process_template_object(
             unknown_entities.add(template_entity)
 
 
-async def _process_template_string(
+async def _process_template_string(  # noqa: PLR0913 # pylint: disable=too-many-arguments
     hass: HomeAssistant,
     template_str: str,
     known_entity_ids: set[str],
     known_services: set[str],
     unknown_entities: set[str],
+    *,
+    shadowed: frozenset[str],
 ) -> None:
     """Process a template string and add unknown entities to the set."""
     template_entities = await async_extract_entities_from_template_string(
-        hass, template_str, known_services
+        hass, template_str, known_services, shadowed
     )
     # Check if any of the template entities are unknown
     for template_entity in template_entities:
@@ -494,6 +1522,7 @@ async def async_filter_known_entity_ids_with_templates(
     entity_ids: Iterable[str],
     known_entity_ids: set[str] | None = None,
     known_services: set[str] | None = None,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Async version that can process templates to extract entity dependencies.
 
@@ -504,6 +1533,9 @@ async def async_filter_known_entity_ids_with_templates(
     ``known_services`` is what tells an action name apart from an entity id.
     Building it flattens every service Home Assistant has, so a caller running
     this over one item after another should build it once and pass it in.
+
+    ``shadowed`` holds the names the configuration gives its templates, as
+    `reference_extraction.names_given_to_templates` finds them.
     """
     if known_entity_ids is None:
         known_entity_ids = async_get_all_entity_ids(hass)
@@ -516,7 +1548,12 @@ async def async_filter_known_entity_ids_with_templates(
             if known_services is None:
                 known_services = async_get_all_services(hass)
             await _process_template_object(
-                hass, entity_id_raw, known_entity_ids, known_services, unknown_entities
+                hass,
+                entity_id_raw,
+                known_entity_ids,
+                known_services,
+                unknown_entities,
+                shadowed=shadowed,
             )
             continue
 
@@ -528,7 +1565,12 @@ async def async_filter_known_entity_ids_with_templates(
             if known_services is None:
                 known_services = async_get_all_services(hass)
             await _process_template_string(
-                hass, entity_id_raw, known_entity_ids, known_services, unknown_entities
+                hass,
+                entity_id_raw,
+                known_entity_ids,
+                known_services,
+                unknown_entities,
+                shadowed=shadowed,
             )
         else:
             # Process as regular entity ID(s), handling comma-separated lists
@@ -568,12 +1610,19 @@ async def async_extract_entities_from_config(
     hass: HomeAssistant,
     config: Any,
     known_services: set[str] | None = None,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entity IDs referenced in templates within a configuration structure.
 
     ``known_services`` is what tells an action name apart from an entity id.
     Building it flattens every service Home Assistant has, so a caller walking
     one configuration after another should build it once and pass it in.
+
+    ``shadowed`` holds the names the configuration gives its templates, as
+    `reference_extraction.names_given_to_templates` finds them: a variable
+    called `states` is not Home Assistant's `states`. Taken from the whole
+    configuration, so a caller handing in a part of it, or a copy without
+    its descriptions, passes them in.
     """
     entities = set()
     if not config:
@@ -591,7 +1640,7 @@ async def async_extract_entities_from_config(
                 extracted_templates[
                     template_str
                 ] = await async_extract_entities_from_template_string(
-                    hass, template_str, known_services
+                    hass, template_str, known_services, shadowed
                 )
             referenced_entities = extracted_templates[template_str]
             entities.update(referenced_entities)
@@ -607,16 +1656,1036 @@ async def async_extract_entities_from_config(
     return entities
 
 
+# The functions that read one attribute of one entity. Home Assistant
+# offers `state_attr` as a filter as well, and `is_state_attr` as a test.
+_ATTRIBUTE_FUNCTIONS = frozenset({"is_state_attr", "state_attr"})
+_ATTRIBUTE_FILTER = "state_attr"
+_ATTRIBUTE_TEST = "is_state_attr"
+
+# What may follow an argument for it to be the whole argument: the end of the
+# call, or the next argument. Anything else, like `~`, makes it a piece of one.
+_ARGUMENT_ENDS = frozenset({"comma", "rparen"})
+
+# What reading the attributes as a mapping can mean other than an attribute.
+# Jinja finds the method before it looks for a key: `.attributes.items` is
+# the method, called or not.
+_MAPPING_METHODS = frozenset(name for name in dir(dict) if not name.startswith("_"))
+
+# What comes right after a parameter of a macro or call block: the next one,
+# the end of them, or its default.
+_PARAMETER_ENDS = frozenset({"assign", "comma", "rparen"})
+
+# Where an expression starts and ends; everything else is template text.
+_EXPRESSION_STARTS = frozenset({"block_begin", "variable_begin"})
+_EXPRESSION_ENDS = frozenset({"block_end", "variable_end"})
+
+type _Token = tuple[str, str]
+
+
+def _expressions(template_str: str) -> list[list[_Token]]:
+    """Return the tokens of each expression in a template, read by Jinja.
+
+    Template text around the expressions, comments and whitespace are not in
+    them. A template Jinja cannot read has none.
+    """
+    expressions: list[list[_Token]] = []
+    current: list[_Token] | None = None
+    try:
+        for token in _JINJA_LEXER.lexer.tokenize(template_str):
+            if token.type in _EXPRESSION_STARTS:
+                current = []
+            elif token.type in _EXPRESSION_ENDS:
+                if current:
+                    expressions.append(current)
+                current = None
+            elif current is not None:
+                current.append((token.type, token.value))
+    except TemplateSyntaxError:
+        return []
+
+    return expressions
+
+
+def _is(tokens: list[_Token], index: int, kind: str, value: str | None = None) -> bool:
+    """Return whether the token at this index is of this kind, and value."""
+    if not 0 <= index < len(tokens):
+        return False
+    token_kind, token_value = tokens[index]
+    return token_kind == kind and (value is None or token_value == value)
+
+
+def _shaped(
+    tokens: list[_Token], start: int, shape: tuple[str | tuple[str, str], ...]
+) -> bool:
+    """Return whether the tokens from here on have this shape.
+
+    Each part is a token kind, or a kind and the value it must have.
+    """
+    return all(
+        _is(tokens, start + offset, *(part if isinstance(part, tuple) else (part,)))
+        for offset, part in enumerate(shape)
+    )
+
+
+def _ends_argument(tokens: list[_Token], index: int) -> bool:
+    """Return whether the token at this index ends an argument."""
+    return index < len(tokens) and tokens[index][0] in _ARGUMENT_ENDS
+
+
+def _function_pair(tokens: list[_Token], index: int) -> tuple[str, str] | None:
+    """Read `state_attr('light.x', 'brightness')` starting at its name."""
+    if (
+        _is(tokens, index - 1, "dot")
+        or _is(tokens, index - 1, "pipe")
+        or not _shaped(tokens, index + 1, ("lparen", "string", "comma", "string"))
+        or not _ends_argument(tokens, index + 5)
+    ):
+        return None
+    return tokens[index + 2][1], tokens[index + 4][1]
+
+
+def _filter_pair(tokens: list[_Token], index: int) -> tuple[str, str] | None:
+    """Read `'light.x' | state_attr('brightness')` starting at its name."""
+    if (
+        not _is(tokens, index - 1, "pipe")
+        or not _is(tokens, index - 2, "string")
+        or not _is(tokens, index + 1, "lparen")
+        or not _is(tokens, index + 2, "string")
+        or not _ends_argument(tokens, index + 3)
+    ):
+        return None
+    return tokens[index - 2][1], tokens[index + 2][1]
+
+
+def _test_pair(tokens: list[_Token], index: int) -> tuple[str, str] | None:
+    """Read `'light.x' is is_state_attr('brightness', 255)` at its name.
+
+    Also as `is not`. The value it is compared to has to follow, so the
+    attribute is a whole argument only with a comma after it.
+    """
+    if (subject := _tested_literal(tokens, index)) is None or not _shaped(
+        tokens, index + 1, ("lparen", "string", "comma")
+    ):
+        return None
+    return tokens[subject][1], tokens[index + 2][1]
+
+
+def _states_pair(tokens: list[_Token], index: int) -> tuple[str, str] | None:
+    """Read `states.light.x.attributes...` starting at `states`.
+
+    The attribute as a name, `['brightness']` or `.get('brightness')`. A
+    method on the attributes, like `.items()`, is not an attribute. Nor
+    after a `|` or an `is`: Jinja reads the whole dotted name there as the
+    name of a filter or a test, which Home Assistant does not have.
+    """
+    if (
+        _is(tokens, index - 1, "dot")
+        or _is(tokens, index - 1, "pipe")
+        or _is_test(tokens, index)
+        or not _shaped(
+            tokens,
+            index + 1,
+            ("dot", "name", "dot", "name", "dot", ("name", "attributes")),
+        )
+    ):
+        return None
+
+    if (attribute := _attribute_after(tokens, index + 7)) is None:
+        return None
+    return f"{tokens[index + 2][1]}.{tokens[index + 4][1]}", attribute
+
+
+def _attribute_after(tokens: list[_Token], after: int) -> str | None:
+    """Read the attribute that follows `.attributes`, if it is a literal one."""
+    if _is(tokens, after, "lbracket"):
+        if _is(tokens, after + 1, "string") and _is(tokens, after + 2, "rbracket"):
+            return tokens[after + 1][1]
+        return None
+
+    if not _is(tokens, after, "dot") or not _is(tokens, after + 1, "name"):
+        return None
+
+    name = tokens[after + 1][1]
+    if not _is(tokens, after + 2, "lparen"):
+        return None if name in _MAPPING_METHODS else name
+
+    if (
+        name == "get"
+        and _is(tokens, after + 3, "string")
+        and _ends_argument(tokens, after + 4)
+    ):
+        return tokens[after + 3][1]
+
+    return None
+
+
+def _names_defined(tokens: list[_Token]) -> set[str]:
+    """Return the names one expression gives a meaning, like `{% set x = 1 %}`.
+
+    Generous where it is cheap to be: a keyword argument counts as well.
+    Taking a name for a local one only means a lookup that is not checked;
+    missing one means a finding about a template that works.
+    """
+    statement = tokens[0][1] if _is(tokens, 0, "name") else None
+    names = [
+        (index, value) for index, (kind, value) in enumerate(tokens) if kind == "name"
+    ]
+
+    if statement == "for":
+        # `{% for key, value in ... %}`: everything up to the `in`.
+        loop_names: set[str] = set()
+        for _index, value in names[1:]:
+            if value == "in":
+                break
+            loop_names.add(value)
+        return loop_names
+
+    if statement in {"import", "from"}:
+        # `{% import 'x' as name %}`, `{% from 'x' import a, b as c %}`.
+        return {
+            value
+            for index, value in names
+            if _is(tokens, index - 1, "name", "as")
+            or _is(tokens, index - 1, "name", "import")
+            or _is(tokens, index - 1, "comma")
+        }
+
+    if statement == "set" and not any(kind == "assign" for kind, _value in tokens):
+        # `{% set name %}...{% endset %}`.
+        return {value for _index, value in names[1:]}
+
+    defined = {
+        value
+        for index, value in names
+        # `{% set a, b = ... %}`, `{% with a = ... %}`, and the keywords.
+        if _is(tokens, index + 1, "assign")
+        or (statement == "set" and _is(tokens, index + 1, "comma"))
+    }
+    if statement in {"macro", "call"}:
+        # `{% macro name(a, b=1) %}`, `{% call(a) other() %}`: the name, and
+        # whatever is followed by what ends a parameter.
+        defined.update(
+            value
+            for index, value in names
+            if index == 1
+            or (index + 1 < len(tokens) and tokens[index + 1][0] in _PARAMETER_ENDS)
+        )
+    return defined
+
+
+def _named_locally(expressions: list[list[_Token]]) -> set[str]:
+    """Return every name a template gives a meaning of its own, anywhere in it."""
+    return {name for tokens in expressions for name in _names_defined(tokens)}
+
+
+def _attribute_pair(
+    tokens: list[_Token], index: int, named_locally: frozenset[str] | set[str]
+) -> tuple[str, str] | None:
+    """Read the attribute lookup that starts at the name at this index, if any."""
+    name = tokens[index][1]
+
+    # Filters and tests are Jinja's own registries: a name the template, or
+    # the configuration, defines does not hide one, it only hides a function.
+    # Where Home Assistant offers no such filter or test, the template does
+    # not work at all.
+    if name in _ATTRIBUTE_FUNCTIONS and _is(tokens, index - 1, "pipe"):
+        return _filter_pair(tokens, index) if name == _ATTRIBUTE_FILTER else None
+    if name in _ATTRIBUTE_FUNCTIONS and _is_test(tokens, index):
+        return _test_pair(tokens, index) if name == _ATTRIBUTE_TEST else None
+
+    if name in named_locally:
+        return None
+    if name in _ATTRIBUTE_FUNCTIONS:
+        return _function_pair(tokens, index)
+    if name == "states":
+        return _states_pair(tokens, index)
+    return None
+
+
 @lru_cache(maxsize=1024)
-def _extract_device_ids_from_template(template_str: str) -> frozenset[str]:
-    """Extract device IDs referenced via ``device_entities`` in a template."""
-    template_without_comments = _strip_jinja_comments(template_str)
-    return frozenset(_DEVICE_ENTITIES_PATTERN.findall(template_without_comments))
+def extract_attribute_pairs_from_template(
+    template_str: str,
+    shadowed: frozenset[str] = frozenset(),
+) -> frozenset[tuple[str, str]]:
+    """Return the (entity ID, attribute) pairs a template names literally.
+
+    Read by Jinja's own lexer, so only what is inside an expression counts,
+    and only pairs where both are a whole string literal. An attribute built
+    from pieces, like `'color_' ~ 'temp'`, or coming from a variable, is
+    whatever it is at runtime, and guessing at that is how a repair ends up
+    reporting a template that works. So is a call in a template that
+    defines its own `states` or `state_attr`: then those are not Home
+    Assistant's. The same goes for the names in `shadowed`, which the
+    configuration around the template gives a meaning of its own. Neither
+    hides the `state_attr` filter.
+
+    Pure in its arguments, so cached like the entity extraction.
+    """
+    if not is_template_string(template_str):
+        return frozenset()
+
+    expressions = _expressions(template_str)
+    named_locally = _named_locally(expressions) | shadowed
+
+    pairs: set[tuple[str, str]] = set()
+    for tokens in expressions:
+        for index, (kind, _value) in enumerate(tokens):
+            if kind != "name":
+                continue
+
+            pair = _attribute_pair(tokens, index, named_locally)
+            if pair is not None and valid_entity_id(pair[0]):
+                pairs.add(pair)
+
+    return frozenset(pairs)
 
 
-def extract_device_ids_from_config(config: Any) -> set[str]:
-    """Extract device IDs referenced via ``device_entities`` in templates."""
+# The function, and test, that compare the state of one entity.
+_STATE_FUNCTION = "is_state"
+
+
+def _states_argument(tokens: list[_Token], index: int) -> tuple[list[str], int] | None:
+    """Read the states `is_state` compares to, starting at the argument.
+
+    One literal, or a list of them, which core's `is_state` takes as well.
+    Not a tuple: core only looks inside a list, so a tuple never matches.
+    Returns the literals and where the argument ends.
+    """
+    if _is(tokens, index, "string"):
+        return [tokens[index][1]], index + 1
+    if _is(tokens, index, "lbracket"):
+        return _literals_listed(tokens, index)
+
+    # Parentheses around one thing only group it: `(['on'])` is still the
+    # list. With a comma after it, `(['on'],)`, it is a tuple and not read.
+    if _is(tokens, index, "lparen"):
+        grouped = _states_argument(tokens, index + 1)
+        if grouped is not None and _is(tokens, grouped[1], "rparen"):
+            return grouped[0], grouped[1] + 1
+    return None
+
+
+def _function_pairs(tokens: list[_Token], index: int) -> set[tuple[str, str]]:
+    """Read `is_state('light.x', 'on')` starting at its name.
+
+    Also with a list of states, `is_state('light.x', ['on', 'off'])`.
+    """
+    if (
+        _is(tokens, index - 1, "dot")
+        or _is(tokens, index - 1, "pipe")
+        or not _shaped(tokens, index + 1, ("lparen", "string", "comma"))
+        or (states := _states_argument(tokens, index + 4)) is None
+    ):
+        return set()
+
+    literals, end = states
+    if not _ends_argument(tokens, end):
+        return set()
+    return {(tokens[index + 2][1], literal) for literal in literals}
+
+
+def _test_pairs(tokens: list[_Token], index: int) -> set[tuple[str, str]]:
+    """Read `'light.x' is is_state('on')` starting at its name.
+
+    Also as `is not`, and with a list of states. Only with the states in
+    parentheses: without them, where the state ends depends on what follows
+    it.
+    """
+    if (
+        (subject := _tested_literal(tokens, index)) is None
+        or not _is(tokens, index + 1, "lparen")
+        or (states := _states_argument(tokens, index + 2)) is None
+    ):
+        return set()
+
+    literals, end = states
+    if not _is(tokens, end, "rparen"):
+        return set()
+    return {(tokens[subject][1], literal) for literal in literals}
+
+
+def _tested_literal(tokens: list[_Token], index: int) -> int | None:
+    """Return where the literal is that the test at this index is about.
+
+    `'light.x' is` or `'light.x' is not` right before it, and nothing that
+    takes the literal first.
+    """
+    subject = index - 2
+    if _is(tokens, index - 1, "name", "not"):
+        subject -= 1
+
+    if not _shaped(tokens, subject, ("string", ("name", "is"))):
+        return None
+
+    # Jinja glues neighbouring strings into one, so a string right before is
+    # only the end of the entity ID. And a sign right before can make the
+    # test about the signed value: `-'light.x' is is_state('on')` tests the
+    # negation. Telling a sign from a minus between two values is not worth
+    # it for this.
+    if subject > 0 and tokens[subject - 1][0] in {"string", *_SIGNS}:
+        return None
+    return subject
+
+
+def _is_test(tokens: list[_Token], index: int) -> bool:
+    """Return whether the name at this index is used as a test."""
+    return _is(tokens, index - 1, "name", "is") or (
+        _is(tokens, index - 1, "name", "not") and _is(tokens, index - 2, "name", "is")
+    )
+
+
+# Comparing two things is looser than anything but `not`, `and`, `or` and
+# `if ... else` in Jinja (`parse_compare` sits right under `parse_not`), so
+# a side is whole when what is around it is one of those, or something that
+# opens or closes a part of the expression. Anything else around it, like a
+# filter, `~`, maths, a method or another comparison, takes part of it.
+_OPENS_A_SIDE = frozenset({"assign", "comma", "lbracket", "lparen"})
+_CLOSES_A_SIDE = frozenset({"comma", "rbracket", "rparen"})
+_KEYWORDS_BEFORE_A_SIDE = frozenset({"and", "elif", "else", "if", "not", "or"})
+_KEYWORDS_AFTER_A_SIDE = frozenset({"and", "else", "if", "or"})
+
+# Comparisons that hold a state to one literal.
+_EQUALITY = frozenset({"eq", "ne"})
+
+# How a list, or a tuple, of literals is closed.
+_CLOSING = {"lbracket": "rbracket", "lparen": "rparen"}
+
+# What reads the state of an entity in a template.
+_STATES = "states"
+
+
+def _side_starts(tokens: list[_Token], index: int) -> bool:
+    """Return whether a side of a comparison can start at this index."""
+    if index == 0:
+        return True
+
+    kind, value = tokens[index - 1]
+    if kind in _OPENS_A_SIDE:
+        return True
+    # `is not` makes what follows a test, not a side.
+    return (
+        kind == "name"
+        and value in _KEYWORDS_BEFORE_A_SIDE
+        and not (value == "not" and _is(tokens, index - 2, "name", "is"))
+    )
+
+
+def _side_ends(tokens: list[_Token], index: int) -> bool:
+    """Return whether a side of a comparison can end right before this index."""
+    if index == len(tokens):
+        return True
+
+    kind, value = tokens[index]
+    return kind in _CLOSES_A_SIDE or (
+        kind == "name" and value in _KEYWORDS_AFTER_A_SIDE
+    )
+
+
+def _state_lookup(tokens: list[_Token], index: int) -> tuple[str, int] | None:
+    """Read `states('light.x')` or `states.light.x.state` starting at `states`.
+
+    Returns the entity ID and where the lookup ends. Only with nothing more
+    in the call: `states('light.x', rounded=True)` is the state made pretty.
+    """
+    if _shaped(tokens, index + 1, ("lparen", "string", "rparen")):
+        return tokens[index + 2][1], index + 4
+
+    if _shaped(
+        tokens, index + 1, ("dot", "name", "dot", "name", "dot", ("name", "state"))
+    ):
+        return f"{tokens[index + 2][1]}.{tokens[index + 4][1]}", index + 7
+
+    return None
+
+
+def _literals_listed(tokens: list[_Token], index: int) -> tuple[list[str], int] | None:
+    """Read `['on', 'off']` or `('on', 'off')` starting at its bracket.
+
+    Returns the literals and where the list ends. Parentheses around a
+    single literal, without a comma, are no tuple but the text itself, and
+    `in` a text looks for a piece of it.
+    """
+    if index >= len(tokens) or (closing := _CLOSING.get(tokens[index][0])) is None:
+        return None
+
+    literals: list[str] = []
+    commas = 0
+    position = index + 1
+    while _is(tokens, position, "string"):
+        literals.append(tokens[position][1])
+        position += 1
+        if not _is(tokens, position, "comma"):
+            break
+        commas += 1
+        position += 1
+
+    if not _is(tokens, position, closing) or (closing == "rparen" and not commas):
+        return None
+    return literals, position + 1
+
+
+def _compared_after(tokens: list[_Token], index: int) -> tuple[list[str], int] | None:
+    """Read what a state is compared to, starting right after the lookup.
+
+    `== 'on'`, `!= 'on'`, and `in` or `not in` a list of literals. Returns
+    the literals and where the comparison ends.
+    """
+    if index < len(tokens) and tokens[index][0] in _EQUALITY:
+        if _is(tokens, index + 1, "string"):
+            return [tokens[index + 1][1]], index + 2
+        return None
+
+    if _is(tokens, index, "name", "not"):
+        index += 1
+    if not _is(tokens, index, "name", "in"):
+        return None
+    return _literals_listed(tokens, index + 1)
+
+
+def _comparison_pairs(tokens: list[_Token], index: int) -> set[tuple[str, str]]:
+    """Read a state compared to literals, the lookup starting at `states`.
+
+    The lookup first, `states('light.x') == 'on'`, or the literal first,
+    `'on' == states('light.x')`, which only goes for `==` and `!=`: a text
+    `in` a state looks for a piece of it.
+    """
+    if (lookup := _state_lookup(tokens, index)) is None:
+        return set()
+    entity_id, after = lookup
+
+    if (
+        _side_starts(tokens, index)
+        and (compared := _compared_after(tokens, after)) is not None
+    ):
+        literals, end = compared
+        if _side_ends(tokens, end):
+            return {(entity_id, literal) for literal in literals}
+
+    literal = index - 2
+    if (
+        _is(tokens, literal, "string")
+        and index - 1 >= 0
+        and tokens[index - 1][0] in _EQUALITY
+        and _side_starts(tokens, literal)
+        and _side_ends(tokens, after)
+    ):
+        return {(entity_id, tokens[literal][1])}
+
+    return set()
+
+
+@lru_cache(maxsize=1024)
+def extract_state_pairs_from_template(
+    template_str: str,
+    shadowed: frozenset[str] = frozenset(),
+) -> frozenset[tuple[str, str]]:
+    """Return the (entity ID, state) pairs a template compares literally.
+
+    `is_state('light.x', 'on')`, and the same as a test, `'light.x' is
+    is_state('on')`; Home Assistant offers no filter for it. Both also with a
+    list of states, `is_state('light.x', ['on', 'off'])`. And a state
+    compared to literals: `states('light.x') == 'on'`, `!=`, the other way
+    around, or `in` a list of them, also as `states.light.x.state`.
+
+    Read like the attribute pairs: whole string literals, inside an
+    expression, and not called in a template that defines its own
+    `is_state` or `states`, or sits in a configuration that does
+    (`shadowed`). Neither hides the `is_state` test. A comparison only when
+    nothing else takes part in it: with a filter, `~` or anything else in
+    between, what is compared is something else than the state.
+
+    Pure in its arguments, so cached like the entity extraction.
+    """
+    if not is_template_string(template_str):
+        return frozenset()
+
+    expressions = _expressions(template_str)
+    named_locally = _named_locally(expressions) | shadowed
+
+    pairs: set[tuple[str, str]] = set()
+    for tokens in expressions:
+        for index, (kind, value) in enumerate(tokens):
+            if kind != "name":
+                continue
+
+            # Tests are Jinja's own registry: a name the template, or the
+            # configuration, defines does not hide one, it only hides a function.
+            found: set[tuple[str, str]] = set()
+            if value == _STATE_FUNCTION and _is_test(tokens, index):
+                found = _test_pairs(tokens, index)
+            elif value in named_locally:
+                continue
+            elif value == _STATE_FUNCTION:
+                found = _function_pairs(tokens, index)
+            elif value == _STATES:
+                found = _comparison_pairs(tokens, index)
+
+            pairs.update(pair for pair in found if valid_entity_id(pair[0]))
+
+    return frozenset(pairs)
+
+
+# What an automation hands its templates as the trigger that started it.
+_TRIGGER = "trigger"
+
+
+def _trigger_id_lookup(tokens: list[_Token], index: int) -> int | None:
+    """Read `trigger.id` or `trigger['id']` starting at `trigger`.
+
+    Returns where the lookup ends.
+    """
+    if _shaped(tokens, index + 1, ("dot", ("name", "id"))):
+        return index + 3
+    if _shaped(tokens, index + 1, ("lbracket", ("string", "id"), "rbracket")):
+        return index + 4
+    return None
+
+
+def _compared_trigger_ids(tokens: list[_Token], index: int) -> list[str]:
+    """Read the trigger ID compared to literals, the lookup starting at `trigger`.
+
+    Read like a state compared to literals: `trigger.id == 'x'`, `!=`, `in`
+    or `not in` a list of them, and `'x' == trigger.id` the other way around.
+
+    Both need the lookup to be a whole side, which is also what keeps out
+    `wait.trigger.id`: after a dot, `trigger` is a piece of something else,
+    here the trigger a wait ended on.
+    """
+    if (after := _trigger_id_lookup(tokens, index)) is None:
+        return []
+
+    if (
+        _side_starts(tokens, index)
+        and (compared := _compared_after(tokens, after)) is not None
+    ):
+        literals, end = compared
+        if _side_ends(tokens, end):
+            return literals
+
+    literal = index - 2
+    if (
+        _is(tokens, literal, "string")
+        and tokens[index - 1][0] in _EQUALITY
+        and _side_starts(tokens, literal)
+        and _side_ends(tokens, after)
+    ):
+        return [tokens[literal][1]]
+
+    return []
+
+
+@lru_cache(maxsize=1024)
+def extract_trigger_ids_from_template(template_str: str) -> frozenset[str]:
+    """Return the trigger IDs a template compares `trigger.id` to, literally.
+
+    Only whole string literals, and only when nothing else takes part in the
+    comparison, like the state comparisons. A template that gives `trigger`
+    a meaning of its own, with `{% set %}` for example, is not read at all:
+    its `trigger` is not the one that started the automation.
+
+    Pure in its argument, so cached like the other readers.
+    """
+    if not is_template_string(template_str):
+        return frozenset()
+
+    expressions = _expressions(template_str)
+    if _TRIGGER in _named_locally(expressions):
+        return frozenset()
+
+    found: set[str] = set()
+    for tokens in expressions:
+        for index, (kind, value) in enumerate(tokens):
+            if kind == "name" and value == _TRIGGER:
+                found.update(_compared_trigger_ids(tokens, index))
+
+    return frozenset(found)
+
+
+# Where a template finds the user behind something: the context of a state,
+# an event or the run itself, which carries the ID of the user who started
+# it. `context` is the run's own, so a script started by a user gets theirs.
+# The others are where a lookup of a state or an event starts.
+_CONTEXT = "context"
+_CONTEXT_ROOTS = frozenset({_CONTEXT, _STATES, "this", _TRIGGER, "wait"})
+_USER_ID = "user_id"
+
+# A person keeps the ID of the user it belongs to as an attribute, and
+# nothing else promises that `user_id` means a Home Assistant user.
+_PERSON_PREFIX = "person."
+
+
+def _lookup_path(tokens: list[_Token], index: int) -> tuple[list[str], int]:
+    """Read the names a lookup goes through, after the name at this index.
+
+    `.name` and `['name']` alike, Jinja looks both up the same way. Returns
+    the names and where the lookup ends.
+    """
+    path: list[str] = []
+    position = index + 1
+    while True:
+        if _shaped(tokens, position, ("dot", "name")):
+            path.append(tokens[position + 1][1])
+            position += 2
+        elif _shaped(tokens, position, ("lbracket", "string", "rbracket")):
+            path.append(tokens[position + 1][1])
+            position += 3
+        else:
+            return path, position
+
+
+# What a trigger hands over that is a state or an event, and so has a
+# context of its own. The rest of it, like the data of an event or the
+# attributes of a state, is whatever its maker put in there.
+_TRIGGER_CONTEXT_HOLDERS = frozenset({"event", "from_state", "to_state", "zone"})
+
+
+def _is_trigger_user_id_path(path: list[str]) -> bool:
+    """Return whether a lookup in a trigger reads the user behind it."""
+    match path:
+        case [holder, "context", "user_id"]:
+            return holder in _TRIGGER_CONTEXT_HOLDERS
+    return False
+
+
+def _is_user_id_path(root: str, path: list[str]) -> bool:
+    """Return whether a lookup from this root reads the ID of a user.
+
+    Only where Home Assistant puts a context itself. The same names further
+    down a payload are someone else's.
+    """
+    match root, path:
+        case "trigger", _:
+            return _is_trigger_user_id_path(path)
+        case "wait", ["trigger", *rest]:
+            return _is_trigger_user_id_path(rest)
+        case (
+            ("context", ["user_id"])
+            | ("this", ["context", "user_id"])
+            | ("states", ["person", _, "attributes", "user_id"])
+        ):
+            return True
+        # `states.light.kitchen` and `states['light.kitchen']` are the same.
+        case "states", [domain, _, "context", "user_id"] if "." not in domain:
+            return True
+        case "states", [entity_id, "context", "user_id"] if "." in entity_id:
+            return True
+    return False
+
+
+def _person_user_id_call(tokens: list[_Token], index: int) -> bool:
+    """Return whether this is `state_attr('person.x', 'user_id')`, called."""
+    return _shaped(
+        tokens,
+        index + 1,
+        ("lparen", "string", "comma", ("string", _USER_ID), "rparen"),
+    ) and tokens[index + 2][1].startswith(_PERSON_PREFIX)
+
+
+def _user_id_lookup(tokens: list[_Token], index: int, local: set[str]) -> int | None:
+    """Read a lookup of a user ID starting at the name at this index.
+
+    Returns where it ends. A name the template or the configuration gives a
+    meaning of its own (`local`) is not the one Home Assistant hands over.
+    """
+    name = tokens[index][1]
+    if name in local:
+        return None
+
+    if name in _CONTEXT_ROOTS:
+        path, end = _lookup_path(tokens, index)
+        return end if _is_user_id_path(name, path) else None
+
+    if name == _ATTRIBUTE_FILTER and _person_user_id_call(tokens, index):
+        return index + 6
+
+    return None
+
+
+def _compared_user_ids(tokens: list[_Token], index: int, end: int) -> list[str]:
+    """Read the literals a user ID lookup is compared to.
+
+    Read like the trigger ID: `== 'x'`, `!=`, `in` or `not in` a list of
+    them, and `'x' ==` the other way around, the lookup a whole side. That
+    also keeps out a lookup read from halfway: after a dot, `context` or
+    `trigger` is a piece of something else, like `trigger` in `wait.trigger`,
+    which is read from `wait`.
+    """
+    if (
+        _side_starts(tokens, index)
+        and (compared := _compared_after(tokens, end)) is not None
+    ):
+        literals, after = compared
+        if _side_ends(tokens, after):
+            return literals
+
+    literal = index - 2
+    if (
+        _is(tokens, literal, "string")
+        and tokens[index - 1][0] in _EQUALITY
+        and _side_starts(tokens, literal)
+        and _side_ends(tokens, end)
+    ):
+        return [tokens[literal][1]]
+
+    return []
+
+
+def _person_user_id_test(tokens: list[_Token], index: int) -> list[str]:
+    """Read `is_state_attr('person.x', 'user_id', 'y')`, called, as `y`."""
+    if (
+        _shaped(
+            tokens,
+            index + 1,
+            (
+                "lparen",
+                "string",
+                "comma",
+                ("string", _USER_ID),
+                "comma",
+                "string",
+                "rparen",
+            ),
+        )
+        and tokens[index + 2][1].startswith(_PERSON_PREFIX)
+        and not _is(tokens, index - 1, "dot")
+    ):
+        return [tokens[index + 6][1]]
+    return []
+
+
+@lru_cache(maxsize=1024)
+def extract_user_ids_from_template(
+    template_str: str, shadowed: frozenset[str] = frozenset()
+) -> frozenset[str]:
+    """Return the literals a template compares the ID of a user to.
+
+    The user behind a context, like `trigger.to_state.context.user_id`,
+    `trigger.event.context.user_id` or the run's own `context.user_id`, and
+    the user of a person, with `state_attr('person.x', 'user_id')` or
+    `states.person.x.attributes.user_id`. Compared like the trigger ID, and
+    `is_state_attr('person.x', 'user_id', 'y')` too.
+
+    Whatever the literal is: telling a user ID apart from anything else is
+    up to the caller. Not read when the template, or the configuration it
+    sits in (`shadowed`), gives the name it starts at a meaning of its own.
+
+    Pure in its arguments, so cached like the other readers.
+    """
+    if not is_template_string(template_str):
+        return frozenset()
+
+    expressions = _expressions(template_str)
+    local = _named_locally(expressions) | shadowed
+
+    found: set[str] = set()
+    for tokens in expressions:
+        for index, (kind, name) in enumerate(tokens):
+            if kind != "name":
+                continue
+
+            if name == _ATTRIBUTE_TEST and name not in local:
+                found.update(_person_user_id_test(tokens, index))
+            elif (end := _user_id_lookup(tokens, index, local)) is not None:
+                found.update(_compared_user_ids(tokens, index, end))
+
+    return frozenset(found)
+
+
+# The functions that take a device ID or an entity ID, called directly or as
+# a filter. `is_device_attr` is a test as well.
+_DEVICE_LOOKUPS = frozenset({"device_attr", "device_name", "is_device_attr"})
+_DEVICE_LOOKUP_TESTS = frozenset({"is_device_attr"})
+
+
+def _looked_up_devices(expressions: list[list[_Token]], local: set[str]) -> set[str]:
+    """Return the literals a template hands a device lookup, as written.
+
+    Read with Jinja's own lexer, like the state lookups: only a real call by
+    the very name, not in a string or the text around it, not a method and
+    not called by a name the template defines itself, or the configuration
+    around it does (`local`). An entity ID there is an entity reference,
+    and anything else the lookup quietly turns into nothing, so only a
+    literal shaped like a registry ID is a device.
+    """
+    found: set[str] = set()
+    for tokens in expressions:
+        for index, (kind, name) in enumerate(tokens):
+            if (
+                kind != "name"
+                or name not in _DEVICE_LOOKUPS
+                or _is(tokens, index - 1, "dot")
+            ):
+                continue
+
+            # As a filter or a test, the value right in front of it is the
+            # device. Two strings side by side are joined into one by Jinja,
+            # so then that one is only a piece of it. Filters and tests are
+            # Jinja's own registries: a name the template, or the
+            # configuration, defines does not hide one, it only hides a function.
+            if _is(tokens, index - 1, "pipe"):
+                value = index - 2
+            elif name in _DEVICE_LOOKUP_TESTS and _is_test(tokens, index):
+                value = index - (3 if _is(tokens, index - 1, "name", "not") else 2)
+            elif name in local:
+                continue
+            else:
+                # Called, only a whole first argument.
+                if _shaped(tokens, index + 1, ("lparen", "string")) and _ends_argument(
+                    tokens, index + 3
+                ):
+                    found.add(tokens[index + 2][1])
+                continue
+
+            if _is(tokens, value, "string") and not _is(tokens, value - 1, "string"):
+                found.add(tokens[value][1])
+
+    return {value for value in found if is_device_id_shaped(value)}
+
+
+_DEVICE_ENTITIES = "device_entities"
+
+
+def _listed_devices(expressions: list[list[_Token]], local: set[str]) -> set[str]:
+    """Return the literals a template hands `device_entities`, as written.
+
+    It takes a device ID and nothing else, called or as a filter, so a whole
+    literal there is a device. Read like the device lookups, by the very
+    name and never a method. A name the template or the configuration
+    defines (`local`) hides the call, not the filter.
+    """
+    found: set[str] = set()
+    for tokens in expressions:
+        for index, (kind, name) in enumerate(tokens):
+            if (
+                kind != "name"
+                or name != _DEVICE_ENTITIES
+                or _is(tokens, index - 1, "dot")
+            ):
+                continue
+
+            # As a filter, the value right in front of it is the device, unless
+            # it is glued to a string before it. Empty parentheses add nothing,
+            # but handed anything more the filter fails, so that is not a
+            # working reference.
+            if _is(tokens, index - 1, "pipe"):
+                value = index - 2
+                if (
+                    (
+                        _shaped(tokens, index + 1, ("lparen", "rparen"))
+                        or not _is(tokens, index + 1, "lparen")
+                    )
+                    and _is(tokens, value, "string")
+                    and not _is(tokens, value - 1, "string")
+                ):
+                    found.add(tokens[value][1])
+            elif name not in local and _shaped(
+                tokens, index + 1, ("lparen", "string", "rparen")
+            ):
+                found.add(tokens[index + 2][1])
+
+    return found
+
+
+@lru_cache(maxsize=1024)
+def _extract_device_ids_from_template(
+    template_str: str, shadowed: frozenset[str] = frozenset()
+) -> frozenset[str]:
+    """Extract device IDs referenced through the device functions in a template.
+
+    Pure in its arguments, so cached like the entity extraction.
+    """
+    expressions = _expressions(template_str)
+    local = _named_locally(expressions) | shadowed
+
+    return frozenset(
+        _listed_devices(expressions, local) | _looked_up_devices(expressions, local)
+    )
+
+
+def extract_device_ids_from_config(
+    config: Any, shadowed: frozenset[str] = frozenset()
+) -> set[str]:
+    """Extract device IDs referenced through the device functions in templates.
+
+    A call by a name in `shadowed`, which the configuration gives its
+    templates, is not Home Assistant's lookup.
+    """
     device_ids: set[str] = set()
     for template_str in extract_template_strings_from_config(config):
-        device_ids.update(_extract_device_ids_from_template(template_str))
+        device_ids.update(_extract_device_ids_from_template(template_str, shadowed))
     return device_ids
+
+
+# The functions that list what is in an area, on a floor or with a label,
+# called directly or as a filter, by what they look up. Handed something
+# they find no area, floor or label for, they quietly give an empty list.
+_REGISTRY_LOOKUPS: dict[str, frozenset[str]] = {
+    "areas": frozenset({"area_devices", "area_entities"}),
+    "floors": frozenset({"floor_areas", "floor_entities"}),
+    "labels": frozenset({"label_areas", "label_devices", "label_entities"}),
+}
+
+
+def _looked_up_in_registry(
+    expressions: list[list[_Token]], local: set[str], lookups: frozenset[str]
+) -> set[str]:
+    """Return the literals a template hands these lookups, as written.
+
+    Read like the state lookups: by the very name, never a method, and only
+    a whole literal the call can take. As a filter, the value in front is
+    what is looked up. None of them is a test, so used as one it fails. A
+    name the template or the configuration defines (`local`) hides the
+    call, not the filter.
+    """
+    found: set[str] = set()
+    for tokens in expressions:
+        for index, (kind, name) in enumerate(tokens):
+            if kind != "name" or name not in lookups or _is(tokens, index - 1, "dot"):
+                continue
+
+            if _is(tokens, index - 1, "pipe"):
+                # A dotted name, `| area_entities.x`, is another filter.
+                if _is(tokens, index + 1, "dot"):
+                    continue
+                arguments = _call_arguments(tokens, index + 1) or []
+                if _fits(name, arguments, in_front=1):
+                    found.update(_value_in_front(tokens, index - 1, lists=False))
+            elif name not in local and not _is_test(tokens, index):
+                found.update(_called_lookup(tokens, index, name))
+
+    return found
+
+
+@lru_cache(maxsize=1024)
+def _extract_registry_lookups_from_template(
+    template_str: str, kind: str, shadowed: frozenset[str]
+) -> frozenset[str]:
+    """Extract what a template looks up by area, floor or label.
+
+    Pure in its arguments, so cached like the entity extraction.
+    """
+    expressions = _expressions(template_str)
+    local = _named_locally(expressions) | shadowed
+
+    return frozenset(
+        _looked_up_in_registry(expressions, local, _REGISTRY_LOOKUPS[kind])
+    )
+
+
+def extract_registry_lookups_from_config(
+    config: Any, kind: str, shadowed: frozenset[str] = frozenset()
+) -> set[str]:
+    """Extract the literals templates hand the lookups by area, floor or label.
+
+    `kind` is `areas`, `floors` or `labels`. What is found is as written: an
+    ID, a name, an alias or anything else. Whether that finds anything is up
+    to the caller, which has the registries. A call by a name in
+    `shadowed`, which the configuration gives its templates, is not Home
+    Assistant's lookup.
+    """
+    found: set[str] = set()
+    for template_str in extract_template_strings_from_config(config):
+        found.update(
+            _extract_registry_lookups_from_template(template_str, kind, shadowed)
+        )
+    return found

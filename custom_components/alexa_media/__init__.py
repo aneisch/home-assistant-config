@@ -46,7 +46,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.data_entry_flow import UnknownFlow
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.issue_registry import IssueSeverity, async_create_issue
@@ -70,7 +70,6 @@ from .const import (
     CONF_QUEUE_DELAY,
     CONF_SCAN_INTERVAL,
     DATA_ALEXAMEDIA,
-    DATA_LISTENER,
     DEFAULT_EXTENDED_ENTITY_DISCOVERY,
     DEFAULT_PUBLIC_URL,
     DEFAULT_QUEUE_DELAY,
@@ -436,6 +435,92 @@ def _select_last_called_payload_from_records(
     return None, set()
 
 
+def _collect_new_voice_records(
+    records: list[dict],
+    lower_ts: int,
+    upper_ts: int,
+    existing_serials_local: set[str],
+) -> list[dict]:
+    """Return valid voice records with lower_ts < ts <= upper_ts, oldest first."""
+    found: list[dict] = []
+    for record in records or []:
+        if not isinstance(record, dict):
+            continue
+        serial = record.get("deviceSerialNumber")
+        if not serial or serial not in existing_serials_local:
+            continue
+        if not _valid_utterance_type(record):
+            continue
+        description = record.get("description")
+        summary = description.get("summary") if isinstance(description, dict) else None
+        if not _valid_voice_summary(summary):
+            continue
+        summary = summary.strip()
+        try:
+            ts = int(record.get("creationTimestamp") or 0)
+        except (TypeError, ValueError):
+            continue
+        if not lower_ts < ts <= upper_ts:
+            continue
+        found.append(
+            {
+                "serial": serial,
+                "timestamp": ts,
+                "summary": summary,
+                "response": str(record.get("alexaResponse") or "").strip() or None,
+            }
+        )
+    found.sort(key=lambda item: item["timestamp"])
+    return found
+
+
+def _take_new_voice_records(
+    account: dict,
+    records: list[dict],
+    upper_ts: int,
+    earliest_ts: int,
+    existing_serials_local: set[str],
+) -> list[dict]:
+    """Return voice records not yet emitted for alexa_media_voice_command."""
+    watermark = int(account.get("last_called_customer_history_ts") or 0)
+    floor = int(account.get("last_called_voice_floor_ts") or 0)
+    if not floor:
+        # Never reach below the first window, so history from before startup
+        # is not replayed.
+        if watermark:
+            floor = watermark
+        elif earliest_ts:
+            floor = earliest_ts - LAST_CALLED_STALE_FUDGE_MS
+        else:
+            floor = upper_ts - LAST_CALLED_STALE_FUDGE_MS
+        account["last_called_voice_floor_ts"] = floor
+
+    # History can list a record after a newer one, so keep an overlap below
+    # the watermark and dedupe against what was already emitted. Only while
+    # this function emitted up to the watermark: refresh paths advance it
+    # without emitting, and the overlap would replay their records late.
+    lower_ts = max(floor, watermark)
+    if watermark <= int(account.get("last_called_voice_upper_ts") or 0):
+        lower_ts = max(floor, watermark - LAST_CALLED_STALE_FUDGE_MS)
+    account["last_called_voice_upper_ts"] = upper_ts
+    emitted: set[tuple[str, int]] = account.setdefault(
+        "last_called_voice_emitted", set()
+    )
+    for key in [key for key in emitted if key[1] <= lower_ts]:
+        emitted.discard(key)
+
+    new_records = []
+    for voice_record in _collect_new_voice_records(
+        records, lower_ts, upper_ts, existing_serials_local
+    ):
+        key = (voice_record["serial"], voice_record["timestamp"])
+        if key in emitted:
+            continue
+        emitted.add(key)
+        new_records.append(voice_record)
+    return new_records
+
+
 async def async_setup(hass, config):
     """Set up the Alexa domain."""
     # Initialize metrics
@@ -604,6 +689,14 @@ async def _async_update_last_called_global(
                 repr(last_called),
             )
             return
+
+        if last_called is None:
+            _LOGGER.debug(
+                "%s: No last_called activity returned by AlexaPy",
+                hide_email(email),
+            )
+            return
+
         if not isinstance(last_called, dict):
             _LOGGER.debug(
                 "%s: Error updating last_called: unexpected response %s",
@@ -723,6 +816,8 @@ async def async_setup_entry(hass, config_entry):
             "entities": {
                 "media_player": {},
                 "switch": {},
+                "amazon_kids_switch": [],
+                "select": [],
                 "sensor": {},
                 "light": [],
                 "binary_sensor": [],
@@ -737,6 +832,7 @@ async def async_setup_entry(hass, config_entry):
             "http2_activity": {"serials": {}, "refreshed": {}},
             "http2": None,
             "auth_info": None,
+            "amazon_kids": None,
             "second_account_index": 0,
             "should_get_network": True,
             "first_run": True,
@@ -744,26 +840,23 @@ async def async_setup_entry(hass, config_entry):
             "notifications_pending": set(),  # doppler serials that need a refresh
             "notifications_refresh_task": None,  # running task or None
             "notifications_retry_count": 0,  # simple backoff counter
-            "options": {
-                CONF_INCLUDE_DEVICES: config_entry.data.get(CONF_INCLUDE_DEVICES, ""),
-                CONF_EXCLUDE_DEVICES: config_entry.data.get(CONF_EXCLUDE_DEVICES, ""),
-                CONF_QUEUE_DELAY: config_entry.data.get(
-                    CONF_QUEUE_DELAY, DEFAULT_QUEUE_DELAY
-                ),
-                CONF_SCAN_INTERVAL: config_entry.data.get(
-                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-                ),
-                CONF_PUBLIC_URL: config_entry.data.get(
-                    CONF_PUBLIC_URL, DEFAULT_PUBLIC_URL
-                ),
-                CONF_EXTENDED_ENTITY_DISCOVERY: config_entry.data.get(
-                    CONF_EXTENDED_ENTITY_DISCOVERY, DEFAULT_EXTENDED_ENTITY_DISCOVERY
-                ),
-                CONF_DEBUG: config_entry.data.get(CONF_DEBUG, False),
-            },
-            DATA_LISTENER: [config_entry.add_update_listener(update_listener)],
         },
     )
+    # Refreshed on every attempt: the account dict survives setup retries and
+    # a failed setup, so options saved in the meantime would otherwise be lost.
+    hass.data[DATA_ALEXAMEDIA]["accounts"][email]["options"] = {
+        CONF_INCLUDE_DEVICES: config_entry.data.get(CONF_INCLUDE_DEVICES, ""),
+        CONF_EXCLUDE_DEVICES: config_entry.data.get(CONF_EXCLUDE_DEVICES, ""),
+        CONF_QUEUE_DELAY: config_entry.data.get(CONF_QUEUE_DELAY, DEFAULT_QUEUE_DELAY),
+        CONF_SCAN_INTERVAL: config_entry.data.get(
+            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+        ),
+        CONF_PUBLIC_URL: config_entry.data.get(CONF_PUBLIC_URL, DEFAULT_PUBLIC_URL),
+        CONF_EXTENDED_ENTITY_DISCOVERY: config_entry.data.get(
+            CONF_EXTENDED_ENTITY_DISCOVERY, DEFAULT_EXTENDED_ENTITY_DISCOVERY
+        ),
+        CONF_DEBUG: config_entry.data.get(CONF_DEBUG, False),
+    }
     uuid_dict = await calculate_uuid(hass, email, url)
     uuid = uuid_dict["uuid"]
     hass.data[DATA_ALEXAMEDIA]["accounts"][email]["second_account_index"] = uuid_dict[
@@ -797,8 +890,6 @@ async def async_setup_entry(hass, config_entry):
     if not hass.data[DATA_ALEXAMEDIA]["accounts"][email]["second_account_index"]:
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, close_alexa_media)
         hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STARTED, complete_startup)
-    hass.bus.async_listen("alexa_media_relogin_required", relogin)
-    hass.bus.async_listen("alexa_media_relogin_success", login_success)
     try:
         _t = time.monotonic()
         cookies = await login.load_cookie()
@@ -837,6 +928,16 @@ async def async_setup_entry(hass, config_entry):
             try:
                 async with async_timeout.timeout(LOGIN_MAX_WAIT_S):
                     await login.login(cookies=cookies)
+            except (RuntimeError, ValueError) as err:
+                if "Session is closed" in str(err) or "unrecoverable" in str(err):
+                    _LOGGER.warning(
+                        "Alexa Media Player session is closed. Triggering Re-authentication flow."
+                    )
+                    # This tells Home Assistant to show a persistent notification requiring reauth
+                    raise ConfigEntryAuthFailed(
+                        "Amazon session closed. Please reconfigure your credentials."
+                    ) from err
+                raise
             except asyncio.TimeoutError as err:
                 # An interrupted login can leave partial request state on the
                 # client, which alexapy resumes from on the next attempt. Both
@@ -853,9 +954,25 @@ async def async_setup_entry(hass, config_entry):
         _LOGGER.debug("[BOOT] login completed in %.2fs", time.monotonic() - _t)
         _t = time.monotonic()
         if await test_login_status(hass, config_entry, login):
+            # Registered only on success: HA processes async_on_unload
+            # callbacks on unload and on the ConfigEntryNotReady retry
+            # path, but not for a plain `False` return, so registering
+            # any earlier would leak a pair on every failed login check.
+            config_entry.async_on_unload(
+                hass.bus.async_listen("alexa_media_relogin_required", relogin)
+            )
+            config_entry.async_on_unload(
+                hass.bus.async_listen("alexa_media_relogin_success", login_success)
+            )
             _LOGGER.debug("[BOOT] test_login_status in %.2fs", time.monotonic() - _t)
             _t = time.monotonic()
             await setup_alexa(hass, config_entry, login)
+            # Registered once the entry has loaded, so that Home Assistant
+            # removes it on unload. Any earlier and each setup retry, or failed
+            # login check, would leave another copy on the entry.
+            config_entry.async_on_unload(
+                config_entry.add_update_listener(update_listener)
+            )
             _LOGGER.debug(
                 "[BOOT] setup_entry total: %.2fs", time.monotonic() - _boot_start
             )
@@ -943,6 +1060,26 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
         if metrics:
             cached_devices = metrics.api_cache.get(f"{cache_key_prefix}_devices")
 
+        _PER_TASK_TIMEOUT = 45
+
+        async def _timed(coro, fallback, label):
+            """Wrap a coroutine with a per-task timeout and a safe fallback.
+
+            Allows asyncio.gather() to complete even when one slow API call
+            hangs due to backoff retries.  The outer 90s backstop still guards
+            the whole block.
+            """
+            try:
+                return await asyncio.wait_for(coro, timeout=_PER_TASK_TIMEOUT)
+            except asyncio.TimeoutError:
+                _LOGGER.warning(
+                    "%s: API call '%s' timed out after %ds; using default",
+                    hide_email(email),
+                    label,
+                    _PER_TASK_TIMEOUT,
+                )
+                return fallback
+
         if cached_devices and not new_devices:
             _LOGGER.debug("%s: Using cached devices data", hide_email(email))
             # NOTE: DataCache returns direct references. We intentionally enrich device dicts
@@ -951,16 +1088,24 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
             _used_cached_devices = True
             # Still need fresh bluetooth, preferences, and DND
             tasks = [
-                AlexaAPI.get_bluetooth(login_obj),
-                AlexaAPI.get_device_preferences(login_obj),
-                AlexaAPI.get_dnd_state(login_obj),
+                _timed(AlexaAPI.get_bluetooth(login_obj), {}, "get_bluetooth"),
+                _timed(
+                    AlexaAPI.get_device_preferences(login_obj),
+                    {},
+                    "get_device_preferences",
+                ),
+                _timed(AlexaAPI.get_dnd_state(login_obj), {}, "get_dnd_state"),
             ]
         else:
             tasks = [
                 AlexaAPI.get_devices(login_obj),
-                AlexaAPI.get_bluetooth(login_obj),
-                AlexaAPI.get_device_preferences(login_obj),
-                AlexaAPI.get_dnd_state(login_obj),
+                _timed(AlexaAPI.get_bluetooth(login_obj), {}, "get_bluetooth"),
+                _timed(
+                    AlexaAPI.get_device_preferences(login_obj),
+                    {},
+                    "get_device_preferences",
+                ),
+                _timed(AlexaAPI.get_dnd_state(login_obj), {}, "get_dnd_state"),
             ]
         if new_devices:
             tasks.append(AlexaAPI.get_authentication(login_obj))
@@ -1028,11 +1173,7 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
         optional_task_results = []
         try:
             if tasks:
-                # Note: asyncio.TimeoutError and aiohttp.ClientError are already
-                # handled by the data update coordinator.
-                # Increase timeout from 30s to 45s to permit
-                # get_network_details() retries which could up to 30s.
-                async with async_timeout.timeout(45):
+                async with async_timeout.timeout(90):
                     start_fetch = time.monotonic()
                     if _used_cached_devices:
                         (
@@ -1060,8 +1201,10 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
                     # Record API call metrics
                     if metrics:
                         metrics.record_api_call("initial_fetch", fetch_time)
-                        # Cache the devices for faster next boot (only freshly fetched)
-                        if not _used_cached_devices:
+                        # Cache devices for faster next boot.
+                        # Skip if devices is empty (timed-out fallback) to avoid
+                        # caching a stale empty list that would persist across boots.
+                        if not _used_cached_devices and devices:
                             metrics.api_cache.cache_set(
                                 f"{cache_key_prefix}_devices", devices
                             )
@@ -1535,6 +1678,9 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
         account.setdefault("last_called_probe_trigger", None)
         account.setdefault("last_called_activity_queue", [])
         account.setdefault("last_called_last_pushed_activity", {})
+        account.setdefault("last_called_voice_emitted", set())
+        account.setdefault("last_called_voice_floor_ts", 0)
+        account.setdefault("last_called_voice_upper_ts", 0)
         account.setdefault("last_volumes", {})
         account.setdefault("last_equalizer", {})
 
@@ -1924,6 +2070,25 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
                             ),
                             hide_serial(payload["serialNumber"]),
                         )
+
+                        media_players = (account_live.get("entities") or {}).get(
+                            "media_player"
+                        ) or {}
+                        for voice_record in _take_new_voice_records(
+                            account_live,
+                            records,
+                            int(payload["timestamp"]),
+                            earliest_ts,
+                            existing_serials_local,
+                        ):
+                            player = media_players.get(voice_record["serial"])
+                            hass.bus.async_fire(
+                                "alexa_media_voice_command",
+                                event_data={
+                                    **voice_record,
+                                    "entity_id": getattr(player, "entity_id", None),
+                                },
+                            )
 
                         await update_last_called(login_live, payload)
                         account_live["last_called_last_pushed_activity"][
@@ -2445,8 +2610,8 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
             trigger_ts_ms: int | None,
         ) -> None:
             """Mirror alexa-remote.ts PUSH_VOLUME_CHANGE -> simulateActivity() conditions."""
-            last_volumes: dict = account["last_volumes"]
-            last_equalizer: dict = account["last_equalizer"]
+            last_volumes: dict = account.setdefault("last_volumes", {})
+            last_equalizer: dict = account.setdefault("last_equalizer", {})
 
             vol = json_payload.get("volumeSetting")
             muted = json_payload.get("isMuted")
@@ -2487,8 +2652,8 @@ async def setup_alexa(hass, config_entry, login_obj: AlexaLogin):
             trigger_ts_ms: int | None,
         ) -> None:
             """Mirror alexa-remote.ts PUSH_EQUALIZER_STATE_CHANGE -> simulateActivity() conditions."""
-            last_volumes: dict = account["last_volumes"]
-            last_equalizer: dict = account["last_equalizer"]
+            last_volumes: dict = account.setdefault("last_volumes", {})
+            last_equalizer: dict = account.setdefault("last_equalizer", {})
 
             bass = json_payload.get("bass")
             treble = json_payload.get("treble")
@@ -3118,6 +3283,11 @@ async def async_unload_entry(hass, entry) -> bool:
             "confirm_refresh_debouncer"
         ] = None
 
+    amazon_kids = hass.data[DATA_ALEXAMEDIA]["accounts"][email].get("amazon_kids")
+    if amazon_kids:
+        amazon_kids.async_stop()
+        hass.data[DATA_ALEXAMEDIA]["accounts"][email]["amazon_kids"] = None
+
     for component in ALEXA_COMPONENTS + DEPENDENT_ALEXA_COMPONENTS:
         try:
             if component == "notify":
@@ -3128,8 +3298,6 @@ async def async_unload_entry(hass, entry) -> bool:
         except Exception:
             _LOGGER.error("Error unloading: %s", component)
     await close_connections(hass, email)
-    for listener in hass.data[DATA_ALEXAMEDIA]["accounts"][email][DATA_LISTENER]:
-        listener()
     hass.data[DATA_ALEXAMEDIA]["accounts"].pop(email)
     # Clean up config flows in progress
     flows_to_remove = []

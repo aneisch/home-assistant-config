@@ -50,7 +50,7 @@ services:
     mariadb:
         # https://www.home-assistant.io/integrations/recorder/#mariadb-and-mysql
         container_name: mariadb
-        image: 'mariadb:latest'
+        image: 'mariadb:12.3'
         command: --innodb-buffer-pool-size=4G --innodb-flush-log-at-trx-commit=2 --innodb-io-capacity=2000 --innodb-read-io-threads=16 --innodb-write-io-threads=16 --innodb-purge-threads=4
         user: '99'
         ports:
@@ -162,42 +162,42 @@ services:
             - traefik.http.routers.appdaemon_local.rule=Host(`appdaemon.home.domain.com`)
             - traefik.http.routers.appdaemon_local.service=appdaemon
 
-    thermostat_api_server:
-        container_name: thermostat_api_server
-        restart: always
-        image: thermostat_api_server # local build for testing
-        #image: ghcr.io/aneisch/thermostat_api_server:latest
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-        # ports:
-        #     - '8080:8080'
-        environment:
-            - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
-            - MQTT_SERVER=10.0.1.22
-            - TZ=America/Chicago
-            - LOG_LEVEL=DEBUG
-            - API_SERVER_ADDRESS=thermostat-api.home.domain.com
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:8080/time"]
-            interval: 5s
-            timeout: 1s
-            retries: 3
-        depends_on:
-            - mosquitto
-        labels:
-            # HTTP Local Only
-            - traefik.enable=true
-            - traefik.http.routers.thermostat_api.entrypoints=web
-            - traefik.http.services.thermostat_api.loadbalancer.server.port=8080
-            - traefik.http.routers.thermostat_api.rule=Host(`thermostat-api.home.domain.com`)
-            - traefik.http.routers.thermostat_api.service=thermostat_api
-            # HTTPS Local Only
-            - traefik.http.routers.thermostat_api_secure.tls=true
-            - traefik.http.routers.thermostat_api_secure.entrypoints=websecure
-            - traefik.http.routers.thermostat_api_secure.tls.certResolver=le-home
-            - traefik.http.routers.thermostat_api_secure.tls.domains[0].main=*.home.domain.com
-            - traefik.http.routers.thermostat_api_secure.rule=Host(`thermostat-api.home.domain.com`)
-            - traefik.http.routers.thermostat_api_secure.service=thermostat_api
+    # thermostat_api_server:
+    #     container_name: thermostat_api_server
+    #     restart: always
+    #     image: thermostat_api_server # local build for testing
+    #     #image: ghcr.io/aneisch/thermostat_api_server:latest
+    #     volumes:
+    #         - /etc/localtime:/etc/localtime:ro
+    #     # ports:
+    #     #     - '8080:8080'
+    #     environment:
+    #         - THERMOSTAT_SERIAL=THERMOSTAT_SERIAL
+    #         - MQTT_SERVER=10.0.1.22
+    #         - TZ=America/Chicago
+    #         - LOG_LEVEL=DEBUG
+    #         - API_SERVER_ADDRESS=thermostat-api.home.domain.com
+    #     healthcheck:
+    #         test: ["CMD", "curl", "-f", "http://localhost:8080/time"]
+    #         interval: 5s
+    #         timeout: 1s
+    #         retries: 3
+    #     depends_on:
+    #         - mosquitto
+    #     labels:
+    #         # HTTP Local Only
+    #         - traefik.enable=true
+    #         - traefik.http.routers.thermostat_api.entrypoints=web
+    #         - traefik.http.services.thermostat_api.loadbalancer.server.port=8080
+    #         - traefik.http.routers.thermostat_api.rule=Host(`thermostat-api.home.domain.com`)
+    #         - traefik.http.routers.thermostat_api.service=thermostat_api
+    #         # HTTPS Local Only
+    #         - traefik.http.routers.thermostat_api_secure.tls=true
+    #         - traefik.http.routers.thermostat_api_secure.entrypoints=websecure
+    #         - traefik.http.routers.thermostat_api_secure.tls.certResolver=le-home
+    #         - traefik.http.routers.thermostat_api_secure.tls.domains[0].main=*.home.domain.com
+    #         - traefik.http.routers.thermostat_api_secure.rule=Host(`thermostat-api.home.domain.com`)
+    #         - traefik.http.routers.thermostat_api_secure.service=thermostat_api
 
     zwavejs:
         container_name: zwavejs

@@ -747,7 +747,7 @@ script:
     icon: mdi:sleep
     mode: single
     sequence:
-      - service: rest_command.tesla_request_sleep
+      - action: rest_command.tesla_request_sleep
 
   force_tesla_grid_charge_to_safe_soc:
     alias: "Force Tesla Grid Charge to Safe SOC"
@@ -755,17 +755,17 @@ script:
     mode: single
     sequence:
       # Disable TOU on Sol-Ark
-      - service: switch.turn_off
+      - action: switch.turn_off
         target:
           entity_id: switch.solark_sol_ark_system_tou
 
       # Enable Emporia charger
-      - service: switch.turn_on
+      - action: switch.turn_on
         target:
           entity_id: switch.emporia_charger
 
       # Enable EV charge override
-      - service: input_boolean.turn_on
+      - action: input_boolean.turn_on
         target:
           entity_id: input_boolean.ev_charge_override
 
@@ -775,7 +775,7 @@ script:
       #     entity_id: input_number.tesla_charge_rate_master
       #   data:
       #     value: 40
-      - service: number.set_value
+      - action: number.set_value
         target:
           entity_id: number.tesla_current_limit
         data:
@@ -789,7 +789,7 @@ script:
         timeout: "02:00:00"
         continue_on_timeout: true
 
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: tesla_ble/VIN/charging
           payload: "stop"
@@ -798,18 +798,18 @@ script:
       - delay: "00:01:00"
 
       # Disable EV charge override
-      - service: input_boolean.turn_off
+      - action: input_boolean.turn_off
         target:
           entity_id: input_boolean.ev_charge_override
 
       # Re-enable TOU on Sol-Ark
-      - service: switch.turn_on
+      - action: switch.turn_on
         target:
           entity_id: switch.solark_sol_ark_system_tou
 
       - delay: "00:01:00"
 
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: tesla_ble/VIN/charging
           payload: "stop"
@@ -916,16 +916,51 @@ automation:
           hours: 0
           minutes: 2
           seconds: 0
-    condition: "{{ is_state('input_boolean.guest_mode', 'off') and is_state('automation.tesla_service_notification', 'off')}}"
+    condition:
+      - "{{ is_state('input_boolean.guest_mode', 'off') and is_state('automation.tesla_service_notification', 'off')}}"
+      # Only a real crossing: ignore unavailable/unknown -> >20 (restarts, sensor reconnects)
+      - "{{ trigger.from_state.state | is_number and trigger.from_state.state | float <= 20 }}"
+      # Don't raise the boost on whoever is still at home
+      - condition: state
+        entity_id: group.trackers
+        state: not_home
     action:
-      - service: notify.signal_self
+      - action: script.notify_wrapper
         data:
-          message: "Tesla now more than 20 miles away from home, setting away boost to 80"
-      - service: input_number.set_value
+          message: "Tesla now more than 20 miles away from home, setting away boost to 78"
+      - action: input_number.set_value
         target:
           entity_id: input_number.cool_boost_target
         data:
-          value: 80
+          value: 78
+    mode: single
+
+  - alias: "Tesla Returns Within 20 Miles Of Home"
+    id: tesla_returns_within_distance_of_home
+    description: "Restores the cool boost target to 75 when the Tesla comes back within 20 miles."
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.tesla_home_proximity_tesla_location_distance
+        below: 20
+        for:
+          minutes: 2
+    condition:
+      - "{{ is_state('input_boolean.guest_mode', 'off') and is_state('automation.tesla_service_notification', 'off')}}"
+      # Only a real crossing: ignore unavailable/unknown -> <20 (restarts, sensor reconnects)
+      - "{{ trigger.from_state.state | is_number and trigger.from_state.state | float >= 20 }}"
+      # Only undo the away boost, leave a hand-set value alone
+      - condition: numeric_state
+        entity_id: input_number.cool_boost_target
+        above: 77
+    action:
+      - action: script.notify_wrapper
+        data:
+          message: "Tesla back within 20 miles of home, restoring boost to 75"
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.cool_boost_target
+        data:
+          value: 75
     mode: single
 
   # - alias: "Set Emporia Charger Current from Slider"
@@ -970,7 +1005,7 @@ automation:
         entity_id: sensor.tesla_state
         to: "charging"
     action:
-      - service: number.set_value
+      - action: number.set_value
         target:
           entity_id: number.tesla_current_limit
         data:
@@ -986,10 +1021,10 @@ automation:
         minutes: "/30"
     condition: "{{ is_state('number.tesla_ble_charging_limit', 'unknown') }}"
     action:
-      - service: button.press
+      - action: button.press
         target:
           entity_id: button.tesla_ble_force_update_all
-      - service: switch.turn_on
+      - action: switch.turn_on
         target:
           entity_id: switch.tesla_ble_state_polling
     mode: single
@@ -1018,7 +1053,7 @@ automation:
     #     entity_id: device_tracker.tesla_location
     #     state: "home"
     action:
-      - service: python_script.tire_pressure_check
+      - action: python_script.tire_pressure_check
 
   # This allows TeslaUSB backup to complete (sentry mode on by default at home keeps the Pi powered)
   # turn off after 15 minutes to allow backup to complete
@@ -1076,7 +1111,7 @@ automation:
         entity_id: sensor.tesla_charge_limit_soc
     condition: "{{ trigger.to_state.state not in ['unknown', 'unavailable'] and trigger.from_state.state not in ['unknown', 'unavailable'] and not is_state('sensor.tesla_state', 'driving') }}"
     action:
-      - action: notify.signal_homeassistant
+      - action: script.notify_wrapper
         data:
           message: "Tesla charge limit set to {{ states('sensor.tesla_charge_limit_soc') }}%"
 
@@ -1094,18 +1129,18 @@ automation:
         - if: "{{ is_state('cover.garage_door', 'closed') }}"
           alias: Open Garage
           then:
-            - service: input_boolean.turn_off
+            - action: input_boolean.turn_off
               entity_id: input_boolean.security_status
-            - service: cover.open_cover
+            - action: cover.open_cover
               entity_id: cover.garage_door
-            - service: notify.signal_homeassistant
+            - action: script.notify_wrapper
               data:
                 message: "Tesla Auto Opened Garage"
             - delay: "00:05:00"
         - if: "{{ is_state('switch.garage_center_leds', 'off') }}"
           alias: Turn On Garage Lights
           then:
-            - service: switch.turn_on
+            - action: switch.turn_on
               entity_id: switch.garage_center_leds
 
   # Handled by Appdaemon intelligence now
@@ -1276,7 +1311,7 @@ automation:
       below: 31
     condition: "{{ is_state('device_tracker.tesla_active_route_location','home')}}"
     action:
-      - action: notify.signal_homeassistant
+      - action: script.notify_wrapper
         data:
           message: Adjusting AC prior to arrival based on Tesla location.
       - action: rest_command.adjust_morning

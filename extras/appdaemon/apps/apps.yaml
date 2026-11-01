@@ -31,11 +31,11 @@ AC Automation Solar:
   night_adjust_weekday: "01:00:00"
   night_adjust_weekend: "01:00:00"
   midnight_adjust: "04:00:00"
-  cool_morning: "80"
-  cool_night: "74"
+  cool_morning: "77"
+  cool_night: "72"
   cool_midnight: "75" # change to this temp at midnight_adjust
-  cool_unoccupied: "82"
-  guest_cool_morning: "77" # applied if guest_mode on
+  cool_unoccupied: "80"
+  guest_cool_morning: "75" # applied if guest_mode on
   # guest_cool_night: "74" # optional, defaults to non-guest
   # guest_cool_midnight: "76" # optional, defaults to non-guest
   heat_morning: "67"
@@ -48,6 +48,7 @@ AC Automation Solar:
   grid_state_sensor: binary_sensor.solark_sol_ark_grid_connected_status
   solar_boost_threshold: 700
   battery_boost_threshold: 96       # battery SOC for boost activation
+  ac_start_load: 2500              # watts assumed (Lennox inverter: ~1.65 kW avg running, 3.6 kW peak) for AC when deciding whether solar can cover turning it on
   cool_boost_entity: input_number.cool_boost_target 
   cooldown_window_start_offset: "-04:00:00"   # 4 hours before sunset
   cooldown_window_start_offset_unoccupied: "-01:30:00"   # 1.5 hours before sunset
@@ -92,7 +93,7 @@ Auto Dehumidifer:
 Kitchen Timer Sync:
   module: echo_timer_sync
   class: TimerSync
-  alexa_timer: sensor.andrew_s_kitchen_echo_next_timer
+  alexa_timer: sensor.kitchen_next_timer
   timer_prefix: kitchen_alexa
   # how many timer. entities are in home assistant?
   timer_count: 5

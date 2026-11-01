@@ -5,25 +5,30 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from homeassistant.components import automation
-from homeassistant.const import EVENT_COMPONENT_LOADED, EVENT_STATE_CHANGED
-from homeassistant.core import Event, callback
+from homeassistant.const import EVENT_COMPONENT_LOADED
 from homeassistant.helpers import entity_registry as er
 
 from ....action_extraction import (
     async_extract_entities_from_action_config,
     async_extract_entities_from_value,
+    async_unknown_entities_named,
 )
 from ....entity_filtering import async_get_all_entity_ids, async_get_all_services
-from ....repairs import AbstractSpookEntityComponentUnknownReferencesRepair
-from ....template_extraction import (
-    KNOWN_DOMAINS,
-    async_extract_entities_from_config,
-    async_filter_known_entity_ids_with_templates,
+from ....reference_extraction import (
+    VALUE_KEYS,
+    core_references,
+    event_payload_keys_to_leave_alone,
+    extract_platform_keys_from_config,
+    names_given_to_templates,
+    threshold_entities,
+    without_never_rendered,
 )
+from ....template_extraction import (
+    async_extract_entities_from_config,
+)
+from . import AbstractSpookAutomationReferencesRepair
 
 if TYPE_CHECKING:
-    from collections.abc import Mapping
-
     from homeassistant.core import HomeAssistant
 
 
@@ -45,13 +50,21 @@ async def extract_template_entities_from_automation_entity(
     else:
         return set()
 
-    return await async_extract_entities_from_config(hass, config, known_services)
+    # A description, a name or a field example is shown, never rendered: an
+    # entity in an example template there is not one the automation uses.
+    return await async_extract_entities_from_config(
+        hass,
+        without_never_rendered(config),
+        known_services,
+        names_given_to_templates(config),
+    )
 
 
 async def extract_entities_from_automation_config(
     hass: HomeAssistant,
     config: dict[str, Any],
     known_services: set[str] | None = None,
+    shadowed: frozenset[str] | None = None,
 ) -> set[str]:
     """Extract entity IDs from automation configuration.
 
@@ -59,6 +72,10 @@ async def extract_entities_from_automation_config(
     building it flattens every service Home Assistant has and the walk below
     passes a lot of template strings. See
     `action_extraction.async_extract_entities_from_action_config`.
+
+    The names the automation gives its templates, like a variable called
+    `states`, are taken from all of it here, before walking its parts,
+    unless ``shadowed`` already holds them.
     """
     entities = set()
 
@@ -67,13 +84,15 @@ async def extract_entities_from_automation_config(
 
     if known_services is None:
         known_services = async_get_all_services(hass)
+    if shadowed is None:
+        shadowed = names_given_to_templates(config)
 
     # Extract entities from trigger config
     for key in ("trigger", "triggers"):
         if key in config:
             entities.update(
                 await extract_entities_from_trigger_config(
-                    hass, config[key], known_services
+                    hass, config[key], known_services, shadowed=shadowed
                 )
             )
 
@@ -82,7 +101,7 @@ async def extract_entities_from_automation_config(
         if key in config:
             entities.update(
                 await extract_entities_from_condition_config(
-                    hass, config[key], known_services
+                    hass, config[key], known_services, shadowed=shadowed
                 )
             )
 
@@ -91,7 +110,10 @@ async def extract_entities_from_automation_config(
         if key in config:
             entities.update(
                 await async_extract_entities_from_action_config(
-                    hass, config[key], known_services=known_services
+                    hass,
+                    config[key],
+                    known_services=known_services,
+                    shadowed=shadowed,
                 )
             )
 
@@ -102,31 +124,36 @@ async def _entities_from_reference_fields(
     hass: HomeAssistant,
     config: dict[str, Any],
     known_services: set[str],
+    *,
+    in_values: bool = False,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entities from the config keys that name a reference.
 
     ``zone`` is in here because a zone trigger and a zone condition both name
-    one, and it is read exactly like the others.
+    one, and it is read exactly like the others. So is the entity a trigger
+    or condition takes as its threshold, unless the dictionary sits below a
+    key that holds values: event data that only looks like one is still event
+    data.
     """
-    entities = set()
+    entities = set() if in_values else threshold_entities(config)
     for key in ("entity_id", "device_id", "zone"):
         if key in config:
             entities.update(
                 await async_extract_entities_from_value(
-                    hass, config[key], known_services=known_services
+                    hass, config[key], known_services=known_services, shadowed=shadowed
                 )
             )
     return entities
-
-
-# Where an event trigger keeps what it matches on, rather than what it needs.
-_EVENT_PAYLOAD_KEYS = frozenset({"event_data", "event_data_template"})
 
 
 async def extract_entities_from_trigger_config(
     hass: HomeAssistant,
     config: dict[str, Any] | list,
     known_services: set[str] | None = None,
+    *,
+    _in_values: bool = False,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entity IDs from trigger configuration."""
     entities = set()
@@ -140,16 +167,26 @@ async def extract_entities_from_trigger_config(
     if isinstance(config, list):
         for item in config:
             entities.update(
-                await extract_entities_from_trigger_config(hass, item, known_services)
+                await extract_entities_from_trigger_config(
+                    hass,
+                    item,
+                    known_services,
+                    _in_values=_in_values,
+                    shadowed=shadowed,
+                )
             )
         return entities
 
     if not isinstance(config, dict):
         return entities
 
-    entities.update(await _entities_from_reference_fields(hass, config, known_services))
+    entities.update(
+        await _entities_from_reference_fields(
+            hass, config, known_services, in_values=_in_values, shadowed=shadowed
+        )
+    )
 
-    payload_keys = _payload_keys_to_leave_alone(config)
+    payload_keys = event_payload_keys_to_leave_alone(config)
 
     # Extract from nested configs
     for key, value in config.items():
@@ -158,40 +195,16 @@ async def extract_entities_from_trigger_config(
 
         if isinstance(value, (dict, list)):
             entities.update(
-                await extract_entities_from_trigger_config(hass, value, known_services)
+                await extract_entities_from_trigger_config(
+                    hass,
+                    value,
+                    known_services,
+                    _in_values=_in_values or key in VALUE_KEYS,
+                    shadowed=shadowed,
+                )
             )
 
     return entities
-
-
-def _payload_keys_to_leave_alone(config: dict[str, Any]) -> frozenset[str]:
-    """Return the event payload keys that hold data rather than references.
-
-    An `entity_id` inside `event_data` is a reference when the event comes
-    from an integration that means it that way, `timer.finished` being the
-    usual one. On somebody's own event it is whatever the sender put there,
-    and reporting that as a missing entity is a repair about an automation
-    that works perfectly well.
-
-    Told apart by the event type: one named after a domain comes from that
-    integration, anything else is somebody's own.
-    """
-    event_types = config.get("event_type")
-    if event_types is None:
-        return frozenset()
-
-    if isinstance(event_types, str):
-        event_types = [event_types]
-
-    for event_type in event_types:
-        if not isinstance(event_type, str):
-            continue
-
-        domain, dot, _ = event_type.partition(".")
-        if dot and domain in KNOWN_DOMAINS:
-            return frozenset()
-
-    return _EVENT_PAYLOAD_KEYS
 
 
 def extract_event_types_from_trigger_config(config: dict[str, Any] | list) -> set[str]:
@@ -226,6 +239,9 @@ async def extract_entities_from_condition_config(
     hass: HomeAssistant,
     config: dict[str, Any] | list,
     known_services: set[str] | None = None,
+    *,
+    _in_values: bool = False,
+    shadowed: frozenset[str] = frozenset(),
 ) -> set[str]:
     """Extract entity IDs from condition configuration."""
     entities = set()
@@ -239,28 +255,42 @@ async def extract_entities_from_condition_config(
     if isinstance(config, list):
         for item in config:
             entities.update(
-                await extract_entities_from_condition_config(hass, item, known_services)
+                await extract_entities_from_condition_config(
+                    hass,
+                    item,
+                    known_services,
+                    _in_values=_in_values,
+                    shadowed=shadowed,
+                )
             )
         return entities
 
     if not isinstance(config, dict):
         return entities
 
-    entities.update(await _entities_from_reference_fields(hass, config, known_services))
+    entities.update(
+        await _entities_from_reference_fields(
+            hass, config, known_services, in_values=_in_values, shadowed=shadowed
+        )
+    )
 
     # Extract from nested configs
-    for value in config.values():
+    for key, value in config.items():
         if isinstance(value, (dict, list)):
             entities.update(
                 await extract_entities_from_condition_config(
-                    hass, value, known_services
+                    hass,
+                    value,
+                    known_services,
+                    _in_values=_in_values or key in VALUE_KEYS,
+                    shadowed=shadowed,
                 )
             )
 
     return entities
 
 
-class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
+class SpookRepair(AbstractSpookAutomationReferencesRepair):
     """Spook repair tries to find unknown referenced entity in automations."""
 
     domain = automation.DOMAIN
@@ -271,6 +301,7 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
     }
     inspect_config_entry_changed = True
     inspect_on_reload = True
+    inspect_on_entity_added_or_removed = True
 
     unavailable_entity_class = automation.UnavailableAutomationEntity
     entity_label = "automation"
@@ -280,31 +311,6 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
 
     _known_entity_ids: set[str]
     _known_services: set[str]
-
-    async def async_activate(self) -> None:
-        """Activate the repair."""
-        await super().async_activate()
-
-        @callback
-        def _state_entity_changed(event_data: Mapping[str, Any]) -> bool:
-            """Return if a state entity was added or removed."""
-            return (
-                event_data.get("old_state") is None
-                or event_data.get("new_state") is None
-            )
-
-        @callback
-        def _async_call_inspect_debouncer(_: Event) -> None:
-            """Trigger an inspection when a state entity is added or removed."""
-            self.inspect_debouncer.async_schedule_call()
-
-        self._event_subs.add(
-            self.hass.bus.async_listen(
-                EVENT_STATE_CHANGED,
-                _async_call_inspect_debouncer,
-                event_filter=_state_entity_changed,
-            ),
-        )
 
     async def _async_setup_inspection(self) -> None:
         """Cache what every automation in this cycle needs looked up.
@@ -318,13 +324,30 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
         )
         self._known_services = async_get_all_services(self.hass)
 
-    def _should_inspect_entity(self, entity: Any) -> bool:
-        """Skip disabled automations."""
-        return entity.enabled
+    async def _async_named_in(
+        self, config: dict[str, Any], shadowed: frozenset[str]
+    ) -> set[str]:
+        """Return the entities a configuration names, the way this repair reads it.
+
+        The same reading the report is built from, structure and templates
+        alike, so comparing it with and without the disabled steps leaves out
+        exactly what only those name. ``shadowed`` comes from the whole
+        configuration, as `config` can be one without its disabled steps.
+        """
+        named = await extract_entities_from_automation_config(
+            self.hass, config, self._known_services, shadowed
+        )
+        named |= await async_extract_entities_from_config(
+            self.hass,
+            without_never_rendered(config),
+            self._known_services,
+            shadowed,
+        )
+        return named
 
     async def _async_compute_unknown_references(self, entity: Any) -> set[str]:
         """Return unknown entity IDs referenced by ``entity`` (incl. templates)."""
-        all_entities = set(entity.referenced_entities)
+        all_entities = core_references(entity, "entities")
 
         # Also extract entities directly from raw configuration if available
         if hasattr(entity, "raw_config") and entity.raw_config:
@@ -333,10 +356,6 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
                     self.hass, entity.raw_config, self._known_services
                 )
             )
-            for key in ("trigger", "triggers"):
-                all_entities.difference_update(
-                    extract_event_types_from_trigger_config(entity.raw_config.get(key))
-                )
 
         # Extract entities from Template objects within the automation entity
         all_entities.update(
@@ -345,9 +364,25 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
             )
         )
 
-        return await async_filter_known_entity_ids_with_templates(
+        raw_config = getattr(entity, "raw_config", None)
+        if raw_config:
+            # The kinds of trigger and event this automation listens for look
+            # like entity IDs, `sun.dusk` and `timer.finished` for two, and a
+            # template comparing `trigger.platform` or the event type with
+            # one names no entity at all.
+            all_entities.difference_update(
+                extract_platform_keys_from_config(raw_config).trigger_keys
+            )
+            for key in ("trigger", "triggers"):
+                all_entities.difference_update(
+                    extract_event_types_from_trigger_config(raw_config.get(key))
+                )
+
+        return await async_unknown_entities_named(
             self.hass,
-            entity_ids=all_entities,
+            all_entities,
+            raw_config,
+            named_in=self._async_named_in,
             known_entity_ids=self._known_entity_ids,
             known_services=self._known_services,
         )

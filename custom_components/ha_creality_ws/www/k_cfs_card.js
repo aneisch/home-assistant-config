@@ -6,20 +6,28 @@ const mdi = (name) => `mdi:${name}`;
 
 const ASSET_URL_BASE = "/ha_creality_ws/";
 const I18N_URL_BASE = `${ASSET_URL_BASE}i18n/`;
-const _i18nData = {};
-const _i18nPromises = {};
+// One cache for both cards, on the page: each module used to fetch en.json for
+// itself, and a language with no file (a 404) was asked for again by every new
+// card. A 404 is now remembered; only a failed request is retried. `no-cache`
+// revalidates, so an updated translation is not served stale (R45).
+const _i18nShared = (globalThis.__haCrealityWsI18n = globalThis.__haCrealityWsI18n || { data: {}, promises: {} });
+const _i18nData = _i18nShared.data;
 function _loadI18n(lang) {
-  if (_i18nData[lang]) return Promise.resolve(_i18nData[lang]);
-  if (_i18nPromises[lang]) return _i18nPromises[lang];
-  _i18nPromises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`)
-    .then((res) => (res.ok ? res.json() : null))
+  if (lang in _i18nData) return Promise.resolve(_i18nData[lang]);
+  const promises = _i18nShared.promises;
+  if (promises[lang]) return promises[lang];
+  promises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`, { cache: "no-cache" })
+    .then((res) => {
+      if (res.ok) return res.json();
+      if (res.status === 404) return null;
+      throw new Error(`HTTP ${res.status}`);
+    })
     .then((data) => {
-      if (data) _i18nData[lang] = data;
-      else _i18nPromises[lang] = null;
+      _i18nData[lang] = data;
       return data;
     })
-    .catch(() => { _i18nPromises[lang] = null; return null; });
-  return _i18nPromises[lang];
+    .catch(() => { promises[lang] = null; return null; });
+  return promises[lang];
 }
 function _resolveLang(hass) {
   return hass?.locale?.language || hass?.language || "en";
@@ -33,9 +41,12 @@ function _translate(hass, section, fallbackDict, key, vars) {
     : (remoteEn && key in remoteEn) ? remoteEn[key]
     : (fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key);
   if (vars) {
-    Object.entries(vars).forEach(([k, v]) => {
-      text = text.replace(new RegExp(`\\{${k}\\}`, "g"), v);
-    });
+    // One pass with a function: a replacement *string* expands `$&` and
+    // friends, so a preset named "Teal $& Co" toasted as "Teal {name} Co", and
+    // a value containing "{other}" was substituted again by a later key.
+    text = text.replace(/\{(\w+)\}/g, (match, name) => (
+      Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match
+    ));
   }
   return text;
 }
@@ -153,15 +164,6 @@ class ColourPresetsManager {
     return true;
   }
 
-  rename(from, to) {
-    const target = String(to || "").trim();
-    if (!target || !(from in this.presets) || target === from) return false;
-    this.presets[target] = this.presets[from];
-    delete this.presets[from];
-    this._persist();
-    return true;
-  }
-
   remove(name) {
     if (!(name in this.presets)) return false;
     delete this.presets[name];
@@ -219,9 +221,14 @@ const BUSY_PRINT_STATES = new Set([
 
 const CFS_TRANSLATIONS = {
   en: {
+    picker_name: "Creality CFS Card",
+    label_device: "Printer",
+    btn_fill_from_device: "Fill all fields from the printer",
+    status_device_filled: "Filled {filled} of {total} fields.",
+    status_device_empty: "This printer has no CFS sensors yet.",
+    picker_description: "A card to control the Creality Filament System (CFS)",
     no_data: "No CFS data available",
     ext_label: "EXT",
-    cfs_label: "CFS",
     cfs_number_label: "CFS {number}",
     // Editor
     label_card_title: "Card Title",
@@ -290,6 +297,19 @@ class KCFSCard extends HTMLElement {
    * used to prefill it like a real value -- so changing only the material type
    * and saving wrote `#cccccc` to the spool as though the printer had said so.
    */
+  /**
+   * The external spool's label: its name, plus the material type only when
+   * the name does not already say it. The filament sensor's state is already
+   * "Generic PLA", so appending the type read "Generic PLA PLA" (#115).
+   */
+  static _nameWithType(name, type) {
+    const n = String(name ?? "").trim();
+    const t = String(type ?? "").trim();
+    if (!t || t === "-") return n;
+    const words = n.toLowerCase().split(/\s+/);
+    return words.includes(t.toLowerCase()) ? n : `${n} ${t}`;
+  }
+
   static _parseColor(value) {
     if (isSentinel(value)) return null;
     const raw = String(value).trim();
@@ -411,7 +431,25 @@ class KCFSCard extends HTMLElement {
     return '#f44336';                    // Red (60-100%) - Critical
   }
 
-  static getStubConfig() {
+  /**
+   * What a new card starts with: the first printer that has CFS sensors, else
+   * nothing. Only what differs from the defaults goes into the dashboard
+   * (R44); every default used to be written there.
+   */
+  static getStubConfig(hass) {
+    const registry = hass?.entities || {};
+    const devices = [...new Set(Object.values(registry)
+      .filter((e) => e?.platform === "ha_creality_ws" && e.device_id)
+      .map((e) => e.device_id))];
+    for (const deviceId of devices) {
+      const found = cfsEntitiesForDevice(hass, deviceId);
+      if (Object.keys(found).length) return { device: deviceId, ...found };
+    }
+    return {};
+  }
+
+  /** Every option with its default value. */
+  static defaultConfig() {
     const cfg = {
       name: "CFS",
       view_mode: "full",
@@ -439,7 +477,7 @@ class KCFSCard extends HTMLElement {
   }
 
   setConfig(config) {
-    this._cfg = { ...KCFSCard.getStubConfig(), ...KCFSCard._migrateConfig(config) };
+    this._cfg = { ...KCFSCard.defaultConfig(), ...KCFSCard._migrateConfig(config) };
     if (!this._root) {
       this._root = this.attachShadow({ mode: "open" });
     }
@@ -460,9 +498,6 @@ class KCFSCard extends HTMLElement {
   }
 
   // i18n helpers -------------------------------------------------------
-  _resolveLanguage() {
-    return _resolveLang(this._hass);
-  }
   _t(key, vars) {
     return _translate(this._hass, "cfs_card", CFS_TRANSLATIONS, key, vars);
   }
@@ -741,6 +776,10 @@ class KCFSCard extends HTMLElement {
         50% { opacity: 0.7; transform: scale(1.1); }
       }
 
+      @media (prefers-reduced-motion: reduce) {
+        .status-badge { animation: none; }
+      }
+
       /* === COMPACT MODE === */
       .compact-mode {
         padding: 14px;
@@ -858,14 +897,16 @@ class KCFSCard extends HTMLElement {
         gap: 2px;
       }
 
-      .env-mini .temp {
-        color: #ffb74d;
+      /* The hue says warm, dry or damp; the theme's text colour carries the
+         contrast. The bare #ffb74d was 1.73:1 on a light theme (R42). */
+      .env-mini .temp, .env-temp {
+        color: color-mix(in srgb, #ffb74d 45%, var(--primary-text-color));
         font-weight: 600;
       }
 
-      .env-mini .hum {
+      .env-mini .hum, .env-hum {
+        color: color-mix(in srgb, var(--hum-color, #64b5f6) 45%, var(--primary-text-color));
         font-weight: 600;
-        /* Cor aplicada dinamicamente via inline style */
       }
 
       /* === EXTERNAL SECTION === */
@@ -1079,7 +1120,17 @@ class KCFSCard extends HTMLElement {
         place-items: center;
         padding: 16px;
         background: rgba(0, 0, 0, 0.55);
+        /* Undo the <dialog> defaults: the element is the full-screen backdrop. */
+        border: none;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        box-sizing: border-box;
+        color: inherit;
       }
+      .edit-overlay::backdrop { background: transparent; }
       .edit-dialog {
         width: min(420px, 100%);
         max-height: 85vh;
@@ -1293,8 +1344,14 @@ class KCFSCard extends HTMLElement {
         const name = filamentObj?.state;
         const type = filamentObj?.attributes?.type;
         const selected = filamentObj?.attributes?.selected;
-        const rawColor = colorObj?.state || filamentObj?.attributes?.color_hex;
-        const parsedColor = KCFSCard._parseColor(rawColor);
+        // Parsed in turn, not `||`: "unknown"/"unavailable" are truthy, so a
+        // colour sensor reading either hid the slot's color_hex attribute and
+        // the spool went grey (R28).
+        const rawColor = isSentinel(colorObj?.state)
+          ? filamentObj?.attributes?.color_hex
+          : colorObj.state;
+        const parsedColor = KCFSCard._parseColor(rawColor)
+          ?? KCFSCard._parseColor(filamentObj?.attributes?.color_hex);
         const color = parsedColor ?? "#cccccc";
         const percent = KCFSCard._parsePercent(percentObj);
         const percentText = fmtState(percentObj);
@@ -1361,8 +1418,11 @@ class KCFSCard extends HTMLElement {
       const name = filamentObj?.state;
       const type = filamentObj?.attributes?.type;
       const selected = filamentObj?.attributes?.selected;
-      const rawColor = colorObj?.state || filamentObj?.attributes?.color_hex;
-      const parsedColor = KCFSCard._parseColor(rawColor);
+      const rawColor = isSentinel(colorObj?.state)
+        ? filamentObj?.attributes?.color_hex
+        : colorObj.state;
+      const parsedColor = KCFSCard._parseColor(rawColor)
+        ?? KCFSCard._parseColor(filamentObj?.attributes?.color_hex);
       const color = parsedColor ?? "#cccccc";
       const percent = KCFSCard._parsePercent(percentObj);
       const percentText = fmtState(percentObj);
@@ -1523,7 +1583,7 @@ class KCFSCard extends HTMLElement {
     const env = [];
     if (box?.temp && box.temp !== "-") env.push(`<span class="env-temp">${esc(box.temp)}</span>`);
     if (box?.humidity && box.humidity !== "-") {
-      env.push(`<span class="env-hum" style="color: ${KCFSCard._sanitizeColor(box.humidityColor)}">${esc(box.humidity)}</span>`);
+      env.push(`<span class="env-hum" style="--hum-color: ${KCFSCard._sanitizeColor(box.humidityColor)}">${esc(box.humidity)}</span>`);
     }
 
     return `
@@ -1571,7 +1631,7 @@ class KCFSCard extends HTMLElement {
 
       if (tempStr || humStr) {
         const tempHtml = tempStr ? `<span class="env-temp">${esc(tempStr)}</span>` : '';
-        const humHtml = humStr ? `<span class="env-hum" style="color: ${KCFSCard._sanitizeColor(selectedBox.humidityColor)}">${esc(humStr)}</span>` : '';
+        const humHtml = humStr ? `<span class="env-hum" style="--hum-color: ${KCFSCard._sanitizeColor(selectedBox.humidityColor)}">${esc(humStr)}</span>` : '';
         const separator = tempStr && humStr ? ' <span style="color: var(--divider-color)">•</span> ' : '';
         envInfo = `<div class="env-info">${tempHtml}${separator}${humHtml}</div>`;
       }
@@ -1604,7 +1664,7 @@ class KCFSCard extends HTMLElement {
       const hasFilament = safeType !== "-" && safeName !== "-";
       const pct = hasFilament && external.percent !== null ? external.percent : 0;
       const percentTextDisplay = hasFilament ? (external.percentText || '-') : '-';
-      const displayName = hasFilament ? `${safeName} ${safeType}` : '-';
+      const displayName = hasFilament ? KCFSCard._nameWithType(safeName, safeType) : '-';
       externalSection = `
         <div class="external-section">
           <div class="external-normal" data-eid="${esc(external.entity_id)}">
@@ -1658,7 +1718,7 @@ class KCFSCard extends HTMLElement {
     const safeName = !isSentinel(external.name) ? String(external.name).trim() : "-";
     const hasFilament = safeType !== "-" && safeName !== "-";
     const percentTextDisplay = hasFilament ? (external.percentText || '-') : '-';
-    const displayName = hasFilament ? `${safeName} ${safeType}` : '-';
+    const displayName = hasFilament ? KCFSCard._nameWithType(safeName, safeType) : '-';
     return `
       <div class="external-section">
         <div class="external-compact" data-eid="${esc(external.entity_id)}">
@@ -1682,7 +1742,7 @@ class KCFSCard extends HTMLElement {
       envHtml = `
         <div class="env-mini">
           ${tempStr ? `<div class="temp">${esc(tempStr)}</div>` : ''}
-          ${humStr ? `<div class="hum" style="color: ${KCFSCard._sanitizeColor(box.humidityColor)}">${esc(humStr)}</div>` : ''}
+          ${humStr ? `<div class="hum" style="--hum-color: ${KCFSCard._sanitizeColor(box.humidityColor)}">${esc(humStr)}</div>` : ''}
         </div>
       `;
     }
@@ -1823,8 +1883,7 @@ class KCFSCard extends HTMLElement {
    * rather than silently resolved to one of them.
    *
    * Reads hass.entities (EntityRegistryDisplayEntry carries device_id, platform
-   * and translation_key), so no WebSocket round trip and no admin permission is
-   * needed -- unlike config/entity_registry/list.
+   * and translation_key), so no WebSocket round trip is needed.
    * @returns {Promise<string|null>}
    */
   async _resolveDeviceId() {
@@ -1844,9 +1903,8 @@ class KCFSCard extends HTMLElement {
     }
 
     // Anything hass.entities could not answer for is asked individually. It is
-    // not a version fallback: hass.entities can be *partially* populated, and it
-    // is absent entirely for a non-admin user, whose browser is not allowed
-    // config/entity_registry/get either.
+    // not a version fallback: hass.entities can be *partially* populated, for
+    // one while the frontend is still loading it.
     //
     // Every unresolved entity is asked, not just enough to find one device.
     // Accepting the first answer resolved a card spanning two printers to
@@ -1866,9 +1924,9 @@ class KCFSCard extends HTMLElement {
           });
           return { deviceId: entry?.device_id || null, failed: false };
         } catch (_) {
-          // config/entity_registry/get is admin-only, so for a non-admin
-          // dashboard user every one of these fails. Treating that as "this
-          // entity has no device" is what let a two-printer card resolve to
+          // A failed lookup (an entity missing from the registry, a dropped
+          // connection) is not "this entity has no device". Treating it so
+          // is what let a two-printer card resolve to
           // whichever printer *was* in hass.entities, and _saveMaterial then
           // sent the other printer's box and slot ids to it.
           return { deviceId: null, failed: true };
@@ -1985,8 +2043,13 @@ class KCFSCard extends HTMLElement {
 
     const toast = document.createElement("div");
     toast.className = "cfs-toast";
+    // Announced by screen readers without taking focus (R42).
+    toast.setAttribute("role", "status");
+    toast.setAttribute("aria-live", "polite");
     toast.textContent = message;
-    this._root.appendChild(toast);
+    // Inside the open edit dialog when there is one: it is in the top layer,
+    // and a toast on the card would be painted under it.
+    (this._dialogEl || this._root).appendChild(toast);
     this._toastEl = toast;
     this._toastTimer = setTimeout(() => {
       if (toast.remove) toast.remove();
@@ -2038,7 +2101,11 @@ class KCFSCard extends HTMLElement {
       return;
     }
 
-    const overlay = document.createElement("div");
+    // A native <dialog> opened with showModal() renders in the top layer. The
+    // <div> overlay before it stayed inside this card's stacking context
+    // (`:host { z-index: 1 }`), so a second CFS card further down the page was
+    // painted over the bottom of the dialog (R46, seen in Chromium).
+    const overlay = document.createElement("dialog");
     overlay.className = "edit-overlay";
     const dialog = document.createElement("div");
     dialog.className = "edit-dialog";
@@ -2049,11 +2116,16 @@ class KCFSCard extends HTMLElement {
     dialog.setAttribute("aria-modal", "true");
     dialog.setAttribute("aria-label", this._t("dialog_edit_title"));
     dialog.tabIndex = -1;
-    overlay.appendChild(dialog);
 
+    // Back to whatever opened the dialog afterwards, so a keyboard user is not
+    // dropped at the top of the page (R42).
+    const opener = this._root.activeElement || null;
     const close = () => {
       overlay.removeEventListener("keydown", onKeyDown);
+      if (overlay.close && overlay.open) overlay.close();
       if (overlay.remove) overlay.remove();
+      if (this._dialogEl === overlay) this._dialogEl = null;
+      if (opener && opener.focus) opener.focus();
     };
     const onKeyDown = (ev) => {
       if (ev.key === "Escape" || ev.key === "Esc") {
@@ -2061,11 +2133,38 @@ class KCFSCard extends HTMLElement {
         close();
       }
     };
+    // Tab stays inside the dialog: it is modal, and focus wandering to the
+    // card behind it left a keyboard user editing an invisible page (R42).
+    // Sentinels rather than counting fields, because ha-form keeps its inputs
+    // in its own shadow root where the dialog cannot see which one has focus.
+    const sentinel = (onFocus) => {
+      const el = document.createElement("span");
+      el.tabIndex = 0;
+      el.className = "focus-sentinel";
+      el.addEventListener("focus", onFocus);
+      return el;
+    };
+    const before = sentinel(() => {
+      const buttons = Array.from(dialog.querySelectorAll("button")).filter((btn) => !btn.disabled);
+      const last = buttons[buttons.length - 1];
+      if (last && last.focus) last.focus();
+    });
+    const after = sentinel(() => dialog.focus && dialog.focus());
+    overlay.appendChild(before);
+    overlay.appendChild(dialog);
+    overlay.appendChild(after);
     overlay.addEventListener("keydown", onKeyDown);
+    // Escape on a modal <dialog> arrives as `cancel`; close it our way.
+    overlay.addEventListener("cancel", (ev) => {
+      ev.preventDefault?.();
+      close();
+    });
     overlay.addEventListener("click", (ev) => { if (ev.target === overlay) close(); });
 
     dialog.appendChild(this._renderEditForm(slot, close));
     this._root.appendChild(overlay);
+    this._dialogEl = overlay;
+    if (overlay.showModal) overlay.showModal();
     // Focus the dialog itself rather than the first field: ha-form upgrades
     // asynchronously, so its inputs may not exist yet.
     if (dialog.focus) dialog.focus();
@@ -2274,17 +2373,54 @@ class KCFSCard extends HTMLElement {
         swatch.title = name;
         swatch.setAttribute("aria-label", name);
         swatch.style.background = colour;
-        swatch.addEventListener("click", () => apply(colour));
+        let longPressed = false;
+        swatch.addEventListener("click", () => {
+          // The click that ends a long press is not a pick.
+          if (longPressed) {
+            longPressed = false;
+            return;
+          }
+          apply(colour);
+        });
 
         if (this._presets.isCustom(name)) {
           swatch.classList?.add?.("custom");
-          // Long-press-free management: a modifier click removes a custom preset,
-          // which keeps the row compact without a second list.
-          swatch.addEventListener("contextmenu", (ev) => {
-            ev.preventDefault?.();
+          const removePreset = () => {
             if (this._presets.remove(name)) {
               this._showToast(this._t("toast_preset_deleted", { name }));
               rebuild();
+            }
+          };
+          // A right-click removes a custom preset, which keeps the row compact
+          // without a second list.
+          swatch.addEventListener("contextmenu", (ev) => {
+            ev.preventDefault?.();
+            removePreset();
+          });
+          // iOS Safari fires no contextmenu on a long press, so a preset could
+          // not be removed there at all: a touch held for 600 ms does it, and
+          // Delete does it from the keyboard (R46).
+          let pressTimer = null;
+          const cancelPress = () => {
+            clearTimeout(pressTimer);
+            pressTimer = null;
+          };
+          swatch.addEventListener("pointerdown", (ev) => {
+            if (ev.pointerType === "mouse") return;
+            cancelPress();
+            pressTimer = setTimeout(() => {
+              pressTimer = null;
+              longPressed = true;
+              removePreset();
+            }, 600);
+          });
+          for (const type of ["pointerup", "pointercancel", "pointerleave"]) {
+            swatch.addEventListener(type, cancelPress);
+          }
+          swatch.addEventListener("keydown", (ev) => {
+            if (ev.key === "Delete" || ev.key === "Backspace") {
+              ev.preventDefault?.();
+              removePreset();
             }
           });
         }
@@ -2469,30 +2605,20 @@ class KCFSCard extends HTMLElement {
     return 5;
   }
 
-  getLayoutOptions() {
-    // Count configured boxes for dynamic sizing
-    let boxCount = 0;
-    if (this._cfg) {
-      for (let box = 0; box < 4; box++) {
-        const hasBox = this._cfg[`box${box}_temp`] || this._cfg[`box${box}_humidity`] ||
-          [0, 1, 2, 3].some(s => this._cfg[`box${box}_slot${s}_filament`] || this._cfg[`box${box}_slot${s}_color`] || this._cfg[`box${box}_slot${s}_percent`]);
-        if (hasBox) boxCount++;
-      }
-    }
-
-    // Check for external filament
-    const hasExternal = this._cfg?.external_filament || this._cfg?.external_color || this._cfg?.external_percent;
-    const externalRows = hasExternal ? 1 : 0;
-
-    // Add extra space when more than 2 rows
-    const totalRows = boxCount + externalRows;
-    const extraPadding = totalRows > 2 ? 1 : 0;
-
-    const minRows = this._cfg?.view_mode === "compact" ? Math.max(1, totalRows + extraPadding) : 5;
-
+  /**
+   * Sections-view sizing: let the grid size the cell to the card.
+   *
+   * `getLayoutOptions` (deprecated) reserved a fixed number of rows, five for
+   * the full view, and the card forces `height: auto` so its content is not
+   * clipped (#71) -- together that drew the card over whatever sat below it,
+   * by 176 px for a one-box CFS at phone width (R23). `rows: "auto"` makes the
+   * reserved height the card's own.
+   */
+  getGridOptions() {
     return {
-      grid_rows: minRows,
-      grid_min_rows: minRows,
+      columns: 12,
+      rows: "auto",
+      min_columns: 6,
     };
   }
 }
@@ -2521,11 +2647,76 @@ function defineOnce(tag, cls) {
 
 defineOnce(CARD_TAG, KCFSCard);
 
+/**
+ * This integration's CFS sensors for one device, as a card config patch.
+ *
+ * CFS units take card positions 0-3 in the printer's box order; the external
+ * spool holder is box 0 on the printer and goes to the external fields. Box and
+ * slot come from the sensors' `box_id`/`slot_id` attributes, falling back to
+ * the default entity id ("..._cfs_box_1_slot_2_filament", slot 1-based) for a
+ * sensor with no reading yet. Without this, a CFS card meant filling up to 51
+ * entity pickers by hand (R43).
+ * @param {?Object} hass
+ * @param {string} deviceId
+ * @return {!Object<string, string>} Config key -> entity id.
+ */
+function cfsEntitiesForDevice(hass, deviceId) {
+  const registry = hass?.entities || {};
+  const states = hass?.states || {};
+  const patch = {};
+  if (!deviceId) return patch;
+  const slots = [];
+  const boxes = [];
+  for (const [entityId, entry] of Object.entries(registry)) {
+    if (!entry || entry.device_id !== deviceId) continue;
+    if (entry.platform && entry.platform !== "ha_creality_ws") continue;
+    const key = entry.translation_key || "";
+    const attrs = states[entityId]?.attributes || {};
+    let m = /^cfs_ext_(filament|color|percent)$/.exec(key);
+    if (m) {
+      patch[`external_${m[1]}`] = entityId;
+      continue;
+    }
+    m = /^cfs_slot_(filament|color|percent)$/.exec(key);
+    if (m) {
+      let box = attrs.box_id;
+      let slot = attrs.slot_id;
+      if (box === undefined || box === null || slot === undefined || slot === null) {
+        const id = /_cfs_box_(\d+)_slot_(\d+)_/.exec(entityId);
+        if (!id) continue;
+        box = Number(id[1]);
+        slot = Number(id[2]) - 1;
+      }
+      // Box 0 is the external spool holder; an install from before R20 still
+      // has "Box 0 Slot 1" sensors for it next to the External ones.
+      if (Number(box) >= 1) slots.push({ box: Number(box), slot: Number(slot), kind: m[1], entityId });
+      continue;
+    }
+    m = /^cfs_box_(temp|humidity)$/.exec(key);
+    if (m) {
+      let box = attrs.box_id;
+      if (box === undefined || box === null) {
+        const id = /_cfs_box_(\d+)_(temperature|humidity)/.exec(entityId);
+        if (!id) continue;
+        box = Number(id[1]);
+      }
+      if (Number(box) >= 1) boxes.push({ box: Number(box), kind: m[1], entityId });
+    }
+  }
+  const order = [...new Set([...slots, ...boxes].map((e) => e.box))].sort((a, b) => a - b).slice(0, 4);
+  for (const e of slots) {
+    const pos = order.indexOf(e.box);
+    if (pos >= 0 && e.slot >= 0 && e.slot < 4) patch[`box${pos}_slot${e.slot}_${e.kind}`] = e.entityId;
+  }
+  for (const e of boxes) {
+    const pos = order.indexOf(e.box);
+    if (pos >= 0) patch[`box${pos}_${e.kind}`] = e.entityId;
+  }
+  return patch;
+}
+
 class KCFSCardEditor extends HTMLElement {
   // i18n helpers -------------------------------------------------------
-  _resolveLanguage() {
-    return _resolveLang(this._hass);
-  }
   _t(key, vars) {
     return _translate(this._hass, "cfs_card", CFS_TRANSLATIONS, key, vars);
   }
@@ -2533,42 +2724,84 @@ class KCFSCardEditor extends HTMLElement {
 
   set hass(hass) {
     this._hass = hass;
-    if (this._form) this._form.hass = hass;
-    _requestI18n(this, hass, () => { if (this._root) this._render(); });
+    _requestI18n(this, hass, () => this._refresh(true));
+    this._refresh();
   }
 
   setConfig(config) {
-    this._cfg = { ...KCFSCard.getStubConfig(), ...KCFSCard._migrateConfig(config) };
-    this._render();
+    this._cfg = { ...KCFSCard.defaultConfig(), ...KCFSCard._migrateConfig(config) };
+    this._refresh();
   }
 
   connectedCallback() {
-    this._render();
+    this._refresh();
   }
 
-  _render() {
+  /**
+   * Build once, then only update.
+   *
+   * Lovelace answers every config-changed with a fresh setConfig. Rebuilding
+   * the editor's DOM on each one, as this did, lost the focused field after
+   * every keystroke and jumped back to the first tab (R22). Data is only
+   * reassigned when it really differs from what the forms already show.
+   */
+  _refresh(relabel = false) {
+    if (!this._cfg) return;
     if (!this._root) {
       this._root = this.attachShadow({ mode: "open" });
     }
+    if (!this._form) {
+      this._build();
+      relabel = true;
+    }
+    this._form.hass = this._hass;
+    this._themeForm.hass = this._hass;
+    this._deviceForm.hass = this._hass;
+    if (relabel) this._applyLabels();
+    this._setFormData();
+  }
 
+  _setFormData() {
+    const key = JSON.stringify(this._cfg);
+    if (key === this._shownKey) return;
+    this._shownKey = key;
+    this._form.data = this._cfg;
+    this._themeForm.data = this._cfg;
+    this._deviceForm.data = { device: this._cfg.device || "" };
+    this._root.getElementById("refill").disabled = !this._cfg.device;
+  }
+
+  _build() {
     const style = `
       .editor-container { padding: 16px; }
       .tabs { display: flex; border-bottom: 1px solid var(--divider-color); margin-bottom: 16px; }
-      .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+      .tab { padding: 8px 16px; cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; color: inherit; font: inherit; }
+      .tab:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
       .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
       .tab-content { display: none; }
       .tab-content.active { display: block; }
       .input-helper { font-size: 0.9em; color: var(--secondary-text-color); margin-top: 4px; padding: 0 8px; }
+      .device-row { display: flex; align-items: center; gap: 12px; margin: 4px 0 16px; flex-wrap: wrap; }
+      .ghost-btn { background: none; border: 1px solid var(--divider-color); border-radius: 6px; padding: 6px 12px;
+        color: var(--primary-color); font: inherit; cursor: pointer; }
+      .ghost-btn:disabled { color: var(--disabled-text-color); cursor: default; }
+      .ghost-btn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+      .status { color: var(--secondary-text-color); font-size: 0.9em; }
     `;
 
     this._root.innerHTML = `
       <style>${style}</style>
       <div class="editor-container">
-        <div class="tabs">
-          <div class="tab active" data-tab="entities">${this._t("tab_entities")}</div>
-          <div class="tab" data-tab="theme">${this._t("tab_theme")}</div>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" role="tab" aria-selected="true" data-tab="entities" id="tab-entities"></button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="theme" id="tab-theme"></button>
         </div>
         <div class="tab-content active" id="entities-tab">
+          <ha-form id="device-form"></ha-form>
+          <div class="device-row">
+            <button type="button" class="ghost-btn" id="refill"></button>
+            <span class="status" id="refill-status" role="status"></span>
+          </div>
           <ha-form id="form"></ha-form>
         </div>
         <div class="tab-content" id="theme-tab">
@@ -2578,8 +2811,68 @@ class KCFSCardEditor extends HTMLElement {
     `;
 
     this._setupTabs();
+    this._setupDeviceForm();
     this._setupEntitiesForm();
     this._setupThemeForm();
+  }
+
+  _setupDeviceForm() {
+    this._deviceForm = this._root.getElementById("device-form");
+    this._deviceForm.schema = [{
+      name: "device",
+      selector: { device: { filter: [{ integration: "ha_creality_ws" }] } },
+    }];
+    this._deviceForm.addEventListener("value-changed", (ev) => this._onDeviceChanged(ev.detail.value || {}));
+    this._root.getElementById("refill").addEventListener("click", () => this._applyDeviceFill(true));
+  }
+
+  _onDeviceChanged(value) {
+    const deviceId = value.device || "";
+    if (deviceId === (this._cfg.device || "")) return;
+    this._cfg = { ...this._cfg, device: deviceId };
+    if (deviceId) {
+      // Picking a device fills what is still blank; the button replaces too.
+      this._applyDeviceFill(false);
+      return;
+    }
+    this._setRefillStatus("");
+    this._setFormData();
+    this._dispatchConfigChange();
+  }
+
+  _applyDeviceFill(overwrite) {
+    const found = cfsEntitiesForDevice(this._hass, this._cfg.device);
+    const patch = {};
+    for (const [key, entityId] of Object.entries(found)) {
+      if (overwrite || !this._cfg[key]) patch[key] = entityId;
+    }
+    this._cfg = { ...this._cfg, ...patch };
+    const total = Object.keys(found).length;
+    this._setRefillStatus(total
+      ? this._t("status_device_filled", { filled: Object.keys(patch).length, total })
+      : this._t("status_device_empty"));
+    this._setFormData();
+    this._dispatchConfigChange();
+  }
+
+  _setRefillStatus(text) {
+    const el = this._root?.getElementById("refill-status");
+    if (el) el.textContent = text;
+  }
+
+  /** Everything that reads a translation, so a late language load relabels. */
+  _applyLabels() {
+    this._root.getElementById("tab-entities").textContent = this._t("tab_entities");
+    this._root.getElementById("tab-theme").textContent = this._t("tab_theme");
+    this._root.getElementById("refill").textContent = this._t("btn_fill_from_device");
+    this._deviceForm.computeLabel = () => this._t("label_device");
+    // New function objects, so ha-form re-renders its labels.
+    this._form.computeLabel = (s) => this._entityLabel(s);
+    this._themeForm.schema = this._themeSchema();
+    this._themeForm.computeLabel = (s) => ({
+      view_mode: this._t("schema_view_mode"),
+      show_type_in_mini: this._t("schema_show_type_in_mini"),
+    }[s.name] || s.name);
   }
 
   _setupTabs() {
@@ -2587,9 +2880,13 @@ class KCFSCardEditor extends HTMLElement {
     const contents = this._root.querySelectorAll(".tab-content");
     tabs.forEach((tab) => {
       tab.onclick = () => {
-        tabs.forEach((t) => t.classList.remove("active"));
+        tabs.forEach((t) => {
+          t.classList.remove("active");
+          t.setAttribute("aria-selected", "false");
+        });
         contents.forEach((c) => c.classList.remove("active"));
         tab.classList.add("active");
+        tab.setAttribute("aria-selected", "true");
         this._root.getElementById(`${tab.dataset.tab}-tab`).classList.add("active");
       };
     });
@@ -2597,8 +2894,6 @@ class KCFSCardEditor extends HTMLElement {
 
   _setupEntitiesForm() {
     this._form = this._root.getElementById("form");
-    this._form.hass = this._hass;
-    this._form.data = this._cfg;
     const schema = [
       { name: "name", selector: { text: {} } },
       { name: "external_filament", selector: { entity: { domain: "sensor" } } },
@@ -2617,7 +2912,15 @@ class KCFSCardEditor extends HTMLElement {
     }
 
     this._form.schema = schema;
-    this._form.computeLabel = (s) => {
+    // Assigned unconditionally: ha-form leaves computeHelper undefined until
+    // someone sets it, so guarding on it meant this never ran. Harmless here
+    // only because ha-form's own default is "no helper" either way.
+    this._form.computeHelper = () => "";
+
+    this._form.addEventListener("value-changed", (ev) => this._edited(ev.detail.value));
+  }
+
+  _entityLabel(s) {
       if (s.name === "name") return this._t("label_card_title");
       if (s.name === "external_filament") return this._t("label_external_filament");
       if (s.name === "external_color") return this._t("label_external_color");
@@ -2642,23 +2945,22 @@ class KCFSCardEditor extends HTMLElement {
       }
 
       return s.name;
-    };
-    // Assigned unconditionally: ha-form leaves computeHelper undefined until
-    // someone sets it, so guarding on it meant this never ran. Harmless here
-    // only because ha-form's own default is "no helper" either way.
-    this._form.computeHelper = () => "";
-
-    this._form.addEventListener("value-changed", (ev) => {
-      this._cfg = { ...this._cfg, ...ev.detail.value };
-      this._dispatchConfigChange();
-    });
   }
 
   _setupThemeForm() {
-    const themeForm = this._root.getElementById("theme-form");
-    themeForm.hass = this._hass;
-    themeForm.data = this._cfg;
-    themeForm.schema = [
+    this._themeForm = this._root.getElementById("theme-form");
+    this._themeForm.addEventListener("value-changed", (ev) => this._edited(ev.detail.value));
+  }
+
+  /** One edit: show it, then tell Lovelace, whose echo is then a no-op. */
+  _edited(value) {
+    this._cfg = { ...this._cfg, ...value };
+    this._setFormData();
+    this._dispatchConfigChange();
+  }
+
+  _themeSchema() {
+    return [
       {
         name: "view_mode",
         selector: {
@@ -2674,20 +2976,15 @@ class KCFSCardEditor extends HTMLElement {
       },
       { name: "show_type_in_mini", selector: { boolean: {} } },
     ];
-    themeForm.computeLabel = (s) => ({
-      view_mode: this._t("schema_view_mode"),
-      show_type_in_mini: this._t("schema_show_type_in_mini"),
-    }[s.name] || s.name);
-
-    themeForm.addEventListener("value-changed", (ev) => {
-      this._cfg = { ...this._cfg, ...ev.detail.value };
-      this._dispatchConfigChange();
-    });
   }
 
   _dispatchConfigChange() {
+    // Only what differs from the defaults (R44): the card merges them back.
+    const defaults = KCFSCard.defaultConfig();
+    const config = Object.fromEntries(Object.entries(this._cfg)
+      .filter(([key, value]) => !(key in defaults) || value !== defaults[key]));
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._cfg },
+      detail: { config },
       bubbles: true,
       composed: true,
     }));
@@ -2697,9 +2994,21 @@ class KCFSCardEditor extends HTMLElement {
 defineOnce(EDITOR_TAG, KCFSCardEditor);
 
 window.customCards = window.customCards || [];
-window.customCards.push({
-  type: "k-cfs-card",
-  name: "Creality CFS Card",
-  preview: true,
-  description: "A card to control the Creality Filament System (CFS)"
-});
+// Once per page, like the element itself: a second copy of this module (two
+// resource entries with different ?v=) listed the card twice in the picker.
+if (!window.customCards.some((card) => card.type === "k-cfs-card")) {
+  const pickerEntry = {
+    type: "k-cfs-card",
+    name: CFS_TRANSLATIONS.en.picker_name,
+    preview: true,
+    description: CFS_TRANSLATIONS.en.picker_description,
+  };
+  window.customCards.push(pickerEntry);
+  // The picker reads the entry when it opens, so the page's language can be
+  // applied once its strings arrive (R33).
+  const pageHass = document.querySelector?.("home-assistant")?.hass;
+  _requestI18n({}, pageHass, () => {
+    pickerEntry.name = _translate(pageHass, "cfs_card", CFS_TRANSLATIONS, "picker_name");
+    pickerEntry.description = _translate(pageHass, "cfs_card", CFS_TRANSLATIONS, "picker_description");
+  });
+}

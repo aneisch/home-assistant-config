@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import datetime
+import datetime as dt
 import email
 import logging
 import re
@@ -164,13 +164,15 @@ class AmazonSearchMixin(AmazonImageMixin):
     async def _parse_email_date(
         self,
         msg: email.message.Message,
-    ) -> datetime.date | None:
+    ) -> dt.date | None:
         """Parse the date from an email message."""
         date_str = msg.get("Date")
         if not date_str:
             return None
         parsed = await self.hass.async_add_executor_job(dateparser.parse, date_str)
-        return parsed.date() if parsed else None
+        if not parsed:
+            return None
+        return parsed.astimezone().date() if parsed.tzinfo else parsed.date()
 
     def _handle_delivered_email(self, subject: str, body: str | None, ctx: dict):
         """Handle an Amazon 'delivered' email."""
@@ -186,7 +188,7 @@ class AmazonSearchMixin(AmazonImageMixin):
         self,
         subject: str,
         body: str | None,
-        date: datetime.date | None,
+        date: dt.date | None,
         ctx: dict,
         msg: email.message.Message | None = None,
     ):

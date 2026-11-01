@@ -62,7 +62,9 @@ experimental:
   plugins:
     sablier:
       moduleName: "github.com/sablierapp/sablier-traefik-plugin"
-      version: "v1.3.0"
+      version: "v1.3.1"
+      hash: "c819d45f0239c8ce552f877eded3fbaed93076405077818d7072120d02de7e2a"
+
 
 # log:
 #   level: DEBUG

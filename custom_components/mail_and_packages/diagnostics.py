@@ -10,11 +10,18 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from . import MailAndPackagesConfigEntry
+from . import OAUTH_TOKEN_KEYS, MailAndPackagesConfigEntry
 from .const import CONF_AMAZON_FWDS, CONF_FORWARDED_EMAILS
+from .summary import is_summary_entry
 
 _LOGGER = logging.getLogger(__name__)
-REDACT_KEYS = {CONF_PASSWORD, CONF_USERNAME, CONF_AMAZON_FWDS, CONF_FORWARDED_EMAILS}
+REDACT_KEYS = {
+    CONF_PASSWORD,
+    CONF_USERNAME,
+    CONF_AMAZON_FWDS,
+    CONF_FORWARDED_EMAILS,
+    *OAUTH_TOKEN_KEYS,
+}
 
 
 async def async_get_config_entry_diagnostics(
@@ -33,6 +40,9 @@ async def async_get_device_diagnostics(
     device: DeviceEntry,  # pylint: disable=unused-argument
 ) -> dict[str, Any]:
     """Return diagnostics for a device."""
+    if is_summary_entry(config_entry):
+        return {"summary_sensors": sorted(config_entry.runtime_data.keys)}
+
     coordinator = config_entry.runtime_data.coordinator
 
     dynamic_keys = {

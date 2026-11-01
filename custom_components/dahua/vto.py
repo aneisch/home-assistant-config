@@ -2,6 +2,7 @@
 Copied and modified from https://github.com/elad-bar/DahuaVTO2MQTT
 Thanks to @elad-bar
 """
+
 import struct
 import sys
 import logging
@@ -10,12 +11,8 @@ import asyncio
 import hashlib
 from json import JSONDecoder
 from typing import Optional, Callable
-from requests.auth import HTTPDigestAuth
 
-PROTOCOLS = {
-    True: "https",
-    False: "http"
-}
+PROTOCOLS = {True: "https", False: "http"}
 
 # How long to wait for the doorbell to answer a hang-up before giving up.
 # The command goes over the already-open socket on port 5000, so a reply is
@@ -31,6 +28,7 @@ class CancelCallRefused(Exception):
     because this module deliberately does not import Home Assistant.
     """
 
+
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
 DAHUA_DEVICE_TYPE = "deviceType"
@@ -45,10 +43,7 @@ DAHUA_CONFIG_MANAGER_GETCONFIG = "configManager.getConfig"
 DAHUA_MAGICBOX_GETSOFTWAREVERSION = "magicBox.getSoftwareVersion"
 DAHUA_MAGICBOX_GETDEVICETYPE = "magicBox.getDeviceType"
 
-DAHUA_ALLOWED_DETAILS = [
-    DAHUA_DEVICE_TYPE,
-    DAHUA_SERIAL_NUMBER
-]
+DAHUA_ALLOWED_DETAILS = [DAHUA_DEVICE_TYPE, DAHUA_SERIAL_NUMBER]
 
 
 class DahuaVTOClient(asyncio.Protocol):
@@ -64,18 +59,35 @@ class DahuaVTOClient(asyncio.Protocol):
     base_url: str
     hold_time: int
     lock_status: {}
-    auth: HTTPDigestAuth
     data_handlers: {}
     buffer: bytearray
 
-    def __init__(self, host: str, username: str, password: str, is_ssl: bool, on_receive_vto_event):
+    # What the device said when it answered the login and granted no session,
+    # or None while nothing has been refused. Declared on the class because the
+    # coordinator reads it off whatever it got back from `create_connection`,
+    # and the retry tests build a stand-in protocol that sets only the two
+    # attributes that loop used to read.
+    login_refused = None
+
+    # Whether close() asked for the disconnect that connection_lost is about to
+    # report. On the class as well as in __init__ because several tests build
+    # this client with object.__new__ and reach close() without it.
+    _closing: bool = False
+
+    def __init__(
+        self,
+        host: str,
+        username: str,
+        password: str,
+        is_ssl: bool,
+        on_receive_vto_event,
+    ):
         self.dahua_details = {}
         self.host = host
         self.username = username
         self.password = password
         self.is_ssl = is_ssl
         self.base_url = f"{PROTOCOLS[self.is_ssl]}://{self.host}/cgi-bin/"
-        self.auth = HTTPDigestAuth(self.username, self.password)
         self.realm = None
         self.random = None
         self.request_id = 1
@@ -88,6 +100,7 @@ class DahuaVTOClient(asyncio.Protocol):
         self.buffer = bytearray()
 
         self._keep_alive_handle = None
+        self._closing = False
 
         # This is the hook back into HA
         self.on_receive_vto_event = on_receive_vto_event
@@ -105,10 +118,12 @@ class DahuaVTOClient(asyncio.Protocol):
         except Exception as ex:
             exc_type, exc_obj, exc_tb = sys.exc_info()
 
-            _LOGGER.error(f"Failed to handle message, error: {ex}, Line: {exc_tb.tb_lineno}")
+            _LOGGER.error(
+                f"Failed to handle message, error: {ex}, Line: {exc_tb.tb_lineno}"
+            )
 
     def data_received(self, data):
-        _LOGGER.debug(f"Event data {self.host}: '{data}'")
+        _LOGGER.debug("Event data %s: '%s'", self.host, data)
 
         # Whether this device has said anything at all on this connection --
         # a login reply, a keepAlive answer, an event. The reconnect decision
@@ -118,9 +133,9 @@ class DahuaVTOClient(asyncio.Protocol):
 
         self.buffer += data
 
-        while b'\n' in self.buffer:
+        while b"\n" in self.buffer:
 
-            newline_index = self.buffer.find(b'\n') + 1
+            newline_index = self.buffer.find(b"\n") + 1
             packet = self.buffer[:newline_index]
             self.buffer = self.buffer[newline_index:]
 
@@ -132,12 +147,16 @@ class DahuaVTOClient(asyncio.Protocol):
 
                     message_id = message.get("id")
 
-                    handler: Callable = self.data_handlers.get(message_id, self.handle_default)
+                    handler: Callable = self.data_handlers.get(
+                        message_id, self.handle_default
+                    )
                     handler(message)
             except Exception as ex:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
 
-                _LOGGER.error(f"Failed to handle message, error: {ex}, Line: {exc_tb.tb_lineno}")
+                _LOGGER.error(
+                    f"Failed to handle message, error: {ex}, Line: {exc_tb.tb_lineno}"
+                )
 
     def handle_notify_event_stream(self, params):
         try:
@@ -155,13 +174,15 @@ class DahuaVTOClient(asyncio.Protocol):
         except Exception as ex:
             exc_type, exc_obj, exc_tb = sys.exc_info()
 
-            _LOGGER.error(f"Failed to handle event, error: {ex}, Line: {exc_tb.tb_lineno}")
+            _LOGGER.error(
+                f"Failed to handle event, error: {ex}, Line: {exc_tb.tb_lineno}"
+            )
 
     def handle_default(self, message):
-        _LOGGER.info(f"Data received without handler: {message}")
+        _LOGGER.debug("Data received without handler: %s", message)
 
     def eof_received(self):
-        _LOGGER.info('Server sent EOF message')
+        _LOGGER.debug("Server sent EOF message")
 
         if self._keep_alive_handle is not None:
             self._keep_alive_handle.cancel()
@@ -170,7 +191,33 @@ class DahuaVTOClient(asyncio.Protocol):
             self.disconnected.set_result(True)
 
     def connection_lost(self, exc):
-        _LOGGER.error('server closed the connection')
+        # The reconnect loop logs the disconnect itself -- "Disconnected from VTO
+        # at <address>, reconnecting in <n>s" -- with the address and the delay,
+        # so all this can usefully add is why, and only when the why is a
+        # failure.
+        #
+        # It used to log "server closed the connection" at ERROR for every one
+        # of the three cases below, including the one where the server did not
+        # close anything and we did. Unloading an entry therefore ended with an
+        # ERROR in the log saying the doorbell had dropped us, which is the
+        # opposite of what happened, and it is the line somebody sees after an
+        # upgrade restart and reports as a fault.
+        # Through getattr because this runs in a transport callback, and several
+        # test files build this client with object.__new__ and set only the few
+        # attributes they are about. An AttributeError raised here would be
+        # swallowed by the event loop rather than failing anything visibly.
+        where = getattr(self, "host", None) or "an unknown address"
+
+        if self._closing:
+            _LOGGER.debug("Closed the VTO connection to %s", where)
+        elif exc is None:
+            # The doorbell ended it cleanly. Worth knowing, not worth shouting:
+            # the loop above says so and reconnects.
+            _LOGGER.debug("The VTO at %s closed the event connection", where)
+        else:
+            _LOGGER.warning(
+                "Lost the event connection to the VTO at %s: %s", where, exc
+            )
 
         if self._keep_alive_handle is not None:
             self._keep_alive_handle.cancel()
@@ -178,7 +225,33 @@ class DahuaVTOClient(asyncio.Protocol):
         if not self.disconnected.done():
             self.disconnected.set_result(True)
 
-    def send(self, action, handler, params=None):
+    def close(self) -> None:
+        """Drop the connection and stop the keep-alive.
+
+        Cancelling the coordinator's stream task is not enough: that task is
+        parked on ``await self.disconnected`` and cancelling a task does not
+        close an asyncio transport. Without this the socket to port 5000 stays
+        open with its event subscription, the keep-alive keeps rescheduling
+        itself on every reply, and the doorbell keeps pushing events into an
+        entry Home Assistant has already unloaded -- once per reload.
+        """
+        # Set before the transport goes, because closing it is what calls
+        # connection_lost, and that is the only way it can tell our own
+        # teardown from the doorbell dropping us.
+        self._closing = True
+        if self._keep_alive_handle is not None:
+            self._keep_alive_handle.cancel()
+            self._keep_alive_handle = None
+        transport = self.transport
+        if transport is not None:
+            try:
+                transport.close()
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.debug("Failed to close the VTO transport", exc_info=True)
+        if not self.disconnected.done():
+            self.disconnected.set_result(True)
+
+    def send(self, action, handler, params=None, object_id=None):
         if params is None:
             params = {}
 
@@ -189,8 +262,12 @@ class DahuaVTOClient(asyncio.Protocol):
             "session": self.sessionId,
             "magic": "0x1234",
             "method": action,
-            "params": params
+            "params": params,
         }
+        # Methods reached through a factory instance carry its object id, e.g.
+        # VideoTalkPhone.endCall (#460). Absent for ordinary calls.
+        if object_id is not None:
+            message_data["object"] = object_id
 
         request_id = self.request_id
         self.data_handlers[request_id] = handler
@@ -238,13 +315,30 @@ class DahuaVTOClient(asyncio.Protocol):
                     self.sessionId = message.get("session")
 
                     self.login()
+                else:
+                    # A device can refuse before it challenges -- an account
+                    # already locked out answers "user or password not valid!"
+                    # here. This branch did nothing at all, so that connection
+                    # sat open until the device dropped it and then reconnected
+                    # at once, because the device had demonstrably spoken. Same
+                    # unbudgeted loop as a refusal after the challenge, one
+                    # round trip earlier.
+                    self.login_refused = (
+                        str(error_message or "").strip() or "the login was refused"
+                    )
+                    _LOGGER.warning(
+                        "The doorbell at %s refused the login before challenging: %s",
+                        self.host,
+                        self.login_refused,
+                    )
+                    self.close()
 
         request_data = {
             "clientType": "",
             "ipAddr": "(null)",
             "loginType": "Direct",
             "userName": self.username,
-            "password": ""
+            "password": "",
         }
 
         self.send(DAHUA_GLOBAL_LOGIN, handle_pre_login, request_data)
@@ -256,7 +350,39 @@ class DahuaVTOClient(asyncio.Protocol):
             if message is None:
                 return
             params = message.get("params")
+            if not isinstance(params, dict):
+                # A refused login answers with no params at all, and reading
+                # `keepAliveInterval` off that None raised AttributeError --
+                # inside `data_received`, which logs and swallows it. So a wrong
+                # password produced "Failed to handle message" and nothing else:
+                # no session, no attach, no keepalive, and nothing telling the
+                # caller the credentials were the problem.
+                params = {}
             keep_alive_interval = params.get("keepAliveInterval")
+
+            if keep_alive_interval is None:
+                # The device answered and granted no session. Judged the way
+                # dhip.py judges the same reply: `result: false`, or an error
+                # where a session should be. A reply carrying neither is left
+                # alone -- it is not evidence of a refusal, and the existing
+                # defensive case (params without an interval) must stay a
+                # no-op rather than start costing a lockout budget.
+                error = message.get("error") or {}
+                if message.get("result") is False or error:
+                    self.login_refused = (
+                        str(error.get("message") or "").strip()
+                        or "the device granted no session"
+                    )
+                    _LOGGER.warning(
+                        "The doorbell at %s refused the login: %s",
+                        self.host,
+                        self.login_refused,
+                    )
+                    # Closed rather than left to time out. The caller is parked
+                    # on `disconnected`, and a socket the device holds open
+                    # keeps it waiting for a connection that will never carry
+                    # an event.
+                    self.close()
 
             if keep_alive_interval is not None:
                 self.keep_alive_interval = keep_alive_interval - 5
@@ -267,9 +393,13 @@ class DahuaVTOClient(asyncio.Protocol):
                 self.load_device_type()
                 self.attach_event_manager()
 
-                self._keep_alive_handle = self._loop.call_later(self.keep_alive_interval, self.keep_alive)
+                self._keep_alive_handle = self._loop.call_later(
+                    self.keep_alive_interval, self.keep_alive
+                )
 
-        password = self._get_hashed_password(self.random, self.realm, self.username, self.password)
+        password = self._get_hashed_password(
+            self.random, self.realm, self.username, self.password
+        )
 
         request_data = {
             "clientType": "",
@@ -277,13 +407,13 @@ class DahuaVTOClient(asyncio.Protocol):
             "loginType": "Direct",
             "userName": self.username,
             "password": password,
-            "authorityType": "Default"
+            "authorityType": "Default",
         }
 
         self.send(DAHUA_GLOBAL_LOGIN, handle_login, request_data)
 
     def attach_event_manager(self):
-        _LOGGER.info("Attach event manager")
+        _LOGGER.debug("Attach event manager")
 
         def handle_attach_event_manager(message):
             if message is None:
@@ -294,34 +424,40 @@ class DahuaVTOClient(asyncio.Protocol):
             if method == "client.notifyEventStream":
                 self.handle_notify_event_stream(params)
 
-        request_data = {
-            "codes": ['All']
-        }
+        request_data = {"codes": ["All"]}
 
         self.send(DAHUA_EVENT_MANAGER_ATTACH, handle_attach_event_manager, request_data)
 
     def load_access_control(self):
-        _LOGGER.info("Get access control configuration")
+        _LOGGER.debug("Get access control configuration")
 
         def handle_access_control(message):
             if message is None:
                 return
 
-            params = message.get("params")
+            params = message.get("params") or {}
             table = params.get("table")
 
-            if table is not None:
+            # A VTO returns AccessControl as a list of dicts, one per door. A
+            # VTH5221D with no door of its own returns a list whose entries are
+            # themselves lists, so item.get('AccessProtocol') raised 'list' object
+            # has no attribute 'get' and the whole packet's processing aborted
+            # (measured over DHIP, #949). Iterate only a list, and only the dict
+            # entries in it; any other shape means this device has no local access
+            # control to read, which is the right answer for a monitor.
+            if isinstance(table, list):
                 for item in table:
-                    access_control = item.get('AccessProtocol')
+                    if not isinstance(item, dict):
+                        continue
 
-                    if access_control == 'Local':
-                        self.hold_time = item.get('UnlockReloadInterval')
+                    access_control = item.get("AccessProtocol")
 
-                        _LOGGER.info(f"Hold time: {self.hold_time}")
+                    if access_control == "Local":
+                        self.hold_time = item.get("UnlockReloadInterval")
 
-        request_data = {
-            "name": "AccessControl"
-        }
+                        _LOGGER.debug("Hold time: %s", self.hold_time)
+
+        request_data = {"name": "AccessControl"}
 
         self.send(DAHUA_CONFIG_MANAGER_GETCONFIG, handle_access_control, request_data)
 
@@ -354,72 +490,154 @@ class DahuaVTOClient(asyncio.Protocol):
             message = await asyncio.wait_for(answered, timeout)
         except asyncio.TimeoutError:
             raise CancelCallRefused(
-                "{0} did not answer the hang-up within {1}s".format(
-                    self.host, timeout)) from None
+                "{0} did not answer the hang-up within {1}s".format(self.host, timeout)
+            ) from None
         finally:
             # send() registers a handler for every request and only the
             # keep-alive path ever removes one, so drop ours whichever way
             # this ended rather than leaving it to accumulate.
             self.data_handlers.pop(request_id, None)
 
-        if isinstance(message, dict) and message.get("result") is False:
-            raise CancelCallRefused(
-                "{0} refused the hang-up: {1}".format(self.host, message))
-        return True
+        if not (isinstance(message, dict) and message.get("result") is False):
+            # hc answered and did not refuse, which is the VTO2000A path and
+            # stays exactly as it was.
+            return True
+
+        # hc answered but refused. A VTO2311R-WP answers both console.runCmd hc
+        # and VideoTalkPhone.disconnect with 268959743 yet ends the call through
+        # VideoTalkPhone.endCall (#460). Try that over the same connection before
+        # giving up, so the refused hc is not the last word on firmware that has
+        # a working method.
+        _LOGGER.debug(
+            "hc was refused on %s (%s); trying VideoTalkPhone.endCall",
+            self.host,
+            message,
+        )
+        try:
+            if await self._end_call_via_videotalkphone(timeout):
+                return True
+        except asyncio.TimeoutError:
+            pass
+        raise CancelCallRefused(
+            "{0} refused the hang-up: {1}".format(self.host, message)
+        )
+
+    async def _request_reply(
+        self,
+        action,
+        params=None,
+        object_id=None,
+        timeout: float = CANCEL_CALL_TIMEOUT_SECONDS,
+    ):
+        """Send one request and wait for the device's reply to it.
+
+        The same wait-and-clean-up `cancel_call` does, factored out so the
+        VideoTalkPhone fallback does not repeat it three times. Raises
+        asyncio.TimeoutError if no reply arrives, and always drops the handler.
+        """
+        answered = self._loop.create_future()
+
+        def on_reply(message):
+            if not answered.done():
+                answered.set_result(message)
+
+        request_id = self.send(action, on_reply, params, object_id=object_id)
+        try:
+            return await asyncio.wait_for(answered, timeout)
+        finally:
+            self.data_handlers.pop(request_id, None)
+
+    async def _end_call_via_videotalkphone(self, timeout: float) -> bool:
+        """Hang up through VideoTalkPhone, for firmware that refuses hc (#460).
+
+        Measured on a VTO2311R-WP: factory.instance returns an object id, endCall
+        on it ends the call (Calling -> Idle), and destroy releases it. endCall is
+        a recognised method on a VTO2000A too (it answers rather than
+        "Method not found"), so this is the same call across models; it is only
+        reached when hc has already been refused. The object is released whether
+        or not the hang-up took.
+        """
+        created = await self._request_reply(
+            "VideoTalkPhone.factory.instance", timeout=timeout
+        )
+        object_id = created.get("result") if isinstance(created, dict) else None
+        if not isinstance(object_id, int):
+            return False
+        try:
+            ended = await self._request_reply(
+                "VideoTalkPhone.endCall", object_id=object_id, timeout=timeout
+            )
+        finally:
+            try:
+                await self._request_reply(
+                    "VideoTalkPhone.destroy", object_id=object_id, timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                _LOGGER.debug("VideoTalkPhone.destroy did not answer on %s", self.host)
+        return not (isinstance(ended, dict) and ended.get("result") is False)
 
     def load_version(self):
-        _LOGGER.info("Get version")
+        _LOGGER.debug("Get version")
 
         def handle_version(message):
             if message is None:
                 return
 
             params = message.get("params")
-            version_details = params.get("version", {})
+            version_details = (
+                params.get("version", {}) if isinstance(params, dict) else {}
+            )
+            if not isinstance(version_details, dict):
+                version_details = {}
             build_date = version_details.get("BuildDate")
             version = version_details.get("Version")
 
             self.dahua_details[DAHUA_VERSION] = version
             self.dahua_details[DAHUA_BUILD_DATE] = build_date
 
-            _LOGGER.info(f"Version: {version}, Build Date: {build_date}")
+            _LOGGER.debug("Version: %s, Build Date: %s", version, build_date)
 
         self.send(DAHUA_MAGICBOX_GETSOFTWAREVERSION, handle_version)
 
     def load_device_type(self):
-        _LOGGER.info("Get device type")
+        _LOGGER.debug("Get device type")
 
         def handle_device_type(message):
             if message is None:
                 return
 
             params = message.get("params")
-            device_type = params.get("type")
+            device_type = params.get("type") if isinstance(params, dict) else None
 
             self.dahua_details[DAHUA_DEVICE_TYPE] = device_type
 
-            _LOGGER.info(f"Device Type: {device_type}")
+            _LOGGER.debug("Device Type: %s", device_type)
 
         self.send(DAHUA_MAGICBOX_GETDEVICETYPE, handle_device_type)
 
     def load_serial_number(self):
-        _LOGGER.info("Get serial number")
+        _LOGGER.debug("Get serial number")
 
         def handle_serial_number(message):
             if message is None:
                 return
 
+            # A VTH returns the T2UServer table as a *list*, not the dict a VTO
+            # returns, so `table.get("UUID")` raised `'list' object has no
+            # attribute 'get'` -- the same shape #964 handled for AccessControl,
+            # in a handler it did not reach. data_received swallows the crash, so
+            # it was silent apart from a traceback on every login, and the serial
+            # read as None anyway. A monitor keeps no UUID here, so None is the
+            # right answer for it; guard the shape rather than assume a dict.
             params = message.get("params")
-            table = params.get("table", {})
-            serial_number = table.get("UUID")
+            table = params.get("table", {}) if isinstance(params, dict) else {}
+            serial_number = table.get("UUID") if isinstance(table, dict) else None
 
             self.dahua_details[DAHUA_SERIAL_NUMBER] = serial_number
 
-            _LOGGER.info(f"Serial Number: {serial_number}")
+            _LOGGER.debug("Serial Number: %s", serial_number)
 
-        request_data = {
-            "name": "T2UServer"
-        }
+        request_data = {"name": "T2UServer"}
 
         self.send(DAHUA_CONFIG_MANAGER_GETCONFIG, handle_serial_number, request_data)
 
@@ -427,20 +645,21 @@ class DahuaVTOClient(asyncio.Protocol):
         _LOGGER.debug("Keep alive")
 
         def handle_keep_alive(message):
-            self._keep_alive_handle = self._loop.call_later(self.keep_alive_interval, self.keep_alive)
+            self._keep_alive_handle = self._loop.call_later(
+                self.keep_alive_interval, self.keep_alive
+            )
             if message is None:
                 return
 
-            message_id = message.get('id')
+            message_id = message.get("id")
             if message_id is not None and message_id in self.data_handlers:
                 del self.data_handlers[message_id]
             else:
-                _LOGGER.warning(f'Could not delete keep alive handler with message ID {message_id}.')
+                _LOGGER.warning(
+                    f"Could not delete keep alive handler with message ID {message_id}."
+                )
 
-        request_data = {
-            "timeout": self.keep_alive_interval,
-            "action": True
-        }
+        request_data = {"timeout": self.keep_alive_interval, "action": True}
 
         self.send(DAHUA_GLOBAL_KEEPALIVE, handle_keep_alive, request_data)
 
@@ -456,7 +675,21 @@ class DahuaVTOClient(asyncio.Protocol):
             # Another example
             # \x00\x00\x00DHIP\x8c-\x96{\x08\x00\x00\x00{\x01\x00\x00\x00\x00\x00\x00{\x01\x00\x00\x00\x00\x00\x00{"id":8,"method":"client.notifyEventStream","params":{"SID":513,"eventList":[{"Action":"State","Code":"VideoMotionInfo","Data":[{"Id":0,"Region":[4194303,4194303,4128767,3997695,3801087,3801087,3932159,3407871,3932159,3932158,3932156,3735548,3678204,2101244,2047,2097663,3146239,524799],"RegionName":"Region1","State":"Active","Threshold":54}],"Index":0}]},"session":1722306858}\n
 
-            data = str(response)
+            # Decoded, not `str(response)`. `data_received` slices `self.buffer`,
+            # which is bytes, so `str()` gives the *repr*: a UTF-8 byte becomes the
+            # four characters backslash, x and two hex digits. `\x` is not a valid
+            # JSON escape, so raw_decode refuses the object and extract_json_objects
+            # moves past it. One u-umlaut in a card holder's name dropped the whole
+            # event, in silence. ASCII survived by accident, the repr of ASCII bytes
+            # being the same characters, which is why this held up for so long.
+            #
+            # errors="replace" is required rather than defensive: the DHIP header in
+            # front of every frame is binary and not valid UTF-8, so a strict decode
+            # would raise on every packet.
+            if isinstance(response, (bytes, bytearray)):
+                data = response.decode("utf-8", errors="replace")
+            else:
+                data = str(response)
 
             jsons = DahuaVTOClient.extract_json_objects(data)
             for j in jsons:
@@ -464,7 +697,9 @@ class DahuaVTOClient(asyncio.Protocol):
             return result
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
-            _LOGGER.error(f"Failed to read data: {response}, error: {e}, Line: {exc_tb.tb_lineno}")
+            _LOGGER.error(
+                f"Failed to read data: {response}, error: {e}, Line: {exc_tb.tb_lineno}"
+            )
 
         return result
 
@@ -478,7 +713,7 @@ class DahuaVTOClient(asyncio.Protocol):
         """
         pos = 0
         while True:
-            match = text.find('{', pos)
+            match = text.find("{", pos)
             if match == -1:
                 break
             try:
@@ -491,11 +726,11 @@ class DahuaVTOClient(asyncio.Protocol):
     @staticmethod
     def _get_hashed_password(random, realm, username, password):
         password_str = f"{username}:{realm}:{password}"
-        password_bytes = password_str.encode('utf-8')
+        password_bytes = password_str.encode("utf-8")
         password_hash = hashlib.md5(password_bytes).hexdigest().upper()
 
         random_str = f"{username}:{random}:{password_hash}"
-        random_bytes = random_str.encode('utf-8')
+        random_bytes = random_str.encode("utf-8")
         random_hash = hashlib.md5(random_bytes).hexdigest().upper()
 
         return random_hash

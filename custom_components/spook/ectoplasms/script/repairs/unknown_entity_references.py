@@ -8,56 +8,23 @@ from homeassistant.components import script
 from homeassistant.const import EVENT_COMPONENT_LOADED
 from homeassistant.helpers import entity_registry as er
 
+from ....action_extraction import (
+    async_extract_entities_from_action_config,
+    async_unknown_entities_named,
+)
 from ....entity_filtering import async_get_all_entity_ids, async_get_all_services
+from ....reference_extraction import (
+    core_references,
+    names_given_to_templates,
+    without_never_rendered,
+)
 from ....repairs import AbstractSpookEntityComponentUnknownReferencesRepair
 from ....template_extraction import (
     async_extract_entities_from_config,
-    async_filter_known_entity_ids_with_templates,
 )
 
 if TYPE_CHECKING:
     from homeassistant.core import HomeAssistant
-
-
-def extract_entities_from_trigger_config(config: dict[str, Any] | list) -> set[str]:
-    """Extract entity IDs from a trigger config."""
-    entities = set()
-
-    if not config:
-        return entities
-
-    if isinstance(config, list):
-        for item in config:
-            entities.update(extract_entities_from_trigger_config(item))
-        return entities
-
-    if not isinstance(config, dict):
-        return entities
-
-    # Extract entity_id from trigger config
-    if "entity_id" in config:
-        entity_id = config["entity_id"]
-        if isinstance(entity_id, str):
-            entities.add(entity_id)
-        elif isinstance(entity_id, list):
-            entities.update([e for e in entity_id if isinstance(e, str)])
-
-    # Recursively process nested configs
-    for value in config.values():
-        if isinstance(value, (dict, list)):
-            entities.update(extract_entities_from_trigger_config(value))
-
-    return entities
-
-
-def extract_referenced_entities_from_script(entity: script.ScriptEntity) -> set[str]:
-    """Return entity references from a script entity."""
-    try:
-        return set(entity.script.referenced_entities)
-    except TypeError as err:
-        if str(err) != "unhashable type: 'dict'":
-            raise
-        return set()
 
 
 async def extract_template_entities_from_script_entity(
@@ -74,21 +41,22 @@ async def extract_template_entities_from_script_entity(
     ``known_services`` is built once per inspection and handed down, because
     building it flattens every service Home Assistant has and every script
     with a template in it needs the same answer.
-    """
-    # Get the script configuration
-    config = None
-    if hasattr(entity, "script"):
-        # Try to get configuration safely
-        if hasattr(entity.script, "config"):
-            config = entity.script.config
-        elif hasattr(entity.script, "_config"):
-            # Fallback to _config if needed
-            config = getattr(entity.script, "_config", None)
 
-    if not config:
+    Read from the configuration as written, like the automation repair does.
+    The script helper underneath keeps no configuration of its own, so this
+    used to find nothing at all.
+    """
+    if not (config := getattr(entity, "raw_config", None)):
         return set()
 
-    return await async_extract_entities_from_config(hass, config, known_services)
+    # A description, a name or a field example is shown, never rendered: an
+    # entity in an example template there is not one the script uses.
+    return await async_extract_entities_from_config(
+        hass,
+        without_never_rendered(config),
+        known_services,
+        names_given_to_templates(config),
+    )
 
 
 class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
@@ -112,34 +80,6 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
     _known_entity_ids: set[str]
     _known_services: set[str]
 
-    def _get_blueprint_trigger_entities(self, entity: script.ScriptEntity) -> set[str]:
-        """Extract entity references from blueprint trigger inputs."""
-        entities = set()
-
-        if (
-            not hasattr(entity, "referenced_blueprint")
-            or not entity.referenced_blueprint
-        ):
-            return entities
-
-        config = getattr(entity, "_config", None)
-        if not config or not isinstance(config, dict) or "use_blueprint" not in config:
-            return entities
-
-        blueprint_config = config["use_blueprint"]
-        if "input" not in blueprint_config:
-            return entities
-
-        input_config = blueprint_config["input"]
-        # Look for inputs that might contain triggers (like discard_when)
-        for value in input_config.values():
-            if isinstance(value, (dict, list)) and "trigger" in str(value):
-                trigger_entities = extract_entities_from_trigger_config(value)
-                if trigger_entities:
-                    entities.update(trigger_entities)
-
-        return entities
-
     async def _async_setup_inspection(self) -> None:
         """Cache what every script in this cycle needs looked up.
 
@@ -152,13 +92,50 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
         )
         self._known_services = async_get_all_services(self.hass)
 
+    async def _async_named_in(
+        self, config: dict[str, Any], shadowed: frozenset[str]
+    ) -> set[str]:
+        """Return the entities a configuration names, the way this repair reads it.
+
+        The same reading the report is built from, the steps and templates
+        alike, so comparing it with and without the disabled steps leaves out
+        exactly what only those name. ``shadowed`` comes from the whole
+        configuration, as `config` can be one without its disabled steps.
+        """
+        steps = config.get("sequence") or []
+        named = await async_extract_entities_from_action_config(
+            self.hass,
+            # A single step can be written without a list.
+            [steps] if isinstance(steps, dict) else steps,
+            known_services=self._known_services,
+            shadowed=shadowed,
+        )
+        named |= await async_extract_entities_from_config(
+            self.hass,
+            without_never_rendered(config),
+            self._known_services,
+            shadowed,
+        )
+        return named
+
     async def _async_compute_unknown_references(self, entity: Any) -> set[str]:
         """Return unknown entity IDs referenced by ``entity`` (incl. templates)."""
         # Get all referenced entities from the script
-        all_entities = extract_referenced_entities_from_script(entity)
+        all_entities = core_references(entity, "entities")
 
-        # Check for blueprint trigger inputs
-        all_entities.update(self._get_blueprint_trigger_entities(entity))
+        # Home Assistant's own list leaves out entities handed over as action
+        # data, like `entity: light.kitchen` in a call to another script. The
+        # automation repair reads those from the configuration as written, and
+        # so does this one.
+        if isinstance(raw_config := getattr(entity, "raw_config", None), dict):
+            all_entities.update(
+                await async_extract_entities_from_action_config(
+                    self.hass,
+                    raw_config.get("sequence") or [],
+                    known_services=self._known_services,
+                    shadowed=names_given_to_templates(raw_config),
+                )
+            )
 
         # Extract entities from Template objects within the script entity
         all_entities.update(
@@ -167,9 +144,11 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
             )
         )
 
-        return await async_filter_known_entity_ids_with_templates(
+        return await async_unknown_entities_named(
             self.hass,
-            entity_ids=all_entities,
+            all_entities,
+            raw_config,
+            named_in=self._async_named_in,
             known_entity_ids=self._known_entity_ids,
             known_services=self._known_services,
         )

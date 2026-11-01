@@ -1,9 +1,37 @@
 """
 Various utilities for Dahua cameras
 """
+
 import json
 import logging
 import re
+
+
+def describe_write_refusal(exception) -> str:
+    """A short phrase naming why a device would not take a write.
+
+    Written because the two ways a recorder declines a lighting write both
+    reached the user as something unreadable. `str()` on an
+    aiohttp.ClientResponseError is the whole request URL --
+    "403, message='Forbidden', url='http://.../configManager.cgi?action=setConfig
+    &Lighting%5B6%5D%5B0%5D.Mode=Manual'" -- which is a request, not a reason.
+    And `str()` on a timeout is empty, so formatting one gives a blank where the
+    cause should be.
+
+    The status is the part that distinguishes them: measured on a
+    DHI-NVR5464-16P-EI, 403 is a channel whose lighting the recorder will not
+    write, and 400 is a table it does not serve at all. So name the status when
+    there is one, and the class name when there is not.
+
+    Duck-typed on `status` rather than checking the class, so this module keeps
+    importing nothing but the standard library.
+    """
+    status = getattr(exception, "status", None)
+    if isinstance(status, int) and not isinstance(status, bool):
+        return (
+            "HTTP %d %s" % (status, getattr(exception, "message", "") or "")
+        ).strip()
+    return str(exception).strip() or type(exception).__name__
 
 
 def dahua_brightness_to_hass_brightness(bri_str: str) -> int:
@@ -34,6 +62,82 @@ def hass_brightness_to_dahua_brightness(hass_brightness: int) -> int:
 _LOGGER = logging.getLogger(__name__)
 
 
+# One slot of the recorder's camera table, in either spelling the firmwares use:
+# a uuid-ish name carrying the index, or a plain bracket. Anchored on
+# RemoteDevice so a nested field of some other table cannot match.
+_REMOTE_DEVICE_FIELD = re.compile(
+    r"RemoteDevice(?:\.uuid:\S*?INFO_|\[)(\d+)\]?\.(\w+)$"
+)
+
+# What the recorder knows about the camera in a slot, and what to call it here.
+# Deliberately not UserName or Password: the slot holds the camera's own login
+# in clear, and nothing in this integration needs it.
+_CAMERA_FIELDS = {
+    "DeviceType": "model",
+    "SerialNo": "serial",
+    "Mac": "mac",
+    "Version": "firmware",
+    "Vendor": "vendor",
+}
+
+
+# What a recorder puts in a slot's Mac field when it does not know one. Both
+# are addresses no camera can have: ff:ff:ff:ff:ff:ff is the broadcast address
+# and 00:00:00:00:00:00 is the unspecified one.
+_PLACEHOLDER_MACS = frozenset({"ffffffffffff", "000000000000"})
+
+
+def mac_digits(value) -> str | None:
+    """The twelve hex digits of a MAC, lowercased and unseparated, or None.
+
+    This is how two MACs are compared. A device reports one in whatever
+    spelling it likes, and Home Assistant normalises a connection before it
+    stores it, so `9C:14:63:AA:BB:CC` and `9c-14-63-aa-bb-cc` are one address
+    in the registry and two unequal strings in Python. Comparing what
+    `usable_mac` returns, which keeps the device's own spelling, would miss a
+    collision that Home Assistant then refuses the device over.
+    """
+    if not value:
+        return None
+    digits = str(value).strip().lower()
+    for separator in (":", "-", "."):
+        digits = digits.replace(separator, "")
+    if len(digits) != 12 or any(c not in "0123456789abcdef" for c in digits):
+        return None
+    return digits
+
+
+def usable_mac(value) -> str | None:
+    """The MAC as the device reported it, or None when it is not an address.
+
+    #1078: a DH-NVR4232-EI reports `ff:ff:ff:ff:ff:ff` for a channel whose
+    camera it cannot name. That went into the device page's `connections`,
+    which is how Home Assistant decides two devices are the same hardware, so
+    every channel the recorder could not name claimed to be the same device
+    and Home Assistant refused the second one:
+
+        Invalid device info ... connections: {('mac', 'ff:ff:ff:ff:ff:ff')}
+        ... are already registered for device ... of the same config entry
+
+    The camera was fine; its device simply could not be created. Judged on the
+    value rather than on how many channels share it, because one channel with
+    a broadcast MAC is already wrong and the second is what makes it visible.
+
+    A real address that several slots report is the other half of the same
+    problem and is not decided here, because this function sees one value.
+    `DahuaDataUpdateCoordinator.get_channel_mac` drops those, over the whole
+    slot table (#1104).
+
+    Anything that is not twelve hex digits is also refused. A malformed MAC in
+    `connections` is worse than no MAC at all: it is the field that merges
+    devices together.
+    """
+    digits = mac_digits(value)
+    if digits is None or digits in _PLACEHOLDER_MACS:
+        return None
+    return str(value).strip()
+
+
 def parse_remote_devices(data) -> dict:
     """Which channels a recorder says it has a camera on.
 
@@ -43,16 +147,38 @@ def parse_remote_devices(data) -> dict:
         table.RemoteDevice.uuid:System_CONFIG_NETCAMERA_INFO_11.Enable=true
         table.RemoteDevice.uuid:System_CONFIG_NETCAMERA_INFO_11.ProtocolType=Private
 
-    Returns {index: {"enabled": bool, "protocol": str}}.
+    and some firmware uses the plain bracket form instead:
 
-    Measured on a DHI-NVR5464-16P-EI: sixteen slots, fifteen enabled, one
-    of those reached over Onvif. The channel number is the index plus one.
+        table.RemoteDevice[11].Enable=true
+        table.RemoteDevice[11].ProtocolType=Private
+
+    Returns {index: {"enabled": bool, "protocol": str, "model": str,
+    "serial": str, "mac": str, "firmware": str, "vendor": str}}.
+
+    Everything after "protocol" describes the *camera*, not the recorder, and
+    the recorder is the only thing that can say it: a PoE camera sits on the
+    recorder's own network (10.2.2.x here) and nothing else on the LAN can ask
+    it anything. Measured on a DHI-NVR5464-16P-EI, where the slot for channel
+    11 carries DeviceType H32_VSIPP-6DIRMD-I3, SerialNo BD01D6APAG74E89, Mac
+    30:dd:aa:f6:24:9e and Version "3.140.101B000.0.R,2024-11-28" while the
+    recorder itself reports 4.005.0000000.3.R. Sixteen slots on that recorder,
+    fifteen enabled, one of those reached over Onvif. The channel number is the
+    index plus one.
+
+    **Both spellings, because this used to read only the first and its two
+    callers disagreed with it.** `remote_device_model` and
+    `remote_device_protocol` in coordinator.py have always accepted either, so
+    on bracket-form firmware the coordinator correctly warned that a channel
+    was reached over Onvif while this returned {} -- which meant the add flow
+    offered no channels to discover and `async_channel_refusal` accepted any
+    channel number the user typed, including ones the recorder disowns. One
+    table, one shape rule.
     """
     if not isinstance(data, dict):
         return {}
     found = {}
     for key, value in data.items():
-        match = re.search(r"INFO_(\d+)\.(\w+)$", str(key))
+        match = _REMOTE_DEVICE_FIELD.search(str(key))
         if not match:
             continue
         slot = found.setdefault(int(match.group(1)), {})
@@ -61,10 +187,162 @@ def parse_remote_devices(data) -> dict:
             slot["enabled"] = str(value).strip().lower() == "true"
         elif field == "ProtocolType":
             slot["protocol"] = str(value).strip().lower()
+        elif field in _CAMERA_FIELDS:
+            slot[_CAMERA_FIELDS[field]] = str(value or "").strip()
     for slot in found.values():
         slot.setdefault("enabled", False)
         slot.setdefault("protocol", "")
+        for name in _CAMERA_FIELDS.values():
+            slot.setdefault(name, "")
     return found
+
+
+def labels_for_device(existing, previously_chosen, chosen) -> set:
+    """The labels a device should end up with.
+
+    Three sets, and the middle one is why this is not just a union. `existing`
+    is what the device has now, including anything somebody added by hand, and
+    `previously_chosen` is what this option said last time. Take away what the
+    option used to ask for, then add what it asks for now.
+
+    So unticking a label removes it, which is what somebody expects of a list
+    they have just edited, while a label they put on a camera themselves was
+    never in `previously_chosen` and is left alone -- by that and by a reload.
+
+    Written as `existing - (previously_chosen - chosen)` at first, to say "drop
+    only what we have stopped asking for". That is the same set: anything in all
+    three is re-added by the union either way. A mutation test could not tell
+    the two apart, which is the argument for the shorter one.
+    """
+    existing = set(existing or ())
+    previously_chosen = set(previously_chosen or ())
+    chosen = set(chosen or ())
+    return (existing - previously_chosen) | chosen
+
+
+# One channel's streams in the Encode table. MainFormat[0] is the stream the
+# integration calls index 0, and ExtraFormat[n] is index n+1, which is the
+# numbering `to_stream_name` already uses.
+_MAIN_FORMAT = "table.Encode[{0}].MainFormat[0]."
+_EXTRA_FORMAT = re.compile(r"table\.Encode\[(\d+)\]\.ExtraFormat\[(\d+)\]\.")
+
+
+def parse_stream_codecs(encode, channel: int) -> dict:
+    """What each of one channel's streams carries: codec, and whether audio is on.
+
+        {0: {"codec": "H.265", "audio": False}, 1: {...}}
+
+    Keyed by the stream index this integration uses everywhere else, so a camera
+    entity can look up its own stream without translating anything.
+
+    The audio half matters as much as the codec and is easy to miss. A browser
+    cannot take H.265 over WebRTC, so go2rtc falls back to a transcoding source
+    that Home Assistant registers as `ffmpeg:<stream>#audio=opus`, and that
+    source asks go2rtc for the stream's **audio-only** view. A camera with
+    `AudioEnable` false has no audio track, go2rtc answers 404, and the whole
+    attempt fails. Measured on a DHI-NVR5464-16P-EI: with both true the WebRTC
+    offer returned 500 and the recorded error, and moving that channel to H.264
+    turned it into a 200 carrying video with the audio line marked inactive.
+
+    Returns {} for anything that is not a table, so a device that refuses Encode
+    is told apart from one that answers emptily by the caller, not here.
+    """
+    if not isinstance(encode, dict):
+        return {}
+    found = {}
+    prefix = _MAIN_FORMAT.format(channel)
+    for key, value in encode.items():
+        key = str(key)
+        index = None
+        if key.startswith(prefix):
+            index, field = 0, key[len(prefix) :]
+        else:
+            match = _EXTRA_FORMAT.match(key)
+            if match and int(match.group(1)) == channel:
+                index, field = int(match.group(2)) + 1, key[match.end() :]
+        if index is None:
+            continue
+        stream = found.setdefault(index, {"codec": None, "audio": None})
+        if field == "Video.Compression":
+            stream["codec"] = str(value).strip() or None
+        elif field == "AudioEnable":
+            stream["audio"] = str(value).strip().lower() == "true"
+    return found
+
+
+# The same two shapes again, for `encode.cgi?action=getConfigCaps`. That answer
+# is keyed `caps[<channel>]` rather than `table.Encode[<channel>]`, and it is the
+# only place the device says what a stream may be set TO rather than what it is
+# set to now.
+_CAPS_MAIN_FORMAT = "caps[{0}].MainFormat[0]."
+_CAPS_EXTRA_FORMAT = re.compile(r"caps\[(\d+)\]\.ExtraFormat\[(\d+)\]\.")
+
+
+def parse_stream_compression_options(caps, channel: int) -> dict:
+    """Which codecs each of one channel's streams may be set to.
+
+        {0: ["H.264", "H.265"], 1: ["H.264", "MJPG", "H.265"]}
+
+    Keyed by the same stream index as `parse_stream_codecs`, so the two can be
+    read side by side without translating anything.
+
+    Measured on a DHI-NVR5464-16P-EI: one `getConfigCaps` call answers for every
+    channel at once, `caps[0]` through `caps[14]` on a recorder with twelve
+    configured, so this is a host-wide read and must not be made per channel.
+    The lists really do differ between streams on one device: a snapshot format
+    offered `MJPG` alone while the main stream offered `H.264,H.265`, so asking
+    is not a formality and a channel missing from the answer is not a channel
+    that can be moved.
+
+    Returns {} for anything that is not a table, which is the same contract
+    `parse_stream_codecs` keeps, so "the device refused" stays the caller's
+    question rather than being decided here.
+    """
+    if not isinstance(caps, dict):
+        return {}
+    found = {}
+    prefix = _CAPS_MAIN_FORMAT.format(channel)
+    for key, value in caps.items():
+        key = str(key)
+        index = None
+        if key.startswith(prefix):
+            index, field = 0, key[len(prefix) :]
+        else:
+            match = _CAPS_EXTRA_FORMAT.match(key)
+            if match and int(match.group(1)) == channel:
+                index, field = int(match.group(2)) + 1, key[match.end() :]
+        if index is None or field != "Video.CompressionTypes":
+            continue
+        options = [part.strip() for part in str(value).split(",") if part.strip()]
+        if options:
+            found[index] = options
+    return found
+
+
+def stream_can_be_set_to(options: dict, index: int, codec: str) -> bool:
+    """Whether the device offered `codec` for this stream.
+
+    Absence is not permission. A channel the caps answer did not mention, or a
+    stream it mentioned without naming the codec, both come back False: writing
+    a value the device never offered is how a `setConfig` answers 200 and the
+    body `Error`, or worse, stores it and drives nothing (#647).
+    """
+    return codec in (options or {}).get(index, [])
+
+
+def webrtc_cannot_play(streams: dict, index: int = 0) -> bool:
+    """Whether this stream is the combination a browser cannot be given.
+
+    H.265 **and** no audio track. Deliberately both: H.265 on its own is not
+    universally broken -- it depends on the player, and the same recorder serves
+    a working H.264 sub stream beside an unplayable H.265 main one -- so saying
+    so on the codec alone would be wrong often enough to be worse than silence.
+    This pair is not a matter of taste: there is no H.264 producer for the
+    browser and no audio track for the transcoder, so the attempt fails.
+    """
+    stream = (streams or {}).get(index) or {}
+    codec = str(stream.get("codec") or "")
+    return "265" in codec and stream.get("audio") is False
 
 
 def parse_channel_titles(data) -> dict:
@@ -102,7 +380,8 @@ def channels_worth_offering(devices: dict) -> list:
     probe tells the difference, which is why the caller probes.
     """
     return sorted(
-        index for index, slot in devices.items()
+        index
+        for index, slot in devices.items()
         if slot.get("enabled") and slot.get("protocol") != "onvif"
     )
 
@@ -140,7 +419,7 @@ def parse_event(data: str) -> list[dict[str, any]]:
     # }]
 
     # We will split on "--myboundary" and then find the line the event starts on
-    event_blocks = re.split(r'--myboundary\r?\n', data)
+    event_blocks = re.split(r"--myboundary\r?\n", data)
 
     events = []
 
@@ -160,10 +439,10 @@ def parse_event(data: str) -> list[dict[str, any]]:
         # stream_events hands on whatever iter_chunks gives it, so that is
         # ordinary rather than exceptional. Indexing blindly there raised
         # IndexError out of on_receive and took the whole stream down (#475).
-        start = re.search(r'^Code=', event_block, re.MULTILINE)
+        start = re.search(r"^Code=", event_block, re.MULTILINE)
         if start is None:
             continue
-        event_block = event_block[start.start():].strip()
+        event_block = event_block[start.start() :].strip()
 
         # At this point we'll have something that looks like this...
         # Code=VideoMotion;action=Start;index=0;data={
@@ -173,15 +452,15 @@ def parse_event(data: str) -> list[dict[str, any]]:
         # }
         # And we want to put each key/value pair into a dictionary...
         event = dict()
-        for key_value in event_block.split(';'):
-            if '=' not in key_value:
+        for key_value in event_block.split(";"):
+            if "=" not in key_value:
                 # Not a key=value pair. Either the device cut the block short,
                 # or the JSON payload carries a semicolon of its own -- a rule
                 # or region the user named "Drive; Gate" is enough. Unpacking
                 # it raised ValueError, which lost every event in the batch and
                 # ended the stream; skipping it loses only this fragment.
                 continue
-            key, value = key_value.split('=', 1)
+            key, value = key_value.split("=", 1)
             event[key] = value
 
         # data is a json string, convert it to real json and add it back to the output dic
@@ -196,7 +475,8 @@ def parse_event(data: str) -> list[dict[str, any]]:
                 # sends no payload, and the usual cause is a truncated one.
                 _LOGGER.debug(
                     "Could not parse the JSON payload of a %s event; leaving it as text",
-                    event.get("Code", "?"), exc_info=True,
+                    event.get("Code", "?"),
+                    exc_info=True,
                 )
         events.append(event)
 
@@ -204,9 +484,20 @@ def parse_event(data: str) -> list[dict[str, any]]:
 
 
 HOMOGLYPHS = {
-    'Α': 'A', 'Β': 'B', 'Ε': 'E', 'Ζ': 'Z', 'Η': 'H', 'Ι': 'I',
-    'Κ': 'K', 'Μ': 'M', 'Ν': 'N', 'Ο': 'O', 'Ρ': 'P', 'Τ': 'T',
-    'Υ': 'Y', 'Χ': 'X'
+    "Α": "A",
+    "Β": "B",
+    "Ε": "E",
+    "Ζ": "Z",
+    "Η": "H",
+    "Ι": "I",
+    "Κ": "K",
+    "Μ": "M",
+    "Ν": "N",
+    "Ο": "O",
+    "Ρ": "P",
+    "Τ": "T",
+    "Υ": "Y",
+    "Χ": "X",
 }
 
 
@@ -217,12 +508,12 @@ def normalize_plate(plate_text: str | None) -> str:
     clean = str(plate_text).upper()
     for gr, lat in HOMOGLYPHS.items():
         clean = clean.replace(gr, lat)
-    clean = re.sub(r'[^A-Z0-9]', '', clean)
+    clean = re.sub(r"[^A-Z0-9]", "", clean)
     # Standard 7-character plate format: 3 letters + 4 digits (e.g. ABO1234, XYZ5670)
     # Correct common OCR confusions between letter O and digit 0 based on position:
     if len(clean) == 7:
-        letters_part = clean[:3].replace('0', 'O')
-        digits_part = clean[3:].replace('O', '0')
+        letters_part = clean[:3].replace("0", "O")
+        digits_part = clean[3:].replace("O", "0")
         if letters_part.isalpha() and digits_part.isdigit():
             clean = letters_part + digits_part
     return clean
@@ -256,7 +547,11 @@ def _extract_plate_from_raw_string(text: str, event: dict) -> dict | None:
                     best_plate = flipped
                     plate_text = flipped
                     break
-            if best_plate is None and any(c.isdigit() for c in norm_c) and any(c.isalpha() for c in norm_c):
+            if (
+                best_plate is None
+                and any(c.isdigit() for c in norm_c)
+                and any(c.isalpha() for c in norm_c)
+            ):
                 best_plate = norm_c
                 plate_text = cand
 
@@ -402,7 +697,14 @@ def extract_plate_data(event: dict) -> dict | None:
 
     # 4. Check direct keys on data
     if not plate_text:
-        for k in ["PlateNumber", "plateNumber", "PlateText", "plateText", "PlateNo", "plateNo"]:
+        for k in [
+            "PlateNumber",
+            "plateNumber",
+            "PlateText",
+            "plateText",
+            "PlateNo",
+            "plateNo",
+        ]:
             val = data.get(k)
             if isinstance(val, str):
                 txt = val.strip()
@@ -423,7 +725,12 @@ def extract_plate_data(event: dict) -> dict | None:
     direction = None
 
     if isinstance(tc, dict):
-        vehicle_brand = tc.get("Brand") or tc.get("VehicleSign") or tc.get("VehicleLogo") or tc.get("Logo")
+        vehicle_brand = (
+            tc.get("Brand")
+            or tc.get("VehicleSign")
+            or tc.get("VehicleLogo")
+            or tc.get("Logo")
+        )
         vehicle_series = tc.get("SubBrand") or tc.get("Series")
         # Measured on a DHI-ITC413-PW4D-IZ1 (#757), driven each way past it.
         # Four fields look like a direction and only three of them move:
@@ -456,7 +763,13 @@ def extract_plate_data(event: dict) -> dict | None:
             if isinstance(c, str):
                 vehicle_color = c
         if not vehicle_brand:
-            vehicle_brand = veh.get("Brand") or veh.get("VehicleSign") or veh.get("VehicleLogo") or veh.get("Logo") or veh.get("Text")
+            vehicle_brand = (
+                veh.get("Brand")
+                or veh.get("VehicleSign")
+                or veh.get("VehicleLogo")
+                or veh.get("Logo")
+                or veh.get("Text")
+            )
         if not vehicle_series:
             vehicle_series = veh.get("SubBrand") or veh.get("Series")
 
@@ -464,7 +777,12 @@ def extract_plate_data(event: dict) -> dict | None:
         vehicle_type = veh.get("Text")
 
     if not vehicle_brand:
-        vehicle_brand = data.get("Brand") or data.get("VehicleSign") or data.get("VehicleLogo") or data.get("Logo")
+        vehicle_brand = (
+            data.get("Brand")
+            or data.get("VehicleSign")
+            or data.get("VehicleLogo")
+            or data.get("Logo")
+        )
     if not direction:
         # This camera reports JunctionDirection at the top level rather than
         # inside TrafficCar, so the same list is checked in both places.
@@ -488,7 +806,6 @@ def extract_plate_data(event: dict) -> dict | None:
         "event_code": event.get("Code"),
         "timestamp": event.get("UTC") or data.get("UTC") or data.get("LocaleTime"),
     }
-
 
 
 def parse_ptz_presets(data) -> list:
@@ -538,16 +855,39 @@ def parse_ptz_presets(data) -> list:
 # Field names whose *value* is somebody's business rather than ours. The names
 # are kept, because "which field carries this" is the usual question; only the
 # contents go.
-EVENT_PRIVATE_FIELDS = frozenset({
-    # Spelled without separators: the lookup strips underscores, so "raw_plate"
-    # and "rawplate" both land here and only one spelling is listed.
-    "plate", "platenumber", "rawplate", "platedata", "plates",
-    "card", "cardno", "cardnumber", "cardname",
-    "user", "userid", "username", "usertype",
-    "password", "token", "secret", "key", "uuid",
-    "serialnumber", "defendcode", "imei", "phonenumber", "tel",
-    "faceid", "personid", "facefeature", "similarity",
-})
+EVENT_PRIVATE_FIELDS = frozenset(
+    {
+        # Spelled without separators: the lookup strips underscores, so "raw_plate"
+        # and "rawplate" both land here and only one spelling is listed.
+        "plate",
+        "platenumber",
+        "rawplate",
+        "platedata",
+        "plates",
+        "card",
+        "cardno",
+        "cardnumber",
+        "cardname",
+        "user",
+        "userid",
+        "username",
+        "usertype",
+        "password",
+        "token",
+        "secret",
+        "key",
+        "uuid",
+        "serialnumber",
+        "defendcode",
+        "imei",
+        "phonenumber",
+        "tel",
+        "faceid",
+        "personid",
+        "facefeature",
+        "similarity",
+    }
+)
 
 EVENT_VALUE_LIMIT = 80
 EVENT_LIST_LIMIT = 6
@@ -586,8 +926,9 @@ def summarise_event(value, _depth: int = 0):
                 out[key] = summarise_event(item, _depth + 1)
         return out
     if isinstance(value, (list, tuple)):
-        kept = [summarise_event(item, _depth + 1)
-                for item in list(value)[:EVENT_LIST_LIMIT]]
+        kept = [
+            summarise_event(item, _depth + 1) for item in list(value)[:EVENT_LIST_LIMIT]
+        ]
         dropped = len(value) - len(kept)
         if dropped > 0:
             kept.append("<%d more>" % dropped)
@@ -595,3 +936,69 @@ def summarise_event(value, _depth: int = 0):
     if isinstance(value, str) and len(value) > EVENT_VALUE_LIMIT:
         return value[:EVENT_VALUE_LIMIT] + "<truncated>"
     return value
+
+
+def clean_firmware_version(version: str | None) -> str:
+    """The version part of a reported firmware string, without its build date.
+
+    ``/cgi-bin/magicBox.cgi?action=getSoftwareVersion`` answers
+    ``2.800.0000016.0.R,build:2020-06-05``. The build date is a separate fact
+    (``get_build_date`` peels it off); the version to compare against a cloud
+    record is the part before it.
+    """
+    if not version:
+        return ""
+    return version.split(",", 1)[0].strip()
+
+
+def cloud_upgrade_version(table: dict | None) -> str | None:
+    """The newest firmware named by a ``_DHCloudUpgrade_`` record, or None.
+
+    The device stores what its own cloud check found as ``LastVersion`` plus a
+    ``LastSubVersion`` (``R`` on the firmwares seen so far). The two are joined
+    only when the sub-version is not already part of the main one, so a
+    firmware that puts the whole string in ``LastVersion`` is not doubled up.
+    A build date the record happens to carry is dropped, the same as on the
+    installed side: it would otherwise compare as extra numeric components and
+    read as a newer firmware.
+    """
+    if not isinstance(table, dict):
+        return None
+    main = table.get("LastVersion")
+    if not isinstance(main, str) or not main.strip():
+        return None
+    main = clean_firmware_version(main).rstrip(".")
+    sub = table.get("LastSubVersion")
+    if isinstance(sub, str) and sub.strip() and not main.endswith(sub.strip()):
+        return f"{main}.{sub.strip()}"
+    return main
+
+
+def firmware_is_newer(latest: str | None, installed: str | None) -> bool:
+    """Whether ``latest`` is a newer Dahua firmware than ``installed``.
+
+    Compared on the numeric components, because these strings are not versions
+    Home Assistant's ``AwesomeVersion`` can order: it calls
+    ``2.800.0000016.0.R`` unknown and raises instead of comparing, and the
+    update entity reads a raised comparison as "an update is available" -- a
+    false alarm on a camera that is up to date. Missing trailing components
+    compare equal (``2.800.0000016.0`` is not newer than ``2.800.0000016.0.R``),
+    so a cloud record that omits the sub-version cannot trigger one either.
+    A change to the trailing letter alone (``R`` to ``S``) is deliberately not
+    treated as an update.
+    """
+    latest_parts = _firmware_numbers(latest)
+    installed_parts = _firmware_numbers(installed)
+    if not latest_parts or not installed_parts:
+        return False
+    width = max(len(latest_parts), len(installed_parts))
+    latest_parts = latest_parts + (0,) * (width - len(latest_parts))
+    installed_parts = installed_parts + (0,) * (width - len(installed_parts))
+    return latest_parts > installed_parts
+
+
+def _firmware_numbers(version: str | None) -> tuple[int, ...]:
+    """The integer runs of a firmware string: 2.800.0000016.0.R -> (2, 800, 16, 0)."""
+    if not version:
+        return ()
+    return tuple(int(part) for part in re.findall(r"\d+", version))

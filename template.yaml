@@ -22,14 +22,14 @@
 
   - default_entity_id: sensor.kitchen_all_timers
     attributes:
-      timers_ending: '{% set ns = namespace(timers=[]) %} {% for i in (state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''sorted_active'')
-        | from_json) -%} {% set last_update = as_timestamp(state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''last_updated''))
+      timers_ending: '{% set ns = namespace(timers=[]) %} {% for i in (state_attr(''sensor.kitchen_next_timer'',''sorted_active'')
+        | from_json) -%} {% set last_update = as_timestamp(state_attr(''sensor.kitchen_next_timer'',''last_updated''))
         -%} {% set remain = i[1][''remainingTime'']/1000 -%} {% set end_epoch = remain
         + last_update -%} {% set end_time = end_epoch | timestamp_custom(''%Y-%m-%dT%H:%M:%S'',
         True) -%} {% set ns.timers = ns.timers + [end_time] %} {% endfor %} {{ ns.timers
         }}'
     name: All Kitchen Timers
-    state: '{{ state_attr(''sensor.andrew_s_kitchen_echo_next_timer'',''sorted_active'') | from_json
+    state: '{{ state_attr(''sensor.kitchen_next_timer'',''sorted_active'') | from_json
       | length }}'
 
   - unit_of_measurement: h
@@ -73,9 +73,9 @@
   - default_entity_id: sensor.mail_deliveries_message
     name: Deliveries Summary
     state: "{# Deliveries Sentence #}\n  {% macro deliveries_sentence() -%}\n        {%-
-      if states(\"sensor.mail_usps_mail\")|int(0) == 0 -%}\n          No\n        {%-
-      else -%}\n          {{states(\"sensor.mail_usps_mail\")|int(0)}}\n        {%-
-      endif -%}\n      {{' '}} \n        {%- if states(\"sensor.mail_usps_mail\")|int(0)
+      if states(\"sensor.imap_gmail_com_mail_usps_mail\")|int(0) == 0 -%}\n          No\n        {%-
+      else -%}\n          {{states(\"sensor.imap_gmail_com_mail_usps_mail\")|int(0)}}\n        {%-
+      endif -%}\n      {{' '}} \n        {%- if states(\"sensor.imap_gmail_com_mail_usps_mail\")|int(0)
       <= 1 -%}\n          mail\n        {%- else -%}\n          pieces of mail\n        {%-
       endif -%}\n      {{' '}}will be delivered.{{' '}} \n        {%- if states(\"sensor.imap_gmail_com_mail_packages_in_transit\")|int(0)
       == 0 -%}\n          No\n        {%- else -%}\n          {{states(\"sensor.imap_gmail_com_mail_packages_in_transit\")|int(0)}}\n
@@ -240,18 +240,42 @@
     - platform: mqtt
       topic: "sensor/rtl_433_attic"
       payload: "True"
-      value_template: "{{ value_json.model == 'Acurite-Tower' }}" # and value_json.id == 14830 }}"
+      value_template: "{{ value_json.model == 'Acurite-Tower' and value_json.channel == 'A' }}"
   sensor:
     - name: "Andrew Office Register Temperature"
       state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
       unit_of_measurement: "°F"
+      state_class: measurement          # add
       device_class: temperature
     - name: "Andrew Office Register Humidity"
       state: "{{ trigger.payload_json.humidity | float | round(2) }}"
       unit_of_measurement: "%"
+      state_class: measurement          # add
       device_class: humidity
   binary_sensor:
     - name: "Andrew Office Register Battery"
+      state: "{{ trigger.payload_json.battery_ok != 1 }}"
+      device_class: battery
+
+# AC Return
+- trigger:
+    - platform: mqtt
+      topic: "sensor/rtl_433_attic"
+      payload: "True"
+      value_template: "{{ value_json.model == 'Acurite-Tower' and value_json.channel == 'B' }}"
+  sensor:
+    - name: "AC Return Temperature"
+      state: "{{ trigger.payload_json.temperature_F | float | round(2) }}"
+      unit_of_measurement: "°F"
+      device_class: temperature
+      state_class: measurement          # add
+    - name: "AC Return Humidity"
+      state: "{{ trigger.payload_json.humidity | float | round(2) }}"
+      unit_of_measurement: "%"
+      device_class: humidity
+      state_class: measurement          # addmore 
+  binary_sensor:
+    - name: "AC Return Battery"
       state: "{{ trigger.payload_json.battery_ok != 1 }}"
       device_class: battery
 

@@ -51,6 +51,7 @@ DEPENDENT_ALEXA_COMPONENTS = [
     "alarm_control_panel",
     "light",
     "binary_sensor",
+    "select",
 ]
 
 HTTP_COOKIE_HEADER = "# HTTP Cookie File"
@@ -71,6 +72,7 @@ CONF_SCAN_INTERVAL = (
 )
 CONF_TOTP_REGISTER = "registered"
 CONF_OAUTH = "oauth"
+CONF_USE_REPORTED_DOMAIN = "use_reported_domain"
 DATA_LISTENER = "listener"
 
 EXCEPTION_TEMPLATE = "An exception of type {0} occurred. Arguments:\n{1!r}"
@@ -254,6 +256,21 @@ ALEXA_AIR_QUALITY_DEVICE_CLASS = {
     "Alexa.AirQuality.Humidity": "humidity",
 }
 
+AMAZON_DOMAINS = {
+    "AU": "amazon.com.au",
+    "BR": "amazon.com.br",
+    "CA": "amazon.ca",
+    "DE": "amazon.de",
+    "ES": "amazon.es",
+    "FR": "amazon.fr",
+    "GB": "amazon.co.uk",
+    "IN": "amazon.in",
+    "IT": "amazon.it",
+    "JP": "amazon.co.jp",
+    "MX": "amazon.com.mx",
+    "US": "amazon.com",
+}
+
 UPLOAD_PATH = "www/alexa_tts"
 
 # Note: Some of these are likely wrong
@@ -357,6 +374,7 @@ MODEL_IDS = {
     "A32DDESGESSHZA": "Echo Dot (Gen3)",
     "A32DOYMUN6DTXA": "Echo Dot (Gen3)",
     "A339L426Y220I4": "Teufel Radio",
+    "A345JHMQDGG1M5": "Echo Show 8 (Gen4)",
     "A347G2JC8I4HC7": "Roav Car Charger Pro",
     "A37CFAHI1O0CXT": "Logitech Blast",
     "A37M7RU8Z6ZFB": "Garmin Speak",

@@ -17,8 +17,13 @@ from __future__ import annotations
 import re
 from typing import TYPE_CHECKING, Any
 
-from .entity_filtering import split_comma_separated_entity_ids
+from .entity_filtering import (
+    FILLED_IN_LATER,
+    is_not_an_entity_id,
+    split_comma_separated_entity_ids,
+)
 from .reference_extraction import is_pattern_reference
+from .template_extraction import KNOWN_DOMAINS
 
 if TYPE_CHECKING:
     from collections.abc import Iterator
@@ -132,6 +137,60 @@ def _collect_bubble_card(node: dict[str, Any], entities: set[str]) -> None:
             _collect_strings(value, entities)
 
 
+# The areas strategies keep per-area options under `areas_options`, keyed by
+# area ID: the dashboard strategy, and the overview view it hands them to.
+# Each area's `groups_options` hides and orders entities per group, and those
+# two lists are entity IDs. The view of a single area, the `area` view
+# strategy, carries its `groups_options` directly. `hidden` and `order` mean
+# anything elsewhere, so they are only read in exactly these spots.
+_AREAS_STRATEGY_TYPES = frozenset({"areas", "areas-overview"})
+_AREA_VIEW_STRATEGY_TYPE = "area"
+_AREA_GROUP_ENTITY_KEYS = ("hidden", "order")
+
+
+def _areas_options(node: dict[str, Any]) -> dict[Any, Any]:
+    """Return the per-area options of an areas strategy, if this is one."""
+    if not isinstance(strategy_type := node.get("type"), str):
+        return {}
+    if strategy_type not in _AREAS_STRATEGY_TYPES:
+        return {}
+    if not isinstance(areas_options := node.get("areas_options"), dict):
+        return {}
+    return areas_options
+
+
+def _collect_group_entities(groups_options: Any, entities: set[str]) -> None:
+    """Collect the entities hidden or ordered in an area's groups."""
+    if not isinstance(groups_options, dict):
+        return
+
+    for group in groups_options.values():
+        if not isinstance(group, dict):
+            continue
+        for key in _AREA_GROUP_ENTITY_KEYS:
+            _collect_strings(group.get(key), entities)
+
+
+def _collect_areas_strategy_entities(node: dict[str, Any], entities: set[str]) -> None:
+    """Collect the entities the areas strategies hide or order per area."""
+    # The area card says `type: area` too, but has no `groups_options`.
+    if node.get("type") == _AREA_VIEW_STRATEGY_TYPE:
+        _collect_group_entities(node.get("groups_options"), entities)
+
+    for area_options in _areas_options(node).values():
+        if isinstance(area_options, dict):
+            _collect_group_entities(area_options.get("groups_options"), entities)
+
+
+# A logbook card filters entries by the entity they are filed under, and
+# `logbook.log` files them under any ID of the right shape. People make one up
+# to group their own entries, like `log.critical_messages`, and the card shows
+# them. One under no entity domain at all is left alone; a `light.kitchen` in
+# there is meant to be that light, and stays checked.
+_LOGBOOK_CARD_TYPE = "logbook"
+_LOGBOOK_FILTER_KEYS = ("entities", "target")
+
+
 def _walk(node: Any, entities: set[str]) -> None:
     """Recursively collect entity references from a configuration node."""
     if isinstance(node, list):
@@ -142,12 +201,36 @@ def _walk(node: Any, entities: set[str]) -> None:
     if not isinstance(node, dict):
         return
 
+    if node.get("type") == _LOGBOOK_CARD_TYPE:
+        # Only its filter. The rest of the card, like a visibility condition,
+        # is read as on any other card.
+        filters = {key: node[key] for key in _LOGBOOK_FILTER_KEYS if key in node}
+        found: set[str] = set()
+        _walk_node(filters, found)
+        entities.update(
+            entity_id
+            for entity_id in found
+            # Any case: one with capitals is still meant as that entity, and
+            # the dashboard repair reports how it is written.
+            if entity_id.partition(".")[0].lower() in KNOWN_DOMAINS
+        )
+        node = {
+            key: value for key, value in node.items() if key not in _LOGBOOK_FILTER_KEYS
+        }
+
+    _walk_node(node, entities)
+
+
+def _walk_node(node: dict[str, Any], entities: set[str]) -> None:
+    """Collect entity references from one dashboard node and what it holds."""
     for key in _ENTITY_REFERENCE_KEYS:
         if key in node:
             _collect_strings(node[key], entities)
 
     if node.get("type") == _BUBBLE_CARD_TYPE:
         _collect_bubble_card(node, entities)
+
+    _collect_areas_strategy_entities(node, entities)
 
     for child in _worth_descending_into(node):
         _walk(child, entities)
@@ -164,15 +247,283 @@ def extract_entities_from_dashboard_node(node: Any) -> set[str]:
     return entities
 
 
-# `area` is a reference on exactly two things, the area card and the area
-# view strategy, and both say `type: area`. Anywhere else the word is up for
-# grabs, and a custom card took it: flex-horseshoe-card prints whatever is
-# under `area` as a caption beneath its gauge, so `area: Garaj` was reported
-# as an area that had gone missing. #1609.
+# Core cards whose `entity` takes an entity ID and nothing else, as the
+# frontend has them in `src/panels/lovelace/cards/types.ts`. The card looks
+# whatever is there up in the states as written, so a value that is no entity
+# ID at all, like `cover.blind.current_position`, finds nothing and the card
+# stays empty. Nothing else on the dashboard gets this far: what a custom card
+# does with its fields is its own business.
+#
+# Not the statistic card: it takes a statistic ID, and an external one like
+# `sensor:energy_total` is no entity ID and works fine.
+_CARDS_WITH_ENTITY = frozenset(
+    {
+        "alarm-panel",
+        "alert",
+        "button",
+        "entity",
+        "entity-button",
+        "gauge",
+        "humidifier",
+        "light",
+        "media-control",
+        "picture-elements",
+        "picture-entity",
+        "picture-glance",
+        "plant-status",
+        "sensor",
+        "thermostat",
+        "tile",
+        "todo-list",
+        "weather-forecast",
+    }
+)
+
+# Core cards whose `entities` lists entity IDs, as a string or as the `entity`
+# of a row. Not the statistics graph, for the same reason as the statistic
+# card. The logbook card has its own rules, further down.
+_CARDS_WITH_ENTITIES = frozenset(
+    {
+        "calendar",
+        "distribution",
+        "entities",
+        "entity-filter",
+        "glance",
+        "history-graph",
+        "map",
+        "picture-glance",
+        "toggle-group",
+    }
+)
+
+# The heading card lists its badges under `badges`, and under `entities`
+# before that. A badge without a type is an entity badge.
+_HEADING_CARD = "heading"
+_HEADING_BADGE_KEYS = ("badges", "entities")
+
+# The picture elements that name an entity, and the one that holds more.
+_PICTURE_ELEMENTS_CARD = "picture-elements"
+_ELEMENTS_WITH_ENTITY = frozenset(
+    {"icon", "image", "state-badge", "state-icon", "state-label"}
+)
+_CONDITIONAL_ELEMENT = "conditional"
+
+# View badges. A string is an entity badge, and so is one without a type.
+_BADGES_WITH_ENTITY = frozenset({"entity", "state-label"})
+_BADGES_WITH_ENTITIES = frozenset({"entity-filter"})
+_ENTITY_BADGE = "entity"
+
+# The view types. Anything else handed over on its own is a card.
+_VIEW_TYPES = frozenset({"masonry", "panel", "sections", "sidebar"})
+
+_CUSTOM_PREFIX = "custom:"
+
+
+def _check_value(value: Any, found: set[str]) -> None:
+    """Collect a field's value if it is no entity ID."""
+    if not isinstance(value, str):
+        return
+
+    found.update(
+        item
+        for item in split_comma_separated_entity_ids(value)
+        if is_not_an_entity_id(item)
+    )
+
+
+def _is_custom(node: dict[str, Any]) -> bool:
+    """Return whether a dashboard node is a custom one."""
+    return isinstance(node_type := node.get("type"), str) and node_type.startswith(
+        _CUSTOM_PREFIX
+    )
+
+
+def _check_entity_list(items: Any, found: set[str]) -> None:
+    """Collect what in an `entities` list is no entity ID."""
+    if not isinstance(items, list):
+        return
+
+    for item in items:
+        if isinstance(item, str):
+            _check_value(item, found)
+        elif isinstance(item, dict) and not _is_custom(item):
+            _check_value(item.get("entity"), found)
+
+
+def _check_logbook_card(card: dict[str, Any], found: set[str]) -> None:
+    """Collect what a logbook card filters on that is no entity ID.
+
+    Held to the same rule as the entity walk: only under a domain Home
+    Assistant knows, since anything else is an ID somebody made up for their
+    own entries.
+    """
+    candidates: set[str] = set()
+    _check_entity_list(card.get("entities"), candidates)
+
+    if isinstance(target := card.get("target"), dict):
+        entity_ids = target.get("entity_id")
+        for entity_id in entity_ids if isinstance(entity_ids, list) else [entity_ids]:
+            _check_value(entity_id, candidates)
+
+    found.update(
+        value
+        for value in candidates
+        if value.partition(".")[0].lower() in KNOWN_DOMAINS
+    )
+
+
+def _check_badges(badges: Any, found: set[str]) -> None:
+    """Collect what a view's badges name that is no entity ID."""
+    if not isinstance(badges, list):
+        return
+
+    for badge in badges:
+        if isinstance(badge, str):
+            _check_value(badge, found)
+            continue
+
+        if not isinstance(badge, dict):
+            continue
+
+        # Checked for a string first: a list or a dict cannot be looked up in
+        # a set.
+        if not isinstance(badge_type := badge.get("type", _ENTITY_BADGE), str):
+            continue
+
+        if badge_type in _BADGES_WITH_ENTITY:
+            _check_value(badge.get("entity"), found)
+        elif badge_type in _BADGES_WITH_ENTITIES:
+            _check_entity_list(badge.get("entities"), found)
+
+
+def _check_heading_badges(card: dict[str, Any], found: set[str]) -> None:
+    """Collect what a heading card's badges name that is no entity ID."""
+    for key in _HEADING_BADGE_KEYS:
+        if not isinstance(badges := card.get(key), list):
+            continue
+
+        for badge in badges:
+            if isinstance(badge, dict) and badge.get("type", _ENTITY_BADGE) == (
+                _ENTITY_BADGE
+            ):
+                _check_value(badge.get("entity"), found)
+
+
+def _check_elements(elements: Any, found: set[str]) -> None:
+    """Collect what picture elements name that is no entity ID."""
+    if not isinstance(elements, list):
+        return
+
+    for element in elements:
+        if not isinstance(element, dict):
+            continue
+
+        if not isinstance(element_type := element.get("type"), str):
+            continue
+
+        if element_type in _ELEMENTS_WITH_ENTITY:
+            _check_value(element.get("entity"), found)
+        elif element_type == _CONDITIONAL_ELEMENT:
+            _check_elements(element.get("elements"), found)
+
+
+def _check_card(card: Any, found: set[str]) -> None:
+    """Collect what a core card, and the cards in it, name that is no entity ID."""
+    if not isinstance(card, dict) or not isinstance(card_type := card.get("type"), str):
+        return
+
+    # Nor what a custom card holds: a stack of its own may hand its cards to
+    # the frontend as they are, or fill them in first.
+    if card_type.startswith(_CUSTOM_PREFIX):
+        return
+
+    if card_type in _CARDS_WITH_ENTITY:
+        _check_value(card.get("entity"), found)
+    if card_type in _CARDS_WITH_ENTITIES:
+        _check_entity_list(card.get("entities"), found)
+    if card_type == _LOGBOOK_CARD_TYPE:
+        _check_logbook_card(card, found)
+    if card_type == _HEADING_CARD:
+        _check_heading_badges(card, found)
+    if card_type == _PICTURE_ELEMENTS_CARD:
+        _check_elements(card.get("elements"), found)
+
+    # The stacks and the grid hold cards, the conditional and the entity
+    # filter card hold one.
+    _check_cards(card.get("cards"), found)
+    _check_card(card.get("card"), found)
+
+
+def _check_cards(cards: Any, found: set[str]) -> None:
+    """Collect what a list of cards names that is no entity ID."""
+    if not isinstance(cards, list):
+        return
+
+    for card in cards:
+        _check_card(card, found)
+
+
+def _check_view(view: dict[str, Any], found: set[str]) -> None:
+    """Collect what a view's cards and badges name that is no entity ID."""
+    if _is_custom(view):
+        return
+
+    _check_badges(view.get("badges"), found)
+
+    sections = view.get("sections")
+    for section in sections if isinstance(sections, list) else []:
+        if isinstance(section, dict) and not _is_custom(section):
+            _check_cards(section.get("cards"), found)
+
+    _check_cards(view.get("cards"), found)
+
+
+def is_view_node(node: dict[str, Any]) -> bool:
+    """Return whether a dashboard node handed over on its own is a view."""
+    return (
+        not isinstance(node_type := node.get("type"), str) or node_type in _VIEW_TYPES
+    )
+
+
+def extract_not_entity_ids_from_dashboard_node(node: Any) -> set[str]:
+    """Return what a core card's entity field holds that is no entity ID.
+
+    Accepts a whole dashboard, a view or a single card. Only the core cards,
+    and only their fields that take an entity ID and nothing else.
+    """
+    found: set[str] = set()
+
+    if isinstance(node, list):
+        for item in node:
+            found |= extract_not_entity_ids_from_dashboard_node(item)
+        return found
+
+    if not isinstance(node, dict):
+        return found
+
+    if isinstance(views := node.get("views"), list):
+        for view in views:
+            if isinstance(view, dict):
+                _check_view(view, found)
+    elif is_view_node(node):
+        _check_view(node, found)
+    else:
+        _check_card(node, found)
+
+    return found
+
+
+# `area` is a reference on exactly three things. The area card and the area
+# view strategy both say `type: area`. The view the Home dashboard makes for
+# each area says `type: home-area`, and a Home dashboard somebody took control
+# of keeps those views, each with its area written in. Anywhere else the word
+# is up for grabs, and a custom card took it: flex-horseshoe-card prints
+# whatever is under `area` as a caption beneath its gauge, so `area: Garaj`
+# was reported as an area that had gone missing. #1609.
 #
 # The Mushroom template card is the exception that earns its place: its `area`
 # is the card's area, handed to its templates as a real area ID.
-_AREA_TYPES = frozenset({"area", "custom:mushroom-template-card"})
+_AREA_TYPES = frozenset({"area", "home-area", "custom:mushroom-template-card"})
 
 # `area_id` is a service-call target, and nobody captions with one of those.
 _AREA_ID_KEY = "area_id"
@@ -182,8 +533,9 @@ def _collect_plain(value: Any, out: set[str]) -> None:
     """Collect plain string IDs from a key's string or list value.
 
     A pattern is not a name, so `area: KG/*` is left where it is. Neither is
-    a template: no area ID has braces in it, and what a template turns into
-    is not something to look up ahead of time.
+    a template or a card's own placeholder, like decluttering-card's
+    `[[area_id]]`: what those turn into is not something to look up ahead of
+    time.
     """
     values = [value] if isinstance(value, str) else value
     if not isinstance(values, list):
@@ -194,13 +546,8 @@ def _collect_plain(value: Any, out: set[str]) -> None:
         for item in values
         if isinstance(item, str)
         and not is_pattern_reference(item)
-        and not _is_template(item)
+        and not any(mark in item for mark in FILLED_IN_LATER)
     )
-
-
-def _is_template(value: str) -> bool:
-    """Return whether a value is a Jinja template rather than a name."""
-    return "{{" in value or "{%" in value
 
 
 def _walk_areas(node: Any, areas: set[str]) -> None:
@@ -224,6 +571,9 @@ def _walk_areas(node: Any, areas: set[str]) -> None:
         for sub_key in ("hidden", "order"):
             _collect_plain(areas_display.get(sub_key), areas)
 
+    # And keys its per-area options by area ID.
+    _collect_plain(list(_areas_options(node)), areas)
+
     for child in _worth_descending_into(node):
         _walk_areas(child, areas)
 
@@ -233,3 +583,493 @@ def extract_areas_from_dashboard_node(node: Any) -> set[str]:
     areas: set[str] = set()
     _walk_areas(node, areas)
     return areas
+
+
+# The two kinds of action that call one. `call-service` is the old name for
+# `perform-action`, and the frontend runs both the same way: the action named
+# under `perform_action`, or failing that under `service`. Read exactly like
+# that, so what is reported is what a tap would have tried to run.
+_PERFORM_ACTION_TYPES = frozenset({"perform-action", "call-service"})
+_PERFORM_ACTION_KEYS = ("perform_action", "service")
+
+# What `||` in JavaScript passes over. Not Python's idea of empty: an empty
+# list or dict is truthy over there, so the frontend stops at it and never
+# gets to `service`. Compared with `==`, which keeps an unhashable value out
+# of trouble and lets `0.0` count as the `0` it is.
+_JAVASCRIPT_FALSY = (None, "", 0, False)
+
+# Only a plain `domain.action` is a name to look up. A custom card can put a
+# template there, button-card's `[[[ ... ]]]` for one, and a half-filled
+# editor leaves it empty; neither is an action that went missing.
+_ACTION_NAME = re.compile(r"[a-z0-9_]+\.[a-z0-9_]+")
+
+# Some cards borrow the frontend's action shape for actions they run in the
+# browser themselves. ha-floorplan's `floorplan.style_set`, `floorplan.class_set`
+# and the rest never reach Home Assistant, so there is nothing to find missing.
+# Only inside that card, though: anywhere else nothing would run them, and an
+# action nobody runs is exactly what this repair is for.
+_CARD_OWN_ACTION_DOMAINS = {"custom:floorplan-card": "floorplan"}
+
+# The picture-elements card's button element names its action at the top
+# level, not in a tap action: under `action`, or failing that the older
+# `service`. Only on that element, since a bare `service` anywhere else is
+# whatever the card says it is. The frontend reads `action ?? service`, so only
+# a missing `action` falls through. `action-button` is the name its editor
+# gives a new one, and the frontend builds it as the same element.
+_BUTTON_ELEMENT_TYPES = frozenset({"service-button", "action-button"})
+
+# The entities card's call-service row names its action at the top level too,
+# but reads it as `action || service`, so an empty `action` falls through as
+# well. It turns that into a tap action, which a `tap_action` of the row's own
+# replaces outright, and a row without a `name` is an error card: neither one
+# runs it. The entities card hands a `perform-action` row over as this one.
+#
+# Only read in the rows of an entities card, the one place the frontend builds
+# them, and in a conditional row's `row` there. That one goes to the frontend
+# as is, so only under its own name. The same shape anywhere else is whatever
+# that card says it is.
+_ENTITIES_CARD = "entities"
+_CALL_SERVICE_ROW_TYPES = frozenset({"call-service", "perform-action"})
+_CALL_SERVICE_ROW_TYPE = "call-service"
+_CONDITIONAL_ROW_TYPE = "conditional"
+
+
+def _collect_action(name: Any, actions: set[str], card_domain: str | None) -> None:
+    """Collect an action name, if it is one to look up."""
+    if (
+        isinstance(name, str)
+        and _ACTION_NAME.fullmatch(name)
+        and name.split(".", 1)[0] != card_domain
+    ):
+        actions.add(name)
+
+
+def _button_element_action(node: dict[str, Any]) -> Any:
+    """Return what a button element names as its action."""
+    if (name := node.get("action")) is not None:
+        return name
+    return node.get("service")
+
+
+def _call_service_row_action(node: dict[str, Any]) -> Any:
+    """Return what a call-service row performs, if it performs anything."""
+    if "tap_action" in node or node.get("name") in _JAVASCRIPT_FALSY:
+        return None
+    if (name := node.get("action")) not in _JAVASCRIPT_FALSY:
+        return name
+    return node.get("service")
+
+
+def _call_service_rows(card: dict[str, Any]) -> Iterator[dict[str, Any]]:
+    """Yield the rows of an entities card the frontend builds as call-service."""
+    if not isinstance(rows := card.get("entities"), list):
+        return
+
+    for row in rows:
+        if not isinstance(row, dict) or not isinstance(
+            row_type := row.get("type"), str
+        ):
+            continue
+
+        if row_type in _CALL_SERVICE_ROW_TYPES:
+            yield row
+        elif (
+            row_type == _CONDITIONAL_ROW_TYPE
+            and isinstance(inner := row.get("row"), dict)
+            and inner.get("type") == _CALL_SERVICE_ROW_TYPE
+        ):
+            yield inner
+
+
+def _top_level_actions(node: dict[str, Any], card_type: str) -> Iterator[Any]:
+    """Yield the actions a node names outside a tap action, if it is that kind."""
+    if card_type in _BUTTON_ELEMENT_TYPES:
+        yield _button_element_action(node)
+    elif card_type == _ENTITIES_CARD:
+        for row in _call_service_rows(node):
+            yield _call_service_row_action(row)
+
+
+def _walk_actions(node: Any, actions: set[str], card_domain: str | None = None) -> None:
+    """Recursively collect the actions a configuration node performs.
+
+    `card_domain` is the domain of the actions the enclosing card runs itself.
+    """
+    if isinstance(node, list):
+        for item in node:
+            _walk_actions(item, actions, card_domain)
+        return
+
+    if not isinstance(node, dict):
+        return
+
+    if isinstance(card_type := node.get("type"), str):
+        card_domain = _CARD_OWN_ACTION_DOMAINS.get(card_type, card_domain)
+
+        for name in _top_level_actions(node, card_type):
+            _collect_action(name, actions, card_domain)
+
+    # Read off the action itself rather than the key it sits under:
+    # `tap_action`, `hold_action` and the rest are the frontend's, and custom
+    # cards add their own names for the same shape. Checked for a string
+    # first, like the area walk: a list or a dict cannot be looked up in a set.
+    if (
+        isinstance(action_type := node.get("action"), str)
+        and action_type in _PERFORM_ACTION_TYPES
+    ):
+        for key in _PERFORM_ACTION_KEYS:
+            if (name := node.get(key)) in _JAVASCRIPT_FALSY:
+                continue
+            _collect_action(name, actions, card_domain)
+            break
+
+    for child in _worth_descending_into(node):
+        _walk_actions(child, actions, card_domain)
+
+
+def extract_actions_from_dashboard_node(node: Any) -> set[str]:
+    """Return the actions performed anywhere in a dashboard node."""
+    actions: set[str] = set()
+    _walk_actions(node, actions)
+    return actions
+
+
+# A navigate action sends the browser to its `navigation_path`. Read off the
+# action itself, like the actions above, so `tap_action`, `hold_action` and
+# whatever a custom card calls the same shape are all covered.
+_NAVIGATE_ACTION = "navigate"
+_NAVIGATION_PATH_KEY = "navigation_path"
+
+# The area card still takes a `navigation_path` of its own, from before it had
+# a tap action. The frontend only turns it into one when the card has no
+# `tap_action`, so one that does never uses it.
+_AREA_CARD_TYPE = "area"
+
+# What a performed action hands to Home Assistant is the action's business,
+# not the dashboard's: a `navigation_path` in there navigates nowhere.
+_PERFORMED_ACTIONS = frozenset({"call-service", "perform-action"})
+_PERFORMED_ACTION_PAYLOAD_KEYS = frozenset({"data", "service_data", "target"})
+
+
+def _walk_navigation(node: Any, paths: set[str]) -> None:
+    """Recursively collect where a configuration node navigates to."""
+    if isinstance(node, list):
+        for item in node:
+            _walk_navigation(item, paths)
+        return
+
+    if not isinstance(node, dict):
+        return
+
+    navigates = node.get("action") == _NAVIGATE_ACTION or (
+        node.get("type") == _AREA_CARD_TYPE
+        and node.get("tap_action") in _JAVASCRIPT_FALSY
+    )
+    if navigates and isinstance(path := node.get(_NAVIGATION_PATH_KEY), str):
+        paths.add(path)
+
+    if (
+        isinstance(action_type := node.get("action"), str)
+        and action_type in _PERFORMED_ACTIONS
+    ):
+        node = {
+            key: value
+            for key, value in node.items()
+            if key not in _PERFORMED_ACTION_PAYLOAD_KEYS
+        }
+
+    for child in _worth_descending_into(node):
+        _walk_navigation(child, paths)
+
+
+def extract_navigation_paths_from_dashboard_node(node: Any) -> set[str]:
+    """Return the paths navigated to anywhere in a dashboard node."""
+    paths: set[str] = set()
+    _walk_navigation(node, paths)
+    return paths
+
+
+# Every card, row, badge, element and view of the frontend's own takes its
+# icon under this one key.
+_ICON_KEY = "icon"
+
+
+def _walk_icons(node: Any, icons: set[str], *, in_custom: bool) -> None:
+    """Recursively collect the icons a configuration node shows.
+
+    A third-party card draws its own config, and can do anything with an
+    `icon` it is handed, so that is its business. Whatever has a `type` of
+    the frontend's own inside one, like a card in a custom stack, is drawn by
+    the frontend again and is looked at.
+    """
+    if isinstance(node, list):
+        for item in node:
+            _walk_icons(item, icons, in_custom=in_custom)
+        return
+
+    if not isinstance(node, dict):
+        return
+
+    if isinstance(node_type := node.get("type"), str):
+        in_custom = node_type.startswith(_CUSTOM_PREFIX)
+
+    if not in_custom and isinstance(icon := node.get(_ICON_KEY), str):
+        icons.add(icon)
+
+    # What a performed action hands to Home Assistant is the action's own
+    # data, not something the dashboard draws.
+    if (
+        isinstance(action_type := node.get("action"), str)
+        and action_type in _PERFORMED_ACTIONS
+    ):
+        node = {
+            key: value
+            for key, value in node.items()
+            if key not in _PERFORMED_ACTION_PAYLOAD_KEYS
+        }
+
+    for child in _worth_descending_into(node):
+        _walk_icons(child, icons, in_custom=in_custom)
+
+
+def extract_icons_from_dashboard_node(node: Any) -> set[str]:
+    """Return the icons shown anywhere in a dashboard node."""
+    icons: set[str] = set()
+    _walk_icons(node, icons, in_custom=False)
+    return icons
+
+
+# Whatever a template or a card's own variables turn into is not known until
+# they run. Jinja (a comment too), button-card's `[[[ ]]]`, decluttering-card's
+# `[[ ]]` and config-template-card's `${ }`. Only the opening is asked for: a
+# half-written one is nothing to judge either.
+TEMPLATE_MARKERS = ("{{", "{%", "{#", "[[", "${")
+
+# The core cards that put on the theme their `theme` names, each with its own
+# call to `applyThemesOnElement` in `src/panels/lovelace/cards`. The entity
+# button and the sensor card are the button and the entity card under another
+# name, the shopping list is the to-do list. Every other card leaves the key
+# alone, so a name there that is gone changes nothing.
+_CARDS_WITH_THEME = frozenset(
+    {
+        "alarm-panel",
+        "button",
+        "calendar",
+        "entities",
+        "entity",
+        "entity-button",
+        "gauge",
+        "glance",
+        "humidifier",
+        "light",
+        "logbook",
+        "markdown",
+        "media-control",
+        "picture",
+        "picture-elements",
+        "picture-entity",
+        "picture-glance",
+        "plant-status",
+        "sensor",
+        "shopping-list",
+        "statistic",
+        "thermostat",
+        "todo-list",
+        "weather-forecast",
+    }
+)
+
+# The core cards that put the cards in their `cards` on the dashboard. Any
+# other card leaves such a key alone.
+_CARDS_WITH_CARDS = frozenset({"grid", "horizontal-stack", "vertical-stack"})
+
+# The conditional card puts the one card in its `card` on the dashboard.
+_CONDITIONAL_CARD = "conditional"
+
+# The entity filter card hands its rows to an entities card, unless its own
+# `card` names another type.
+_ENTITY_FILTER_CARD = "entity-filter"
+_ENTITY_FILTER_DEFAULT_CARD = "entities"
+
+# The two parts of a sections view that each hold a card.
+_VIEW_PARTS_WITH_A_CARD = ("header", "footer")
+
+# The view layouts, as the frontend's `getViewType` picks them. The cards of a
+# sections view are only shown while editing, to be moved into a section.
+_MASONRY_VIEW = "masonry"
+_VIEWS_WITH_CARDS = frozenset({_MASONRY_VIEW, "sidebar"})
+_PANEL_VIEW = "panel"
+_SECTIONS_VIEW = "sections"
+
+# The one section layout the frontend draws. A section without a type gets it,
+# any other core type turns into an error card that shows none of its content.
+_GRID_SECTION = "grid"
+
+
+def _view_type(view: dict[str, Any]) -> Any:
+    """Return the layout the frontend picks for a view.
+
+    Its `getViewType` asks JavaScript whether each key is set, and to
+    JavaScript an empty list is: `sections: []` makes a sections view.
+    """
+    if (view_type := view.get("type")) not in _JAVASCRIPT_FALSY:
+        return view_type
+    if view.get("panel") not in _JAVASCRIPT_FALSY:
+        return _PANEL_VIEW
+    if view.get("sections") not in _JAVASCRIPT_FALSY:
+        return _SECTIONS_VIEW
+    if view.get("cards") not in _JAVASCRIPT_FALSY:
+        return _MASONRY_VIEW
+    return _SECTIONS_VIEW
+
+
+def _collect_theme(node: dict[str, Any], themes: set[str]) -> None:
+    """Collect the theme a dashboard node names, if it names one.
+
+    The frontend looks the name up exactly as written, spaces and all. Only
+    an empty one is no theme at all, and a template is no name until it runs.
+    """
+    if (
+        isinstance(theme := node.get("theme"), str)
+        and theme
+        and not any(marker in theme for marker in TEMPLATE_MARKERS)
+    ):
+        themes.add(theme)
+
+
+def _collect_card_themes(card: Any, themes: set[str]) -> None:
+    """Collect the themes a core card, and the cards in it, put on."""
+    if not isinstance(card, dict) or not isinstance(card_type := card.get("type"), str):
+        return
+
+    # What a custom card does with a `theme`, or with the cards it holds, is
+    # its own business.
+    if card_type.startswith(_CUSTOM_PREFIX):
+        return
+
+    if card_type in _CARDS_WITH_THEME:
+        _collect_theme(card, themes)
+
+    # The stacks and the grid hold cards, the conditional and the entity
+    # filter card hold one.
+    if card_type in _CARDS_WITH_CARDS:
+        _collect_cards_themes(card.get("cards"), themes)
+    elif card_type == _CONDITIONAL_CARD:
+        _collect_card_themes(card.get("card"), themes)
+    elif card_type == _ENTITY_FILTER_CARD and isinstance(
+        inner_card := card.get("card"), dict
+    ):
+        _collect_card_themes(
+            {"type": _ENTITY_FILTER_DEFAULT_CARD, **inner_card}, themes
+        )
+
+
+def _collect_cards_themes(cards: Any, themes: set[str]) -> None:
+    """Collect the themes a list of cards puts on."""
+    if not isinstance(cards, list):
+        return
+
+    for card in cards:
+        _collect_card_themes(card, themes)
+
+
+def _collect_section_themes(sections: Any, themes: set[str]) -> None:
+    """Collect the themes a list of sections, and what is in them, put on.
+
+    The section wrapper puts on a section's theme whatever its type, so a
+    custom section's own theme counts, and the cards and sections in it are
+    left to it. Only the grid layout draws what is in it. A strategy section
+    makes its config when it opens, so none of it is known up front.
+    """
+    if not isinstance(sections, list):
+        return
+
+    for section in sections:
+        if not isinstance(section, dict) or "strategy" in section:
+            continue
+
+        _collect_theme(section, themes)
+        if (section.get("type") or _GRID_SECTION) == _GRID_SECTION:
+            _collect_cards_themes(section.get("cards"), themes)
+            _collect_section_themes(section.get("sections"), themes)
+
+
+def extract_themes_from_dashboard_view(view: Any) -> set[str]:
+    """Return the themes a view, its sections and its core cards put on.
+
+    The view container puts on a view's theme whatever its type, so a custom
+    view's own theme counts, and what is in it does not. A strategy view makes
+    its config when it opens, so none of it is known up front.
+    """
+    themes: set[str] = set()
+    if not isinstance(view, dict) or "strategy" in view:
+        return themes
+
+    _collect_theme(view, themes)
+    if _is_custom(view):
+        return themes
+
+    # Each layout only draws its own part of the config. Whatever another
+    # layout would use is left lying around and changes nothing.
+    view_type = _view_type(view)
+    if view_type in _VIEWS_WITH_CARDS:
+        _collect_cards_themes(view.get("cards"), themes)
+    elif view_type == _PANEL_VIEW and isinstance(cards := view.get("cards"), list):
+        # A panel view shows its first card, and only warns about the rest.
+        _collect_cards_themes(cards[:1], themes)
+    elif view_type == _SECTIONS_VIEW:
+        _collect_section_themes(view.get("sections"), themes)
+        if isinstance(sidebar := view.get("sidebar"), dict):
+            _collect_section_themes(sidebar.get("sections"), themes)
+
+        for part in _VIEW_PARTS_WITH_A_CARD:
+            if isinstance(holder := view.get(part), dict):
+                _collect_card_themes(holder.get("card"), themes)
+
+    return themes
+
+
+# What `Number()` and `trim()` in JavaScript take for whitespace: tab, line
+# and form feeds, the byte order mark, every space separator and the line
+# terminators. Python's own `\s` and `strip()` take a few more, like the
+# separators `\x1c` to `\x1f`, that JavaScript leaves in place.
+_JAVASCRIPT_WHITESPACE_CHARACTERS = (
+    "\t\n\v\f\r \u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006"
+    "\u2007\u2008\u2009\u200a\u2028\u2029\u202f\u205f\u3000\ufeff"
+)
+_JAVASCRIPT_DECIMAL = re.compile(
+    r"[+-]?(?:[0-9]+\.?[0-9]*|\.[0-9]+)(?:[eE][+-]?[0-9]+)?"
+)
+_JAVASCRIPT_PREFIXED = re.compile(r"0[xX][0-9a-fA-F]+|0[oO][0-7]+|0[bB][01]+")
+_JAVASCRIPT_INFINITY = {"Infinity": 1, "+Infinity": 1, "-Infinity": -1}
+
+
+def javascript_trim(text: str) -> str:
+    """Return a string the way `trim()` in JavaScript leaves it."""
+    return text.strip(_JAVASCRIPT_WHITESPACE_CHARACTERS)
+
+
+def javascript_number(text: str) -> float | None:
+    """Return what `Number()` in JavaScript makes of a string, None for NaN.
+
+    Python's `float()` is no stand in: it takes `nan`, `inf` in any case and
+    underscores, all of which are NaN to JavaScript.
+    """
+    text = javascript_trim(text)
+    if not text:
+        return 0.0
+
+    if (sign := _JAVASCRIPT_INFINITY.get(text)) is not None:
+        return sign * float("inf")
+
+    if _JAVASCRIPT_PREFIXED.fullmatch(text):
+        # Too big for a float is Infinity to JavaScript, an error to Python.
+        try:
+            return float(int(text, 0))
+        except OverflowError:
+            return float("inf")
+
+    if _JAVASCRIPT_DECIMAL.fullmatch(text):
+        return float(text)
+
+    return None

@@ -54,7 +54,7 @@ cards:
 
           Offering rate: {{ state_attr('switch.emporia_charger','charging_rate') }}A
           
-          Tesla Usage This Month: {{ states('sensor.tesla_energy_this_month') | int }}kWh (${{ states('input_text.electricity_cost_monthly_tesla') }})
+          Tesla Usage This Month: {{ states('sensor.tesla_energy_this_month') | int }}kWh (${{ states('input_number.electricity_cost_monthly_tesla') }})
       - type: horizontal-stack
         cards:
           - type: vertical-stack

@@ -11,7 +11,7 @@ automation:
         {% set is_new = trigger.event.data.old_state is none %}
         {{ is_docker and is_new }}
   action:
-    - service: notify.signal_self
+    - action: script.notify_wrapper
       data:
         message: >
           {% if trigger is defined and trigger.event is defined and 'new_state' in trigger.event.data %}

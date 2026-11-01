@@ -2,20 +2,28 @@ const CARD_TAG = "k-printer-card";
 const EDITOR_TAG = "k-printer-card-editor";
 
 const I18N_URL_BASE = "/ha_creality_ws/i18n/";
-const _i18nData = {};
-const _i18nPromises = {};
+// One cache for both cards, on the page: each module used to fetch en.json for
+// itself, and a language with no file (a 404) was asked for again by every new
+// card. A 404 is now remembered; only a failed request is retried. `no-cache`
+// revalidates, so an updated translation is not served stale (R45).
+const _i18nShared = (globalThis.__haCrealityWsI18n = globalThis.__haCrealityWsI18n || { data: {}, promises: {} });
+const _i18nData = _i18nShared.data;
 function _loadI18n(lang) {
-  if (_i18nData[lang]) return Promise.resolve(_i18nData[lang]);
-  if (_i18nPromises[lang]) return _i18nPromises[lang];
-  _i18nPromises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`)
-    .then((res) => (res.ok ? res.json() : null))
+  if (lang in _i18nData) return Promise.resolve(_i18nData[lang]);
+  const promises = _i18nShared.promises;
+  if (promises[lang]) return promises[lang];
+  promises[lang] = fetch(`${I18N_URL_BASE}${lang}.json`, { cache: "no-cache" })
+    .then((res) => {
+      if (res.ok) return res.json();
+      if (res.status === 404) return null;
+      throw new Error(`HTTP ${res.status}`);
+    })
     .then((data) => {
-      if (data) _i18nData[lang] = data;
-      else _i18nPromises[lang] = null;
+      _i18nData[lang] = data;
       return data;
     })
-    .catch(() => { _i18nPromises[lang] = null; return null; });
-  return _i18nPromises[lang];
+    .catch(() => { promises[lang] = null; return null; });
+  return promises[lang];
 }
 function _resolveLang(hass) {
   return hass?.locale?.language || hass?.language || "en";
@@ -29,9 +37,12 @@ function _translate(hass, section, fallbackDict, key, vars) {
     : (remoteEn && key in remoteEn) ? remoteEn[key]
       : (fallbackDict[lang]?.[key] ?? fallbackDict[short]?.[key] ?? fallbackDict["en"]?.[key] ?? key);
   if (vars) {
-    for (const [name, value] of Object.entries(vars)) {
-      text = text.replace(new RegExp(`\\{${name}\\}`, "g"), value);
-    }
+    // One pass with a function: a replacement *string* expands `$&` and
+    // friends, so a preset named "Teal $& Co" toasted as "Teal {name} Co", and
+    // a value containing "{other}" was substituted again by a later key.
+    text = text.replace(/\{(\w+)\}/g, (match, name) => (
+      Object.prototype.hasOwnProperty.call(vars, name) ? String(vars[name]) : match
+    ));
   }
   return text;
 }
@@ -48,6 +59,13 @@ function _requestI18n(instance, hass, onLoaded) {
 // loop if size measurement on the fresh instance keeps producing the same delta.
 const LL_REBUILD_MIN_INTERVAL_MS = 2000;
 const _lastCardRebuildDispatch = new Map();
+// The size each card last measured, by its full name/status key. Lovelace answers
+// ll-rebuild by building a NEW element, which used to start at size 3, measure
+// the same wrapped row again and fire again once the throttle cleared: a rebuild
+// every two seconds on a narrow screen, with the reported size never sticking.
+// A fresh element reads its predecessor's size from here, so it measures no
+// change and stays put.
+const _measuredCardSize = new Map();
 
 // How much wider, in px, the telemetry row has to get before the units it
 // dropped are worth retrying. Retrying at the width that rejected them would
@@ -57,7 +75,13 @@ const TELEMETRY_COMPACT_HYSTERESIS = 8;
 
 const INTEGRATION_DOMAIN = "ha_creality_ws";
 // The name a card carries until the user (or the device picker) names it.
-const DEFAULT_CARD_NAME = "3D Printer";
+// What the card picker used to write into every new card's YAML. Still read as
+// "no name", so such a card shows the translated default and is renamed from
+// its device like an unnamed one (R33).
+const LEGACY_DEFAULT_CARD_NAME = "3D Printer";
+function isUnnamed(name) {
+  return !name || name === LEGACY_DEFAULT_CARD_NAME;
+}
 
 /**
  * Card roles the printer's own device can fill, keyed by the translation_key
@@ -249,9 +273,31 @@ function loadThemeFromStorage(cardId) {
  * @returns {string} Unique card identifier
  */
 function generateCardId(config) {
-  // Generate a unique ID based on the card configuration
-  const key = `${config.name || "printer"}-${config.status || "unknown"}`;
-  return btoa(key).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+  return cardIdForKey(cardKey(config));
+}
+
+/** The full identity a card's id is derived from: its name and status entity. */
+function cardKey(config) {
+  return `${config.name || "printer"}-${config.status || "unknown"}`;
+}
+
+function cardIdForKey(key) {
+  // `btoa` takes Latin-1 only and throws on anything above U+00FF, so a card
+  // named "Tiskárna č.1" (or with an en dash, CJK or an emoji in its name)
+  // threw out of setConfig and became an error card, and in the editor the
+  // throw landed inside the debounce, so the edit was silently never saved.
+  // Latin-1 names keep the id they always had, so a theme stored under it is
+  // still found; anything else is encoded as UTF-8 bytes first.
+  let encoded;
+  try {
+    encoded = btoa(key);
+  } catch (_err) {
+    const bytes = new TextEncoder().encode(key);
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    encoded = btoa(binary);
+  }
+  return encoded.replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
 }
 
 // Home Assistant rewrites a DURATION sensor's state into whichever display unit
@@ -321,10 +367,68 @@ function computeColor(status) {
   return "var(--secondary-text-color)";
 }
 
+/**
+ * `config` minus what equals its default, the theme likewise (R44).
+ * @param {!Object} config
+ * @param {!Object} defaults
+ * @return {!Object}
+ */
+function withoutDefaults(config, defaults) {
+  const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  const out = {};
+  for (const [key, value] of Object.entries(config)) {
+    if (key === "theme" && value && typeof value === "object") {
+      const theme = {};
+      for (const [k, v] of Object.entries(value)) {
+        if (!same(v, defaults.theme?.[k])) theme[k] = v;
+      }
+      if (Object.keys(theme).length) out.theme = theme;
+    } else if (!(key in defaults) || !same(value, defaults[key])) {
+      out[key] = value;
+    }
+  }
+  return out;
+}
+
+/** A theme value safe inside a <style> element, or "" when it is not (R46). */
+function cssValue(value) {
+  const text = String(value ?? "");
+  return /^[#\w\s(),.%+\-]*$/.test(text) ? text : "";
+}
+
+/** Text safe inside a double-quoted HTML attribute. */
+function attr(value) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Entities the custom chip switches on and off rather than pressing (R46).
+const CUSTOM_TOGGLE_DOMAINS = ["switch", "light", "input_boolean", "fan", "cover"];
+
+/** A theme colour, or `fallback` when it is unset or "auto". */
+function autoColour(value, fallback) {
+  return !value || value === "auto" ? fallback : value;
+}
+
 class KPrinterCard extends HTMLElement {
-  static getStubConfig() {
+  /**
+   * What a new card starts with: the first printer's entities when there is
+   * one, else nothing. Only what differs from the defaults goes into the
+   * dashboard; every default used to be written there and then outlived any
+   * later change to it (R44).
+   */
+  static getStubConfig(hass) {
+    const registry = hass?.entities || {};
+    const deviceId = Object.values(registry).find((e) => e?.platform === INTEGRATION_DOMAIN && e.device_id)?.device_id;
+    if (!deviceId) return {};
+    const device = hass?.devices?.[deviceId];
+    const name = device?.name_by_user || device?.name || "";
+    return { ...(name ? { name } : {}), device: deviceId, ...entitiesForDevice(hass, deviceId) };
+  }
+
+  /** Every option with its default value. */
+  static defaultConfig() {
     return {
-      name: DEFAULT_CARD_NAME,
+      name: "",
       // Device the entity fields were filled from. Stored so the editor's
       // "fill from device" button has something to re-read; the card itself
       // resolves nothing from it, so a config written by hand needs no device.
@@ -349,7 +453,9 @@ class KPrinterCard extends HTMLElement {
         resume_icon: "#fff",
         stop_icon: "#fff",
         light_icon_on: "#000",
-        light_icon_off: "#000",
+        // "auto": the theme's text colour. A fixed black was 2.26:1 against the
+        // off-state grey on a dark theme (R42).
+        light_icon_off: "auto",
         // Status icon and progress circle
         status_icon: "auto", // auto, or specific color
         progress_ring: "auto", // auto, or specific color
@@ -363,18 +469,20 @@ class KPrinterCard extends HTMLElement {
         // Off-state colours for the custom button, used when it drives a
         // toggleable entity (switch/light/input_boolean).
         custom_off_bg: "rgba(150,150,150,.35)",
-        custom_icon_off: "#000",
+        custom_icon_off: "auto",
         // Power button. The chip CSS has always read these, but nothing ever
         // set them, so the button was the one chip the theme could not reach.
         power_on_bg: "rgba(76, 175, 80, .90)",
         power_off_bg: "rgba(150,150,150,.35)",
         power_icon_on: "#fff",
-        power_icon_off: "#000",
+        power_icon_off: "auto",
       },
       // Config for custom button
       custom_btn: "",
       custom_btn_icon: "", // Moved to theme editor but stored here
       custom_btn_hidden: false,
+      // Buttons never shown, whatever the printer is doing (#37)
+      hidden_buttons: [],
       // Order of buttons
       button_order: ['pause', 'resume', 'stop', 'light', 'power', 'custom'],
       // Icon overrides
@@ -431,14 +539,21 @@ class KPrinterCard extends HTMLElement {
   }
 
   setConfig(config) {
-    const defaultConfig = KPrinterCard.getStubConfig();
+    const defaultConfig = KPrinterCard.defaultConfig();
     const migrated = KPrinterCard._migrateConfig(config);
     this._cfg = { ...defaultConfig, ...migrated };
+    // A dashboard now holds only the colours that differ from the defaults.
+    this._cfg.theme = { ...defaultConfig.theme, ...(migrated.theme || {}) };
     // Init optimistic state overrides map
     if (!this._optimisticStates) this._optimisticStates = {};
 
     // Generate card ID for theme persistence
-    this._cardId = generateCardId(this._cfg);
+    this._sizeKey = cardKey(this._cfg);
+    this._cardId = cardIdForKey(this._sizeKey);
+    // A rebuilt element starts from the size its predecessor measured.
+    this._cardSize = _measuredCardSize.get(this._sizeKey);
+    // A new config can name new entities: the next hass must update.
+    this._seenStates = null;
 
     // Load saved theme if no theme is provided in config
     if (!config?.theme) {
@@ -461,23 +576,9 @@ class KPrinterCard extends HTMLElement {
 
     // Always re-render when config changes to apply new theme
     this._render();
-
-    // Apply theme after render to ensure DOM is ready
-    this._applyTheme();
-  }
-  _applyTheme() {
-    if (!this._root || !this._cfg.theme) {
-      return;
-    }
-
-    // Re-render with updated CSS to apply theme changes
-    this._render();
   }
 
   // i18n helpers -------------------------------------------------------
-  _resolveLanguage() {
-    return _resolveLang(this._hass);
-  }
   _t(key) {
     return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key);
   }
@@ -486,28 +587,72 @@ class KPrinterCard extends HTMLElement {
   set hass(hass) {
     this._hass = hass;
     _requestI18n(this, hass, () => { if (this._root) this._update(); });
-    if (this._root) {
-      // Apply theme first, then update
-      this._applyTheme();
-      this._update();
-      // Schedule a follow-up update shortly after initial attach to absorb entity states once Home Assistant populates them
-      clearTimeout(this._initialUpdateTimer);
-      this._initialUpdateTimer = setTimeout(() => {
-        try { this._update(); } catch (_) { }
-      }, 150);
-    }
+    // Home Assistant assigns a new hass for every state change in the whole
+    // instance. This used to rebuild the shadow DOM each time (the theme only
+    // changes in setConfig, which renders anyway), re-parsing the stylesheet,
+    // recreating every icon and dropping keyboard focus, then update twice
+    // more. Now only a change to something this card shows updates it.
+    if (this._root && this._relevantChange(hass)) this._update();
   }
-  getCardSize() { return this._cardSize || 3; }
+
+  /** Whether `hass` changed anything `_update` reads, recording what it saw. */
+  _relevantChange(hass) {
+    const ids = this._watchedEntityIds();
+    const prev = this._seenStates;
+    const next = {};
+    let changed = !prev;
+    for (const id of ids) {
+      const st = hass?.states?.[id];
+      next[id] = st;
+      if (prev && prev[id] !== st) changed = true;
+    }
+    // The language picks the card's strings; the formatter, the units.
+    const lang = _resolveLang(hass);
+    const fmt = typeof hass?.formatEntityState;
+    if (lang !== this._seenLang || fmt !== this._seenFormatter) changed = true;
+    this._seenLang = lang;
+    this._seenFormatter = fmt;
+    this._seenStates = next;
+    return changed;
+  }
+
+  /**
+   * Every entity id the config names, plus the switch/light twin that
+   * `_resolveEntityId` may substitute for it. Cached per config object.
+   */
+  _watchedEntityIds() {
+    if (this._watchedFor === this._cfg && this._watched) return this._watched;
+    const ids = new Set();
+    for (const value of Object.values(this._cfg || {})) {
+      if (typeof value !== "string" || !/^[a-z0-9_]+\.[a-z0-9_]+$/.test(value)) continue;
+      ids.add(value);
+      const objectId = value.split(".")[1];
+      ids.add(`switch.${objectId}`);
+      ids.add(`light.${objectId}`);
+    }
+    this._watched = ids;
+    this._watchedFor = this._cfg;
+    return ids;
+  }
+
+  getCardSize() {
+    return this._cardSize ?? _measuredCardSize.get(this._sizeKey) ?? 3;
+  }
 
   _render() {
     if (!this._root) return;
 
     // Ensure theme is always properly initialized
-    const defaultConfig = KPrinterCard.getStubConfig();
+    const defaultConfig = KPrinterCard.defaultConfig();
     this._cfg.theme = { ...defaultConfig.theme, ...(this._cfg.theme || {}) };
 
-    // Apply theme variables to CSS custom properties
-    const theme = this._cfg.theme;
+    // Apply theme variables to CSS custom properties. Each value lands inside a
+    // <style> element, so anything that is not plainly a colour is dropped
+    // (and its default used): a value with `;`, `}` or `</style>` could
+    // otherwise rewrite the card's CSS or break out into markup (R46).
+    const theme = Object.fromEntries(
+      Object.entries(this._cfg.theme).map(([key, value]) => [key, cssValue(value)]),
+    );
 
     // Theme CSS custom properties - embedded directly in CSS
     const themeCSS = `
@@ -521,7 +666,7 @@ class KPrinterCard extends HTMLElement {
         --resume-icon: ${theme.resume_icon || '#fff'};
         --stop-icon: ${theme.stop_icon || '#fff'};
         --light-icon-on: ${theme.light_icon_on || '#000'};
-        --light-icon-off: ${theme.light_icon_off || '#000'};
+        --light-icon-off: ${autoColour(theme.light_icon_off, 'var(--primary-text-color)')};
         --status-bg: ${theme.status_bg === 'auto' ? 'radial-gradient(var(--card-background-color) 62%, transparent 0)' : (theme.status_bg || 'radial-gradient(var(--card-background-color) 62%, transparent 0)')};
         --telemetry-icon: ${theme.telemetry_icon === 'auto' ? 'var(--secondary-text-color)' : (theme.telemetry_icon || 'var(--secondary-text-color)')};
         --telemetry-text: ${theme.telemetry_text === 'auto' ? 'var(--primary-text-color)' : (theme.telemetry_text || 'var(--primary-text-color)')};
@@ -529,11 +674,11 @@ class KPrinterCard extends HTMLElement {
         --custom-on-bg: ${theme.custom_on_bg || theme.custom_bg || 'rgba(33, 150, 243, .90)'};
         --custom-off-bg: ${theme.custom_off_bg || 'rgba(150,150,150,.35)'};
         --custom-icon: ${theme.custom_icon || '#fff'};
-        --custom-icon-off: ${theme.custom_icon_off || '#000'};
+        --custom-icon-off: ${autoColour(theme.custom_icon_off, 'var(--primary-text-color)')};
         --power-on-bg: ${theme.power_on_bg || 'rgba(76, 175, 80, .90)'};
         --power-off-bg: ${theme.power_off_bg || 'rgba(150,150,150,.35)'};
         --power-icon-on: ${theme.power_icon_on || '#fff'};
-        --power-icon-off: ${theme.power_icon_off || '#000'};
+        --power-icon-off: ${autoColour(theme.power_icon_off, 'var(--primary-text-color)')};
       }
     `;
 
@@ -594,6 +739,11 @@ class KPrinterCard extends HTMLElement {
         font-size:.8rem; background:var(--chip-bg, rgba(128,128,128,.14));
         color:var(--chip-fg, var(--primary-text-color));
         cursor:pointer; user-select:none; border:none; outline:none;
+      }
+      /* The outline is removed for mouse clicks only: a keyboard user has to
+         see where focus is (R42). */
+      .chip:focus-visible, .title.click:focus-visible {
+        outline: 2px solid var(--primary-color); outline-offset: 2px;
       }
       .chip[hidden]{ display:none !important; }
       .chip:active { transform: translateY(1px); }
@@ -737,7 +887,8 @@ class KPrinterCard extends HTMLElement {
           // the stronger warning as much as a running print does.
           const printing = ["printing", "paused", "processing"].includes(st);
           const msg = printing ? this._t("confirm_power_off_printing") : this._t("confirm_power_off");
-          if (!confirm(msg)) return;
+          this._confirmedAction(msg, "homeassistant.turn_off", eid);
+          return;
         }
         this._toggleEntity(eid);
       } else if (id === "light") {
@@ -748,18 +899,23 @@ class KPrinterCard extends HTMLElement {
       } else if (id === "resume") {
         this._pressButtonEntity(this._cfg.resume_btn);
       } else if (id === "stop") {
-        if (confirm(this._t("confirm_stop"))) {
-          this._pressButtonEntity(this._cfg.stop_btn);
-        }
+        const eid = this._cfg.stop_btn;
+        const domain = (eid || "").split(".")[0];
+        const service = ["button", "input_button"].includes(domain) ? `${domain}.press` : "homeassistant.turn_on";
+        this._confirmedAction(this._t("confirm_stop"), service, eid);
       } else if (id === "custom") {
-        // Custom button can be a button (press), script (turn_on/run), switch (toggle), automation (trigger), etc.
-        // For simplicity, treat as toggle if switch/light/input_boolean, else press/turn_on
+        // What a tap means for each kind of entity: on/off things toggle (the
+        // chip already shows fans and covers as on/off, but only ever turned
+        // them on), an automation runs rather than being enabled, and buttons,
+        // scripts and scenes are pressed or turned on (R46).
         const eid = this._cfg.custom_btn;
         const domain = eid ? (eid.split(".")[0] || "").toLowerCase() : "";
-        if (["switch", "light", "input_boolean"].includes(domain)) {
+        if (CUSTOM_TOGGLE_DOMAINS.includes(domain)) {
           this._toggleEntity(eid);
+        } else if (domain === "automation") {
+          this._hass?.callService("automation", "trigger", { entity_id: eid });
         } else {
-          this._pressButtonEntity(eid);  // Fallback to press (works for button domain, or generic turn_on if mapped)
+          this._pressButtonEntity(eid);
         }
       }
     });
@@ -783,7 +939,6 @@ class KPrinterCard extends HTMLElement {
   }
 
   disconnectedCallback() {
-    clearTimeout(this._initialUpdateTimer);
     if (this._telemetryResizeObserver) {
       if (this._telemetryObservedNode) {
         this._telemetryResizeObserver.unobserve(this._telemetryObservedNode);
@@ -900,25 +1055,45 @@ class KPrinterCard extends HTMLElement {
     const currentSize = this._cardSize ?? 3;
     if (nextSize === currentSize) return;
 
-    const cardKey = this._cardId || CARD_TAG;
+    const throttleKey = this._sizeKey || CARD_TAG;
     const now = Date.now();
-    const lastDispatch = _lastCardRebuildDispatch.get(cardKey) || 0;
+    const lastDispatch = _lastCardRebuildDispatch.get(throttleKey) || 0;
     // Defer the _cardSize update until the throttle clears: otherwise a throttled
     // call would record the new size locally without telling Lovelace, and the
     // next measurement would short-circuit on the equality check above -- leaving
     // the rebuild permanently suppressed.
     if (now - lastDispatch < LL_REBUILD_MIN_INTERVAL_MS) return;
-    _lastCardRebuildDispatch.set(cardKey, now);
+    _lastCardRebuildDispatch.set(throttleKey, now);
     this._cardSize = nextSize;
+    _measuredCardSize.set(this._sizeKey, nextSize);
 
     this.dispatchEvent(new CustomEvent("ll-rebuild", { bubbles: true, composed: true }));
   }
 
-  // Re-implement _pressButtonEntity to be smarter about non-button domains if needed, 
-  // but existing implementation calls button.press. 
-  // For custom buttons (e.g. scripts), we might want to default to homeassistant.turn_on if button.press fails is overkill, 
-  // but let's keep it simple: if it's a script/automation, button.press might not work.
-  // Let's refine _pressButtonEntity to handle more types or create a generic helper.
+  /**
+   * Run `service` on `entityId` behind Home Assistant's own confirmation
+   * dialog. window.confirm() is switched off in some kiosk browsers and
+   * webviews, where it answers "no" without asking, so Stop and power-off
+   * silently did nothing there (R46).
+   */
+  _confirmedAction(text, service, entityId) {
+    if (!entityId) return;
+    this.dispatchEvent(new CustomEvent("hass-action", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        action: "tap",
+        config: {
+          tap_action: {
+            action: "perform-action",
+            perform_action: service,
+            target: { entity_id: entityId },
+            confirmation: { text },
+          },
+        },
+      },
+    }));
+  }
 
   async _pressButtonEntity(eid) {
     if (!this._hass || !eid) return;
@@ -926,7 +1101,7 @@ class KPrinterCard extends HTMLElement {
     if (domain === "button" || domain === "input_button") {
       await this._hass.callService(domain, "press", { entity_id: eid });
     } else {
-      // Fallback for scripts, automations, scenes which act like "press" via turn_on
+      // Scripts and scenes run through turn_on.
       await this._hass.callService("homeassistant", "turn_on", { entity_id: eid });
     }
   }
@@ -1014,7 +1189,7 @@ class KPrinterCard extends HTMLElement {
     };
     const fmtWithUnit = (eid) => fmtState(gObj(eid));
 
-    const name = this._cfg.name || DEFAULT_CARD_NAME;
+    const name = isUnnamed(this._cfg.name) ? this._t("default_name") : this._cfg.name;
     const status = g(this._cfg.status) ?? "unknown";
     const pct = clamp(Number.isFinite(gNum(this._cfg.progress)) ? gNum(this._cfg.progress) : 0, 0, 100);
     const timeLeft = durationToSeconds(gObj(this._cfg.time_left));
@@ -1139,11 +1314,12 @@ class KPrinterCard extends HTMLElement {
       if (!uniqueOrder.includes(k) && buttons[k]) uniqueOrder.push(k);
     });
 
+    const hiddenByConfig = new Set(Array.isArray(this._cfg.hidden_buttons) ? this._cfg.hidden_buttons : []);
     let chipsHtml = "";
     uniqueOrder.forEach(key => {
       const btn = buttons[key];
-      if (btn && !btn.hidden) {
-        chipsHtml += `<button class="chip ${btn.class}" id="${key}" title="${btn.title}"><ha-icon icon="${btn.icon}"></ha-icon></button>`;
+      if (btn && !btn.hidden && !hiddenByConfig.has(key)) {
+        chipsHtml += `<button class="chip ${btn.class}" id="${key}" title="${attr(btn.title)}" aria-label="${attr(btn.title)}"><ha-icon icon="${attr(btn.icon)}"></ha-icon></button>`;
       }
     });
 
@@ -1189,6 +1365,9 @@ class KPrinterCard extends HTMLElement {
 }
 const CARD_TRANSLATIONS = {
   en: {
+    default_name: "3D Printer",
+    picker_name: "Creality Printer Card",
+    picker_description: "Standalone card for Creality K-Series printers",
     status_unknown: "Unknown",
     confirm_stop: "Are you sure you want to stop the print?",
     confirm_power_off: "Are you sure you want to power off the printer?",
@@ -1266,6 +1445,7 @@ const CARD_TRANSLATIONS = {
     label_custom_btn: "Custom Action Entity",
     label_custom_btn_icon: "Custom Button Icon",
     label_custom_btn_hidden: "Hide Custom Button",
+    label_hidden_buttons: "Hidden Buttons",
     label_button_order: "Button Order (list)",
     label_hide_box_temp: "Hide Chamber Temperature",
     label_pause_btn_icon: "Pause Icon Override",
@@ -1293,6 +1473,7 @@ const CARD_TRANSLATIONS = {
     helper_custom_btn: "Any entity to trigger (Button, Script, Switch, etc.)",
     helper_custom_btn_icon: "Icon for the custom button",
     helper_custom_btn_hidden: "Hide the custom button",
+    helper_hidden_buttons: "Never shown on the card, whatever the printer is doing",
     helper_button_order: "List of buttons to show in order (pause, resume, stop, light, power, custom)",
     helper_hide_box_temp: "Hide the chamber temperature pill even when a sensor is configured",
     editor_error_title: "Editor Error",
@@ -1323,7 +1504,6 @@ function defineOnce(tag, cls) {
   }
 }
 
-defineOnce(CARD_TAG, KPrinterCard);
 
 /**
  * Colour controls in the theme tab, grouped the way they are rendered.
@@ -1355,15 +1535,15 @@ const THEME_COLOR_GROUPS = [
       { key: "light_on_bg", alpha: true },
       { key: "light_icon_on" },
       { key: "light_off_bg", alpha: true },
-      { key: "light_icon_off" },
+      { key: "light_icon_off", auto: true, seed: "#000000" },
       { key: "power_on_bg", alpha: true },
       { key: "power_icon_on" },
       { key: "power_off_bg", alpha: true },
-      { key: "power_icon_off" },
+      { key: "power_icon_off", auto: true, seed: "#000000" },
       { key: "custom_bg", alpha: true },
       { key: "custom_icon" },
       { key: "custom_off_bg", alpha: true },
-      { key: "custom_icon_off" },
+      { key: "custom_icon_off", auto: true, seed: "#000000" },
     ],
   },
   {
@@ -1405,7 +1585,7 @@ const AUTO_SUFFIX = "_auto";
 
 /** Top-level config keys the theme tab owns, and so the reset button clears. */
 const LAYOUT_RESET_KEYS = [
-  "button_order", "custom_btn_hidden", "hide_box_temp",
+  "button_order", "custom_btn_hidden", "hidden_buttons", "hide_box_temp",
   "pause_btn_icon", "resume_btn_icon", "stop_btn_icon",
   "light_btn_icon", "power_btn_icon", "custom_btn_icon",
 ];
@@ -1419,7 +1599,8 @@ const EDITOR_STYLE = `
   .editor-container { padding: 16px; max-width: 1200px; margin: 0 auto; }
   .editor-title { margin: 0 0 16px 0; font-size: 18px; color: var(--primary-text-color); }
   .tabs { display: flex; border-bottom: 1px solid var(--divider-color); margin-bottom: 16px; }
-  .tab { padding: 8px 16px; cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab { padding: 8px 16px; cursor: pointer; border: none; border-bottom: 2px solid transparent; background: none; color: inherit; font: inherit; }
+  .tab:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
   .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
@@ -1493,10 +1674,23 @@ function entitiesSchema() {
   ];
 }
 
-function layoutSchema() {
+/** The chips `hidden_buttons` can name, in their default order. */
+const HIDEABLE_BUTTONS = ["pause", "resume", "stop", "light", "power", "custom"];
+
+function layoutSchema(t = (key) => key) {
   return [
     { name: "button_order", selector: { text: {} } },
     { name: "custom_btn_hidden", selector: { boolean: {} } },
+    {
+      name: "hidden_buttons",
+      selector: {
+        select: {
+          multiple: true,
+          mode: "list",
+          options: HIDEABLE_BUTTONS.map((key) => ({ value: key, label: t(`chip_${key}`) })),
+        },
+      },
+    },
     { name: "hide_box_temp", selector: { boolean: {} } },
     { name: "pause_btn_icon", selector: { icon: {} } },
     { name: "resume_btn_icon", selector: { icon: {} } },
@@ -1602,9 +1796,6 @@ function colorData(cfg, group) {
 /* Visual editor: entity wiring on one tab, appearance on the other. */
 class KPrinterCardEditor extends HTMLElement {
   // i18n helpers -------------------------------------------------------
-  _resolveLanguage() {
-    return _resolveLang(this._hass);
-  }
   _t(key, vars) {
     return _translate(this._hass, "printer_card", CARD_TRANSLATIONS, key, vars);
   }
@@ -1622,7 +1813,7 @@ class KPrinterCardEditor extends HTMLElement {
   }
 
   setConfig(config) {
-    const defaults = KPrinterCard.getStubConfig();
+    const defaults = KPrinterCard.defaultConfig();
     this._cfg = { ...defaults, ...KPrinterCard._migrateConfig(config) };
     this._cfg.theme = { ...defaults.theme, ...(this._cfg.theme || {}) };
     this._refresh();
@@ -1665,9 +1856,9 @@ class KPrinterCardEditor extends HTMLElement {
       <style>${EDITOR_STYLE}</style>
       <div class="editor-container">
         <h2 class="editor-title" id="editor-title"></h2>
-        <div class="tabs">
-          <div class="tab active" data-tab="entities" id="tab-entities"></div>
-          <div class="tab" data-tab="theme" id="tab-theme"></div>
+        <div class="tabs" role="tablist">
+          <button type="button" class="tab active" role="tab" aria-selected="true" data-tab="entities" id="tab-entities"></button>
+          <button type="button" class="tab" role="tab" aria-selected="false" data-tab="theme" id="tab-theme"></button>
         </div>
 
         <div class="tab-content active" id="entities-tab">
@@ -1751,6 +1942,7 @@ class KPrinterCardEditor extends HTMLElement {
   _selectTab(name) {
     for (const tab of this._root.querySelectorAll(".tab")) {
       tab.classList.toggle("active", tab.dataset.tab === name);
+      tab.setAttribute("aria-selected", String(tab.dataset.tab === name));
     }
     for (const content of this._root.querySelectorAll(".tab-content")) {
       content.classList.toggle("active", content.id === `${name}-tab`);
@@ -1852,7 +2044,7 @@ class KPrinterCardEditor extends HTMLElement {
 
     this._applyForm("device-form", deviceSchema(), { device: this._cfg.device || "" });
     this._applyForm("entities-form", entitiesSchema(), entitiesData(this._cfg));
-    this._applyForm("layout-form", layoutSchema(), layoutData(this._cfg));
+    this._applyForm("layout-form", layoutSchema((key) => this._t(key)), layoutData(this._cfg));
 
     THEME_COLOR_GROUPS.forEach((group, index) => {
       this._root.getElementById(`group-color-${index}`).textContent = this._t(group.title);
@@ -1903,7 +2095,7 @@ class KPrinterCardEditor extends HTMLElement {
   }
 
   _onColorChanged(group, value) {
-    const defaults = KPrinterCard.getStubConfig().theme;
+    const defaults = KPrinterCard.defaultConfig().theme;
     const theme = { ...this._cfg.theme };
     const wasAuto = new Map(group.fields.map((field) => [field.key, isAutoColor(this._cfg, field)]));
     for (const field of group.fields) {
@@ -1976,9 +2168,9 @@ class KPrinterCardEditor extends HTMLElement {
     }
     const device = this._hass?.devices?.[deviceId];
     const deviceName = device?.name_by_user || device?.name || "";
-    // Every card starts life named "3D Printer", so that counts as unset --
+    // Cards used to start life named "3D Printer", so that counts as unset --
     // otherwise the field the user most expects to be filled never would be.
-    const nameUnset = !this._cfg.name || this._cfg.name === DEFAULT_CARD_NAME;
+    const nameUnset = isUnnamed(this._cfg.name);
     if (deviceName && (overwrite || nameUnset)) patch.name = deviceName;
     return patch;
   }
@@ -2008,7 +2200,7 @@ class KPrinterCardEditor extends HTMLElement {
   // Reset ----------------------------------------------------------------
 
   _resetTheme() {
-    const defaults = KPrinterCard.getStubConfig();
+    const defaults = KPrinterCard.defaultConfig();
     const cfg = { ...this._cfg, theme: { ...defaults.theme } };
     for (const key of LAYOUT_RESET_KEYS) cfg[key] = defaults[key];
 
@@ -2042,20 +2234,36 @@ class KPrinterCardEditor extends HTMLElement {
     // localStorage write. The card saves the same thing again from setConfig.
     saveThemeToStorage(generateCardId(this._cfg), this._cfg.theme);
     this.dispatchEvent(new CustomEvent("config-changed", {
-      detail: { config: this._cfg },
+      detail: { config: withoutDefaults(this._cfg, KPrinterCard.defaultConfig()) },
       bubbles: true,
       composed: true,
     }));
   }
 }
+// Defined last, once every module-level constant the classes read exists:
+// defining the card upgrades elements already in the page on the spot, and
+// THEME_COLOR_FIELDS (used by _migrateTheme) was declared after it (R46).
+defineOnce(CARD_TAG, KPrinterCard);
 defineOnce(EDITOR_TAG, KPrinterCardEditor);
 
 try {
   window.customCards = window.customCards || [];
-  window.customCards.push({
-    type: CARD_TAG,
-    name: "Creality Printer Card",
-    description: "Standalone card for Creality K-Series printers",
-    preview: true,
-  });
+  // Once per page, like the element itself: a second copy of this module (two
+  // resource entries with different ?v=) listed the card twice in the picker.
+  if (!window.customCards.some((card) => card.type === CARD_TAG)) {
+    const pickerEntry = {
+      type: CARD_TAG,
+      name: CARD_TRANSLATIONS.en.picker_name,
+      description: CARD_TRANSLATIONS.en.picker_description,
+      preview: true,
+    };
+    window.customCards.push(pickerEntry);
+    // The picker reads the entry when it opens, so the page's language can be
+    // applied once its strings arrive (R33).
+    const pageHass = document.querySelector?.("home-assistant")?.hass;
+    _requestI18n({}, pageHass, () => {
+      pickerEntry.name = _translate(pageHass, "printer_card", CARD_TRANSLATIONS, "picker_name");
+      pickerEntry.description = _translate(pageHass, "printer_card", CARD_TRANSLATIONS, "picker_description");
+    });
+  }
 } catch (_) { }

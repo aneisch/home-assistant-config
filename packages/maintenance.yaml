@@ -1,0 +1,193 @@
+# Durable "needs action" items (dead Z-Wave nodes, low batteries) tracked on the
+# Home Maintenance to-do list (Local To-do integration, todo.home_maintenance).
+# Items are identified by a key line in their description, e.g.
+#   key: battery:sensor.front_door_lock_battery_level
+# and carry the rule used to tick them off automatically once the entity recovers.
+
+script:
+  # Open or resolve a maintenance item by `key` (<kind>:<entity_id>).
+  # Opening an item that's already open updates it instead of adding a duplicate,
+  # and only a newly added item sends a push.
+  maintenance_task:
+    mode: queued
+    max: 50
+    fields:
+      task:
+        description: open or resolve
+        required: true
+        selector:
+          select:
+            options: [open, resolve]
+      key:
+        description: Unique key, <kind>:<entity_id>, e.g. battery:sensor.x_battery_level
+        required: true
+        selector:
+          text:
+      summary:
+        description: Open only. To-do item title and push message
+        selector:
+          text:
+      details:
+        description: Open only. Extra text for the item description
+        selector:
+          text:
+      resolve_above:
+        description: Open only. Auto-resolve once the entity's state is above this number
+        selector:
+          number:
+            min: 0
+            max: 100
+      resolve_not:
+        description: Open only. Auto-resolve once the entity's state is no longer this
+        selector:
+          text:
+      resolve_seen_within_days:
+        description: Open only. Auto-resolve once the entity (a timestamp, e.g. last_seen) is within this many days
+        selector:
+          number:
+            min: 1
+            max: 365
+      quiet:
+        description: Open only. Skip the push for a newly added item
+        selector:
+          boolean:
+    sequence:
+      # No list yet: fall back to a plain notification
+      - if: "{{ states('todo.home_maintenance') == 'unknown' }}"
+        then:
+          - if: "{{ task == 'open' }}"
+            then:
+              - action: script.notify_wrapper
+                data:
+                  message: "{{ summary | default(key) }}"
+          - stop: todo.home_maintenance does not exist
+
+      - action: todo.get_items
+        target:
+          entity_id: todo.home_maintenance
+        data:
+          status: needs_action
+        response_variable: todo
+      - variables:
+          existing: >-
+            {% set ns = namespace(item=none) %}
+            {% for i in todo['todo.home_maintenance']['items'] if i.description is defined %}
+              {% if ('key: ' ~ key) in i.description.split('\n') %}{% set ns.item = i %}{% endif %}
+            {% endfor %}
+            {{ ns.item }}
+          description: >-
+            {% set lines = [] %}
+            {% if details is defined and details %}{% set lines = lines + [details, ''] %}{% endif %}
+            {% if resolve_above is defined %}{% set lines = lines + ['resolve_above: ' ~ resolve_above] %}{% endif %}
+            {% if resolve_not is defined %}{% set lines = lines + ['resolve_not: ' ~ resolve_not] %}{% endif %}
+            {% if resolve_seen_within_days is defined %}{% set lines = lines + ['resolve_seen_within_days: ' ~ resolve_seen_within_days] %}{% endif %}
+            {{ (lines + ['key: ' ~ key]) | join('\n') }}
+
+      - choose:
+          - conditions: "{{ task == 'open' and existing is not none }}"
+            sequence:
+              - action: todo.update_item
+                target:
+                  entity_id: todo.home_maintenance
+                data:
+                  item: "{{ existing.uid }}"
+                  rename: "{{ summary | default(key) }}"
+                  description: "{{ description }}"
+          - conditions: "{{ task == 'open' }}"
+            sequence:
+              - action: todo.add_item
+                target:
+                  entity_id: todo.home_maintenance
+                data:
+                  item: "{{ summary | default(key) }}"
+                  description: "{{ description }}"
+              - if: "{{ not (quiet | default(false)) }}"
+                then:
+                  - action: script.notify_wrapper
+                    data:
+                      message: "{{ summary | default(key) }}"
+          - conditions: "{{ task == 'resolve' and existing is not none }}"
+            sequence:
+              - action: todo.update_item
+                target:
+                  entity_id: todo.home_maintenance
+                data:
+                  item: "{{ existing.uid }}"
+                  status: completed
+
+automation:
+  # Ticks off open items whose entity has recovered, using the resolve_above /
+  # resolve_not rule stored on each item. Covers batteries (no "recovered" event
+  # from Node-RED) and anything missed while Node-RED was down.
+  - alias: Maintenance Auto Resolve
+    id: maintenance_auto_resolve
+    mode: single
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
+    condition: "{{ states('todo.home_maintenance') not in ['unknown', 'unavailable'] }}"
+    action:
+      - action: todo.get_items
+        target:
+          entity_id: todo.home_maintenance
+        data:
+          status: needs_action
+        response_variable: todo
+      - repeat:
+          for_each: >-
+            {% set ns = namespace(keys=[]) %}
+            {% for i in todo['todo.home_maintenance']['items'] if i.description is defined %}
+              {% set key = i.description | regex_findall('(?m)^key: (\S+)$') %}
+              {% set above = i.description | regex_findall('(?m)^resolve_above: (\S+)$') %}
+              {% set not_state = i.description | regex_findall('(?m)^resolve_not: (\S+)$') %}
+              {% set seen_days = i.description | regex_findall('(?m)^resolve_seen_within_days: (\S+)$') %}
+              {% if key and ':' in key[0] %}
+                {% set s = states(key[0].split(':', 1)[1]) %}
+                {% if s not in ['unknown', 'unavailable']
+                      and ((above and s | float(-1) > above[0] | float(0))
+                           or (not_state and s != not_state[0])
+                           or (seen_days and as_timestamp(s, 0) > now().timestamp() - seen_days[0] | float(0) * 86400)) %}
+                  {% set ns.keys = ns.keys + [key[0]] %}
+                {% endif %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.keys }}
+          sequence:
+            - action: script.maintenance_task
+              data:
+                task: resolve
+                key: "{{ repeat.item }}"
+
+  # Daily: open an item for any Z-Wave node not heard from in 30 days. Sleeping
+  # battery devices stay "asleep" forever when their battery dies, so node
+  # status alone never flags them. Resolves once the node checks in again.
+  - alias: Maintenance Silent Z-Wave Check
+    id: maintenance_silent_zwave_check
+    mode: single
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    condition: "{{ states('todo.home_maintenance') not in ['unknown', 'unavailable'] }}"
+    variables:
+      days: 30
+    action:
+      - repeat:
+          for_each: >-
+            {{ integration_entities('zwave_js')
+               | select('match', 'sensor\..*_last_seen$')
+               | select('has_value')
+               | list }}
+          sequence:
+            - if: "{{ as_timestamp(states(repeat.item), 0) < now().timestamp() - days * 86400 }}"
+              then:
+                - action: script.maintenance_task
+                  data:
+                    task: open
+                    key: "zwave_silent:{{ repeat.item }}"
+                    summary: >-
+                      {{ device_attr(repeat.item, 'name_by_user') or device_attr(repeat.item, 'name') }}
+                      not heard from since {{ as_timestamp(states(repeat.item)) | timestamp_custom('%b %-d, %Y') }}
+                    details: "Z-Wave device silent for over {{ days }} days. Replace the battery or remove the device."
+                    resolve_seen_within_days: "{{ days }}"

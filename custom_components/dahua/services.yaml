@@ -178,6 +178,92 @@ enable_custom_overlay:
       selector:
         boolean:
 
+get_config:
+  name: Read a configuration table
+  description: >-
+    Returns a configuration table from the device, read-only, for diagnostics.
+    The integration wraps the common tables already; this reads any of the
+    model-specific ones it does not. It cannot change the device.
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    name:
+      name: Config name
+      description: >-
+        The configManager config name, for example Encode, VideoColor or
+        Lighting[0][0].
+      required: true
+      example: Encode
+      selector:
+        text:
+
+compare_config:
+  name: Compare the device against a backup
+  description: >-
+    Reads the same configuration tables again and reports what has changed since
+    a backup taken with "Back up the settings this integration can change". Use
+    it to see exactly what one change moved, which matters because several Dahua
+    config writes cannot be undone from Home Assistant. Read-only at both ends.
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    filename:
+      name: Backup file
+      description: >-
+        The JSON file a previous backup was written to, for example
+        /config/dahua_front_door_backup.json. The path must be one Home
+        Assistant is allowed to read.
+      required: true
+      example: /config/dahua_front_door_backup.json
+      selector:
+        text:
+
+backup_config:
+  name: Back up the settings this integration can change
+  description: >-
+    Reads back every configuration table this integration has a write path for,
+    so there is a record of what a setting was before something changed it. A
+    Dahua config write is often not reversible from Home Assistant, and the
+    device keeps no history of its own. This only reads: it cannot restore by
+    itself, and it cannot change the device. Returns the backup, and with a
+    filename also writes it as JSON.
+
+    Covers the whole device rather than one channel: these are whole-table
+    reads, so on a recorder one call records every channel. Which camera you
+    target only decides which device is read.
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    filename:
+      name: File name
+      description: >-
+        Where to write the backup, for example
+        /config/dahua_front_door_backup.json. The path must be one Home
+        Assistant is allowed to write to (allowlist_external_dirs, or the
+        config directory). Leave empty to get the backup back without writing
+        anything.
+      required: false
+      example: /config/dahua_front_door_backup.json
+      selector:
+        text:
+
+get_channel_title:
+  name: Read the channel title
+  description: >-
+    Returns the channel title overlay the camera is currently showing. Useful
+    when the title may have been changed on the camera, the NVR or the app
+    rather than from Home Assistant.
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+
 get_overlay_text:
   name: Read the text overlay
   description: >-
@@ -265,7 +351,17 @@ set_channel_title:
 
 set_text_overlay:
   name: Set text overlay
-  description: Sets a text overlay on the video
+  # Which on-screen text this moves is worth stating, because the camera's own
+  # web interface does not call it the same thing on every model. This writes
+  # VideoWidget[channel].CustomTitle, and a DH-IPC-HDW3849H-AS-PV labels that
+  # array "Location title" while labelling a different two-line field "Custom
+  # title" (#312). Someone watching the wrong field concludes the service does
+  # nothing.
+  description: >-
+    Sets the custom text overlay on the video. Some cameras label this
+    overlay "Location title" in their own web interface rather than "Custom
+    title", so check both if the text does not appear where expected. How
+    many lines a camera accepts is the camera's own limit.
   target:
     entity:
       integration: dahua
@@ -314,6 +410,18 @@ set_text_overlay:
       default: ""
       selector:
         text:
+    lines:
+      name: Lines
+      description: >-
+        All the overlay lines at once, for a camera that takes more than four.
+        Give this or text1-text4, not both. How many lines a device accepts is
+        the device's own limit, and one that will not take them all refuses the
+        whole write.
+      example: '["Line 1", "Line 2", "Line 3", "Line 4", "Line 5"]'
+      required: false
+      selector:
+        text:
+          multiple: true
 
 set_video_in_day_night_mode:
   name: Set the Day or Night Color Mode
@@ -439,6 +547,36 @@ vto_open_door:
           min: 0
           max: 100
 
+play_audio:
+  name: Play audio on the speaker
+  description: Plays a clip through the device's own speaker, for a doorbell announcement or a camera deterrent message. Needs the ffmpeg integration to convert the clip
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    media_content_id:
+      name: Media
+      description: "The clip to play. A media source, a text-to-speech result, a URL or a file path; anything ffmpeg can open"
+      example: "media-source://tts/tts.google_en_com?message=Someone+is+at+the+door"
+      required: true
+      selector:
+        text:
+    audio_format:
+      name: Audio format
+      description: "What the speaker is sent. The default suits every device this has been tried against; change it only if the audio plays at the wrong speed or not at all"
+      required: false
+      default: g711a_8000
+      selector:
+        select:
+          options:
+            - label: "G.711 A-law, 8 kHz (default)"
+              value: g711a_8000
+            - label: "G.711 mu-law, 8 kHz"
+              value: g711u_8000
+            - label: "16-bit PCM, 8 kHz"
+              value: pcm_8000
+
 vto_cancel_call:
   name: Cancel VTO call
   description: Cancels a VTO call
@@ -446,6 +584,22 @@ vto_cancel_call:
     entity:
       integration: dahua
       domain: camera
+
+vto_call:
+  name: Call a room from a VTO
+  description: Rings an indoor monitor (VTH) from a VTO (Doorbell), as a press of its call button does
+  target:
+    entity:
+      integration: dahua
+      domain: camera
+  fields:
+    room:
+      name: Room
+      description: "The room number to ring, as set on the indoor monitor. 9901#0 is dialled as 9901, which rings that room's main monitor and its extensions"
+      example: "9901"
+      required: true
+      selector:
+        text:
 
 set_focus_zoom:
   name: Set the Dahua Focus and Zoom

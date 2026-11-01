@@ -134,21 +134,26 @@ automation:
     action:
       - if: "{{ trigger.id == 'alert' }}"
         then:
-          - action: notify.mobile_app_andrew_phone
+          - action: script.notify_wrapper
             data:
               message: "No one home, close garage door?"
-              data:
-                persistent: true # Set to true to create a persistent notification
-                tag: persistent # Tag is required for the persistent notification
-                actions:
-                  - action: "confirm_close_garage"
-                    title: "Confirm"
-                  - action: "ignore_close_garage"
-                    title: "Ignore"
+              level: alert
+              tag: garage_open_noone_home
+              actions:
+                - action: "confirm_close_garage"
+                  title: "Confirm"
+                - action: "ignore_close_garage"
+                  title: "Ignore"
       - if: "{{ trigger.id == 'respond' }}"
         then:
           - action: cover.close_cover
             entity_id: cover.garage_door
+          # Clear the prompt from the other devices
+          - action: notify.andrew
+            data:
+              message: clear_notification
+              data:
+                tag: garage_open_noone_home
 
   - alias: "Garage changed to open when no one home"
     id: "garage_opened_noone_home"
@@ -164,6 +169,7 @@ automation:
       - action: script.notify_wrapper
         data:
           message: "Garage door opened and no one home"
+          level: alert
 
 counter:
   garage_door_cycles:

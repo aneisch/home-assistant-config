@@ -7,8 +7,10 @@ from typing import TYPE_CHECKING
 
 import voluptuous as vol
 
-from homeassistant.exceptions import HomeAssistantError
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv
+
+from ....const import DOMAIN
 
 if TYPE_CHECKING:
     from homeassistant.components.input_number import InputNumber
@@ -31,8 +33,14 @@ def native_value_as_float(entity: InputNumber) -> float:
     try:
         return float(entity.native_value)
     except (TypeError, ValueError) as err:
-        msg = f"Value {entity.native_value!r} for {entity.entity_id} is not a number"
-        raise HomeAssistantError(msg) from err
+        raise HomeAssistantError(
+            translation_domain=DOMAIN,
+            translation_key="value_not_a_number",
+            translation_placeholders={
+                "value": repr(entity.native_value),
+                "entity_id": entity.entity_id,
+            },
+        ) from err
 
 
 def step_amount(entity: InputNumber, call: ServiceCall) -> float:
@@ -46,11 +54,17 @@ def step_amount(entity: InputNumber, call: ServiceCall) -> float:
         math.isclose(remainder, 0, rel_tol=0, abs_tol=_FLOAT_TOLERANCE)
         or math.isclose(remainder, step, rel_tol=0, abs_tol=_FLOAT_TOLERANCE)
     ):
-        msg = (
-            f"Amount {amount} not valid for {entity.entity_id}, "
-            f"it needs to be a multiple of {step}"
+        # A validation error, so the frontend shows this message. It shows a
+        # plain ValueError as "Unknown error".
+        raise ServiceValidationError(
+            translation_domain=DOMAIN,
+            translation_key="amount_not_a_multiple_of_step",
+            translation_placeholders={
+                "amount": str(amount),
+                "entity_id": entity.entity_id,
+                "step": str(step),
+            },
         )
-        raise ValueError(msg)
 
     return amount
 

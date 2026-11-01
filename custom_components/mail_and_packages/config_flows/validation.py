@@ -186,8 +186,37 @@ def _validate_path_input(
         path = user_input[CONF_STORAGE]
         if hass:
             path = hass.config.path(path)
-        if not path_cls(path).exists():
+        if not path_cls(path).exists() and not _create_storage_dir(
+            path, hass, path_cls
+        ):
             errors[CONF_STORAGE] = "path_not_found"
+
+
+def _create_storage_dir(path: str, hass: HomeAssistant | None, path_cls: Any) -> bool:
+    """Create a missing image storage folder.
+
+    Only folders inside the Home Assistant config directory are created, so a
+    mistyped or relative path can never create folders elsewhere on the host.
+    Returns True when the folder exists afterwards.
+    """
+    if hass is None:
+        return False
+    config_dir = DefaultPath(hass.config.config_dir).resolve()
+    target = DefaultPath(path).resolve()
+    if target != config_dir and config_dir not in target.parents:
+        _LOGGER.error(
+            "Image storage folder %s does not exist and is outside the config "
+            "directory, so it was not created",
+            path,
+        )
+        return False
+    try:
+        path_cls(path).mkdir(parents=True, exist_ok=True)
+    except OSError as err:
+        _LOGGER.error("Unable to create image storage folder %s: %s", path, err)
+        return False
+    _LOGGER.info("Created image storage folder %s", path)
+    return True
 
 
 async def _validate_amazon_fwds(user_input: dict, errors: dict) -> None:
@@ -280,6 +309,7 @@ from .mailbox import (  # noqa: E402
     _get_mailboxes,
     _parse_folder_list,
     _validate_login,
+    _validate_oauth_login,
 )
 
 __all__ = [
@@ -290,6 +320,7 @@ __all__ = [
     "_validate_amazon_fwds",
     "_validate_forwarded_emails",
     "_validate_login",
+    "_validate_oauth_login",
     "_validate_path_input",
     "_validate_user_input",
 ]

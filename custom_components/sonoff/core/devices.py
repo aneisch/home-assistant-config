@@ -85,6 +85,7 @@ from ..sensor import (
     XHexVoltageTRVZB,
     XHumCorrection,
     XHumidityTH,
+    XMiniR4Key,
     XOutdoorTempNS,
     XSensor,
     XSubSensor,
@@ -438,7 +439,7 @@ DEVICES = {
         LED,
         RSSI,
         spec(XIntSwitch, param="relaySeparation", uid="detach", enabled=False),
-        spec(XButtonKey, uid="action"),
+        XMiniR4Key,
     ],
     # DW2-Wi-Fi-L, https://github.com/AlexxIT/SonoffLAN/issues/808
     154: [XWiFiDoor, Battery, RSSI],
@@ -645,6 +646,8 @@ DEVICES = {
         LED,
         RSSI,
     ],
+    # NSPanel86PB-Relay https://github.com/AlexxIT/SonoffLAN/issues/1908
+    278: SPEC_2CH,
     # MINI-1GSP https://github.com/AlexxIT/SonoffLAN/issues/1876
     283: [
         Switch1,
@@ -861,6 +864,10 @@ DEVICES = {
         ZRSSI,
     ],
 }
+
+# Not the best solution, but anyway. This may be fixed in the future.
+# TRV Gen2 https://github.com/AlexxIT/SonoffLAN/issues/1893
+DEVICES[7049] = DEVICES[7017]
 
 
 def get_spec(device: dict) -> list:

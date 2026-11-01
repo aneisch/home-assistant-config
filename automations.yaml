@@ -106,19 +106,15 @@
 - id: notify_ac_offline
   alias: Notify when AC Offline
   triggers:
-  - entity_id: binary_sensor.thermostat_online
+  - trigger: state
+    entity_id: binary_sensor.thermostat_online
     to: 'off'
     for: 00:30:00
-    trigger: state
   - trigger: state
-    entity_id:
-    - binary_sensor.thermostat_thermostat_changes_pending
-    to:
-    - 'on'
+    entity_id: climate.thermostat
+    to: unavailable
     for:
-      hours: 0
       minutes: 10
-      seconds: 0
   actions:
   - action: script.notify_wrapper
     data:
@@ -128,62 +124,69 @@
 - id: notify_ac_equipment_event
   alias: Notify AC Equipment Event Occurs
   triggers:
-  - entity_id: sensor.thermostat_active_equipment_event
-    trigger: state
   - trigger: state
     entity_id:
-    - sensor.easy_start_ble_status
-    from:
-    - Normal
+    - sensor.thermostat_active_alerts
+    - sensor.ac_compressor_alarm
+    - sensor.ac_low_pressure_switch
+    - sensor.ac_high_pressure_switch
+    - sensor.ac_top_cap_switch
+  variables:
+    ignored_alert_codes:
+    - 65546
   conditions:
   - condition: template
-    value_template: '{{ trigger.to_state.state not in [ ''unavailable'', '''', ''Pwr
-      Intrrptn Fault'' ] and trigger.from_state.state not in [ ''unavailable'', ''''
-      ] }}'
+    value_template: '{{ trigger.from_state is not none and trigger.from_state.state
+      not in [''unavailable'', ''unknown'', ''''] and trigger.to_state.state not in
+      [''unavailable'', ''unknown'', ''''] }}'
+  - condition: template
+    value_template: '{{ trigger.entity_id != ''sensor.thermostat_active_alerts'' or
+      ((trigger.from_state.attributes.alert_list or []) | map(attribute=''code'')
+      | map(''int'', 0) | reject(''in'', ignored_alert_codes) | sort | list) != ((trigger.to_state.attributes.alert_list
+      or []) | map(attribute=''code'') | map(''int'', 0) | reject(''in'', ignored_alert_codes)
+      | sort | list) }}'
   actions:
   - action: script.notify_wrapper
     data:
-      message: "{% set entity = trigger.entity_id %} {% set state = trigger.to_state.state
-        %} {% if entity == 'sensor.thermostat_active_equipment_event' %}\n  {% if
-        state == 'No Active Event' %}\n    AC Equipment Event from Thermostat Cleared\n
-        \ {% else %}\n    AC Equipment Event from Thermostat: {{ state }}\n  {% endif
-        %}\n{% elif entity == 'sensor.easy_start_ble_status' %}\n  {% if state ==
-        'Normal' %}\n    AC Equipment Event from Soft Start Cleared\n  {% else %}\n
-        \   AC Equipment Event from Soft Start: {{ state }}\n  {% endif %}\n{% endif
-        %}"
+      message: '{% set e = trigger.entity_id %}{% set s = trigger.to_state.state %}{%
+        if e == ''sensor.thermostat_active_alerts'' %}{% set alerts = state_attr(e,
+        ''alert_list'') or [] %}{% set n = alerts | map(attribute=''code'') | map(''int'',
+        0) | reject(''in'', ignored_alert_codes) | list | count %}{% if n == 0 %}AC
+        Equipment Event from Thermostat Cleared{% else %}AC Equipment Event from Thermostat
+        ({{ n }} active): {% for a in alerts if a.code | int(0) not in ignored_alert_codes
+        %}code {{ a.code }} ({{ a.priority }}{% if a.message and a.message != ''unknown
+        alert code'' %}, {{ a.message }}{% endif %}){% if not loop.last %}; {% endif
+        %}{% endfor %}{% endif %}{% elif e == ''sensor.ac_compressor_alarm'' %}{%
+        if s in [''0'', ''0.0''] %}AC Compressor Alarm Cleared{% else %}AC Compressor
+        Alarm: {{ s }}{% endif %}{% else %}{{ trigger.to_state.name }}: {{ s }}{%
+        endif %}'
   initial_state: true
-- alias: Notify when AC setting changes
-  id: ac_notify_change
-  initial_state: true
-  trigger:
-  - platform: state
-    entity_id: sensor.thermostat_setpoint
-  - platform: state
-    entity_id: sensor.thermostat_operating_mode
-  condition:
-    condition: and
-    conditions:
-    - condition: state
-      entity_id: input_boolean.ac_change_notification
-      state: 'on'
-    - '{{ trigger.from_state.state != trigger.to_state.state }}'
-  action:
+- id: ac_notify_change
+  alias: Notify when AC setting changes
+  triggers:
+  - trigger: state
+    entity_id: climate.thermostat
+    id: mode
+  - trigger: state
+    entity_id: climate.thermostat
+    attribute: temperature
+    id: setpoint
+  conditions:
+  - condition: state
+    entity_id: input_boolean.ac_change_notification
+    state: 'on'
+  - condition: template
+    value_template: '{{ trigger.from_state is not none and trigger.from_state.state
+      not in [''unavailable'', ''unknown''] and trigger.to_state.state not in [''unavailable'',
+      ''unknown''] and (trigger.from_state.state != trigger.to_state.state or trigger.from_state.attributes.temperature
+      != trigger.to_state.attributes.temperature) }}'
+  actions:
   - action: script.notify_wrapper
     data:
-      message: '{% if trigger.entity_id == ''sensor.thermostat_setpoint'' %}Setpoint{%
-        elif trigger.entity_id == ''sensor.thermostat_operating_mode'' %}Mode{% endif
-        %}: {{ states(''sensor.thermostat_setpoint'') }}. Mode: {{ states(''sensor.thermostat_operating_mode'')
+      message: '{% if trigger.id == ''setpoint'' %}Setpoint{% else %}Mode{% endif
+        %}: {{ state_attr(''climate.thermostat'', ''temperature'') }}. Mode: {{ states(''climate.thermostat'')
         }}'
-- alias: HTML5 or Android push notification action button clicked
-  id: html5_android_push
-  trigger:
-  - platform: event
-    event_type: html5_notification.clicked
-  - platform: event
-    event_type: mobile_app_notification_action
-  action:
-    action: "{% if trigger.event.data.action == 'turn_ac_off' %}\n  script.turn_ac_off\n{%
-      endif %}\n"
+  initial_state: true
 - id: update_last_datetimes
   alias: Update 'Last' Datetimes
   trigger:
@@ -236,28 +239,10 @@
     allowed_methods:
     - POST
   action:
-  - action: notify.signal_self
+  - action: script.notify_wrapper
     data:
       message: '{{ trigger.json.notifications[0].message }}: {{ trigger.json.run_url
         }}'
-  initial_state: true
-- id: panic_script_webhook
-  alias: Panic Script Webhook Trigger
-  triggers:
-  - webhook_id: SECRET
-    local_only: false
-    trigger: webhook
-  actions:
-  - action: media_player.volume_set
-    data:
-      volume_level: 0.3
-    target:
-      entity_id: media_player.andrew_s_master_bedroom_echo
-  - action: notify.alexa_media_andrew_s_master_bedroom_echo
-    data:
-      data:
-        type: tts
-      message: Help is on the way
   initial_state: true
 - alias: Power off NAS after backup
   id: nas_poweroff_post_backup
@@ -470,7 +455,7 @@
       if:
       - condition: template
         value_template: '{{ is_state(''person.andrew'', ''home'') and is_state(''input_boolean.goodnight'',
-          ''off'') }}'
+          ''off'') and is_state(''switch.master_bedroom_ceiling_fan'', ''off'') }}'
       then:
       - action: siren.turn_on
         target:
@@ -484,7 +469,7 @@
 
             '
           volume_level: 0.5
-    - action: notify.cellular_message
+    - action: script.notify_wrapper
       data:
         message: '{% if trigger.from_state.state == "on" %} Home internet is down
           {% else %} Home internet has recovered {% endif %}
@@ -492,20 +477,6 @@
           '
         data:
           priority: '{% if now().hour > 9 and now().hour < 22 and is_state(''person.andrew'',
-            ''home'') %}1{% else %}0{% endif %}'
-      enabled: true
-  - if:
-    - condition: template
-      value_template: '{{ trigger.id == ''gateway'' }}'
-    then:
-    - action: notify.cellular_message
-      data:
-        message: '{% if trigger.from_state.state == "True" %} PFSense gateway down
-          {% else %} PFSense gateway has recovered {% endif %}
-
-          '
-        data:
-          priority: '{% if now().hour > 9 and now().hour < 22  and is_state(''person.andrew'',
             ''home'') %}1{% else %}0{% endif %}'
       enabled: true
 - id: webhook_debugger
@@ -524,22 +495,6 @@
         elif 'json' in trigger %}\n  JSON: {{ dict(trigger.json)|tojson }}\n{% else
         %} {% endif %} {% if 'query' in trigger and trigger.query|length > 0 %}\n
         \ Query: {{ dict(trigger.query)|tojson }}\n{% endif %}"
-- id: bluebubbles_to_sms
-  alias: BlueBubbles to SMS
-  trigger:
-  - platform: webhook
-    webhook_id: hihihi
-    local_only: false
-  action:
-  - if: '{{ trigger.json.data.isFromMe == false and trigger.json.data.handle.address
-      != ''+PHONE_NUMBER'' }}'
-    then:
-    - action: notify.donotreply_SECRET
-      data:
-        target: 5128798125@msg.fi.google.com
-        message: '{{ trigger.json.data.handle.address }}: {{ trigger.json.data.text
-          }}'
-        title: BlueBubbles FWD
 - alias: Watchtower Updates
   id: watchertower_run_update
   trigger:
@@ -566,7 +521,7 @@
     allowed_methods:
     - POST
   actions:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     data:
       message: '{{ trigger.json.message }}'
 - id: update_utility_costs
@@ -681,7 +636,14 @@
     then:
     - action: notify.signal_bvst
       data:
-        message: '{{ trigger.json[''message''] }}'
+        message: '{{ trigger.json[''message'']| e }}'
+    - action: notify.bethany_brazosvalleyspeechtherapy_com
+      data:
+        target: bethany@brazosvalleyspeechtherapy.com
+        title: New Inquiry
+        message: "<div style=\"font-family:sans-serif;font-size:14px\"> {{ trigger.json.message\n
+          \  | replace('\\r\\n', '\\n')\n   | e\n   | regex_replace('--- (.+?) ---\\n\\n',
+          '<b>\\\\1</b><br>')\n   | replace('\\n', '<br>') }}\n</div>"
   - if:
     - condition: template
       value_template: '{{ trigger.id == ''insurance'' }}'
@@ -724,13 +686,29 @@
   conditions:
   - condition: template
     value_template: '{{ states(''group.trackers'') == ''home''}}'
+  - condition: state
+    entity_id: input_boolean.goodnight
+    state: 'off'
+  - condition: state
+    entity_id: switch.master_bedroom_ceiling_fan
+    state: 'off'
   actions:
-  - action: notify.alexa_media_andrew_s_kitchen_echo
+  - action: notify.alexa_media_kitchen
     data:
       data:
         type: tts
         method: speak
       message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_02"/>
+    enabled: false
+  - action: siren.turn_on
+    target:
+      entity_id: siren.siren_chime_play_tone
+    data:
+      volume_level: 0.5
+      tone: '{{ state_attr(''siren.siren_chime_play_tone'', ''available_tones'') |dictsort
+        |selectattr(''1'', ''search'', ''bell_02'') |map(attribute=''0'') |first }}
+
+        '
   initial_state: true
 - alias: Startup Notificiation
   id: startup_notification
@@ -739,7 +717,7 @@
   - platform: homeassistant
     event: start
   action:
-  - action: notify.signal_self
+  - action: script.notify_wrapper
     data:
       message: 'Home Assistant v{{ states(''sensor.ha_version'')}} has started!
 
@@ -790,17 +768,17 @@
     - wait_template: '{{ is_state(''sensor.andrew_phone_charger_type'', ''none'')
         }}'
       timeout: 00:05:00
-    - action: notify.mobile_app_andrew_phone
+    - action: script.notify_wrapper
       data:
         message: Turn on Coffee Maker?
-        data:
-          persistent: true
-          tag: persistent
-          actions:
-          - action: confirm_coffee_on
-            title: 'Yes'
-          - action: ignore_coffee_on
-            title: 'No'
+        level: alert
+        signal: false
+        tag: coffee_on_prompt
+        actions:
+        - action: confirm_coffee_on
+          title: 'Yes'
+        - action: ignore_coffee_on
+          title: 'No'
     alias: Send Notification
   - alias: Turn on Coffee Maker
     if:
@@ -808,6 +786,12 @@
       id:
       - respond
     then:
+    - action: notify.andrew
+      data:
+        message: clear_notification
+        data:
+          tag: coffee_on_prompt
+      alias: Clear prompt on other devices
     - action: switch.turn_on
       data: {}
       target:
@@ -828,17 +812,17 @@
         seconds: 0
         milliseconds: 0
       alias: Wait For Idle Status
-    - action: notify.mobile_app_andrew_phone
+    - action: script.notify_wrapper
       data:
         message: Make Double Latte?
-        data:
-          persistent: true
-          tag: persistent
-          actions:
-          - action: confirm_make_latte
-            title: 'Yes'
-          - action: ignore_make_latte
-            title: 'No'
+        level: alert
+        signal: false
+        tag: make_latte_prompt
+        actions:
+        - action: confirm_make_latte
+          title: 'Yes'
+        - action: ignore_make_latte
+          title: 'No'
       alias: Send Make Late Question
   - alias: Make Double Latte
     if:
@@ -846,6 +830,12 @@
       id:
       - make
     then:
+    - action: notify.andrew
+      data:
+        message: clear_notification
+        data:
+          tag: make_latte_prompt
+      alias: Clear prompt on other devices
     - action: script.andrew_double_latte
       data: {}
   initial_state: true
@@ -863,28 +853,12 @@
     data: {}
     target:
       entity_id: switch.coffee_maker_power_without_cleaning
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     data:
       message: 'Turned coffee maker off!
 
         '
   initial_state: true
-- alias: Turn off AC Fan
-  id: turn_off_ac_fan
-  trigger:
-  - platform: state
-    entity_id: sensor.thermostat_state
-    to: Idle Fan
-    for:
-      minutes: 30
-  action:
-  - action: script.notify_wrapper
-    data:
-      message: AC fan on idle for 30 minutes, setting back to auto
-  - action: climate.set_fan_mode
-    entity_id: climate.thermostat
-    data:
-      fan_mode: auto
 - alias: Plant Light Corner Brightness
   id: plant_corner_brightness
   trigger:
@@ -919,7 +893,7 @@
     - condition: template
       value_template: '{{ float(trigger.to_state.state, default=-1) > 0.00 }}'
     then:
-    - action: notify.signal_homeassistant
+    - action: script.notify_wrapper
       data:
         message: 'Rain started!
 
@@ -937,7 +911,7 @@
     value_template: '{{ is_state(''cover.garage_door'',''open'') or not doors_locked
       }}'
   actions:
-  - action: notify.alexa_media_andrew_s_master_bedroom_echo
+  - action: notify.alexa_media_master
     data:
       data:
         type: tts
@@ -972,23 +946,27 @@
   actions:
   - if: '{{ trigger.id == ''alert'' }}'
     then:
-    - action: notify.mobile_app_andrew_phone
+    - action: script.notify_wrapper
       data:
         message: No one home, lock doors?
-        data:
-          persistent: true
-          tag: persistent
-          actions:
-          - action: confirm_lock_doors
-            title: Confirm
-          - action: ignore_lock_doors
-            title: Ignore
+        level: alert
+        tag: doors_unlocked_noone_home
+        actions:
+        - action: confirm_lock_doors
+          title: Confirm
+        - action: ignore_lock_doors
+          title: Ignore
   - if:
     - condition: template
       value_template: '{{ trigger.id == ''respond'' }}'
     then:
     - action: lock.lock
       entity_id: lock.all_doors
+    - action: notify.andrew
+      data:
+        message: clear_notification
+        data:
+          tag: doors_unlocked_noone_home
 - id: '1720406432197'
   alias: Back Bedroom Remote
   description: ''
@@ -1171,7 +1149,7 @@
     - Internal Error
   condition: []
   action:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     data:
       message: 'Coffee maker in {{ trigger.to_state.state }} status!
 
@@ -1228,10 +1206,16 @@
   - data:
       message: The {% if trigger.id == "dryer" %}dryer{% else %}washer{% endif %}
         has finished!
-    action: notify.signal_homeassistant
+      to:
+      - andrew
+      - bethany
+    action: script.notify_wrapper
   - if:
     - condition: state
       entity_id: input_boolean.goodnight
+      state: 'off'
+    - condition: state
+      entity_id: switch.master_bedroom_ceiling_fan
       state: 'off'
     then:
     - action: siren.turn_on
@@ -1309,7 +1293,7 @@
     - 'on'
   conditions: []
   actions:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Dehumidifier Tank Full!
@@ -1335,6 +1319,11 @@
       data:
         urls:
         - https://go2rtc.home.SECRET/api/frame.jpeg?src=3d_printer_record
+  - action: script.notify_wrapper
+    data:
+      message: 'Printer status: {{ trigger.to_state.state }}'
+      signal: false
+      image: https://go2rtc.home.SECRET/api/frame.jpeg?src=3d_printer_record
   - if:
     - condition: template
       value_template: '{{ trigger.to_state.state == ''completed'' }}'
@@ -1367,7 +1356,7 @@
     - driving
   conditions: []
   actions:
-  - action: notify.signal_self
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Tesla Active in Service
@@ -1386,7 +1375,7 @@
     - sensor.utilities_cycle_end
   conditions: []
   actions:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: 'Utilities Cycle End Date Updated: {{ states(''sensor.utilities_cycle_end'')
@@ -1427,14 +1416,20 @@
   mode: single
 - id: '1769218477301'
   alias: Thermostat Mode Change Notice
-  description: ''
+  description: Ignores transitions to/from unavailable/unknown so thermostat reconnect
+    blips don't notify.
   triggers:
   - trigger: state
     entity_id:
-    - sensor.thermostat_operating_mode
-  conditions: []
+    - climate.thermostat
+    to:
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state is not none and trigger.from_state.state
+      not in [''unavailable'', ''unknown''] and trigger.to_state.state not in [''unavailable'',
+      ''unknown''] }}'
   actions:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Thermostat mode changed to {{ trigger.to_state.state }}
@@ -1482,6 +1477,11 @@
         Wastewater: '{{ float(states(''sensor.latest_utility_bill_wastewater_cost'',
           rounded=True), default=0) }}'
       add_created_column: false
+  - action: script.notify_wrapper
+    data:
+      message: 'Utility bill issued: {{ state_attr(''sensor.latest_utility_bill_id'',''amount'')
+        }}'
+      signal: false
   - action: notify.signal_homeassistant
     metadata: {}
     data:
@@ -1512,7 +1512,7 @@
   - condition: template
     value_template: '{{ trigger.to_state.state not in ["charging"] }}'
   actions:
-  - action: notify.signal_self
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Tesla Status Change
@@ -1556,7 +1556,7 @@
     - switch.sonoff_s31_4_s31_4_relay
   conditions: []
   actions:
-  - action: notify.signal_homeassistant
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Mosquito CO2 now {{ trigger.to_state.state }}
@@ -1575,51 +1575,10 @@
     - 1Gbps
   conditions: []
   actions:
-  - action: notify.signal_self
+  - action: script.notify_wrapper
     metadata: {}
     data:
       message: Network Link Speed Changed!
-  mode: single
-- id: '1790395559031'
-  alias: Notify AC Compressor Excess Current
-  description: Alerts when the AC compressor draws noticeably more current per watt
-    than the Sep 2026 new-capacitor baseline (24h median of sensor.ac_compressor_excess_current).
-    New capacitor runs about -1 to +2%; the failed capacitor ran +7 to +10% all summer.
-    A weakening run capacitor raises this number.
-  triggers:
-  - trigger: numeric_state
-    entity_id: sensor.ac_compressor_excess_current_24h_median
-    above: 3
-    for:
-      hours: 1
-    note: 3% sits about 1 point above the worst 24h median seen on the new capacitor.
-      Re-fires after an HA restart if still above, which is acceptable as a reminder.
-  actions:
-  - action: script.notify_wrapper
-    data:
-      message: 'AC capacitor early warning (low confidence): the compressor has drawn
-        {{ states(''sensor.ac_compressor_excess_current_24h_median'') }}% more current
-        than expected over the last 24h (alert threshold 3%).
-
-
-        What it is: amps from the EasyStart compared with watts and voltage from the
-        Emporia, against a baseline recorded on the new capacitor in Sep 2026. Same
-        work but more amps usually means a worse power factor, which is how a run
-        capacitor losing capacitance shows up.
-
-
-        Why it matters: the old capacitor ran about +8% for months before failing
-        on 9/11/26. A steady rise here may mean the new one is weakening, and a capacitor
-        check is cheaper than a no-cool call or a stressed compressor.
-
-
-        This could easily be a false positive: the baseline comes from only 2 weeks
-        of hot September weather; cooler weather, humidity, a dirty coil or filter,
-        or a low refrigerant charge can shift the number; it relies on 3 separate
-        devices (EasyStart, Emporia, outdoor temp sensor) whose calibration can drift;
-        and a stage misread near the low/high boundary skews it. If it''s just over
-        3% and holding steady, watch it. If it keeps climbing toward 6-8% or more,
-        have the capacitor''s µF measured.'
   mode: single
 - id: '1790715171437'
   alias: OpenBao Sealed
@@ -1661,3 +1620,327 @@
         data:
           message: OpenBao has been unsealed.
   mode: queued
+- id: '1791158732972'
+  alias: 'AC: record per-run split'
+  description: 'Records every cooling run when it ends: final (≈ peak) return-minus-supply
+    split into input_number.ac_run_split, plus a logbook entry with run length, compressor
+    speed, airflow and refrigerant readings. Runs shorter than 5 minutes are ignored:
+    at 20 Hz the office register sensor is still catching up after ~3 min, so short
+    shoulder-season cycles would read falsely low (e.g. 7–11°F on Oct 22 evening).
+    input_datetime.ac_run_start holds the start of the current run.'
+  triggers:
+  - trigger: state
+    entity_id: sensor.thermostat_state
+    to: Cooling
+    id: start
+    note: Cooling call began; stamp the run start.
+  - trigger: state
+    entity_id: sensor.ac_split
+    to: unknown
+    id: end
+    note: ac_split goes unknown the moment cooling stops; from_state holds the last
+      (≈ peak) split of the run.
+  actions:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: start
+      sequence:
+      - action: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.ac_run_start
+        data:
+          timestamp: '{{ now().timestamp() }}'
+    - conditions:
+      - condition: trigger
+        id: end
+      - condition: template
+        value_template: '{{ trigger.from_state is not none and is_number(trigger.from_state.state)
+          and state_attr(''input_datetime.ac_run_start'', ''timestamp'') is not none
+          and (now().timestamp() - state_attr(''input_datetime.ac_run_start'', ''timestamp''))
+          >= 300 }}'
+        note: 'Only real runs: last split numeric and run lasted at least 5 minutes.'
+      sequence:
+      - variables:
+          split: '{{ trigger.from_state.state | float }}'
+          run_min: '{{ ((now().timestamp() - state_attr(''input_datetime.ac_run_start'',
+            ''timestamp'')) / 60) | round(1) }}'
+      - action: input_number.set_value
+        target:
+          entity_id: input_number.ac_run_split
+        data:
+          value: '{{ split }}'
+      - action: logbook.log
+        data:
+          name: AC run split
+          entity_id: input_number.ac_run_split
+          message: '{{ split }}°F after {{ run_min }} min — compressor {{ states(''sensor.ac_compressor_speed'')
+            }} Hz, cooling rate {{ states(''sensor.ac_cooling_rate'') }}%, blower
+            {{ states(''sensor.furnace_blower_cfm'') }} CFM, subcool {{ states(''sensor.ac_subcooling'')
+            }}°F, superheat {{ states(''sensor.ac_superheat'') }}°F — return {{ states(''sensor.ac_return_temperature'')
+            }}°F / {{ states(''sensor.ac_return_humidity'') }}%, supply {{ states(''sensor.andrew_office_register_temperature'')
+            }}°F, outdoor {{ states(''sensor.amb_outdoor_temperature'') }}°F, inverter
+            {{ states(''sensor.ac_inverter_power'') }} W'
+  mode: queued
+  max: 5
+- id: '1791158737603'
+  alias: 'AC: low split alert'
+  description: Notify when a per-run AC split drops below 14°F (healthy is ~18-20°F).
+    Leave disabled until after the refrigerant repair.
+  triggers:
+  - trigger: numeric_state
+    entity_id: input_number.ac_run_split
+    below: 14
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.from_state is not none and trigger.from_state.state
+      not in [''unknown'', ''unavailable''] }}'
+  actions:
+  - action: persistent_notification.create
+    data:
+      title: AC split low
+      notification_id: ac_low_split
+      message: Per-run AC split was {{ states('input_number.ac_run_split') }}°F (healthy
+        ~18-20°F). Possible refrigerant loss or airflow issue.
+  mode: single
+- id: '1792605548517'
+  alias: 'HVAC: keep Lennox diagnostic level at 2'
+  description: Keeps number.thermostat_diagnostic_level at 2 so the lennoxs30 diagnostic
+    sensors (subcooling, superheat, pressures, compressor speed, blower CFM) stay
+    populated. Re-applies after changes, HA restart, and every 30 minutes as a backstop.
+  triggers:
+  - trigger: state
+    entity_id: number.thermostat_diagnostic_level
+    for:
+      seconds: 30
+  - trigger: homeassistant
+    event: start
+  - trigger: time_pattern
+    minutes: /30
+  conditions:
+  - condition: or
+    conditions:
+    - condition: numeric_state
+      entity_id: number.thermostat_diagnostic_level
+      below: 2
+    - condition: numeric_state
+      entity_id: number.thermostat_diagnostic_level
+      above: 2
+  actions:
+  - action: number.set_value
+    target:
+      entity_id: number.thermostat_diagnostic_level
+    data:
+      value: 2
+  - action: logbook.log
+    data:
+      name: HVAC diagnostics
+      entity_id: number.thermostat_diagnostic_level
+      message: Diagnostic level was {{ states('number.thermostat_diagnostic_level')
+        }}; set back to 2
+  mode: single
+- id: '1792859883916'
+  alias: 'HVAC: pause fan circulation when humid or hot'
+  description: Switches the thermostat fan from circulate (10 min/hr) to auto when
+    return-air humidity stays above 55% or outdoor temperature above 90°F, so circulation
+    doesn't re-evaporate the wet coil or pull hot attic-duct air. Turns circulate
+    back on once humidity is below 52% and outdoor below 82°F. Only undoes its own
+    pause (input_boolean.hvac_circulation_paused_by_automation), so a fan mode set
+    by hand to 'on' or 'auto' outside a pause is left alone.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.ac_return_humidity
+    above: 55
+    for:
+      minutes: 30
+    id: humid
+  - trigger: numeric_state
+    entity_id: sensor.amb_outdoor_temperature
+    above: 90
+    for:
+      minutes: 30
+    id: hot
+  - trigger: numeric_state
+    entity_id: sensor.ac_return_humidity
+    below: 52
+    for:
+      hours: 1
+    id: dry
+  - trigger: numeric_state
+    entity_id: sensor.amb_outdoor_temperature
+    below: 82
+    for:
+      hours: 1
+    id: mild
+  - trigger: homeassistant
+    event: start
+    id: start
+    note: 'Re-check after a restart, since numeric_state for: clocks reset.'
+  actions:
+  - choose:
+    - alias: Pause circulation
+      conditions:
+      - condition: state
+        entity_id: climate.thermostat
+        attribute: fan_mode
+        state: circulate
+      - condition: or
+        conditions:
+        - condition: numeric_state
+          entity_id: sensor.ac_return_humidity
+          above: 55
+        - condition: numeric_state
+          entity_id: sensor.amb_outdoor_temperature
+          above: 90
+      sequence:
+      - action: climate.set_fan_mode
+        target:
+          entity_id: climate.thermostat
+        data:
+          fan_mode: auto
+      - action: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.hvac_circulation_paused_by_automation
+      - action: logbook.log
+        data:
+          name: HVAC circulation
+          entity_id: climate.thermostat
+          message: 'Paused (fan → auto): return RH {{ states(''sensor.ac_return_humidity'')
+            }}%, outdoor {{ states(''sensor.amb_outdoor_temperature'') }}°F'
+    - alias: Resume circulation
+      conditions:
+      - condition: state
+        entity_id: input_boolean.hvac_circulation_paused_by_automation
+        state: 'on'
+      - condition: state
+        entity_id: climate.thermostat
+        attribute: fan_mode
+        state: auto
+      - condition: numeric_state
+        entity_id: sensor.ac_return_humidity
+        below: 52
+      - condition: numeric_state
+        entity_id: sensor.amb_outdoor_temperature
+        below: 82
+      sequence:
+      - action: climate.set_fan_mode
+        target:
+          entity_id: climate.thermostat
+        data:
+          fan_mode: circulate
+      - action: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.hvac_circulation_paused_by_automation
+      - action: logbook.log
+        data:
+          name: HVAC circulation
+          entity_id: climate.thermostat
+          message: 'Resumed (fan → circulate): return RH {{ states(''sensor.ac_return_humidity'')
+            }}%, outdoor {{ states(''sensor.amb_outdoor_temperature'') }}°F'
+  mode: queued
+  max: 5
+- id: hvac_dehumidify_boost
+  alias: 'HVAC: boost dehumidification when humid'
+  description: Uses the same return-air humidity thresholds as the circulation pause.
+    When RH stays above 55% for 30 min in a cooling mode, sets Lennox dehumidification
+    to max with 3°F overcooling (the system may cool up to 3°F below setpoint to
+    reach the 50% humidity setpoint). Once RH is below 52% for an hour, drops
+    overcooling back to 1°F. Only undoes its own boost, so a hand-set overcooling
+    other than 3°F is left alone.
+  triggers:
+  - trigger: numeric_state
+    entity_id: sensor.ac_return_humidity
+    above: 55
+    for:
+      minutes: 30
+    id: humid
+  - trigger: numeric_state
+    entity_id: sensor.ac_return_humidity
+    below: 52
+    for:
+      hours: 1
+    id: dry
+  - trigger: homeassistant
+    event: start
+    id: start
+  variables:
+    boost_overcool: 3
+    normal_overcool: 1
+  actions:
+  - choose:
+    - alias: Boost
+      conditions:
+      - condition: state
+        entity_id: climate.thermostat
+        state:
+        - cool
+        - heat_cool
+      - condition: numeric_state
+        entity_id: sensor.ac_return_humidity
+        above: 55
+      - '{{ states(''select.hvac_dehumidification_mode'') != ''max'' or states(''number.hvac_dehumidification_overcooling'')
+        | int(0) < boost_overcool }}'
+      sequence:
+      - action: select.select_option
+        target:
+          entity_id: select.hvac_dehumidification_mode
+        data:
+          option: max
+      - action: number.set_value
+        target:
+          entity_id: number.hvac_dehumidification_overcooling
+        data:
+          value: '{{ boost_overcool }}'
+      - action: logbook.log
+        data:
+          name: HVAC dehumidification
+          entity_id: select.hvac_dehumidification_mode
+          message: 'Boosted (max, {{ boost_overcool }}°F overcool): return RH {{ states(''sensor.ac_return_humidity'')
+            }}%'
+    - alias: Restore
+      conditions:
+      - condition: numeric_state
+        entity_id: sensor.ac_return_humidity
+        below: 52
+      - '{{ states(''number.hvac_dehumidification_overcooling'') | int(0) == boost_overcool
+        }}'
+      sequence:
+      - action: number.set_value
+        target:
+          entity_id: number.hvac_dehumidification_overcooling
+        data:
+          value: '{{ normal_overcool }}'
+      - action: logbook.log
+        data:
+          name: HVAC dehumidification
+          entity_id: select.hvac_dehumidification_mode
+          message: 'Restored ({{ normal_overcool }}°F overcool): return RH {{ states(''sensor.ac_return_humidity'')
+            }}%'
+  mode: queued
+  max: 5
+- id: sync_cleared_notifications
+  alias: Sync Cleared Notifications
+  description: When a tagged notification is dismissed on an Android device, clear
+    it on every other device. Critical alerts (ACK_ tags) are left to their Acknowledge
+    flow.
+  triggers:
+  - trigger: event
+    event_type: mobile_app_notification_cleared
+  conditions:
+  - condition: template
+    value_template: '{{ trigger.event.data.tag is defined and trigger.event.data.tag
+      and not trigger.event.data.tag.startswith(''ACK_'') }}'
+  actions:
+  - repeat:
+      for_each:
+      - andrew
+      - bethany
+      sequence:
+      - action: notify.{{ repeat.item }}
+        continue_on_error: true
+        data:
+          message: clear_notification
+          data:
+            tag: '{{ trigger.event.data.tag }}'
+  mode: queued
+  max: 20

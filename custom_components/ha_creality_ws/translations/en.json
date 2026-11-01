@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Connect to Creality Printer",
@@ -8,12 +9,14 @@
           "host": "IP Address",
           "name": "Friendly Name"
         }
+      },
+      "zeroconf_confirm": {
+        "title": "Add discovered printer",
+        "description": "Add the Creality printer {name} at {host}?"
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to printer. Ensure IP is correct and printer is ON.",
-      "not_K": "Connection refused or not a supported Creality K-series printer.",
-      "already_configured": "This printer is already configured."
+      "cannot_connect": "Failed to connect to printer. Ensure IP is correct and printer is ON."
     },
     "abort": {
       "already_configured": "Device is already configured",
@@ -34,6 +37,7 @@
     "status_starting": "Starting",
     "status_paused": "Paused",
     "status_finishing": "Finishing",
+    "status_printing": "Printing",
     "body_progress": "{progress}%",
     "body_paused": "Paused at {progress}%",
     "body_paused_unknown": "Paused",
@@ -48,12 +52,60 @@
     "stopped": "{device} stopped at {progress}%",
     "completed_detailed": "{device} finished. {filament} consumed.",
     "error": "{device} error - {key} [{code}]",
-    "filament_runout": "{device} filament ran out. Print is {state}. Change the filament.",
-    "finishing_soon": "{device} will finish in {minutes} minutes."
+    "filament_runout": "{device} filament ran out. Print status: {state}. Change the filament.",
+    "finishing_soon": "{device} will finish in {minutes} min.",
+    "cfs_info_title": "CFS information request",
+    "cfs_info_failed": "Could not reach {printers}.",
+    "cfs_material_failed_title": "CFS material not changed",
+    "cfs_material_failed": "{printer} is not connected, so box {box} slot {slot} was not changed.",
+    "diagnostic_title": "Creality diagnostic data",
+    "diagnostic_collected": "Diagnostic data was collected (printers: {printers}). It is in this action's response and in the Home Assistant log."
   },
   "exceptions": {
     "unsupported_ha_version": {
       "message": "This version of the Creality WebSocket integration needs Home Assistant {minimum} or newer, but this system is running {running}. Update Home Assistant, or install integration version 0.9.7 instead."
+    },
+    "cfs_material_write_failed": {
+      "message": "The CFS material was not changed on {printers}: the printer is not connected."
+    },
+    "cfs_material_needs_device": {
+      "message": "Choose the printer to change. This action only writes to the printers you select, never to all of them."
+    },
+    "no_printer_matched": {
+      "message": "None of the selected devices is a Creality printer set up in this integration."
+    },
+    "cfs_material_printer_busy": {
+      "message": "{printer} is in the middle of a print, so its CFS material was not changed. Try again once the print is over."
+    },
+    "material_type_empty": {
+      "message": "The material type must not be empty."
+    },
+    "material_not_a_number": {
+      "message": "{field} must be a number, not {value}."
+    },
+    "material_temp_order": {
+      "message": "The maximum temperature ({high}) must not be below the minimum temperature ({low})."
+    },
+    "material_pressure_range": {
+      "message": "The pressure advance must be between 0 and 1, not {value}."
+    },
+    "material_colour_list": {
+      "message": "The colour must be a hex value such as #ff8800, not a list of RGB values."
+    },
+    "material_colour_multi": {
+      "message": "{value} holds several colours, and a slot can only store one."
+    },
+    "material_colour_invalid": {
+      "message": "The colour must be six hex digits such as #ff8800, not {value}."
+    },
+    "printer_not_connected": {
+      "message": "The printer is not connected, so the command was not sent. Check that it is switched on and reachable, then try again."
+    }
+  },
+  "issues": {
+    "missing_power_switch": {
+      "title": "Power switch for {printer} not found",
+      "description": "The power switch set for {printer}, `{entity_id}`, does not exist, so it was renamed or removed. The printer is connected to as if no power switch were set. To use one again, choose it under Settings > Devices & services > Creality WebSocket Integration > Configure > Power switch."
     }
   },
   "selector": {
@@ -130,7 +182,7 @@
               "notify_actions": "Stop asks for device authentication, so a mis-tap on a lock screen cannot end a long print.",
               "notify_preview_image": "Skipped when the printer has no preview to serve, rather than sending an empty grey box.",
               "notify_camera_snapshot": "What the bed actually looks like. Skipped on printers whose camera cannot take a still.",
-              "notify_tap_path": "For example /lovelace/printer. Left empty, an Android tap opens the printer camera and an iOS tap opens the app; this is the only way to make an iOS tap go anywhere specific."
+              "notify_tap_path": "For example /lovelace/printer. Left empty, a tap opens the printer camera on Android and iPhone; set a path to open a dashboard instead."
             }
           },
           "text": {
@@ -173,7 +225,9 @@
     },
     "error": {
       "invalid_camera_url": "Enter a full URL including the scheme, e.g. http://192.168.1.50:8080/?action=stream or rtsp://192.168.1.50:554/stream.",
-      "unknown_placeholder": "That is not a placeholder this integration can fill. Check the list in the description above, and mind the spelling."
+      "unknown_placeholder": "That is not a placeholder this integration can fill. Check the list in the description above, and mind the spelling.",
+      "cannot_connect": "Failed to connect to the printer at this address. Check the IP address and that the printer is switched on.",
+      "host_in_use": "Another printer in this integration is already set up at this address."
     }
   },
   "entity": {
@@ -189,6 +243,7 @@
       "position_z": { "name": "Position Z" },
       "feedrate_pct": { "name": "Print Speed" },
       "flowrate_pct": { "name": "Flow Rate" },
+      "real_time_speed": { "name": "Real-Time Speed" },
       "model_info": { "name": "Model" },
       "filament_status": {
         "name": "Filament Status",
@@ -220,7 +275,10 @@
       "print_job_time": { "name": "Print Job Time" },
       "print_left_time": { "name": "Print Time Left" },
       "real_time_flow": { "name": "Real-Time Flow" },
-      "current_object": { "name": "Current Object" },
+      "current_object": {
+        "name": "Current Object",
+        "state": { "not_printing": "Not printing" }
+      },
       "object_count": { "name": "Object Count" },
       "print_control": {
         "name": "Print Control",
@@ -233,7 +291,28 @@
       "max_nozzle_temp": { "name": "Max Nozzle Temperature" },
       "max_bed_temp": { "name": "Max Bed Temperature" },
       "max_chamber_temp": { "name": "Max Chamber Temperature" },
-      "active_filament_slot": { "name": "Active Filament Slot" },
+      "active_filament_slot": {
+        "name": "Active Filament Slot",
+        "state": {
+          "external": "External",
+          "box_1_slot_1": "Box 1 Slot 1",
+          "box_1_slot_2": "Box 1 Slot 2",
+          "box_1_slot_3": "Box 1 Slot 3",
+          "box_1_slot_4": "Box 1 Slot 4",
+          "box_2_slot_1": "Box 2 Slot 1",
+          "box_2_slot_2": "Box 2 Slot 2",
+          "box_2_slot_3": "Box 2 Slot 3",
+          "box_2_slot_4": "Box 2 Slot 4",
+          "box_3_slot_1": "Box 3 Slot 1",
+          "box_3_slot_2": "Box 3 Slot 2",
+          "box_3_slot_3": "Box 3 Slot 3",
+          "box_3_slot_4": "Box 3 Slot 4",
+          "box_4_slot_1": "Box 4 Slot 1",
+          "box_4_slot_2": "Box 4 Slot 2",
+          "box_4_slot_3": "Box 4 Slot 3",
+          "box_4_slot_4": "Box 4 Slot 4"
+        }
+      },
       "cfs_box_temp": { "name": "CFS Box {box_id} Temperature" },
       "cfs_box_humidity": { "name": "CFS Box {box_id} Humidity" },
       "cfs_slot_filament": { "name": "CFS Box {box_id} Slot {slot} Filament" },
@@ -251,7 +330,8 @@
       "reconnect": { "name": "Reconnect" }
     },
     "number": {
-      "print_tuning_pct": { "name": "Print Tuning" },
+      "print_tuning_pct": { "name": "Speed Factor" },
+      "flow_rate_pct": { "name": "Flow Factor" },
       "nozzle_target": { "name": "Nozzle Target" },
       "bed_target": { "name": "Bed Target" },
       "chamber_target": { "name": "Chamber Target" }
@@ -274,11 +354,11 @@
   "services": {
     "diagnostic_dump": {
       "name": "Diagnostic Dump",
-      "description": "Dump all WebSocket telemetry data from connected Creality printers to JSON format for troubleshooting and analysis.",
+      "description": "Collect diagnostics for every Creality printer and return them as the response, for troubleshooting. Also written to the log.",
       "fields": {
         "include_sensitive_data": {
           "name": "Include Sensitive Data",
-          "description": "Whether to include potentially sensitive data in the diagnostic output (currently unused, reserved for future use)"
+          "description": "Show printer addresses and network names, notify targets and access tokens instead of hiding them. Leave this off for anything you share publicly."
         }
       }
     },

@@ -1,4 +1,5 @@
 """Constants for Dahua."""
+
 # Base component constants
 NAME = "Dahua"
 DOMAIN = "dahua"
@@ -7,19 +8,11 @@ ATTRIBUTION = "Data provided by https://ronnieroller.com"
 ISSUE_URL = "https://github.com/rroller/dahua/issues"
 
 # Icons - https://materialdesignicons.com/
-ICON = "mdi:format-quote-close"
-MOTION_DETECTION_ICON = "mdi:motion-sensor"
-SECURITY_LIGHT_ICON = "mdi:alarm-light-outline"
-SIREN_ICON = "mdi:bullhorn"
-INFRARED_ICON = "mdi:weather-night"
-DISARMING_ICON = "mdi:alarm-check"
-VOLUME_HIGH_ICON = "mdi:volume-high"
-BELL_ICON = "mdi:bell-ring"
-PRIVACY_MODE_ICON = "mdi:shield-lock"
 
 # Device classes - https://www.home-assistant.io/integrations/binary_sensor/#device-class
 MOTION_SENSOR_DEVICE_CLASS = "motion"
 SAFETY_DEVICE_CLASS = "safety"
+TAMPER_DEVICE_CLASS = "tamper"
 CONNECTIVITY_DEVICE_CLASS = "connectivity"
 SOUND_DEVICE_CLASS = "sound"
 DOOR_DEVICE_CLASS = "door"
@@ -33,7 +26,20 @@ SELECT = "select"
 BUTTON = "button"
 SENSOR = "sensor"
 EVENT = "event"
-PLATFORMS = [BINARY_SENSOR, SWITCH, LIGHT, CAMERA, SELECT, BUTTON, SENSOR, EVENT]
+NUMBER = "number"
+UPDATE = "update"
+PLATFORMS = [
+    BINARY_SENSOR,
+    SWITCH,
+    LIGHT,
+    CAMERA,
+    SELECT,
+    BUTTON,
+    SENSOR,
+    EVENT,
+    NUMBER,
+    UPDATE,
+]
 
 
 # Configuration and options
@@ -59,6 +65,32 @@ CONF_SCAN_INTERVAL = "scan_interval"
 # Prototype: route config reads over RPC2's session instead of a fresh digest
 # handshake per call. Off by default -- see #636.
 CONF_USE_RPC2 = "use_rpc2"
+# This device serves no HTTP at all, so every read goes over DHIP on 5000
+# (#949). An indoor monitor: a VTH5221D has only 5000 and 37777 open. Written
+# by the add flow, which is the only place that can tell "no web server" apart
+# from "camera is switched off", since both answer connection-refused.
+CONF_RPC2_OVER_DHIP = "rpc2_over_dhip"
+# Internal identity policy, persisted after a monitor adopts its real serial.
+CONF_REQUIRE_REPORTED_SERIAL = "require_reported_serial"
+# An indoor monitor's call settings (#949, #998), as the device names them.
+# Measured on a VTH5221D (3.000.0012000.0.R), where all five are present.
+# One list, shared by the probe that decides which exist and by the two
+# platforms that create entities from the answer, so the three cannot drift.
+VTH_SILENCE_FIELD = "SilenceEnable"
+# The volumes, as the device names them. The translation keys live beside the
+# entities in number.py, where the two name scanners can read them out of a
+# literal table; `test_monitor_call_settings.py` checks the two agree, so a
+# field added in one place cannot go missing from the other.
+VTH_VOLUME_FIELD_NAMES = (
+    "RingVolume",
+    "VthRingVolume",
+    "TalkVolume",
+    "AlarmVolume",
+)
+VTH_PHONE_SETTINGS = (VTH_SILENCE_FIELD,) + VTH_VOLUME_FIELD_NAMES
+# Some recorders push IVS/SMD events over the CGI stream but expose ordinary
+# VideoMotion only through eventManager's current-state endpoint.
+CONF_POLL_VIDEO_MOTION = "poll_video_motion"
 CONF_NVR_ACTIVE_DETERRENCE = "nvr_active_deterrence"
 CONF_MANUAL_SIREN = "manual_siren"
 CONF_MANUAL_SECURITY_LIGHT = "manual_security_light"
@@ -68,6 +100,38 @@ CONF_DISABLE_BACKCHANNEL = "disable_backchannel"
 CONF_AUTHORIZED_PLATES = "authorized_plates"
 CONF_AUTHORIZED_HOLD_TIME = "authorized_hold_time"
 
+# Settings that belong to one channel rather than to the host.
+#
+# `channel_option` reads a channel's own answer before the entry's, and a merged
+# recorder's channel keeps its answer in its subentry's data. So this is the set of
+# keys the #827 migration has to carry across: a key that belongs here and is left
+# behind reverts to whatever was stored when the camera was added, and a key that
+# does not belong here would be frozen per channel instead of following the host.
+#
+# test_channel_options_survive_the_merge.py scans the package for every key read
+# through channel_option, _channel_first or events_for_channel and fails if one is
+# missing from here, so a new per-channel option cannot be added without it.
+# Labels to put on every device this entry creates. Entry wide on purpose: a
+# recorder's twelve channels are twelve devices and the point of the option is
+# to label them together. Deliberately NOT in CHANNEL_OPTION_KEYS below, which
+# is for settings that differ per channel -- the area is one of those, this is
+# not.
+CONF_LABELS = "labels"
+
+CHANNEL_OPTION_KEYS = frozenset(
+    {
+        CONF_AREA,
+        CONF_AUTHORIZED_HOLD_TIME,
+        CONF_AUTHORIZED_PLATES,
+        CONF_AUTO_DETECT_CHANNEL,
+        CONF_DISABLE_BACKCHANNEL,
+        CONF_EVENTS,
+        CONF_MANUAL_SECURITY_LIGHT,
+        CONF_MANUAL_SIREN,
+        CONF_NVR_ACTIVE_DETERRENCE,
+    }
+)
+
 # Events
 EVENT_DAHUA_ANPR_RECOGNIZED = "dahua_anpr_recognized"
 
@@ -76,9 +140,17 @@ DEFAULT_NAME = "Dahua"
 # What an entry subscribes to when nothing has ever said otherwise. Lives here
 # rather than in config_flow because __init__ needs it too, and config_flow
 # imports __init__ back.
-DEFAULT_EVENTS = ["VideoMotion", "CrossLineDetection", "AlarmLocal", "VideoLoss",
-                  "VideoBlind", "AudioMutation", "CrossRegionDetection",
-                  "SmartMotionHuman", "SmartMotionVehicle"]
+DEFAULT_EVENTS = [
+    "VideoMotion",
+    "CrossLineDetection",
+    "AlarmLocal",
+    "VideoLoss",
+    "VideoBlind",
+    "AudioMutation",
+    "CrossRegionDetection",
+    "SmartMotionHuman",
+    "SmartMotionVehicle",
+]
 DEFAULT_AUTHORIZED_HOLD_TIME = 60
 # How often the coordinator polls each device for its settings. Events do not
 # come from polling - they arrive on the event stream - so this only paces the
@@ -87,6 +159,11 @@ DEFAULT_SCAN_INTERVAL = 30
 # Below this the polling costs more than it tells you, especially on an NVR
 # where every channel is a separate entry against the same host.
 MIN_SCAN_INTERVAL = 10
+# How long a read of the device's cloud upgrade record is reused. The device
+# only rewrites that record after its own OTA check (daily by default), so the
+# informational update entity does not need it re-read on every poll. The
+# record is host-wide, but the reuse is per channel that reads it.
+FIRMWARE_UPGRADE_REFRESH_SECONDS = 6 * 60 * 60
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
@@ -96,3 +173,117 @@ If you have any issues with this you need to open an issue here:
 {ISSUE_URL}
 -------------------------------------------------------------------
 """
+
+
+# Every configuration table this integration can change, which is what a backup
+# of it has to cover. A Dahua config write is often not reversible from here --
+# VideoAnalyseRule enables over CGI and will not disable, and several writes are
+# accepted and ignored -- so the value of this is being able to read back what a
+# setting was before something changed it.
+#
+# Not hand-maintained: test_the_backup_covers_what_can_be_changed.py reads every
+# setConfig table name out of client.py and fails if one is missing from here.
+# A list of what another file does goes stale the moment that file grows, which
+# is the whole reason the test exists rather than a comment asking nicely.
+#
+# Read-only tables are deliberately absent. A backup is for things that can be
+# put back; diagnostics already reports the rest, and the get_config service
+# reads any table at all.
+BACKED_UP_TABLES = (
+    "ChannelTitle",
+    "DisableEventNotify",
+    "DisableLinkage",
+    "FloodLightMode",
+    # The AI tour plan the tour switch starts and stops (#1051). The switch
+    # writes only Enable, but the backup takes the table, so a restore brings
+    # back the plan itself as well.
+    "IntelliTour",
+    # The privacy mask on the cameras that have one, measured on an
+    # IP4M-1041W. Found by the guard test rather than by me: the first
+    # version of its scan only matched a table named straight after
+    # `action=setConfig&`, and this one is appended to the URL further
+    # along, so the backup would have shipped without it.
+    "LeLensMask",
+    "LightGlobal",
+    "Lighting",
+    "LightingScheme",
+    "Lighting_V2",
+    "MotionDetect",
+    "PrivacyMasking",
+    "RecordMode",
+    "SmartMotionDetect",
+    # The cloud connection the cloud switch writes (#591). Its neighbours
+    # in that table are not settings, which is what REDACTED_BACKUP_FIELDS
+    # below is for.
+    "VSP_PaaS",
+    "VideoAnalyseRule",
+    "VideoColor",
+    "VideoInDayNight",
+    "VideoInMode",
+    "VideoInOptions",
+    "VideoWidget",
+)
+
+
+# Every event code a user can subscribe to, in the order the selection list
+# shows them. `All` is the device's own catch-all rather than a code it ever
+# sends, which is why every consumer filters it out.
+#
+# Here rather than in config_flow.py, which is where it used to live, because
+# three other modules need the same list: binary_sensor.py builds the set of
+# codes it ships a translation for from it, client.py expands `All` for the
+# RPC2 event poll, and the config flow offers it. binary_sensor.py held its
+# own copy of all 41 codes, so adding one meant editing two files and nothing
+# failed if you edited one.
+ALL_EVENTS = [
+    "VideoMotion",
+    "VideoLoss",
+    "AlarmLocal",
+    "CrossLineDetection",
+    "CrossRegionDetection",
+    "AudioMutation",
+    "SmartMotionHuman",
+    "SmartMotionVehicle",
+    "VideoBlind",
+    "AudioAnomaly",
+    "VideoMotionInfo",
+    "NewFile",
+    "IntelliFrame",
+    "LeftDetection",
+    "TakenAwayDetection",
+    "VideoAbnormalDetection",
+    "FaceDetection",
+    "FaceRecognition",
+    "HumanTrait",
+    "VideoUnFocus",
+    "WanderDetection",
+    "RioterDetection",
+    "ParkingDetection",
+    "MoveDetection",
+    "StorageNotExist",
+    "StorageFailure",
+    "StorageLowSpace",
+    "AlarmOutput",
+    "InterVideoAccess",
+    "NTPAdjustTime",
+    "TimeChange",
+    "MDResult",
+    "HeatImagingTemper",
+    "CrowdDetection",
+    "FireWarning",
+    "FireWarningInfo",
+    "ObjectPlacementDetection",
+    "ObjectRemovalDetection",
+    "All",
+    "Traffic",
+    "TrafficJunction",
+    "TrafficSnapshot",
+]
+# Fields that identify the device to Dahua's cloud rather than configure
+# anything. A backup is a file somebody attaches to a bug report, and
+# VSP_PaaS carries the device's cloud key, its serial and its cloud login.
+# Matched on the field name, the part after the last dot, so the same rule
+# covers a table added later that carries one of them.
+REDACTED_BACKUP_FIELDS = frozenset(
+    {"AbHash", "CheckCode", "Key", "Password", "SN", "UUID", "Username"}
+)

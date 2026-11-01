@@ -6,4 +6,4 @@ hide:
 tts:
   platform: alexa
   type: announce
-  entity_id: media_player.everywhere
+  entity_id: media_player.everywhere_2

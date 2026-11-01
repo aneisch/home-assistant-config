@@ -1,5 +1,8 @@
 {
   "printer_card": {
+    "default_name": "Impresora 3D",
+    "picker_name": "Tarjeta de impresora Creality",
+    "picker_description": "Tarjeta independiente para impresoras Creality de la serie K",
     "status_unknown": "Desconocido",
     "confirm_stop": "¿Seguro que deseas detener la impresión?",
     "confirm_power_off": "¿Seguro que deseas apagar la impresora?",
@@ -77,6 +80,7 @@
     "label_custom_btn": "Entidad de acción personalizada",
     "label_custom_btn_icon": "Icono del botón personalizado",
     "label_custom_btn_hidden": "Ocultar el botón personalizado",
+    "label_hidden_buttons": "Botones ocultos",
     "label_button_order": "Orden de los botones (lista)",
     "label_hide_box_temp": "Ocultar la temperatura de la cámara",
     "label_pause_btn_icon": "Icono de pausa (sustitución)",
@@ -104,6 +108,7 @@
     "helper_custom_btn": "Cualquier entidad a activar (botón, script, interruptor, etc.)",
     "helper_custom_btn_icon": "Icono del botón personalizado",
     "helper_custom_btn_hidden": "Ocultar el botón personalizado",
+    "helper_hidden_buttons": "Nunca se muestran en la tarjeta, sea cual sea el estado de la impresora",
     "helper_button_order": "Lista de botones en orden (pause, resume, stop, light, power, custom)",
     "helper_hide_box_temp": "Ocultar el indicador de temperatura de la cámara aunque haya un sensor configurado",
     "editor_error_title": "Error del editor",
@@ -111,9 +116,14 @@
     "editor_error_prefix": "Error:"
   },
   "cfs_card": {
+    "picker_name": "Tarjeta CFS de Creality",
+    "picker_description": "Tarjeta para controlar el Creality Filament System (CFS)",
+    "label_device": "Impresora",
+    "btn_fill_from_device": "Rellenar todos los campos desde la impresora",
+    "status_device_filled": "Se han rellenado {filled} de {total} campos.",
+    "status_device_empty": "Esta impresora aún no tiene sensores del CFS.",
     "no_data": "No hay datos del CFS disponibles",
     "ext_label": "EXT",
-    "cfs_label": "CFS",
     "cfs_number_label": "CFS {number}",
     "label_card_title": "Título de la tarjeta",
     "label_external_filament": "Filamento externo",
@@ -124,7 +134,6 @@
     "label_slot_filament": "Filamento (caja {box}, ranura {slot})",
     "label_slot_color": "Color (caja {box}, ranura {slot})",
     "label_slot_percent": "Restante (caja {box}, ranura {slot})",
-    "schema_compact_view": "Vista compacta (modo mini)",
     "schema_show_type_in_mini": "Mostrar el tipo de filamento en modo mini",
     "tab_entities": "Entidades",
     "tab_theme": "Tema",

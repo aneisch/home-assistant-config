@@ -2,7 +2,38 @@ template:
   - binary_sensor:
       - name: "Flume Flow Status"
         state: >-
-          {{ states('sensor.flume_sensor_home_current') != "0" }}
+          {{ states('sensor.flume_sensor_home_current') | float(0) > 0 }}
+        availability: "{{ has_value('sensor.flume_sensor_home_current') }}"
+
+      # Any irrigation running. delay_off covers Flume reporting ~1-2 min behind the valves
+      - name: "Irrigation Active"
+        unique_id: irrigation_active
+        state: >-
+          {{ ['switch.irrigation_master_valve', 'switch.irrigation_front_beds', 'switch.irrigation_front_lawn',
+              'switch.irrigation_left_and_main_rear_lawn', 'switch.irrigation_front_and_right_rear_lawn',
+              'switch.irrigation_side_lawn', 'switch.bhyve_1', 'switch.bhyve_2', 'switch.bhyve_3']
+             | select('is_state', 'on') | list | count > 0 }}
+        delay_off: "00:10:00"
+
+      # Meaningful flow that isn't irrigation. delay_off bridges single low/missed Flume readings
+      # so `for:` triggers measure a real sustained run (thresholds tuned on Jul-Oct 2026 history)
+      - name: "Unexpected Water Flow"
+        unique_id: unexpected_water_flow
+        state: >-
+          {{ states('sensor.flume_sensor_home_current') | float(0) >= 0.3
+             and is_state('binary_sensor.irrigation_active', 'off') }}
+        delay_off: "00:03:00"
+
+sensor:
+  # % of 1:00-4:30 with any flow. Normal nights 0-10% (max 28%), running toilet/slow leak 30-60%
+  - platform: history_stats
+    name: Water Flow Overnight
+    unique_id: water_flow_overnight
+    entity_id: binary_sensor.flume_flow_status
+    state: "on"
+    type: ratio
+    start: "{{ today_at('01:00') }}"
+    end: "{{ today_at('04:30') }}"
 
 automation:
   - alias: "Flume Connection"
@@ -23,69 +54,162 @@ automation:
         data:
           message: "Flume sensor {% if trigger.id == 'disconnected' %}disconnected{% else %}connected{% endif %}"
 
+  - alias: "Water Heater Water Detector Connection"
+    id: "water_heater_water_detector_connection"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.water_heater_water_detector
+        id: disconnected
+        to: "unavailable"
+        for: "00:05:00"
+      - platform: state
+        entity_id: binary_sensor.water_heater_water_detector
+        id: connected
+        from: "unavailable"
+        to:
+          - "on"
+          - "off"
+    condition:
+      # Only report reconnect if it was actually offline long enough to alert
+      - condition: template
+        value_template: "{{ trigger.id == 'disconnected' or (now() - trigger.from_state.last_changed).total_seconds() >= 300 }}"
+    action:
+      - action: script.notify_wrapper
+        data:
+          message: "Water heater water detector {% if trigger.id == 'disconnected' %}is offline!{% else %}is back online{% endif %}"
+          data:
+            priority: 1
+
   - alias: "Water Flow Alert"
-    # Alert if water flowing for minutes and we're not home
-    # Alert if water flowing for hours regardless
+    # Tuned on Jul-Oct 2026 Flume history (simulated alerts per 90 days in brackets):
+    #   away_high: >=2 g/m for 2 min while nobody home, critical (burst pipe) [1; away max seen 3 g/m]
+    #   away:      >=0.3 g/m for 5 min while nobody home [~7]
+    #   running:   >=0.3 g/m for 60 min, home or not, i.e. water/hose left on [~13, all summer]
+    #   long:      still running at 3 hours, critical [0]
+    #   overnight: water flowing >=30% of 1:00-4:30, i.e. running toilet / slow leak
+    # Irrigation is excluded via binary_sensor.irrigation_active
     id: "water_flow_alert"
     mode: parallel
     trigger:
-      - platform: state
-        entity_id: binary_sensor.flume_flow_status
-        id: two_minutes
-        from: "off"
-        to: "on"
+      - platform: numeric_state
+        entity_id: sensor.flume_sensor_home_current
+        id: away_high
+        above: 2
         for: "00:02:00"
       - platform: state
-        entity_id: binary_sensor.flume_flow_status
-        id: five_minutes
-        from: "off"
+        entity_id: binary_sensor.unexpected_water_flow
+        id: away
         to: "on"
         for: "00:05:00"
       - platform: state
-        entity_id: binary_sensor.flume_flow_status
-        id: hours
-        from: "off"
+        entity_id: binary_sensor.unexpected_water_flow
+        id: running
         to: "on"
-        for: "02:00:00"
+        for: "01:00:00"
+      - platform: state
+        entity_id: binary_sensor.unexpected_water_flow
+        id: long
+        to: "on"
+        for: "03:00:00"
+      - platform: time
+        id: overnight
+        at: "04:35:00"
+      - platform: event
+        id: shutoff
+        event_type: mobile_app_notification_action
+        event_data:
+          action: confirm_water_shutoff
+    variables:
+      flow_summary: >-
+        {{ states('sensor.flume_sensor_home_current') | float(0) | round(1) }} g/m now,
+        {{ states('sensor.flume_sensor_home_60_minutes') | float(0) | round(0) }} gal in the last hour
+      shutoff_actions:
+        - action: confirm_water_shutoff
+          title: "Shut off water"
     action:
-      # any real flow for 5 minutes when not home and irrigation off AND not during a scheduled timer AND bhyve off
-      - if: "{{ trigger.id == 'five_minutes' 
-            and states('sensor.flume_sensor_home_current') | float >= 0.1
-            and is_state('switch.irrigation_master_valve', 'off') 
-            and not is_state('switch.bhyve_1','on')
-            and not is_state('switch.bhyve_2','on')
-            and is_state('group.trackers', 'not_home' ) 
-            and not (now().hour == 10 and now().minute in [0,1,2,3,4,5,7,8,9,10,11])
-            and not (now().hour == 9 and now().minute in [15,16,17,18,19,20]) 
-            and is_state('input_boolean.guest_mode', 'off') }}"
-        then:
-          - action: script.notify_wrapper
-            data:
-              message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
-              data:
-                priority: 1
-      # significant flow when not home and irrigation off AND washer not running
-      - if: "{{ trigger.id == 'two_minutes' 
-            and states('sensor.flume_sensor_home_current') | float > 1
-            and is_state('switch.irrigation_master_valve', 'off') 
-            and not is_state('switch.bhyve_1','on')
-            and not is_state('switch.bhyve_2','on')
-            and is_state('group.trackers', 'home' ) 
-            and states('sensor.washing_machine_power') | float < 5
-            and is_state('input_boolean.guest_mode', 'off') }}"
-        then:
-          - action: script.notify_wrapper
-            data:
-              message: Unexpected water flow! Instantaneous {{ states('sensor.flume_sensor_home_current') }}g/m ({{ states('sensor.flume_sensor_home_60_minutes')}}g/h)
-              data:
-                priority: 1
-      - if: "{{ trigger.id == 'hours' }}"
-        then:
-          - action: script.notify_wrapper
-            data:
-              message: Water left running? {{ states('sensor.flume_sensor_home_60_minutes') | round(2) }}g/h (instantaneous {{ states('sensor.flume_sensor_home_current') | round(2) }}g/m )
-              data:
-                priority: 1
+      - choose:
+          - conditions: "{{ trigger.id == 'away_high'
+                and is_state('group.trackers', 'not_home')
+                and is_state('input_boolean.guest_mode', 'off')
+                and is_state('binary_sensor.irrigation_active', 'off') }}"
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  message: "HIGH water flow with nobody home! ({{ flow_summary }})"
+                  level: critical
+              # Critical only carries an Acknowledge button, so offer shutoff alongside it
+              - action: script.notify_wrapper
+                data:
+                  message: "Shut off water? High flow with nobody home ({{ flow_summary }})"
+                  level: alert
+                  tag: water_flow
+                  signal: false
+                  actions: "{{ shutoff_actions }}"
+          - conditions: "{{ trigger.id == 'away'
+                and is_state('group.trackers', 'not_home')
+                and is_state('input_boolean.guest_mode', 'off') }}"
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  message: "Water running with nobody home ({{ flow_summary }})"
+                  level: alert
+                  tag: water_flow
+                  actions: "{{ shutoff_actions }}"
+          - conditions: "{{ trigger.id == 'running' }}"
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  message: "Water left on? Running for an hour ({{ flow_summary }})"
+                  level: alert
+                  tag: water_flow
+                  actions: "{{ shutoff_actions }}"
+          - conditions: "{{ trigger.id == 'long' }}"
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  message: "Water has been running for 3 hours! ({{ flow_summary }})"
+                  level: critical
+          - conditions: "{{ trigger.id == 'overnight'
+                and states('sensor.water_flow_overnight') | float(0) >= 30
+                and as_timestamp(states.binary_sensor.irrigation_active.last_changed) < as_timestamp(today_at('01:00'))
+                and is_state('binary_sensor.irrigation_active', 'off') }}"
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  message: >-
+                    Possible slow leak or running toilet: water was flowing
+                    {{ states('sensor.water_flow_overnight') | float(0) | round(0) }}% of the time overnight (normally under 10%)
+                  level: info
+          - conditions: "{{ trigger.id == 'shutoff' }}"
+            sequence:
+              - action: switch.turn_on
+                entity_id: switch.water_shutoff
+              - action: notify.andrew
+                data:
+                  message: clear_notification
+                  data:
+                    tag: water_flow
+
+  - alias: "Water Flow Alert Clear"
+    # Drop the stale prompt (and its shutoff button) once the flow has stopped
+    id: "water_flow_alert_clear"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.unexpected_water_flow
+        from: "on"
+        to: "off"
+    condition:
+      - condition: template
+        # only after a run long enough to have alerted (5 min away / 60 min otherwise)
+        value_template: >-
+          {% set ran = (now() - trigger.from_state.last_changed).total_seconds() %}
+          {{ ran >= 3600 or (ran >= 300 and is_state('group.trackers', 'not_home')) }}
+    action:
+      - action: notify.andrew
+        data:
+          message: clear_notification
+          data:
+            tag: water_flow
 
   - alias: "Water Shutoff Alert"
     id: "water_shutoff_alert"
@@ -133,10 +257,6 @@ automation:
           - binary_sensor.laundry_room_water_detector
           - binary_sensor.kitchen_water_detector
           - binary_sensor.dishwasher_water_detector
-        to: "on"
-      - platform: state
-        id: non_critical
-        entity_id:
           - binary_sensor.water_heater_water_detector
         to: "on"
     action:
@@ -147,6 +267,7 @@ automation:
       - action: script.notify_wrapper
         data:
           message: "Water detected by {{ trigger.to_state.name }}. {% if trigger.id == 'critical' %}Shutting off water!{% endif %}"
+          to: [andrew, bethany]
           data:
             priority: 2
       # - action: notify.alexa_media

@@ -1,0 +1,86 @@
+{
+  "config": {
+    "title": "Lennox S30/E30 Local/Cloud",
+    "step": {
+      "user": {
+        "title": "Select whether to use a local or a cloud connection",
+        "data": {
+          "local_connection" : "Local Connection",
+          "cloud_connection": "Lennox Cloud Connection:"
+        }
+      },
+      "cloud": {
+        "title": "Define your Lennox S30/E30 connection",
+        "data": {
+          "email": "Lennox account email",
+          "password": "Lennox Account password",
+          "allergen_defender_switch": "Create allergenDefender switch",
+          "app_id": "Unique application id to use. See documentation.",
+          "create_sensors": "Temperature and Humidity Sensors"
+        }
+      },
+      "local": {
+        "title": "Define your Lennox S30/E30 connection",
+        "data": {
+          "host": "The Lennox S30/E30 - Local IP or Hostname",
+          "allergen_defender_switch": "Create allergenDefender switch",
+          "app_id": "Unique application id to use. See documentation",
+          "init_wait_time": "Configuration Wait time in seconds",
+          "create_sensors": "Temperature and Humidity Sensors",
+          "create_inverter_power": "Inverter Power Sensor",
+          "create_diagnostic_sensors": "Diagnostic Sensors",
+          "create_parameters": "Equipment Parameters",
+          "protocol": "Should be HTTPS unless using simulator"
+        }
+      },
+      "advanced": {
+        "title": "Advanced connection parameters",
+        "data": {
+          "scan_interval": "Message scan interval seconds.",
+          "fast_scan_interval": "Fast scan interval seconds. 0.75 recommended",
+          "init_wait_time": "Configuration Wait time in seconds",
+          "pii_in_message_logs" : "Personal information in log files",
+          "message_debug_logging" : "Debug logging logs messages",
+          "message_debug_file" : "Optional file for message logging",
+          "log_messages_to_file": "Log S30 message to separate file"
+        }
+      }
+    },
+    "error": {
+      "select_cloud_or_local": "Select a cloud or local connection",
+      "already_configured": "Device is already configured",
+      "invalid_hostname" : "Invalid ip address or hostname",
+      "unable_to_connect_local" : "Unable to connect to S30, please check IP address",
+      "unable_to_connect_login" : "Email / password combination is invalid",
+      "unable_to_connect_cloud" : "Unable to connect to Lennox Cloud, please check internet connection and log file for additional information"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "password": "Your Lennox Account password",
+          "allergen_defender_switch": "Create Allergen Defender switch",
+          "app_id": "Unique application id to use. See documentation.",
+          "create_sensors": "Temperature and humidity Sensors",
+          "create_inverter_power": "Inverter power sensor",
+          "create_diagnostic_sensors": "Diagnostic Sensors",
+          "create_parameters": "Equipment Parameters",
+          "protocol": "Should be HTTPS unless using simulator",
+          "scan_interval": "Message scan interval seconds.",
+          "fast_scan_interval": "Fast scan interval seconds. 0.75 recommended",
+          "init_wait_time": "Configuration Wait time in seconds",
+          "pii_in_message_logs" : "Personal information in log files",
+          "message_debug_logging" : "Debug logging logs messages",
+          "message_debug_file" : "Optional file for message logging",
+          "log_messages_to_file": "Log S30 message to separate file"
+        },
+        "description": "Set the options for the connection",
+        "title": "Options"
+      }
+    }
+  }
+}

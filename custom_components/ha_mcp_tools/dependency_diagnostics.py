@@ -476,7 +476,7 @@ def describe_dependency_failure(
     sentences += [_pinner_sentence(pinner) for pinner in pinners]
     if not sentences:
         return "No dependency conflict was detected."
-    sentences.append(_action_sentence(violations, pinners))
+    sentences.append(_action_sentence(pinners, failed=root_exc is not None))
     return " ".join(sentences)
 
 
@@ -497,7 +497,7 @@ def _installed_distributions(
     for dist in scan:
         try:
             raw_name = dist.name
-        except Exception:  # corrupt METADATA must not abort the whole scan
+        except Exception:  # noqa: BLE001  # corrupt METADATA must not abort the whole scan
             continue
         if raw_name:
             found.setdefault(canonicalize_name(raw_name), dist)
@@ -510,7 +510,7 @@ def _applicable_requirements(
     """Yield ``dist``'s requirements that apply under ``extras``."""
     try:
         declared = dist.requires
-    except Exception:  # corrupt METADATA yields no edges, not a crash
+    except Exception:  # corrupt METADATA yields no edges, not a crash  # noqa: BLE001
         return
     for raw in declared or []:
         try:
@@ -572,7 +572,7 @@ def _dist_has_direct_url(dist: Distribution) -> bool:
     """
     try:
         return dist.read_text("direct_url.json") is not None
-    except Exception:
+    except Exception:  # noqa: BLE001
         return True
 
 
@@ -580,7 +580,7 @@ def _dist_version(dist: Distribution) -> str | None:
     """``dist``'s version, or None when its metadata does not provide one."""
     try:
         version = dist.version
-    except Exception:  # corrupt METADATA reads as "version unknown"
+    except Exception:  # corrupt METADATA reads as "version unknown"  # noqa: BLE001
         return None
     return version if isinstance(version, str) and version else None
 
@@ -668,29 +668,41 @@ def _pinner_sentence(pinner: PinningIntegration) -> str:
 
 
 def _action_sentence(
-    violations: list[DependencyViolation], pinners: list[PinningIntegration]
+    pinners: list[PinningIntegration],
+    *,
+    failed: bool,
 ) -> str:
-    """The closing instruction, scaled to how much the diagnosis identified."""
+    """The closing instruction, scaled to how much the diagnosis identified.
+
+    Home Assistant only checks the pinned server's own version, so a
+    dependency moved under it stays moved until the server is reinstalled;
+    the package repair a failed start files does that (#2427). ``failed`` is
+    False for the pre-flight audit, which runs before any repair exists.
+    """
+    repair = "the HA-MCP server's repair under Settings - System - Repairs"
     if pinners:
         # Distinct domains, not entries: one integration pinning two
         # violated packages is still one integration to update or remove
         # (Patch76 review on #2245).
         domains = {pinner.domain for pinner in pinners}
         subject = "integration" if len(domains) == 1 else "integrations"
-        # The reinstall clause is load-bearing on the no-install fast path
-        # (a pinned server spec, or auto-update off): removing the
-        # integration deletes its pin but restores nothing, and the next
-        # bring-up re-resolves no dependencies (Codex on #2245).
-        return (
-            f"Update or uninstall the conflicting {subject}, then restart "
-            "Home Assistant. If the same failure returns after the restart, "
-            "also reinstall or update the HA-MCP server package so its "
-            "dependencies are resolved again — removing the integration "
-            "does not restore the downgraded package by itself."
+        removal = (
+            f"Update or uninstall the conflicting {subject}; removing it does "
+            "not restore the downgraded package by itself."
         )
-    if violations:
+        if failed:
+            return f"{removal} Then reinstall the server from {repair}."
         return (
-            "Install a version of each package named above that satisfies its "
-            "requirement, then restart Home Assistant."
+            f"{removal} If the server then fails to start, {repair} reinstalls "
+            "it and any dependency whose version no longer satisfies it."
         )
-    return "Restart Home Assistant and check the log for the failing import."
+    if failed:
+        return (
+            f"Reinstall the server from {repair}, which also replaces any "
+            "dependency whose version no longer satisfies it; if the same "
+            "failure returns, check the log for the failing import."
+        )
+    return (
+        f"If the server fails to start, {repair} reinstalls it and any "
+        "dependency whose version no longer satisfies it."
+    )

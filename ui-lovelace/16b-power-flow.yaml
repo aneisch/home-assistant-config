@@ -1,0 +1,80 @@
+# Custom card: /config/www/power-flow-pipes-card.js
+# Plumbing-style power flow (solar/grid/battery -> inverter -> home -> circuits)
+
+title: Power Flow
+icon: mdi:transmission-tower
+visible: true
+type: panel
+cards:
+  - type: custom:power-flow-pipes-card
+    threshold: 20       # W below which a pipe is drawn idle
+    max_power: 12000    # W at which pipes reach full width / speed
+    show_other: true    # unmetered remainder (home - sum of loads)
+    sort_loads: false   # true = biggest consumer on top
+    solar:
+      power:
+        - sensor.solark_sol_ark_pv1_power
+        - sensor.solark_sol_ark_pv2_power
+      names: [String 1, String 2]
+      daily: sensor.solark_sol_ark_day_pv_energy
+      forecast_remaining: sensor.solcast_pv_forecast_forecast_remaining_today
+    grid:
+      power: sensor.solark_sol_ark_grid_ct_power   # + import / - export
+      daily_import: sensor.solark_sol_ark_day_grid_import
+      daily_export: sensor.solark_sol_ark_day_grid_export
+      connected: binary_sensor.solark_sol_ark_grid_connected_status
+    battery:
+      power: sensor.solark_sol_ark_battery_power   # + discharge / - charge
+      soc: sensor.solark_sol_ark_battery_soc
+      capacity_wh: 28680
+      shutdown_soc: 15
+      daily_charge: sensor.solark_sol_ark_day_battery_charge
+      daily_discharge: sensor.solark_sol_ark_day_battery_discharge
+    inverter:
+      power: sensor.solark_sol_ark_inverter_power
+      temperature: sensor.solark_sol_ark_radiator_temperature
+    home:
+      power: sensor.solark_sol_ark_load_power
+      daily: sensor.solark_sol_ark_day_load_energy
+    loads:
+      - entity: sensor.emporia_view_tesla_charger_power
+        name: Tesla
+        icon: mdi:ev-station
+        daily: sensor.emporia_view_tesla_charger_daily_energy
+        color: "#E31937"
+      - entity: sensor.ac_compressor_power
+        name: AC Compressor
+        icon: mdi:air-conditioner
+        daily: sensor.ac_compressor_daily_energy
+        color: "#58A6FF"
+      - entity: sensor.attic_hvac_power
+        name: Attic HVAC
+        icon: mdi:fan
+        daily: sensor.attic_hvac_daily_energy
+        color: "#58A6FF"
+      - entity: sensor.dryer_power
+        name: Dryer
+        icon: mdi:tumble-dryer
+        daily: sensor.dryer_daily_energy
+      - entity: sensor.oven_power
+        name: Oven
+        icon: mdi:stove
+        daily: sensor.oven_daily_energy
+        color: "#F0883E"
+      - entity: sensor.server_rack_power
+        name: Server Rack
+        icon: mdi:server
+        daily: sensor.server_rack_daily_energy
+        color: "#A371F7"
+      - entity: sensor.refrigerator_power
+        name: Refrigerator
+        icon: mdi:fridge
+        daily: sensor.refrigerator_daily_energy
+      - entity: sensor.washing_machine_power
+        name: Washer
+        icon: mdi:washing-machine
+        daily: sensor.washing_machine_daily_energy
+      - entity: sensor.dishwasher_power
+        name: Dishwasher
+        icon: mdi:dishwasher
+        daily: sensor.dishwasher_daily_energy

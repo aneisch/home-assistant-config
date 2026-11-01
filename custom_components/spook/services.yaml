@@ -217,6 +217,150 @@ light_set_effect:
       selector:
         text:
 
+calendar_delete_event:
+  name: Delete event 👻
+  description: >-
+    Deletes events from a calendar, found by their title or uid in a stretch
+    of time.
+  target:
+    entity:
+      domain: calendar
+      supported_features:
+        - calendar.CalendarEntityFeature.DELETE_EVENT
+  fields:
+    summary:
+      required: false
+      example: Dentist
+      selector:
+        text:
+    uid:
+      required: false
+      selector:
+        text:
+    start_date_time:
+      required: false
+      example: "2026-10-04 08:00:00"
+      selector:
+        datetime:
+    end_date_time:
+      required: false
+      example: "2026-10-04 20:00:00"
+      selector:
+        datetime:
+    duration:
+      required: false
+      selector:
+        duration:
+    whole_series:
+      required: false
+      default: false
+      selector:
+        boolean:
+
+calendar_update_event:
+  name: Update event 👻
+  description: >-
+    Changes events in a calendar, found by their title or uid in a stretch of
+    time.
+  target:
+    entity:
+      domain: calendar
+      supported_features:
+        - calendar.CalendarEntityFeature.UPDATE_EVENT
+  fields:
+    summary:
+      required: false
+      example: Dentist
+      selector:
+        text:
+    uid:
+      required: false
+      selector:
+        text:
+    start_date_time:
+      required: false
+      example: "2026-10-04 08:00:00"
+      selector:
+        datetime:
+    end_date_time:
+      required: false
+      example: "2026-10-04 20:00:00"
+      selector:
+        datetime:
+    duration:
+      required: false
+      selector:
+        duration:
+    new_summary:
+      required: false
+      example: Orthodontist
+      selector:
+        text:
+    description:
+      required: false
+      selector:
+        text:
+          multiline: true
+    location:
+      required: false
+      selector:
+        text:
+    new_start:
+      required: false
+      selector:
+        datetime:
+    new_end:
+      required: false
+      selector:
+        datetime:
+    shift:
+      required: false
+      selector:
+        duration:
+          allow_negative: true
+
+climate_increase_temperature:
+  name: Increase temperature 👻
+  description: >-
+    Turns a thermostat's setpoint up a step, both setpoints for one that heats and cools.
+  target:
+    entity:
+      domain: climate
+      supported_features:
+        - climate.ClimateEntityFeature.TARGET_TEMPERATURE
+        - climate.ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+  fields:
+    step:
+      required: false
+      example: 0.5
+      selector:
+        number:
+          min: 0.1
+          max: 10
+          step: 0.1
+          mode: box
+
+climate_decrease_temperature:
+  name: Decrease temperature 👻
+  description: >-
+    Turns a thermostat's setpoint down a step, both setpoints for one that heats and cools.
+  target:
+    entity:
+      domain: climate
+      supported_features:
+        - climate.ClimateEntityFeature.TARGET_TEMPERATURE
+        - climate.ClimateEntityFeature.TARGET_TEMPERATURE_RANGE
+  fields:
+    step:
+      required: false
+      example: 0.5
+      selector:
+        number:
+          min: 0.1
+          max: 10
+          step: 0.1
+          mode: box
+
 homeassistant_create_area:
   name: Create an area 👻
   description: >-
@@ -242,6 +386,82 @@ homeassistant_create_area:
         area in a different language or different nickname.
       selector:
         object:
+
+homeassistant_update_area:
+  name: Update an area 👻
+  description: >-
+    Updates an existing area on the fly. Anything you leave out keeps the
+    value it already has. Aliases and labels replace the ones the area has.
+    The floor, icon, picture and sensors can be cleared by setting them to
+    null.
+  fields:
+    area_id:
+      name: Area ID
+      description: The ID of the area to update.
+      required: true
+      selector:
+        area:
+    name:
+      name: Name
+      description: New name for the area.
+      required: false
+      selector:
+        text:
+    aliases:
+      name: Aliases
+      description: >-
+        The aliases for the area. Replaces the ones it has, an empty list
+        removes them all.
+      required: false
+      selector:
+        text:
+          multiple: true
+    floor_id:
+      name: Floor ID
+      description: The ID of the floor the area is on.
+      required: false
+      selector:
+        floor:
+    icon:
+      name: Icon
+      description: New icon to use for the area.
+      required: false
+      selector:
+        icon:
+          placeholder: mdi:texture-box
+    picture:
+      name: Picture
+      description: The URL or path of a picture for the area.
+      required: false
+      selector:
+        text:
+    labels:
+      name: Labels
+      description: >-
+        The IDs of the labels for the area. Replaces the ones it has, an empty
+        list removes them all.
+      required: false
+      selector:
+        label:
+          multiple: true
+    temperature_entity_id:
+      name: Temperature sensor
+      description: The sensor that measures the temperature in the area.
+      required: false
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: temperature
+    humidity_entity_id:
+      name: Humidity sensor
+      description: The sensor that measures the humidity in the area.
+      required: false
+      selector:
+        entity:
+          filter:
+            domain: sensor
+            device_class: humidity
 
 homeassistant_add_alias_to_area:
   name: Add an alias to an area 👻
@@ -383,26 +603,46 @@ homeassistant_delete_area:
 homeassistant_disable_config_entry:
   name: Disable an integration 👻
   description: >-
-    Disables an integration entry.
+    Disables integration entries, by entry or every entry of an integration.
   fields:
     config_entry_id:
       name: Integration entry
       description: The integration entry to disable.
-      required: true
+      required: false
       selector:
         config_entry:
+    domain:
+      name: Integration
+      description: >-
+        Disable every entry of these integrations, the ones added later
+        included.
+      required: false
+      example: hue
+      selector:
+        text:
+          multiple: true
 
 homeassistant_enable_config_entry:
   name: Enable an integration 👻
   description: >-
-    Enables an integration entry.
+    Enables integration entries, by entry or every entry of an integration.
   fields:
     config_entry_id:
       name: Integration entry
       description: The integration entry to enable.
-      required: true
+      required: false
       selector:
         config_entry:
+    domain:
+      name: Integration
+      description: >-
+        Enable every entry of these integrations, the ones added later
+        included.
+      required: false
+      example: hue
+      selector:
+        text:
+          multiple: true
 
 homeassistant_disable_device:
   name: Disable a device 👻
@@ -430,6 +670,55 @@ homeassistant_enable_device:
       required: true
       selector:
         text:
+
+homeassistant_update_device:
+  name: Update a device 👻
+  description: >-
+    Updates an existing device on the fly. Anything you leave out keeps the
+    value it already has. Labels replace the ones the device has. The name
+    and area can be cleared by setting them to null, which gives the device
+    the name its integration gave it back.
+  fields:
+    device_id:
+      name: Device ID
+      description: >-
+        The ID of the device to update. Disabled devices are not shown by Home
+        Assistant's device selector, use YAML mode to give their ID.
+      required: true
+      selector:
+        device:
+    name_by_user:
+      name: Name
+      description: New name for the device.
+      required: false
+      selector:
+        text:
+    area_id:
+      name: Area ID
+      description: The ID of the area the device is in.
+      required: false
+      selector:
+        area:
+    labels:
+      name: Labels
+      description: >-
+        The IDs of the labels for the device. Replaces the ones it has, an
+        empty list removes them all.
+      required: false
+      selector:
+        label:
+          multiple: true
+    disabled_by:
+      name: Disabled by
+      description: >-
+        Set to user to disable the device, or to null to enable it again. This
+        works like the disable and enable device actions do.
+      required: false
+      selector:
+        select:
+          options:
+            - label: User
+              value: user
 
 homeassistant_disable_user:
   name: Disable a user 👻
@@ -711,6 +1000,49 @@ homeassistant_create_floor:
         floor in a different language or different nickname.
       selector:
         object:
+
+homeassistant_update_floor:
+  name: Update a floor 👻
+  description: >-
+    Updates an existing floor on the fly. Anything you leave out keeps the
+    value it already has. Aliases replace the ones the floor has. The icon
+    and level can be cleared by setting them to null.
+  fields:
+    floor_id:
+      name: Floor ID
+      description: The ID of the floor to update.
+      required: true
+      selector:
+        floor:
+    name:
+      name: Name
+      description: New name for the floor.
+      required: false
+      selector:
+        text:
+    aliases:
+      name: Aliases
+      description: >-
+        The aliases for the floor. Replaces the ones it has, an empty list
+        removes them all.
+      required: false
+      selector:
+        text:
+          multiple: true
+    icon:
+      name: Icon
+      description: New icon to use for the floor.
+      required: false
+      selector:
+        icon:
+          placeholder: mdi:texture-box
+    level:
+      name: Level
+      description: The level the floor is on in your home.
+      required: false
+      selector:
+        number:
+          mode: box
 
 homeassistant_add_alias_to_floor:
   name: Add an alias to a floor 👻
@@ -1329,7 +1661,7 @@ homeassistant_list_orphaned_database_entities:
 
 homeassistant_restart:
   name: Restart 👻
-  description: Restart the Home Assistant action.
+  description: Restarts Home Assistant.
   fields:
     safe_mode:
       name: Safe mode
@@ -1497,6 +1829,16 @@ input_select_random:
       selector:
         object:
 
+input_select_reverse:
+  name: Reverse options 👻
+  description: >-
+    Reverses the order of the selectable options for an `input_select`
+    entity, back to front. This is not persistent and will be undone once
+    reloaded or Home Assistant restarts.
+  target:
+    entity:
+      domain: input_select
+
 input_select_shuffle:
   name: Shuffle options 👻
   description: >-
@@ -1634,6 +1976,44 @@ input_number_min:
   target:
     entity:
       domain: input_number
+
+input_number_set_range:
+  name: Set range 👻
+  description: >-
+    Changes the minimum, maximum or step of an input number made in the UI,
+    the same as editing it. A value outside the new range is moved inside it.
+  target:
+    entity:
+      domain: input_number
+  fields:
+    min:
+      name: Minimum
+      description: The new minimum value.
+      required: false
+      example: 0
+      selector:
+        number:
+          mode: box
+          step: any
+    max:
+      name: Maximum
+      description: The new maximum value.
+      required: false
+      example: 3600
+      selector:
+        number:
+          mode: box
+          step: any
+    step:
+      name: Step
+      description: The new step size.
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0.000000001
+          mode: box
+          step: any
 
 counter_create:
   name: Create a counter 👻
@@ -2082,6 +2462,144 @@ input_number_delete:
           filter:
             - domain: input_number
 
+schedule_create:
+  name: Create a schedule 👻
+  description: >-
+    Creates a new schedule helper on the fly, on during the time blocks given
+    for each day of the week. Returns the entity ID of the new schedule.
+  fields:
+    name:
+      name: Name
+      description: The name of the new schedule.
+      required: true
+      selector:
+        text:
+    schedule_id:
+      name: Schedule entity ID
+      description: >-
+        The entity ID for the new schedule. The schedule. prefix is added
+        automatically. If not provided, the entity ID will be generated based
+        on the name.
+      required: false
+      selector:
+        text:
+    icon:
+      name: Icon
+      description: The icon for the new schedule.
+      required: false
+      selector:
+        icon:
+          placeholder: mdi:calendar-clock
+    monday:
+      name: Monday
+      description: >-
+        When the schedule is on, on Mondays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    tuesday:
+      name: Tuesday
+      description: >-
+        When the schedule is on, on Tuesdays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    wednesday:
+      name: Wednesday
+      description: >-
+        When the schedule is on, on Wednesdays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    thursday:
+      name: Thursday
+      description: >-
+        When the schedule is on, on Thursdays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    friday:
+      name: Friday
+      description: >-
+        When the schedule is on, on Fridays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    saturday:
+      name: Saturday
+      description: >-
+        When the schedule is on, on Saturdays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+    sunday:
+      name: Sunday
+      description: >-
+        When the schedule is on, on Sundays: a list of time blocks, each with a from and a to time, and optional data it shows as attributes while it is on. Left out, it is off all day.
+      required: false
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+
+schedule_delete:
+  name: Delete a schedule 👻
+  description: >-
+    Deletes schedule helpers made in the UI. Schedules set up in YAML cannot be
+    deleted by Spook.
+  fields:
+    entity_id:
+      name: Entity ID
+      description: The schedule(s) to delete.
+      required: true
+      selector:
+        entity:
+          multiple: true
+          filter:
+            - domain: schedule
+
+schedule_set_day:
+  name: Set the time blocks of a day 👻
+  description: >-
+    Replaces the time blocks of one or more days of a schedule helper made in
+    the UI. Schedules set up in YAML cannot be changed by Spook.
+  target:
+    entity:
+      domain: schedule
+  fields:
+    day:
+      name: Day
+      description: The day or days of the week to set the time blocks of.
+      required: true
+      selector:
+        select:
+          multiple: true
+          translation_key: schedule_day
+          options:
+            - monday
+            - tuesday
+            - wednesday
+            - thursday
+            - friday
+            - saturday
+            - sunday
+    blocks:
+      name: Time blocks
+      description: >-
+        The time blocks the schedule is on during those days, each with a from
+        and a to time, and optional data it shows as attributes while it is
+        on. These replace the blocks the days had. An empty list leaves the
+        days off all day.
+      required: true
+      example: '[{"from": "07:00:00", "to": "09:00:00"}]'
+      selector:
+        object:
+
 person_add_device_tracker:
   name: Add a device tracker 👻
   description: >-
@@ -2197,7 +2715,17 @@ repairs_create:
 repairs_ignore_all:
   name: Ignore all issues 👻
   description: >-
-    Ignore all issues currently raised in Home Assistant Repairs.
+    Ignore all issues currently raised in Home Assistant Repairs, or only
+    those raised by particular integrations.
+  fields:
+    domain:
+      name: Domain
+      description: Only ignore the issues raised by these integrations.
+      required: false
+      example: hacs
+      selector:
+        text:
+          multiple: true
 
 repairs_list:
   name: List issues 👻
@@ -2250,7 +2778,17 @@ repairs_remove:
 repairs_unignore_all:
   name: Unignore all issues 👻
   description: >-
-    Unignore all issues currently raised in Home Assistant Repairs.
+    Unignore all issues currently raised in Home Assistant Repairs, or only
+    those raised by particular integrations.
+  fields:
+    domain:
+      name: Domain
+      description: Only unignore the issues raised by these integrations.
+      required: false
+      example: hacs
+      selector:
+        text:
+          multiple: true
 
 sensor_set_display_precision:
   name: Set display precision 👻
@@ -2396,6 +2934,15 @@ zone_create:
           max: 999999999999
           unit_of_measurement: m
           mode: box
+    passive:
+      name: Passive
+      description: >-
+        A passive zone is only there for automations: it is not shown on the
+        map, and does not change where people and device trackers are.
+      required: false
+      default: false
+      selector:
+        boolean:
 
 zone_update:
   name: Update a zone 👻
@@ -2447,6 +2994,14 @@ zone_update:
           step: any
           unit_of_measurement: m
           mode: box
+    passive:
+      name: Passive
+      description: >-
+        A passive zone is only there for automations: it is not shown on the
+        map, and does not change where people and device trackers are.
+      required: false
+      selector:
+        boolean:
 
 zone_delete:
   name: Delete a zone 👻
@@ -2550,3 +3105,237 @@ group_set_members:
       selector:
         entity:
           multiple: true
+
+water_heater_increase_temperature:
+  name: Increase temperature 👻
+  description: >-
+    Turns a water heater's setpoint up a step.
+  target:
+    entity:
+      domain: water_heater
+      supported_features:
+        - water_heater.WaterHeaterEntityFeature.TARGET_TEMPERATURE
+  fields:
+    step:
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0.1
+          max: 10
+          step: 0.1
+          mode: box
+
+water_heater_decrease_temperature:
+  name: Decrease temperature 👻
+  description: >-
+    Turns a water heater's setpoint down a step.
+  target:
+    entity:
+      domain: water_heater
+      supported_features:
+        - water_heater.WaterHeaterEntityFeature.TARGET_TEMPERATURE
+  fields:
+    step:
+      required: false
+      example: 1
+      selector:
+        number:
+          min: 0.1
+          max: 10
+          step: 0.1
+          mode: box
+
+humidifier_increase_humidity:
+  name: Increase humidity 👻
+  description: >-
+    Turns a humidifier's target humidity up a step.
+  target:
+    entity:
+      domain: humidifier
+  fields:
+    step:
+      required: false
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+humidifier_decrease_humidity:
+  name: Decrease humidity 👻
+  description: >-
+    Turns a humidifier's target humidity down a step.
+  target:
+    entity:
+      domain: humidifier
+  fields:
+    step:
+      required: false
+      example: 5
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+cover_increase_position:
+  name: Increase position 👻
+  description: >-
+    Moves a cover a step further open.
+  target:
+    entity:
+      domain: cover
+      supported_features:
+        - cover.CoverEntityFeature.SET_POSITION
+  fields:
+    step:
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+cover_decrease_position:
+  name: Decrease position 👻
+  description: >-
+    Moves a cover a step further closed.
+  target:
+    entity:
+      domain: cover
+      supported_features:
+        - cover.CoverEntityFeature.SET_POSITION
+  fields:
+    step:
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+valve_increase_position:
+  name: Increase position 👻
+  description: >-
+    Moves a valve a step further open.
+  target:
+    entity:
+      domain: valve
+      supported_features:
+        - valve.ValveEntityFeature.SET_POSITION
+  fields:
+    step:
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+valve_decrease_position:
+  name: Decrease position 👻
+  description: >-
+    Moves a valve a step further closed.
+  target:
+    entity:
+      domain: valve
+      supported_features:
+        - valve.ValveEntityFeature.SET_POSITION
+  fields:
+    step:
+      required: false
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+          mode: box
+
+media_player_increase_volume:
+  name: Increase volume 👻
+  description: >-
+    Turns a media player's volume up by the step you give.
+  target:
+    entity:
+      domain: media_player
+      supported_features:
+        - media_player.MediaPlayerEntityFeature.VOLUME_SET
+  fields:
+    step:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 0.5
+          max: 100
+          step: 0.5
+          unit_of_measurement: "%"
+          mode: box
+
+media_player_decrease_volume:
+  name: Decrease volume 👻
+  description: >-
+    Turns a media player's volume down by the step you give.
+  target:
+    entity:
+      domain: media_player
+      supported_features:
+        - media_player.MediaPlayerEntityFeature.VOLUME_SET
+  fields:
+    step:
+      required: true
+      example: 5
+      selector:
+        number:
+          min: 0.5
+          max: 100
+          step: 0.5
+          unit_of_measurement: "%"
+          mode: box
+
+todo_move_item:
+  name: Move item 👻
+  description: >-
+    Moves an item in a to-do list to the top, the bottom, or after another
+    item.
+  target:
+    entity:
+      domain: todo
+      supported_features:
+        - todo.TodoListEntityFeature.MOVE_TODO_ITEM
+  fields:
+    item:
+      required: true
+      example: Take out the bins
+      selector:
+        text:
+    after:
+      required: false
+      example: Do the dishes
+      selector:
+        text:
+    position:
+      required: false
+      selector:
+        select:
+          translation_key: todo_move_position
+          options:
+            - top
+            - bottom

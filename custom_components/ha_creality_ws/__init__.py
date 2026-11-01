@@ -2,21 +2,16 @@ from __future__ import annotations
 import logging
 import asyncio
 import json
-import os
-import time
 from datetime import timedelta
-import re
-from urllib.parse import urljoin, urlparse
 from collections.abc import Callable
 from typing import Any
 
 
 
 from homeassistant.config_entries import ConfigEntry, OperationNotAllowed # type: ignore[import]
-from homeassistant.core import HomeAssistant, ServiceCall, callback # type: ignore[import]
-from homeassistant.const import __version__ as HA_VERSION  # type: ignore[import]
-from homeassistant.util import dt as dt_util  # type: ignore[import]
-from homeassistant.exceptions import ConfigEntryNotReady  # type: ignore[import]
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP  # type: ignore[import]
+from homeassistant.core import HomeAssistant, ServiceCall, ServiceResponse, SupportsResponse, callback # type: ignore[import]
+from homeassistant.exceptions import ConfigEntryNotReady, HomeAssistantError  # type: ignore[import]
 try:
     from homeassistant.exceptions import ConfigEntryError  # type: ignore[import]
     _CONFIG_ENTRY_ERROR_TRANSLATES = True
@@ -37,7 +32,8 @@ from homeassistant.helpers.event import (  # type: ignore[import]
 )
 import voluptuous as vol  # type: ignore[import]
 from homeassistant.helpers import config_validation as cv, entity_registry as er, device_registry as dr # type: ignore[import]
-from homeassistant.helpers.aiohttp_client import async_get_clientsession # type: ignore[import]
+from homeassistant.helpers.service import async_register_admin_service  # type: ignore[import]
+from homeassistant.helpers.translation import async_get_translations  # type: ignore[import]
 from .notification_rules import (
     build_clear_payload,
     coerce_targets,
@@ -50,31 +46,27 @@ from homeassistant.components.persistent_notification import (  # type: ignore[i
 )
 
 from .const import (
+    CONF_HOST,
     MINIMUM_HA_VERSION,
     DOMAIN, 
     STALE_AFTER_SECS, 
     CONF_POWER_SWITCH,
     CONF_POWER_SWITCH_ENABLED,
-    CONF_CAMERA_MODE,
-    CONF_POLLING_RATE,
-    CONF_NOTIFY_DEVICE,
-    CONF_NOTIFY_COMPLETED,
-    CONF_NOTIFY_ERROR,
-    CONF_NOTIFY_MINUTES_TO_END,
-    CONF_MINUTES_TO_END_VALUE,
     CONF_GO2RTC_URL,
     CONF_GO2RTC_PORT,
-    DEFAULT_GO2RTC_URL,
-    DEFAULT_GO2RTC_PORT,
 )
 from .coordinator import KCoordinator
 from .frontend import CrealityCardRegistration
 from .utils import (
+    PLACEHOLDER_MODEL,
     core_version_supported,
     BUSY_PRINT_STATES,
+    MaterialValueError,
     ModelDetection,
     build_modify_material_payload,
     derive_activity_state,
+    camera_type_to_keep,
+    detect_camera_type,
 )
 
 
@@ -82,21 +74,21 @@ from .utils import (
 
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS: list[str] = ["sensor", "camera", "button", "number", "fan", "light", "image"]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 # Import integration version from manifest
 
 async def _get_integration_version(hass: HomeAssistant) -> str:
-    """Get current integration version from manifest.json"""
-    try:
-        manifest_path = os.path.join(os.path.dirname(__file__), "manifest.json")
-        # Use Home Assistant's async file operations
-        content = await hass.async_add_executor_job(
-            lambda: open(manifest_path, "r", encoding="utf-8").read()
-        )
+    """The integration's version, as Home Assistant loaded it (R37).
 
-        manifest = json.loads(content)
-        return manifest.get("version", "0.0.0")
-    except Exception:
+    From the loader's cached manifest rather than reading manifest.json again
+    in an executor job at every setup.
+    """
+    from homeassistant.loader import async_get_integration  # pylint: disable=import-outside-toplevel
+
+    try:
+        return str((await async_get_integration(hass, DOMAIN)).version or "0.0.0")
+    except Exception:  # pylint: disable=broad-except
         return "0.0.0"
 
 def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
@@ -132,16 +124,12 @@ def _migrate_go2rtc_settings(hass: HomeAssistant, entry: ConfigEntry) -> None:
             needs_update = True
             _LOGGER.info("Migrated go2rtc_url from entry.data to options")
     
-    # Clean up "bad defaults" introduced in 0.9.0
-    # If users have localhost:11984 set as custom config, remove it to restore 0.8.0 behavior (auto-discovery)
-    elif current_options.get(CONF_GO2RTC_URL) == DEFAULT_GO2RTC_URL:
-        # Check port too
-        current_port = current_options.get(CONF_GO2RTC_PORT)
-        if current_port == DEFAULT_GO2RTC_PORT:
-            _LOGGER.info("Cleaning up default go2rtc settings (restoring auto-discovery)")
-            current_options.pop(CONF_GO2RTC_URL)
-            current_options.pop(CONF_GO2RTC_PORT)
-            needs_update = True
+    # No longer strips a stored localhost:11984 (the 0.9.0 "bad default").
+    # The camera already tells Home Assistant's own go2rtc from a stand-alone
+    # one on that pair (it checks whether HA's go2rtc is loaded), and the
+    # strip ran first, at every setup: a Core install whose own go2rtc sits on
+    # the default pair lost the setting before the camera could read it, and
+    # failed with "go2rtc component not loaded" (R18).
 
     # Migrate go2rtc_port if missing or in data
     if not current_options.get(CONF_GO2RTC_PORT):
@@ -178,6 +166,117 @@ def _core_version() -> tuple[int, int] | None:
         return None
 
 
+@callback
+def _async_follow_host(hass: HomeAssistant, entry: ConfigEntry, host: str) -> None:
+    """Move this entry's device and entities onto `host` after it changed.
+
+    Entity unique ids and the device identifier embed the host
+    (`"<host>-<key>"`, `(DOMAIN, host)`). A new IP, from the options
+    Connection page or a rediscovery, used to recreate every entity with a
+    `_2` id on a second device, stranding the originals with their history,
+    their customisations and every automation that named them (#39).
+
+    Runs at every setup, so it covers any way the host can change. Where an
+    entity already exists under the new id (a registry split by that bug in
+    an earlier version), that entity is left alone: merging in either
+    direction would rename entities someone may have rebuilt automations on.
+    """
+    dev_reg = dr.async_get(hass)
+    ent_reg = er.async_get(hass)
+
+    old_hosts: set[str] = set()
+    devices = dr.async_entries_for_config_entry(dev_reg, entry.entry_id)
+    # Searched among this entry's own devices, not with a registry lookup:
+    # identifiers are scoped per entry, and the lookup that ignored that is
+    # deprecated.
+    target_exists = any((DOMAIN, host) in d.identifiers for d in devices)
+    for device in devices:
+        ours = {i for i in device.identifiers if i[0] == DOMAIN}
+        stale = {i[1] for i in ours if i[1] != host}
+        if not stale:
+            continue
+        old_hosts |= stale
+        if target_exists:
+            # INFO, not WARNING: it is a standing state, logged on every start.
+            _LOGGER.info(
+                "Printer moved to %s, but a device for that address already "
+                "exists; leaving the device for %s as it is",
+                host,
+                ", ".join(sorted(stale)),
+            )
+            continue
+        dev_reg.async_update_device(
+            device.id,
+            new_identifiers=(device.identifiers - ours) | {(DOMAIN, host)},
+        )
+
+    moved = conflicts = 0
+    for old in old_hosts:
+        prefix = f"{old}-"
+        for reg_entry in er.async_entries_for_config_entry(ent_reg, entry.entry_id):
+            if not reg_entry.unique_id.startswith(prefix):
+                continue
+            new_uid = f"{host}-{reg_entry.unique_id[len(prefix):]}"
+            if ent_reg.async_get_entity_id(reg_entry.domain, DOMAIN, new_uid):
+                conflicts += 1
+                continue
+            ent_reg.async_update_entity(reg_entry.entity_id, new_unique_id=new_uid)
+            moved += 1
+    if old_hosts:
+        _LOGGER.info(
+            "Printer moved from %s to %s: kept %d entities%s",
+            ", ".join(sorted(old_hosts)),
+            host,
+            moved,
+            f" ({conflicts} already existed at the new address)" if conflicts else "",
+        )
+
+    # The entry's own unique id is the host too. Left behind, it blocks adding
+    # another printer that later gets the old address, and lets this printer
+    # be added a second time at the new one.
+    if entry.unique_id != host and not any(
+        other.unique_id == host
+        for other in hass.config_entries.async_entries(DOMAIN)
+        if other.entry_id != entry.entry_id
+    ):
+        hass.config_entries.async_update_entry(entry, unique_id=host)
+
+
+def _derive_led_pin(data: dict[str, Any]) -> bool:
+    """Fill in whether the light dims from the cached model, if not cached yet.
+
+    For an entry cached before LED dimming existed (#102), or before its model
+    was known to dim (#136), set up while the printer is offline: the model
+    alone says whether the light can dim, so it need not wait for the printer
+    to come online. True if `data` changed.
+    """
+    if not data.get("_cached_model"):
+        return False
+    cached_model = ModelDetection({
+        "model": data.get("_cached_model"),
+        "modelVersion": data.get("_cached_model_version"),
+    })
+    if "_cached_has_brightness_control" in data and "_cached_led_pin" in data and (
+        data["_cached_led_pin"] or not cached_model.led_pin
+    ):
+        return False
+    data["_cached_has_brightness_control"] = cached_model.has_brightness_control
+    data["_cached_led_pin"] = cached_model.led_pin
+    return True
+
+
+async def async_setup(hass: HomeAssistant, config: dict[str, Any]) -> bool:
+    """Register the actions once, whatever happens to the entries (R34).
+
+    Registered from the first entry's setup, they did not exist while that
+    entry was failing to load, so an automation calling one failed with
+    "action not found" instead of saying which printer was the problem.
+    """
+    await _register_diagnostic_service(hass)
+    await _register_custom_services(hass)
+    return True
+
+
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up the Creality integration from a config entry."""
     # HACS refuses to install this version on an older core, but a manual or git
@@ -211,7 +310,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _migrate_go2rtc_settings(hass, entry)
     
     host: str = entry.data["host"]
-    
+    # Before any platform registers an entity under the new address.
+    _async_follow_host(hass, entry, host)
+
     # Handle power switch - only use if both enabled and entity is set
     power_switch_enabled = entry.options.get(CONF_POWER_SWITCH_ENABLED, False)
     power_switch = entry.options.get(CONF_POWER_SWITCH)
@@ -226,15 +327,30 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     try:
         await coord.async_start()
-        # If printer is OFF, we intentionally don't wait for connectivity.
-        if not coord.power_is_off():
-            # Initial grace period is ~5 retries (~15-20s). Wait enough to cover it.
-            ok = await coord.wait_first_connect(timeout=15.0)
-            if not ok:
-                _LOGGER.warning("Initial connect not confirmed; will retry in background")
     except Exception as exc:
         await coord.async_stop()
         raise ConfigEntryNotReady(str(exc)) from exc
+    # Registered at once, so a setup that fails further down does not leave
+    # the client task running with no entry behind it (R31).
+    entry.async_on_unload(coord.async_stop)
+
+    # Entries are not unloaded when Home Assistant stops, so without this the
+    # client kept reconnecting through shutdown until the loop was torn down
+    # under it, and the printer never got a close frame (R39).
+    async def _stop_client(_event) -> None:
+        await coord.async_stop()
+
+    # async_listen, not async_listen_once: Home Assistant stops once anyway,
+    # and a one-time listener that has fired cannot be removed again, so an
+    # unload after the stop event logged an error.
+    entry.async_on_unload(
+        hass.bus.async_listen(EVENT_HOMEASSISTANT_STOP, _stop_client)
+    )
+    # No wait here. The entities come from the capability cache and fill in
+    # as telemetry arrives (late discovery covers anything gated on it). An
+    # unconditional 15 s wait for a printer that was switched off held up
+    # Home Assistant's startup by that much per printer (R31); the cache block
+    # below still waits when it actually has something to learn.
 
     # Get current integration version
     current_version = await _get_integration_version(hass)
@@ -280,9 +396,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "Caching device info for %s (cached_version=%s, current_version=%s)",
             host, cached_version, current_version
         )
-        # Wait a bit longer to ensure we get model info
+        # The one wait at setup, and only when there is something to learn:
+        # first setup, an integration upgrade, or a moved printer.
         if not coord.power_is_off():
-            ok = await coord.wait_first_connect(timeout=10.0)
+            ok = await coord.wait_first_connect(timeout=15.0)
+            if not ok:
+                _LOGGER.warning("Initial connect not confirmed; will retry in background")
             # After first connect, wait briefly for model fields to appear to reduce flakiness
             if ok:
                 # Wait for basic fields to confirm model and capabilities
@@ -308,7 +427,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 # Store device info in entry data
                 d = coord.data or {}
                 printermodel = ModelDetection(d)
-                model = printermodel.resolved_model() or entry.data.get("_cached_model") or "K by Creality"
+                model = printermodel.resolved_model() or entry.data.get("_cached_model") or PLACEHOLDER_MODEL
                 hostname = d.get("hostname") or entry.data.get("_cached_hostname")
                 model_version = d.get("modelVersion") or entry.data.get("_cached_model_version")
                 
@@ -328,7 +447,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_has_box_control"] = printermodel.has_box_control
                 # Feature Promotion: Trust telemetry over model defaults
                 # If printer reports chamber targets/temps, ENABLE capabilities
-                if "targetBoxTemp" in d:
+                # -- except control on the K1 family, which has no chamber
+                # heater although a K1C reports `targetBoxTemp` (R71).
+                if "targetBoxTemp" in d and not printermodel.is_k1_family:
                     new_data["_cached_has_chamber_control"] = True
                     new_data["_cached_has_box_control"] = True
                 if "boxTemp" in d or "maxBoxTemp" in d:
@@ -347,16 +468,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_max_chamber_temp"] = d.get("maxBoxTemp", entry.data.get("_cached_max_chamber_temp"))
                 new_data["_cached_max_box_temp"] = new_data["_cached_max_chamber_temp"]
                 
-                # Re-detect camera type only if missing (not on every update)
-                cached_camera_type = entry.data.get("_cached_camera_type")
-                if not cached_camera_type:
-                    new_data["_cached_camera_type"] = "webrtc" if (printermodel.is_k2_family or printermodel.supports_webrtc) else (
-                        "mjpeg_optional" if (printermodel.is_k1_se or printermodel.is_ender_v3_family) else "mjpeg"
-                    )
-                    _LOGGER.info("Camera type detected: %s", new_data["_cached_camera_type"])
-                else:
-                    # Keep existing camera type (don't override on updates)
-                    new_data["_cached_camera_type"] = cached_camera_type
+                # Re-detected from the evidence every time, not kept once set:
+                # a firmware update can move a K1C from MJPEG to WebRTC (#46).
+                # A direct-WebRTC verdict from before 0.9.10 is retried once (#134).
+                new_data["_cached_camera_type"] = detect_camera_type(
+                    d, camera_type_to_keep(entry.data.get("_cached_camera_type"), cached_version)
+                )
                 
                 hass.config_entries.async_update_entry(entry, data=new_data)
                 _LOGGER.info(
@@ -366,6 +483,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 
                 # Migrate go2rtc settings if needed
                 _migrate_go2rtc_settings(hass, entry)
+            else:
+                # Offline with no power switch to say so. Nothing is learnt
+                # live, but a cached model still says whether the light dims
+                # (#102); the rest is re-cached once the printer answers.
+                new_data = dict(entry.data)
+                if _derive_led_pin(new_data):
+                    hass.config_entries.async_update_entry(entry, data=new_data)
         else:
             # Printer is off - update version only, keep existing cached data if available
             _LOGGER.info(
@@ -373,11 +497,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             )
             new_data = dict(entry.data)
             new_data["_device_info_cached"] = True
-            new_data["_cached_version"] = current_version
-            
+            # A direct-WebRTC verdict due its retry (#134) keeps the old
+            # version, so the first start the printer answers at re-detects it.
+            cached_camera = new_data.get("_cached_camera_type")
+            if camera_type_to_keep(cached_camera, cached_version) == cached_camera:
+                new_data["_cached_version"] = current_version
+
             # Only set defaults if this is first-time setup (no cached model exists)
             if not new_data.get("_cached_model"):
-                new_data["_cached_model"] = "K by Creality"
+                new_data["_cached_model"] = PLACEHOLDER_MODEL
                 new_data["_cached_has_light"] = True
                 # No brightness control until we can detect the model online.
                 new_data["_cached_has_brightness_control"] = False
@@ -388,26 +516,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 new_data["_cached_has_box_sensor"] = False
                 new_data["_cached_has_box_control"] = False
                 new_data["_cached_camera_type"] = "mjpeg"
-            elif (
-                "_cached_has_brightness_control" not in new_data
-                or "_cached_led_pin" not in new_data
-            ):
-                # Migration from before LED-dimming support: the printer is
-                # offline so we can't read live telemetry, but the model was
-                # cached on a previous online run. Derive the brightness
-                # capability from that cached model so the light exposes dimming
-                # without waiting for the printer to be online again.
-                cached_model = ModelDetection({
-                    "model": new_data.get("_cached_model"),
-                    "modelVersion": new_data.get("_cached_model_version"),
-                })
-                new_data["_cached_has_brightness_control"] = cached_model.has_brightness_control
-                new_data["_cached_led_pin"] = cached_model.led_pin
+            else:
+                _derive_led_pin(new_data)
             
             hass.config_entries.async_update_entry(entry, data=new_data)
             
             # Migrate go2rtc settings even when printer is off
             _migrate_go2rtc_settings(hass, entry)
+
+    # The device-info cache above only refreshes on an upgrade, but the camera
+    # can change with the printer's firmware. Checked on every start the
+    # printer is talking at, before the camera platform reads it.
+    live_camera = detect_camera_type(coord.data, entry.data.get("_cached_camera_type"))
+    if live_camera and live_camera != entry.data.get("_cached_camera_type"):
+        _LOGGER.info(
+            "Camera type for %s is now %s (was %s)",
+            host,
+            live_camera,
+            entry.data.get("_cached_camera_type"),
+        )
+        hass.config_entries.async_update_entry(
+            entry, data={**entry.data, "_cached_camera_type": live_camera}
+        )
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coord
 
@@ -448,6 +578,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # so a printer that goes silent mid-print would leave a card counting
         # down on the phone forever. Reuses this interval; no new timer.
         coord.notifier_tick()
+        # A configured switch that has gone missing never sends a state
+        # change; this is where the end of its grace period is noticed.
+        if coord._switch_missing_since is not None:  # pylint: disable=protected-access
+            hass.async_create_task(coord.async_recheck_missing_switch())
         # Listener updates are left to the coordinator, which throttles them.
     
     cancel_interval = async_track_time_interval(
@@ -483,6 +617,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             # same attributes. Removed rather than left orphaned.
             ("sensor", f"{host}-system"),
         ]
+        # The chamber target a K1 got because it reports targetBoxTemp; no
+        # K1-family printer has a chamber heater, so it never did anything (R71).
+        if ModelDetection.from_cache(entry.data, coord.data).is_k1_family:
+            legacy.append(("number", f"{host}-box_target"))
         for domain_name, unique in legacy:
             ent_id = reg.async_get_entity_id(domain_name, DOMAIN, unique)
             if ent_id:
@@ -491,18 +629,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug("Legacy entity cleanup skipped: %s", exc)
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    
-    # Asking the service registry, the same way _register_custom_services does,
-    # rather than keeping a flag: hass.data[DOMAIN] is keyed by entry id and a
-    # sentinel in there is indistinguishable from a coordinator.
-    if not hass.services.has_service(DOMAIN, "diagnostic_dump"):
-        await _register_diagnostic_service(hass)
 
-    # Register custom services
-    await _register_custom_services(hass)
-    
     _LOGGER.info("ha_creality_ws: setup complete")
     return True
+
+
+async def _common_strings(hass: HomeAssistant) -> dict[str, str]:
+    """The integration's `common` strings in the server's language (R33).
+
+    Persistent notifications are composed here, so, like the phone
+    notifications, they can only use the server's language.
+    """
+    language = getattr(getattr(hass, "config", None), "language", None) or "en"
+    prefix = f"component.{DOMAIN}.common."
+    try:
+        raw = await async_get_translations(hass, language, "common", {DOMAIN})
+    except Exception:  # pylint: disable=broad-except
+        _LOGGER.exception("Could not load the integration's strings")
+        return {}
+    return {key[len(prefix):]: value for key, value in raw.items() if key.startswith(prefix)}
+
+
+def _fill(strings: dict[str, str], key: str, /, **values: str) -> str:
+    """One string with its placeholders filled; the key itself if it is missing."""
+    try:
+        return strings[key].format(**values)
+    except (KeyError, IndexError, ValueError):
+        _LOGGER.warning("String %r is missing or does not match its placeholders", key)
+        return key
 
 
 def _coordinators_for_devices(
@@ -534,7 +688,7 @@ def _coordinators_for_devices(
 
     return [
         coord
-        for entry_id, coord in hass.data[DOMAIN].items()
+        for entry_id, coord in hass.data.get(DOMAIN, {}).items()
         if isinstance(coord, KCoordinator)
         and (not target_entry_ids or entry_id in target_entry_ids)
     ]
@@ -551,23 +705,28 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
             _LOGGER.warning("No applicable printers found for CFS info request")
             return
 
-        success_count = 0
-        fail_count = 0
-        
+        asked: list[str] = []
+        failed: list[str] = []
         for coord in targets:
             try:
                 _LOGGER.info("Manually requesting CFS info for %s", coord.client.host)
                 await coord.client.request_boxs_info()
-                success_count += 1
+                asked.append(coord.client.host)
             except Exception as exc:
                 _LOGGER.error("Failed to request CFS info for %s: %s", coord.client.host, exc)
-                fail_count += 1
-        
-        # Notify user of results
+                failed.append(coord.client.host)
+
+        # Nothing to say on success: the CFS sensors update, and the card that
+        # calls this after every save already shows its own result. A
+        # notification each time left one in the bell per save (R76).
+        if not failed:
+            pn_async_dismiss(hass, "cfs_request_result")
+            return
+        strings = await _common_strings(hass)
         pn_async_create(
             hass,
-            title="CFS Info Request",
-            message=f"Request sent to {success_count} printer(s).\nFailures: {fail_count}",
+            title=_fill(strings, "cfs_info_title"),
+            message=_fill(strings, "cfs_info_failed", printers=", ".join(failed)),
             notification_id="cfs_request_result",
         )
 
@@ -586,14 +745,13 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
         requested = call.data.get("device_id")
         if not requested:
             raise ServiceValidationError(
-                "set_cfs_material requires a device_id; refusing to write to "
-                "every configured printer."
+                translation_domain=DOMAIN, translation_key="cfs_material_needs_device"
             )
 
         targets = _coordinators_for_devices(hass, requested)
         if not targets:
             raise ServiceValidationError(
-                "No Creality printer matched the selected device."
+                translation_domain=DOMAIN, translation_key="no_printer_matched"
             )
 
         box_id = call.data["box_id"]
@@ -612,9 +770,13 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
                 pressure=call.data.get("pressure"),
                 rfid=call.data.get("rfid"),
             )
-        except ValueError as exc:
+        except MaterialValueError as exc:
             # Bad input, not a printer failure -- surface it on the call itself.
-            raise ServiceValidationError(str(exc)) from exc
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key=exc.key,
+                translation_placeholders=exc.placeholders,
+            ) from exc
 
         # Check every target before writing to any of them, so a busy second
         # printer cannot leave the first one already modified.
@@ -635,39 +797,49 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
             )
             if state in BUSY_PRINT_STATES:
                 raise ServiceValidationError(
-                    f"{coord.client.host} is {state}; refusing to change CFS "
-                    "material while the printer is busy."
+                    translation_domain=DOMAIN,
+                    translation_key="cfs_material_printer_busy",
+                    translation_placeholders={"printer": coord.client.host},
                 )
 
+        strings = await _common_strings(hass)
+        # 1-based, as the sensors name the slots (R28).
+        where = {"box": str(box_id), "slot": str(slot_id + 1)}
+        failed: list[str] = []
         for coord in targets:
             host = coord.client.host
             try:
                 _LOGGER.debug("Sending modifyMaterial to %s: %s", host, payload)
                 await coord.client.send_set_retry(modifyMaterial=payload)
             except Exception as exc:
+                failed.append(host)
                 _LOGGER.error("Failed to set CFS material for %s: %s", host, exc)
                 pn_async_create(
                     hass,
-                    title="CFS Material Update Failed",
-                    message=f"Failed to update material on {host}: {exc}",
+                    title=_fill(strings, "cfs_material_failed_title"),
+                    message=_fill(strings, "cfs_material_failed", printer=host, **where),
                     # Per-host: device_id accepts a list, and a shared id would
                     # leave only the last printer's result visible.
                     notification_id=f"cfs_material_error_{host}",
                 )
                 continue
 
-            # Clear any earlier failure for this printer, so a successful retry
-            # does not leave "Update Failed" and "Updated" on screen together.
+            # Clear any earlier failure for this printer. Success itself posts
+            # nothing (R76): the card shows its own result, and an automation
+            # learns of a failure from the raise below.
             pn_async_dismiss(hass, f"cfs_material_error_{host}")
-            pn_async_create(
-                hass,
-                title="CFS Material Updated",
-                message=(
-                    f"Box {box_id} slot {slot_id} on {host} updated."
-                ),
-                notification_id=f"cfs_material_update_{host}",
-            )
             hass.async_create_task(_log_material_echo(coord, payload))
+
+        # After every target has been tried: one unreachable printer must not
+        # stop the others being written, but the caller has to learn that a
+        # write failed. Returning normally made the CFS card report "Saved"
+        # for a change that never reached the printer (R19).
+        if failed:
+            raise HomeAssistantError(
+                translation_domain=DOMAIN,
+                translation_key="cfs_material_write_failed",
+                translation_placeholders={"printers": ", ".join(failed)},
+            )
 
     async def _log_material_echo(coord: KCoordinator, payload: dict[str, Any]) -> None:
         """Log what the printer actually stored after a material write.
@@ -740,7 +912,14 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
     )
 
     if not hass.services.has_service(DOMAIN, "request_cfs_info"):
-        hass.services.async_register(DOMAIN, "request_cfs_info", request_cfs_info)
+        hass.services.async_register(
+            DOMAIN,
+            "request_cfs_info",
+            request_cfs_info,
+            schema=vol.Schema(
+                {vol.Optional("device_id"): vol.Any(cv.string, [cv.string])}
+            ),
+        )
 
     if not hass.services.has_service(DOMAIN, "set_cfs_material"):
         hass.services.async_register(
@@ -754,212 +933,53 @@ async def _register_custom_services(hass: HomeAssistant) -> None:
 async def _register_diagnostic_service(hass: HomeAssistant) -> None:
     """Register diagnostic service - outputs all data to logs (no file storage)."""
     
-    async def diagnostic_dump(call: ServiceCall) -> None:
-        """Collect and log telemetry data for all printers."""
-        try:
-            # Get all coordinators (all printer instances)
-            coordinators: list[tuple[str, KCoordinator]] = []
-            for entry_id, coord in hass.data[DOMAIN].items():
-                if isinstance(coord, KCoordinator):
-                    coordinators.append((entry_id, coord))
-            
-            if not coordinators:
-                _LOGGER.error("No Creality printers found to dump data from")
-                return
-            
-            # Create diagnostic data structure
-            diagnostic_data = {
-                "timestamp": dt_util.utcnow().isoformat(),
-                "home_assistant_version": HA_VERSION,
-                "integration_version": await _get_integration_version(hass),
-                "printers": {}
-            }
+    async def diagnostic_dump(call: ServiceCall) -> ServiceResponse:
+        """Collect every printer's diagnostics, log them and return them.
 
-            
-            for entry_id, coord in coordinators:
-                # Collect config entry details for this coordinator (non-sensitive)
-                cfg_entry = hass.config_entries.async_get_entry(entry_id)
-                entry_meta: dict[str, Any] = {
-                    "entry_id": entry_id,
-                    "title": getattr(cfg_entry, "title", None),
-                    "options": {
-                        "power_switch": cfg_entry.options.get(CONF_POWER_SWITCH),
-                        "power_switch_enabled": cfg_entry.options.get(CONF_POWER_SWITCH_ENABLED),
-                        "camera_mode": cfg_entry.options.get(CONF_CAMERA_MODE),
-                        "polling_rate": cfg_entry.options.get(CONF_POLLING_RATE),
-                        "notify_device": cfg_entry.options.get(CONF_NOTIFY_DEVICE),
-                        "notify_completed": cfg_entry.options.get(CONF_NOTIFY_COMPLETED),
-                        "notify_error": cfg_entry.options.get(CONF_NOTIFY_ERROR),
-                        "notify_minutes_to_end": cfg_entry.options.get(CONF_NOTIFY_MINUTES_TO_END),
-                        "minutes_to_end_value": cfg_entry.options.get(CONF_MINUTES_TO_END_VALUE),
-                        "go2rtc_url": cfg_entry.options.get(CONF_GO2RTC_URL),
-                        "go2rtc_port": cfg_entry.options.get(CONF_GO2RTC_PORT),
-                    } if cfg_entry else {},
-                    "cached": {
-                        "model": cfg_entry.data.get("_cached_model") if cfg_entry else None,
-                        "hostname": cfg_entry.data.get("_cached_hostname") if cfg_entry else None,
-                        "model_version": cfg_entry.data.get("_cached_model_version") if cfg_entry else None,
-                        "camera_type": cfg_entry.data.get("_cached_camera_type") if cfg_entry else None,
-                        "has_light": cfg_entry.data.get("_cached_has_light") if cfg_entry else None,
-                        "has_chamber_sensor": cfg_entry.data.get("_cached_has_chamber_sensor", cfg_entry.data.get("_cached_has_box_sensor")) if cfg_entry else None,
-                        "has_chamber_control": cfg_entry.data.get("_cached_has_chamber_control", cfg_entry.data.get("_cached_has_box_control")) if cfg_entry else None,
-                        "max_bed_temp": cfg_entry.data.get("_cached_max_bed_temp") if cfg_entry else None,
-                        "max_nozzle_temp": cfg_entry.data.get("_cached_max_nozzle_temp") if cfg_entry else None,
-                        "max_chamber_temp": cfg_entry.data.get("_cached_max_chamber_temp", cfg_entry.data.get("_cached_max_box_temp")) if cfg_entry else None,
-                    } if cfg_entry else {},
-                }
+        Returned as the action's response (Developer Tools > Actions shows it),
+        which is what the README, the bug form and the issue bot always told
+        reporters to copy; before, the data only went to the log. Redacted
+        unless `include_sensitive_data` is set, an option that used to be
+        accepted and ignored.
+        """
+        from .diagnostics import async_collect, redact  # pylint: disable=import-outside-toplevel
 
-                # WebSocket connection diagnostics
-                client = coord.client
-                ws_diag = {
-                    "ws_url": client.get_url(),
-                    "ws_connected": client.is_connected,
-                    "ws_ready": client.is_connected,  # approximate mapping
-                    "connected_once": client.has_connected_once(),
-                    "task_running": client.is_task_running(),
-                    "last_rx_monotonic": client.last_rx_monotonic(),
-                    "reconnect_count": client.reconnect_count,
-                    "msg_count": client.msg_count,
-                    "last_error": client.last_error,
-                    # Accessing private memeber for debug/diagnostics is acceptable or expose another property?
-                    # uptime_start is public in ws_client (lines 66)
-                    "uptime_seconds": (time.monotonic() - client.uptime_start) if client.uptime_start > 0 and client.is_connected else 0,
-                }
-
-                # Attempt a minimal crawl of the printer web UI to collect resource URLs
-                try:
-                    host = coord.client.host
-
-                    urls_cache = getattr(coord, "_http_urls_accessed", None)
-                    if urls_cache is None:
-                        urls_cache = set()
-                        setattr(coord, "_http_urls_accessed", urls_cache)
-
-                    session = async_get_clientsession(hass)
-                    for scheme in ("https", "http"):
-                        base = f"{scheme}://{host}/"
-                        try:
-                            # Record the base URL attempt
-                            urls_cache.add(base)
-                            # Allow self-signed certs on local printers
-                            ssl_opt = False if scheme == "https" else None
-                            async with session.get(base, timeout=5, ssl=ssl_opt) as resp:  # type: ignore[arg-type]
-                                if resp.status == 200:
-                                    txt = await resp.text(errors="ignore")
-                                    # Extract href/src URLs (shallow)
-                                    for m in re.findall(r"(?:src|href)=[\"']([^\"']+)[\"']", txt, re.IGNORECASE):
-                                        absu = urljoin(base, m)
-                                        pu = urlparse(absu)
-                                        if pu.scheme in ("http", "https") and pu.hostname == host:
-                                            urls_cache.add(absu)
-                        except Exception:
-                            # Ignore crawl failures; we still record base URL
-                            pass
-                except Exception:
-                    _LOGGER.debug("Diagnostic URL crawl skipped due to error", exc_info=True)
-
-                printer_data = {
-                    "host": client.host,
-
-                    "available": coord.available,
-                    "power_is_off": coord.power_is_off(),
-                    "power_switch_entity": getattr(coord, "_power_switch_entity", None),
-                    "http_urls_accessed": sorted(list(getattr(coord, "_http_urls_accessed", set()))) if hasattr(coord, "_http_urls_accessed") else [],
-                    "paused_flag": coord.paused_flag(),
-                    "pending_pause": coord.pending_pause(),
-                    "pending_resume": coord.pending_resume(),
-                    "last_rx_time": client.last_rx_monotonic(),
-                    "ws": ws_diag,
-                    "config_entry": entry_meta,
-                    "telemetry_data": coord.data.copy() if coord.data else {}
-                }
-                
-                # Add model detection info
-                printermodel = ModelDetection(coord.data)
-                model = (coord.data or {}).get("model") or ""
-                model_l = str(model).lower()
-                printer_data["model_detection"] = {
-                    "raw_model": model,
-                    "model_lower": model_l,
-                    "is_k1_family": printermodel.is_k1_family,
-                    "is_k1_base": printermodel.is_k1_base,
-                    "is_k1c": printermodel.is_k1c,
-                    "is_k1_se": printermodel.is_k1_se,
-                    "is_k1_max": printermodel.is_k1_max,
-                    "is_k2_family": printermodel.is_k2_family,
-                    "is_k2_base": printermodel.is_k2_base,
-                    "is_k2_pro": printermodel.is_k2_pro,
-                    "is_k2_plus": printermodel.is_k2_plus,
-                    "is_ender_v3_family": printermodel.is_ender_v3_family,
-                    "is_creality_hi": printermodel.is_creality_hi,
-                    "supports_webrtc": printermodel.supports_webrtc
-                }
-                
-                # Add feature detection (matching sensor.py logic)
-                printer_data["feature_detection"] = {
-                    "has_light": printermodel.has_light,
-                    "has_chamber_sensor": printermodel.has_chamber_sensor,
-                    "has_chamber_control": printermodel.has_chamber_control,
-                    "camera_type": "webrtc" if (printermodel.is_k2_family or printermodel.supports_webrtc) else 
-                                  "mjpeg_optional" if (printermodel.is_k1_se or printermodel.is_ender_v3_family) else 
-                                  "mjpeg"
-                }
-
-                # CFS Diagnostics
-                cfs_data = coord.data.get("boxsInfo", {})
-                cfs_status = {
-                    "connected": coord.data.get("cfsConnect"),
-                    "box_count": len(cfs_data.get("materialBoxs", [])),
-                    "raw_boxsInfo": cfs_data,
-                }
-                printer_data["cfs"] = cfs_status
-
-
-                # Dump actual HA entities
-                ent_reg = er.async_get(hass)
-                # er.async_entries_for_config_entry returns list of RegistryEntry
-                entity_entries = er.async_entries_for_config_entry(ent_reg, entry_id)
-                entities_dump = []
-                for e in entity_entries:
-                    st = hass.states.get(e.entity_id)
-                    entities_dump.append({
-                        "entity_id": e.entity_id,
-                        "name": e.name or e.original_name,
-                        "state": st.state if st else None,
-                        "attributes": dict(st.attributes) if st else None
-                    })
-                printer_data["entities"] = entities_dump
-                
-                diagnostic_data["printers"][entry_id] = printer_data
-            
-            # Convert to JSON string for UI display
-            json_output = json.dumps(diagnostic_data, indent=2, ensure_ascii=False)
-            
-            
-            # Log the diagnostic data to make it visible in Home Assistant logs (using WARNING level for visibility)
-            _LOGGER.warning("=== CREALITY DIAGNOSTIC DATA START ===\n%s\n=== CREALITY DIAGNOSTIC DATA END ===", json_output)
-            
-            # Create a persistent notification with summary
-            pn_async_create(
-                hass,
-                title="Creality Diagnostic Data",
-                message=f"Diagnostic data collected for {len(diagnostic_data['printers'])} printer(s). Data size: {len(json_output)} bytes. Check the logs for the full JSON data.",
-                notification_id="creality_diagnostic_data"
-            )
-                
-        except Exception as exc:
-            _LOGGER.exception("Failed to create diagnostic dump: %s", exc)
+        data = await async_collect(hass, await _get_integration_version(hass))
+        if not data["printers"]:
+            _LOGGER.error("No Creality printers found to dump data from")
+            return data
+        if not call.data.get("include_sensitive_data"):
+            data = redact(hass, data)
+        json_output = json.dumps(data, indent=2, ensure_ascii=False)
+        # Still logged, for anyone following the older instructions.
+        _LOGGER.warning(
+            "=== CREALITY DIAGNOSTIC DATA START ===\n%s\n=== CREALITY DIAGNOSTIC DATA END ===",
+            json_output,
+        )
+        strings = await _common_strings(hass)
+        pn_async_create(
+            hass,
+            title=_fill(strings, "diagnostic_title"),
+            message=_fill(strings, "diagnostic_collected", printers=str(len(data["printers"]))),
+            notification_id="creality_diagnostic_data",
+        )
+        return data
     
     # Register the service
     schema = vol.Schema({
         vol.Optional("include_sensitive_data", default=False): bool,
     })
     
-    hass.services.async_register(
-        DOMAIN, 
-        "diagnostic_dump", 
-        diagnostic_dump, 
-        schema=schema
+    # Admins only: the response can be unredacted (`include_sensitive_data`),
+    # and carries camera URLs and tokens for every printer. Automations run
+    # without a user and are unaffected.
+    async_register_admin_service(
+        hass,
+        DOMAIN,
+        "diagnostic_dump",
+        diagnostic_dump,
+        schema=schema,
+        supports_response=SupportsResponse.OPTIONAL,
     )
     
     _LOGGER.info("Diagnostic service registered: ha_creality_ws.diagnostic_dump")
@@ -971,6 +991,10 @@ async def _register_diagnostic_service(hass: HomeAssistant) -> None:
 async def options_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Apply an options change: in place where that is enough, else a reload."""
     coord = hass.data.get(DOMAIN, {}).get(entry.entry_id)
+    if coord is not None and coord.consume_own_data_write(entry):
+        # The coordinator refreshing its own cache, e.g. a new firmware
+        # version (R40): nothing to reload.
+        return
     if coord is not None:
         # A change confined to the notification settings needs no reload. One
         # would drop the WebSocket, flip every entity unavailable and restart
@@ -1012,8 +1036,8 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Take this printer's notifications off every phone as it is deleted.
 
     Unload deliberately leaves them alone, because `options_update_listener`
-    reloads the entry on any options change and dismissing there would make the
-    card flicker every time an unrelated setting is toggled. Removal is the one
+    reloads the entry on most options changes and dismissing there would make
+    the card flicker every time an unrelated setting is toggled. Removal is the one
     teardown that is not a reload, and it is final: nothing will ever push to
     these tags again, so a live card left behind would sit on a phone showing a
     printer that no longer exists in Home Assistant.
@@ -1056,11 +1080,12 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     coord: KCoordinator = hass.data[DOMAIN][entry.entry_id]
-    await coord.async_stop()
-
+    # Platforms first: if one refuses to unload, the entry stays loaded, and
+    # it must not be left with its client already stopped (R31).
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
+        await coord.async_stop()
         hass.data[DOMAIN].pop(entry.entry_id)
 
     # The Lovelace resources and the static paths are deliberately left in
@@ -1071,42 +1096,22 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 
 async def async_remove_config_entry_device(hass: HomeAssistant, entry: ConfigEntry, device) -> bool:
-    """Remove a device from the device registry when requested by the user.
+    """Allow removing a device only once this printer no longer uses it (R35).
 
-    Returning True allows Home Assistant to remove the device and any associated
-    entities for this config entry. We don't keep any external resources tied
-    to the device (streams, files, etc.), so no extra cleanup is required here.
+    That is a device left at an old address, such as one an earlier version
+    doubled when the printer moved (#39). The printer's current device would
+    come straight back: removing it used to be allowed and to wipe the cached
+    model and MAC address, which reloaded the entry and re-created the device
+    without its customisations, and lost the MAC that rediscovery uses to
+    follow the printer to a new address. Removing the printer is done by
+    deleting its entry.
     """
-    try:
-        _LOGGER.info(
-            "ha_creality_ws: request to remove device %s for entry %s",
-            getattr(device, 'id', device),
-            entry.entry_id,
-        )
-
-        # If this device has our identifier (DOMAIN, host), clear cached data
-        # so that re-creating the device starts from a clean slate.
-        host: str | None = None
-        for ident in getattr(device, 'identifiers', set()):
-            if isinstance(ident, tuple) and len(ident) == 2 and ident[0] == DOMAIN:
-                host = ident[1]
-                break
-
-        if host:
-            # Drop all cached_* fields from entry.data
-            new_data = dict(entry.data)
-            removed_keys = []
-            for k in list(new_data.keys()):
-                if k.startswith("_cached_") or k == "_device_info_cached":
-                    removed_keys.append(k)
-                    new_data.pop(k, None)
-            if removed_keys:
-                hass.config_entries.async_update_entry(entry, data=new_data)
-                _LOGGER.info(
-                    "ha_creality_ws: cleared cached data on device removal for host=%s: %s",
-                    host,
-                    ", ".join(sorted(removed_keys)),
-                )
-    except Exception:
-        _LOGGER.exception("ha_creality_ws: cleanup during device removal failed")
-    return True
+    current = (DOMAIN, entry.data.get(CONF_HOST))
+    in_use = current in getattr(device, "identifiers", set())
+    _LOGGER.info(
+        "ha_creality_ws: request to remove device %s for entry %s: %s",
+        getattr(device, "id", device),
+        entry.entry_id,
+        "refused, it is the printer's current device" if in_use else "allowed",
+    )
+    return not in_use

@@ -14,6 +14,7 @@ from typing import TYPE_CHECKING, Any
 import aiofiles
 
 from homeassistant.core import HomeAssistant
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM,
@@ -102,10 +103,12 @@ class AdvancedOptions:
                     not alias[DEPRECATED]
                     and (
                         dt.strptime(
-                            alias.get(STOPS_WORKING, dt.strftime(dt.now(self.api.options.tz) - timedelta(days=1), DT_DATE_ONLY_FORMAT)),
+                            alias.get(
+                                STOPS_WORKING, dt.strftime(dt_util.now(self.api.options.tz) - timedelta(days=1), DT_DATE_ONLY_FORMAT)
+                            ),
                             DT_DATE_ONLY_FORMAT,
                         ).date()
-                        > dt.now(self.api.options.tz).date()
+                        > dt_util.now(self.api.options.tz).date()
                     )
                 ):
                     advanced_options_with_aliases[alias[NAME]] = characteristics
@@ -173,7 +176,7 @@ class AdvancedOptions:
 
             try:
                 async with aiofiles.open(self.api.filename_advanced) as file:
-                    _VALIDATION = {
+                    _validation = {
                         ADVANCED_OPTION.INT: r"^\d+$",
                         ADVANCED_OPTION.TIME: r"^([01]?[0-9]|2[0-3]):[03]{1}0$",
                     }
@@ -226,7 +229,7 @@ class AdvancedOptions:
                                             )
                                             valid = False
                                     # case ADVANCED_OPTION.TIME:
-                                    #    if re.match(_VALIDATION[ADVANCED_OPTION.TIME], new_value) is None:  # pyright: ignore[reportArgumentType, reportCallIssue]
+                                    #    if re.match(_validation[ADVANCED_OPTION.TIME], new_value) is None:  # pyright: ignore[reportArgumentType, reportCallIssue]
                                     #        add_problem("Invalid time in advanced option %s: %s", option, new_value)
                                     #        valid = False
                                     case ADVANCED_OPTION.LIST_INT | ADVANCED_OPTION.LIST_TIME:
@@ -234,7 +237,7 @@ class AdvancedOptions:
                                         seen_members: list[Any] = []
                                         member: Any
                                         for member in new_value:  # pyright: ignore[reportOptionalIterable, reportGeneralTypeIssues]
-                                            if re.match(_VALIDATION[member_type], str(member)) is None:
+                                            if re.match(_validation[member_type], str(member)) is None:
                                                 add_problem("Invalid %s in advanced option %s: %s", member_type, option, member)
                                                 valid = False
                                                 continue

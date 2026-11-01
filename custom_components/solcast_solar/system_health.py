@@ -5,13 +5,13 @@ from typing import Any
 from homeassistant.components import system_health
 from homeassistant.core import HomeAssistant, callback
 
-from .const import DEFAULT_SOLCAST_HTTPS_URL
+from .const import DEFAULT_SOLCAST_HTTPS_URL, DOMAIN
 
 
 @callback
 def async_register(hass: HomeAssistant, register: system_health.SystemHealthRegistration) -> None:
     """Register system health callbacks."""
-    register.domain = "Solcast Solar"
+    register.domain = DOMAIN
     register.async_register_info(system_health_info)  # pyright: ignore[reportUnknownMemberType]
 
 

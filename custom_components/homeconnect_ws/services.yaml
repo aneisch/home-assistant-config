@@ -1,0 +1,39 @@
+start_program:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: homeconnect_ws
+    start_in:
+      required: false
+      selector:
+        duration:
+    finish_in:
+      required: false
+      selector:
+        duration:
+
+set_start_in:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: homeconnect_ws
+    start_in:
+      required: true
+      selector:
+        duration:
+
+set_finish_in:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: homeconnect_ws
+    finish_in:
+      required: true
+      selector:
+        duration:

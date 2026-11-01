@@ -5,6 +5,8 @@ from datetime import UTC, datetime as dt, timedelta, tzinfo
 import json
 from typing import Any
 
+from homeassistant.util import dt as dt_util
+
 from .const import PERIOD_START
 
 
@@ -34,7 +36,7 @@ class DateTimeHelper:
             datetime: The UTC date and time representing midnight local time.
 
         """
-        for_when = (dt.now(self._tz) + timedelta(days=future)).astimezone(self._tz)
+        for_when = (dt_util.now(self._tz) + timedelta(days=future)).astimezone(self._tz)
         return for_when.replace(hour=0, minute=0, second=0, microsecond=0).astimezone(UTC)
 
     def dst(self, dt_obj: dt | None = None) -> bool:
@@ -47,7 +49,7 @@ class DateTimeHelper:
 
     def hour_start_utc(self) -> dt:
         """Return the UTC datetime representing the start of the current hour."""
-        return dt.now(self._tz).replace(minute=0, second=0, microsecond=0).astimezone(UTC)
+        return dt_util.now(self._tz).replace(minute=0, second=0, microsecond=0).astimezone(UTC)
 
     @property
     def is_dublin(self) -> bool:
@@ -60,15 +62,15 @@ class DateTimeHelper:
 
     def now_utc(self) -> dt:
         """Return the UTC datetime as at the previous minute boundary."""
-        return dt.now(self._tz).replace(second=0, microsecond=0).astimezone(UTC)
+        return dt_util.now(self._tz).replace(second=0, microsecond=0).astimezone(UTC)
 
     def real_now_utc(self) -> dt:
         """Return the UTC datetime including seconds/microseconds."""
-        return dt.now(self._tz).astimezone(UTC)
+        return dt_util.now(self._tz).astimezone(UTC)
 
     def utc_previous_midnight(self) -> dt:
         """Return the UTC datetime representing midnight UTC of the current day."""
-        return dt.now().astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+        return dt_util.now().astimezone(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
 
 
 class DateTimeEncoder(json.JSONEncoder):

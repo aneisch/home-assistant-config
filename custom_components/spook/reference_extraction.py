@@ -16,15 +16,40 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 import re
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
-from homeassistant.const import ENTITY_MATCH_ALL, ENTITY_MATCH_NONE
-from homeassistant.core import callback
+from homeassistant.components.automation import EVENT_AUTOMATION_TRIGGERED
+from homeassistant.components.script import EVENT_SCRIPT_STARTED
+from homeassistant.const import (
+    ATTR_ENTITY_ID,
+    CONF_ENABLED,
+    ENTITY_MATCH_ALL,
+    ENTITY_MATCH_NONE,
+    EVENT_STATE_CHANGED,
+    EVENT_STATE_REPORTED,
+    MATCH_ALL,
+)
+from homeassistant.core import callback, valid_entity_id
 from homeassistant.helpers.entity_component import DATA_INSTANCES
 
-from .template_extraction import is_template_string
+from .const import LOGGER
+from .entity_filtering import (
+    async_template_areas_not_found,
+    async_template_floors_not_found,
+    async_template_labels_not_found,
+)
+from .template_extraction import (
+    KNOWN_DOMAINS,
+    extract_attribute_pairs_from_template,
+    extract_registry_lookups_from_config,
+    extract_state_pairs_from_template,
+    extract_template_strings_from_config,
+    is_template_string,
+)
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from homeassistant.core import HomeAssistant
 
 # Direct reference keys, mapped to their reference type.
@@ -52,6 +77,284 @@ _EXCLUDED_KEYS = frozenset(
         "trigger_variables",
     },
 )
+
+
+# The events Home Assistant fires itself with the entity they are about in
+# `entity_id`. Not named after a domain, yet that payload means an entity.
+_EVENTS_ABOUT_AN_ENTITY = frozenset(
+    {
+        EVENT_AUTOMATION_TRIGGERED,
+        EVENT_SCRIPT_STARTED,
+        EVENT_STATE_CHANGED,
+        EVENT_STATE_REPORTED,
+    }
+)
+
+# Where an event trigger keeps what it matches on, rather than what it needs.
+_EVENT_PAYLOAD_KEYS = frozenset({"event_data", "event_data_template"})
+
+
+def event_payload_keys_to_leave_alone(config: dict[str, Any]) -> frozenset[str]:
+    """Return the event payload keys that hold data rather than references.
+
+    An `entity_id` inside `event_data` is a reference when the event comes
+    from an integration that means it that way, `timer.finished` being the
+    usual one. On somebody's own event it is whatever the sender put there,
+    and reporting that as a missing entity is a repair about an automation
+    that works perfectly well.
+
+    Told apart by the event type: one named after a domain comes from that
+    integration, and so do the few Home Assistant fires itself about one
+    entity, like `state_changed`. Anything else is somebody's own. Only on an event trigger:
+    action data can carry an `event_type` and `event_data` of its own, and
+    there they are whatever that action takes.
+    """
+    if config.get("trigger", config.get("platform")) != "event":
+        return frozenset()
+
+    event_types = config.get("event_type")
+    if event_types is None:
+        return frozenset()
+
+    if isinstance(event_types, str):
+        event_types = [event_types]
+
+    for event_type in event_types:
+        if not isinstance(event_type, str):
+            continue
+
+        if event_type in _EVENTS_ABOUT_AN_ENTITY:
+            return frozenset()
+
+        domain, dot, _ = event_type.partition(".")
+        if dot and domain in KNOWN_DOMAINS:
+            return frozenset()
+
+    return _EVENT_PAYLOAD_KEYS
+
+
+_LOGBOOK_LOG = "logbook.log"
+
+
+def harmless_entity_mentions(config: Any) -> set[str]:
+    """Return the entity IDs Home Assistant lists that are no dependency.
+
+    Core's own reading takes the `entity_id` of two things that need not
+    exist, so the repairs take these back out of what it says is referenced:
+
+    - the `event_data` of somebody's own event, top level or waited for in a
+      step: whatever the sender put there;
+    - the entity a `logbook.log` step files an entry under, when it is under
+      no entity domain at all, like `log.critical_messages`: the action only
+      checks its shape. A `light.kitchen` in there is meant to be that light.
+
+    Only those named nowhere else in the configuration. One that also shows
+    up as a value somewhere else, like a `scene: scene.movie` step or a
+    target, may be a reference only core reads, and stays. Both kinds are
+    collected in one go, so one does not count as a use of the other.
+    """
+    harmless: set[str] = set()
+    elsewhere: set[str] = set()
+    _collect_harmless_mentions(config, harmless, elsewhere, in_payload=False)
+    return harmless - elsewhere
+
+
+def _is_made_up_entity(value: Any) -> bool:
+    """Return whether a value is an entity ID under no entity domain at all."""
+    return (
+        isinstance(value, str)
+        and valid_entity_id(value)
+        and value.partition(".")[0] not in KNOWN_DOMAINS
+    )
+
+
+def _collect_logbook_data(
+    data: dict[str, Any], harmless: set[str], elsewhere: set[str]
+) -> None:
+    """Collect what a `logbook.log` step files its entry under, and the rest."""
+    for field_name, field_value in data.items():
+        if field_name == ATTR_ENTITY_ID and _is_made_up_entity(field_value):
+            harmless.add(field_value)
+        else:
+            _collect_harmless_mentions(
+                field_value, harmless, elsewhere, in_payload=True
+            )
+
+
+def _collect_event_payload(
+    config: dict[str, Any], harmless: set[str]
+) -> frozenset[str]:
+    """Collect the entity of somebody's own event, and return its payload keys."""
+    payload_keys = event_payload_keys_to_leave_alone(config)
+    if payload_keys and isinstance(event_data := config.get("event_data"), dict):
+        entity_id = event_data.get(ATTR_ENTITY_ID)
+        if isinstance(entity_id, str) and valid_entity_id(entity_id):
+            harmless.add(entity_id)
+    return payload_keys
+
+
+def _collect_harmless_mentions(
+    config: Any, harmless: set[str], elsewhere: set[str], *, in_payload: bool
+) -> None:
+    """Collect the harmless mentions in a configuration, and every other value."""
+    if isinstance(config, str):
+        elsewhere.add(config)
+        return
+    if isinstance(config, list):
+        for item in config:
+            _collect_harmless_mentions(item, harmless, elsewhere, in_payload=in_payload)
+        return
+    if not isinstance(config, dict):
+        return
+
+    # Action data is whatever the action takes, never a trigger or a step,
+    # whatever its shape.
+    payload_keys = (
+        frozenset() if in_payload else _collect_event_payload(config, harmless)
+    )
+    is_log = (
+        not in_payload and config.get("action", config.get("service")) == _LOGBOOK_LOG
+    )
+    for key, value in config.items():
+        if key in payload_keys:
+            continue
+        if is_log and key in ("action", "service"):
+            # The name of the action is no use of an entity of that name.
+            continue
+        if is_log and key in ("data", "data_template") and isinstance(value, dict):
+            _collect_logbook_data(value, harmless, elsewhere)
+            continue
+
+        _collect_harmless_mentions(
+            value, harmless, elsewhere, in_payload=in_payload or key in _PAYLOAD_KEYS
+        )
+
+
+# The domains Home Assistant takes an entity from as the `above` or `below`
+# of a numeric state trigger or condition, comparing against its state.
+_NUMERIC_STATE_THRESHOLD_DOMAINS = frozenset(
+    {"input_number", "number", "sensor", "zone"}
+)
+
+
+def numeric_state_threshold_entities(config: dict[str, Any]) -> set[str]:
+    """Return the entities a numeric state trigger or condition compares against.
+
+    `above: input_number.limit` reads the limit from that helper. Remove it
+    and the comparison fails, yet it is no `entity_id`. Only a valid entity
+    ID of a domain Home Assistant accepts there counts: a number or a
+    template is not one, and Home Assistant refuses anything else. It lower
+    cases the ID first, so this does too.
+
+    This trusts the shape, so a walker only asks it outside `VALUE_KEYS`.
+    """
+    if "numeric_state" not in (
+        config.get("condition"),
+        config.get("trigger", config.get("platform")),
+    ):
+        return set()
+
+    entities: set[str] = set()
+    for key in ("above", "below"):
+        if not isinstance(value := config.get(key), str):
+            continue
+
+        entity_id = value.lower()
+        if (
+            valid_entity_id(entity_id)
+            and entity_id.partition(".")[0] in _NUMERIC_STATE_THRESHOLD_DOMAINS
+        ):
+            entities.add(entity_id)
+
+    return entities
+
+
+# What Home Assistant's numeric threshold selector takes, by threshold type:
+# the entries each type compares against. `any` compares against nothing.
+_THRESHOLD_ENTRIES_BY_TYPE = {
+    "above": ("value",),
+    "below": ("value",),
+    "between": ("value_min", "value_max"),
+    "outside": ("value_min", "value_max"),
+}
+_THRESHOLD_KEYS = frozenset({"type", "value", "value_min", "value_max"})
+_THRESHOLD_ENTRY_KEYS = frozenset(
+    {"active_choice", "entity", "number", "unit_of_measurement"}
+)
+
+
+def _threshold_entry_entity(entry: Any) -> str | None:
+    """Return the entity a threshold entry compares against, if it uses one.
+
+    The editor keeps both a number and an entity around, and `active_choice`
+    says which one counts. Home Assistant drops the other before it runs.
+    Without `active_choice` it takes the number when there is one, and it
+    turns down an entry with both. Either way, the entity only counts when
+    nothing else is chosen over it.
+    """
+    if not isinstance(entry, dict) or not entry.keys() <= _THRESHOLD_ENTRY_KEYS:
+        return None
+
+    if "active_choice" in entry:
+        uses_entity = entry["active_choice"] == "entity"
+    else:
+        uses_entity = "number" not in entry
+
+    entity_id = entry.get("entity")
+    if not uses_entity or not isinstance(entity_id, str):
+        return None
+
+    entity_id = entity_id.lower()
+    return entity_id if valid_entity_id(entity_id) else None
+
+
+def numeric_threshold_entities(config: dict[str, Any]) -> set[str]:
+    """Return the entities a new style trigger or condition compares against.
+
+    `light.brightness_crossed_threshold` and its kind take their threshold
+    from `options.threshold`, and that can be an entity instead of a number.
+    Remove it and the trigger never fires, the condition never passes, and
+    Home Assistant's own reading does not list it.
+
+    Only on a trigger or condition named after an integration, and only on
+    a threshold shaped exactly the way Home Assistant's selector takes it.
+    An integration of somebody's own can call an option `threshold` and mean
+    something else by it. Any domain counts: Home Assistant reads the state
+    of whatever entity it is given, the selector only limits what the editor
+    offers.
+
+    This trusts the shape, so a walker only asks it outside `VALUE_KEYS`.
+    """
+    kind = config.get("condition", config.get("trigger", config.get("platform")))
+    if not isinstance(kind, str) or "." not in kind:
+        return set()
+
+    if not isinstance(options := config.get("options"), dict):
+        return set()
+
+    threshold = options.get("threshold")
+    if not isinstance(threshold, dict) or not threshold.keys() <= _THRESHOLD_KEYS:
+        return set()
+
+    # Checked for text first: a list or a dict cannot be looked up.
+    if not isinstance(threshold_type := threshold.get("type"), str):
+        return set()
+
+    entry_keys = _THRESHOLD_ENTRIES_BY_TYPE.get(threshold_type, ())
+    return {
+        entity_id
+        for key in entry_keys
+        if (entity_id := _threshold_entry_entity(threshold.get(key))) is not None
+    }
+
+
+def threshold_entities(config: dict[str, Any]) -> set[str]:
+    """Return the entities a trigger or condition compares against.
+
+    Both the classic numeric state one and the new style ones, read the
+    way each of them takes its threshold.
+    """
+    return numeric_state_threshold_entities(config) | numeric_threshold_entities(config)
 
 
 @dataclass
@@ -146,14 +449,158 @@ def extract_targets_from_config(config: Any) -> ExtractedTargets:
     return targets
 
 
+# Keys whose value is payload, not steps: service data, variables and event
+# data hold whatever somebody put there, and an `enabled: false` in them is
+# theirs, not a parked step.
+_PAYLOAD_KEYS = _EXCLUDED_KEYS | frozenset({"data", "data_template", "service_data"})
+
+# Keys whose value holds values, never a trigger or a condition: the payloads
+# above, and the items a repeat goes over. A dictionary in there shaped like a
+# numeric state condition is still only a value somebody hands over.
+VALUE_KEYS = _PAYLOAD_KEYS | frozenset({"for_each"})
+
+
+def without_disabled_steps(config: Any, *, in_payload: bool = False) -> Any:
+    """Return a copy of ``config`` without its disabled steps.
+
+    A step, trigger or condition carrying ``enabled: false`` is left out of
+    the copy, whether it sits in a list or is written on its own. Nothing
+    under a payload key is touched: service data, variables and event data
+    are arbitrary, and a dict in there with an ``enabled`` key of its own is
+    not a step.
+    """
+    if isinstance(config, list):
+        return [
+            without_disabled_steps(item, in_payload=in_payload)
+            for item in config
+            if in_payload
+            or not (isinstance(item, dict) and item.get(CONF_ENABLED) is False)
+        ]
+    if isinstance(config, dict):
+        # A single step can also be written without a list, as the value of
+        # a key like `actions` or `then`. Parked like that, the key goes.
+        return {
+            key: without_disabled_steps(
+                value, in_payload=in_payload or key in VALUE_KEYS
+            )
+            for key, value in config.items()
+            if in_payload
+            or key in _PAYLOAD_KEYS
+            or not (isinstance(value, dict) and value.get(CONF_ENABLED) is False)
+        }
+    return config
+
+
+def _is_switched_by_a_template(step: Any) -> bool:
+    """Return whether a step is turned on or off by a template in `enabled`.
+
+    Home Assistant takes text it reads as a boolean there too, like `"off"`,
+    which is no template.
+    """
+    return (
+        isinstance(step, dict)
+        and isinstance(enabled := step.get(CONF_ENABLED), str)
+        and is_template_string(enabled)
+    )
+
+
+def with_blueprint_switches_off(config: Any, *, in_payload: bool = False) -> Any:
+    """Return a copy of ``config`` with every templated `enabled` set to false.
+
+    A blueprint switches its own steps and triggers with a template in
+    `enabled`, driven by an input, to pick one of several ways of doing the
+    same thing. The ones not picked never run, and whoever uses the
+    blueprint cannot edit them either. Turned off here, every reader that
+    leaves out disabled steps leaves them out too. #1986.
+
+    Only for a blueprint. Somebody who wrote such a template themselves can
+    fix whatever it guards, so there it is still read.
+    """
+    if isinstance(config, list):
+        return [
+            with_blueprint_switches_off(item, in_payload=in_payload) for item in config
+        ]
+    if not isinstance(config, dict):
+        return config
+
+    copied = {
+        # The items a repeat goes over are values too, never steps.
+        key: with_blueprint_switches_off(
+            value, in_payload=in_payload or key in VALUE_KEYS
+        )
+        for key, value in config.items()
+    }
+    if not in_payload and _is_switched_by_a_template(config):
+        copied[CONF_ENABLED] = False
+    return copied
+
+
+def config_to_judge(entity: Any, config: Any) -> Any:
+    """Return the part of an automation or script's config worth judging.
+
+    All of it, unless it comes from a blueprint: then what the blueprint
+    switches off with a template is left out.
+    """
+    if getattr(entity, "referenced_blueprint", None) is None:
+        return config
+    return with_blueprint_switches_off(config)
+
+
+def mentioned_only_in_disabled_steps(config: Any) -> set[str]:
+    """Return every string ``config`` holds only in disabled steps.
+
+    Home Assistant's own ``referenced_*`` lists read disabled steps too, and
+    they read keys Spook's walkers do not, like the ``at`` of a time trigger
+    or the ``zone`` of a zone trigger. Teaching Spook every such key would
+    always lag behind core. So this does not ask what a string means: one
+    that only shows up in disabled steps is not named by anything that runs.
+
+    Both sides are also read the way Home Assistant reads an entity ID: it
+    lowercases one and splits a comma separated list, so a step can name
+    ``light.kitchen`` as ``Light.Kitchen, light.hall``. A piece a running step
+    holds counts as named, which errs towards reporting.
+    """
+    running = _strings_and_pieces(without_disabled_steps(config))
+    return _strings_and_pieces(config) - running
+
+
+def _strings_and_pieces(config: Any) -> set[str]:
+    """Return every string in ``config``, and its lowercased comma pieces."""
+    strings: set[str] = set()
+    _collect_every_string(config, strings)
+    for value in list(strings):
+        strings.update(piece.strip().lower() for piece in value.split(","))
+    return strings
+
+
+def only_in_disabled_steps(config: Any, extract: Callable[[Any], set[str]]) -> set[str]:
+    """Return what to leave out of the references ``config`` makes.
+
+    A disabled step does nothing, and people disable one on purpose to park
+    it. What only such a step names cannot break a run, so it is not worth a
+    repair; what a step that runs names as well still is.
+
+    That covers what ``extract`` finds, and anything Home Assistant's own
+    lists may have taken from a disabled step, whichever key it sat under.
+    The second part is every string only disabled steps hold, so the result
+    is for subtracting from references, not a list of references itself.
+    """
+    still_named = extract(without_disabled_steps(config))
+    return (extract(config) | mentioned_only_in_disabled_steps(config)) - still_named
+
+
 # Additional keys whose subtree carries payload or opaque data when
 # extracting trigger and condition platform keys. Service data can hold
 # keys like ``platform`` or ``condition`` (a weather condition, for
 # example), and blueprint inputs are free-form.
+# The items a repeat goes over are data, rendered and handed to the steps as
+# `repeat.item`, whatever their keys are called: a `condition` in there is
+# somebody's own field, not a condition.
 _PLATFORM_KEY_EXCLUDED_KEYS = _EXCLUDED_KEYS | frozenset(
     {
         "data",
         "data_template",
+        "for_each",
         "service_data",
         "use_blueprint",
     },
@@ -211,6 +658,466 @@ def extract_platform_keys_from_config(config: Any) -> ExtractedPlatformKeys:
     found = ExtractedPlatformKeys()
     _walk_platform_keys(config, found)
     return found
+
+
+# Triggers and conditions with an `attribute:` that names an attribute of the
+# entities they watch. Numeric state is in here too: same field, same meaning.
+_ATTRIBUTE_PLATFORMS = frozenset({"numeric_state", "state"})
+
+# Spook's own state trigger keeps its attribute under `options`.
+_SPOOK_STATE_CHANGED = "spook.state_changed"
+
+
+def _literal_entity_ids(value: Any) -> list[str]:
+    """Return the entity IDs, or registry IDs, written out in a config value."""
+    if isinstance(value, str):
+        values = value.split(",")
+    elif isinstance(value, list):
+        values = [item for item in value if isinstance(item, str)]
+    else:
+        return []
+
+    return [
+        item.strip()
+        for item in values
+        if item.strip()
+        and item.strip() not in (ENTITY_MATCH_ALL, ENTITY_MATCH_NONE)
+        and not is_template_string(item)
+    ]
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class AttributeValue:
+    """A value somebody named for an attribute, in place of a state.
+
+    Taken as it was written: an attribute keeps whatever its integration
+    puts in it, so a trigger compares it with the number or the boolean
+    YAML made of the text, not with the text.
+
+    Spook's own state trigger is the exception: it makes text of both, its
+    values and the attribute, and compares those. That is `as_text`.
+    """
+
+    attribute: str
+    value: str | int | float | bool
+    as_text: bool = False
+
+    # Python holds `False` equal to `0`, and `1` to `1.0`. In a configuration
+    # those are different entries, each with its own mistake, so the type of
+    # the value counts too. Otherwise a set keeps only one of them.
+    def __eq__(self, other: object) -> bool:
+        """Return whether both name the same attribute, and the same value."""
+        if not isinstance(other, AttributeValue):
+            return NotImplemented
+        return self._key() == other._key()
+
+    def __hash__(self) -> int:
+        """Return a hash that tells the type of the value apart too."""
+        return hash(self._key())
+
+    def _key(self) -> tuple[str, type, str | int | float | bool, bool]:
+        """Return what makes this value the one it is."""
+        return (self.attribute, type(self.value), self.value, self.as_text)
+
+
+@dataclass(frozen=True, slots=True)
+class NamedReferences:
+    """The attributes, or states, a configuration names, and of which entities."""
+
+    # Written out: the entity, or a registry ID, and the attribute or state.
+    # For states, that can also be a value of one of the entity's attributes.
+    pairs: frozenset[tuple[str, str | AttributeValue]]
+    # Spook's own state triggers, and the attribute, state or attribute
+    # value each names. Which entities that is depends on the house as it is
+    # right now, so it is left to the caller to resolve, the way the trigger
+    # does.
+    followed: tuple[tuple[dict[str, Any], str | AttributeValue], ...]
+
+
+def _attribute_reference(config: dict[str, Any]) -> tuple[Any, Any] | None:
+    """Return the entity IDs and attribute a trigger or condition watches."""
+    # `trigger` is also the list of triggers itself, in old style configs.
+    condition = config.get("condition")
+    trigger = config.get("trigger") or config.get("platform")
+    if not isinstance(condition, str):
+        condition = None
+    if not isinstance(trigger, str) or "condition" in config:
+        trigger = None
+
+    if _ATTRIBUTE_PLATFORMS.intersection((condition, trigger)):
+        return config.get("entity_id"), config.get("attribute")
+
+    return None
+
+
+def _followed_attribute(config: dict[str, Any]) -> str | None:
+    """Return the attribute a Spook state trigger follows, if it is one."""
+    trigger = config.get("trigger") or config.get("platform")
+    if trigger != _SPOOK_STATE_CHANGED or "condition" in config:
+        return None
+
+    options = config.get("options")
+    attribute = options.get("attribute") if isinstance(options, dict) else None
+    return attribute if _is_literal_attribute(attribute) else None
+
+
+def _is_literal_attribute(attribute: Any) -> bool:
+    """Return whether an attribute is written out, rather than worked out."""
+    return (
+        isinstance(attribute, str)
+        and bool(attribute)
+        and not is_template_string(attribute)
+    )
+
+
+def _walk_attribute_references(
+    config: Any,
+    found: set[tuple[str, str]],
+    followed: list[tuple[dict[str, Any], str]],
+) -> None:
+    """Recursively collect the attributes triggers and conditions watch."""
+    if isinstance(config, list):
+        for item in config:
+            _walk_attribute_references(item, found, followed)
+        return
+
+    if not isinstance(config, dict):
+        return
+
+    if (reference := _attribute_reference(config)) is not None:
+        entity_ids, attribute = reference
+        if _is_literal_attribute(attribute):
+            found.update(
+                (entity_id, attribute) for entity_id in _literal_entity_ids(entity_ids)
+            )
+    elif (attribute := _followed_attribute(config)) is not None:
+        followed.append((config, attribute))
+
+    for key, value in config.items():
+        if key in _PLATFORM_KEY_EXCLUDED_KEYS:
+            continue
+        _walk_attribute_references(value, found, followed)
+
+
+# Keys whose text Home Assistant shows but never renders. A description with
+# an example template in it is documentation, not a lookup.
+_NEVER_RENDERED_KEYS = frozenset({"alias", "description", "fields"})
+
+
+def without_never_rendered(config: Any) -> Any:
+    """Return the configuration without the parts that are never rendered.
+
+    Payloads are kept whole, whatever their keys are called: the data of an
+    action can have a `description` too, like a calendar event. So are the
+    items a repeat goes over, which are rendered as a whole.
+    """
+    if isinstance(config, dict):
+        return {
+            key: value
+            if key in _PAYLOAD_KEYS or key == "for_each"
+            else without_never_rendered(value)
+            for key, value in config.items()
+            if key not in _NEVER_RENDERED_KEYS
+        }
+    if isinstance(config, list):
+        return [without_never_rendered(item) for item in config]
+    return config
+
+
+# Where a configuration names what its templates get to see. Each of them
+# is handed to every template as a variable, and a variable goes before
+# what Home Assistant offers under that name: `variables` of the whole
+# thing, of a trigger, or of a step, the variables only the triggers see,
+# and what a step stores its response in.
+_VARIABLE_BLOCKS = frozenset({"trigger_variables", "variables"})
+_RESPONSE_VARIABLE = "response_variable"
+
+
+def _names_given_by(key: str, value: Any) -> set[str]:
+    """Return the names one key of a configuration gives its templates."""
+    if key in _VARIABLE_BLOCKS and isinstance(value, dict):
+        return {name for name in value if isinstance(name, str)}
+    if key == _RESPONSE_VARIABLE and isinstance(value, str):
+        return {value}
+    return set()
+
+
+def _collect_names(node: Any, names: set[str]) -> None:
+    """Collect the names a part of a configuration gives its templates."""
+    if isinstance(node, list):
+        for item in node:
+            _collect_names(item, names)
+        return
+    if not isinstance(node, dict):
+        return
+
+    for key, value in node.items():
+        names |= _names_given_by(key, value)
+        # A variable block's values are not names, and what is handed to an
+        # action belongs to whatever is called: `variables` in the data of
+        # `script.turn_on` are the called script's, not this one's.
+        if key not in _PAYLOAD_KEYS and key != _RESPONSE_VARIABLE:
+            _collect_names(value, names)
+
+
+def names_given_to_templates(config: Any) -> frozenset[str]:
+    """Return every name a configuration gives its templates.
+
+    Its variables wherever they are set, what steps store a response in,
+    and for a script the fields it is called with. Taken from all of it,
+    disabled steps too and wherever it nests: a name taken for a variable
+    that is not one only means a lookup that is not checked.
+    """
+    names: set[str] = set()
+    if isinstance(config, dict) and isinstance(fields := config.get("fields"), dict):
+        names.update(name for name in fields if isinstance(name, str))
+
+    _collect_names(config, names)
+    return frozenset(names)
+
+
+# How each kind of template lookup is resolved, the way Home Assistant does,
+# and where the targets of that kind are kept.
+_TEMPLATE_LOOKUPS_NOT_FOUND = {
+    "areas": async_template_areas_not_found,
+    "floors": async_template_floors_not_found,
+    "labels": async_template_labels_not_found,
+}
+_TARGETS_OF_KIND = {"areas": "area_ids", "floors": "floor_ids", "labels": "label_ids"}
+
+
+@callback
+def async_raw_config_references(
+    hass: HomeAssistant, config: Any, kind: Literal["areas", "floors", "labels"]
+) -> set[str]:
+    """Return the areas, floors or labels a raw configuration names.
+
+    Every target, wherever it nests, like `extract_targets_from_config`.
+    And what its templates hand `area_entities`, `floor_areas`,
+    `label_entities` and friends, as written, when that finds no area, floor
+    or label the way the lookup resolves it. What does find one is left out:
+    a name is no ID, and would read as unknown. A call by a name the
+    configuration gives its templates, as a variable or a field, is not
+    Home Assistant's lookup.
+    """
+    targets: set[str] = getattr(
+        extract_targets_from_config(config), _TARGETS_OF_KIND[kind]
+    )
+    shadowed = names_given_to_templates(config)
+    return targets | _TEMPLATE_LOOKUPS_NOT_FOUND[kind](
+        hass, extract_registry_lookups_from_config(config, kind, shadowed)
+    )
+
+
+def extract_attribute_references_from_config(config: Any) -> NamedReferences:
+    """Return the attributes a raw configuration names, and of which entities.
+
+    The `attribute:` of every state and numeric state trigger and condition,
+    wherever it nests (`and`, `or`, `not`, `choose`, `if`, `repeat`,
+    `wait_for_trigger`, condition steps), and the literal pairs in every
+    template that is rendered. Each entity of a list makes a pair of its own. Spook's own
+    state trigger is handed back as it is, with the attribute it follows.
+
+    Disabled steps, triggers and conditions are left out: they do nothing,
+    so nothing they name can break anything.
+
+    An entity can be a registry ID, which is what the editor writes in some
+    places; resolving those is up to the caller, which has the registry.
+
+    A template is not read for a lookup called by a name the configuration
+    gives a meaning of its own, like a variable called `states`. Used as a
+    filter, the lookup is still Home Assistant's: a variable does not hide
+    a filter.
+    """
+    pruned = without_disabled_steps(config)
+    shadowed = names_given_to_templates(config)
+
+    found: set[tuple[str, str]] = set()
+    followed: list[tuple[dict[str, Any], str]] = []
+    _walk_attribute_references(pruned, found, followed)
+
+    for template in extract_template_strings_from_config(
+        without_never_rendered(pruned)
+    ):
+        found.update(extract_attribute_pairs_from_template(template, shadowed))
+
+    return NamedReferences(pairs=frozenset(found), followed=tuple(followed))
+
+
+# Where a state trigger, and Spook's own, names the states it waits for.
+_STATE_TRIGGER_KEYS = ("from", "not_from", "to", "not_to")
+
+
+def _literal_states(value: Any, *, in_condition: bool = False) -> list[str]:
+    """Return the states written out in a config value, one or a list.
+
+    Only text: Home Assistant refuses anything else, like a `to: on` that
+    YAML read as true, so such a trigger never loads to wait for anything.
+    `*` is any state. A state condition compares a state shaped like an
+    input helper's entity ID with that helper's state instead, which is not
+    something written out. Core spells that as `input_` and a few domains;
+    any of them is left alone here, so a new one cannot slip through.
+    """
+    values = value if isinstance(value, list) else [value]
+    return [
+        item
+        for item in values
+        if isinstance(item, str)
+        and item
+        and item != MATCH_ALL
+        and not is_template_string(item)
+        and not (in_condition and valid_entity_id(item) and item.startswith("input_"))
+    ]
+
+
+def _literal_attribute_values(
+    value: Any, *, in_condition: bool = False
+) -> list[str | int | float | bool]:
+    """Return the attribute values written out in a config value, one or a list.
+
+    Not only text: with an `attribute:`, Home Assistant takes the value as
+    YAML read it and compares it with the attribute as it is. So a `to: off`
+    waits for the boolean false. Text is read the way a state is. Anything
+    else, like a mapping, is nothing an attribute in a fixed set ever is.
+    """
+    values = value if isinstance(value, list) else [value]
+    others = [item for item in values if isinstance(item, int | float)]
+    return [*others, *_literal_states(values, in_condition=in_condition)]
+
+
+def _state_values(
+    config: dict[str, Any], keys: tuple[str, ...], *, in_condition: bool = False
+) -> list[str | AttributeValue]:
+    """Return what a state trigger or condition waits for under these keys.
+
+    States, or with an `attribute:` written out, values of that attribute.
+    One worked out by a template names nothing to check.
+    """
+    if "attribute" not in config:
+        return [
+            state
+            for key in keys
+            for state in _literal_states(config.get(key), in_condition=in_condition)
+        ]
+
+    attribute = config["attribute"]
+    if not _is_literal_attribute(attribute):
+        return []
+    return [
+        AttributeValue(attribute, value)
+        for key in keys
+        for value in _literal_attribute_values(
+            config.get(key), in_condition=in_condition
+        )
+    ]
+
+
+def _state_reference(
+    config: dict[str, Any],
+) -> tuple[Any, list[str | AttributeValue]] | None:
+    """Return the entity IDs and states a state trigger or condition names."""
+    if config.get("condition") == "state":
+        return config.get("entity_id"), _state_values(
+            config, ("state",), in_condition=True
+        )
+
+    trigger = config.get("trigger") or config.get("platform")
+    if trigger == "state" and "condition" not in config:
+        return config.get("entity_id"), _state_values(config, _STATE_TRIGGER_KEYS)
+
+    return None
+
+
+def _followed_states(config: dict[str, Any]) -> list[str | AttributeValue]:
+    """Return the states a Spook state trigger names, if it is one.
+
+    Following an attribute, its `to` and `from` are that attribute's values.
+    The trigger makes text of those, and of the attribute, and compares
+    that. So a boolean or a number counts too, as the text it becomes: a
+    `to: off` YAML made a boolean waits for `False`, never the mode `off`.
+    """
+    trigger = config.get("trigger") or config.get("platform")
+    if trigger != _SPOOK_STATE_CHANGED or "condition" in config:
+        return []
+
+    options = config.get("options")
+    if not isinstance(options, dict):
+        return []
+
+    if "attribute" not in options:
+        return [
+            state
+            for key in _STATE_TRIGGER_KEYS
+            for state in _literal_states(options.get(key))
+        ]
+
+    attribute = options["attribute"]
+    if not _is_literal_attribute(attribute):
+        return []
+    return [
+        AttributeValue(attribute, value, as_text=True)
+        for key in _STATE_TRIGGER_KEYS
+        for value in _literal_attribute_values(options.get(key))
+    ]
+
+
+def _walk_state_references(
+    config: Any,
+    found: set[tuple[str, str | AttributeValue]],
+    followed: list[tuple[dict[str, Any], str | AttributeValue]],
+) -> None:
+    """Recursively collect the states triggers and conditions wait for."""
+    if isinstance(config, list):
+        for item in config:
+            _walk_state_references(item, found, followed)
+        return
+
+    if not isinstance(config, dict):
+        return
+
+    if (reference := _state_reference(config)) is not None:
+        entity_ids, states = reference
+        found.update(
+            (entity_id, state)
+            for entity_id in _literal_entity_ids(entity_ids)
+            for state in states
+        )
+    else:
+        followed.extend((config, state) for state in _followed_states(config))
+
+    for key, value in config.items():
+        if key in _PLATFORM_KEY_EXCLUDED_KEYS:
+            continue
+        _walk_state_references(value, found, followed)
+
+
+def extract_state_references_from_config(config: Any) -> NamedReferences:
+    """Return the states a raw configuration names, and of which entities.
+
+    The `to`, `from`, `not_to` and `not_from` of every state trigger and the
+    `state` of every state condition, wherever they nest. With an
+    `attribute:`, each is a value of that attribute instead. Spook's own
+    state trigger is handed back as it is, with each state or attribute
+    value it names. In templates, only a literal `is_state` and a state
+    compared to text.
+
+    Disabled steps, triggers and conditions are left out, and an entity can
+    be a registry ID, and a call by a name the configuration gives a meaning
+    of its own is no lookup, all like the attribute references.
+    """
+    pruned = without_disabled_steps(config)
+    shadowed = names_given_to_templates(config)
+
+    found: set[tuple[str, str | AttributeValue]] = set()
+    followed: list[tuple[dict[str, Any], str | AttributeValue]] = []
+    _walk_state_references(pruned, found, followed)
+
+    for template in extract_template_strings_from_config(
+        without_never_rendered(pruned)
+    ):
+        found.update(extract_state_pairs_from_template(template, shadowed))
+
+    return NamedReferences(pairs=frozenset(found), followed=tuple(followed))
 
 
 # Only automations and scripts carry a raw configuration worth reading here.
@@ -276,3 +1183,52 @@ def async_collect_mentioned_strings(hass: HomeAssistant) -> set[str]:
                 _collect_every_string(raw_config, found)
 
     return found
+
+
+type CoreReferenceKind = Literal["areas", "devices", "entities", "floors", "labels"]
+
+
+def core_references(entity: Any, kind: CoreReferenceKind) -> set[str]:
+    """Return what Home Assistant says one automation or script references.
+
+    Home Assistant reads those off the action data too, and that data is
+    whatever somebody wrote there. An `entity_id: 42`, or a list holding a
+    mapping, makes it raise a `TypeError` instead of answering. Left alone,
+    that takes the whole round down, and every other automation or script
+    goes unchecked. So this one gets an empty list from Home Assistant, and
+    Spook's own walker still reads what it names.
+
+    A copy, because Home Assistant caches the set it hands out, and the
+    repairs add to what they get.
+    """
+    try:
+        return set(getattr(entity, f"referenced_{kind}"))
+    except TypeError as err:
+        LOGGER.debug(
+            "Home Assistant could not list the %s %s references, "
+            "Spook reads it without that list: %s",
+            kind,
+            entity.entity_id,
+            err,
+        )
+        return set()
+
+
+@callback
+def async_referencing(
+    hass: HomeAssistant, domain: str, kind: CoreReferenceKind, reference: str
+) -> list[str]:
+    """Return the automations or scripts that Home Assistant says reference this.
+
+    What `automations_with_area` and its siblings answer, asked one
+    automation or script at a time. Those ask all of them in one go, so the
+    first one Home Assistant cannot read takes the whole answer down.
+    """
+    if not (component := hass.data.get(DATA_INSTANCES, {}).get(domain)):
+        return []
+
+    return [
+        entity.entity_id
+        for entity in component.entities
+        if reference in core_references(entity, kind)
+    ]

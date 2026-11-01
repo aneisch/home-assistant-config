@@ -1,6 +1,6 @@
 """Email caching utility for Mail and Packages."""
 
-import datetime
+import datetime as dt
 import logging
 from typing import Any
 
@@ -8,7 +8,13 @@ from aioimaplib import IMAP4_SSL
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.storage import Store
 
-from .imap import email_fetch, email_fetch_batch, email_fetch_headers, email_fetch_text
+from .imap import (
+    email_fetch,
+    email_fetch_batch,
+    email_fetch_headers,
+    email_fetch_text,
+    parse_batch_fetch_lines,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -36,6 +42,7 @@ class EmailCache:
         self._cache_headers: dict[str, tuple] = {}
         # Persistent metadata mapping: eid_str -> {"fetched_at": iso_str, "shipper": name, "data": tuple}
         self._persistent_store: dict[str, dict[str, Any]] = {}
+        self._uidvalidity: dict[str, str] = {}
 
     def set_account(self, account: IMAP4_SSL) -> None:
         """Set active IMAP account for the current scan cycle."""
@@ -53,24 +60,50 @@ class EmailCache:
             data = await self._store.async_load()
             if isinstance(data, dict):
                 self._persistent_store = data.get("entries", {})
+                self._uidvalidity = data.get("uidvalidity", {})
         except OSError as err:
             _LOGGER.warning("Failed to load email cache: %s", err)
             self._persistent_store = {}
+            self._uidvalidity = {}
 
     async def async_save(self) -> None:
         """Save persistent cache to storage."""
         if not self._store:
             return
         try:
-            await self._store.async_save({"entries": self._persistent_store})
+            await self._store.async_save(
+                {
+                    "entries": self._persistent_store,
+                    "uidvalidity": self._uidvalidity,
+                }
+            )
         except OSError as err:
             _LOGGER.warning("Failed to save email cache: %s", err)
 
+    async def async_check_uidvalidity(
+        self, folder: str, current_uidvalidity: str | None
+    ) -> None:
+        """Check if UIDVALIDITY changed for a folder and invalidate cache if so."""
+        if not current_uidvalidity:
+            return
+
+        stored_uidvalidity = self._uidvalidity.get(folder)
+        if stored_uidvalidity and stored_uidvalidity != current_uidvalidity:
+            _LOGGER.warning(
+                "UIDVALIDITY changed for folder %s (was %s, now %s). Invalidating email cache.",
+                folder,
+                stored_uidvalidity,
+                current_uidvalidity,
+            )
+            self.clear_all()
+
+        self._uidvalidity[folder] = current_uidvalidity
+
     async def async_purge_expired(self, custom_days: int = 3) -> None:
         """Purge expired cache entries based on carrier expiration rules."""
-        now = datetime.datetime.now(datetime.UTC)
+        now = dt.datetime.now(dt.UTC)
         midnight_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
-        custom_days_cutoff = now - datetime.timedelta(days=custom_days)
+        custom_days_cutoff = now - dt.timedelta(days=custom_days)
 
         expired_keys = []
         for key, entry in self._persistent_store.items():
@@ -79,7 +112,7 @@ class EmailCache:
                 expired_keys.append(key)
                 continue
             try:
-                fetched_at = datetime.datetime.fromisoformat(fetched_at_str)
+                fetched_at = dt.datetime.fromisoformat(fetched_at_str)
             except ValueError:
                 expired_keys.append(key)
                 continue
@@ -180,6 +213,28 @@ class EmailCache:
             self._store_persistent(cache_key, res, shipper)
         return res
 
+    def get_cached(self, email_id: str | bytes, parts: str) -> tuple | None:
+        """Get cached email data if present in memory or persistent store."""
+        eid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+        cache_key = f"{eid_str}:{parts}"
+        persistent = self._get_persistent_cache(cache_key)
+        if persistent is not None:
+            return persistent
+        return self._get_memory_cache(eid_str, parts)
+
+    def store(
+        self,
+        email_id: str | bytes,
+        parts: str,
+        data: tuple,
+        shipper: str = "generic",
+    ) -> None:
+        """Store email data into memory and persistent cache."""
+        eid_str = email_id.decode() if isinstance(email_id, bytes) else str(email_id)
+        cache_key = f"{eid_str}:{parts}"
+        self._store_memory_cache(eid_str, parts, data)
+        self._store_persistent(cache_key, data, shipper)
+
     def _store_persistent(self, eid_str: str, data: tuple, shipper: str) -> None:
         """Store fetched email data in persistent structure."""
         # Convert bytes objects inside tuple response for JSON serialization safety using latin-1 encoding to preserve exact 1-to-1 byte representations
@@ -201,21 +256,87 @@ class EmailCache:
             serializable_list = response_list
 
         self._persistent_store[eid_str] = {
-            "fetched_at": datetime.datetime.now(datetime.UTC).isoformat(),
+            "fetched_at": dt.datetime.now(dt.UTC).isoformat(),
             "shipper": shipper,
             "data": [status, serializable_list],
         }
 
+    def _assemble_batch_lines(
+        self,
+        email_ids: list[str | bytes],
+        cached_by_id: dict[str, list[Any]],
+        extra_lines: list[Any] | None = None,
+    ) -> list[Any]:
+        """Assemble cached and fetched lines in the order of requested email_ids."""
+        combined_lines = []
+        for eid in email_ids:
+            eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+            raw_uid = eid_str.rsplit("/", 1)[-1]
+            if raw_uid in cached_by_id:
+                combined_lines.extend(cached_by_id[raw_uid])
+        if extra_lines:
+            combined_lines.extend(extra_lines)
+        return combined_lines
+
     async def fetch_batch(
-        self, email_ids: list[str | bytes], parts: str = "(RFC822)"
-    ) -> tuple:
-        """Fetch multiple emails in a batch."""
+        self,
+        email_ids: list[str | bytes],
+        parts: str = "(RFC822)",
+        shipper: str = "generic",
+    ) -> tuple[str, list[Any]]:
+        """Fetch multiple emails in a batch with cache awareness."""
+        if not email_ids:
+            return ("OK", [])
+
+        missing_ids: list[str | bytes] = []
+        cached_by_id: dict[str, list[Any]] = {}
+
+        for eid in email_ids:
+            cached = self.get_cached(eid, parts)
+            if cached and cached[0] == "OK" and isinstance(cached[1], list):
+                eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+                raw_uid = eid_str.rsplit("/", 1)[-1]
+                cached_by_id[raw_uid] = cached[1]
+            else:
+                missing_ids.append(eid)
+
+        if not missing_ids:
+            return ("OK", self._assemble_batch_lines(email_ids, cached_by_id))
+
         if self.account is None:
             return ("NO", ["No active IMAP connection"])
-        return await email_fetch_batch(self.account, email_ids, parts)
+
+        res = await email_fetch_batch(self.account, missing_ids, parts)
+        if res[0] != "OK":
+            return res
+
+        fetched_lines = res[1] if isinstance(res[1], list) else []
+        parsed_map = parse_batch_fetch_lines(fetched_lines)
+
+        for eid in missing_ids:
+            eid_str = eid.decode() if isinstance(eid, bytes) else str(eid)
+            raw_uid = eid_str.rsplit("/", 1)[-1]
+            if raw_uid in parsed_map:
+                entry_data = parsed_map[raw_uid]
+                self.store(eid_str, parts, ("OK", entry_data), shipper=shipper)
+                cached_by_id[raw_uid] = entry_data
+
+        # If parsed_map is completely empty (e.g. server omitted UID delimiters in lines),
+        # preserve all raw fetched_lines as extra_lines so callers still receive the payload.
+        # Note: RFC-compliant IMAP servers return all requested UIDs delimited with 'UID <n>'.
+        extra_lines = fetched_lines if not parsed_map else None
+        return (
+            "OK",
+            self._assemble_batch_lines(email_ids, cached_by_id, extra_lines),
+        )
 
     def clear(self) -> None:
         """Clear the transient per-scan cache."""
         self._cache_rfc822.clear()
         self._cache_text.clear()
         self._cache_headers.clear()
+
+    def clear_all(self) -> None:
+        """Clear all cached emails from both transient and persistent tiers."""
+        self.clear()
+        self._persistent_store.clear()

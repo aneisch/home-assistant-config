@@ -33,6 +33,11 @@ class MideaEntity(Entity):
             MIDEA_DEVICES[self._device.device_type]["entities"],
         )[entity_key]
         self._entity_key = entity_key
+        self._attribute_key = self._config.get("attribute", entity_key)
+        self._state_attribute_key = self._config.get(
+            "state_attribute",
+            self._attribute_key,
+        )
         self._unique_id = f"{DOMAIN}.{self._device.device_id}_{entity_key}"
         # Build entity_id with the correct platform domain (sensor.*, switch.*, …)
         # instead of the integration domain. Keeps the legacy "<device_id>_<key>"
@@ -57,7 +62,13 @@ class MideaEntity(Entity):
         # translation in translations/<lang>.json.
         # If translation exists -> UI shows the translated string.
         # If translation not found -> fallback to "name" / device_class / entity_id.
-        self._attr_translation_key = self._config.get("translation_key")
+        # translation_key_by_model: a model whose panel names differ (e.g. a
+        # dishwasher's programs) can use its own key, so its state names match.
+        by_model = self._config.get("translation_key_by_model", {})
+        self._attr_translation_key = by_model.get(
+            str(self._device.model),
+            self._config.get("translation_key"),
+        )
 
         # has_entity_name: MUST be True in modern HA (old False behavior is deprecated).
         self._attr_has_entity_name = True
@@ -140,7 +151,16 @@ class MideaEntity(Entity):
     @property
     def available(self) -> bool:
         """Whether the entity is available."""
-        return bool(self._device.available)
+        if not self._device.available:
+            return False
+        state_attribute = self._config.get("available_attribute")
+        if state_attribute and not self._device.get_attribute(state_attribute):
+            return False
+        value_attribute = self._config.get("available_value_attribute")
+        return (
+            value_attribute is None
+            or self._device.get_attribute(value_attribute) is not None
+        )
 
     @property
     def icon(self) -> str:
@@ -220,7 +240,11 @@ class MideaEntity(Entity):
             )
             return
 
-        if self._entity_key not in status and "available" not in status:
+        if (
+            self._state_attribute_key not in status
+            and "available" not in status
+            and self._config.get("available_attribute") not in status
+        ):
             return
 
         self.schedule_update_if_running()

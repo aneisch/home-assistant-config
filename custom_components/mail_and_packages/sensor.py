@@ -4,17 +4,24 @@ https://blog.kalavala.net/usps/homeassistant/mqtt/2018/01/12/usps.html
 Configuration code contribution from @firstof9 https://github.com/firstof9/
 """
 
-import datetime
+import datetime as dt
 import logging
 from typing import Any
 
+from homeassistant.components.http.auth import async_sign_path
 from homeassistant.components.sensor import (
     RestoreSensor,
+    SensorEntity,
     SensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_HOST, CONF_RESOURCES
-from homeassistant.core import HomeAssistant
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_RESOURCES,
+    MAX_LENGTH_STATE_STATE,
+)
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.network import NoURLAvailableError, get_url
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -38,16 +45,23 @@ from .const import (
     ATTR_ORDER_DETAILS,
     ATTR_TRACKING_NUM,
     ATTR_USPS_IMAGE,
+    CONF_ALLOW_EXTERNAL,
     CONF_PATH,
     DOMAIN,
     IMAGE_SENSORS,
     SENSOR_TYPES,
+    SIGNAL_MAILBOX_UPDATED,
+    SUMMARY_DEVICE_NAME,
     VERSION,
 )
+from .entity import mailbox_device_name
+from .summary import combine, is_summary_entry, loaded_mailbox_data
+from .utils.image import default_image_path
 
 _LOGGER = logging.getLogger(__name__)
 
 DELIVERED_SUFFIXES = {"delivered"}
+SIGNED_IMAGE_URL_TTL = dt.timedelta(hours=24)
 
 
 async def async_setup_entry(
@@ -56,6 +70,13 @@ async def async_setup_entry(
     async_add_entities,
 ):
     """Set up the sensor entities."""
+    if is_summary_entry(entry):
+        async_add_entities(
+            SummarySensor(entry, SENSOR_TYPES[key])
+            for key in sorted(entry.runtime_data.keys)
+        )
+        return
+
     coordinator = entry.runtime_data.coordinator
     resources = coordinator.config.get(CONF_RESOURCES, [])
 
@@ -113,7 +134,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self._config.data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }
@@ -139,11 +160,11 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
             # Safely handle string vs datetime to prevent ValueError
             if isinstance(value, str):
                 try:
-                    value = datetime.datetime.fromisoformat(value)
+                    value = dt.datetime.fromisoformat(value)
                 except ValueError:
-                    value = datetime.datetime.now(datetime.UTC)
+                    value = dt.datetime.now(dt.UTC)
             elif value is None and getattr(self, "_attr_native_value", None) is None:
-                value = datetime.datetime.now(datetime.UTC)
+                value = dt.datetime.now(dt.UTC)
 
         if value is not None:
             self._attr_native_value = value
@@ -155,7 +176,7 @@ class PackagesSensor(CoordinatorEntity, RestoreSensor):
         return False
 
     @property
-    def extra_state_attributes(self) -> str | None:
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         attr = {}
         data = self.coordinator.data
@@ -233,7 +254,7 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
         """Return device information about the mailbox."""
         return {
             "connections": {(DOMAIN, self._unique_id)},
-            "name": self._host,
+            "name": mailbox_device_name(self._config.data),
             "manufacturer": "IMAP E-Mail",
             "sw_version": VERSION,
         }
@@ -258,28 +279,95 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
 
         grid_image = self.coordinator.data.get(ATTR_GRID_IMAGE_NAME)
 
-        path = self.coordinator.data.get(
-            ATTR_IMAGE_PATH,
-            self.coordinator.config.get(CONF_PATH),
+        path = (
+            self.coordinator.data.get(ATTR_IMAGE_PATH)
+            or self.coordinator.config.get(CONF_PATH)
+            or default_image_path(
+                self.hass,
+                self.coordinator.config_entry or self.coordinator.config,
+            )
         )
 
         the_path = None
 
-        if self.type == "usps_mail_image_system_path" and image:
+        if self.type == "usps_mail_image_system_path" and image and path:
             _LOGGER.debug("Updating system image path to: %s", path)
             the_path = self.hass.config.path(path, image)
         elif self.type == "usps_mail_grid_image_path" and grid_image:
             _LOGGER.debug("Updating grid image path to: %s", path)
             the_path = self.hass.config.path(path, grid_image)
         elif self.type == "usps_mail_image_url" and image:
-            url = self._get_base_url()
-            if url:
-                the_path = f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+            the_path = self._build_image_url(image)
 
         if the_path is not None:
-            self._attr_native_value = the_path
+            self._full_path = the_path
+            if len(the_path) > MAX_LENGTH_STATE_STATE:
+                self._attr_native_value = image or the_path[:MAX_LENGTH_STATE_STATE]
+            else:
+                self._attr_native_value = the_path
 
         return getattr(self, "_attr_native_value", None)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        attr: dict[str, Any] = {}
+        if self.type == "usps_mail_image_url":
+            image = (
+                self.coordinator.data.get(ATTR_USPS_IMAGE)
+                if self.coordinator.data
+                else None
+            )
+            if image and (image_url := self._build_image_url(image)):
+                attr["image_url"] = image_url
+        elif self.type in (
+            "usps_mail_image_system_path",
+            "usps_mail_grid_image_path",
+        ):
+            # Compute path from current coordinator data
+            path = None
+            if self.coordinator.data:
+                path = self.coordinator.data.get(ATTR_IMAGE_PATH)
+            if not path:
+                path = self.coordinator.config.get(CONF_PATH) or default_image_path(
+                    self.hass,
+                    self.coordinator.config_entry or self.coordinator.config,
+                )
+            image_key = (
+                ATTR_GRID_IMAGE_NAME
+                if self.type == "usps_mail_grid_image_path"
+                else ATTR_USPS_IMAGE
+            )
+            img = (
+                self.coordinator.data.get(image_key) if self.coordinator.data else None
+            )
+            if path and img:
+                full_path = self.hass.config.path(path, img)
+                self._full_path = full_path
+            else:
+                full_path = getattr(self, "_full_path", None)
+
+            if full_path:
+                attr[ATTR_IMAGE_PATH] = full_path
+
+        return attr
+
+    def _build_image_url(self, image: str) -> str | None:
+        """Construct the full image URL (signed or legacy)."""
+        url = self._get_base_url()
+        if not url:
+            return None
+
+        if self.coordinator.config.get(CONF_ALLOW_EXTERNAL):
+            return f"{url.rstrip('/')}/local/mail_and_packages/{image}"
+
+        path_to_sign = f"/api/mail_and_packages/image/{self._unique_id}/{image}"
+        signed_path = async_sign_path(
+            self.hass,
+            path_to_sign,
+            SIGNED_IMAGE_URL_TTL,
+        )
+        return f"{url.rstrip('/')}{signed_path}"
 
     def _get_base_url(self) -> str | None:
         """Return the best available base URL for building image links."""
@@ -293,3 +381,47 @@ class ImagePathSensors(CoordinatorEntity, RestoreSensor):
     def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
+
+
+class SummarySensor(SensorEntity):
+    """A total across every mailbox, counting shared tracking numbers once."""
+
+    _attr_should_poll = False
+
+    def __init__(
+        self, config: ConfigEntry, sensor_description: SensorEntityDescription
+    ) -> None:
+        """Initialize the summary sensor."""
+        self.entity_description = sensor_description
+        self._config = config
+        self.type = sensor_description.key
+        self._attr_name = sensor_description.name
+        self._attr_unique_id = f"summary_{self.type}_{config.entry_id}"
+        self._attr_device_info = {
+            "identifiers": {(DOMAIN, f"summary_{config.entry_id}")},
+            "name": SUMMARY_DEVICE_NAME,
+            "manufacturer": "Mail and Packages",
+            "model": "Combined mailboxes",
+            "sw_version": VERSION,
+        }
+        self._attr_extra_state_attributes = {}
+
+    async def async_added_to_hass(self) -> None:
+        """Recalculate now and whenever any mailbox refreshes."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_MAILBOX_UPDATED, self._async_recalculate
+            )
+        )
+        self._async_recalculate()
+
+    @callback
+    def _async_recalculate(self) -> None:
+        """Combine the latest data from all loaded mailboxes."""
+        value, attributes = combine(self.type, loaded_mailbox_data(self.hass))
+        self._attr_native_value = value
+        self._attr_extra_state_attributes = attributes
+        self._attr_available = value is not None
+        if self.hass is not None and self.entity_id:
+            self.async_write_ha_state()

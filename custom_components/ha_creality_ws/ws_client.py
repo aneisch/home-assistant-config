@@ -37,6 +37,13 @@ GET_BOXS_INFO_SEC = 300.0             # CFS box info (temp/humidity/filaments) e
 # reset the failure/backoff counters. Prevents fast connect/drop flapping from
 # masquerading as healthy reconnects.
 STABLE_CONNECT_SECS = 10.0
+# How often the switch is re-read while it says the printer is off.
+POWER_OFF_POLL_SECS = 10.0
+# Largest frame accepted. The G-code listing reply carries every file on the
+# printer, about 150 KiB per 200 files, and the library default of 1 MiB closed
+# the connection (code 1009) on any printer holding more than ~1300. Bounded
+# rather than unlimited: this is still a frame from the network.
+WS_MAX_MESSAGE_BYTES = 16 * 2**20
 
 
 
@@ -48,8 +55,8 @@ class KClient:
 
     def __init__(self, host: str, on_message: OnMessage):
         self._host = host
-        # Resolve host to IPv4 if available and build URL via template
-        self._url = lambda: WS_URL_TEMPLATE.format(host=self._resolve_host())
+        # The URL for a host; the connect loop passes the resolved address.
+        self._url = lambda host=None: WS_URL_TEMPLATE.format(host=host or self._host)
         self._on_message = on_message
         self._check_power_status: Callable[[], bool] | None = None
         self._state: dict[str, Any] = {}
@@ -60,7 +67,8 @@ class KClient:
         self._connected_once = asyncio.Event()
         self._send_lock = asyncio.Lock()
         self._last_rx = 0.0
-        self._last_mdns_attempt = 0.0
+        # Set once the current outage has been reported; cleared by data.
+        self._warned_unreachable = False
 
         self._hb_task: asyncio.Task | None = None
         self._tick_task: asyncio.Task | None = None
@@ -173,11 +181,21 @@ class KClient:
         await self.start()
 
     # ---------- connectivity loop ----------
-    def _resolve_host(self) -> str:
+    async def _async_resolve_host(self) -> str:
+        """The host's IPv4 address, preferred as before, or the host as given.
+
+        Resolved through the event loop's executor-backed `getaddrinfo`. The
+        old synchronous lookup ran on the loop itself at every connect
+        attempt: with a `.local` name and the printer switched off, each retry
+        could hold Home Assistant for seconds.
+        """
         try:
-            return socket.gethostbyname(self._host)
-        except Exception:
+            infos = await asyncio.get_running_loop().getaddrinfo(
+                self._host, None, family=socket.AF_INET, type=socket.SOCK_STREAM
+            )
+        except (OSError, UnicodeError):
             return self._host
+        return infos[0][4][0] if infos else self._host
 
     async def _loop(self) -> None:
         backoff = RETRY_MIN_BACKOFF
@@ -190,33 +208,32 @@ class KClient:
         
         while not self._stop.is_set():
             # --- Power Saving Check (Start of Loop) ---
-            # If printer is known to be powered off, sleep briefly and skip connection attempt
-            # UNLESS forced by user via Reconnect button
-            if self._force_connect:
+            # While the switch says the printer is off, poll the switch instead
+            # of the printer, with the backoff reset so the first attempt after
+            # power returns is immediate. A manual Reconnect skips the check
+            # once. 0.9.1 had this inverted: only a forced attempt checked, so
+            # an unforced loop backed off to 300 s against a dark printer.
+            forced = self._force_connect
+            self._force_connect = False
+            if forced:
                 _LOGGER.info("Forcing connection attempt (manual reconnect)")
-                self._force_connect = False
-                # bypass power check
-                if self._check_power_status:
-                    is_printer_off = self._check_power_status()
-                else:
-                    is_printer_off = False
-
-                if is_printer_off:
-                    _LOGGER.debug(
-                        "Printer power is OFF; sleeping 60s before next check host=%s", self._host
-                    )
-                    # Reset backoff so we start fresh when power returns
-                    backoff = RETRY_MIN_BACKOFF
-                    connect_failures = 0
-                    try:
-                        await asyncio.wait_for(self._stop.wait(), timeout=10.0)
-                    except asyncio.TimeoutError:
-                        pass
-                    continue
+            elif self._check_power_status and self._check_power_status():
+                _LOGGER.debug(
+                    "Printer power is OFF; checking again in %.0fs host=%s",
+                    POWER_OFF_POLL_SECS,
+                    self._host,
+                )
+                backoff = RETRY_MIN_BACKOFF
+                connect_failures = 0
+                try:
+                    await asyncio.wait_for(self._stop.wait(), timeout=POWER_OFF_POLL_SECS)
+                except asyncio.TimeoutError:
+                    pass
+                continue
 
             connected_this_attempt = False
             try:
-                url = self._url()
+                url = self._url(await self._async_resolve_host())
                 _LOGGER.debug("K WS connecting host=%s url=%s", self._host, url)
                 # Disable library pings; we do app-level heartbeat + periodic GETs.
                 # Advertise the printer web UI's subprotocol for handshake parity.
@@ -224,6 +241,7 @@ class KClient:
                     url,
                     ping_interval=None,
                     subprotocols=[WS_SUBPROTOCOL],
+                    max_size=WS_MAX_MESSAGE_BYTES,
                 ) as ws:
                     self._ws = ws
                     connected_this_attempt = True
@@ -269,29 +287,13 @@ class KClient:
 
                         if isinstance(payload, dict):
                             self._mark_ready(url)
-                            merged = coerce_numbers(payload)
-                            self._state.update(merged)
-                            self.msg_count += 1
-                            frame = dict(self._state)
-                            # One-shot, not telemetry: the reply lists
-                            # every G-code file on the printer (~150 KiB
-                            # on a K1C). Left in the cumulative state it
-                            # would ride on every later frame, and the
-                            # coordinator would rescan the whole listing
-                            # once per frame on the receive path.
-                            self._state.pop(GCODE_FILE_RESPONSE, None)
+                            frame = self._absorb(payload)
                             try:
                                 await self._on_message(frame)
                             except Exception:
                                 _LOGGER.exception("K on_message failed host=%s", self._host)
                         else:
                             _LOGGER.debug("K WS unexpected frame type: %r", type(payload))
-
-                    # Connection closed cleanly. Only treat it as a healthy
-                    # session (resetting backoff) if it survived long enough.
-                    if time.monotonic() - self.uptime_start >= STABLE_CONNECT_SECS:
-                        connect_failures = 0
-                        backoff = RETRY_MIN_BACKOFF
 
             except asyncio.CancelledError:
                 break
@@ -327,6 +329,17 @@ class KClient:
                         _LOGGER.debug("K WS connection error host=%s err=%s (attempt=%d)", self._host, exc, connect_failures)
                 self.last_error = str(exc)
             finally:
+                # A session that survived long enough was healthy, however it
+                # ended. Resetting only on a clean close meant a Wi-Fi blip
+                # after hours of uptime waited out the backoff of the failures
+                # before it.
+                if (
+                    connected_this_attempt
+                    and time.monotonic() - self.uptime_start >= STABLE_CONNECT_SECS
+                ):
+                    connect_failures = 0
+                    backoff = RETRY_MIN_BACKOFF
+
                 # cleanup on disconnect
                 for t in (self._hb_task, self._tick_task):
                     if t:
@@ -347,24 +360,21 @@ class KClient:
             
             power_is_off = bool(self._check_power_status and self._check_power_status())
             if power_is_off:
-                _LOGGER.debug(
-                    "K WS reconnect suppressed mDNS fallback (power OFF) host=%s",
+                _LOGGER.debug("K WS not reconnecting: power is OFF host=%s", self._host)
+            elif (
+                not self._warned_unreachable
+                and (not use_fixed_retry or connect_failures < 5)
+                and backoff >= (RETRY_MAX_BACKOFF * 0.9)
+            ):
+                # Once per outage. This used to announce an mDNS fallback that
+                # never existed, and repeated every five minutes for as long as
+                # the printer stayed unreachable (#84).
+                self._warned_unreachable = True
+                _LOGGER.warning(
+                    "K WS connection failing repeatedly (host=%s); retrying every %.0fs",
                     self._host,
+                    sleep_for,
                 )
-            elif (not use_fixed_retry or connect_failures < 5) and backoff >= (RETRY_MAX_BACKOFF * 0.9):
-                now = time.monotonic()
-                if now - self._last_mdns_attempt > 3.0: # 3 seconds
-                    self._last_mdns_attempt = now
-                    _LOGGER.warning(
-                        "K WS connection failing repeatedly (host=%s). Attempting mDNS fallback...",
-                        self._host
-                    )
-                    _LOGGER.debug(
-                        "K WS mDNS fallback: will retry connection on next loop iteration for host=%s",
-                        self._host,
-                    )
-                else:
-                    _LOGGER.debug("K WS connection failing, but mDNS fallback rate-limited host=%s", self._host)
 
             try:
                 await asyncio.wait_for(self._stop.wait(), timeout=sleep_for)
@@ -387,6 +397,7 @@ class KClient:
         if not self._ws_ready.is_set():
             self._ws_ready.set()
             self._connected_once.set()
+            self._warned_unreachable = False
             _LOGGER.info("K WS ready host=%s url=%s", self._host, url)
 
     async def _heartbeat(self):
@@ -493,6 +504,38 @@ class KClient:
                 await asyncio.sleep(0.2)
         except asyncio.CancelledError:
             return
+
+    def _absorb(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """Merge one frame into the cumulative state; return what is handed on.
+
+        The whole state, not the frame: the printer sends deltas, and the
+        coordinator expects every field it has ever seen.
+        """
+        self._state.update(coerce_numbers(payload))
+        self.msg_count += 1
+        frame = dict(self._state)
+        # One-shot, not telemetry: the reply lists every G-code file on the
+        # printer (~150 KiB on a K1C). Left in the cumulative state it would
+        # ride on every later frame, and the coordinator would rescan the whole
+        # listing once per frame on the receive path.
+        self._state.pop(GCODE_FILE_RESPONSE, None)
+        return frame
+
+    # ---------- commanded values ----------
+    def reported(self, key: str) -> Any:
+        """The value the printer last reported for one telemetry key."""
+        return self._state.get(key)
+
+    def assume(self, values: dict[str, Any]) -> None:
+        """Fold values just commanded into the state every frame is built from.
+
+        Each frame hands the coordinator the whole cumulative state, so a value
+        set on the coordinator alone lasted only until the next frame of any
+        kind, which still carried the old one: a printer slow to echo a new
+        target showed it set and then back at 0 (#132). The printer's next
+        report of the key replaces it, as any report does.
+        """
+        self._state.update(values)
 
     # ---------- public send ----------
     async def request_boxs_info(self) -> None:

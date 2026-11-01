@@ -81,14 +81,15 @@ async def extract_jpeg_attachment(
     """Extract image from JPEG attachment."""
     _LOGGER.debug("Extracting image from email attachment")
     filename = part.get_filename()
-    junkmail = ["mailer", "content", "package"]
+    # Filter announcement names before randomizing the saved filename.
+    junkmail = ["mailer", "content", "package", "ra_0", "Mail Attachment.txt"]
     if filename is None:
         return image_count, images
     if any(junk in filename for junk in junkmail):
         return image_count, images
 
     try:
-        target_path = Path(image_output_path) / filename
+        target_path = Path(image_output_path) / random_filename()
         await hass.async_add_executor_job(
             io_save_file,
             target_path,

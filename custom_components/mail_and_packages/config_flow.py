@@ -11,6 +11,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import (
+    CONF_HOST,
     CONF_PASSWORD,
     CONF_PORT,
     CONF_USERNAME,
@@ -51,6 +52,7 @@ from custom_components.mail_and_packages.config_flows.validation import (
     _validate_amazon_fwds,
     _validate_forwarded_emails,
     _validate_login,
+    _validate_oauth_login,
     _validate_path_input,
     _validate_user_input,
 )
@@ -59,14 +61,22 @@ from custom_components.mail_and_packages.const import (
     AUTH_TYPE_OAUTH_MICROSOFT,
     AUTH_TYPE_PASSWORD,
     CONF_AUTH_TYPE,
+    CONF_ENTRY_TYPE,
     CONF_IMAP_SECURITY,
     CONF_VERIFY_SSL,
     CONFIG_VER,
     DEFAULT_FOLDER,
     DEFAULT_PORT,
     DOMAIN,
+    ENTRY_TYPE_SUMMARY,
     OAUTH_IMAP_DEFAULTS,
     OAUTH_SCOPES,
+    SUMMARY_DEVICE_NAME,
+    SUMMARY_UNIQUE_ID,
+)
+from custom_components.mail_and_packages.summary import (
+    is_summary_entry,
+    mailbox_entries,
 )
 from custom_components.mail_and_packages.utils.email import validate_email_address
 from custom_components.mail_and_packages.utils.image import _check_ffmpeg
@@ -104,6 +114,7 @@ __all__ = [
     "_validate_amazon_fwds",
     "_validate_forwarded_emails",
     "_validate_login",
+    "_validate_oauth_login",
     "_validate_path_input",
     "_validate_user_input",
     "login",
@@ -126,6 +137,14 @@ class MailAndPackagesFlowHandler(
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
     DOMAIN = DOMAIN
 
+    @classmethod
+    @callback
+    def async_supports_options_flow(
+        cls, config_entry: config_entries.ConfigEntry
+    ) -> bool:
+        """Return whether the entry has options; the summary has none."""
+        return not is_summary_entry(config_entry)
+
     @staticmethod
     @callback
     def async_get_options_flow(
@@ -145,6 +164,10 @@ class MailAndPackagesFlowHandler(
         auth_type = self._data.get(CONF_AUTH_TYPE, AUTH_TYPE_PASSWORD)
         scopes = OAUTH_SCOPES.get(auth_type, "")
         data = {"scope": scopes}
+        # Pre-select the mailbox the user typed so they cannot accidentally
+        # authorize a different signed-in account.
+        if username := self._data.get(CONF_USERNAME):
+            data["login_hint"] = username
         if auth_type == AUTH_TYPE_OAUTH_GOOGLE:
             data.update(
                 {
@@ -176,6 +199,41 @@ class MailAndPackagesFlowHandler(
             return await self.async_step_imap_config()
 
         return await self._show_auth_form(user_input)
+
+    async def async_step_integration_discovery(
+        self, discovery_info: dict[str, Any]
+    ) -> ConfigFlowResult:
+        """Offer the combined summary once two or more mailboxes exist."""
+        await self.async_set_unique_id(SUMMARY_UNIQUE_ID)
+        self._abort_if_unique_id_configured()
+        if len(mailbox_entries(self.hass)) < 2:
+            return self.async_abort(reason="summary_needs_mailboxes")
+        self.context["title_placeholders"] = {"name": SUMMARY_DEVICE_NAME}
+        return await self.async_step_summary_confirm()
+
+    async def async_step_summary_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Confirm adding the combined summary."""
+        if user_input is not None:
+            return self.async_create_entry(
+                title=f"Mail and Packages ({SUMMARY_DEVICE_NAME})",
+                data={CONF_ENTRY_TYPE: ENTRY_TYPE_SUMMARY},
+            )
+        self._set_confirm_only()
+        return self.async_show_form(
+            step_id="summary_confirm",
+            description_placeholders={"count": str(len(mailbox_entries(self.hass)))},
+        )
+
+    async def async_step_reconfigure(
+        self, user_input: dict[str, Any] | None = None
+    ) -> Any:
+        """Reconfigure a mailbox; the summary has nothing to reconfigure."""
+        entry = self.hass.config_entries.async_get_entry(self.context["entry_id"])
+        if entry is not None and is_summary_entry(entry):
+            return self.async_abort(reason="summary_not_configurable")
+        return await super().async_step_reconfigure(user_input)
 
     async def async_step_reauth(
         self, entry_data: Mapping[str, Any]
@@ -258,6 +316,16 @@ class MailAndPackagesFlowHandler(
                 return self.async_abort(reason="reauth_successful")
             _LOGGER.debug("%s reconfigured.", DOMAIN)
             return self.async_abort(reason="reconfigure_successful")
+        # Make sure the mail server accepts the new sign-in before continuing,
+        # so problems surface now instead of as a mailbox that never updates.
+        if reason := await _validate_oauth_login(self.hass, self._data):
+            return self.async_abort(
+                reason=reason,
+                description_placeholders={
+                    "host": self._data.get(CONF_HOST, ""),
+                    "username": self._data.get(CONF_USERNAME, ""),
+                },
+            )
         return await self.async_step_config_2()
 
     async def _show_auth_form(self, user_input):

@@ -57,6 +57,7 @@ automation:
         data:
           message: >
             {{ trigger.from_state.attributes.friendly_name }}: Triggered
+          to: [andrew, bethany]
           data:
             priority: 2
       - action: climate.turn_off

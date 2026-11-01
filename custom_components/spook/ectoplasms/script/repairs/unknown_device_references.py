@@ -8,7 +8,12 @@ from homeassistant.components import script
 from homeassistant.helpers import device_registry as dr
 
 from ....entity_filtering import async_filter_known_device_ids, async_get_all_device_ids
-from ....reference_extraction import extract_targets_from_config
+from ....reference_extraction import (
+    core_references,
+    extract_targets_from_config,
+    names_given_to_templates,
+    only_in_disabled_steps,
+)
 from ....repairs import AbstractSpookEntityComponentUnknownReferencesRepair
 from ....template_extraction import extract_device_ids_from_config
 
@@ -38,14 +43,24 @@ class SpookRepair(AbstractSpookEntityComponentUnknownReferencesRepair):
 
     async def _async_compute_unknown_references(self, entity: Any) -> set[str]:
         """Return unknown device IDs referenced by ``entity``."""
-        device_ids = set(entity.script.referenced_devices)
+        device_ids = core_references(entity, "devices")
 
         # Also walk the raw configuration; the built-in extraction misses
         # references nested in some step types, like repeat sequences.
         if raw_config := getattr(entity, "raw_config", None):
             device_ids.update(extract_targets_from_config(raw_config).device_ids)
-            # Devices referenced via device_entities() in templates.
-            device_ids.update(extract_device_ids_from_config(raw_config))
+            # Devices referenced through the device functions in templates.
+            # The variables and fields it gives its templates hide a call.
+            shadowed = names_given_to_templates(raw_config)
+            device_ids.update(extract_device_ids_from_config(raw_config, shadowed))
+            # A disabled step does nothing, so what only it names is left out.
+            device_ids -= only_in_disabled_steps(
+                raw_config,
+                lambda found: (
+                    extract_targets_from_config(found).device_ids
+                    | extract_device_ids_from_config(found, shadowed)
+                ),
+            )
 
         return async_filter_known_device_ids(
             self.hass,

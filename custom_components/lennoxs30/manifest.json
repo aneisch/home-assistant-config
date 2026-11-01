@@ -1,0 +1,20 @@
+{
+  "domain": "lennoxs30",
+  "name": "Lennox S30/E30",
+  "codeowners": [
+    "@PeteRager"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/PeteRager/lennoxs30/blob/master/README.MD",
+  "iot_class": "local_push",
+  "issue_tracker": "https://github.com/PeteRager/lennoxs30/issues",
+  "loggers": [
+    "lennoxs30api"
+  ],
+  "quality_scale": "platinum",
+  "requirements": [
+    "lennoxs30api @ git+https://github.com/aneisch/lennoxs30api.git@94c898a6603f50a292ebe7944cddc2e88d63f76a"
+  ],
+  "version": "2026.8.0"
+}

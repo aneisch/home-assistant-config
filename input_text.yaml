@@ -14,8 +14,5 @@
 # sewer_cost_monthly:
 #   name: "Sewer Cost"
 
-bluebubbles_url:
-  name: BlueBubbles URL
-
 kitchen_frame_url:
   name: Kitchen Frame URL

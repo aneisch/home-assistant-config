@@ -1,0 +1,803 @@
+version: '3.2'
+services:
+    plex:
+        container_name: plex
+        image: plexinc/pms-docker:latest
+        volumes:
+            - '/opt/plex/db/:/config'
+            - '/opt/plex/transcode/:/transcode'
+            - '/plex/:/data'
+        environment:
+            - TZ=America/Chicago
+            - PLEX_CLAIM=REDACT
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+            - TERM=xterm
+            - LANG=C.UTF-8
+            - LC_ALL=C.UTF-8
+            - CHANGE_CONFIG_DIR_OWNERSHIP=true
+            - HOME=/config
+        network_mode: host
+        restart: "no"
+        labels:
+            # HTTP Local Only
+            - traefik.enable=true
+            - traefik.http.services.plex.loadbalancer.server.port=32400
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.plex_local.tls=true
+            - traefik.http.routers.plex_local.entrypoints=websecure
+            - traefik.http.routers.plex_local.tls.certResolver=le-home
+            - traefik.http.routers.plex_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.plex_local.rule=Host(`plex.home.domain.com`)
+            - traefik.http.routers.plex_local.service=plex
+
+    portainer:
+        container_name: portainer
+        #image: portainer/portainer
+        image: portainer/portainer-ce
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/opt/portainer:/data'
+        #ports:
+        #    - '9000:9000'
+        environment:
+            - TZ=America/Chicago
+            - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+        restart: "no"
+        network_mode: host
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.portainer.entrypoints=websecure
+            - traefik.http.routers.portainer.tls=true
+            - traefik.http.routers.portainer.rule=Host(`portainer.domain.com`)
+            - traefik.http.services.portainer.loadbalancer.server.port=9000
+            - traefik.http.routers.portainer.service=portainer
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.portainer_local.tls=true
+            - traefik.http.routers.portainer_local.entrypoints=websecure
+            - traefik.http.routers.portainer_local.tls.certResolver=le-home
+            - traefik.http.routers.portainer_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.portainer_local.rule=Host(`portainer.home.domain.com`)
+            - traefik.http.routers.portainer_local.service=portainer
+
+            # Enable Sablier
+            - sablier.enable=true
+            - sablier.group=portainer
+            - traefik.http.routers.portainer.middlewares=sablier-portainer
+            - traefik.http.routers.portainer_local.middlewares=sablier-portainer
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.group=portainer
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.displayName=Portainer
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-portainer.plugin.sablier.dynamic.theme=ghost
+
+    grafana:
+        container_name: grafana
+        #image: grafana/grafana:6.4.5
+        image: grafana/grafana
+        #user: '99'
+        volumes:
+            - /opt/grafana:/var/lib/grafana
+        environment:
+            - GF_SECURITY_ALLOW_EMBEDDING=true
+            #- GF_SECURITY_COOKIE_SAMESITE=none
+            - GF_INSTALL_PLUGINS=neocat-cal-heatmap-panel
+        restart: "no"
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.grafana.entrypoints=websecure
+            - traefik.http.routers.grafana.tls=true
+            - traefik.http.routers.grafana.rule=Host(`grafana.domain.com`)
+            - traefik.http.services.grafana.loadbalancer.server.port=3000
+            - traefik.http.routers.grafana.service=grafana
+
+    esphome:
+        container_name: esphome
+        # This is a custom build for now. Based on https://github.com/esphome/esphome/pull/671
+        #image: esphome-dev
+        #image: esphome/esphome:2021.10.3
+        image: esphome/esphome
+        environment:
+            - TZ=America/Chicago
+        volumes:
+            - /opt/esphome/:/config:rw
+            # Use local time for logging timestamps
+            #- /etc/localtime:/etc/localtime:ro
+        network_mode: host
+        restart: "no"
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.esphome.entrypoints=websecure
+            - traefik.http.routers.esphome.tls=true
+            - traefik.http.routers.esphome.rule=Host(`esphome.domain.com`)
+            - traefik.http.services.esphome.loadbalancer.server.port=6052
+            - traefik.http.routers.esphome.service=esphome
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.esphome_local.tls=true
+            - traefik.http.routers.esphome_local.entrypoints=websecure
+            - traefik.http.routers.esphome_local.tls.certResolver=le-home
+            - traefik.http.routers.esphome_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.esphome_local.rule=Host(`esphome.home.domain.com`)
+            - traefik.http.routers.esphome_local.service=esphome
+
+    433_mqtt:
+        # Connected to NUC, antenna in attic
+        container_name: 433_mqtt
+        image: ghcr.io/aneisch/rtl_433_mqtt:latest
+        user: '99'
+        labels:
+            - com.centurylinklabs.watchtower.enable=false
+        restart: 'always'
+        environment:
+            - TZ=America/Chicago
+        devices:
+            - '/dev/bus/usb:/dev/bus/usb'
+        volumes:
+            # Config file for setting overrides
+            - '/opt/433_mqtt/433_mqtt_attic.conf:/etc/rtl_433/rtl_433.conf'
+
+    bitwarden:
+        container_name: bitwarden
+        image: vaultwarden/server:alpine
+        user: '99'
+        volumes:
+            - /opt/bw-data/:/data/
+            - /etc/localtime:/etc/localtime:ro
+        environment:
+            - DISABLE_ADMIN_TOKEN=true
+            - SIGNUPS_VERIFY=true
+            - SIGNUPS_ALLOWED=false
+            - INVITATIONS_ALLOWED=true
+            - LOG_FILE=/data/bitwarden.log
+            - LOG_LEVEL=error
+            - EXTENDED_LOGGING=true
+            - DOMAIN=REDACT
+            - SMTP_HOST=smtp.gmail.com
+            - SMTP_FROM=REDACT
+            - SMTP_FROM_NAME='Bitwarden Password Manager'
+            - SMTP_SSL=true
+            - SMTP_USERNAME=REDACT
+            - SMTP_PASSWORD=REDACT
+            - ROCKET_PORT=1024
+            - DUO_IKEY=
+            - DUO_SKEY=
+            - DUO_HOST=
+            - TZ=America/Chicago
+            - PUSH_ENABLED=true
+            - PUSH_INSTALLATION_ID=
+            - PUSH_INSTALLATION_KEY=
+        #ports:
+        #    - '8777:1024'
+        #    - '3012:3012'
+        logging:
+            driver: none
+        restart: always
+        labels:
+            #- com.centurylinklabs.watchtower.monitor-only=true
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.vault.entrypoints=websecure
+            - traefik.http.routers.vault.tls=true
+            - traefik.http.routers.vault.rule=Host(`vault.domain.com`)
+            - traefik.http.services.vault.loadbalancer.server.port=1024
+            - traefik.http.routers.vault.service=vault
+
+    vaultwarden-backup:
+        image: ttionya/vaultwarden-backup:latest
+        container_name: vaultwarden-backup
+        restart: always
+        environment:
+            CRON: '00 03 * * *'
+            ZIP_ENABLE: 'TRUE'
+            ZIP_PASSWORD: 'PASSWORD'
+            ZIP_TYPE: 'zip'
+            BACKUP_KEEP_DAYS: 30
+            TIMEZONE: 'America/Chicago'
+        volumes:
+            - /opt/bw-data:/bitwarden/data/
+            - /opt/vaultwarden-backup/:/config/
+
+    vscode:
+        container_name: vscode
+        image: lscr.io/linuxserver/code-server:latest
+        restart: always
+        volumes:
+            - '/opt/vscode/data:/config'
+            - '/opt/homeassistant:/config/workspace/homeassistant'
+            - '/home/aneisch/.backup:/config/workspace/homeassistant-git'
+            - '/opt/appdaemon:/config/workspace/appdaemon'
+            - '/opt/docker-compose:/config/workspace/docker-compose'
+            - '/opt/github:/config/workspace/github_projects'
+            - '/opt/frigate:/config/workspace/frigate'
+            - '/opt/terraform:/config/workspace/terraform'
+            - '/opt/traefik:/config/workspace/traefik'
+            - '/opt/esphome:/config/workspace/esphome'
+            - '/var/run/docker.sock:/var/run/docker.sock'
+            - '/usr/local/bin/github_hass_commit.sh:/config/workspace/usr_local_bin/github_hass_commit.sh'
+            - '/usr/local/bin/github_hass_commit.sh.new:/config/workspace/usr_local_bin/github_hass_commit.sh.new'
+            - '/tmp:/config/workspace/tmp'
+        environment:
+            - TZ=America/Chicago
+            - PUID=1000
+            - PGID=1000
+            - DEFAULT_WORKSPACE=/config/workspace/
+            - DOCKER_MODS=linuxserver/mods:universal-docker
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.vscode.entrypoints=websecure
+            - traefik.http.routers.vscode.tls=true
+            - traefik.http.routers.vscode.rule=Host(`vscode.domain.com`)
+            - traefik.http.services.vscode.loadbalancer.server.port=8443
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.vscode_local.tls=true
+            - traefik.http.routers.vscode_local.entrypoints=websecure
+            - traefik.http.routers.vscode_local.tls.certResolver=le-home
+            - traefik.http.routers.vscode_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.vscode_local.rule=Host(`vscode.home.domain.com`)
+            - traefik.http.routers.vscode_local.service=vscode
+
+    watchtower:
+        container_name: watchtower
+        image: containrrr/watchtower:latest
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /etc/localtime:/etc/localtime:ro
+        #restart: always
+        restart: 'no'
+        environment:
+            - WATCHTOWER_CLEANUP=true
+            - WATCHTOWER_NO_STARTUP_MESSAGE=false
+            - WATCHTOWER_INCLUDE_STOPPED=true
+            - WATCHTOWER_NOTIFICATION_URL=generic://assist.domain.com/api/webhook/watchtower_notifications
+            - 'WATCHTOWER_NOTIFICATION_TEMPLATE={"message":"NUC {{range .}}{{.Message}}\n{{end}}"}'
+            # - WATCHTOWER_NOTIFICATIONS=email
+            # - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER=smtp.gmail.com
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PORT=587
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_USER=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SERVER_PASSWORD=REDACT
+            # - WATCHTOWER_NOTIFICATION_EMAIL_DELAY=2
+            # - WATCHTOWER_NOTIFICATION_EMAIL_SUBJECTTAG=NUC
+        #command: --schedule "00 00 12 * * *"
+        command: --run-once
+
+    adguard:
+        container_name: adguard
+        image: adguard/adguardhome:latest
+        #user: '99'
+        #logging:
+        #    driver: none
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/adguard:/opt/adguardhome/conf
+            - /opt/adguard/work:/opt/adguardhome/work
+        # Edit AdGuardHome.yaml to configure port 53 vs 5353
+        network_mode: host
+        cap_add:
+            - NET_ADMIN
+            - NET_RAW
+            - NET_BIND_SERVICE
+        # ports:
+        #     - 53:5353/tcp
+        #     - 53:5353/udp
+        #     - "127.0.0.1:8088:8080" # Expose localhost only for Home Assistant
+        environment:
+            - TZ=America/Chicago
+        restart: 'always'
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.adguard.entrypoints=websecure
+            - traefik.http.routers.adguard.tls=true
+            - traefik.http.routers.adguard.rule=Host(`adguard.domain.com`)
+            - traefik.http.services.adguard.loadbalancer.server.port=8080
+            - traefik.http.routers.adguard.service=adguard
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.adguard_local.tls=true
+            - traefik.http.routers.adguard_local.entrypoints=websecure
+            - traefik.http.routers.adguard_local.tls.certResolver=le-home
+            - traefik.http.routers.adguard_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.adguard_local.rule=Host(`adguard.home.domain.com`)
+            - traefik.http.routers.adguard_local.service=adguard
+
+    tailscale:
+        container_name: tailscale
+        volumes:
+            - '/var/lib:/var/lib'
+            - '/dev/net/tun:/dev/net/tun'
+        environment:
+            - TS_ROUTES=10.0.0.0/24,10.0.1.0/24
+        network_mode: host
+        privileged: true
+        image: tailscale/tailscale
+        entrypoint: tailscaled
+
+    nginx:
+        #image: nginx:latest
+        image: trafex/php-nginx
+        container_name: nginx
+        restart: 'always'
+        volumes:
+            #- /opt/nginx:/usr/share/nginx/html:ro
+            - /opt/nginx:/var/www/html:ro #php version
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.nginx.entrypoints=websecure
+            - traefik.http.routers.nginx.tls=true
+            - traefik.http.routers.nginx.rule=Host(`stock.domain.com`)
+            - traefik.http.services.nginx.loadbalancer.server.port=8080
+            # This is required so ESPHome gets a content-length header (if it's compressed/chunked it won't and will fail)
+            - traefik.http.middlewares.no_compress.headers.customrequestheaders.Accept-Encoding=''
+            - traefik.http.routers.nginx.middlewares=no_compress@docker
+            - traefik.http.routers.nginx.service=nginx
+
+    traefik:
+        container_name: traefik
+        image: traefik:v3.6.9
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /opt/traefik/:/etc/traefik/
+            - /opt/traefik/certs:/opt/certs:ro
+        ports:
+            #- 8889:8080 # dashboard
+            - 80:80/tcp
+            - 443:443/udp
+            - 443:443/tcp
+        extra_hosts:
+            - "host.docker.internal:host-gateway"
+        networks:
+            - default
+            # One entry per horizon
+            - horizon_secret
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.traefik_https.rule=Host(`traefik.domain.com`)
+            - traefik.http.routers.traefik_https.entrypoints=websecure
+            - traefik.http.routers.traefik_https.tls=true
+            - traefik.http.routers.traefik_https.service=api@internal
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.traefik_local.tls=true
+            - traefik.http.routers.traefik_local.entrypoints=websecure
+            - traefik.http.routers.traefik_local.tls.certResolver=le-home
+            - traefik.http.routers.traefik_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.traefik_local.rule=Host(`traefik.home.domain.com`)
+            - traefik.http.routers.traefik_local.service=api@internal
+        environment:
+            - CF_DNS_API_TOKEN=SECRET
+
+    cloudflared:
+        container_name: cloudflared
+        image: cloudflare/cloudflared:latest
+        restart: 'always'
+        network_mode: host
+        environment:
+            - TZ=America/Chicago
+        volumes:
+            - /opt/cloudflared/:/home/nonroot/.cloudflared/
+        command: tunnel run nuc
+
+    signal-rest-api:
+        container_name: signal-rest-api
+        image: bbernhard/signal-cli-rest-api:latest
+        restart: 'always'
+        user: "1000:1000" # change to UID:GID you preferre
+        environment:
+            - MODE=json-rpc
+            - TZ=America/Chicago
+            - SIGNAL_CLI_CHOWN_ON_STARTUP=false
+
+            #- AUTO_RECEIVE_SCHEDULE=31 * * * *
+        security_opt:
+            - no-new-privileges:true # additonal security control
+        tmpfs:
+            - /run:exec,size=64m,uid=1000,gid=1000,mode=0755 # Make sure this UID:GID fits those from above
+        ports:
+            - "127.0.0.1:8800:8080"  # Expose localhost only for Home Assistant
+            #- "8800:8080" 
+        volumes:
+            - "/opt/signal-rest-api:/home/.local/share/signal-cli" 
+        labels:
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.enable=true # Disabled
+            - traefik.http.services.signal_local.loadbalancer.server.port=8080
+            - traefik.http.routers.signal_local.entrypoints=websecure
+            - traefik.http.routers.signal_local.service=signal_local
+            - traefik.http.routers.signal_local.tls=true
+            - traefik.http.routers.signal_local.tls.certResolver=le-home
+            - traefik.http.routers.signal_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.signal_local.rule=Host(`signal.home.domain.com`)
+
+    # apcupsd:
+    #     container_name: apcupsd
+    #     image: gersilex/apcupsd
+    #     ports:
+    #         - '127.0.0.1:3551:3551' # Expose localhost only for Home Assistant
+    #     volumes:
+    #         - /opt/apcupsd/apcupsd.conf:/etc/apcupsd/apcupsd.conf
+    #     devices:
+    #         - '/dev/ups_monitor_large:/dev/usb/hiddev0'
+    #     restart: always
+    secret:
+        container_name: secret
+        image: secret_container
+        security_opt:
+            - seccomp:unconfined
+        labels:
+            - com.centurylinklabs.watchtower.enable=false
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.container.entrypoints=websecure
+            - traefik.http.routers.container.tls=true
+            - traefik.http.routers.container.rule=Host(`container.domain.com`)
+            - traefik.http.services.container.loadbalancer.server.port=9999
+            - traefik.http.routers.container.service=container
+        environment:
+            - FTP_USERNAME=MyUser
+            - FTP_PASSWORD=MyPAss
+            - NOTIFICATIONS_WEBHOOK_URL="N/A"
+            - WORKSHEET_NAME=2026
+            - TZ=America/Chicago
+        volumes:
+            # db and previously_processed_files.txt
+            - /opt/secret/data/:/data/
+            - /opt/secret/secret.log:/var/log/secret.log
+            # Place credential for Google Sheet API
+            - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
+        restart: unless-stopped
+
+    sqliteweb:
+        container_name: sqliteweb
+        image: tomdesinto/sqliteweb
+        restart: "no"
+        volumes:
+            - /opt/secret/data/secret.db:/db/secret.db
+        environment:
+            - TZ=America/Chicago
+        command: secret.db
+        labels:
+            - com.centurylinklabs.watchtower.enable=false
+            # Local Only
+            - traefik.enable=true
+            - traefik.http.services.sqliteweb.loadbalancer.server.port=8080
+            - traefik.http.routers.sqliteweb_local.service=sqliteweb
+            - traefik.http.routers.sqliteweb_local.entrypoints=websecure
+            - traefik.http.routers.sqliteweb_local.tls=true
+            - traefik.http.routers.sqliteweb_local.tls.certResolver=le-home
+            - traefik.http.routers.sqliteweb_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.sqliteweb_local.rule=Host(`sqliteweb.home.domain.com`)
+
+    frigate:
+        container_name: frigate
+        privileged: true
+        restart: always
+        #image: ghcr.io/blakeblackshear/frigate:0.16.4
+        image: ghcr.io/blakeblackshear/frigate:0.17.1
+        shm_size: "512mb"
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
+            - /dev/dri:/dev/dri
+
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/frigate/:/config
+            - /frigate:/media/frigate
+        ports:
+            # Two below needed for Home Assistant
+            - "127.0.0.1:5000:5000" # Expose localhost only for Home Assistant
+            - "127.0.0.1:8554:8554" # Expose localhost only for Home Assistant
+            # Two below needed for 2way stream
+            - "8555:8555/tcp"
+            - "8555:8555/udp"
+            #- "127.0.0.1:1984:1984" # Expose localhost only for Home Assistant (go2rtc)
+            - 1984:1984/tcp
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.frigate.entrypoints=websecure
+            - traefik.http.routers.frigate.tls=true
+            - traefik.http.routers.frigate.rule=Host(`frigate.domain.com`)
+            - traefik.http.services.frigate.loadbalancer.server.port=5000
+            - traefik.http.routers.frigate.service=frigate
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.frigate_local.tls=true
+            - traefik.http.routers.frigate_local.entrypoints=websecure
+            - traefik.http.routers.frigate_local.tls.certResolver=le-home
+            - traefik.http.routers.frigate_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.frigate_local.rule=Host(`frigate.home.domain.com`)
+            - traefik.http.routers.frigate_local.service=frigate
+            # Go2rtc Local
+            - traefik.http.services.go2rtc.loadbalancer.server.port=1984
+            - traefik.http.routers.go2rtc_local.service=go2rtc
+            - traefik.http.routers.go2rtc_local.entrypoints=websecure
+            - traefik.http.routers.go2rtc_local.tls=true
+            - traefik.http.routers.go2rtc_local.tls.certResolver=le-home
+            - traefik.http.routers.go2rtc_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.go2rtc_local.rule=Host(`go2rtc.home.domain.com`)
+        environment:
+            - PLUS_API_KEY=secret
+            - TZ=America/Chicago
+            - LIBVA_DRIVER_NAME=iHD
+
+    codeproject:
+        container_name: codeproject
+        restart: 'always'
+        image: codeproject/ai-server
+        ports:
+            - 32168:32168
+        devices:
+            - /dev/bus/usb:/dev/bus/usb
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /opt/codeproject/config:/etc/codeproject/ai
+            #- /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYolo/custom-models/
+            - /opt/codeproject/NETmodules:/app/preinstalled-modules/ObjectDetectionYOLOv5Net/custom-models/
+            - /opt/codeproject/modules:/app/preinstalled-modules/ObjectDetectionYOLOv5-6.2/custom-models/
+        labels:
+            - com.centurylinklabs.watchtower.monitor-only=true
+            - traefik.enable=true
+            - traefik.http.services.codeproject.loadbalancer.server.port=32168
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.codeproject_local.tls=true
+            - traefik.http.routers.codeproject_local.entrypoints=websecure
+            - traefik.http.routers.codeproject_local.tls.certResolver=le-home
+            - traefik.http.routers.codeproject_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.codeproject_local.rule=Host(`codeproject.home.domain.com`)
+            - traefik.http.routers.codeproject_local.service=codeproject
+            - traefik.http.routers.codeproject_local.middlewares=codeproject_local_redirect
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.regex=^https://codeproject.home.domain.com/(.*)
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.replacement=http://10.0.1.22:32168/$${1}
+            - traefik.http.middlewares.codeproject_local_redirect.redirectregex.permanent=true
+
+    auto-southwest:
+        image: jdholtz/auto-southwest-check-in:develop
+        container_name: auto-southwest
+        restart: 'unless-stopped'
+        privileged: true
+        network_mode: host
+        volumes:
+            - /opt/southwest/config.json:/app/config.json
+        entrypoint:
+            - "python3"
+            - "-u"
+            - "southwest.py"
+            - "--verbose"
+
+    mealie:
+        image: ghcr.io/mealie-recipes/mealie:latest
+        container_name: mealie
+        # ports:
+        #     - "9925:9000" # 
+        volumes:
+            - /opt/mealie:/app/data/
+        environment:
+            #- ALLOW_SIGNUP=true
+            - PUID=1000
+            - PGID=1000
+            - TZ=America/Chicago
+            #- MAX_WORKERS=1
+            #- WEB_CONCURRENCY=1
+            - BASE_URL=https://mealie.domain.com
+        restart: always
+        labels:
+            # HTTPS for CF
+            - traefik.enable=true
+            - traefik.http.routers.recipes.entrypoints=websecure
+            - traefik.http.routers.recipes.tls=true
+            - traefik.http.routers.recipes.rule=Host(`recipes.domain.com`)
+            - traefik.http.services.recipes.loadbalancer.server.port=9000
+            - traefik.http.routers.recipes.service=recipes
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.recipes_local.tls=true
+            - traefik.http.routers.recipes_local.entrypoints=websecure
+            - traefik.http.routers.recipes_local.tls.certResolver=le-home
+            - traefik.http.routers.recipes_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.recipes_local.rule=Host(`recipes.home.domain.com`)
+            - traefik.http.routers.recipes_local.service=recipes
+
+            # Enable Sablier
+            - sablier.enable=true
+            - sablier.group=recipes
+            - traefik.http.routers.recipes.middlewares=sablier-recipes
+            - traefik.http.routers.recipes_local.middlewares=sablier-recipes
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.group=recipes
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.displayName=Recipes
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-recipes.plugin.sablier.dynamic.theme=ghost
+
+    librespeed:
+        image: linuxserver/librespeed
+        container_name: librespeed
+        environment:
+            - TZ=America/Chicago
+        restart: 'no'
+        labels:
+            #Route via Sablier: See dynamic.yaml in Traefik
+            - traefik.enable=true
+            - traefik.http.services.librespeed.loadbalancer.server.port=80
+            - traefik.http.routers.librespeed.entrypoints=websecure
+            - traefik.http.routers.librespeed.tls=true
+            - traefik.http.routers.librespeed.rule=Host(`librespeed.domain.com`)
+            - traefik.http.routers.librespeed.service=librespeed
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.librespeed_local.service=librespeed
+            - traefik.http.routers.librespeed_local.entrypoints=websecure
+            - traefik.http.routers.librespeed_local.tls=true
+            - traefik.http.routers.librespeed_local.tls.certResolver=le-home
+            - traefik.http.routers.librespeed_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.librespeed_local.rule=Host(`librespeed.home.domain.com`)
+
+            # Enable Sablier
+            - sablier.enable=true
+            - sablier.group=librespeed
+            - traefik.http.routers.librespeed.middlewares=sablier-librespeed
+            - traefik.http.routers.librespeed_local.middlewares=sablier-librespeed
+            - traefik.docker.allownonrunning=true
+
+            # Configure the Sablier middleware
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.group=librespeed
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.sessionDuration=30m
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.displayName=LibreSpeed
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.refreshFrequency=2s
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.showDetails=true
+            - traefik.http.middlewares.sablier-librespeed.plugin.sablier.dynamic.theme=ghost
+
+    sablier:
+        image: sablierapp/sablier:latest
+        container_name: sablier
+        restart: 'always'
+        command:
+            - start
+            - --provider.name=docker
+        volumes:
+            - '/var/run/docker.sock:/var/run/docker.sock'
+
+    teslamate:
+        image: teslamate/teslamate:latest
+        container_name: teslamate
+        restart: always
+        environment:
+            - ENCRYPTION_KEY=PW #replace with a secure key to encrypt your Tesla API tokens
+            - DATABASE_USER=teslamate
+            - DATABASE_PASS=PW #insert your secure database password!
+            - DATABASE_NAME=teslamate
+            - DATABASE_HOST=teslamate-database
+            - MQTT_HOST=mosquitto
+            - TZ=America/Chicago
+        ports:
+            - 4001:4000
+        volumes:
+            - /opt/teslamate/teslamate:/opt/app/import
+        cap_drop:
+            - all
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.teslamate-frontend.loadbalancer.server.port=4000
+            # HTTPS for CF
+            - traefik.http.routers.teslamate-frontend.entrypoints=websecure
+            - traefik.http.routers.teslamate-frontend.tls=true
+            - traefik.http.routers.teslamate-frontend.rule=Host(`teslamate-frontend.domain.com`)
+            - traefik.http.routers.teslamate-frontend.service=teslamate-frontend
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.teslamate-frontend_local.tls=true
+            - traefik.http.routers.teslamate-frontend_local.entrypoints=websecure
+            - traefik.http.routers.teslamate-frontend_local.tls.certResolver=le-home
+            - traefik.http.routers.teslamate-frontend_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.teslamate-frontend_local.rule=Host(`teslamate-frontend.home.domain.com`)
+            - traefik.http.routers.teslamate-frontend_local.service=teslamate-frontend
+
+    teslamate-database:
+        image: postgres:17
+        container_name: teslamate-database
+        restart: always
+        environment:
+            - POSTGRES_USER=teslamate
+            - POSTGRES_PASSWORD=PW #insert your secure database password!
+            - POSTGRES_DB=teslamate
+        volumes:
+            - /opt/teslamate/db-new:/var/lib/postgresql/data
+
+    teslamate-grafana:
+        image: teslamate/grafana:latest
+        container_name: teslamate-grafana
+        restart: always
+        environment:
+            - DATABASE_USER=teslamate
+            - DATABASE_PASS=password #insert your secure database password!
+            - DATABASE_NAME=teslamate
+            - DATABASE_HOST=database
+        volumes:
+            - /opt/teslamate/grafana:/var/lib/grafana
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.teslamate.loadbalancer.server.port=3000
+            # HTTPS for CF
+            - traefik.http.routers.teslamate.entrypoints=websecure
+            - traefik.http.routers.teslamate.tls=true
+            - traefik.http.routers.teslamate.rule=Host(`teslamate.domain.com`)
+            - traefik.http.routers.teslamate.service=teslamate
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.teslamate_local.tls=true
+            - traefik.http.routers.teslamate_local.entrypoints=websecure
+            - traefik.http.routers.teslamate_local.tls.certResolver=le-home
+            - traefik.http.routers.teslamate_local.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.teslamate_local.rule=Host(`teslamate.home.domain.com`)
+            - traefik.http.routers.teslamate_local.service=teslamate
+
+    piano-note-trainer:
+        container_name: piano-note-trainer
+        image: piano-note-trainer
+        restart: unless-stopped
+        volumes:
+            - /etc/localtime:/etc/localtime:ro  # Time sync
+        labels:
+            - com.centurylinklabs.watchtower.enable=false
+            - traefik.enable=true
+            - traefik.http.services.note-trainer.loadbalancer.server.port=8000
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.note-trainer.tls=true
+            - traefik.http.routers.note-trainer.entrypoints=websecure
+            - traefik.http.routers.note-trainer.tls.certResolver=le-home
+            - traefik.http.routers.note-trainer.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.note-trainer.rule=Host(`note-trainer.home.domain.com`)
+            - traefik.http.routers.note-trainer.service=note-trainer
+
+    music-assistant:
+        image: ghcr.io/music-assistant/server:latest # <<< Desired release version here (or use beta to get the latest beta version)
+        container_name: music-assistant
+        restart: always
+        network_mode: host
+        volumes:
+            - /opt/music-assistant:/data/
+        # privileged caps (and security-opt) needed to mount smb folders within the container
+        cap_add:
+            - SYS_ADMIN
+            - DAC_READ_SEARCH
+        security_opt:
+            - apparmor:unconfined
+        environment:
+            - LOG_LEVEL=info
+        labels:
+            - traefik.enable=true
+            - traefik.http.services.music-assistant.loadbalancer.server.port=8095
+            # HTTPS for CF
+            - traefik.http.routers.music-assistant-cf.entrypoints=websecure
+            - traefik.http.routers.music-assistant-cf.tls=true
+            - traefik.http.routers.music-assistant-cf.rule=Host(`music-assistant.domain.com`)
+            - traefik.http.routers.music-assistant-cf.service=music-assistant
+            # HTTPS Local Only (with 80-->443 redirect)
+            - traefik.http.routers.music-assistant.tls=true
+            - traefik.http.routers.music-assistant.entrypoints=websecure
+            - traefik.http.routers.music-assistant.tls.certResolver=le-home
+            - traefik.http.routers.music-assistant.tls.domains[0].main=*.home.domain.com
+            - traefik.http.routers.music-assistant.rule=Host(`music-assistant.home.domain.com`)
+            - traefik.http.routers.music-assistant.service=music-assistant
+    tfc-agent:
+        image: hashicorp/tfc-agent:latest
+        container_name: tfc-agent
+        restart: unless-stopped
+        environment:
+        # Use a .env file or replace these directly
+        - TFC_AGENT_TOKEN=SECRET
+        - TFC_AGENT_NAME=nuc-docker
+        volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /tmp/docker_hostnames.json:/etc/terraform/docker_hostnames.json
+        # We run as root initially to ensure we can access the socket, 
+        # or you can map the GID (see the permission fix below)
+        user: root

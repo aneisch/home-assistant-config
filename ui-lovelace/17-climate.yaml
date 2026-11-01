@@ -1,0 +1,269 @@
+title: HVAC
+path: hvac
+icon: mdi:hvac
+type: sections
+max_columns: 4
+sections:
+  # ───────────────────────── Overview ─────────────────────────
+  - type: grid
+    cards:
+      - type: heading
+        heading: Thermostat
+        icon: mdi:thermostat
+      - type: thermostat
+        entity: climate.thermostat
+        grid_options: { columns: full }
+      - type: tile
+        entity: sensor.thermostat_state
+        name: State
+      - type: tile
+        entity: sensor.ac_split
+        name: Live Split
+      - type: tile
+        entity: input_number.ac_run_split
+        name: Last Run Split
+      - type: tile
+        entity: sensor.thermostat_active_alerts
+        name: Active Alerts
+        color: red
+      - type: tile
+        entity: sensor.thermostat_temperature
+        name: Indoor
+      - type: tile
+        entity: sensor.thermostat_humidity
+        name: Humidity
+      - type: tile
+        entity: number.thermostat_diagnostic_level
+        name: Diag Level
+      - type: tile
+        entity: sensor.ac_runtime_today
+        name: Runtime Today
+
+  # ─────────────────────── Outdoor Unit ───────────────────────
+  - type: grid
+    cards:
+      - type: heading
+        heading: Outdoor Unit
+        icon: mdi:hvac
+      - type: gauge
+        entity: sensor.ac_compressor_speed
+        name: Compressor
+        min: 0
+        max: 120
+        needle: true
+      - type: gauge
+        entity: sensor.ac_cooling_rate
+        name: Cooling Rate
+        min: 0
+        max: 100
+        needle: true
+      - type: gauge
+        entity: sensor.ac_inverter_power
+        name: Inverter Power
+        min: 0
+        max: 5000
+        needle: true
+        grid_options: { columns: full }
+      - type: entities
+        title: Refrigerant
+        state_color: true
+        entities:
+          - entity: sensor.ac_subcooling
+            name: Subcooling
+          - entity: sensor.ac_superheat
+            name: Superheat
+          - entity: sensor.ac_suction_pressure
+            name: Suction Pressure
+          - entity: sensor.ac_suction_line_temperature
+            name: Suction Line Temp
+          - entity: sensor.ac_liquid_line_pressure
+            name: Liquid Pressure
+          - entity: sensor.ac_liquid_line_temperature
+            name: Liquid Line Temp
+          - entity: sensor.ac_ambient_temperature
+            name: Unit Ambient
+      - type: entities
+        title: Compressor & Inverter
+        entities:
+          - entity: sensor.ac_compressor_current
+            name: Compressor Current
+          - entity: sensor.ac_compressor_speed_reduction
+            name: Speed Reduction
+          - entity: sensor.ac_inverter_input_voltage
+            name: Input Voltage
+          - entity: sensor.ac_inverter_input_current
+            name: Input Current
+          - entity: sensor.ac_inverter_dc_link_voltage
+            name: DC Link Voltage
+          - entity: sensor.ac_inverter_heat_sink_temperature
+            name: Heat Sink Temp
+          - entity: sensor.ac_compressor_power
+            name: Circuit Power (Emporia)
+      - type: entities
+        title: Safety
+        entities:
+          - entity: sensor.ac_low_pressure_switch
+            name: Low Pressure Switch
+          - entity: sensor.ac_high_pressure_switch
+            name: High Pressure Switch
+          - entity: sensor.ac_top_cap_switch
+            name: Top Cap Switch
+          - entity: sensor.ac_compressor_alarm
+            name: Compressor Alarm
+          - entity: sensor.ac_short_cycle_delay
+            name: Short Cycle Delay
+
+  # ──────────────────── Furnace / Air Handler ────────────────────
+  - type: grid
+    cards:
+      - type: heading
+        heading: Air Handler
+        icon: mdi:fan
+      - type: gauge
+        entity: sensor.furnace_blower_cfm
+        name: Airflow
+        min: 0
+        max: 2200
+        needle: true
+      - type: gauge
+        entity: sensor.furnace_blower_power
+        name: Blower
+        min: 0
+        max: 100
+        needle: true
+      - type: entities
+        title: Air
+        entities:
+          - entity: sensor.ac_return_temperature
+            name: Return Temp
+          - entity: sensor.ac_return_humidity
+            name: Return Humidity
+          - entity: sensor.andrew_office_register_temperature
+            name: Office Register
+          - entity: sensor.furnace_discharge_air_temperature
+            name: Discharge Air
+          - entity: sensor.furnace_blower_rpm
+            name: Blower RPM
+          - entity: sensor.attic_hvac_power
+            name: Attic Circuit Power
+      - type: entities
+        title: Calls & Relays
+        entities:
+          - entity: sensor.furnace_y1_relay
+            name: Y1 (Cool)
+          - entity: sensor.furnace_y2_relay
+            name: Y2
+          - entity: sensor.furnace_g_input
+            name: G (Fan)
+          - entity: sensor.furnace_dehumidification_relay
+            name: Dehumidify
+      - type: entities
+        title: Heating & Electrical
+        entities:
+          - entity: sensor.furnace_ignition_status
+            name: Ignition
+          - entity: sensor.furnace_flame_current
+            name: Flame Current
+          - entity: sensor.furnace_heating_rate
+            name: Heating Rate
+          - entity: sensor.furnace_line_voltage
+            name: Line Voltage
+          - entity: sensor.furnace_24vac_voltage
+            name: 24VAC
+
+  # ───────────────────────── Trends ─────────────────────────
+  - type: grid
+    column_span: 4
+    cards:
+      - type: heading
+        heading: Trends (24h)
+        icon: mdi:chart-line
+      - type: history-graph
+        title: Split & Compressor
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ac_split
+            name: Split
+          - entity: sensor.ac_compressor_speed
+            name: Compressor Hz
+          - entity: sensor.ac_cooling_rate
+            name: Cooling Rate
+      - type: history-graph
+        title: Subcooling / Superheat
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ac_subcooling
+            name: Subcooling
+          - entity: sensor.ac_superheat
+            name: Superheat
+      - type: history-graph
+        title: Pressures
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ac_suction_pressure
+            name: Suction
+          - entity: sensor.ac_liquid_line_pressure
+            name: Liquid
+      - type: history-graph
+        title: Temperatures
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ac_return_temperature
+            name: Return
+          - entity: sensor.andrew_office_register_temperature
+            name: Register
+          - entity: sensor.furnace_discharge_air_temperature
+            name: Discharge
+          - entity: sensor.amb_outdoor_temperature
+            name: Outdoor
+          - entity: sensor.netatmo_home_attic_temperature
+            name: Attic
+      - type: history-graph
+        title: Power
+        hours_to_show: 24
+        entities:
+          - entity: sensor.ac_inverter_power
+            name: Inverter
+          - entity: sensor.ac_compressor_power
+            name: Outdoor Circuit
+          - entity: sensor.attic_hvac_power
+            name: Attic Circuit
+      - type: history-graph
+        title: Runtime
+        hours_to_show: 48
+        entities:
+          - entity: sensor.thermostat_state
+            name: State
+
+  # ─────────────────── Long-term leak watch ───────────────────
+  - type: grid
+    column_span: 4
+    cards:
+      - type: heading
+        heading: Long-term (30 days)
+        icon: mdi:calendar-month
+      - type: statistics-graph
+        title: Daily Subcooling / Superheat
+        days_to_show: 30
+        period: day
+        chart_type: line
+        stat_types: [mean, min, max]
+        entities:
+          - sensor.ac_subcooling
+          - sensor.ac_superheat
+      - type: statistics-graph
+        title: Daily Split
+        days_to_show: 30
+        period: day
+        chart_type: line
+        stat_types: [mean, max]
+        entities:
+          - sensor.ac_split
+      - type: statistics-graph
+        title: Daily Outdoor Unit Energy
+        days_to_show: 30
+        period: day
+        chart_type: bar
+        stat_types: [change]
+        entities:
+          - sensor.ac_compressor_daily_energy

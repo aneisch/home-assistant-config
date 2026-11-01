@@ -1,7 +1,7 @@
 """Data coordinator for Mail and Packages."""
 
 import asyncio
-import datetime
+import datetime as dt
 import logging
 import sys
 from datetime import timedelta
@@ -15,6 +15,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import config_entry_oauth2_flow
+from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.update_coordinator import (
     ConfigEntryAuthFailed,
     DataUpdateCoordinator,
@@ -28,6 +29,7 @@ from custom_components.mail_and_packages.const import (
     CONF_AUTH_TYPE,
     CONF_CUSTOM_DAYS,
     CONF_IMAP_TIMEOUT,
+    CONF_STORAGE,
     DEFAULT_CUSTOM_DAYS,
     DEFAULT_IMAP_TIMEOUT,
     MAX_TRACKING_AGE_DAYS,
@@ -85,9 +87,9 @@ __all__ = [
     "check_camera_update",
     "const",
     "copy_images",
-    "datetime",
     "dedupe_marketplace_duplicates",
     "default_image_path",
+    "dt",
     "get_shipper_for_sensor",
     "hash_file",
     "initialize_data",
@@ -120,6 +122,8 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self.timeout = config.get(CONF_IMAP_TIMEOUT, DEFAULT_IMAP_TIMEOUT)
         self.config = config
         self.config_entry = config_entry
+        if self.config_entry and "entry_id" not in self.config:
+            self.config["entry_id"] = self.config_entry.entry_id
         self.hass = hass
         self._data = {}
         self._file_mtime_cache = {}
@@ -127,6 +131,7 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
         self._in_transit_tracking: dict[str, dict[str, str]] = {}
         self._mail_delivered_latch_state = MailDeliveredLatchState()
         self.email_cache = EmailCache(hass=hass)
+        self._warned_deprecated_storage = False
 
         _LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -232,13 +237,15 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             cache = self.email_cache
             cache.set_account(account)
             await cache.async_load()
+
+            await self._sync_cache_uidvalidity(account, cache)
             await cache.async_purge_expired(custom_days=days)
 
-            now = datetime.datetime.now()
+            now = dt.datetime.now()
             today = now.strftime("%d-%b-%Y")
             today_iso = now.date().isoformat()
             days = config.get(CONF_CUSTOM_DAYS, DEFAULT_CUSTOM_DAYS)
-            since_date = (now - datetime.timedelta(days=days)).strftime("%d-%b-%Y")
+            since_date = (now - dt.timedelta(days=days)).strftime("%d-%b-%Y")
 
             # Process logic
             shipper_data = await self._update_shippers(
@@ -258,10 +265,64 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
 
         # Post-process external images
         if config.get(CONF_ALLOW_EXTERNAL):
+            _LOGGER.warning(
+                "The 'allow_external' option is deprecated and will be removed in a future release. "
+                "Images are now served securely via Home Assistant API endpoints"
+            )
+            ir.async_create_issue(
+                hass,
+                const.DOMAIN,
+                "deprecated_allow_external",
+                is_fixable=True,
+                severity=ir.IssueSeverity.WARNING,
+                translation_key="deprecated_allow_external",
+                learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
+                data={"entry_id": self.config_entry.entry_id}
+                if self.config_entry
+                else None,
+            )
             try:
                 await hass.async_add_executor_job(copy_images, hass, config)
             except (OSError, ValueError) as err:
                 _LOGGER.error("Problem creating: %s", err)
+        else:
+            issue_registry = ir.async_get(hass)
+            if (const.DOMAIN, "deprecated_allow_external") in issue_registry.issues:
+                ir.async_delete_issue(hass, const.DOMAIN, "deprecated_allow_external")
+
+        # Check for deprecated custom storage path configuration
+        entry_storage = None
+        if self.config_entry:
+            entry_storage = self.config_entry.options.get(
+                CONF_STORAGE
+            ) or self.config_entry.data.get(CONF_STORAGE)
+        elif config.get(CONF_STORAGE):
+            entry_storage = config.get(CONF_STORAGE)
+
+        if entry_storage:
+            if not self._warned_deprecated_storage:
+                _LOGGER.warning(
+                    "The 'storage' option is deprecated and will be removed in a future release. "
+                    "Images are now stored automatically in entry-scoped directories"
+                )
+                ir.async_create_issue(
+                    hass,
+                    const.DOMAIN,
+                    "deprecated_storage",
+                    is_fixable=True,
+                    severity=ir.IssueSeverity.WARNING,
+                    translation_key="deprecated_storage",
+                    learn_more_url="https://github.com/moralmunky/Home-Assistant-Mail-And-Packages/wiki/USPS-Informed-Delivery-Image",
+                    data={"entry_id": self.config_entry.entry_id}
+                    if self.config_entry
+                    else None,
+                )
+                self._warned_deprecated_storage = True
+        else:
+            self._warned_deprecated_storage = False
+            issue_registry = ir.async_get(hass)
+            if (const.DOMAIN, "deprecated_storage") in issue_registry.issues:
+                ir.async_delete_issue(hass, const.DOMAIN, "deprecated_storage")
 
         return data
 
@@ -303,6 +364,14 @@ class MailDataUpdateCoordinator(DataUpdateCoordinator):
             cache,
             shipper_fn=get_shipper_for_sensor,
         )
+
+    @staticmethod
+    async def _sync_cache_uidvalidity(account: IMAP4_SSL, cache: EmailCache) -> None:
+        """Synchronize folder UIDVALIDITY values with the email cache."""
+        folder_uidvals = getattr(account, "_folder_uidvalidity", None)
+        if isinstance(folder_uidvals, dict):
+            for folder_name, uidval in folder_uidvals.items():
+                await cache.async_check_uidvalidity(folder_name, uidval)
 
     @staticmethod
     def _dedupe_marketplace_duplicates(

@@ -91,12 +91,23 @@ automation:
               data:
                 attachments:
                   - /config/media/images/front_door.jpg
-          - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
-            data:
-              data:
-                type: tts
-                method: speak
-              message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_03"/>
+          # - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
+          #   data:
+          #     data:
+          #       type: tts
+          #       method: speak
+          #     message: <audio src="soundbank://soundlibrary/alarms/beeps_and_bloops/bell_03"/>
+          - if: "{{ is_state('switch.master_bedroom_ceiling_fan', 'off') }}"
+            then:
+              - action: siren.turn_on
+                target:
+                  entity_id: siren.siren_chime_play_tone
+                data:
+                  volume_level: 0.5
+                  tone: >
+                    {{ state_attr('siren.siren_chime_play_tone', 'available_tones') |dictsort
+                    |selectattr('1', 'search', 'bell_03') |map(attribute='0') |first }}
+
           # - action: notify.alexa_media_kitchen
           #   data:
           #     data:
@@ -225,6 +236,11 @@ automation:
                 attachments:
                   - /config/media/images/logo.jpg
                   - "{{ states('sensor.imap_gmail_com_mail_grid_image_path') }}"
+          # Signal post above carries the mail images; push to the apps separately
+          - action: script.notify_wrapper
+            data:
+              message: "USPS detected"
+              signal: false
       - delay: "00:01:00"
       - action: switch.turn_off
         entity_id: switch.docker_codeproject
@@ -335,14 +351,14 @@ automation:
           data:
             urls:
               - !secret go2rtc_frontdoor_url
-      # Mirror to WearOS
-      - action: notify.mobile_app_galaxy_watch6_kqbw
+      # Push to phones and watch (signal_frigate above already covers Signal)
+      - action: script.notify_wrapper
         data:
           message: >-
             Doorbell! {{ generated_content.text }}
-          data:
-            ttl: 0
-            priority: high
+          level: alert
+          signal: false
+          image: /api/camera_proxy/camera.front_door
       # - if: "{{ is_state('binary_sensor.weasel_active', 'on') }}"
       #   then:
       #     - action: shell_command.weasel_shortcut

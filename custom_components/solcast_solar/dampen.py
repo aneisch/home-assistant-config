@@ -23,6 +23,7 @@ from homeassistant.const import ATTR_UNIT_OF_MEASUREMENT
 from homeassistant.core import State
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ADVANCED_AUTOMATED_DAMPENING_DELTA_ADJUSTMENT_MODEL,
@@ -196,18 +197,18 @@ def compute_energy_intervals(
         and len(sample_time) == len(sample_generation_time)
         and len(sample_time) == len(sample_timedelta)
     ):
-        for idx, (interval, kWh, report_time, time_delta) in enumerate(
+        for idx, (interval, kwh, report_time, time_delta) in enumerate(
             zip(sample_time, sample_generation, sample_generation_time, sample_timedelta, strict=True)
         ):
             is_excessive = False
             if interval != last_interval:
                 last_interval = interval
                 if uniform_increment:
-                    if round(kWh, 4) > upper:
+                    if round(kwh, 4) > upper:
                         is_excessive = True
                         ignored[interval] = True
-                elif time_delta > upper and kWh > 0.0003:
-                    if kWh > 0.14:
+                elif time_delta > upper and kwh > 0.0003:
+                    if kwh > 0.14:
                         is_excessive = True
                         ignored[interval] = True
                 if is_excessive:
@@ -220,20 +221,20 @@ def compute_energy_intervals(
                 prev_interval_start = delta_start.replace(minute=delta_start.minute // 30 * 30, second=0, microsecond=0)
 
                 if prev_report_time == period_start:
-                    generation_intervals[current_interval_start] += kWh
+                    generation_intervals[current_interval_start] += kwh
                     prev_report_time = report_time
                     continue
 
                 if report_time == period_end:
                     if prev_interval_start in generation_intervals:
-                        generation_intervals[prev_interval_start] += kWh
+                        generation_intervals[prev_interval_start] += kwh
                     prev_report_time = report_time
                     continue
 
-                if time_upper and time_delta > time_upper and kWh > 0.0003:
-                    generation_intervals[current_interval_start] += kWh
+                if time_upper and time_delta > time_upper and kwh > 0.0003:
+                    generation_intervals[current_interval_start] += kwh
                 elif prev_interval_start == current_interval_start:
-                    generation_intervals[interval] += kWh
+                    generation_intervals[interval] += kwh
                 else:
                     total_seconds = (delta_end - delta_start).total_seconds()
                     if total_seconds > 0:
@@ -251,9 +252,9 @@ def compute_energy_intervals(
 
                         for crossed_interval, proportion in intervals_crossed:
                             if crossed_interval in generation_intervals:
-                                generation_intervals[crossed_interval] += kWh * proportion
+                                generation_intervals[crossed_interval] += kwh * proportion
             elif not is_excessive and idx == 0:
-                generation_intervals[interval] += kWh
+                generation_intervals[interval] += kwh
 
             prev_report_time = report_time
 
@@ -1058,7 +1059,7 @@ class Dampening:
 
         # Trim, sort and serialise.
         self.data_generation = {
-            LAST_UPDATED: dt.now(UTC).replace(microsecond=0),
+            LAST_UPDATED: dt_util.now(UTC).replace(microsecond=0),
             GENERATION: sorted(
                 filter(
                     lambda generated: generated[PERIOD_START] >= self.api.dt_helper.day_start_utc(future=-22),
@@ -1199,7 +1200,7 @@ class Dampening:
             self.api.data_undampened[SITE_INFO].update({site: {FORECASTS: copy.deepcopy(forecasts_undampened)}})
 
         if apply_dampening:
-            self.api.data_undampened[LAST_UPDATED] = dt.now(UTC).replace(microsecond=0)
+            self.api.data_undampened[LAST_UPDATED] = dt_util.now(UTC).replace(microsecond=0)
             await self.api.sites_cache.serialise_data(self.api.data_undampened, self.api.filename_undampened)
 
         if apply_dampening:
@@ -1496,7 +1497,7 @@ class Dampening:
             dst_offset = (
                 1
                 if self.api.dt_helper.dst(
-                    dt.now(self.api.tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0)
+                    dt_util.now(self.api.tz).replace(hour=interval // 2, minute=30 * (interval % 2), second=0, microsecond=0)
                 )
                 else 0
             )
@@ -1687,7 +1688,7 @@ class Dampening:
 
                 if (
                     record_adjustment
-                    and period_start.astimezone(self.api.tz).date() == dt.now(self.api.tz).date()
+                    and period_start.astimezone(self.api.tz).date() == dt_util.now(self.api.tz).date()
                     and round(factor, 3) != round(factor_pre_adjustment, 3)
                 ):
                     _LOGGER.debug(

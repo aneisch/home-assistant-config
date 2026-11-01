@@ -16,6 +16,7 @@ from homeassistant.helpers.event import (
     async_track_utc_time_change,
 )
 from homeassistant.helpers.sun import get_astral_event_next
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ADVANCED_ALLOW_EXCEED_API_LIMIT_MAXIMUM,
@@ -203,7 +204,9 @@ class Updater:
             tz = self._coordinator.solcast.options.tz
             next_update = self._intervals[0].astimezone(tz)
             self._coordinator.solcast.fetcher.set_next_update(
-                next_update.strftime(DT_TIME_FORMAT) if next_update.date() == dt.now(tz).date() else next_update.strftime(DT_DATE_FORMAT)
+                next_update.strftime(DT_TIME_FORMAT)
+                if next_update.date() == dt_util.now(tz).date()
+                else next_update.strftime(DT_DATE_FORMAT)
             )
 
     def get_auto_update_details(self) -> dict[str, Any]:
@@ -307,12 +310,12 @@ class Updater:
                     return True
 
                 tz = self._coordinator.solcast.options.tz
-                now_minute = self._get_minute_of_day(dt.now(tz))
+                now_minute = self._get_minute_of_day(dt_util.now(tz))
                 generation_fetch_delay = self._coordinator.solcast.advanced_options[ADVANCED_AUTOMATED_DAMPENING_GENERATION_FETCH_DELAY]
 
                 if now_minute <= generation_fetch_delay:
                     update_at = (
-                        dt.now(tz).replace(
+                        dt_util.now(tz).replace(
                             hour=0,
                             minute=0,
                             second=5 if generation_fetch_delay == 0 else 0,
@@ -326,7 +329,7 @@ class Updater:
                     )
                 else:
                     # If startup/reload happened after the scheduled window then the timer was likely cancelled and not recreated. Schedule it again.
-                    update_at = dt.now(tz).replace(microsecond=0) + timedelta(seconds=30 + randint(0, 29))
+                    update_at = dt_util.now(tz).replace(microsecond=0) + timedelta(seconds=30 + randint(0, 29))
                     _LOGGER.info(
                         "Generation update window was missed, scheduling at %s",
                         update_at.astimezone(tz).strftime(DT_TIME_FORMAT),
@@ -365,12 +368,12 @@ class Updater:
                     return True
 
                 tz = self._coordinator.solcast.options.tz
-                now_minute = self._get_minute_of_day(dt.now(tz))
+                now_minute = self._get_minute_of_day(dt_util.now(tz))
                 estimated_actuals_fetch_delay = self._coordinator.solcast.advanced_options[ADVANCED_ESTIMATED_ACTUALS_FETCH_DELAY]
 
                 if now_minute <= estimated_actuals_fetch_delay:
                     update_at = (
-                        dt.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)  # i.e. midnight local
+                        dt_util.now(tz).replace(hour=0, minute=0, second=0, microsecond=0)  # i.e. midnight local
                         + timedelta(minutes=max(now_minute, estimated_actuals_fetch_delay))
                         + timedelta(minutes=randint(1, 14), seconds=randint(0, 59))
                     )
@@ -380,7 +383,7 @@ class Updater:
                     )
                 else:
                     # If startup/reload happened after the scheduled window then the timer was likely cancelled and not recreated. Schedule it again.
-                    update_at = dt.now(tz).replace(microsecond=0) + timedelta(seconds=30 + randint(0, 29))
+                    update_at = dt_util.now(tz).replace(microsecond=0) + timedelta(seconds=30 + randint(0, 29))
                     _LOGGER.info(
                         "Estimated actuals update window was missed, scheduling at %s",
                         update_at.astimezone(tz).strftime(DT_TIME_FORMAT),

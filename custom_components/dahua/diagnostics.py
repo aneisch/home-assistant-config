@@ -10,6 +10,9 @@ Nothing here talks to the device. It only reports state the integration already
 holds, so it is safe to pull when the device is unreachable, which is exactly
 when someone will pull it.
 """
+
+import logging
+import re
 import time
 from hashlib import sha256
 from typing import Any, Callable, Mapping
@@ -20,7 +23,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
 from homeassistant.helpers.device_registry import DeviceEntry
 
-from . import dahua_utils
+_LOGGER: logging.Logger = logging.getLogger(__package__)
+
+from . import dahua_utils, entry_coordinators
 from .const import (
     CONF_ADDRESS,
     CONF_AUTO_DETECT_CHANNEL,
@@ -93,7 +98,17 @@ def _entry_block(config_entry: ConfigEntry) -> dict[str, Any]:
         "options": dict(config_entry.options),
         # The *effective* values, after options override entry data. Users
         # routinely report the value they set rather than the one in force.
-        "resolved_events": get_configured_events(config_entry),
+        #
+        # Named "entry level" rather than "resolved", because since #827 an
+        # entry owns many channels and each may carry its own event list. This
+        # is the list a channel falls back to, not the list any channel is
+        # necessarily using. What a channel actually subscribes to is
+        # channels[].events.configured, which is the field #728 has been asked
+        # for three times, so the two must not be confusable.
+        #
+        # use_https and the scan interval below are entry wide for real: no
+        # subentry carries either, so "resolved" is honest for them.
+        "entry_level_events": get_configured_events(config_entry),
         "resolved_use_https": get_configured_use_https(config_entry),
         "resolved_scan_interval_seconds": _safe(
             lambda: get_configured_scan_interval(config_entry).total_seconds()
@@ -134,6 +149,17 @@ def _device_block(coordinator, config_entry: ConfigEntry) -> dict[str, Any]:
         # are still decided mostly by the model name, so this is how we find
         # out what the rebadges nobody has measured actually report.
         "device_class": getattr(coordinator, "_device_class", None),
+        # Whether the line above is an answer. An empty device_class means
+        # either "this device does not implement getDeviceClass", which is
+        # settled, or "the call has not been answered yet and the poll is still
+        # asking" -- which is what this PR adds, and the two read identically
+        # without this. The rebadged doorbells are exactly the devices the field
+        # above exists to learn about, so a dump that cannot tell a device that
+        # declines from one still being asked is the dump that cannot answer the
+        # question.
+        "device_class_unanswered": getattr(
+            coordinator, "_device_class_unanswered", None
+        ),
         "machine_name": getattr(coordinator, "machine_name", None),
         "name": _safe(coordinator.get_device_name),
         "firmware": _safe(coordinator.get_firmware_version),
@@ -148,7 +174,8 @@ def _device_block(coordinator, config_entry: ConfigEntry) -> dict[str, Any]:
         # an HTTP error, and until now nothing recorded which call or why
         # (#583, #728, #767).
         "identity_fallbacks": dict(
-            getattr(coordinator.client, "_identity_fallbacks", {}) or {}),
+            getattr(coordinator.client, "_identity_fallbacks", {}) or {}
+        ),
         "channel_index": _safe(coordinator.get_channel),
         "channel_number": _safe(coordinator.get_channel_number),
         "auto_detect_channel": config_entry.options.get(CONF_AUTO_DETECT_CHANNEL, True),
@@ -196,6 +223,8 @@ def _capabilities_block(coordinator) -> dict[str, Any]:
     Together these decide which entities exist, so "why do I have no siren
     entity" is answerable from this block alone.
     """
+    from .coordinator import MAX_CAPABILITY_RETRIES
+
     probed = {
         name.lstrip("_").removeprefix("supports_"): getattr(coordinator, name)
         for name in vars(coordinator)
@@ -222,12 +251,30 @@ def _capabilities_block(coordinator) -> dict[str, Any]:
     return {
         "probed": probed,
         "derived_from_model": derived,
+        # Which picture adjustments this channel reported at setup, which is
+        # the whole reason its number entities exist or do not. A device that
+        # refuses the table gets none, so an empty list here beside a
+        # `video_color` entry in `refusals` below is the answer to "where did
+        # my brightness slider go" (#1006).
+        "video_color_fields": _safe(
+            lambda: sorted(getattr(coordinator, "_video_color_fields", None) or ()), []
+        ),
         # Why each probe that failed did. A status is the device
         # answering, and a 400 for a config table is it saying it does
         # not serve that table, which is a fact about the model. No
         # status means it did not answer, which is a fact about that
         # moment only. "supports x = False" cannot tell them apart.
         "refusals": dict(getattr(coordinator, "_probe_refusals", {})),
+        # How many times each unanswered question has been asked again since
+        # setup, against the budget. A capability sitting at the budget with
+        # `answered` false in `refusals` above is a device that was asked and
+        # stayed silent, which is a different report from one that was never
+        # asked at all -- and from outside the log there was no way to tell
+        # those apart (#1057).
+        "capability_retries": dict(
+            getattr(coordinator, "_capability_retries", None) or {}
+        ),
+        "capability_retry_budget": MAX_CAPABILITY_RETRIES,
     }
 
 
@@ -251,7 +298,8 @@ def _client_block(coordinator, config_entry: ConfigEntry) -> dict[str, Any]:
         # Basic challenge, and until #733 that read as a wrong password (#583).
         # A name, never a credential.
         "auth_scheme": (getattr(client, "_digest_state", None) or {}).get(
-            "scheme", "digest"),
+            "scheme", "digest"
+        ),
         "rpc2_session_active": getattr(client, "_rpc2_session_instance", None)
         is not None,
         "rtsp_url_shape": (
@@ -296,9 +344,21 @@ def _stream_block(coordinator) -> dict[str, Any]:
     return {
         "registered": True,
         "task_running": bool(task) and not task.done(),
-        # The union across every channel on this host, which is what the device was
-        # actually asked to send. A code missing here cannot arrive.
+        # The union of what the channels on this host selected. A code missing
+        # here cannot arrive, whatever one channel has configured.
         "attached_events": sorted(getattr(stream, "_events", ()) or ()),
+        # And what was put on the wire, which is not always the same list.
+        # Sharing one stream makes the request the union across channels, and
+        # some firmware answers codes=[All] but goes silent on a long explicit
+        # list, so a union wider than any single channel's own selection is sent
+        # as [All] and filtered again locally. Reporting only the union then
+        # described a request the device never received, which is the field
+        # somebody would have to reconcile against a packet capture to doubt.
+        "subscribed_as": (
+            ["All"]
+            if getattr(stream, "_using_all_events", False)
+            else sorted(getattr(stream, "_events", ()) or ())
+        ),
         "received_data": bool(getattr(stream, "_received_data", False)),
         "last_attach_failed": bool(getattr(stream, "_failing", False)),
         "consecutive_failures": getattr(stream, "_consecutive_failures", 0),
@@ -311,6 +371,19 @@ def _stream_block(coordinator) -> dict[str, Any]:
     }
 
 
+def _stream_is_carrying_anything(stream) -> bool:
+    """Whether this host stream is a transport or just an object that exists.
+
+    A channel that joined, or a task that is running. Either is enough: the
+    task is what attaches, and a channel registering is what starts it, so a
+    stream between those two states is still this entry's transport.
+    """
+    task = getattr(stream, "_task", None)
+    if task is not None and not task.done():
+        return True
+    return bool(getattr(stream, "_by_channel", None) or {})
+
+
 def _transport(coordinator, rpc2_poll: Mapping[str, Any]) -> str | None:
     """Which transport is carrying this entry's events.
 
@@ -318,17 +391,33 @@ def _transport(coordinator, rpc2_poll: Mapping[str, Any]) -> str | None:
     in: a doorbell takes the VTO listener and never registers a CGI stream, a device
     whose `eventManager.cgi` is absent falls through to the RPC2 poll inside the stream's
     own task, and everything else uses the CGI stream.
+
+    The same listener now also carries a monitor that serves no HTTP (#949), which is
+    not a doorbell and would be misreported as one. Named apart, because the question a
+    dump is asked here is which socket is carrying events and why, and "vto_listener" on
+    a device with no doorbell reads as a bug in the dump rather than as the answer.
     """
     vto_task = getattr(coordinator, "_vto_task", None)
     if vto_task is not None:
+        if getattr(coordinator, "_rpc2_over_dhip", False):
+            return "dhip_listener"
         return "vto_listener"
     if rpc2_poll.get("used"):
         return "rpc2_poll"
     from . import _HOST_STREAMS
 
-    if _HOST_STREAMS.get(getattr(coordinator, "_address", None)) is not None:
+    stream = _HOST_STREAMS.get(getattr(coordinator, "_address", None))
+    if stream is not None and _stream_is_carrying_anything(stream):
         return "cgi_stream"
-    # No events were configured, so nothing was started. Not a fault.
+    # Nothing is carrying events. Not a fault: no codes were selected, or the
+    # device has none to send.
+    #
+    # Judged on whether a channel actually joined rather than on the entry in
+    # `_HOST_STREAMS` existing, because the poll builds that object every time
+    # it asks `async_check_video_motion_is_pushed` a question. An indoor monitor
+    # with no camera subscribes to nothing and starts no task, and reporting it
+    # as `cgi_stream` named a transport that had never attached -- which is the
+    # thing #813 added this field to stop doing.
     return None
 
 
@@ -377,6 +466,52 @@ def _rpc2_poll_block(coordinator) -> dict[str, Any]:
     }
 
 
+def _listener_counts(coordinator) -> dict[str, Any]:
+    """Each event key and how many listeners it holds.
+
+    Keys are "<EventName>-<channel>". Two things are read off this, and until
+    #944 it could only answer the first:
+
+    * which channel the subscriptions are on, because listeners on `...-3` while
+      the device's events arrive with index 0 is the channel-offset bug;
+    * whether a key has *gained* listeners, which is this codebase's own
+      recurring bug shape and the leading explanation for a doorbell that fires
+      twice per press only after Home Assistant has been up a while.
+
+    It used to be `sorted(self._dahua_event_listeners)`, the key names alone, so
+    a key with two listeners printed exactly like a key with one. The reporter on
+    #944 was sent to this field on the understanding that a duplicate would show
+    up in it. It could not.
+
+    **No count here is wrong on its own.** More than one entity may legitimately
+    want the same event, and on a doorbell more than one does: the "Button
+    Pressed" binary sensor and the "Doorbell" event entity both subscribe to
+    `DoorbellPressed`, so a healthy VTO reports 2 for it. The number is evidence
+    only when it is compared against the same entry's dump taken shortly after a
+    restart. A key that read 2 then and reads 3 now is the accumulation; a key
+    that reads 2 in both is the entity set.
+
+    Sorted, because a dump is read by eye and diffed against another dump, and
+    the field it replaces was sorted.
+
+    Never raises. A count that cannot be taken is reported as None rather than
+    as a number nobody measured, because this is the dump somebody is asked for
+    once everything else has already gone wrong.
+    """
+    listeners_by_key = getattr(coordinator, "_dahua_event_listeners", None) or {}
+    counts: dict[str, Any] = {}
+    try:
+        items = sorted(listeners_by_key.items())
+    except Exception:  # pylint: disable=broad-except
+        return counts
+    for key, listeners in items:
+        try:
+            counts[key] = len(listeners)
+        except TypeError:
+            counts[key] = None
+    return counts
+
+
 def _events_block(coordinator) -> dict[str, Any]:
     now = int(time.time())
     timestamps = getattr(coordinator, "_dahua_event_timestamp", {}) or {}
@@ -396,9 +531,19 @@ def _events_block(coordinator) -> dict[str, Any]:
         "rpc2_poll": rpc2_poll,
         "vto_task_running": bool(vto_task) and not vto_task.done(),
         "vto_client_connected": getattr(coordinator, "_vto_client", None) is not None,
-        # Listener keys are "<EventName>-<channel>". On an NVR, listeners for
-        # channel 3 while events arrive with index 0 is the channel-offset bug.
-        "listener_keys": sorted(getattr(coordinator, "_dahua_event_listeners", {})),
+        # Each "<EventName>-<channel>" and how many listeners it holds. See
+        # _listener_counts for why the count is there and the names alone are
+        # not enough.
+        "listener_keys": _listener_counts(coordinator),
+        # The same keys, for events that arrived and found no listener there.
+        # Counted rather than logged because the failure is a non-event: the
+        # dispatch continues, the event still reaches the HA bus, and only the
+        # sensor stays where it was. A reporter watching the bus sees events
+        # arriving and a sensor that never moves, and has had no way to tell
+        # that apart from a device that stopped sending.
+        "arrived_with_no_listener": dict(
+            getattr(coordinator, "_events_without_listener", None) or {}
+        ),
         # Ages, not epochs. A motion event 21600 seconds old is a binary sensor
         # that has been on for six hours because no Stop action ever arrived.
         "timestamp_age_seconds": {
@@ -415,6 +560,13 @@ def _events_block(coordinator) -> dict[str, Any]:
         # almost always the question; a number plate, a card number or a person's
         # name does not.
         "recent": _recent_events_block(coordinator, now),
+        # And the newest of each code, which is the one that survives a flood.
+        # `recent` is chronological, so on a device sending MDResult eight
+        # times a second it holds eight seconds of that and nothing else: a
+        # reporter asked for a dump after pressing a doorbell had no press in
+        # it. Measured on a VTO2000A, where one press was gone within thirty
+        # seconds.
+        "latest_by_code": _latest_by_code_block(coordinator, now),
     }
 
 
@@ -424,23 +576,58 @@ def _recent_events_block(coordinator, now: int) -> list[dict[str, Any]]:
     out = []
     for row in remembered:
         captured = row.get("seconds_ago_at_capture") or now
-        out.append({
-            "seconds_ago": max(0, now - captured),
-            "event": _safe(lambda: dahua_utils.summarise_event(row.get("event")), {}),
-        })
+        out.append(
+            {
+                "seconds_ago": max(0, now - captured),
+                "event": _safe(
+                    lambda: dahua_utils.summarise_event(row.get("event")), {}
+                ),
+            }
+        )
     return out
 
 
-def _host_block(hass: HomeAssistant, coordinator, config_entry: ConfigEntry) -> dict[str, Any]:
+def _latest_by_code_block(coordinator, now: int) -> dict[str, Any]:
+    """The most recent event of each code, redacted and aged like `recent`.
+
+    Same rows and the same redaction, so nothing is published here that
+    `recent` would not publish. The difference is only which events survive:
+    this one keeps the rare code a reporter was asked about instead of the
+    common one that arrived most recently.
+    """
+    latest = getattr(coordinator, "_latest_event_by_code", None) or {}
+    out = {}
+    for code, row in sorted(latest.items()):
+        captured = row.get("seconds_ago_at_capture") or now
+        out[code] = {
+            "seconds_ago": max(0, now - captured),
+            "event": _safe(lambda: dahua_utils.summarise_event(row.get("event")), {}),
+        }
+    return out
+
+
+def _host_block(
+    hass: HomeAssistant, coordinator, config_entry: ConfigEntry
+) -> dict[str, Any]:
     """Per-host contention, which is invisible from a single entry today.
 
     An NVR gets one config entry per channel, so a report titled "my camera
     keeps dropping out" is often the sixth of eleven entries against one host.
     """
-    from . import _HOST_CONNECTORS
-    from .client import (_HOST_LIMITS, _HOST_RPC2, _HOST_RPC2_UNAVAILABLE,
-                         _RPC2_TABLE_UNAVAILABLE,
-                         MAX_CONCURRENT_REQUESTS_PER_HOST)
+    from . import (
+        _HOST_CONNECTORS,
+        _HOST_FAILURES,
+        MAX_AUTH_REFUSALS,
+        normalize_address,
+    )
+    from .host import _HOST_UPTIME_STATE
+    from .client import (
+        _HOST_LIMITS,
+        _HOST_RPC2,
+        _HOST_RPC2_UNAVAILABLE,
+        _RPC2_TABLE_UNAVAILABLE,
+        MAX_CONCURRENT_REQUESTS_PER_HOST,
+    )
 
     address = config_entry.data.get(CONF_ADDRESS)
     client_address = getattr(coordinator.client, "_address", address)
@@ -456,13 +643,23 @@ def _host_block(hass: HomeAssistant, coordinator, config_entry: ConfigEntry) -> 
     rpc2_key = (client_address, getattr(coordinator.client, "_username", None))
     rpc2 = _HOST_RPC2.get(rpc2_key)
 
+    # Absent until something fails, so an empty dict is the healthy answer and
+    # every read below is a .get on it.
+    failures = _HOST_FAILURES.get(normalize_address(address) if address else "", {})
+
+    # Same shape: absent until the first uptime read, and every field below is
+    # a .get on it.
+    uptime = _HOST_UPTIME_STATE.get(client_address or address or "", {})
+
     return {
         # Presence only, never the session id -- the same rule the digest state
         # is reported under.
         "rpc2_session_open": rpc2 is not None,
         "rpc2_session_refcount": rpc2.refs if rpc2 is not None else 0,
         "rpc2_keepalive_running": bool(
-            rpc2 is not None and rpc2.keepalive is not None and not rpc2.keepalive.done()
+            rpc2 is not None
+            and rpc2.keepalive is not None
+            and not rpc2.keepalive.done()
         ),
         "rpc2_ruled_out_for_host": rpc2_key in _HOST_RPC2_UNAVAILABLE,
         # Which config tables this device answered and declined. Recorded
@@ -472,7 +669,53 @@ def _host_block(hass: HomeAssistant, coordinator, config_entry: ConfigEntry) -> 
         "rpc2_tables_refused": sorted(
             table for key, table in _RPC2_TABLE_UNAVAILABLE if key == rpc2_key
         ),
+        # Whether this host's reboot detection is running, and what it has
+        # seen. A device that refuses magicBox.getUpTime is asked once and then
+        # left alone (#1039), which is right -- the refusal used to cost most
+        # of the integration's login traffic on a recorder -- and it silently
+        # switches the feature off: the generation stays 0 for the life of the
+        # entry, so the illuminator never restores a camera's pre-override
+        # lighting scheme after a reboot.
+        #
+        # Nothing surfaced that. The latch lives in memory, the refusal is
+        # logged at debug, and the feature simply does not run, which is the
+        # shape of the bug in #1039 and the reason it took a code read rather
+        # than a dump to find.
+        "reboot_detection_unsupported": bool(uptime.get("unsupported", False)),
+        # 0 means "no reboot seen since Home Assistant started", which on a
+        # host with the line above true is not the same claim at all.
+        "reboot_generation": int(uptime.get("generation", 0)),
+        # The device's own last answer, in whatever unit it reports, or None
+        # where it has never answered one. A reboot is inferred from this
+        # going backwards, so a host that reports the same number every poll
+        # is the other way this can quietly do nothing.
+        "host_uptime_last": uptime.get("uptime"),
+        "host_uptime_read": bool(uptime.get("last_read", 0)),
         "address": address,
+        # Why everything on this host may have stopped asking. Recorded since
+        # the budget was introduced and never reported, and once a doorbell
+        # listener gives up on it (this PR) the dump needs it: a spent budget
+        # leaves `vto_task_running` false and `vto_client_connected` false,
+        # which is exactly what a listener that never started looks like.
+        #
+        # Counted per source, so the breakdown is the useful half. Twelve
+        # channels at one each is a recorder having a moment and recovers on the
+        # next poll; one source at three is a password that is wrong, and the
+        # highest single source is what spends the host's budget.
+        #
+        # Source names only -- an entry id or "vto listener". No credential, and
+        # no username, which the digest state is reported under the same rule.
+        "auth_refusals": failures.get("auth_refusals", 0),
+        "auth_refusals_by_source": dict(
+            failures.get("auth_refusals_by_source", {}) or {}
+        ),
+        "auth_refusal_budget": MAX_AUTH_REFUSALS,
+        "auth_budget_spent": failures.get("auth_refusals", 0) >= MAX_AUTH_REFUSALS,
+        # The other half of the same store, for the "my camera keeps dropping
+        # out" reports: a run of plain failures rather than refusals, and when
+        # it started. Cleared together by the first success.
+        "consecutive_failures": failures.get("consecutive", 0),
+        "failing_since": (int(failures["since"]) if failures.get("since") else None),
         "connector_refcount": holder[1] if holder else None,
         "connector_closed": holder[0].closed if holder else None,
         # If these two registries disagree - for example one key with a trailing
@@ -520,20 +763,155 @@ def _active_issues(hass: HomeAssistant) -> list[dict[str, Any]]:
     ]
 
 
+# "table.Encode[2].ExtraFormat[1].Video.Compression" -> (2, 1)
+_SUB_STREAM_CODEC = re.compile(
+    r"table\.Encode\[(\d+)\]\.ExtraFormat\[(\d+)\]\.Video\.Compression$"
+)
+_MAIN_STREAM_CODEC = "table.Encode[{0}].MainFormat[0].Video.Compression"
+
+
+async def _async_encode_table(coordinator) -> dict:
+    """The Encode table, or {} if the device will not serve it.
+
+    Read once per dump and shared by every channel: it is a whole-table read
+    covering the host. Measured on a DHI-NVR5464-16P-EI at 2530 keys, which is
+    why only the video compression values below are reported and not the table.
+    """
+    try:
+        return await coordinator.client.async_get_config("Encode")
+    except Exception as exception:  # pylint: disable=broad-except
+        _LOGGER.debug("Could not read Encode for diagnostics", exc_info=exception)
+        return {}
+
+
+def _streams_block(coordinator, encode: dict) -> dict:
+    """Which codec each of this channel's streams carries.
+
+    The single most reported fault in this integration is a camera that shows a
+    still image and never a moving one, which is H.265 almost every time:
+    #236, #244, #257, #262 and #272 among others, and HomeKit will not play it
+    at all. Home Assistant's own ONVIF integration sidesteps it by skipping any
+    profile that is not H264.
+
+    Nothing here can fix it -- the remedy is on the device, under Video >
+    Encode -- but a dump that names the codec answers the question instead of
+    starting a conversation about it.
+
+    Deliberately not a warning or a repair card. H.265 is not universally
+    broken: it depends on the player, and the same recorder can serve a working
+    H.264 sub stream beside an unplayable H.265 main one. Saying "your stream
+    will not work" would be wrong often enough to be worse than saying nothing.
+    """
+    channel = coordinator.get_channel()
+    if not encode:
+        # Said rather than left blank. An absent codec and a codec nobody
+        # looked for read the same in a dump, and this one is worth telling
+        # apart: a recorder that refuses Encode is itself a finding.
+        return {"read": False, "why": "the device did not serve the Encode table"}
+
+    main = encode.get(_MAIN_STREAM_CODEC.format(channel))
+    subs = {}
+    for key, value in encode.items():
+        match = _SUB_STREAM_CODEC.match(str(key))
+        if match and int(match.group(1)) == channel:
+            subs[int(match.group(2))] = value
+
+    carried = [codec for codec in [main, *subs.values()] if codec]
+    return {
+        "read": True,
+        "main": main,
+        "sub": [subs[index] for index in sorted(subs)],
+        # One boolean, because it is the question somebody reading a report
+        # about a stream that will not play actually has.
+        "h265_anywhere": any("265" in str(codec) for codec in carried),
+        # And the narrower one that is not a matter of taste: H.265 with no
+        # audio track cannot be given to a browser at all, because there is no
+        # H.264 producer for it and no audio for the transcoder to convert.
+        # This is the condition the repair card is raised on.
+        "webrtc_cannot_play_main": dahua_utils.webrtc_cannot_play(
+            dahua_utils.parse_stream_codecs(encode, channel)
+        ),
+    }
+
+
+def _ivs_channel_block(coordinator) -> dict:
+    """Rule discovery and unmatched events for one channel."""
+    return {
+        "discovery": getattr(coordinator, "_ivs_discovery_diagnostics", {}),
+        "unmatched_event_counts": dict(
+            getattr(coordinator, "_ivs_unmatched_counts", {})
+        ),
+        "last_unmatched_event": getattr(coordinator, "_ivs_last_unmatched", None),
+    }
+
+
+def _ivs_block(config_entry) -> dict:
+    """Keep the all-channel IVS summary at the top level."""
+    return {
+        str(channel): _ivs_channel_block(coordinator)
+        for channel, coordinator in entry_coordinators(config_entry).items()
+    }
+
+
 async def async_get_config_entry_diagnostics(
     hass: HomeAssistant, config_entry: ConfigEntry
 ) -> Mapping[str, Any]:
-    """Return diagnostics for a config entry."""
-    coordinator = hass.data[DOMAIN][config_entry.entry_id]
+    """Return diagnostics for a config entry.
 
+    An entry can own several channels since #827, so `channels` is the
+    authoritative part for a recorder: one block per channel, in channel order.
+
+    The per channel keys are also kept at the top level, describing the first
+    channel. That is not tidy, and it is deliberate: every existing support
+    thread, every consumer and a good deal of this repo's own test suite reads
+    `result["capabilities"]` and friends, and a debug dump is the wrong place to
+    trade somebody's muscle memory for elegance. For a single camera, which is
+    most installs, the two are the same thing.
+    """
+    coordinators = [
+        c for _channel, c in sorted(entry_coordinators(config_entry).items())
+    ]
+    if not coordinators:
+        # Asked for an entry that failed to set up. Say so rather than raising,
+        # because this is the dump somebody attaches to explain exactly that.
+        return {
+            "entry": _entry_block(config_entry),
+            "channels": [],
+            "ivs": {},
+            "note": "this entry has no channels set up, so there is nothing to "
+            "report about the device",
+            "active_issues": _active_issues(hass),
+        }
+
+    def channel_block(coordinator):
+        return {
+            "channel": coordinator.get_channel(),
+            "streams": _streams_block(coordinator, encode),
+            "coordinator": _coordinator_block(coordinator),
+            "device": _device_block(coordinator, config_entry),
+            "capabilities": _capabilities_block(coordinator),
+            "client": _client_block(coordinator, config_entry),
+            "events": _events_block(coordinator),
+            "ivs": _ivs_channel_block(coordinator),
+        }
+
+    first = coordinators[0]
+    # One whole-table read for the host, shared by every channel's block.
+    encode = await _async_encode_table(first)
     return {
         "entry": _entry_block(config_entry),
-        "coordinator": _coordinator_block(coordinator),
-        "device": _device_block(coordinator, config_entry),
-        "capabilities": _capabilities_block(coordinator),
-        "client": _client_block(coordinator, config_entry),
-        "events": _events_block(coordinator),
-        "host": _host_block(hass, coordinator, config_entry),
+        "channel_count": len(coordinators),
+        "channels": [channel_block(c) for c in coordinators],
+        # The first channel, repeated. See the docstring.
+        "coordinator": _coordinator_block(first),
+        "device": _device_block(first, config_entry),
+        "capabilities": _capabilities_block(first),
+        "client": _client_block(first, config_entry),
+        "events": _events_block(first),
+        "streams": _streams_block(first, encode),
+        "ivs": _ivs_block(config_entry),
+        # Host wide, so it is reported once however many channels there are.
+        "host": _host_block(hass, first, config_entry),
         "active_issues": _active_issues(hass),
     }
 

@@ -1,0 +1,320 @@
+# Filter-loading tracker for the Lennox furnace's constant-airflow (ECM) blower.
+# The blower holds its target CFM by spinning faster as static pressure rises, so
+# RPM per CFM at a fixed airflow climbs as the filter loads up. Samples are only
+# taken during fan-only circulation (thermostat "Idle Fan", ~720-760 CFM) once
+# airflow has been steady for 3 minutes; the ratio differs by a few percent between
+# low and high airflow, so mixing bands would mask real loading. Low-stage cooling
+# and dehumidification runs also land in this CFM band but are excluded: a wet
+# coil adds restriction that would read as a dirty filter.
+#
+# Baseline: relearned after input_datetime.ac_filter_change is set to a new date.
+# It waits 3 days so the median holds only new-filter samples, then tracks the
+# lowest median seen (a filter only gets dirtier). Alert at +15% over baseline.
+#
+# sensor.thermostat_filter_reminder is the thermostat's own filter reminder (percent of
+# its run-time interval remaining, exposed by the lennoxs30 fork). It is read-only:
+# HA can't reset it, so prompts remind you to reset it at the thermostat. Its
+# expiry opens the same maintenance item as the RPM alert, and a reset at the
+# thermostat (percent jumps up) triggers the "did you change the filter?" prompt.
+
+homeassistant:
+  customize:
+    # integration/utility_meter inherit no unit from the unitless 0/1 source
+    sensor.hvac_blower_hours:
+      unit_of_measurement: h
+    sensor.hvac_blower_hours_on_filter:
+      unit_of_measurement: h
+
+template:
+  - trigger:
+      - trigger: state
+        entity_id: sensor.furnace_blower_rpm
+    condition:
+      - condition: template
+        value_template: >-
+          {{ states('sensor.furnace_blower_cfm') | int(0) >= 700
+             and states('sensor.furnace_blower_cfm') | int(0) <= 950
+             and states('sensor.furnace_blower_rpm') | int(0) >= 300
+             and now() - states.sensor.furnace_blower_cfm.last_changed > timedelta(minutes=3)
+             and is_state('sensor.thermostat_state', 'Idle Fan')
+             and is_state('sensor.furnace_dehumidification_relay', 'Open') }}
+    sensor:
+      - name: HVAC Blower RPM per CFM
+        unique_id: hvac_blower_rpm_per_cfm
+        icon: mdi:fan
+        state_class: measurement
+        state: >-
+          {{ (states('sensor.furnace_blower_rpm') | float / states('sensor.furnace_blower_cfm') | float) | round(3) }}
+        attributes:
+          cfm: "{{ states('sensor.furnace_blower_cfm') | int }}"
+          rpm: "{{ states('sensor.furnace_blower_rpm') | int }}"
+
+  # 1 while the blower is turning (cooling, heating or circulate), for runtime counting
+  - sensor:
+      - name: HVAC Blower Running
+        unique_id: hvac_blower_running
+        icon: mdi:fan
+        state: "{{ 1 if states('sensor.furnace_blower_rpm') | float(0) > 100 else 0 }}"
+        availability: "{{ has_value('sensor.furnace_blower_rpm') }}"
+
+sensor:
+  # Lifetime blower hours (Riemann sum of the 0/1 running sensor)
+  - platform: integration
+    name: HVAC Blower Hours
+    unique_id: hvac_blower_hours
+    source: sensor.hvac_blower_running
+    method: left
+    unit_time: h
+    round: 2
+    max_sub_interval:
+      minutes: 5
+
+  - platform: statistics
+    name: HVAC Blower RPM per CFM Median
+    unique_id: hvac_blower_rpm_per_cfm_median
+    entity_id: sensor.hvac_blower_rpm_per_cfm
+    state_characteristic: median
+    max_age:
+      days: 3
+    sampling_size: 2000
+    precision: 3
+
+# Blower hours on the current filter. Zeroed (utility_meter.calibrate) by the
+# tracker when input_datetime.ac_filter_change changes. Seeded 2026-10-24 with
+# 1,021 h since the 2026-08-01 change, from sensor.thermostat_state history
+# (Cooling/Heating/Idle Fan time).
+utility_meter:
+  hvac_blower_hours_on_filter:
+    name: HVAC Blower Hours on Filter
+    unique_id: hvac_blower_hours_on_filter
+    source: sensor.hvac_blower_hours
+
+input_datetime:
+  # Set to the date the filter was replaced
+  ac_filter_change:
+    name: Last AC Filter Change Date
+    has_date: true
+    has_time: false
+
+input_number:
+  hvac_filter_clean_rpm_per_cfm:
+    name: HVAC Filter Clean RPM per CFM
+    icon: mdi:air-filter
+    min: 0
+    max: 2
+    step: 0.001
+    mode: box
+
+automation:
+  - alias: "HVAC: filter loading tracker"
+    id: hvac_filter_loading_tracker
+    description: >-
+      Learns the clean-filter blower RPM/CFM baseline and opens a Home Maintenance
+      item when the 3-day median is 15% above it, or when the thermostat's filter
+      reminder expires, whichever comes first. The item auto-resolves when
+      input_datetime.ac_filter_change is set to a new date.
+    mode: queued
+    max: 5
+    variables:
+      median: "{{ states('sensor.hvac_blower_rpm_per_cfm_median') | float(0) }}"
+      baseline: "{{ states('input_number.hvac_filter_clean_rpm_per_cfm') | float(0) }}"
+      filter_age_days: >-
+        {{ ((now().timestamp() - state_attr('input_datetime.ac_filter_change', 'timestamp') | float(0)) / 86400) | round(1) }}
+      reminder_pct: "{{ states('sensor.thermostat_filter_reminder') }}"
+    triggers:
+      - trigger: state
+        entity_id: input_datetime.ac_filter_change
+        id: changed
+      - trigger: state
+        entity_id: sensor.hvac_blower_rpm_per_cfm_median
+        id: median
+      - trigger: numeric_state
+        entity_id: sensor.hvac_blower_rpm_per_cfm_median
+        above: input_number.hvac_filter_clean_rpm_per_cfm
+        value_template: "{{ state.state | float(0) / 1.15 }}"
+        for:
+          hours: 12
+        id: loaded
+      - trigger: state
+        entity_id: sensor.thermostat_filter_reminder
+        attribute: expired
+        to: true
+        id: reminder
+    actions:
+      - choose:
+          - alias: Filter changed, relearn baseline
+            conditions:
+              - condition: trigger
+                id: changed
+              - "{{ trigger.from_state is not none and trigger.from_state.state not in ['unknown', 'unavailable'] }}"
+            sequence:
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.hvac_filter_clean_rpm_per_cfm
+                data:
+                  value: 0
+              - action: logbook.log
+                data:
+                  name: HVAC filter
+                  entity_id: input_number.hvac_filter_clean_rpm_per_cfm
+                  message: >-
+                    Filter changed after {{ states('sensor.hvac_blower_hours_on_filter') | float(0) | round }}
+                    blower hours (last RPM/CFM median {{ median }} vs baseline {{ baseline }});
+                    baseline will be relearned after 3 days
+              - action: utility_meter.calibrate
+                target:
+                  entity_id: sensor.hvac_blower_hours_on_filter
+                data:
+                  value: "0"
+
+          - alias: Learn baseline (lowest median since the filter change)
+            conditions:
+              - condition: trigger
+                id: median
+              - "{{ median > 0 and filter_age_days >= 3 and (baseline == 0 or median < baseline) }}"
+            sequence:
+              - action: input_number.set_value
+                target:
+                  entity_id: input_number.hvac_filter_clean_rpm_per_cfm
+                data:
+                  value: "{{ median }}"
+
+          - alias: Filter loaded or thermostat reminder expired
+            conditions:
+              - condition: trigger
+                id:
+                  - loaded
+                  - reminder
+              - "{{ trigger.id == 'reminder' or baseline > 0 }}"
+            sequence:
+              - action: script.maintenance_task
+                data:
+                  task: open
+                  key: hvac_filter:input_datetime.ac_filter_change
+                  summary: >-
+                    Replace the HVAC filter ({{ 'airflow restriction up' if trigger.id == 'loaded'
+                    else 'thermostat reminder expired' }}), reset the thermostat's filter reminder,
+                    then set "Last AC Filter Change Date" to today (or tap Yes when asked if you
+                    changed it)
+                  details: >-
+                    {% if baseline > 0 and median > 0 %}Blower RPM per CFM is {{ median }},
+                    {{ ((median / baseline - 1) * 100) | round }}% vs the clean-filter baseline of
+                    {{ baseline }} (alert at +15%).{% else %}No clean-filter baseline learned yet.{% endif %}
+                    Thermostat filter reminder: {{ reminder_pct }}% remaining.
+                    Filter has {{ states('sensor.hvac_blower_hours_on_filter') | float(0) | round }} blower
+                    hours over {{ filter_age_days | int }} days. Setting "Last AC Filter Change Date"
+                    closes this item and makes the tracker relearn the clean-filter baseline;
+                    without it the alert stays tied to the old filter.
+                  resolve_not: "{{ states('input_datetime.ac_filter_change') }}"
+
+  # A new filter lowers static pressure, so blower RPM per CFM drops right away.
+  # When samples stay 5% below the 3-day median for an hour (at least two
+  # circulate cycles), ask whether the filter was changed. Yes sets the date.
+  - alias: "HVAC: detect filter change"
+    id: hvac_detect_filter_change
+    description: >-
+      Asks via push whether the filter was changed when blower RPM per CFM drops 5%
+      below its 3-day median for an hour, or when the thermostat's filter reminder is
+      reset (its percent remaining jumps up). Yes sets input_datetime.ac_filter_change to
+      today (which relearns the baseline and closes any open filter item).
+    mode: queued
+    max: 5
+    triggers:
+      - trigger: template
+        value_template: >-
+          {% set sample = states('sensor.hvac_blower_rpm_per_cfm') | float(0) %}
+          {% set median = states('sensor.hvac_blower_rpm_per_cfm_median') | float(0) %}
+          {{ sample > 0 and median > 0 and sample < median * 0.95 }}
+        for:
+          hours: 1
+        id: drop
+      - trigger: state
+        entity_id: sensor.thermostat_filter_reminder
+        id: reset
+      - trigger: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: hvac_filter_changed_yes
+        id: "yes"
+      - trigger: event
+        event_type: mobile_app_notification_action
+        event_data:
+          action: hvac_filter_changed_no
+        id: "no"
+    actions:
+      - choose:
+          - alias: Ask
+            conditions:
+              - condition: trigger
+                id:
+                  - drop
+                  - reset
+              - alias: Reminder trigger only counts a reset (percent jumped up 5+ points)
+                condition: template
+                value_template: >-
+                  {{ trigger.id != 'reset'
+                     or (trigger.from_state is not none
+                         and is_number(trigger.from_state.state) and is_number(trigger.to_state.state)
+                         and trigger.to_state.state | float > trigger.from_state.state | float + 5) }}
+              - alias: Not already recorded in the last 14 days
+                condition: template
+                value_template: >-
+                  {{ now().timestamp() - state_attr('input_datetime.ac_filter_change', 'timestamp') | float(0) > 14 * 86400 }}
+            sequence:
+              - action: script.notify_wrapper
+                data:
+                  title: HVAC filter
+                  message: >-
+                    Did you change the HVAC filter?
+                    {% if trigger.id == 'reset' %}The thermostat's filter reminder was just reset
+                    ({{ trigger.from_state.state }}% → {{ trigger.to_state.state }}%).
+                    {% else %}Blower RPM per CFM dropped to {{ states('sensor.hvac_blower_rpm_per_cfm') }}
+                    from a 3-day median of {{ states('sensor.hvac_blower_rpm_per_cfm_median') }}.
+                    {% if states('sensor.thermostat_filter_reminder') | float(100) < 95 %}Also reset the
+                    filter reminder on the thermostat ({{ states('sensor.thermostat_filter_reminder') }}% left).
+                    {% endif %}{% endif %}Yes sets "Last AC Filter Change Date" to today.
+                  tag: hvac_filter_change_check
+                  actions:
+                    - action: hvac_filter_changed_yes
+                      title: "Yes, set today"
+                    - action: hvac_filter_changed_no
+                      title: "No"
+
+          - alias: "Yes: record the change"
+            conditions:
+              - condition: trigger
+                id: "yes"
+            sequence:
+              - action: input_datetime.set_datetime
+                target:
+                  entity_id: input_datetime.ac_filter_change
+                data:
+                  date: "{{ now().date() }}"
+              - action: notify.andrew
+                data:
+                  message: clear_notification
+                  data:
+                    tag: hvac_filter_change_check
+              - action: logbook.log
+                data:
+                  name: HVAC filter
+                  entity_id: input_datetime.ac_filter_change
+                  message: Filter change confirmed from notification
+
+          - alias: "No: dismiss"
+            conditions:
+              - condition: trigger
+                id: "no"
+            sequence:
+              - action: notify.andrew
+                data:
+                  message: clear_notification
+                  data:
+                    tag: hvac_filter_change_check
+              - action: logbook.log
+                data:
+                  name: HVAC filter
+                  entity_id: sensor.hvac_blower_rpm_per_cfm
+                  message: >-
+                    Filter change prompt answered No (sample {{ states('sensor.hvac_blower_rpm_per_cfm') }},
+                    median {{ states('sensor.hvac_blower_rpm_per_cfm_median') }})

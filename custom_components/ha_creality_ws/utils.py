@@ -15,21 +15,26 @@ __all__ = [
     "build_spool_key",
     "derive_print_state",
     "BUSY_PRINT_STATES",
+    "PRINT_STATES",
+    "MaterialValueError",
     "build_modify_material_payload",
     "normalize_material_color",
 ]
+
+
+# A number written the way the printer writes one: "31.030000", "0", "-2.5".
+# Not "007" or " 42": a leading zero or padding means an identifier that only
+# looks numeric, and int() would quietly strip it (R66).
+_NUMBER_RE = re.compile(r"-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?")
 
 
 def coerce_numbers(d: dict[str, Any]) -> dict[str, Any]:
     """Convert numeric strings in a dict to numbers where safe."""
     out: dict[str, Any] = {}
     for k, v in d.items():
-        if isinstance(v, str):
-            try:
-                out[k] = float(v) if "." in v else int(v)
-                continue
-            except Exception:
-                pass
+        if isinstance(v, str) and _NUMBER_RE.fullmatch(v):
+            out[k] = float(v) if "." in v else int(v)
+            continue
         out[k] = v
     return out
 
@@ -86,6 +91,41 @@ def safe_float(v: Any) -> float | None:
         return float(v)
     except (TypeError, ValueError):
         return None
+
+
+def numeric_state(v: Any) -> int | float | None:
+    """A telemetry value as a numeric sensor state, or None.
+
+    Home Assistant rejects a numeric sensor's state write outright when the
+    value is not a number, and the entity then keeps whatever state it had,
+    which after a power-on is "unavailable". Printers send blanks (`""`) for
+    some fields while booting (#121), and the client's cumulative state keeps
+    the blank until the key is sent again, so one blank frame used to strand
+    a sensor for minutes. NaN and infinities are refused for the same reason.
+
+    An int stays an int: a layer count that became `128.0` would change the
+    entity's state string.
+    """
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        return v if math.isfinite(v) else None
+    if isinstance(v, str):
+        text = v.strip()
+        if not text:
+            return None
+        try:
+            num = float(text)
+        except ValueError:
+            return None
+        if not math.isfinite(num):
+            return None
+        if num.is_integer() and not any(c in text for c in ".eE"):
+            return int(num)
+        return num
+    return None
 def _is_routable_v4(addr: Any) -> bool:
     """An IPv4 address that is not link-local (169.254.0.0/16)."""
     text = str(addr).strip()
@@ -168,25 +208,98 @@ def extract_info_from_zeroconf(info: Any) -> tuple[str | None, str | None]:
         elif getattr(info, "hostname", None):
             host = str(info.hostname).rstrip(".")
             
-        # Extract MAC from properties
+        # Extract MAC from properties. Home Assistant hands these over decoded
+        # (`decoded_properties`: str keys and values); looking them up by bytes
+        # keys, as this used to, never matched, so no MAC was ever stored.
+        # Bytes are still accepted for anything that passes raw TXT records.
         if hasattr(info, "properties") and info.properties:
-            # Check for MAC in properties
-            # Note: HA zeroconf properties are usually bytes, needing decode
             props = info.properties
-            for k in (b"mac", b"device_mac", b"serial"):
+            for k in ("mac", "device_mac", "serial"):
                 val = props.get(k)
-                if val:
+                if val is None:
+                    val = props.get(k.encode())
+                if isinstance(val, (bytes, bytearray)):
                     try:
-                        mac_str = val.decode("utf-8")
-                        mac = mac_str.upper()
-                        break
-                    except Exception:
-                        pass
+                        val = val.decode("utf-8")
+                    except UnicodeDecodeError:
+                        val = None
+                if val:
+                    mac = str(val).upper()
+                    break
         
     except Exception:
         pass
         
     return (host, mac)
+
+def detect_camera_type(data: Mapping[str, Any] | None, previous: str | None = None) -> str | None:
+    """The camera a printer serves: "webrtc", "mjpeg" or "mjpeg_optional".
+
+    Decided from evidence and never from the model alone. Firmware 1.3.5.22
+    moved the K1C and K1 Max from mjpg-streamer on :8080 to WebRTC on :8000 and
+    announces it with `webrtcSupport: 1`; nothing on :8080 answers any more, so
+    a K1C taken for MJPEG shows no video at all (#46). The K2 family is WebRTC
+    whatever it reports.
+
+    `previous` is the type already in use. A missing `webrtcSupport` key keeps
+    it: frames arrive piecemeal, and deciding on a frame that has the model but
+    not yet the flag would flip a working WebRTC camera back to MJPEG. Without
+    telemetry at all, nothing is known and `previous` is returned too.
+    """
+    d = data or {}
+    if not (d.get("model") or d.get("modelVersion")):
+        return previous
+    detected = ModelDetection(d)
+    if detected.is_k2_family or d.get("webrtcSupport") == 1:
+        # A printer go2rtc got no video from stays on direct WebRTC (#46).
+        return "webrtc_direct" if previous == "webrtc_direct" else "webrtc"
+    if "webrtcSupport" in d or previous is None:
+        return "mjpeg_optional" if (detected.is_k1_se or detected.is_ender_v3_family) else "mjpeg"
+    return previous
+
+
+# The first version whose Auto camera needs a lasting silence before it moves to
+# direct WebRTC (#134); a verdict cached by an older one is retried once.
+DIRECT_FALLBACK_RULE_VERSION = (0, 9, 10)
+
+
+def camera_type_to_keep(previous: str | None, cached_version: Any) -> str | None:
+    """The cached camera type to carry into re-detection after an upgrade.
+
+    A `webrtc_direct` verdict reached before 0.9.10 took two silent go2rtc
+    snapshots 20 s apart, which a booting printer also produces, and it is
+    cached for good: a K1 Max go2rtc streams fine sat on direct WebRTC, blank
+    outside the LAN (#134). Such a verdict is dropped once, so go2rtc is tried
+    again under the rule that needs ten minutes of silence. Anything else, or a
+    version that cannot be read as older, is kept.
+    """
+    if previous != "webrtc_direct":
+        return previous
+    try:
+        parts = tuple(int(part) for part in str(cached_version).split(".")[:3])
+    except ValueError:
+        return previous
+    return None if parts < DIRECT_FALLBACK_RULE_VERSION else previous
+
+
+def normalize_printer_hostname(value: Any) -> str | None:
+    """A printer hostname comparable between mDNS and telemetry, or None.
+
+    mDNS announces `K1C-C627.local.`; the printer's own telemetry says
+    `K1C-C627`. Both reduce to `k1c-c627`.
+    """
+    if not isinstance(value, str):
+        return None
+    name = value.strip().rstrip(".").lower()
+    if name.endswith(".local"):
+        name = name[: -len(".local")]
+    return name or None
+
+
+# What setup caches as the model when the printer has not said (off at first
+# setup, or `model` late). Not a model: never let it decide one.
+PLACEHOLDER_MODEL = "K by Creality"
+
 
 class ModelDetection:
     """Detect printer model and capabilities from telemetry data.
@@ -198,8 +311,9 @@ class ModelDetection:
     # Klipper output_pin name per model for LED brightness (SET_PIN dimming).
     # Keys are ModelDetection boolean-attribute names (evaluated in order); the
     # value is the Klipper output_pin name. Extend this to enable dimming for
-    # more models, e.g. add "is_k2_base": "LED" once its PWM support is confirmed.
+    # more models.
     LED_PIN_BY_MODEL: ClassVar[dict[str, str]] = {
+        "is_k2_base": "LED",
         "is_k2_pro": "LED",
         "is_k2_plus": "LED",
     }
@@ -264,9 +378,11 @@ class ModelDetection:
         )
         
         # Creality Hi - "F018"
+        # "hi" as a word: as a substring it matched any model name that
+        # happened to contain those two letters (R66).
         self.is_creality_hi = (
             ("F018" in self.model) or ("F018" in self.model_ver_u) or
-            ("hi" in self.model_l)
+            bool(re.search(r"\bhi\b", self.model_l))
         )
         
         # Family groupings
@@ -354,7 +470,33 @@ class ModelDetection:
         can = self.canonical_model()
         if can:
             return can
-        return "K by Creality"
+        return PLACEHOLDER_MODEL
+
+    @classmethod
+    def from_cache(cls, entry_data: Mapping[str, Any], live: Mapping[str, Any] | None = None) -> "ModelDetection":
+        """Detection from the model cached in an entry, or live telemetry when
+        nothing is cached yet."""
+        live = live or {}
+        cached = entry_data.get("_cached_model")
+        if cached == PLACEHOLDER_MODEL:
+            cached = None  # the printer had not said; the live model decides
+        return cls({
+            "model": cached or live.get("model"),
+            "modelVersion": entry_data.get("_cached_model_version") or live.get("modelVersion"),
+        })
+
+    def display_model(self) -> tuple[str, str | None]:
+        """The model name and model id for the device page (R80).
+
+        The K2s and the Ender 3 V3 KE report a board code as `model` ("F012"),
+        which the device page showed as the model. The name now comes from the
+        code, and the code is the model id. `resolved_model` stays as it is: the
+        model sensor shows it, and automations may compare against it.
+        """
+        name = self.canonical_model()
+        if name and self.model and self.model != name:
+            return name, str(self.model)
+        return self.resolved_model(), None
 
 
 # ---------- CFS filament helpers ----------
@@ -405,7 +547,7 @@ def normalize_color_hex(value: Any) -> Any:
     return _normalize_color_token(value)
 
 
-def format_filament_label(vendor: Any, name: Any, material_type: Any = None) -> str:
+def format_filament_label(vendor: Any, name: Any, material_type: Any = None) -> str | None:
     """Build the human-readable filament label for a CFS slot.
 
     The printer often repeats the vendor inside the material name (vendor
@@ -418,7 +560,9 @@ def format_filament_label(vendor: Any, name: Any, material_type: Any = None) -> 
     if not name_txt:
         name_txt = str(material_type).strip() if material_type not in (None, "") else ""
     if not name_txt:
-        name_txt = "Unknown"
+        # The vendor alone, or None, which reads as Home Assistant's own,
+        # translated "Unknown"; this used to append the English word (R33).
+        return vendor_txt or None
     if not vendor_txt:
         return name_txt
     if name_txt.casefold().startswith(vendor_txt.casefold()):
@@ -483,12 +627,58 @@ def build_spool_key(
 # States in which the printer is doing something that must not be interrupted.
 # The CFS card mirrors this set, and a test cross-checks the two so they cannot
 # drift apart.
+# Every state derive_print_state can return; test_printer_card_layout.py reads
+# its returns and holds this, and the card's copy, to them. The print status
+# sensor offers these as its options (R36).
+PRINT_STATES = (
+    "off",
+    "unknown",
+    "error",
+    "self-testing",
+    "completed",
+    "paused",
+    "stopped",
+    "printing",
+    "processing",
+    "idle",
+)
 BUSY_PRINT_STATES = frozenset({"printing", "paused", "processing", "self-testing"})
 
 
 # States in which a print exists and therefore has a G-code preview worth
 # showing: everything busy, plus a finished job whose model is still on the bed.
 PREVIEW_PRINT_STATES = frozenset(BUSY_PRINT_STATES | {"completed"})
+
+
+def print_seconds_left(data: Mapping[str, Any]) -> float | None:
+    """Seconds remaining in the current print, or None.
+
+    The printer streams this as `printLeftTime`; `printTimeLeft` is only kept
+    as a fallback because the notification code used to look for that name
+    exclusively, which meant the minutes-to-end notification never fired.
+    """
+    for key in ("printLeftTime", "printTimeLeft"):
+        value = safe_float(data.get(key))
+        if value is not None:
+            return value
+    return None
+
+
+def print_finishing(data: Mapping[str, Any]) -> bool:
+    """A job the printer has rounded up to 100% but is still running.
+
+    A K1C reports 100 with time still on the clock (86 s in the 2026-10-25
+    capture), drops back to 99, and only then ends the job, with state 2 and no
+    time left. Reading 100% as the end announced the completion early and
+    flapped the status back to printing for the 99 (R81). Only an explicit
+    "printing or paused, with time left" holds the end back: a printer that
+    reports no estimate, or one that leaves state 1 at the end, still finishes
+    on its 100.
+    """
+    if data.get("state") not in (1, 5):
+        return False
+    left = print_seconds_left(data)
+    return left is not None and math.isfinite(left) and left > 0
 
 
 def derive_print_state(
@@ -538,7 +728,7 @@ def derive_print_state(
         progress = int(progress)
 
     if filename:
-        if progress >= 100:
+        if progress >= 100 and not print_finishing(data):
             return "completed"
         if state == 5 or paused_flag:
             return "paused"
@@ -546,7 +736,15 @@ def derive_print_state(
             return "stopped"
         if state == 1:
             return "printing"
-        if state == 0:
+        # 7 while a cancel finishes the move under way: the K1C kept probing for
+        # 30 s, raised Z, then reported 4, and read "idle" meanwhile (R29).
+        # Busy, not an end: from one capture 7 cannot be ruled out elsewhere in
+        # a print, and calling it "stopped" would announce a stop that did not
+        # happen. 9 is the K1C starting a job, for under a second before 1;
+        # read as "idle" it made every start stopped -> idle -> printing, which
+        # fires automations waiting for idle (R89). The live card does not
+        # start on "processing", so it costs no extra push.
+        if state in (0, 7, 9):
             return "processing"
 
     return "idle"
@@ -591,6 +789,20 @@ def derive_activity_state(
 _MATERIAL_COLOR_RE = re.compile(r"^#?[0-9a-fA-F]{6}$")
 
 
+class MaterialValueError(ValueError):
+    """A material field that cannot be written, named by its translation key.
+
+    The service turns it into a translated ServiceValidationError (R33); the
+    English text is only for logs and tests.
+    """
+
+    def __init__(self, key: str, **placeholders: Any) -> None:
+        self.key = key
+        self.placeholders = {name: str(value) for name, value in placeholders.items()}
+        detail = ", ".join(f"{name}={value}" for name, value in self.placeholders.items())
+        super().__init__(f"{key}: {detail}" if detail else key)
+
+
 def build_modify_material_payload(
     *,
     box_id: int,
@@ -621,7 +833,7 @@ def build_modify_material_payload(
         "type": str(material_type).strip(),
     }
     if not payload["type"]:
-        raise ValueError("material type must not be empty")
+        raise MaterialValueError("material_type_empty")
 
     for key, value in (("name", name), ("vendor", vendor)):
         if value is not None and str(value).strip():
@@ -642,20 +854,18 @@ def build_modify_material_payload(
             return None
         parsed = safe_float(value)
         if parsed is None:
-            raise ValueError(f"{name} must be a number, got {value!r}")
+            raise MaterialValueError("material_not_a_number", field=name, value=value)
         # nan compares False against everything, so the min/max ordering check
         # below cannot reject it, and json.dumps emits bare NaN/Infinity -- which
         # is not valid JSON and would reach the printer as a malformed payload.
         if not math.isfinite(parsed):
-            raise ValueError(f"{name} must be a finite number, got {value!r}")
+            raise MaterialValueError("material_not_a_number", field=name, value=value)
         return parsed
 
     low = _number("min_temp", min_temp)
     high = _number("max_temp", max_temp)
     if low is not None and high is not None and high < low:
-        raise ValueError(
-            f"max_temp ({high}) must not be below min_temp ({low})"
-        )
+        raise MaterialValueError("material_temp_order", high=f"{high:g}", low=f"{low:g}")
     if low is not None:
         payload["minTemp"] = low
     if high is not None:
@@ -664,7 +874,7 @@ def build_modify_material_payload(
     advance = _number("pressure", pressure)
     if advance is not None:
         if not 0.0 <= advance <= 1.0:
-            raise ValueError(f"pressure must be between 0 and 1, got {advance}")
+            raise MaterialValueError("material_pressure_range", value=f"{advance:g}")
         payload["pressure"] = advance
 
     # Pass an existing tag id straight through; never substitute a placeholder.
@@ -684,17 +894,13 @@ def normalize_material_color(value: Any) -> str:
     would otherwise be silently flattened.
     """
     if isinstance(value, (list, tuple)):
-        raise ValueError(
-            "colour must be a '#rrggbb' string, not an RGB list; "
-            "the color_rgb selector is not used for this field"
-        )
+        # Not the color_rgb selector's list: this field takes one hex string.
+        raise MaterialValueError("material_colour_list")
     text = str(value).strip()
     if re.search(r"[,;]", text):
-        raise ValueError(
-            f"cannot write a multi-colour value ({text!r}) as a single colour"
-        )
+        raise MaterialValueError("material_colour_multi", value=text)
     if not _MATERIAL_COLOR_RE.match(text):
-        raise ValueError(f"colour must be six hex digits, got {text!r}")
+        raise MaterialValueError("material_colour_invalid", value=text)
     return f"#{text.lstrip('#').lower()}"
 
 

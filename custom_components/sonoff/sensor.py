@@ -466,6 +466,17 @@ class XButtonLocalKey(XButtonBase):
             XButtonBase.set_state(self, params["localKeyPass"])
 
 
+class XMiniR4Key(XEventSesor):
+    params = {"key"}
+    uid = "action"
+
+    def set_state(self, params: dict):
+        # Related https://github.com/AlexxIT/SonoffLAN/issues/1880
+        if len(params) == 1:
+            XButtonBase.set_state(self, params)
+            asyncio.create_task(self.clear_state())
+
+
 class XT5Action(XEventSesor):
     params = {"slide"}
     uid = "action"

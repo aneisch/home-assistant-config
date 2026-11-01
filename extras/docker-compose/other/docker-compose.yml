@@ -253,10 +253,13 @@ services:
         restart: 'no'
         environment:
             - WATCHTOWER_CLEANUP=true
-            - WATCHTOWER_NO_STARTUP_MESSAGE=false
+            - WATCHTOWER_NO_STARTUP_MESSAGE=true
             - WATCHTOWER_INCLUDE_STOPPED=true
-            - WATCHTOWER_NOTIFICATION_URL=generic://assist.domain.com/api/webhook/watchtower_notifications
-            - 'WATCHTOWER_NOTIFICATION_TEMPLATE={"message":"NUC {{range .}}{{.Message}}\n{{end}}"}'
+            # template=json makes shoutrrr build/escape the JSON body ({"title":..,"message":..})
+            - WATCHTOWER_NOTIFICATION_URL=generic://assist.domain.com/api/webhook/watchtower_notifications?template=json
+            - WATCHTOWER_NOTIFICATION_REPORT=true
+            # Empty output (nothing updated/failed) = no notification sent
+            - 'WATCHTOWER_NOTIFICATION_TEMPLATE={{- with .Report -}}{{- if or .Updated .Failed -}}NUC: {{len .Updated}} updated{{if .Failed}}, {{len .Failed}} failed{{end}}{{range .Updated}}{{println}}• {{.Name}} ({{.ImageName}}){{end}}{{range .Failed}}{{println}}✗ {{.Name}}: {{.Error}}{{end}}{{- end -}}{{- end -}}'
             # - WATCHTOWER_NOTIFICATIONS=email
             # - WATCHTOWER_NOTIFICATION_EMAIL_FROM=REDACT
             # - WATCHTOWER_NOTIFICATION_EMAIL_TO=REDACT
@@ -355,6 +358,10 @@ services:
             - 443:443/tcp
         extra_hosts:
             - "host.docker.internal:host-gateway"
+        networks:
+            - default
+            # One entry per horizon
+            - horizon_secret
         labels:
             # HTTPS for CF
             - traefik.enable=true
@@ -381,7 +388,8 @@ services:
             - TZ=America/Chicago
         volumes:
             - /opt/cloudflared/:/home/nonroot/.cloudflared/
-        command: tunnel run nuc
+        # run by UUID + credentials file so cert.pem is not needed
+        command: tunnel --cred-file /home/nonroot/.cloudflared/73be2615-e5ff-4105-a4f9-d4f0d01fc3af.json run 73be2615-e5ff-4105-a4f9-d4f0d01fc3af
 
     signal-rest-api:
         container_name: signal-rest-api
@@ -450,7 +458,7 @@ services:
             - /opt/secret/secret.log:/var/log/secret.log
             # Place credential for Google Sheet API
             - /opt/secret/secret-container-update-sheet-38d0e5112f58.json:/home/secret/.config/gspread/service_account.json
-        restart: always
+        restart: unless-stopped
 
     sqliteweb:
         container_name: sqliteweb

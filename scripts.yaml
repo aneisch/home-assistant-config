@@ -1,501 +1,509 @@
-############
-# Presence #
-############
-
-# Turn off master and common room things, arm security
 home_empty:
   sequence:
-    - action: homeassistant.turn_on
-      data:
-        entity_id: input_boolean.security_status
-    - action: homeassistant.turn_off
-      continue_on_error: true
-      data:
-        entity_id:
-          - group.master_bedroom
-          - group.master_bathroom_lights
-          - group.common_areas # FYI Includes group.christmas
-          # Start Christmas
-          # - switch.master_bedroom_christmas_tree
-          # - switch.kitchen_christmas_tree
-          # - switch.living_room_christmas_tree
-          # End Christmas
-          - media_player.kitchen_photo_frame
-          - media_player.office_photo_frame
-          - media_player.misc_photo_frame
-          - light.pumpkin_patch_pumpkin_patch
-          #- switch.refrigerator_dispenser
-    # Start Christmas
-    # If before dark, turn off christmas trees in front 
-    # - if: "{{ now().hour < 16 }}"
-    #   then:
-    #     - action: switch.turn_off
-    #       entity_id:
-    #         - switch.office_christmas_tree
-    #         - switch.dining_room_christmas_tree
-    # End Christmas
-
-
-# Turn on lights and disarm security
+  - action: homeassistant.turn_on
+    data:
+      entity_id: input_boolean.security_status
+  - action: homeassistant.turn_off
+    continue_on_error: true
+    data:
+      entity_id:
+      - group.master_bedroom
+      - group.master_bathroom_lights
+      - group.common_areas
+      - media_player.kitchen_photo_frame
+      - media_player.office_photo_frame
+      - media_player.misc_photo_frame
+      - light.pumpkin_patch_pumpkin_patch
 home_occupied:
   sequence:
-    - action: homeassistant.turn_off
+  - action: homeassistant.turn_off
+    data:
+      entity_id: input_boolean.security_status
+  - if: '{{ now().hour <= 7 or now().hour >= 18}}'
+    then:
+    - action: light.turn_on
       data:
-        entity_id: input_boolean.security_status
-    - if: "{{ now().hour <= 7 or now().hour >= 18}}"
-      then:
-        - action: light.turn_on
-          data:
-            entity_id:
-              - light.master_bedroom_lamps
-              #- light.living_room_sconces
-            # Not so bright if it's late..
-            brightness: >
-              {% if now().hour <= 7 or now().hour >= 22 %}
-              128
-              {% else %}
-              254
-              {% endif %}
-        - action: homeassistant.turn_on
-          data:
-            entity_id:
-              - group.under_cabinet_lights
-              # Start Christmas
-              #- group.christmas # Christmas misc stuff
-              #- switch.living_room_christmas_tree # Others follow
-              # End Christmas
+        entity_id:
+        - light.master_bedroom_lamps
+        brightness: '{% if now().hour <= 7 or now().hour >= 22 %} 128 {% else %} 254
+          {% endif %}
+
+          '
     - action: homeassistant.turn_on
-      continue_on_error: true
-      entity_id: 
-        - media_player.kitchen_photo_frame
-        - media_player.office_photo_frame
-        - switch.refrigerator_dispenser
-        - light.pumpkin_patch_pumpkin_patch
-    # Only turn on guest bathroom frame if guest mode
-    - if: "{{ is_state('input_boolean.guest_mode', 'on') }}"
+      data:
+        entity_id:
+        - group.under_cabinet_lights
+  - action: homeassistant.turn_on
+    continue_on_error: true
+    entity_id:
+    - media_player.kitchen_photo_frame
+    - media_player.office_photo_frame
+    - switch.refrigerator_dispenser
+    - light.pumpkin_patch_pumpkin_patch
+  - if: '{{ is_state(''input_boolean.guest_mode'', ''on'') }}'
+    then:
+    - action: media_player.turn_on
+      entity_id:
+      - media_player.misc_photo_frame
+    - if: '{{ now().hour <= 7 or now().hour >= 18}}'
       then:
-        - action: media_player.turn_on
-          entity_id: 
-            - media_player.misc_photo_frame
-        - if: "{{ now().hour <= 7 or now().hour >= 18}}"
-          then:
-            - action: light.turn_on
-              data:
-                entity_id:
-                  - light.guest_bedroom_nightstand_lamp
-                  - light.back_bedroom_dresser_lamp
-                  - light.back_bedroom_nightstand_lamp
-                  #- light.living_room_sconces
-                # Not so bright if it's late..
-                brightness: >
-                  {% if now().hour <= 7 or now().hour >= 22 %}
-                  128
-                  {% else %}
-                  254
-                  {% endif %}
-        
+      - action: light.turn_on
+        data:
+          entity_id:
+          - light.guest_bedroom_nightstand_lamp
+          - light.back_bedroom_dresser_lamp
+          - light.back_bedroom_nightstand_lamp
+          brightness: '{% if now().hour <= 7 or now().hour >= 22 %} 128 {% else %}
+            254 {% endif %}
 
-############
-# SECURITY #
-############
-
+            '
 security_disarm:
   sequence:
-    - action: script.noop
-    # - action: alarm_control_panel.alarm_disarm
-    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
-    # - action: script.notify_wrapper
-    #   data:
-    #     message: Disarmed!
-
+  - action: script.noop
 security_arm:
   sequence:
-    # - action: alarm_control_panel.alarm_arm_away
-    #   entity_id: alarm_control_panel.alexa_guard_7f9e9
-    - action: homeassistant.turn_on
-      entity_id: automation.frigate_notification_person
-    - action: timer.cancel
-      entity_id: timer.frigate_notification_snooze
-    # - action: script.notify_wrapper
-    #   data:
-    #     message: Armed!
-
-##########
-# SCENES #
-##########
-
+  - action: homeassistant.turn_on
+    entity_id: automation.frigate_notification_person
+  - action: timer.cancel
+    entity_id: timer.frigate_notification_snooze
 master_bedroom_wakeup:
   sequence:
-    # Start Christmas
-    # - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
-    #   then:
-    #     - if: "{{ now().hour < 11 }}"
-    #       then:
-    #         - action: script.turn_on
-    #           entity_id:
-    #             - script.christmas_wakeup
-    # - action: homeassistant.turn_on
-    #   entity_id: 
-    #     - switch.living_room_christmas_tree
-    # End Christmas
-    # - action: cover.open_cover
-    #   entity_id: cover.master_bedroom_blinds
-    - action: switch.turn_off
-      data:
-        entity_id: switch.master_bedroom_ceiling_fan
-    - delay: "00:00:02"
-    - action: script.appdaemon_ac_morning
-    - action: light.turn_on
-      target:
-        entity_id: light.master_bedroom_lamps
-      data:
-        # "Under no circumstance should these lights just flick on"
-        transition: 60
-        #transition: "{% if 30 > (as_timestamp(now()) - as_timestamp(states.switch.master_bedroom_ceiling_fan.last_changed) | round(0)) %}45{% else %}2{% endif %}"
-        brightness: 255
-    - action: homeassistant.turn_off
-      entity_id: input_boolean.goodnight
-    - action: homeassistant.turn_on
-      continue_on_error: true
-      entity_id: 
-        - media_player.kitchen_photo_frame
-        - media_player.office_photo_frame
-        - light.pumpkin_patch_pumpkin_patch
-
+  - action: switch.turn_off
+    data:
+      entity_id: switch.master_bedroom_ceiling_fan
+  - delay: 00:00:02
+  - action: script.appdaemon_ac_morning
+  - action: light.turn_on
+    target:
+      entity_id: light.master_bedroom_lamps
+    data:
+      transition: 60
+      brightness: 255
+  - action: homeassistant.turn_off
+    entity_id: input_boolean.goodnight
+  - action: homeassistant.turn_on
+    continue_on_error: true
+    entity_id:
+    - media_player.kitchen_photo_frame
+    - media_player.office_photo_frame
+    - light.pumpkin_patch_pumpkin_patch
 master_bedroom_bedtime:
   sequence:
-    - action: cover.close_cover
-      entity_id: cover.master_bedroom_blinds
-    # Start Christmas
-    # - action: homeassistant.turn_off
-    #   data:
-    #     entity_id:
-    #       # All but master bedroom tree
-    #       - switch.dining_room_christmas_tree 
-    #       - switch.office_christmas_tree
-    #       - switch.kitchen_christmas_tree
-    #       - switch.living_room_christmas_tree
-    # - if: "{{ is_state('input_boolean.christmas_jingle', 'on') }}"
-    #   then:
-    #     - action: script.turn_on # Calling this way allows the sequence to continue without blocking
-    #       entity_id: script.christmas_goodnight
-    #   else:
-    #     - action: switch.turn_off
-    #       entity_id: switch.master_bedroom_christmas_tree
-    # End Christmas
-    - action: script.appdaemon_ac_night
-    - action: switch.turn_on
-      data:
-        entity_id: switch.master_bedroom_ceiling_fan
-    #- action: switch.turn_on
-    #  data:
-    #    entity_id: switch.master_bedroom_sound_machine
+  - action: cover.close_cover
+    entity_id: cover.master_bedroom_blinds
+  - action: script.appdaemon_ac_night
+  - action: switch.turn_on
+    data:
+      entity_id: switch.master_bedroom_ceiling_fan
+  - action: light.turn_off
+    data:
+      entity_id: light.master_bedroom_ceiling_fan
+      transition: 5
+  - action: light.turn_off
+    data:
+      entity_id: light.master_bedroom_lamps
+      transition: 5
+  - action: homeassistant.turn_off
+    data:
+      entity_id: group.off_at_bedtime
+  - if: '{{ states(''input_boolean.guest_mode'') == ''off'' }}'
+    then:
     - action: light.turn_off
-      data:
-        entity_id: light.master_bedroom_ceiling_fan
-        transition: 5
-    - action: light.turn_off
-      data:
-        entity_id: light.master_bedroom_lamps
-        transition: 5
-    - action: homeassistant.turn_off
-      data:
-        entity_id: group.off_at_bedtime
-    # - action: lock.lock
-    #   target:
-    #     entity_id:
-    #       - lock.front_door
-    #       - lock.garage_exterior_door
-    #       - lock.back_door
-    - if: "{{ states('input_boolean.guest_mode') == 'off' }}"
-      then:
-        - action: light.turn_off
-          entity_id:
-            - light.guest_bedroom_nightstand_lamp
-            - light.back_bedroom_nightstand_lamp
-    - action: homeassistant.turn_on
-      entity_id: input_boolean.goodnight
-    # Lower laptop volume
-    - action: shell_command.weasel_shortcut
-      continue_on_error: true
-      data:
-        shortcut: set-volume-15
-
+      entity_id:
+      - light.guest_bedroom_nightstand_lamp
+      - light.back_bedroom_nightstand_lamp
+  - action: homeassistant.turn_on
+    entity_id: input_boolean.goodnight
+  - action: shell_command.weasel_shortcut
+    continue_on_error: true
+    data:
+      shortcut: set-volume-15
 movie_mode:
   sequence:
-    # - action: cover.close_cover
-    #   entity_id: cover.dining_room_blinds
-
-    - action: light.turn_off
-      data:
-        entity_id: light.living_room_lamps
-        transition: 10
-
-    - action: light.turn_on
-      data:
-        entity_id: light.living_room_sconces
-        brightness: 63 # out of 255
-        transition: 5
-
-    - action: light.turn_on
-      continue_on_error: true
-      entity_id: light.pumpkin_patch_pumpkin_patch
-
-    - action: homeassistant.turn_off
-      entity_id: 
-        - group.kitchen
-
-    - action: homeassistant.turn_on
-      entity_id:
-        - switch.living_room_speakers
-
-#########
-# OTHER #
-#########
-
-# Change notification platform if internet offline,
+  - action: light.turn_off
+    data:
+      entity_id: light.living_room_lamps
+      transition: 10
+  - action: light.turn_on
+    data:
+      entity_id: light.living_room_sconces
+      brightness: 63
+      transition: 5
+  - action: light.turn_on
+    continue_on_error: true
+    entity_id: light.pumpkin_patch_pumpkin_patch
+  - action: homeassistant.turn_off
+    entity_id:
+    - group.kitchen
+  - action: homeassistant.turn_on
+    entity_id:
+    - switch.living_room_speakers
 notify_wrapper:
   mode: parallel
+  fields:
+    message:
+      required: true
+      selector:
+        text:
+    to:
+      description: Notify groups to push to (default andrew)
+      example: '[andrew, bethany]'
+      selector:
+        select:
+          multiple: true
+          options:
+          - andrew
+          - bethany
+    title:
+      selector:
+        text:
+    level:
+      selector:
+        select:
+          options:
+          - info
+          - alert
+          - critical
+    image:
+      description: Image URL or /media/local/... path for the companion app
+      selector:
+        text:
+    actions:
+      description: Info/alert only. Companion app buttons, list of {action, title}
+      selector:
+        object:
+    tag:
+      description: Info/alert only. Makes the notification persistent; reuse it with
+        clear_notification. Without it each push gets a unique tag so a dismissal
+        on one device clears the rest.
+      selector:
+        text:
+    signal:
+      description: Also post to signal_homeassistant (default true)
+      selector:
+        boolean:
+    max_repeats:
+      description: Critical only, 1 minute per repeat (default 5)
+      selector:
+        number:
+          min: 1
+          max: 240
   sequence:
-    - if: '{{ states("binary_sensor.internet_reachability") == "on" }}'
-      then:
-        # If internet on and priority set: send via pushover
-        - if: '{{ "priority" in data }}'
-          then:
-            - action: notify.pushover
-              continue_on_error: true
-              data:
-                message: "{{ message }}"
-                data:
-                  priority: "{{ data.priority }}"
-                  expire: 600
-                  retry: 30
-            - action: notify.signal_homeassistant
-              data:
-                message: "{{ message }}"
-          # If internet on and no priority set: send via signal
-          else:
-            - action: notify.signal_homeassistant
-              continue_on_error: true
-              data:
-                message: "{{ message }}"
-
-        # Mirror to WearOS
-        - action: notify.mobile_app_galaxy_watch6_kqbw
+  - variables:
+      lvl: "{% if level is defined %}{{ level }} {% elif data is defined and 'priority'
+        in data %}\n  {{ {1: 'alert', 2: 'critical'}.get(data.priority | int(0), 'info')
+        }}\n{% else %}info{% endif %}"
+      recipients: '{% if to is not defined %}{{ [''andrew''] }} {% elif to is string
+        %}{{ [to] }} {% else %}{{ to }}{% endif %}'
+      push_tag: '{{ tag if tag is defined else ''ha_'' ~ context.id }}'
+  - if: '{{ states("binary_sensor.internet_reachability") != "on" }}'
+    then:
+    - action: persistent_notification.create
+      data:
+        title: '{{ title | default(''Notification'') }} (sent while offline, {{ lvl
+          }})'
+        message: '{{ now().strftime(''%-I:%M %p'') }}: {{ message }}'
+    - stop: Internet down, saved as persistent notification
+  - if: '{{ signal | default(true) }}'
+    then:
+    - action: notify.signal_homeassistant
+      continue_on_error: true
+      data:
+        message: '{{ message }}'
+  - if: '{{ lvl in [''info'', ''alert''] }}'
+    then:
+    - repeat:
+        for_each: '{{ recipients }}'
+        sequence:
+        - action: notify.{{ repeat.item }}
+          continue_on_error: true
           data:
-            message: "{{ message }}"
+            title: '{{ title | default('''') }}'
+            message: '{{ message }}'
+            data: "{% set d = {'channel': 'HA Alert' if lvl == 'alert' else 'HA Info',\n
+              \           'importance': 'high' if lvl == 'alert' else 'low',\n            'ttl':
+              0, 'priority': 'high',\n            'push': {'interruption-level': 'time-sensitive'
+              if lvl == 'alert' else 'passive'}} %}\n{% if image is defined %}{% set
+              d = dict(d, image=image) %}{% endif %} {% if actions is defined %}{%
+              set d = dict(d, actions=actions) %}{% endif %} {% set d = dict(d, tag=push_tag)
+              %} {% if tag is defined %}{% set d = dict(d, persistent=true) %}{% endif
+              %} {{ d }}"
+  - if: '{{ lvl == ''critical'' }}'
+    then:
+    - action: script.turn_on
+      target:
+        entity_id: script.notify_critical
+      data:
+        variables:
+          to: '{{ recipients }}'
+          title: '{{ title | default('''') }}'
+          message: '{{ message }}'
+          max_repeats: '{{ max_repeats | default(5) }}'
+notify_critical:
+  mode: parallel
+  fields:
+    message:
+      required: true
+      selector:
+        text:
+    to:
+      description: Notify groups to push to (default andrew)
+      selector:
+        select:
+          multiple: true
+          options:
+          - andrew
+          - bethany
+    title:
+      selector:
+        text:
+    max_repeats:
+      selector:
+        number:
+          min: 1
+          max: 240
+  sequence:
+  - variables:
+      ack: ACK_{{ context.id }}
+      acknowledged: false
+      recipients: '{% if to is not defined %}{{ [''andrew''] }} {% elif to is string
+        %}{{ [to] }} {% else %}{{ to }}{% endif %}'
+  - repeat:
+      sequence:
+      - repeat:
+          for_each: '{{ recipients }}'
+          sequence:
+          - action: notify.{{ repeat.item }}
+            continue_on_error: true
             data:
-              ttl: 0
-              priority: high
-
-      else:
-        # If no internet: send via cellular
-        - if: '{{ "priority" in data }}'
-          then:
-            - action: notify.cellular_message
+              title: '{{ title | default('''') }}'
+              message: '{{ message }}'
               data:
-                message: "{{ message }}"
-                data:
-                  priority: "{{ data.priority }}" # passing priority to the notify_wrapper script is optional default 0
-                  # https://pushover.net/api#priority
-          else:
-            - action: notify.cellular_message
-              data:
-                message: "{{ message }}"
-
+                channel: alarm_stream
+                ttl: 0
+                priority: high
+                push:
+                  interruption-level: critical
+                  sound:
+                    name: default
+                    critical: 1
+                    volume: 1.0
+                tag: '{{ ack }}'
+                actions:
+                - action: '{{ ack }}'
+                  title: Acknowledge
+      - wait_for_trigger:
+        - trigger: event
+          event_type: mobile_app_notification_action
+          event_data:
+            action: '{{ ack }}'
+        timeout: 00:01:00
+      - variables:
+          acknowledged: '{{ wait.trigger is not none }}'
+      until: '{{ acknowledged or repeat.index >= (max_repeats | default(5) | int)
+        }}'
+  - repeat:
+      for_each: '{{ recipients }}'
+      sequence:
+      - action: notify.{{ repeat.item }}
+        continue_on_error: true
+        data:
+          message: clear_notification
+          data:
+            tag: '{{ ack }}'
+  - variables:
+      result:
+        acknowledged: '{{ acknowledged }}'
+  - stop: Done
+    response_variable: result
 preheat_3d_printer:
   sequence:
-    - action: number.set_value
-      data:
-        value: "200"
-      target:
-        entity_id: number.ender3v3ke_4bc5_nozzle_target
-    - action: number.set_value
-      data:
-        value: "60"
-      target:
-        entity_id: number.ender3v3ke_4bc5_bed_target
-
+  - action: number.set_value
+    data:
+      value: '200'
+    target:
+      entity_id: number.ender3v3ke_4bc5_nozzle_target
+  - action: number.set_value
+    data:
+      value: '60'
+    target:
+      entity_id: number.ender3v3ke_4bc5_bed_target
 copy:
   sequence:
-    - action: shell_command.copy
-
+  - action: shell_command.copy
 appdaemon_ac_night:
   sequence:
-    # Also constrained by boolean in appdaemon
-    - condition: state
-      entity_id: input_boolean.ac_automation
-      state: "on"
-    - action: rest_command.adjust_night
-
+  - condition: state
+    entity_id: input_boolean.ac_automation
+    state: 'on'
+  - action: rest_command.adjust_night
 appdaemon_ac_morning:
   sequence:
-    # Also constrained by boolean in appdaemon
-    - condition: state
-      entity_id: input_boolean.ac_automation
-      state: "on"
-    - action: rest_command.adjust_morning
-
+  - condition: state
+    entity_id: input_boolean.ac_automation
+    state: 'on'
+  - action: rest_command.adjust_morning
 too_cold:
   sequence:
-    - action: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: "{{ float(states('sensor.thermostat_temperature')) + 2 }}"
-
+  - action: climate.set_temperature
+    data:
+      entity_id: climate.thermostat
+      temperature: '{{ float(states(''sensor.thermostat_temperature'')) + 2 }}'
 too_hot:
   sequence:
-    - action: climate.set_temperature
-      data:
-        entity_id: climate.thermostat
-        temperature: "{{ float(states('sensor.thermostat_temperature')) - 1 }}"
-
+  - action: climate.set_temperature
+    data:
+      entity_id: climate.thermostat
+      temperature: '{{ float(states(''sensor.thermostat_temperature'')) - 1 }}'
 turn_ac_off:
   sequence:
-    - action: climate.turn_off
-      data:
-        entity_id: climate.thermostat
-
-# Triggered by appdaemon app
-# See associated automation
+  - action: climate.turn_off
+    data:
+      entity_id: climate.thermostat
 panic:
   sequence:
-    - action: notify.pushover
-      data:
-        message: "Help!"
-        title: "Panic!!"
-        data:
-          priority: 2
-          expire: 3600
-          retry: 30
-          callback: !secret panic_script_webhook_full
-
-spotify_occusim_start:
-  sequence:
-    - action: media_player.select_source
-      data:
-        entity_id: media_player.spotify
-        source: "Everywhere"
+  - action: script.notify_critical
+    data:
+      title: Panic!!
+      message: Help!
+      max_repeats: 60
+    response_variable: result
+  - if:
+    - condition: template
+      value_template: '{{ result.acknowledged }}'
+    then:
     - action: media_player.volume_set
       data:
-        entity_id: media_player.spotify
-        volume_level: 0.6
-    - action: media_player.media_play
+        volume_level: 0.3
+      target:
+        entity_id: media_player.master
+    - action: notify.alexa_media_master
       data:
-        entity_id: media_player.spotify
-
+        data:
+          type: tts
+        message: Help is on the way
+      enabled: true
+    enabled: false
+spotify_occusim_start:
+  sequence:
+  - action: media_player.select_source
+    data:
+      entity_id: media_player.spotify
+      source: Everywhere
+  - action: media_player.volume_set
+    data:
+      entity_id: media_player.spotify
+      volume_level: 0.6
+  - action: media_player.media_play
+    data:
+      entity_id: media_player.spotify
 spotify_occusim_stop:
   sequence:
-    - action: media_player.media_pause
-      data:
-        entity_id: media_player.spotify
-
+  - action: media_player.media_pause
+    data:
+      entity_id: media_player.spotify
 andrew_phone_update_location:
   sequence:
-    - action: notify.mobile_app_andrew_phone
-      data:
-        message: "request_location_update"
-
-# Do nothing but act as a placeholder in "else" calls when using scripts in automation
+  - action: notify.mobile_app_andrew_phone
+    data:
+      message: request_location_update
 noop:
   sequence:
-    - delay: "00:00:00"
-
+  - delay: 00:00:00
 desk_led_red:
   sequence:
-    - action: homeassistant.turn_off
-      entity_id: light.desk_led
-    - action: homeassistant.turn_on
-      entity_id: light.desk_led
-      data:
-        rgb_color: [255, 0, 0]
-        brightness: 255
-        #effect: "custom scan"
-        effect: "fast pulse"
-
+  - action: homeassistant.turn_off
+    entity_id: light.desk_led
+  - action: homeassistant.turn_on
+    entity_id: light.desk_led
+    data:
+      rgb_color:
+      - 255
+      - 0
+      - 0
+      brightness: 255
+      effect: fast pulse
 desk_led_white:
   sequence:
-    - action: homeassistant.turn_off
-      entity_id: light.desk_led
-    - action: homeassistant.turn_on
-      entity_id: light.desk_led
-      data:
-        rgb_color: [255, 255, 255]
-        brightness: 255
-        #effect: "custom scan"
-        effect: "fast pulse"
-
-# Launch app on Android phone
+  - action: homeassistant.turn_off
+    entity_id: light.desk_led
+  - action: homeassistant.turn_on
+    entity_id: light.desk_led
+    data:
+      rgb_color:
+      - 255
+      - 255
+      - 255
+      brightness: 255
+      effect: fast pulse
 andrew_phone_launch_watch_manager:
-  sequence: 
-    - action: notify.mobile_app_andrew_phone
+  sequence:
+  - action: notify.mobile_app_andrew_phone
+    data:
+      message: command_launch_app
       data:
-        message: "command_launch_app"
-        data:
-          package_name: "com.samsung.android.app.watchmanager"
-          ttl: 0
-          priority: high
-
+        package_name: com.samsung.android.app.watchmanager
+        ttl: 0
+        priority: high
 andrew_double_latte:
   alias: Make Andrew Double Latte
   sequence:
-    - repeat:
-        count: 2
-        sequence:
-          - action: button.press
-            target:
-              entity_id: button.coffee_maker_select_latte
-            data: {}
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 2
-              milliseconds: 0
-          - action: number.min
-            metadata: {}
-            data: {}
-            target:
-              entity_id: number.coffee_maker_milk
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 5
-              milliseconds: 0
-          - action: number.max
-            metadata: {}
-            data: {}
-            target:
-              entity_id: number.coffee_maker_size
-          - delay:
-              hours: 0
-              minutes: 0
-              seconds: 5
-              milliseconds: 0
-          - action: button.press
-            metadata: {}
-            data: {}
-            target:
-              entity_id: button.coffee_maker_select_play_pause
-          - wait_for_trigger:
-              - platform: state
-                entity_id:
-                  - sensor.coffee_maker_status
-                to: Idle
-                for:
-                  hours: 0
-                  minutes: 0
-                  seconds: 2
-            timeout:
-              hours: 0
-              minutes: 2
-              seconds: 0
-              milliseconds: 0
-            continue_on_timeout: false
+  - repeat:
+      count: 2
+      sequence:
+      - action: button.press
+        target:
+          entity_id: button.coffee_maker_select_latte
+        data: {}
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 2
+          milliseconds: 0
+      - action: number.min
+        metadata: {}
+        data: {}
+        target:
+          entity_id: number.coffee_maker_milk
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: number.max
+        metadata: {}
+        data: {}
+        target:
+          entity_id: number.coffee_maker_size
+      - delay:
+          hours: 0
+          minutes: 0
+          seconds: 5
+          milliseconds: 0
+      - action: button.press
+        metadata: {}
+        data: {}
+        target:
+          entity_id: button.coffee_maker_select_play_pause
+      - wait_for_trigger:
+        - platform: state
+          entity_id:
+          - sensor.coffee_maker_status
+          to: Idle
+          for:
+            hours: 0
+            minutes: 0
+            seconds: 2
+        timeout:
+          hours: 0
+          minutes: 2
+          seconds: 0
+          milliseconds: 0
+        continue_on_timeout: false
   icon: mdi:coffee
-
 surround_mute:
   alias: Surround Mute
   sequence:
-    - action: esphome.living_room_speakers_mute
-      data: {}
-  description: ""
+  - action: esphome.living_room_speakers_mute
+    data: {}
+  description: ''

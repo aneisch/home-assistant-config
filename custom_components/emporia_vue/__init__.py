@@ -36,6 +36,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.typing import ConfigType
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+from .cognito_compat import apply_cognito_compat
 from .const import (
     AUTH_METHOD,
     AUTH_METHOD_EMAIL_PASSWORD,
@@ -51,6 +52,9 @@ from .const import (
     SOLAR_INVERT,
     VUE_DATA,
 )
+from .resilience import TolerantUpdateMethod, is_newer_sample
+
+apply_cognito_compat()
 
 _LOGGER: logging.Logger = logging.getLogger(__name__)
 
@@ -73,9 +77,13 @@ DEVICES_ONLINE: list[str] = []
 LAST_MINUTE_DATA: dict[str, Any] = {}
 LAST_DAY_DATA: dict[str, Any] = {}
 LAST_DAY_UPDATE: datetime | None = None
+LAST_DAY_INTEGRATED_MINUTE: dict[str, datetime] = {}
 LAST_MONTH_DATA: dict[str, Any] = {}
 LAST_MONTH_UPDATE: datetime | None = None
+LAST_MONTH_INTEGRATED_MINUTE: dict[str, datetime] = {}
 INVERT_SOLAR: bool = True
+
+TOLERATED_UPDATE_FAILURES = 2
 
 
 def redact_config_data(data: Mapping[str, Any]) -> dict[str, Any]:
@@ -147,6 +155,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     global INVERT_SOLAR
     DEVICE_GIDS = []
     DEVICE_INFORMATION = {}
+    LAST_DAY_INTEGRATED_MINUTE.clear()
+    LAST_MONTH_INTEGRATED_MINUTE.clear()
 
     entry_data = entry.data
     _LOGGER.debug(
@@ -165,8 +175,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except ConfigEntryAuthFailed:
         raise
     except Exception as err:  # pylint: disable=broad-exception-caught
-        _LOGGER.error("Failed to login to Emporia Vue: %s", err)
-        raise ConfigEntryAuthFailed("Failed to login to Emporia Vue") from err
+        raise ConfigEntryNotReady(f"Failed to login to Emporia Vue: {err}") from err
 
     if entry_data.get(AUTH_METHOD) == AUTH_METHOD_TOKENS and vue.auth and vue.auth.tokens:
         # Persist the tokens refreshed during login back to the config entry so
@@ -257,11 +266,16 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         ):
                             # if we just passed midnight, then reset back to zero
                             timestamp: datetime = data["timestamp"]
+                            if not is_newer_sample(
+                                LAST_DAY_INTEGRATED_MINUTE, day_id, timestamp
+                            ):
+                                continue
                             await check_for_midnight(timestamp, int(device_gid), day_id)
 
                             LAST_DAY_DATA[day_id]["usage"] += data[
                                 "usage"
                             ]  # already in kwh
+                            LAST_DAY_INTEGRATED_MINUTE[day_id] = timestamp
             return LAST_DAY_DATA
 
         async def async_update_month_sensors() -> dict:
@@ -295,21 +309,35 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                         ):
                             # if we just passed the billing cycle start, reset back to zero
                             timestamp: datetime = data["timestamp"]
+                            if not is_newer_sample(
+                                LAST_MONTH_INTEGRATED_MINUTE, month_id, timestamp
+                            ):
+                                continue
                             await check_for_new_month(timestamp, int(device_gid), month_id)
 
                             LAST_MONTH_DATA[month_id]["usage"] += data[
                                 "usage"
                             ]  # already in kwh
+                            LAST_MONTH_INTEGRATED_MINUTE[month_id] = timestamp
             return LAST_MONTH_DATA
 
         coordinator_1min = None
+        retry_update_methods: dict[str, TolerantUpdateMethod] = {}
         if ENABLE_1M not in entry_data or entry_data[ENABLE_1M]:
+            minute_update_method = TolerantUpdateMethod(
+                async_update_data_1min,
+                name="Minute telemetry",
+                logger=_LOGGER,
+                recoverable_exceptions=(UpdateFailed,),
+                tolerated_failures=TOLERATED_UPDATE_FAILURES,
+            )
+            retry_update_methods["minute"] = minute_update_method
             coordinator_1min = DataUpdateCoordinator(
                 hass,
                 _LOGGER,
                 # Name of the data. For logging purposes.
-                name="sensor",
-                update_method=async_update_data_1min,
+                name="minute telemetry",
+                update_method=minute_update_method,
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=timedelta(minutes=1),
             )
@@ -317,12 +345,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.debug("1min Update data: %s", coordinator_1min.data)
         coordinator_1mon = None
         if ENABLE_1MON not in entry_data or entry_data[ENABLE_1MON]:
+            monthly_update_method = TolerantUpdateMethod(
+                async_update_month_sensors,
+                name="Monthly telemetry",
+                logger=_LOGGER,
+                recoverable_exceptions=(UpdateFailed,),
+                tolerated_failures=TOLERATED_UPDATE_FAILURES,
+            )
+            retry_update_methods["monthly"] = monthly_update_method
             coordinator_1mon = DataUpdateCoordinator(
                 hass,
                 _LOGGER,
                 # Name of the data. For logging purposes.
-                name="sensor",
-                update_method=async_update_month_sensors,
+                name="monthly telemetry",
+                update_method=monthly_update_method,
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=timedelta(minutes=1),
             )
@@ -331,12 +367,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         coordinator_day_sensor = None
         if ENABLE_1D not in entry_data or entry_data[ENABLE_1D]:
+            daily_update_method = TolerantUpdateMethod(
+                async_update_day_sensors,
+                name="Daily telemetry",
+                logger=_LOGGER,
+                recoverable_exceptions=(UpdateFailed,),
+                tolerated_failures=TOLERATED_UPDATE_FAILURES,
+            )
+            retry_update_methods["daily"] = daily_update_method
             coordinator_day_sensor = DataUpdateCoordinator(
                 hass,
                 _LOGGER,
                 # Name of the data. For logging purposes.
-                name="sensor",
-                update_method=async_update_day_sensors,
+                name="daily telemetry",
+                update_method=daily_update_method,
                 # Polling interval. Will only be polled if there are subscribers.
                 update_interval=timedelta(minutes=1),
             )
@@ -497,6 +541,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         "coordinator_day_sensor": coordinator_day_sensor,
         "coordinator_device_status": coordinator_device_status,
         "device_information": DEVICE_INFORMATION,
+        "retry_update_methods": retry_update_methods,
     }
 
     try:
@@ -557,7 +602,7 @@ async def update_sensors(vue: PyEmVue, scales: list[str]) -> dict:
 
         return data
     except Exception as err:
-        _LOGGER.error("Error communicating with Emporia API: %s", err)
+        _LOGGER.debug("Error communicating with Emporia API", exc_info=True)
         raise UpdateFailed(f"Error communicating with Emporia API: {err}") from err
 
 

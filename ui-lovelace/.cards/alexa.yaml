@@ -6,12 +6,12 @@ entities:
     name: 'Type question/command here:'
     type: 'custom:text-input-row'
   - action_name: Run Command/Ask Question...
-    icon: 'mdi:voice'
+    icon: 'mdi:account-voice'
     name: ' '
     service: script.send_alexa_command
     type: call-service
   - action_name: Stop Alexa
-    icon: 'mdi:voice'
+    icon: 'mdi:account-voice'
     name: ' '
     service: script.stop_alexa_command
     type: call-service

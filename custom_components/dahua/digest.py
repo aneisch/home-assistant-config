@@ -1,5 +1,8 @@
 """Dahua Digest Auth Support"""
+
 import base64
+import errno
+import logging
 import os
 import time
 import hashlib
@@ -7,6 +10,8 @@ import aiohttp
 from aiohttp.client_reqrep import ClientResponse
 from aiohttp.client_exceptions import ClientError
 from yarl import URL
+
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
 
 # Seems that aiohttp doesn't support Diegest Auth, which Dahua cams require. So I had to bake it in here.
@@ -28,6 +33,69 @@ MAX_AUTH_ATTEMPTS = 3
 BASIC = "basic"
 DIGEST = "digest"
 
+# The two this module can answer. A 401 naming anything else cannot be satisfied by
+# any password, so it must not be reported as a refused one.
+ANSWERABLE_SCHEMES = frozenset({BASIC, DIGEST})
+
+# RFC 7616 names the algorithm a device may pick, and allows a `-sess` variant of
+# each. `algorithm=SHA-256` built no header at all here: _build_digest_header
+# returned "", request() dropped the challenge and probed again, and the 401 three
+# attempts later was reported to the user as a wrong username and password.
+#
+# SHA is not in the RFC. It is kept because it was already accepted, and some
+# firmware does send it.
+#
+# SHA-512-256 is deliberately absent. RFC 7616 names it as NIST's truncated
+# variant, which is not SHA-512 cut to 256 bits, and hashlib only reaches it
+# through the OpenSSL name. Signing with a wrong SHA-512-256 would be refused
+# anyway, and an absent credential that says so is more use than a silent one.
+HASH_ALGORITHMS = {
+    "MD5": hashlib.md5,
+    "SHA": hashlib.sha1,
+    "SHA-256": hashlib.sha256,
+}
+
+SESSION_SUFFIX = "-SESS"
+
+
+# How deep to follow __cause__ / __context__ looking for the real error.
+# aiohttp wraps the OSError it got from the socket, and asyncio sometimes wraps
+# that again, so the errno is rarely on the exception that reaches us.
+_CAUSE_DEPTH = 5
+
+
+def is_stale_pooled_connection(error: BaseException) -> bool:
+    """Did this fail because the device closed a connection we were reusing?
+
+    Both of these are raised before any byte of a response arrives, so the
+    request was never answered and nothing has been read: the only thing lost
+    is the socket, and asking again opens a new one.
+
+    Measured in #1001 on an Intelbras VIPW-1300-MINI-SD: 17 times in 24 hours,
+    about every 62 minutes and sometimes every 31, while the poll ran every 30
+    seconds. So the device is capping how long one connection may live, not
+    timing out an idle one -- there is no idle period to shorten, and aiohttp
+    has no maximum connection lifetime to set below the device's. That leaves
+    asking again.
+
+    `errno.ECONNRESET` rather than the literal 104: it is 104 on Linux and
+    10054 on Windows, and the tests for this run on both.
+
+    `ServerDisconnectedError` is **not** an OSError -- it descends from
+    ClientError only -- and a bare `ConnectionResetError` carries `errno =
+    None`. So neither an `except OSError` nor an errno comparison alone sees
+    all of this, which is why both are checked by class.
+    """
+    for _ in range(_CAUSE_DEPTH):
+        if error is None:
+            return False
+        if isinstance(error, (aiohttp.ServerDisconnectedError, ConnectionResetError)):
+            return True
+        if isinstance(error, OSError) and error.errno == errno.ECONNRESET:
+            return True
+        error = error.__cause__ or error.__context__
+    return False
+
 
 class DigestAuth:
     """HTTP digest authentication helper.
@@ -35,7 +103,13 @@ class DigestAuth:
     https://github.com/requests/requests/blob/v2.18.4/requests/auth.py.
     """
 
-    def __init__(self, username: str, password: str, session: aiohttp.ClientSession, previous=None):
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        session: aiohttp.ClientSession,
+        previous=None,
+    ):
         if previous is None:
             previous = {}
 
@@ -80,6 +154,56 @@ class DigestAuth:
     def nonce_count(self, value):
         self._state["nonce_count"] = value
 
+    def cached_authorization(self, method, url):
+        """The header this device's remembered challenge allows, or None.
+
+        For the one request that cannot take a 401: `request` answers a
+        challenge by sending the whole thing again, and a body generated as it
+        goes has been consumed by then, so the retry would arrive empty. Such
+        a caller asks for the header up front instead.
+
+        **What this is, and is not.** It is the best available guess, not a
+        guarantee. Some of these devices refuse a cached challenge on every
+        call and reissue the same nonce instead -- measured on a VTO2000A and
+        on a DHI-NVR5464-16P-EI, which answered 401 then 200 four times in a
+        row -- so a caller that cannot replay has to be able to live with the
+        401. The one audio path measured so far never challenges at all, so
+        the header is unused there; it exists for firmware that does.
+
+        Raises `aiohttp.ClientError` for a challenge whose qop this module
+        cannot satisfy, the same as building a header for any other request
+        would.
+        """
+        if self.scheme == BASIC:
+            return self._build_basic_header()
+        if self.challenge:
+            return self._build_digest_header(method.upper(), url)
+        return None
+
+    async def _send(self, method, url, headers, **kwargs):
+        """One request, asked once more if a pooled connection had been closed.
+
+        Separate from the digest loop above on purpose: a dropped socket is not
+        a refused credential, and spending one of MAX_AUTH_ATTEMPTS on it would
+        leave a device that answers a challenge *and* drops a connection with
+        fewer attempts than either problem needs.
+
+        One extra attempt, and the second one's failure is raised untouched, so
+        a device that is actually gone fails exactly as it did before and only
+        pays one more round trip for it.
+        """
+        try:
+            return await self.session.request(method, url, headers=headers, **kwargs)
+        except (aiohttp.ClientError, OSError) as error:
+            if not is_stale_pooled_connection(error):
+                raise
+            _LOGGER.debug(
+                "%s closed a connection we were reusing (%s); asking again",
+                url,
+                error.__class__.__name__,
+            )
+        return await self.session.request(method, url, headers=headers, **kwargs)
+
     async def request(self, method, url, *, headers=None, **kwargs):
         """Makes a request, absorbing digest challenges up to a fixed budget."""
         if headers is None:
@@ -104,7 +228,7 @@ class DigestAuth:
                     # fail every later request too. Drop it and probe instead.
                     self.challenge = None
 
-            response = await self.session.request(method, url, headers=attempt_headers, **kwargs)
+            response = await self._send(method, url, attempt_headers, **kwargs)
 
             if response.status != 401:
                 return response
@@ -118,7 +242,7 @@ class DigestAuth:
                     self.scheme = BASIC
                     response.close()
                     continue
-                return response
+                return self._refused(response)
 
             if sent_nonce is not None:
                 stale = str(challenge.get("stale", "")).lower() == "true"
@@ -129,12 +253,70 @@ class DigestAuth:
                     refused += 1
                     if refused > 1:
                         self.challenge = None
-                        return response
+                        return self._refused(response)
 
             response.close()
             self.challenge = challenge
 
+        # The budget is spent. Every other exit returns before here, so this is
+        # always a 401, and the loop always runs at least once.
+        return self._refused(response)
+
+    def _refused(self, response: ClientResponse):
+        """Says what the device asked for, then hands the 401 back unchanged.
+
+        Every 401 that reaches a caller is reported to the user as the camera
+        rejecting their username and password. Nothing here used to record the
+        challenge, so #947 arrived as a traceback ending in `401,
+        message='Unauthorized'` and a model number, which does not distinguish a
+        refused password from a challenge this module could not answer. Three of
+        those existed: a comma inside a quoted value broke the parser, the SHA-256
+        family signed nothing, and an unknown scheme is still genuinely unanswerable.
+
+        The scheme, realm, qop and algorithm are what a reader needs and none of
+        them is a secret. Nothing this module sent is logged, and neither is the
+        URL, which is one endpoint away from carrying something that should not be.
+        """
+        offered = self._offered_scheme(response)
+
+        if offered is not None and offered not in ANSWERABLE_SCHEMES:
+            self._warn_once(
+                "scheme",
+                offered,
+                "This device asked for %s authentication, which this integration "
+                "does not implement. No password will work and the failure will look "
+                "like a wrong username and password. WWW-Authenticate: %s",
+                offered,
+                response.headers.get("www-authenticate", ""),
+            )
+            return response
+
+        fields = self._offered_fields(response)
+        _LOGGER.debug(
+            "Credentials refused by a device offering %s auth (%s)",
+            offered or "no",
+            ", ".join(
+                "%s=%s" % (name, fields[name])
+                for name in ("realm", "qop", "algorithm", "stale")
+                if fields.get(name)
+            )
+            or "no fields",
+        )
         return response
+
+    def _warn_once(self, kind, value, message, *args):
+        """Warns about something that cannot work, once per device.
+
+        These conditions do not clear themselves: the same unanswerable challenge
+        comes back on every request, so warning each time would fill the log at the
+        scan interval. The state is the one already shared across this device's
+        requests, and a different value warns again because firmware changes.
+        """
+        key = "unanswerable_" + kind
+        if self._state.get(key) == value:
+            return
+        self._state[key] = value
+        _LOGGER.warning(message, *args)
 
     @staticmethod
     def _offered_scheme(response: ClientResponse):
@@ -144,6 +326,17 @@ class DigestAuth:
             return None
         return header.split(" ", 1)[0].lower() or None
 
+    @staticmethod
+    def _offered_fields(response: ClientResponse):
+        """The challenge's parameters, whatever scheme named them. Credential-free."""
+        parts = response.headers.get("www-authenticate", "").split(" ", 1)
+        if len(parts) < 2:
+            return {}
+        try:
+            return parse_key_value_list(parts[1])
+        except (IndexError, ValueError):
+            return {}
+
     def _build_basic_header(self):
         """RFC 7617: base64 of user:password, and nothing else."""
         raw = "{0}:{1}".format(self.username, self.password).encode("utf-8")
@@ -151,13 +344,11 @@ class DigestAuth:
 
     def _parse_401(self, response: ClientResponse):
         """Returns the digest challenge carried by a 401, or None."""
-        parts = response.headers.get("www-authenticate", "").split(" ", 1)
-        if "digest" == parts[0].lower() and len(parts) > 1:
-            try:
-                return parse_key_value_list(parts[1])
-            except (IndexError, ValueError):
-                return None
-        return None
+        if self._offered_scheme(response) != DIGEST:
+            return None
+        # A challenge naming no usable field is no challenge, same as one that
+        # cannot be parsed at all.
+        return self._offered_fields(response) or None
 
     def _build_digest_header(self, method, url):
         """
@@ -172,15 +363,29 @@ class DigestAuth:
         algorithm = self.challenge.get("algorithm", "MD5").upper()
         opaque = self.challenge.get("opaque")
 
-        if qop and not (qop == "auth" or "auth" in qop.split(",")):
+        if qop and not (
+            qop == "auth" or "auth" in [part.strip() for part in qop.split(",")]
+        ):
             raise ClientError("Unsupported qop value: %s" % qop)
 
-        # lambdas assume digest modules are imported at the top level
-        if algorithm == "MD5" or algorithm == "MD5-SESS":
-            hash_fn = hashlib.md5
-        elif algorithm == "SHA":
-            hash_fn = hashlib.sha1
-        else:
+        # The session variant is a suffix on any of them, so it is tested as one
+        # rather than enumerated: MD5-SESS was handled and SHA-256-SESS was not,
+        # for no reason either algorithm knows about.
+        session_variant = algorithm.endswith(SESSION_SUFFIX)
+        base_algorithm = (
+            algorithm[: -len(SESSION_SUFFIX)] if session_variant else algorithm
+        )
+        hash_fn = HASH_ALGORITHMS.get(base_algorithm)
+        if hash_fn is None:
+            self._warn_once(
+                "algorithm",
+                algorithm,
+                "This device asked for digest algorithm %s, which this integration "
+                "cannot sign. No credentials can be sent, so the device will answer "
+                "401 and the failure will look like a wrong username and password. "
+                "Please report the algorithm name on a new issue",
+                algorithm,
+            )
             return ""
 
         def H(x):
@@ -223,7 +428,7 @@ class DigestAuth:
         ).encode()
         cnonce = hashlib.sha1(cnonce_data).hexdigest()[:16]
 
-        if algorithm == "MD5-SESS":
+        if session_variant:
             HA1 = H("%s:%s:%s" % (HA1, nonce, cnonce))
 
         # This assumes qop was validated to be 'auth' above. If 'auth-int'
@@ -254,20 +459,73 @@ class DigestAuth:
 
 def parse_pair(pair):
     key, value = pair.strip().split("=", 1)
+    key = key.strip()
+    if not key:
+        # A field with no name is malformed, and the callers read a ValueError as
+        # "there is no challenge here". It used to arrive as an IndexError off
+        # value[-1] below, which meant a bare `Digest =` was rejected by accident
+        # rather than on purpose.
+        raise ValueError("challenge field with no name: %r" % pair)
 
-    # If it has a trailing comma, remove it.
-    if value[-1] == ",":
+    value = value.strip()
+
+    # A trailing comma, for a caller that split the header itself.
+    # split_header_fields does not leave one.
+    if value.endswith(","):
         value = value[:-1]
 
-    # If it is quoted, then remove them.
-    if value[0] == value[-1] == '"':
+    # If it is quoted, then remove them. Guarded on length so a lone quote is not
+    # read as an empty quoted string.
+    if len(value) > 1 and value[0] == value[-1] == '"':
         value = value[1:-1]
 
     return key, value
 
 
+def split_header_fields(header):
+    """Splits a challenge on the commas that separate its fields, not on all of them.
+
+    A comma inside a quoted value separates nothing, and two things devices really
+    send rely on that:
+
+        WWW-Authenticate: Digest realm="Login to 4KS2", qop="auth,auth-int", nonce="a"
+        WWW-Authenticate: Digest realm="Login to device, channel 1", nonce="a"
+
+    `qop="auth,auth-int"` is RFC 7616's ordinary way of offering both, and the realm
+    is free text. Splitting on every comma turned either into fragments with no `=`
+    in them, the ValueError read as "this 401 carries no digest challenge", and the
+    request went back out unauthenticated until the attempt budget ran out. What the
+    user is then told is that the camera rejected their username and password (#947),
+    which is why #583 and this look identical from the outside and are not the same
+    fault at all.
+    """
+    fields = []
+    current = []
+    quoted = False
+    escaped = False
+
+    for char in header:
+        if escaped:
+            # Part of a quoted-pair, so it cannot close the string whatever it is.
+            current.append(char)
+            escaped = False
+        elif quoted and char == "\\":
+            # RFC 7230 quoted-pair. The backslash is kept, so the value a device
+            # without one sends is unchanged.
+            current.append(char)
+            escaped = True
+        elif char == '"':
+            quoted = not quoted
+            current.append(char)
+        elif char == "," and not quoted:
+            fields.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+
+    fields.append("".join(current))
+    return [field for field in (candidate.strip() for candidate in fields) if field]
+
+
 def parse_key_value_list(header):
-    return {
-        key: value
-        for key, value in [parse_pair(header_pair) for header_pair in header.split(",")]
-    }
+    return dict(parse_pair(field) for field in split_header_fields(header))

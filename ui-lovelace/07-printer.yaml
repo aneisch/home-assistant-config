@@ -52,6 +52,10 @@ cards:
         name: Bed Temp
       - entity: number.ender3v3ke_4bc5_bed_target
         name: Bed Target Temp
+      - entity: sensor.sonoff_snzb_02d_temperature
+        name: Enclosure Temp
+      - entity: sensor.sonoff_snzb_02d_humidity
+        name: Enclosure Humidity
 
   # --- TEMP GRAPHS ---
   # - type: history-graph

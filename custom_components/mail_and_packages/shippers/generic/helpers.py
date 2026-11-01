@@ -2,17 +2,20 @@
 
 from __future__ import annotations
 
+import datetime as dt
 import email
 import logging
 import re
 from dataclasses import dataclass
 from email.header import decode_header
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from shutil import copyfile
 from typing import Any
 
 import anyio
-from aioimaplib import IMAP4_SSL
+import dateparser
+from aioimaplib import IMAP4_SSL, AioImapException
 from homeassistant.core import HomeAssistant
 
 from custom_components.mail_and_packages.const import (
@@ -20,6 +23,7 @@ from custom_components.mail_and_packages.const import (
     ASSET_ROOT,
     ATTR_BODY,
     ATTR_BODY_COUNT,
+    ATTR_DELIVERY_DATE_PATTERN,
     ATTR_PATTERN,
     CAMERA_DATA,
     CAMERA_EXTRACTION_CONFIG,
@@ -27,10 +31,14 @@ from custom_components.mail_and_packages.const import (
     SENSOR_DATA,
 )
 from custom_components.mail_and_packages.utils.cache import EmailCache
+from custom_components.mail_and_packages.utils.date import get_today
 from custom_components.mail_and_packages.utils.email import find_text, find_text_matches
 from custom_components.mail_and_packages.utils.imap import (
     email_fetch,
+    email_fetch_batch,
     email_fetch_headers,
+    email_fetch_headers_batch,
+    parse_batch_fetch_lines,
 )
 from custom_components.mail_and_packages.utils.shipper import (
     generic_delivery_image_extraction,
@@ -38,6 +46,9 @@ from custom_components.mail_and_packages.utils.shipper import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+_MAX_HEADER_CHUNK = 50
+_DATE_HEADER_PARTS = "(BODY[HEADER.FIELDS (DATE)])"
 
 
 @dataclass
@@ -123,6 +134,89 @@ def _extract_subject_from_headers(
     return False
 
 
+def _parse_header_batch_lines(lines: list[Any]) -> dict[str, list[Any]]:
+    """Map IMAP batch FETCH response lines back to their UID."""
+    return parse_batch_fetch_lines(lines)
+
+
+async def _fetch_single_header(
+    account: IMAP4_SSL,
+    eid: bytes,
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> list[Any] | None:
+    """Fetch header for a single email UID with error handling."""
+    try:
+        if cache:
+            return (
+                await cache.fetch(
+                    eid, "(BODY[HEADER.FIELDS (SUBJECT)])", shipper=shipper_name
+                )
+            )[1]
+        return (await email_fetch_headers(account, eid))[1]
+    except (OSError, AttributeError) as err:
+        _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
+        return None
+
+
+async def _fetch_headers_scalar(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch email headers one-by-one as fallback."""
+    headers = {}
+    for eid in chunk:
+        if hdata := await _fetch_single_header(account, eid, shipper_name, cache):
+            headers[eid] = hdata
+    return headers
+
+
+async def _fetch_header_chunk(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch a chunk of email headers using batch fetch with scalar fallback."""
+    if len(chunk) == 1:
+        eid = chunk[0]
+        header_data = await _fetch_single_header(account, eid, shipper_name, cache)
+        return {eid: header_data} if header_data else {}
+
+    try:
+        res = await email_fetch_headers_batch(account, chunk)
+        if res[0] == "OK":
+            chunk_map = _parse_header_batch_lines(res[1])
+            headers: dict[bytes, list[Any]] = {}
+            for eid in chunk:
+                eid_s = eid.decode() if isinstance(eid, bytes) else str(eid)
+                # UID may be bare ("100") or folder-prefixed ("INBOX/100")
+                raw_uid = eid_s.rsplit("/", 1)[-1]
+                if raw_uid in chunk_map:
+                    hdata = chunk_map[raw_uid]
+                    headers[eid] = hdata
+                    if cache:
+                        cache.store(
+                            eid_s,
+                            "(BODY[HEADER.FIELDS (SUBJECT)])",
+                            ("OK", hdata),
+                            shipper=shipper_name,
+                        )
+                elif hdata := await _fetch_single_header(
+                    account, eid, shipper_name, cache
+                ):
+                    headers[eid] = hdata
+            return headers
+    except TimeoutError:
+        raise
+    except (AioImapException, OSError, AttributeError) as err:
+        _LOGGER.debug("Batch header fetch failed, falling back to scalar: %s", err)
+
+    return await _fetch_headers_scalar(account, chunk, shipper_name, cache)
+
+
 async def _verify_matched_subjects(
     account: IMAP4_SSL,
     email_ids: list[bytes],
@@ -138,31 +232,196 @@ async def _verify_matched_subjects(
     verified_ids = []
     expected_subjects_lower = [s.lower() for s in expected_subjects]
 
-    for eid in email_ids:
-        try:
-            if cache:
-                header_data = (
-                    await cache.fetch(
-                        eid, "(BODY[HEADER.FIELDS (SUBJECT)])", shipper=shipper_name
-                    )
-                )[1]
-            else:
-                header_data = (await email_fetch_headers(account, eid))[1]
+    uncached_ids: list[bytes] = []
+    headers_by_id: dict[bytes, list[Any]] = {}
 
-            if _extract_subject_from_headers(
-                header_data, sensor_type, eid, expected_subjects_lower
-            ):
-                verified_ids.append(eid)
-            else:
-                _LOGGER.debug(
-                    "Email ID %s rejected for %s: Subject did not match any expected subjects.",
-                    eid.decode() if isinstance(eid, bytes) else eid,
-                    sensor_type,
-                )
-        except (OSError, AttributeError) as err:
-            _LOGGER.debug("Could not fetch subject for email %s: %s", eid, err)
+    for eid in email_ids:
+        # Cache probe — use public API if available (added in this PR)
+        if cache:
+            cached = cache.get_cached(eid, "(BODY[HEADER.FIELDS (SUBJECT)])")
+            if isinstance(cached, tuple) and len(cached) > 1:
+                headers_by_id[eid] = cached[1]
+                continue
+        uncached_ids.append(eid)
+
+    for i in range(0, len(uncached_ids), _MAX_HEADER_CHUNK):
+        chunk = uncached_ids[i : i + _MAX_HEADER_CHUNK]
+        chunk_headers = await _fetch_header_chunk(account, chunk, shipper_name, cache)
+        headers_by_id.update(chunk_headers)
+
+    for eid in email_ids:
+        header_data = headers_by_id.get(eid)
+        if not header_data:
+            continue
+        if _extract_subject_from_headers(
+            header_data, sensor_type, eid, expected_subjects_lower
+        ):
+            verified_ids.append(eid)
+        else:
+            _LOGGER.debug(
+                "Email ID %s rejected for %s: Subject did not match any expected subjects.",
+                eid.decode() if isinstance(eid, bytes) else eid,
+                sensor_type,
+            )
 
     return verified_ids
+
+
+def _extract_date_from_headers(header_data: list[Any]) -> dt.date | None:
+    """Extract email Date header as a date object."""
+    for part in header_data:
+        if not isinstance(part, (bytes, bytearray)):
+            continue
+        msg = email.message_from_bytes(part)
+        date_val = msg.get("date")
+        if not date_val:
+            continue
+        try:
+            parsed_dt = parsedate_to_datetime(date_val)
+            return (
+                parsed_dt.astimezone().date() if parsed_dt.tzinfo else parsed_dt.date()
+            )
+        except (ValueError, TypeError):
+            continue
+    return None
+
+
+async def _fetch_single_date_header(
+    account: IMAP4_SSL,
+    eid: bytes,
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> list[Any] | None:
+    """Fetch Date header for a single email UID with error handling."""
+    try:
+        if cache:
+            return (await cache.fetch(eid, _DATE_HEADER_PARTS, shipper=shipper_name))[1]
+        return (await email_fetch(account, eid, _DATE_HEADER_PARTS))[1]
+    except (OSError, AttributeError) as err:
+        _LOGGER.debug("Could not fetch Date header for email %s: %s", eid, err)
+        return None
+
+
+async def _fetch_date_headers_scalar(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch email Date headers one-by-one as fallback."""
+    headers = {}
+    for eid in chunk:
+        if hdata := await _fetch_single_date_header(account, eid, shipper_name, cache):
+            headers[eid] = hdata
+    return headers
+
+
+async def _fetch_date_header_chunk(
+    account: IMAP4_SSL,
+    chunk: list[bytes],
+    shipper_name: str,
+    cache: EmailCache | None,
+) -> dict[bytes, list[Any]]:
+    """Fetch a chunk of email Date headers using batch fetch with scalar fallback."""
+    if len(chunk) == 1:
+        eid = chunk[0]
+        header_data = await _fetch_single_date_header(account, eid, shipper_name, cache)
+        return {eid: header_data} if header_data else {}
+
+    try:
+        res = await email_fetch_batch(account, chunk, parts=_DATE_HEADER_PARTS)
+        if res[0] == "OK":
+            chunk_map = _parse_header_batch_lines(res[1])
+            headers: dict[bytes, list[Any]] = {}
+            for eid in chunk:
+                eid_s = eid.decode() if isinstance(eid, bytes) else str(eid)
+                raw_uid = eid_s.rsplit("/", 1)[-1]
+                if raw_uid in chunk_map:
+                    hdata = chunk_map[raw_uid]
+                    headers[eid] = hdata
+                    if cache:
+                        cache.store(
+                            eid_s,
+                            _DATE_HEADER_PARTS,
+                            ("OK", hdata),
+                            shipper=shipper_name,
+                        )
+                elif hdata := await _fetch_single_date_header(
+                    account, eid, shipper_name, cache
+                ):
+                    headers[eid] = hdata
+            return headers
+    except TimeoutError:
+        raise
+    except (AioImapException, OSError, AttributeError) as err:
+        _LOGGER.debug("Batch Date header fetch failed, falling back to scalar: %s", err)
+
+    return await _fetch_date_headers_scalar(account, chunk, shipper_name, cache)
+
+
+def _parse_target_date(target_date_str: str) -> dt.date:
+    """Parse target date string into date object."""
+    if target_date_str == "today":
+        return get_today()
+    try:
+        return dt.datetime.strptime(target_date_str, "%d-%b-%Y").date()
+    except ValueError:
+        _LOGGER.debug(
+            "Invalid target_date format '%s', falling back to today", target_date_str
+        )
+        return get_today()
+
+
+def _find_cached_date_header(eid: bytes, cache: EmailCache) -> list[Any] | None:
+    """Find cached full message or Date header."""
+    for full_part in ("(RFC822)", "BODY[]"):
+        cached_full = cache.get_cached(eid, full_part)
+        if isinstance(cached_full, tuple) and len(cached_full) > 1:
+            return cached_full[1]
+    cached_date = cache.get_cached(eid, _DATE_HEADER_PARTS)
+    if isinstance(cached_date, tuple) and len(cached_date) > 1:
+        return cached_date[1]
+    return None
+
+
+async def _filter_emails_by_date(
+    account: IMAP4_SSL,
+    email_ids: list[bytes],
+    target_date_str: str,
+    shipper_name: str,
+    cache: EmailCache | None = None,
+) -> list[bytes]:
+    """Filter email IDs to those sent on target_date."""
+    if not email_ids:
+        return []
+
+    target_date = _parse_target_date(target_date_str)
+    matching_ids: list[bytes] = []
+    uncached_ids: list[bytes] = []
+    headers_by_id: dict[bytes, list[Any]] = {}
+
+    for eid in email_ids:
+        if cache and (cached_data := _find_cached_date_header(eid, cache)):
+            headers_by_id[eid] = cached_data
+            continue
+        uncached_ids.append(eid)
+
+    for i in range(0, len(uncached_ids), _MAX_HEADER_CHUNK):
+        chunk = uncached_ids[i : i + _MAX_HEADER_CHUNK]
+        chunk_headers = await _fetch_date_header_chunk(
+            account, chunk, shipper_name, cache
+        )
+        headers_by_id.update(chunk_headers)
+
+    for eid in email_ids:
+        header_data = headers_by_id.get(eid)
+        if not header_data:
+            continue
+        email_date = _extract_date_from_headers(header_data)
+        if email_date == target_date:
+            matching_ids.append(eid)
+
+    return matching_ids
 
 
 def _filter_unique_ids(email_ids: list[bytes], unique_email_ids: set) -> list[bytes]:
@@ -209,6 +468,7 @@ async def _setup_image_extraction(
         "image_type": extraction_config.get("image_type", "jpeg"),
         "cid_name": extraction_config.get("cid_name"),
         "pattern": extraction_config.get("attachment_filename_pattern"),
+        "photo_source": extraction_config.get("photo_source"),
     }
 
 
@@ -297,6 +557,83 @@ async def _collect_carrier_tracking(
     return {f"{prefix}_carrier_tracking": mapping}
 
 
+def _extract_email_text(response_part: bytes | bytearray) -> str:
+    """Extract decoded subject and text parts from an email message part."""
+    msg = email.message_from_bytes(response_part)
+    text_chunks: list[str] = []
+    if subject_str := _decode_subject(response_part):
+        text_chunks.append(subject_str)
+
+    for part in msg.walk():
+        if part.get_content_type() not in ["text/html", "text/plain"]:
+            continue
+        try:
+            email_msg = part.get_payload(decode=True)
+            text_chunks.append(email_msg.decode("utf-8", "ignore"))
+        except (AttributeError, UnicodeError):
+            continue
+
+    return "\n".join(text_chunks)
+
+
+def _matches_date_or_body(
+    text: str,
+    body_patterns: list[re.Pattern],
+    date_patterns: list[re.Pattern],
+    today_date: Any,
+) -> bool:
+    """Check if email text matches relative body terms or delivery date for today."""
+    if any(p.search(text) for p in body_patterns):
+        return True
+
+    for pat in date_patterns:
+        if m := pat.search(text):
+            date_str = m.group(1) if m.groups() else m.group(0)
+            parsed = dateparser.parse(date_str, settings={"DATE_ORDER": "DMY"})
+            if parsed and parsed.date() == today_date:
+                return True
+    return False
+
+
+def _compile_patterns(terms: Any) -> list[re.Pattern]:
+    """Compile term or list of terms into regex patterns."""
+    if isinstance(terms, str):
+        return [re.compile(terms, re.IGNORECASE)]
+    if isinstance(terms, list):
+        return [re.compile(t, re.IGNORECASE) for t in terms]
+    return []
+
+
+async def _process_emails_with_date_pattern(
+    account: IMAP4_SSL,
+    config: dict,
+    ids: list,
+    cache: EmailCache | None = None,
+) -> tuple[int, list]:
+    """Process emails matching relative delivery terms or explicit delivery date matching today."""
+    date_patterns = _compile_patterns(config.get(ATTR_DELIVERY_DATE_PATTERN))
+    body_patterns = _compile_patterns(config.get(ATTR_BODY))
+    today_date = get_today()
+    matched_ids = []
+
+    for eid in ids:
+        if cache:
+            data = (await cache.fetch(eid, "(RFC822)"))[1]
+        else:
+            data = (await email_fetch(account, eid, "(RFC822)"))[1]
+
+        for response_part in data:
+            if not isinstance(response_part, (bytes, bytearray)):
+                continue
+
+            text = _extract_email_text(response_part)
+            if _matches_date_or_body(text, body_patterns, date_patterns, today_date):
+                matched_ids.append(eid)
+                break
+
+    return len(matched_ids), matched_ids
+
+
 async def _process_emails_by_type(
     account: IMAP4_SSL,
     config: dict,
@@ -305,6 +642,14 @@ async def _process_emails_by_type(
     cache: EmailCache | None = None,
 ) -> tuple[int, list]:
     """Process emails based on body search or just count."""
+    if ATTR_DELIVERY_DATE_PATTERN in config:
+        count, matched_ids = await _process_emails_with_date_pattern(
+            account,
+            config,
+            ids,
+            cache,
+        )
+        return current_count + count, matched_ids
     if ATTR_BODY in config:
         body_count = config.get(ATTR_BODY_COUNT, False)
         mock_data = (b" ".join(ids),)

@@ -1,0 +1,23 @@
+set_zonetest_parameter:
+  name: Set Zone Test Parameter
+  description: Allows setting and enabling,disabling zone test parameters
+  target:
+    entity:
+      integration: lennoxs30
+      domain: number
+  fields:
+    value:
+      name: Value
+      description: CFM value to set
+      required: true
+      selector:
+        number:
+          min: 100
+          max: 5000
+          unit_of_measurement: CFM
+    enabled:
+      name: Enabled
+      description: Turn test on or off
+      required: true
+      selector:
+        boolean:

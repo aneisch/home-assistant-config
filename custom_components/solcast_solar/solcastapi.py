@@ -20,6 +20,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
 
 from .advanced import AdvancedOptions
 from .const import (
@@ -86,12 +87,20 @@ from .const import (
 )
 from .dampen import Dampening
 from .dates import DateTimeHelper
-from .enums import AutoUpdate, HistoryType, SitesStatus, SolcastApiStatus, UsageStatus
+from .enums import AutoUpdate, HistoryType, LoadStatus, SolcastApiStatus
 from .fetcher import Fetcher
 from .forecast import ForecastQuery
 from .log import get_logger
 from .redact import redact_api_key
 from .sites_cache import FRESH_DATA, SitesCache
+
+CONTIGUOUS = "contiguous"
+CORRECT = "correct"
+INTERVALS = "intervals"
+EARLIEST_PERIOD = "earliest_period"
+EXPECTED_INTERVALS = "expected_intervals"
+LAST_PERIOD = "last_period"
+TALLY = "tally"
 
 _LOGGER = get_logger(__name__)
 
@@ -283,14 +292,14 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         self.site_data_forecasts_undampened: dict[str, list[dict[str, Any]]] = {}
         self.site_transfers: dict[str, str] = {}
         self.sites: list[dict[str, Any]] = []
-        self.sites_status: SitesStatus = SitesStatus.UNKNOWN
+        self.sites_status: LoadStatus = LoadStatus.UNKNOWN
         self.status: SolcastApiStatus = SolcastApiStatus.UNKNOWN
         self.status_message: str = ""
         self.suppress_advanced_watchdog_reload: bool = False
         self.tally: dict[str, float | None] = {}
         self.tasks: dict[str, Any] = {}
         self.tz = options.tz
-        self.usage_status: UsageStatus = UsageStatus.UNKNOWN
+        self.usage_status: LoadStatus = LoadStatus.UNKNOWN
         self.use_forecast_confidence = f"pv_{options.key_estimate}"
 
         # Private attributes.
@@ -456,7 +465,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             bool: True if updated today, False otherwise.
         """
-        return self.data_actuals[LAST_UPDATED].astimezone(self.tz).date() == dt.now(self.tz).date()
+        return self.data_actuals[LAST_UPDATED].astimezone(self.tz).date() == dt_util.now(self.tz).date()
 
     @property
     def successes_actuals_24h(self) -> int:
@@ -628,10 +637,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
 
         The API key hard limit for each site is calculated as proportion of the site contribution for the account.
         """
-
-        EARLIEST_PERIOD = "earliest_period"
-        LAST_PERIOD = "last_period"
-
         start_time = time.time()
         build_logged: list[str] = []
 
@@ -651,7 +656,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                 hard_limit = self._hard_limit_for_key(api_key)
                 _api_key = redact_api_key(api_key) if multi_key else ALL
                 siteinfo = {site: {forecast[PERIOD_START]: forecast for forecast in data[SITE_INFO][site][FORECASTS]} for site in sites}
-                earliest: dt = dt.now(self.tz)
+                earliest: dt = dt_util.now(self.tz)
                 latest: dt = earliest
                 for limits in sites.values():
                     if len(sites_hard_limit[api_key]) == 0:
@@ -672,8 +677,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     )
                     _LOGGER.debug(
                         "Earliest period %s, latest period %s (%s)",
-                        dt.strftime(earliest.astimezone(self.tz), DT_DATE_FORMAT),
-                        dt.strftime(latest.astimezone(self.tz), DT_DATE_FORMAT),
+                        earliest.astimezone(self.tz).strftime(DT_DATE_FORMAT),
+                        latest.astimezone(self.tz).strftime(DT_DATE_FORMAT),
                         data_set,
                     )
                 periods: list[dt] = [
@@ -711,8 +716,8 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             bool: A flag indicating success or failure.
         """
-        commencing: date = dt.now(self.tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
-        last_day: date = dt.now(self.tz).date()
+        commencing: date = dt_util.now(self.tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
+        last_day: date = dt_util.now(self.tz).date()
 
         actuals: dict[dt, dict[str, dt | float]] = {}
         actuals_dampened: dict[dt, dict[str, dt | float]] = {}
@@ -813,12 +818,10 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
         Returns:
             bool: A flag indicating success or failure.
         """
-        TALLY = "tally"
-
-        today: date = dt.now(self.tz).date()
-        commencing: date = dt.now(self.tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
-        commencing_undampened: date = dt.now(self.tz).date() - timedelta(days=14)
-        last_day: date = dt.now(self.tz).date() + timedelta(days=self.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
+        today: date = dt_util.now(self.tz).date()
+        commencing: date = dt_util.now(self.tz).date() - timedelta(days=self.advanced_options[ADVANCED_HISTORY_MAX_DAYS])
+        commencing_undampened: date = dt_util.now(self.tz).date() - timedelta(days=14)
+        last_day: date = dt_util.now(self.tz).date() + timedelta(days=self.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
         logged_hard_limit: list[str] = []
 
         forecasts: dict[dt, dict[str, dt | float]] = {}
@@ -955,11 +958,6 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
     async def check_data_records(self) -> None:
         """Log whether all records are present for each day."""
 
-        CONTIGUOUS = "contiguous"
-        CORRECT = "correct"
-        INTERVALS = "intervals"
-        EXPECTED_INTERVALS = "expected_intervals"
-
         contiguous: int = 0
         contiguous_start_date: Any = None
         contiguous_end_date: Any = None
@@ -988,7 +986,7 @@ class SolcastApi:  # pylint: disable=too-many-public-methods
                     expected_intervals = 50 if _is_dst else 46
                     break
             intervals = end_index - start_index
-            forecasts_date = dt.now(self.tz).date() + timedelta(days=future_day)
+            forecasts_date = dt_util.now(self.tz).date() + timedelta(days=future_day)
 
             def set_assessment(forecasts_date: date, expected_intervals: int, intervals: int, contiguous: int, is_correct: bool) -> int:
                 nonlocal all_records_good, contiguous_end_date

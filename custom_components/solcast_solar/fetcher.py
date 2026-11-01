@@ -14,16 +14,18 @@ import random
 import time
 from typing import TYPE_CHECKING, Any
 
-from aiohttp import ClientConnectionError, ClientResponseError
+from aiohttp import ClientConnectionError, ClientConnectorDNSError, ClientResponseError
 from aiohttp.client_reqrep import ClientResponse
 
 from homeassistant.const import ATTR_ENTITY_ID
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import issue_registry as ir
+from homeassistant.util import dt as dt_util
 
 from .const import (
     ADVANCED_API_RAISE_ISSUES,
+    ADVANCED_DNS_TIMEOUT_RETRIES,
     ADVANCED_FORECAST_FUTURE_DAYS,
     ADVANCED_HISTORY_MAX_DAYS,
     ADVANCED_LOG_UPDATE_FAILURE_ONLY,
@@ -55,6 +57,7 @@ from .const import (
     LAST_ATTEMPT,
     LAST_UPDATED,
     LEARN_MORE_MISSING_FORECAST_DATA,
+    MAX_HOURS,
     MESSAGE,
     PERIOD_END,
     PERIOD_START,
@@ -133,6 +136,18 @@ class Fetcher:
         except Exception as err:  # noqa: BLE001
             _LOGGER.warning("Task %s failed: %s", task_name, err)
             return None
+
+    @staticmethod
+    def _dns_error_message(err: ClientConnectorDNSError) -> str:
+        """Return a stable message for a DNS connector error."""
+        if (os_error := getattr(err, "os_error", None)) is not None:
+            return str(os_error)
+        return err.__class__.__name__
+
+    @staticmethod
+    def _is_dns_timeout_error(err: ClientConnectorDNSError) -> bool:
+        """Return whether a DNS connector error was caused by resolver timeout."""
+        return "timeout while contacting dns servers" in Fetcher._dns_error_message(err).lower()
 
     async def build_forecast_and_actuals(self, raise_exc=False) -> bool:
         """Build the forecast and estimated actual data.
@@ -217,7 +232,7 @@ class Fetcher:
                 else set()
             )
 
-            oldest = (dt.now(self.api.tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)).astimezone(UTC)
+            oldest = (dt_util.now(self.api.tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)).astimezone(UTC)
 
             for estimate_actual in estimate_actuals:
                 period_start = dt.fromisoformat(estimate_actual[PERIOD_END]).astimezone(UTC).replace(second=0, microsecond=0) - timedelta(
@@ -262,7 +277,7 @@ class Fetcher:
         if status != _DataCallStatus.SUCCESS:
             self._log_failure("Update estimated actuals failed: %s", reason)
         else:
-            now = dt.now(UTC).replace(microsecond=0)
+            now = dt_util.now(UTC).replace(microsecond=0)
             self.api.data_actuals[LAST_UPDATED] = now
             self.api.data_actuals[LAST_ATTEMPT] = now
             self.api.data_actuals_dampened[LAST_UPDATED] = now
@@ -285,16 +300,14 @@ class Fetcher:
         Returns:
             UpdateResult: A typed outcome and a message.
         """
-        last_attempt = dt.now(UTC)
+        last_attempt = dt_util.now(UTC)
         status = ""
 
         def next_update():
-            if self._next_update is not None:
-                return f", next auto update at {self._next_update}"
-            return ""
+            return f", next auto update at {self._next_update}" if self._next_update is not None else ""
 
         if last_updated := self.api.last_updated:
-            if last_updated + timedelta(seconds=10) > dt.now(UTC):
+            if last_updated + timedelta(seconds=10) > dt_util.now(UTC):
                 status = f"Not requesting a solar forecast because time is within ten seconds of last update ({last_updated.astimezone(self.api.tz)})"
                 _LOGGER.warning(status)
                 if self._next_update is not None:
@@ -350,7 +363,7 @@ class Fetcher:
             self.api.loaded_data = True
 
             async def set_metadata_and_serialise(data: dict[str, Any]):
-                data[LAST_UPDATED] = dt.now(UTC).replace(microsecond=0)
+                data[LAST_UPDATED] = dt_util.now(UTC).replace(microsecond=0)
                 data[LAST_ATTEMPT] = last_attempt
                 # Set to divisions if auto update is enabled, but not forced, in which case set to 99999 (otherwise zero).
                 data[AUTO_UPDATED] = (
@@ -422,6 +435,10 @@ class Fetcher:
         try:
             last_day = self.api.dt_helper.day_start_utc(future=self.api.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS])
             hours = math.ceil((last_day - self.api.dt_helper.now_utc()).total_seconds() / 3600)
+            if hours > MAX_HOURS:
+                # DST Transition has blown past max hours allowable for Solcast forecast API - jump back a day
+                last_day = self.api.dt_helper.day_start_utc(future=self.api.advanced_options[ADVANCED_FORECAST_FUTURE_DAYS]-1)
+                hours = math.ceil((last_day - self.api.dt_helper.now_utc()).total_seconds() / 3600)
             _LOGGER.debug(
                 "Polling API for site %s, last day %s, %d hours",
                 site,
@@ -458,7 +475,7 @@ class Fetcher:
 
                 estimate_actuals: list[dict[str, Any]] = act_response.get(ESTIMATED_ACTUALS, [])
 
-                oldest = (dt.now(self.api.tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)).astimezone(UTC)
+                oldest = (dt_util.now(self.api.tz).replace(hour=0, minute=0, second=0, microsecond=0) - timedelta(days=7)).astimezone(UTC)
 
                 actuals: dict[dt, Any] = {}
                 for estimate_actual in estimate_actuals:
@@ -486,8 +503,8 @@ class Fetcher:
 
                 await self.sort_and_prune(site, self.api.data_actuals, self.api.advanced_options[ADVANCED_HISTORY_MAX_DAYS], actuals)
 
-                self.api.data_actuals[LAST_UPDATED] = dt.now(UTC).replace(microsecond=0)
-                self.api.data_actuals[LAST_ATTEMPT] = dt.now(UTC).replace(microsecond=0)
+                self.api.data_actuals[LAST_UPDATED] = dt_util.now(UTC).replace(microsecond=0)
+                self.api.data_actuals[LAST_ATTEMPT] = dt_util.now(UTC).replace(microsecond=0)
 
             # Fetch latest data.
 
@@ -562,7 +579,7 @@ class Fetcher:
                 failure
                 and (
                     self.api.data_undampened[SITE_INFO].get(site) is None
-                    or self.api.data_undampened[SITE_INFO][site][FORECASTS][0][PERIOD_START] > dt.now(UTC) - timedelta(hours=1)
+                    or self.api.data_undampened[SITE_INFO][site][FORECASTS][0][PERIOD_START] > dt_util.now(UTC) - timedelta(hours=1)
                 )
                 and issue_registry.async_get_issue(DOMAIN, ISSUE_RECORDS_MISSING_INITIAL) is None
             ):
@@ -668,35 +685,56 @@ class Fetcher:
 
                         tries = UPDATE_TRIES
                         counter = 0
+                        dns_timeout_retries = self.api.advanced_options[ADVANCED_DNS_TIMEOUT_RETRIES]
                         backoff = UPDATE_BACKOFF  # On every retry the back-off increases by (at least) UPDATE_BACKOFF seconds more than the previous back-off.
                         while True:
                             _LOGGER.debug("Fetching path %s", path)
                             counter += 1
                             response_text = ""
-                            try:
-                                response: ClientResponse = await self.api.aiohttp_session.get(
-                                    url=url, params=params, headers=self.api.headers, ssl=False
-                                )
-                                _LOGGER.debug("Fetch data url %s", redact_msg_api_key(str(response.url), api_key))
-                                status = response.status
-                                if status == 200:
-                                    response_text = await response.text()
-                            except TimeoutError:
-                                _LOGGER.error("Connection error: Timed out connecting to server")
-                                status = 1000
-                                self.increment_failure_count()
-                                break
-                            except ConnectionRefusedError as e:
-                                _LOGGER.error("Connection error, connection refused: %s", e)
-                                status = 1000
-                                self.increment_failure_count()
-                                break
-                            except (ClientConnectionError, ClientResponseError) as e:
-                                _LOGGER.error("Client error: %s", e)
-                                status = 1000
-                                self.increment_failure_count()
-                                break
-                            if status in (200, 400, 401, 403, 404, 500):  # Do not retry for these statuses.
+                            dns_timeout_attempts = 0
+                            while True:
+                                try:
+                                    response: ClientResponse = await self.api.aiohttp_session.get(
+                                        url=url, params=params, headers=self.api.headers, ssl=False
+                                    )
+                                    _LOGGER.debug("Fetch data url %s", redact_msg_api_key(str(response.url), api_key))
+                                    status = response.status
+                                    if status == 200:
+                                        response_text = await response.text()
+                                    break
+                                except TimeoutError:
+                                    _LOGGER.error("Connection error: Timed out connecting to server")
+                                    status = 1000
+                                    break
+                                except ClientConnectorDNSError as err:
+                                    if self._is_dns_timeout_error(err) and dns_timeout_attempts < dns_timeout_retries:
+                                        dns_timeout_attempts += 1
+                                        _LOGGER.debug(
+                                            "DNS resolution timeout fetching path %s for site %s, retry %d/%d",
+                                            path,
+                                            site,
+                                            dns_timeout_attempts,
+                                            dns_timeout_retries,
+                                        )
+                                        continue
+                                    _LOGGER.error("Client error: %s", self._dns_error_message(err))
+                                    if self._is_dns_timeout_error(err):
+                                        failure_reason = (
+                                            f"DNS resolution timeout after {dns_timeout_attempts} retries"
+                                            if dns_timeout_attempts
+                                            else "DNS resolution timeout"
+                                        )
+                                    status = 1000
+                                    break
+                                except ConnectionRefusedError as e:
+                                    _LOGGER.error("Connection error, connection refused: %s", e)
+                                    status = 1000
+                                    break
+                                except (ClientConnectionError, ClientResponseError) as e:
+                                    _LOGGER.error("Client error: %s", e)
+                                    status = 1000
+                                    break
+                            if status in (200, 400, 401, 403, 404, 500, 1000):  # Do not retry for these statuses.
                                 if status != 200:
                                     self.increment_failure_count()
                                 break

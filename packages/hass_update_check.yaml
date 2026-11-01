@@ -202,7 +202,7 @@ script:
     # Notify and enable update button on frontend
     sequence:
       #- action: shell_command.pull_hass
-      - action: notify.signal_homeassistant
+      - action: script.notify_wrapper
         data:
           message: >
             Not Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
@@ -214,7 +214,7 @@ script:
   hass_update_install:
     # Notify and install latest version
     sequence:
-      - action: notify.signal_homeassistant
+      - action: script.notify_wrapper
         data:
           message: >
             Installing: {{ states('sensor.ha_version') }} --> {% if states('binary_sensor.hass_on_beta') == 'on' %}{{ states('sensor.ha_docker_version_beta') }}{% else %}{{ states('sensor.ha_docker_version_stable') }}{% endif %}
@@ -233,7 +233,7 @@ script:
             action: shell_command.switch_hass_running_branch
             data:
               version: "{{ states('input_text.hass_target_branch') }}"
-          - action: notify.signal_homeassistant
+          - action: script.notify_wrapper
             data:
               message: >
                 Auto-switched to stable build

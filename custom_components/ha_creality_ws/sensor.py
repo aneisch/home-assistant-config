@@ -9,7 +9,9 @@ from .utils import (
     build_spool_key as _build_spool_key,
     derive_print_state as _derive_print_state,
     format_filament_label as _format_filament_label,
+    PRINT_STATES as _PRINT_STATES,
     normalize_color_hex as _normalize_color_hex,
+    numeric_state as _numeric_state,
     parse_position as _parse_position,
     safe_float as _safe_float,
 )
@@ -29,6 +31,7 @@ from homeassistant.const import (  # type: ignore[import]
     UnitOfTime,
 )
 from homeassistant.helpers.dispatcher import async_dispatcher_connect # type: ignore[import]
+from homeassistant.helpers import entity_registry as er  # type: ignore[import]
 from .entity import KEntity
 from .const import DOMAIN, GCODE_INFO_KEY
 
@@ -168,6 +171,9 @@ SPECS: list[dict[str, Any]] = [
         "name": "Position X",
         "translation_key": "position_x",
         "field": "__pos_x__",
+        # Changes many times a second while printing; recorded for every user
+        # who never looks at it. Off for new installs (R36).
+        "enabled_default": False,
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
         "attrs": lambda d: {},
@@ -178,6 +184,9 @@ SPECS: list[dict[str, Any]] = [
         "name": "Position Y",
         "translation_key": "position_y",
         "field": "__pos_y__",
+        # Changes many times a second while printing; recorded for every user
+        # who never looks at it. Off for new installs (R36).
+        "enabled_default": False,
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
         "attrs": lambda d: {},
@@ -188,6 +197,9 @@ SPECS: list[dict[str, Any]] = [
         "name": "Position Z",
         "translation_key": "position_z",
         "field": "__pos_z__",
+        # Changes many times a second while printing; recorded for every user
+        # who never looks at it. Off for new installs (R36).
+        "enabled_default": False,
         "device_class": SensorDeviceClass.DISTANCE,
         "unit": U_MM,
         "attrs": lambda d: {},
@@ -214,6 +226,19 @@ SPECS: list[dict[str, Any]] = [
         "unit": "%",
         "attrs": lambda d: {},
         "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Streamed by every captured model (R69). Off by default: it changes
+    # many times a second while printing, like the head position.
+    {
+        "uid": "real_time_speed",
+        "name": "Real-Time Speed",
+        "translation_key": "real_time_speed",
+        "field": "realTimeSpeed",
+        "device_class": SensorDeviceClass.SPEED,
+        "unit": "mm/s",
+        "attrs": lambda d: {},
+        "state_class": SensorStateClass.MEASUREMENT,
+        "enabled_default": False,
     },
 ]
 
@@ -242,6 +267,7 @@ class KSimpleFieldSensor(KEntity, SensorEntity):
         self._attr_device_class = spec.get("device_class")
         self._attr_native_unit_of_measurement = spec.get("unit")
         self._attr_state_class = spec.get("state_class")
+        self._attr_entity_registry_enabled_default = spec.get("enabled_default", True)
         self._get_attrs: Callable[[dict[str, Any]], dict[str, Any]] = spec.get("attrs") or (lambda d: {})
 
     @property
@@ -279,13 +305,18 @@ class KSimpleFieldSensor(KEntity, SensorEntity):
         # Position parsing (computed from curPosition string)
         if self._field in ("__pos_x__", "__pos_y__", "__pos_z__"):
             x, y, z = _parse_position(d)
-            return {"__pos_x__": x, "__pos_y__": y, "__pos_z__": z}[self._field]
+            return _numeric_state(
+                {"__pos_x__": x, "__pos_y__": y, "__pos_z__": z}[self._field]
+            )
 
-        # Print progress
+        # Print progress: the first field that holds a number. Not `or`: a real
+        # 0% at the start of a job fell through to the previous job's dProgress.
         if self._field == "__progress__":
-            return d.get("printProgress") or d.get("dProgress")
+            progress = _numeric_state(d.get("printProgress"))
+            return progress if progress is not None else _numeric_state(d.get("dProgress"))
 
-        return d.get(self._field)
+        # Every SPECS field is numeric; a blank or non-number is "unknown".
+        return _numeric_state(d.get(self._field))
 
     @property
     def extra_state_attributes(self):
@@ -307,37 +338,60 @@ class KMappedSensor(KEntity, SensorEntity):
     """Sensor that maps integer values to human-readable strings."""
     
     _attr_entity_category = EntityCategory.DIAGNOSTIC
+    # An enum, so automations offer its states in a list (R36).
+    _attr_device_class = SensorDeviceClass.ENUM
 
     def __init__(self, coordinator, spec: dict[str, Any]):
         super().__init__(coordinator, spec["name"], spec["uid"], translation_key=spec.get("translation_key"))
         self._field: str = spec["field"]
         self._mapping: dict[int, str] = spec.get("mapping", {})
+        self._attr_options = list(dict.fromkeys(self._mapping.values()))
         if spec.get("icon"):
             self._attr_icon = spec["icon"]
 
     @property
     def native_value(self) -> str | None:
+        # None, not the string "unknown": an enum's state must be one of its
+        # options, and None is Home Assistant's own unknown.
         if self._should_zero():
-            return "unknown"
+            return None
 
-        d = self.coordinator.data
-        if not d:
-            return "unknown"
-
-        raw = d.get(self._field)
-        if raw is None:
-            return "unknown"
-
+        raw = (self.coordinator.data or {}).get(self._field)
         try:
-            val = int(raw)
-            return self._mapping.get(val, str(raw))
+            return self._mapping.get(int(raw))
         except (ValueError, TypeError):
-            return str(raw)
+            return None
+
+
+class FilamentStatusSensor(KMappedSensor):
+    """`materialStatus`, with "runout" dropped where the flag is shown false.
+
+    A K1C keeps the flag up through whole prints with filament loaded, so the
+    raw mapping read "runout" from the first print after boot until power-off
+    (R82). The coordinator owns the rule; this only reports it.
+    """
+
+    @property
+    def native_value(self) -> str | None:
+        value = super().native_value
+        if value == "runout" and not self.coordinator.filament_runout():
+            return "normal"
+        return value
 
 
 class PrintStatusSensor(KEntity, SensorEntity):
     _attr_translation_key = "print_status"
     _attr_icon = "mdi:printer-3d"
+    # An enum, so automations offer the states in a list (R36). "unknown" is
+    # Home Assistant's own state, reported as None.
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = [state for state in _PRINT_STATES if state != "unknown"]
+    # These change every second while printing and each has its own sensor.
+    # Recorded, they made every print write ~5,500 distinct attribute rows for
+    # this one entity (R84); they stay live for templates.
+    _unrecorded_attributes = frozenset(
+        {"job_time_s", "left_time_s", "used_material_mm", "real_time_flow_mm3_s"}
+    )
 
     def __init__(self, coordinator):
         super().__init__(coordinator, unique_id="print_status")
@@ -346,12 +400,13 @@ class PrintStatusSensor(KEntity, SensorEntity):
     def native_value(self) -> str | None:
         # The mapping lives in utils.derive_print_state so that services gating on
         # "is the printer busy" use the same definition the dashboard shows.
-        return _derive_print_state(
+        state = _derive_print_state(
             self.coordinator.data or {},
             power_off=self.coordinator.power_is_off(),
             available=self.coordinator.available,
             paused_flag=self.coordinator.paused_flag(),
         )
+        return None if state == "unknown" else state
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -506,11 +561,8 @@ class PrintJobTimeSensor(KEntity, SensorEntity):
     def native_value(self) -> int | None:
         if self._should_zero():
             return 0
-        v = self.coordinator.data.get("printJobTime")
-        try:
-            return int(v) if v is not None else None
-        except (TypeError, ValueError):
-            return None
+        v = _numeric_state(self.coordinator.data.get("printJobTime"))
+        return int(v) if v is not None else None
 
 class PrintLeftTimeSensor(KEntity, SensorEntity):
     _attr_translation_key = "print_left_time"
@@ -526,11 +578,8 @@ class PrintLeftTimeSensor(KEntity, SensorEntity):
     def native_value(self) -> int | None:
         if self._should_zero():
             return 0
-        v = self.coordinator.data.get("printLeftTime")
-        try:
-            return int(v) if v is not None else None
-        except (TypeError, ValueError):
-            return None
+        v = _numeric_state(self.coordinator.data.get("printLeftTime"))
+        return int(v) if v is not None else None
 
 class RealTimeFlowSensor(KEntity, SensorEntity):
     _attr_translation_key = "real_time_flow"
@@ -558,21 +607,21 @@ class CurrentObjectSensor(KEntity, SensorEntity):
 
     @property
     def native_value(self) -> str | None:
-        # If printer is off or unavailable, show N/A
         if self._should_zero():
-            return "N/A"
+            return None
         
         d = self.coordinator.data or {}
         v = d.get("current_object") or d.get("currentObject")
 
-        # If no current object and printer is not printing, show "not printing".
+        # If no current object and printer is not printing, say so: a state
+        # translation turns the slug into "Not printing" (R33).
         # Firmware may send this as a non-string (e.g. an int object index), so
         # only run the whitespace check on actual strings to avoid AttributeError.
         if not v or (isinstance(v, str) and not v.strip()):
             # Check if printer is actually printing
             fname = d.get("printFileName") or ""
             if not fname:
-                return "not printing"
+                return "not_printing"
             return None
 
         return str(v)
@@ -635,7 +684,9 @@ class KPrintControlSensor(KEntity, SensorEntity):
     """Diagnostic sensor exposing control pipeline state (queued actions, paused flag, raw states)."""
     _attr_translation_key = "print_control"
     _attr_icon = "mdi:debug-step-over"
-    _attr_state_class = None  # not a measurement
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["queued", "ok"]
 
     def __init__(self, coordinator):
         super().__init__(coordinator, unique_id="print_control")
@@ -645,7 +696,7 @@ class KPrintControlSensor(KEntity, SensorEntity):
         # Keep state human-readable but stable: "queued" if anything is pending, else "ok".
         if self.coordinator.pending_pause() or self.coordinator.pending_resume():
             return "queued"
-        return "ok" if self.coordinator.available else "unknown"
+        return "ok" if self.coordinator.available else None
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -695,8 +746,15 @@ class KCFSBoxSensor(KEntity, SensorEntity):
             return 0.0
         data = self._get_box_data()
         if data:
-            return data.get(self._type)
+            return _numeric_state(data.get(self._type))
         return None
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        # Which CFS unit this is, as the slot sensors already say: the card's
+        # "fill from device" places it by this, not by the entity id the user
+        # may have renamed (R43).
+        return {"box_id": self._box_id}
 
 
 def _cfs_slot_attributes(
@@ -774,7 +832,7 @@ class KCFSSlotSensor(KEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         if self._should_zero():
-            return 0 if self._type == "percent" else "N/A"
+            return 0 if self._type == "percent" else None
             
         data = self._get_slot_data()
         if not data:
@@ -787,7 +845,7 @@ class KCFSSlotSensor(KEntity, SensorEntity):
         if self._type == "color":
             return _normalize_color_hex(data.get("color"))
         if self._type == "percent":
-            return data.get("percent")
+            return _numeric_state(data.get("percent"))
         return None
 
     @property
@@ -841,7 +899,7 @@ class KCFSExtSlotSensor(KEntity, SensorEntity):
     @property
     def native_value(self) -> Any:
         if self._should_zero():
-            return 0 if self._type == "percent" else "N/A"
+            return 0 if self._type == "percent" else None
 
         data = self._get_slot_data()
         if not data:
@@ -854,7 +912,7 @@ class KCFSExtSlotSensor(KEntity, SensorEntity):
         if self._type == "color":
             return _normalize_color_hex(data.get("color"))
         if self._type == "percent":
-            return data.get("percent")
+            return _numeric_state(data.get("percent"))
         return None
 
     @property
@@ -887,11 +945,18 @@ class KActiveFilamentSensor(KEntity, SensorEntity):
             box_type = box.get("type", 0)
             for slot in box.get("materials", []):
                 if slot.get("selected"):
+                    # Slugs, shown as "External" and "Box 1 Slot 2" by state
+                    # translations; the English text was the raw state (R33).
                     if box_type == 1:
-                        return "External"
-                    slot_id = slot.get("id", 0)
-                    box_id = box.get("id", 0)
-                    return f"Box {box_id} Slot {slot_id + 1}"
+                        return "external"
+                    # Ints from the printer; normalised rather than trusted,
+                    # since `slot_id + 1` on a text id failed every update.
+                    try:
+                        slot_id = int(slot.get("id", 0))
+                        box_id = int(box.get("id", 0))
+                    except (TypeError, ValueError):
+                        return None
+                    return f"box_{box_id}_slot_{slot_id + 1}"
         return None
 
     @property
@@ -921,6 +986,25 @@ async def async_setup_entry(hass, entry, async_add_entities):
     # Track which CFS entities we've already added to avoid duplicates
     added_cfs_uids: set[str] = set()
 
+    def _slot_id_of(slot: Mapping[str, Any], idx: int) -> int:
+        try:
+            slot_id = int(slot.get("id")) if slot.get("id") is not None else None
+        except (TypeError, ValueError):
+            slot_id = None
+        return idx if slot_id is None or slot_id < 0 else slot_id
+
+    def _box_slots_registered(box: Mapping[str, Any]) -> bool:
+        """Whether a box's per-slot sensors already exist in the registry."""
+        ent_reg = er.async_get(hass)
+        host = coord.client._host
+        return any(
+            ent_reg.async_get_entity_id(
+                "sensor", DOMAIN,
+                f"{host}-cfs_box_{box.get('id')}_slot_{_slot_id_of(slot, idx)}_filament",
+            )
+            for idx, slot in enumerate(box.get("materials", []))
+        )
+
     def add_cfs_entities():
         """Helper to create CFS entities from current data."""
         new_ents = []
@@ -941,8 +1025,15 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if box_id is None:
                 _LOGGER.debug("Skipping box with no ID: %s", box)
                 continue
-            if has_cfs_box and box.get("type") == 1:
-                _LOGGER.debug("Skipping external box (type 1) because CFS (type 0) is present")
+            # The external spool holder (type 1) has its own sensors, created
+            # below. Without a CFS it used to get a second set here as well,
+            # "Box 0 Slot 1" next to "External" for the same spool (R20). Kept
+            # only where an earlier version already registered that set, so a
+            # dashboard built on it does not lose its entities.
+            if box.get("type") == 1 and (
+                has_cfs_box or not _box_slots_registered(box)
+            ):
+                _LOGGER.debug("External box (type 1) is covered by the external sensors")
                 continue
 
             
@@ -959,13 +1050,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 
             # Slots
             for idx, slot in enumerate(box.get("materials", [])):
-                slot_id = slot.get("id")
-                try:
-                    slot_id = int(slot_id) if slot_id is not None else None
-                except (TypeError, ValueError):
-                    slot_id = None
-                if slot_id is None or slot_id < 0:
-                    slot_id = idx
+                slot_id = _slot_id_of(slot, idx)
                 for s_type in ("filament", "color", "percent"):
                     uid = f"cfs_box_{box_id}_slot_{slot_id}_{s_type}"
                     if uid not in added_cfs_uids:
@@ -1155,7 +1240,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # Mapped sensors
     for spec in MAPPED_SPECS:
-        ents.append(KMappedSensor(coord, spec))
+        cls = FilamentStatusSensor if spec["uid"] == "filament_status" else KMappedSensor
+        ents.append(cls(coord, spec))
 
     # Additional metrics
 
@@ -1231,6 +1317,8 @@ class KMaxTempSensor(KEntity, SensorEntity):
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
     _attr_state_class = SensorStateClass.MEASUREMENT
+    # A limit of the machine, not a reading (R36).
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(self, coordinator, uid: str, key: str, translation_key: str):
         super().__init__(coordinator, "", uid, translation_key=translation_key)

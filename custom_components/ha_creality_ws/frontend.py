@@ -115,7 +115,7 @@ async def _init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
         from homeassistant.components.lovelace.resources import ResourceStorageCollection
     except Exception:
         # If imports fail here (tests/local static analysis), skip auto-registration
-        _LOGGER.debug("Lovlace resource helpers unavailable; skipping auto resource init")
+        _LOGGER.debug("Lovelace resource helpers unavailable; skipping auto resource init")
         return False
 
     lovelace = hass.data.get("lovelace")
@@ -159,9 +159,9 @@ async def _init_resource(hass: HomeAssistant, url: str, ver: str) -> bool:
 async def _migrate_local_resources(
     hass: HomeAssistant, local_prefix: str, new_url: str, ver: str
 ) -> int:
-    """Migrate any Lovelace resources pointing at the old /local/ prefix.
+    """Remove Lovelace resources left by older versions for this card.
 
-    Returns the number of resources migrated.
+    Returns the number of resources removed.
     """
     try:
         from homeassistant.components.lovelace.resources import ResourceStorageCollection
@@ -181,33 +181,46 @@ async def _migrate_local_resources(
     await resources.async_get_info()
 
     migrated = 0
+    # The card the prefix names, as served now. Older versions rewrote a
+    # `/local/` entry by appending what followed the card's path, so
+    # "<card>.js?v=1" became "<card>.js/?v=1?v=<new>", a 404, and an entry
+    # with no query was skipped while its file was deleted. _init_resource
+    # already maintains the correct entry, so legacy and malformed ones are
+    # removed rather than rewritten (R28).
+    malformed_prefix = f"{new_url.rstrip('/')}/?"
 
     for item in list(resources.async_items()):
         u = item.get("url", "")
-        if not u.startswith(local_prefix):
+        legacy = u == local_prefix or u.startswith(f"{local_prefix}?")
+        if not (legacy or u.startswith(malformed_prefix)):
             continue
-
-        # keep the filename/path suffix and place it under the new base URL
-        suffix = u[len(local_prefix) :]
-        if not suffix:
-            # nothing to migrate
+        if not isinstance(resources, ResourceStorageCollection):
+            _LOGGER.warning(
+                "Lovelace resource %s is out of date; remove it from your YAML "
+                "resources, %s replaces it",
+                u,
+                new_url,
+            )
             continue
-
-        new_base = new_url.rstrip("/")
-        url2 = f"{new_base}/{suffix}?v={ver}"
-
-        _LOGGER.info("Migrating Lovelace resource from %s to %s", u, url2)
+        _LOGGER.info("Removing out-of-date Lovelace resource %s", u)
         try:
-            if isinstance(resources, ResourceStorageCollection):
-                await resources.async_update_item(item["id"], {"res_type": "module", "url": url2})
-            else:
-                item["url"] = url2
+            await resources.async_delete_item(item["id"])
             migrated += 1
-        except Exception as exc:
-            _LOGGER.warning("Failed to migrate resource %s -> %s: %s", u, url2, exc)
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.warning("Failed to remove resource %s: %s", u, exc)
 
     return migrated
 
+
+
+def _remove_old_copy(path: Path) -> None:
+    """Delete a card copy an old version put under /config/www, if there is one."""
+    try:
+        if path.exists():
+            path.unlink()
+            _LOGGER.info("Removed old /config/www copy: %s", path)
+    except OSError as exc:  # pragma: no cover - best-effort cleanup
+        _LOGGER.debug("Failed to remove old /config/www copy %s: %s", path, exc)
 
 class CrealityCardRegistration:
     """Serve k_printer_card.js from the integration package and log instructions.
@@ -222,8 +235,9 @@ class CrealityCardRegistration:
     async def async_register(self) -> None:
         """Register a static path that serves the card from the integration package.
 
-        We do NOT auto-create or modify Lovelace resources to avoid clobbering user
-        dashboards. Instead we log the integration-hosted URL for manual registration.
+        Also adds each card as a Lovelace resource, or moves an existing entry
+        for it to the current version (`_init_resource`). Only the card's own
+        entry is touched; other resources are left alone.
         """
         versions: dict[str, str] = {}
         for card_name in CARDS:
@@ -235,17 +249,11 @@ class CrealityCardRegistration:
 
             _register_static_path(self.hass, integration_url, serve_path)
 
-            # Remove old copy from /config/www if present (cleanup of previous installs)
-            try:
-                dst = Path(self.hass.config.path("www")) / LOCAL_SUBDIR / card_name
-                if dst.exists():
-                    try:
-                        dst.unlink()
-                        _LOGGER.info("Removed old /config/www copy: %s", dst)
-                    except Exception as exc:  # pragma: no cover - best-effort cleanup
-                        _LOGGER.debug("Failed to remove old /config/www copy %s: %s", dst, exc)
-            except Exception:
-                _LOGGER.debug("Could not determine config www path to cleanup old card")
+            # Remove old copy from /config/www if present (cleanup of previous
+            # installs). Filesystem work, so in the executor (R39).
+            await self.hass.async_add_executor_job(
+                _remove_old_copy, Path(self.hass.config.path("www")) / LOCAL_SUBDIR / card_name
+            )
 
             # Try a delicate auto-registration of the lovelace resource; this will only
             # update/create the single resource URL and includes a version query param.
@@ -262,13 +270,17 @@ class CrealityCardRegistration:
                     self.hass, f"/local/{LOCAL_SUBDIR}/{card_name}", integration_url, version
                 )
                 if migrated:
-                    _LOGGER.info("Migrated %d Lovelace /local/ resources to integration-hosted URL", migrated)
+                    _LOGGER.info("Removed %d out-of-date Lovelace resource(s) for %s", migrated, card_name)
             except Exception:
                 _LOGGER.debug("Local-to-integration resource migration failed for %s", integration_url)
 
+        www = Path(__file__).parent / "www"
+        present = await self.hass.async_add_executor_job(
+            lambda: {name for name in (*ASSETS, "i18n") if (www / name).exists()}
+        )
         for asset_name in ASSETS:
-            asset_path = Path(__file__).parent / "www" / asset_name
-            if asset_path.exists():
+            asset_path = www / asset_name
+            if asset_name in present:
                 _register_static_path(
                     self.hass,
                     f"{INTEGRATION_URL_BASE}{asset_name}",
@@ -277,8 +289,8 @@ class CrealityCardRegistration:
             else:
                 _LOGGER.warning("Card asset missing, not registered: %s", asset_path)
 
-        i18n_path = Path(__file__).parent / "www" / "i18n"
-        if i18n_path.exists():
+        i18n_path = www / "i18n"
+        if "i18n" in present:
             # No cache headers here, unlike the cards. Their URLs carry a
             # `?v=` derived from the file's own bytes, so a month-long
             # max-age is exactly what you want; the i18n files are fetched

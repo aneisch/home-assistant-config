@@ -99,6 +99,7 @@ automation:
             {% else %}
               {{ trigger.to_state.attributes.friendly_name }} {{ trigger.from_state.state }} --> {{ trigger.to_state.state }}: {{ now().strftime('%Y-%m-%d %T') }}"
             {% endif %}
+          level: "{{ 'alert' if trigger.to_state.state == 'fault' else 'info' }}"
 
 
   - alias: Battery Charge Limit - Away Mode Protection
@@ -244,19 +245,118 @@ automation:
               hvac_mode: "{{ previous_climate_mode }}"
           - service: rest_command.adjust_force_eval
 
+  # Three levels, most to least protective of the battery:
+  #   Hold             - System TOU off: battery only used if the grid goes down
+  #   Normal TOU       - battery held 12:00-18:00 (20/70/80/95%) so it's full for the evening
+  #   Full Day Minimum - battery free to run down to 15% all day
+  # 18:00 picks the overnight level from tomorrow's forecast (overnight both TOU
+  # profiles are 15%, so it's Hold vs Normal TOU). 11:45 picks the afternoon level from
+  # what's left of today. 14:30 only relaxes, in case the afternoon cleared up.
+  - alias: Sol-Ark Auto TOU Schedule
+    id: solark_auto_tou_schedule
+    mode: single
+    trigger:
+      - platform: time
+        at: "11:45:00"
+        id: midday
+      - platform: time
+        at: "14:30:00"
+        id: afternoon
+      - platform: time
+        at: "18:00:00"
+        id: evening
+    action:
+      - variables:
+          levels: ["Hold", "Normal TOU", "Full Day Minimum"]
+          # Scale with the season from Sunrise SoC Forecast's rolling 7-day averages
+          daily_load: "{{ states('sensor.7_day_average_daily_consumption') | float(60) }}"
+          overnight_load: "{{ states('sensor.7_day_average_overnight_consumption') | float(30) }}"
+          # Solar under the daytime load only covers the house, nothing left for the battery
+          hold_below: "{{ [daily_load - overnight_load, 10] | max }}"
+          # 12:00-18:00 has been ~35% of daily use
+          afternoon_load: "{{ daily_load * 0.35 }}"
+          soc: "{{ states('sensor.solark_sol_ark_battery_soc') | float(0) }}"
+          refill: "{{ [95 - soc, 0] | max / 100 * 26.88 / 0.94 }}"
+          # Manual runs have no trigger id, so pick the check from the time of day
+          phase: >-
+            {%- if trigger.id is defined and trigger.id -%} {{ trigger.id }}
+            {%- elif now().hour >= 18 -%} evening
+            {%- elif now().hour < 12 -%} morning
+            {%- else -%} midday
+            {%- endif -%}
+          forecast_label: >-
+            {{ {'evening': 'tomorrow', 'morning': 'today'}.get(phase, 'remaining') }}
+          forecast: >-
+            {{ states({'evening': 'sensor.solcast_pv_forecast_forecast_tomorrow',
+                       'morning': 'sensor.solcast_pv_forecast_forecast_today'}
+                      .get(phase, 'sensor.solcast_pv_forecast_forecast_remaining_today'))
+               | float(0) }}
+          target: >-
+            {%- if phase in ['evening', 'morning'] -%}
+              {{ 'Hold' if forecast < hold_below else 'Normal TOU' }}
+            {%- elif forecast >= (refill + afternoon_load) * 1.15 -%} Full Day Minimum
+            {%- elif forecast >= afternoon_load -%} Normal TOU
+            {%- else -%} Hold
+            {%- endif -%}
+          current: >-
+            {{ 'Hold' if is_state('switch.solark_sol_ark_system_tou', 'off')
+               else states('select.solark_sol_ark_tou_schedule') }}
+      - condition: template
+        value_template: >-
+          {{ target != current and
+             (phase != 'afternoon' or current not in levels
+              or levels.index(target) > levels.index(current)) }}
+      - if: "{{ target == 'Hold' }}"
+        then:
+          - service: switch.turn_off
+            target:
+              entity_id: switch.solark_sol_ark_system_tou
+        else:
+          - service: select.select_option
+            target:
+              entity_id: select.solark_sol_ark_tou_schedule
+            data:
+              option: "{{ target }}"
+          - service: switch.turn_on
+            target:
+              entity_id: switch.solark_sol_ark_system_tou
+      # - service: script.notify_wrapper
+      #   data:
+      #     message: >-
+      #       {{ current }} -> {{ target }}
+      #       ({{ forecast_label }} solar
+      #       {{ forecast | round(1) }} kWh, battery {{ soc | round }}%)
+
   - alias: Home Battery Charged Notification
     id: home_battery_charged_notification
     trigger:
       - platform: numeric_state
         entity_id: sensor.solark_sol_ark_battery_soc
         above: 97
+    condition:
+      - condition: state
+        entity_id: input_boolean.goodnight
+        state: "off"
+      - condition: state
+        entity_id: switch.master_bedroom_ceiling_fan
+        state: "off"
     action:
-      - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
+      # - action: notify.alexa_media_andrew_s_kitchen_echo #notify.alexa_media_kitchen
+      #   data:
+      #     data:
+      #       type: tts
+      #       method: speak
+      #     message: <audio src="soundbank://soundlibrary/alarms/chimes_and_bells/chimes_bells_04"/>
+      - action: siren.turn_on
+        target:
+          entity_id: siren.siren_chime_play_tone
         data:
-          data:
-            type: tts
-            method: speak
-          message: <audio src="soundbank://soundlibrary/alarms/chimes_and_bells/chimes_bells_04"/>
+          volume_level: 0.5
+          tone: >
+            {{ state_attr('siren.siren_chime_play_tone', 'available_tones') |dictsort
+            |selectattr('1', 'search', 'chimes_bells_04') |map(attribute='0') |first }}
+
+
 
 input_number:
   day_solar_power_peak:

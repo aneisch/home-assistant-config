@@ -8,10 +8,6 @@ hide:
   temperature: True
   state: True
 sensors:
-  - entity: binary_sensor.thermostat_online
-    name: Connected
-  - entity: sensor.thermostat_state
-  - entity: sensor.thermostat_setpoint
   - entity: sensor.thermostat_humidity
     name: Humidity
   - entity: sensor.thermostat_temperature
@@ -50,4 +46,5 @@ sensors:
   - entity: input_number.cool_boost_target
     name: Cool Boost Target
   # - entity: sensor.easy_start_ble_last_start_peak
+  - entity: sensor.ac_boost_status
 control: false

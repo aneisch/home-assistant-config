@@ -14,15 +14,12 @@ from homeassistant import config_entries #type: ignore[import]
 from homeassistant.config_entries import ConfigFlowResult #type: ignore[import]
 from homeassistant.data_entry_flow import section #type: ignore[import]
 from homeassistant.helpers import selector #type: ignore[import]
-from homeassistant.helpers.aiohttp_client import async_get_clientsession #type: ignore[import]
 from .const import (
     DOMAIN,
     CONF_HOST,
     CONF_NAME,
     DEFAULT_NAME,
     WS_PORT,
-    WEBRTC_URL_TEMPLATE,
-    WEBRTC_CALL_ROOT_URL_TEMPLATE,
     CONF_POWER_SWITCH,
     CONF_POWER_SWITCH_ENABLED,
     CONF_CAMERA_MODE,
@@ -52,7 +49,6 @@ from .const import (
     DEFAULT_POLLING_RATE,
     NOTIFY_TEMPLATE_OPTIONS,
 )
-from .utils import ModelDetection
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -67,41 +63,11 @@ async def _probe_tcp(host: str, port: int, timeout: float = 2.5) -> bool:
         return False
 
 
-async def _probe_webrtc_signaling(hass, url: str, timeout: float = 1.5) -> bool:
-    """Probe the Creality WebRTC signaling endpoint.
-    
-    Returns:
-        bool: True if WebRTC signaling is available, False otherwise
-    """
-    session = async_get_clientsession(hass)
-    try:
-        async with session.head(url, timeout=timeout) as resp:
-            if resp.status in (200, 204, 405):
-                return True
-    except Exception:
-        pass
-    try:
-        async with session.get(url, timeout=timeout) as resp:
-            if resp.status in (200, 204, 405):
-                return True
-    except Exception:
-        return False
-    return False
-
-
-async def _has_webrtc_signaling(hass, host: str) -> bool:
-    """Return True if any known Creality WebRTC signaling endpoint responds.
-
-    Newer K1C firmwares expose the signaling endpoint on `/call` while K2-family
-    printers use `/call/webrtc_local`; probe both before deciding.
-    """
-    for template in (WEBRTC_CALL_ROOT_URL_TEMPLATE, WEBRTC_URL_TEMPLATE):
-        url = template.format(host=host)
-        if await _probe_webrtc_signaling(hass, url, timeout=2.0):
-            return True
-    return False
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 3
+
+    _discovered_host: str | None = None
+    _discovered_mac: str | None = None
 
     @staticmethod
     def async_get_options_flow(config_entry: config_entries.ConfigEntry):
@@ -135,42 +101,79 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_zeroconf(self, discovery_info: Any) -> ConfigFlowResult:
-        from .utils import extract_info_from_zeroconf
+        from .utils import extract_info_from_zeroconf, normalize_printer_hostname
         host, mac = extract_info_from_zeroconf(discovery_info)
-        
+
         if not host:
             return self.async_abort(reason="cannot_connect")
-            
-        # Robust Update Check:
-        # Check if an existing entry has this MAC address but a different IP.
-        # If so, update it automatically and abort this new flow.
-        if mac:
-            for entry in self.hass.config_entries.async_entries(DOMAIN):
-                cached_mac = entry.data.get("_cached_mac")
-                if cached_mac and cached_mac.upper() == mac.upper():
-                    if entry.data.get(CONF_HOST) != host:
-                        _LOGGER.warning(
-                            "Discovered printer with known MAC %s at new IP %s. Updating existing entry.", 
-                            mac, host
-                        )
-                        self.hass.config_entries.async_update_entry(
-                            entry, 
-                            data={**entry.data, CONF_HOST: host, "_last_ip": host}
-                        )
-                        self.hass.async_create_task(
-                            self.hass.config_entries.async_reload(entry.entry_id)
-                        )
-                    return self.async_abort(reason="already_configured")
 
-        # Standard check: if we already have this IP configured, abort
-        if not await _probe_tcp(host, WS_PORT):
-            return self.async_abort(reason="not_K")
-
+        # Already configured at this address. Checked before anything touches
+        # the network: every mDNS re-announcement lands here.
         await self.async_set_unique_id(host)
         self._abort_if_unique_id_configured()
 
-        title = f"{DEFAULT_NAME} ({host})"
-        return self.async_create_entry(title=title, data={CONF_HOST: host, "_cached_mac": mac})
+        # The same printer at a new address (a new DHCP lease): move the entry
+        # rather than offer the printer a second time. The setup that the
+        # update triggers moves the device and entities too.
+        hostname = normalize_printer_hostname(getattr(discovery_info, "hostname", None))
+        for entry in self.hass.config_entries.async_entries(DOMAIN):
+            cached_mac = str(entry.data.get("_cached_mac") or "").upper()
+            same_mac = bool(mac and cached_mac and cached_mac == mac.upper())
+            same_name = bool(
+                hostname
+                and normalize_printer_hostname(entry.data.get("_cached_hostname")) == hostname
+            )
+            if not (same_mac or same_name):
+                continue
+            old_host = entry.data.get(CONF_HOST)
+            if same_name and not same_mac and old_host and await _probe_tcp(old_host, WS_PORT):
+                # A hostname is only a hint, and the configured address still
+                # answers: either a second interface of this printer, or a
+                # different printer with the same name. Change nothing.
+                return self.async_abort(reason="already_configured")
+            _LOGGER.info(
+                "Discovered the printer at %s (was %s); updating its entry",
+                host,
+                old_host,
+            )
+            # A data change reloads the entry through its update listener.
+            self.hass.config_entries.async_update_entry(
+                entry, data={**entry.data, CONF_HOST: host}
+            )
+            return self.async_abort(reason="already_configured")
+
+        if not await _probe_tcp(host, WS_PORT):
+            return self.async_abort(reason="not_K")
+
+        self._discovered_host = host
+        self._discovered_mac = mac
+        self.context["title_placeholders"] = {"name": hostname or host}
+        return await self.async_step_zeroconf_confirm()
+
+    async def async_step_zeroconf_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Ask before adding a discovered printer.
+
+        Adding it silently put every K1/K2-named host on the network into Home
+        Assistant, and a printer the user had deleted came back on its next
+        announcement.
+        """
+        host = self._discovered_host
+        if user_input is not None:
+            data: dict[str, Any] = {CONF_HOST: host}
+            if self._discovered_mac:
+                data["_cached_mac"] = self._discovered_mac
+            return self.async_create_entry(title=f"{DEFAULT_NAME} ({host})", data=data)
+
+        self._set_confirm_only()
+        return self.async_show_form(
+            step_id="zeroconf_confirm",
+            description_placeholders={
+                "name": self.context["title_placeholders"]["name"],
+                "host": host,
+            },
+        )
 
 
 # The collapsible groups on the notifications page, and what each field falls
@@ -307,43 +310,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         self._persist()
         return await self.async_step_init()
 
-    async def _detect_camera_type(self) -> str:
-        """Detect the camera type for this printer."""
-        host = self.config_entry.data["host"]
-        
-        # Get the coordinator to access printer data
-        try:
-            coord = self.hass.data.get(DOMAIN, {}).get(self.config_entry.entry_id)
-            if coord and coord.data:
-                # Use model detection if we have telemetry data
-                printermodel = ModelDetection(coord.data)
-                
-                # K2 family uses WebRTC
-                if printermodel.is_k2_family:
-                    _LOGGER.debug("ha_creality_ws: detected K2 family printer (WebRTC)")
-                    return CAM_MODE_WEBRTC
-                
-                # K1 family, K1 Max, K1C, Creality Hi use MJPEG
-                if printermodel.is_k1_family or printermodel.is_k1_max or printermodel.is_k1c or printermodel.is_creality_hi:
-                    _LOGGER.debug("ha_creality_ws: detected MJPEG camera model")
-                    return CAM_MODE_MJPEG
-                
-                # K1 SE and Ender V3 may have optional MJPEG
-                if printermodel.is_k1_se or printermodel.is_ender_v3_family:
-                    _LOGGER.debug("ha_creality_ws: detected optional camera model, trying MJPEG")
-                    return CAM_MODE_MJPEG
-        except Exception as exc:
-            _LOGGER.debug("ha_creality_ws: failed to detect camera from telemetry: %s", exc)
-        
-        # Fallback: probe WebRTC signaling endpoints (both /call and /call/webrtc_local)
-        if await _has_webrtc_signaling(self.hass, host):
-            _LOGGER.debug("ha_creality_ws: detected WebRTC via probe")
-            return CAM_MODE_WEBRTC
-
-        # Default to MJPEG
-        _LOGGER.debug("ha_creality_ws: defaulting to MJPEG")
-        return CAM_MODE_MJPEG
-
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Top-level options menu (the hub each section returns to).
 
@@ -385,10 +351,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         if user_input is not None:
             camera_mode = user_input.get(CONF_CAMERA_MODE, CAM_MODE_AUTO)
-            if camera_mode == CAM_MODE_AUTO:
-                camera_mode = await self._detect_camera_type()
-                _LOGGER.info("ha_creality_ws: auto mode detected camera type: %s", camera_mode)
-
+            # Auto is stored as auto. Resolving it here and saving the result
+            # turned it into a forced mode that no later firmware change could
+            # undo, and the resolver chose MJPEG for any K1 before it looked at
+            # `webrtcSupport`, so a WebRTC K1C lost its video for good (#46).
+            # The camera platform resolves it from telemetry at every setup.
             staged[CONF_CAMERA_MODE] = camera_mode
 
             if camera_mode == CAM_MODE_CUSTOM:
@@ -416,7 +383,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     .scheme.lower() in GO2RTC_SOURCE_SCHEMES
             )
 
-            if camera_mode == CAM_MODE_WEBRTC or custom_uses_go2rtc:
+            # Auto keeps them too: it resolves to WebRTC on a K2 or a WebRTC K1C,
+            # and the page renders the go2rtc fields for it.
+            if camera_mode in (CAM_MODE_WEBRTC, CAM_MODE_AUTO) or custom_uses_go2rtc:
                 # Only fields the form actually rendered are applied. A submit can
                 # reach here without them: switching to Custom hides the go2rtc
                 # fields, and the Custom-uses-go2rtc branch then ran with no
@@ -787,19 +756,45 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             data_schema=vol.Schema(schema_dict),
         )
 
+    async def _new_host_error(self, host: str) -> str | None:
+        """Why `host` cannot be this printer's new address, if it cannot (R35).
+
+        Checked the way the user step checks a new printer. Without it, an
+        address another entry already uses moved this printer's device onto
+        that one's, and a typo was saved without a word and left the printer
+        unavailable.
+        """
+        for other in self.hass.config_entries.async_entries(DOMAIN):
+            if other.entry_id != self.config_entry.entry_id and host in (
+                other.unique_id,
+                other.data.get(CONF_HOST),
+            ):
+                return "host_in_use"
+        if not await _probe_tcp(host, WS_PORT):
+            return "cannot_connect"
+        return None
+
     async def async_step_connection(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Connection (IP) and performance (polling) settings."""
         self._ensure_working()
         assert self._working is not None
+        errors: dict[str, str] = {}
+        host_shown = self._working_host or ""
         if user_input is not None:
             new_host = str(user_input.get(CONF_HOST) or "").strip()
-            if new_host:
-                self._working_host = new_host
-            self._working[CONF_POLLING_RATE] = user_input.get(CONF_POLLING_RATE, DEFAULT_POLLING_RATE)
-            return await self._saved()
+            if new_host and new_host != self.config_entry.data.get(CONF_HOST):
+                error = await self._new_host_error(new_host)
+                if error:
+                    errors[CONF_HOST] = error
+                    host_shown = new_host
+            if not errors:
+                if new_host:
+                    self._working_host = new_host
+                self._working[CONF_POLLING_RATE] = user_input.get(CONF_POLLING_RATE, DEFAULT_POLLING_RATE)
+                return await self._saved()
 
         schema_dict: dict[str, Any] = {
-            vol.Optional(CONF_HOST, default=self._working_host or ""): selector.TextSelector(
+            vol.Optional(CONF_HOST, default=host_shown): selector.TextSelector(
                 selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT, autocomplete="off")
             ),
             vol.Optional(
@@ -809,4 +804,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 selector.NumberSelectorConfig(min=0, max=60, mode=selector.NumberSelectorMode.BOX, unit_of_measurement="sec")
             ),
         }
-        return self.async_show_form(step_id="connection", data_schema=vol.Schema(schema_dict))
+        return self.async_show_form(
+            step_id="connection", data_schema=vol.Schema(schema_dict), errors=errors
+        )

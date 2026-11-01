@@ -14,10 +14,18 @@ from .entity import MailandPackagesBinarySensorEntityDescription
 DOMAIN = "mail_and_packages"
 DOMAIN_DATA = f"{DOMAIN}_data"
 ASSET_ROOT: Final[Path] = Path(__file__).parent
-VERSION = "0.6.4"
+VERSION = "0.6.9"
 ISSUE_URL = "http://github.com/moralmunky/Home-Assistant-Mail-And-Packages"
 PLATFORM = "sensor"
 PLATFORMS = ["binary_sensor", "camera", "sensor"]
+
+# Combined "All mailboxes" summary entry
+CONF_ENTRY_TYPE = "entry_type"
+ENTRY_TYPE_SUMMARY = "summary"
+SUMMARY_UNIQUE_ID = "all_mailboxes_summary"
+SUMMARY_PLATFORMS = ["sensor"]
+SUMMARY_DEVICE_NAME = "All mailboxes"
+SIGNAL_MAILBOX_UPDATED = f"{DOMAIN}_mailbox_updated"
 DATA = "data"
 COORDINATOR = "coordinator_mail"
 OVERLAY = ["overlay.png", "vignette.png", "white.png"]
@@ -35,6 +43,7 @@ ATTR_CODE = "code"
 ATTR_GRID_IMAGE_NAME = "grid_image"
 ATTR_ORDER = "order"
 ATTR_ORDER_DETAILS = "order_details"
+ATTR_DELIVERY_DATE_PATTERN = "delivery_date_pattern"
 ATTR_TRACKING = "tracking"
 ATTR_TRACKING_NUM = "tracking_#"
 ATTR_IMAGE = "image"
@@ -54,6 +63,7 @@ ATTR_GENERIC_IMAGE = "generic_image"
 ATTR_USPS_IMAGE = "usps_image"
 ATTR_POST_DE_IMAGE = "post_de_image"
 ATTR_HOME_DEPOT_IMAGE = "home_depot_image"
+ATTR_BUTCHERBOX_IMAGE = "butcherbox_image"
 
 # Configuration Properties
 CONF_ALLOW_EXTERNAL = "allow_external"
@@ -74,7 +84,7 @@ CONF_POST_DE_CUSTOM_IMG = "post_de_custom_img"
 CONF_POST_DE_CUSTOM_IMG_FILE = "post_de_custom_img_file"
 CONF_HOME_DEPOT_CUSTOM_IMG = "home_depot_custom_img"
 CONF_HOME_DEPOT_CUSTOM_IMG_FILE = "home_depot_custom_img_file"
-CONF_STORAGE = "storage"
+CONF_STORAGE = "storage"  # Deprecated in favor of managed entry directories
 CONF_FOLDER = "folder"
 CONF_PATH = "image_path"
 CONF_DURATION = "gif_duration"
@@ -197,6 +207,7 @@ AMAZON_DELIVERING_SUBJECT = [
 ]
 AMAZON_SHIPMENT_SUBJECT = [
     "Shipped",
+    "Dispatched",
     "Enviado:",
     "Spedito:",
     "Versandt:",
@@ -224,6 +235,7 @@ AMAZON_DELIVERING = "amazon_delivering"
 AMAZON_IMG_LIST = [
     "us-prod-temp.s3.amazonaws.com",
     "gb-prod-temp.s3.eu-west-1.amazonaws.com",
+    "jp-prod-temp.s3.us-west-2.amazonaws.com",
 ]
 AMAZON_IMG_PATTERN = (
     "(https://)([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-;]*[\\w@?^=%&/~+#-;])?"
@@ -259,6 +271,7 @@ AMAZON_TIME_PATTERN = [
     "In arrivo",
     "Zustellung:",
     "Ankunft",
+    "Expected by",
 ]
 AMAZON_TIME_PATTERN_END = [
     "Previously expected:",
@@ -280,6 +293,11 @@ AMAZON_TIME_PATTERN_REGEX = [
     "Arriving (\\w+ \\d+)",
     "Arriving (\\w+ ?\\d*)",
     "Arriving (\\w+)",
+    "Expected by (\\w+ \\d+) - (\\w+ \\d+)",
+    "Expected by (\\w+,? \\w+ \\d+)",
+    "Expected by (\\w+ \\d+)",
+    "Expected by (\\w+ ?\\d*)",
+    "Expected by (\\w+)",
     "Zustellung:? (heute)",
     "Zustellung:? (\\w+ \\d+) - (\\w+ \\d+)",
     "Zustellung:? (\\w+ \\d+)",
@@ -349,12 +367,13 @@ SENSOR_DATA = {
         "body_count": True,
     },
     "usps_tracking": {"pattern": ["9[2345]\\d{15,26}"]},
+    # Note: Only verified email addresses are matched here; display names
+    # (e.g. 'USPS Informed Delivery') are excluded to prevent IMAP spoofing.
     "usps_mail": {
         "email": [
             "USPSInformedDelivery@usps.gov",
             "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
-            "USPS Informed Delivery",
         ],
         "subject": ["Your Daily Digest"],
     },
@@ -363,7 +382,6 @@ SENSOR_DATA = {
             "USPSInformedDelivery@usps.gov",
             "USPSInformeddelivery@email.informeddelivery.usps.com",
             "USPSInformeddelivery@informeddelivery.usps.com",
-            "USPS Informed Delivery",
         ],
         "subject": ["Your Mail Was Delivered"],
     },
@@ -686,6 +704,20 @@ SENSOR_DATA = {
             "\\d{13}[A-Z0-9]{1,2}",
         ],
     },
+    # DPD UK
+    # No delivered-email pattern is registered until a genuine sample is available.
+    "dpd_uk_delivered": {},
+    "dpd_uk_delivering": {
+        "email": [
+            "yourorder@dpd.co.uk",
+            "yourdelivery@dpd.co.uk",
+        ],
+        "subject": [
+            "order will be delivered today between",
+        ],
+    },
+    "dpd_uk_packages": {},
+    "dpd_uk_tracking": {},
     # DPD
     "dpd_delivered": {
         "email": [
@@ -774,7 +806,10 @@ SENSOR_DATA = {
     # Australia Post
     "auspost_delivered": {
         "email": ["noreply@notifications.auspost.com.au"],
-        "subject": ["Your shipment has been delivered"],
+        "subject": [
+            "Your shipment has been delivered",
+            "Your parcel has been delivered",
+        ],
     },
     "auspost_delivering": {
         "email": ["noreply@notifications.auspost.com.au"],
@@ -1390,6 +1425,27 @@ SENSOR_DATA = {
     "mondial_relay_delivering": {},
     "mondial_relay_packages": {},
     "mondial_relay_tracking": {"pattern": ["\\d{8,12}"]},
+    # bpost
+    "bpost_delivered": {
+        "email": ["noreply@communication.bpost.be"],
+        "subject": ["a été livré"],
+    },
+    "bpost_delivering": {
+        "email": ["noreply@communication.bpost.be"],
+        "subject": ["Nous livrerons votre colis"],
+        "body": ["aujourd’hui"],
+        "delivery_date_pattern": [
+            r"le\s+(\d{1,2}(?:(?:\s+[a-zA-Zéûùàèôîç]+(?:\s+\d{4})?)|\s*[-/]\s*\d{1,2}\s*[-/]\s*\d{2,4}))",
+        ],
+    },
+    "bpost_packages": {},
+    "bpost_tracking": {
+        "pattern": [
+            r"(?i)Code-barres\s+([A-Z0-9]+)",
+            r"\b(?:3232|3299)\d{14,20}\b",
+            r"\b[A-Z]{2}\d{9}[A-Z]{2}\b",
+        ],
+    },
 }
 
 # Sensor definitions
@@ -1700,6 +1756,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement="package(s)",
         icon="mdi:package-variant-closed",
         key="dpd_com_pl_packages",
+    ),
+    # DPD UK
+    "dpd_uk_delivering": SensorEntityDescription(
+        name="Mail DPD UK Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="dpd_uk_delivering",
+    ),
+    "dpd_uk_delivered": SensorEntityDescription(
+        name="Mail DPD UK Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="dpd_uk_delivered",
+    ),
+    "dpd_uk_packages": SensorEntityDescription(
+        name="Mail DPD UK Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="dpd_uk_packages",
     ),
     # DPD
     "dpd_delivering": SensorEntityDescription(
@@ -2245,6 +2320,25 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         icon="mdi:package-variant-closed",
         key="mondial_relay_packages",
     ),
+    # bpost
+    "bpost_delivering": SensorEntityDescription(
+        name="Mail bpost Delivering",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:truck-delivery",
+        key="bpost_delivering",
+    ),
+    "bpost_delivered": SensorEntityDescription(
+        name="Mail bpost Delivered",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant",
+        key="bpost_delivered",
+    ),
+    "bpost_packages": SensorEntityDescription(
+        name="Mail bpost Packages",
+        native_unit_of_measurement="package(s)",
+        icon="mdi:package-variant-closed",
+        key="bpost_packages",
+    ),
     ###
     # !!! Insert new sensors above these summary sensors !!!
     ###
@@ -2328,6 +2422,7 @@ CAMERA_DATA = {
     "amazon_camera": ["Mail Amazon Delivery Camera"],
     "walmart_camera": ["Mail Walmart Delivery Camera"],
     "home_depot_camera": ["Mail Home Depot Delivery Camera"],
+    "butcherbox_camera": ["Mail ButcherBox Delivery Camera"],
     "fedex_camera": ["Mail FedEx Delivery Camera"],
     "generic_camera": ["Mail Generic Delivery Camera"],
     "post_de_camera": ["Mail Post DE Camera"],
@@ -2340,13 +2435,20 @@ CAMERA_EXTRACTION_CONFIG = {
         "image_type": "jpeg",
         "cid_name": "deliveryPhoto",
     },
+    # Walmart's delivery photo has been seen as both PNG and JPEG, so accept either.
     "walmart": {
-        "image_type": "png",
+        "image_type": ["png", "jpeg"],
         "cid_name": "deliveryProofLabel",
     },
     "fedex": {
         "image_type": "jpeg",
         "attachment_filename_pattern": "delivery",
+    },
+    # ButcherBox's emails carry no photo; its boxes ship with GLS USA, whose
+    # public tracking API serves one for the shipment (utils/gls_us.py).
+    "butcherbox": {
+        "image_type": "jpeg",
+        "photo_source": "gls_us",
     },
 }
 
@@ -2383,6 +2485,7 @@ SHIPPERS = [
     "auspost",
     "inpost_pl",
     "dpd_com_pl",
+    "dpd_uk",
     "dpd",
     "gls",
     "dhl_parcel_nl",
@@ -2405,6 +2508,7 @@ SHIPPERS = [
     "butcherbox",
     "vinted_go",
     "mondial_relay",
+    "bpost",
 ]
 
 # Authentication types

@@ -24,7 +24,6 @@ class _KFanEntity(KEntity, FanEntity):
     _attr_supported_features = (
         FanEntityFeature.SET_SPEED | FanEntityFeature.TURN_ON | FanEntityFeature.TURN_OFF
     )
-    _attr_percentage_step = 1
 
     # New native fan entities should be enabled by default; keep old Number entities for BC
     _attr_entity_registry_enabled_default = True
@@ -60,7 +59,7 @@ class _KFanEntity(KEntity, FanEntity):
         pct = max(0, min(100, int(round(percentage))))
         s_val = int(round(255 * (pct / 100.0)))
         cmd = f"M106 P{self._channel} S{s_val}"
-        await self.coordinator.client.send_set_retry(gcodeCmd=cmd)
+        await self._send(gcodeCmd=cmd)
 
     async def async_turn_on(
         self,

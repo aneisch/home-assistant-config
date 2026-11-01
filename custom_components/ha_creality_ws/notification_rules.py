@@ -113,6 +113,8 @@ def coerce_targets(options: Mapping[str, Any]) -> list[str]:
 # there is an ordinary banner that cannot be updated in place -- one every
 # refresh interval, none of which supersede the last.
 LIVE_INCAPABLE_OS = frozenset({"macos"})
+# `os_name` values the Apple companion apps register with.
+APPLE_OS = frozenset({"ios", "ipados", "macos", "watchos", "visionos"})
 
 
 def is_live_capable(os_name: str | None) -> bool:
@@ -427,11 +429,15 @@ def stringify_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     Nesting is *not* uniformly exempt, which cost a release to learn. Measured
     against a real Galaxy S24, one key at a time:
 
-    * ``actions`` -- a **list** of dicts -- is flattened into the same FCM map,
-      so a bool inside it is rejected exactly like a bool at the top level.
-      ``destructive: True`` on the Stop button was enough to lose every push.
-    * ``push`` and ``content_state`` -- plain **dicts** -- are not flattened.
-      They survive with real ints, and iOS wants them that way.
+    * ``actions`` -- a **list** of dicts -- is flattened into the same FCM map
+      (``action_N_key``, ``action_N_authenticationRequired``, ...), so a bool
+      inside it is rejected exactly like a bool at the top level. The relay
+      copies ``authenticationRequired`` as it is, and the Stop button's
+      ``authenticationRequired: True`` was enough to lose every push.
+      (``destructive`` is not sent to Android at all.)
+    * ``push`` and ``content_state`` -- plain **dicts** -- are not part of the
+      Android message (the relay drops them), so their real ints cost nothing
+      there, and iOS wants them that way.
 
     Hence the rule: scalars are coerced at the top level and inside dicts nested
     in a *list*, while a dict value is passed through whole.
@@ -453,6 +459,50 @@ def stringify_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
         else:
             out[key] = _scalar_to_str(value)
     return out
+
+
+def native_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """The same ``data`` dict for an Apple target: ``None`` dropped, types kept.
+
+    The FCM string rule is Android's alone, and applying it to an iPhone broke
+    every Live Activity (#125). The relay copies ``chronometer`` and ``when``
+    into the activity's content state, and the iOS app decodes those strictly as
+    a ``Bool`` and a ``Double``: ``"false"`` and ``"1790962603"`` make the
+    decode throw, and ActivityKit drops the push without a trace. ``silent`` is
+    compared with ``=== true`` by the relay and ``live_update`` must be a real
+    ``Bool`` for local push, so neither survives as a string either, and the
+    action parser reads ``"true"`` as ``false``, which cost Stop its
+    confirmation.
+
+    ``None`` is dropped at the same depths `stringify_data` drops it, so both
+    platforms see the same set of keys.
+    """
+    out: dict[str, Any] = {}
+    for key, value in (data or {}).items():
+        if value is None:
+            continue
+        if isinstance(value, (list, tuple)):
+            out[key] = [
+                native_data(item) if isinstance(item, Mapping) else item
+                for item in value
+            ]
+        elif isinstance(value, Mapping):
+            out[key] = dict(value)
+        else:
+            out[key] = value
+    return out
+
+
+def is_apple_platform(os_name: str | None, manufacturer: str | None = None) -> bool:
+    """Whether a companion registration is one of Apple's apps.
+
+    Core makes the same call on ``manufacturer == "Apple"`` before it routes a
+    push through its Live Activity handling; ``os_name`` is the fallback for a
+    registration that does not carry one.
+    """
+    if manufacturer and manufacturer.strip().lower() == "apple":
+        return True
+    return bool(os_name) and os_name.strip().lower() in APPLE_OS
 
 
 def _scalar_to_str(value: Any) -> Any:
@@ -531,6 +581,14 @@ def _milestone_of(progress: Any) -> int:
 # indistinguishable, so the watch below only ever arms on a job it has seen
 # actually printing.
 RUNNING_JOB_STATES = frozenset({"printing", "paused"})
+
+# What may re-arm the once-per-job latches after a job ended. A finished print
+# is left as state 0 with its file name and, a while later, the progress reset
+# to 0 -- "processing", busy by the dashboard's reckoning -- and re-arming on it
+# announced a print that never started and stood a "0% Starting" live card up
+# under it, for as long as the file stayed selected. A real reprint of the same
+# file is unmistakable a moment later: it self-tests or prints.
+REARM_JOB_STATES = RUNNING_JOB_STATES | {"self-testing"}
 
 # States that say nothing about the job: the WebSocket is down, or the power
 # switch is off. A print cannot be declared stopped from a frame that only
@@ -628,6 +686,15 @@ class JobEndWatch:
             # only declared stopped off frames that actually described the
             # printer, so the confirmation starts again from the first one that
             # does.
+            self.pending_since = None
+            return None
+
+        if state == "self-testing":
+            # The K2 reports "printing" for a frame and then runs its pre-print
+            # checks for minutes, so the confirmation below would always call
+            # them a stop (#124). Part of the job, but not a running state
+            # either: it derives from `withSelfTest` alone, file name or not, so
+            # arming on it would arm on a calibration with no job behind it.
             self.pending_since = None
             return None
 
@@ -737,6 +804,12 @@ class LiveCardState:
         if self.pushes_this_job >= NOTIFY_LIVE_MAX_PUSHES_PER_JOB:
             return None
         if not self.card_active:
+            if snap.activity_state == "processing":
+                # A job about to start (state 9, under a second) or a cancel
+                # finishing (7): neither is worth standing a card up for, and
+                # starting on the first cost a push 90 ms before the "printing"
+                # one (R89). A card already up stays up through it.
+                return None
             # Also the mid-print restart resync: priming clears card_active
             # without notifying, so the first frame of an already-running job
             # starts the card rather than leaving a frozen one on the phone.
@@ -882,12 +955,23 @@ class NotifyLinks:
     """Tap targets. Both ship together; each platform ignores the other's key.
 
     ``click_action`` is Android's and accepts ``entityId:<id>`` to open a
-    more-info dialog. iOS's ``url`` does not support that form, so it only gets a
-    value when the user configured a dashboard path.
+    more-info dialog. iOS's ``url`` has no such form; it gets a configured
+    dashboard path, or ``more_info_path``, which opens the same dialog.
     """
 
     click_action: str | None = None
     tap_path: str | None = None
+
+
+def more_info_path(entity_id: str) -> str:
+    """A frontend path that opens one entity's more-info dialog.
+
+    The frontend opens the dialog from the query on any page, the default
+    dashboard included (checked on 2026.10), so the root path works whatever
+    dashboard the user has. iOS uses it as the `url` of a banner or a live
+    activity, which otherwise only opened the app on its last page.
+    """
+    return f"/?more-info-entity-id={entity_id}"
 
 
 def compute_when(now_epoch: float, seconds_left: Any) -> int | None:
@@ -956,7 +1040,6 @@ def build_live_payload(
     actions: list[dict[str, Any]] | None = None,
     refresh: bool = False,
     job_name: str = "",
-    device_name: str = "",
 ) -> dict[str, Any]:
     """A live-card push.
 
@@ -998,41 +1081,23 @@ def build_live_payload(
     # The Hide action is therefore the way out of the card, not a fallback for
     # one. If a future Android or companion release does offer a genuine pin,
     # `persistent` plus a `tag` is where to look first.
+    # iOS alerts on every push unless told otherwise, so a 5-minute refresh
+    # cadence buzzes the phone for the whole print. `alert_once` above is
+    # Android-only and does nothing here, so `silent` is its iOS counterpart
+    # rather than a duplicate. On the push that starts a card too: a real start
+    # alerts regardless (the "your print is now on the Lock Screen" cue), but a
+    # start after a restart or a settings save goes to a phone that still has
+    # the card, Home Assistant sends it as an update by the stored token, and
+    # without `silent` that update chimed (R99).
+    data["silent"] = True
     if refresh:
-        # iOS alerts on every push unless told otherwise, so a 5-minute refresh
-        # cadence buzzes the phone for the whole print. `alert_once` above is
-        # Android-only and does nothing here, so these are its iOS counterpart
-        # rather than a duplicate. Deliberately *not* set on the push that
-        # starts the card: that one is the "your print is now on the Lock
-        # Screen" cue and should be felt once.
-        data["silent"] = True
         data["push"] = {"interruption-level": "passive"}
     else:
         # Tells iOS to begin a Live Activity rather than update one.
         data["activity"] = "start"
 
-    if live_update:
-        # What an iOS Live Activity actually renders from. `activity` alone only
-        # says "start one" -- with no state to draw, iOS falls back to an
-        # ordinary notification, and an ordinary iOS notification is dismissed
-        # by a tap with no key able to prevent it. That was the whole iOS
-        # symptom: a card that vanished when touched.
-        #
-        # A nested dict, so the FCM string rule does not apply to its values
-        # and these stay real numbers.
-        content: dict[str, Any] = {
-            "state": "paused" if paused else "printing",
-            "device": device_name or title,
-        }
-        pct_for_state = _clamp_progress(progress)
-        if pct_for_state is not None:
-            content["progress_pct"] = pct_for_state
-        if when is not None:
-            content["eta_timestamp"] = when
-        if job_name:
-            content["program"] = job_name
-            data["subtitle"] = job_name
-        data["content_state"] = content
+    if live_update and job_name:
+        data["subtitle"] = job_name
 
     pct = _clamp_progress(progress)
     if pct is None:
@@ -1060,6 +1125,19 @@ def build_live_payload(
             data["chronometer"] = False
             if status_text:
                 data["critical_text"] = status_text
+        # The relay builds the Live Activity's content state from the top-level
+        # keys above, then lets `content_state` override them. Repeating the
+        # typed ones here keeps an iPhone working when its platform could not
+        # be identified and the top level went out as strings: a dict is passed
+        # through whole by `stringify_data`, and Android drops this key.
+        content: dict[str, Any] = {
+            key: data[key]
+            for key in ("progress", "progress_max", "chronometer", "critical_text")
+            if key in data
+        }
+        if "when" in data:
+            content["countdown_end"] = data["when"]
+        data["content_state"] = content
 
     # No snapshot on live pushes: Android re-downloads a big picture every time
     # and an iOS Live Activity has no image slot, so it would be pure waste on

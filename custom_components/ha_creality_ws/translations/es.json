@@ -1,5 +1,6 @@
 {
   "config": {
+    "flow_title": "{name}",
     "step": {
       "user": {
         "title": "Conectar a la impresora Creality",
@@ -8,12 +9,14 @@
           "host": "Dirección IP",
           "name": "Nombre descriptivo"
         }
+      },
+      "zeroconf_confirm": {
+        "title": "Añadir impresora descubierta",
+        "description": "¿Quieres añadir la impresora Creality {name} en {host}?"
       }
     },
     "error": {
-      "cannot_connect": "Error al conectar con la impresora. Asegúrate de que la dirección IP sea correcta y de que la impresora esté encendida.",
-      "not_K": "Conexión rechazada o no es una impresora Creality de la serie K compatible.",
-      "already_configured": "Esta impresora ya está configurada."
+      "cannot_connect": "Error al conectar con la impresora. Asegúrate de que la dirección IP sea correcta y de que la impresora esté encendida."
     },
     "abort": {
       "already_configured": "El dispositivo ya está configurado",
@@ -34,6 +37,7 @@
     "status_starting": "Iniciando",
     "status_paused": "En pausa",
     "status_finishing": "Finalizando",
+    "status_printing": "Imprimiendo",
     "body_progress": "{progress}%",
     "body_paused": "En pausa al {progress}%",
     "body_paused_unknown": "En pausa",
@@ -49,11 +53,59 @@
     "completed_detailed": "{device} ha terminado. Filamento consumido: {filament}.",
     "error": "Error de {device} - {key} [{code}]",
     "filament_runout": "{device} se ha quedado sin filamento. Estado de la impresión: {state}. Cambia el filamento.",
-    "finishing_soon": "{device} terminará en {minutes} minutos."
+    "finishing_soon": "{device} terminará en {minutes} min.",
+    "cfs_info_title": "Solicitud de información del CFS",
+    "cfs_info_failed": "No se ha podido contactar con {printers}.",
+    "cfs_material_failed_title": "Material del CFS no cambiado",
+    "cfs_material_failed": "{printer} no está conectada, así que no se ha cambiado la ranura {slot} de la caja {box}.",
+    "diagnostic_title": "Datos de diagnóstico de Creality",
+    "diagnostic_collected": "Se han recopilado los datos de diagnóstico (impresoras: {printers}). Están en la respuesta de esta acción y en el registro de Home Assistant."
   },
   "exceptions": {
     "unsupported_ha_version": {
       "message": "Esta versión de la integración Creality WebSocket necesita Home Assistant {minimum} o posterior, pero este sistema ejecuta la versión {running}. Actualiza Home Assistant o instala en su lugar la versión 0.9.7 de la integración."
+    },
+    "cfs_material_write_failed": {
+      "message": "No se ha cambiado el material del CFS en {printers}: la impresora no está conectada."
+    },
+    "cfs_material_needs_device": {
+      "message": "Elige la impresora que quieres cambiar. Esta acción solo escribe en las impresoras que selecciones, nunca en todas."
+    },
+    "no_printer_matched": {
+      "message": "Ninguno de los dispositivos seleccionados es una impresora Creality configurada en esta integración."
+    },
+    "cfs_material_printer_busy": {
+      "message": "{printer} está en mitad de una impresión, así que no se ha cambiado su material del CFS. Vuelve a intentarlo cuando termine la impresión."
+    },
+    "material_type_empty": {
+      "message": "El tipo de material no puede estar vacío."
+    },
+    "material_not_a_number": {
+      "message": "{field} debe ser un número, no {value}."
+    },
+    "material_temp_order": {
+      "message": "La temperatura máxima ({high}) no puede ser inferior a la temperatura mínima ({low})."
+    },
+    "material_pressure_range": {
+      "message": "El avance de presión debe estar entre 0 y 1, no {value}."
+    },
+    "material_colour_list": {
+      "message": "El color debe ser un valor hexadecimal como #ff8800, no una lista de valores RGB."
+    },
+    "material_colour_multi": {
+      "message": "{value} contiene varios colores, y una ranura solo puede guardar uno."
+    },
+    "material_colour_invalid": {
+      "message": "El color debe tener seis dígitos hexadecimales, como #ff8800, no {value}."
+    },
+    "printer_not_connected": {
+      "message": "La impresora no está conectada, así que no se ha enviado el comando. Comprueba que esté encendida y que se pueda acceder a ella, y vuelve a intentarlo."
+    }
+  },
+  "issues": {
+    "missing_power_switch": {
+      "title": "No se encuentra el interruptor de encendido de {printer}",
+      "description": "El interruptor de encendido configurado para {printer}, `{entity_id}`, no existe, así que se ha cambiado de nombre o se ha eliminado. La integración se conecta a la impresora como si no se hubiera configurado ninguno. Para volver a usar uno, elígelo en Ajustes > Dispositivos y servicios > Creality WebSocket Integration > Configurar > Interruptor de encendido."
     }
   },
   "selector": {
@@ -130,7 +182,7 @@
               "notify_actions": "«Detener» pide autenticación en el dispositivo, así que una pulsación accidental en la pantalla de bloqueo no puede acabar con una impresión larga.",
               "notify_preview_image": "Se omite cuando la impresora no tiene ninguna vista previa que ofrecer, en lugar de enviar un recuadro gris vacío.",
               "notify_camera_snapshot": "El aspecto real de la cama. Se omite en impresoras cuya cámara no puede tomar una imagen fija.",
-              "notify_tap_path": "P. ej. /lovelace/printer. Si se deja vacía, en Android la pulsación abre la cámara de la impresora y en iOS abre la aplicación; es la única forma de que en iOS la pulsación lleve a una vista concreta."
+              "notify_tap_path": "P. ej. /lovelace/printer. Si se deja vacía, la pulsación abre la cámara de la impresora en Android y en iPhone; indica una ruta para abrir un panel en su lugar."
             }
           },
           "text": {
@@ -173,7 +225,9 @@
     },
     "error": {
       "invalid_camera_url": "Introduce una URL completa incluyendo el esquema, p. ej. http://192.168.1.50:8080/?action=stream o rtsp://192.168.1.50:554/stream.",
-      "unknown_placeholder": "Ese no es un marcador de posición que esta integración pueda rellenar. Consulta la lista que aparece en la descripción de arriba y comprueba que esté bien escrito."
+      "unknown_placeholder": "Ese no es un marcador de posición que esta integración pueda rellenar. Consulta la lista que aparece en la descripción de arriba y comprueba que esté bien escrito.",
+      "cannot_connect": "No se ha podido conectar con la impresora en esta dirección. Comprueba la dirección IP y que la impresora esté encendida.",
+      "host_in_use": "Otra impresora de esta integración ya está configurada en esta dirección."
     }
   },
   "entity": {
@@ -189,6 +243,7 @@
       "position_z": { "name": "Posición Z" },
       "feedrate_pct": { "name": "Velocidad de impresión" },
       "flowrate_pct": { "name": "Tasa de flujo" },
+      "real_time_speed": { "name": "Velocidad en tiempo real" },
       "model_info": { "name": "Modelo" },
       "filament_status": {
         "name": "Estado del filamento",
@@ -220,7 +275,10 @@
       "print_job_time": { "name": "Tiempo de trabajo de impresión" },
       "print_left_time": { "name": "Tiempo restante de impresión" },
       "real_time_flow": { "name": "Flujo en tiempo real" },
-      "current_object": { "name": "Objeto actual" },
+      "current_object": {
+        "name": "Objeto actual",
+        "state": { "not_printing": "Sin impresión" }
+      },
       "object_count": { "name": "Cantidad de objetos" },
       "print_control": {
         "name": "Control de impresión",
@@ -233,7 +291,28 @@
       "max_nozzle_temp": { "name": "Temperatura máxima de la boquilla" },
       "max_bed_temp": { "name": "Temperatura máxima de la cama" },
       "max_chamber_temp": { "name": "Temperatura máxima de la cámara" },
-      "active_filament_slot": { "name": "Ranura de filamento activa" },
+      "active_filament_slot": {
+        "name": "Ranura de filamento activa",
+        "state": {
+          "external": "Externa",
+          "box_1_slot_1": "Caja 1, ranura 1",
+          "box_1_slot_2": "Caja 1, ranura 2",
+          "box_1_slot_3": "Caja 1, ranura 3",
+          "box_1_slot_4": "Caja 1, ranura 4",
+          "box_2_slot_1": "Caja 2, ranura 1",
+          "box_2_slot_2": "Caja 2, ranura 2",
+          "box_2_slot_3": "Caja 2, ranura 3",
+          "box_2_slot_4": "Caja 2, ranura 4",
+          "box_3_slot_1": "Caja 3, ranura 1",
+          "box_3_slot_2": "Caja 3, ranura 2",
+          "box_3_slot_3": "Caja 3, ranura 3",
+          "box_3_slot_4": "Caja 3, ranura 4",
+          "box_4_slot_1": "Caja 4, ranura 1",
+          "box_4_slot_2": "Caja 4, ranura 2",
+          "box_4_slot_3": "Caja 4, ranura 3",
+          "box_4_slot_4": "Caja 4, ranura 4"
+        }
+      },
       "cfs_box_temp": { "name": "Temperatura de la caja CFS {box_id}" },
       "cfs_box_humidity": { "name": "Humedad de la caja CFS {box_id}" },
       "cfs_slot_filament": { "name": "Filamento (caja CFS {box_id}, ranura {slot})" },
@@ -251,7 +330,8 @@
       "reconnect": { "name": "Reconectar" }
     },
     "number": {
-      "print_tuning_pct": { "name": "Ajuste de impresión" },
+      "print_tuning_pct": { "name": "Factor de velocidad" },
+      "flow_rate_pct": { "name": "Factor de flujo" },
       "nozzle_target": { "name": "Objetivo de la boquilla" },
       "bed_target": { "name": "Objetivo de la cama" },
       "chamber_target": { "name": "Objetivo de la cámara" }
@@ -274,11 +354,11 @@
   "services": {
     "diagnostic_dump": {
       "name": "Volcado de diagnóstico",
-      "description": "Vuelca todos los datos de telemetría WebSocket de las impresoras Creality conectadas en formato JSON para resolución de problemas y análisis.",
+      "description": "Recopila los diagnósticos de todas las impresoras Creality y los devuelve como respuesta, para resolver problemas. También se escriben en el registro.",
       "fields": {
         "include_sensitive_data": {
           "name": "Incluir datos sensibles",
-          "description": "Si se deben incluir datos potencialmente sensibles en la salida de diagnóstico (actualmente sin uso, reservado para uso futuro)"
+          "description": "Muestra las direcciones y los nombres de red de las impresoras, los destinos de notificación y los tokens de acceso en lugar de ocultarlos. Déjalo desactivado para todo lo que compartas públicamente."
         }
       }
     },

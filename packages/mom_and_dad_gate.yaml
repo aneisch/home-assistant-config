@@ -115,6 +115,6 @@ automation:
   #           {% elif trigger.id == 'garage' %}
   #             cover.mom_and_dad_garage_mom_and_dad_garage
   #           {% endif %}
-  #     - action: notify.signal_self
+  #     - action: notify.signal_homeassistant
   #       data:
   #         message: "Mom and Dad {% if trigger.id == 'gate' %}gate{% elif trigger.id == 'garage' %}garage{% endif %} toggled by {{ trigger.json['email'] }}"

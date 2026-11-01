@@ -150,6 +150,20 @@ async def async_settled_orphaned_statistic_ids(hass: HomeAssistant) -> set[str]:
     }
 
 
+@callback
+def async_statistics_still_settling(hass: HomeAssistant) -> bool:
+    """Return whether anything that looks abandoned is still being waited on.
+
+    Asked after `async_settled_orphaned_statistic_ids`, which does the
+    sorting into settled and not yet.
+    """
+    now = dt_util.utcnow()
+    return any(
+        now - first_seen < _SETTLING_TIME
+        for first_seen in hass.data.get(DATA_ABANDONED_SINCE, {}).values()
+    )
+
+
 async def async_abandoned_statistic_ids(hass: HomeAssistant) -> set[str]:
     """Return the statistics with no entity of any kind behind them.
 
